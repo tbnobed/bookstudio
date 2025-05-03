@@ -49,7 +49,7 @@ export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
-  studioId: integer("studio_id").notNull(),
+  studioId: integer("studio_id"), // Can be null for facility-wide alerts/maintenance
   userId: integer("user_id").notNull(),
   start: timestamp("start").notNull(),
   end: timestamp("end").notNull(),
