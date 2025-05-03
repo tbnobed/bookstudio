@@ -78,7 +78,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                     <div 
                       key={alert.id}
                       className={cn(
-                        "relative group border rounded-md p-1 mb-1 overflow-hidden text-overflow-ellipsis whitespace-nowrap text-xs",
+                        "relative group border rounded-md px-2 py-1 mb-1 overflow-visible text-xs",
                         colorClass,
                         "transition-all hover:shadow-md cursor-pointer"
                       )}
@@ -86,47 +86,23 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                         e.stopPropagation();
                         handleAlertEditClick(alert);
                       }}
+                      title={`${alert.title}
+Type: ${alert.type === "maintenance" ? "Maintenance" : "IT Support"}
+Severity: ${alert.severity}
+Time: ${formatTime(new Date(alert.start))} - ${formatTime(new Date(alert.end))}
+${alert.description ? `Description: ${alert.description}` : ''}
+(Click to edit)`}
                     >
-                      <div className="font-medium truncate flex items-center">
+                      <div className="flex items-center w-full">
                         <span className={`w-2 h-2 rounded-full mr-1 flex-shrink-0 ${
                           alert.severity === "critical" ? "bg-red-500" : 
                           alert.severity === "high" ? "bg-orange-500" :
                           alert.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
                         }`}></span>
-                        <span className="truncate">{alert.title}</span>
+                        <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">{alert.title}</span>
                       </div>
-                      <div className="text-xs truncate pl-3">
+                      <div className="text-xs pl-3">
                         {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
-                      </div>
-                      
-                      {/* Tooltip on hover */}
-                      <div className="absolute z-30 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white p-2 rounded-md shadow-lg border border-gray-200 w-56 left-1/2 -translate-x-1/2 top-full mt-1 text-left">
-                        {/* Pointer triangle */}
-                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-b-white"></div>
-                        
-                        <div className="font-semibold mb-1">{alert.title}</div>
-                        <div className="text-xs mb-1 text-gray-600">
-                          {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
-                        </div>
-                        <div className="text-xs mb-1">
-                          <span className="font-medium">Type:</span> {alert.type === "maintenance" ? "Maintenance" : "IT Support"}
-                        </div>
-                        <div className="text-xs mb-1">
-                          <span className="font-medium">Severity:</span> 
-                          <span className={`inline-block ml-1 px-1.5 py-0.5 rounded-full text-xs font-semibold ${
-                            alert.severity === "critical" ? "bg-red-100 text-red-800" : 
-                            alert.severity === "high" ? "bg-orange-100 text-orange-800" :
-                            alert.severity === "medium" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"
-                          }`}>
-                            {alert.severity}
-                          </span>
-                        </div>
-                        {alert.description && (
-                          <div className="text-xs">
-                            <span className="font-medium">Description:</span> {alert.description}
-                          </div>
-                        )}
-                        <div className="text-xs mt-2 italic bg-gray-50 p-1 rounded text-center">Click to edit</div>
                       </div>
                     </div>
                   );
