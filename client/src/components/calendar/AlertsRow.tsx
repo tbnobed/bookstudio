@@ -105,7 +105,13 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
               <div className="flex flex-col items-center justify-center h-full">
                 <span className="text-xs text-gray-400">No alerts</span>
                 {canCreateAlerts && (
-                  <span className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer mt-0.5">
+                  <span 
+                    className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer mt-0.5"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent parent click handler
+                      handleCellClick(date);
+                    }}
+                  >
                     + Add facility alert
                   </span>
                 )}
