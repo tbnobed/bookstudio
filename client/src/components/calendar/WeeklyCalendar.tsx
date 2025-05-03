@@ -7,6 +7,7 @@ import StudioRow from "./StudioRow";
 import AlertsRow from "./AlertsRow";
 import BookingModal from "../booking/BookingModal";
 import AlertModal from "../alerts/AlertModal";
+import { useStudioBookings } from "@/hooks/useStudioBookings";
 
 interface WeeklyCalendarProps {
   currentDate: Date;
@@ -34,10 +35,8 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
   const weekEnd = weekDates[6] ? new Date(weekDates[6]) : new Date();
   weekEnd.setHours(23, 59, 59, 999);
 
-  const { data: bookings = [] } = useQuery<Booking[]>({
-    queryKey: [`/api/bookings?start=${weekStart.toISOString()}&end=${weekEnd.toISOString()}`],
-    enabled: weekDates.length > 0,
-  });
+  // Import useStudioBookings to use the date-aware hook
+  const { bookings = [] } = useStudioBookings(weekStart, weekEnd);
 
   // Filter studios if selectedStudioIds is provided
   const filteredStudios = selectedStudioIds.length > 0

@@ -20,6 +20,23 @@ interface AlertsRowProps {
   onAlertClick: (booking: ApiBooking) => void;
 }
 
+// Helper function to determine if an alert is an all-day alert
+function isAllDayAlert(alert: ApiBooking): boolean {
+  const startDate = new Date(alert.start);
+  const endDate = new Date(alert.end);
+  
+  // Check if the alert starts at the beginning of the day (midnight)
+  const isStartMidnight = startDate.getHours() === 0 && startDate.getMinutes() === 0;
+  
+  // Check if the alert ends at the end of the day (11:59:59 PM)
+  const isEndBeforeMidnight = 
+    endDate.getHours() === 23 && 
+    endDate.getMinutes() === 59 &&
+    (endDate.getSeconds() === 59 || endDate.getSeconds() === 0);
+  
+  return isStartMidnight && isEndBeforeMidnight;
+}
+
 export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRowProps) {
   const { user } = useAuthContext();
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
@@ -58,6 +75,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
         // Only include facility-wide alerts (with null studioId) in this row
         const dayAlerts = alerts.filter(alert => {
           const alertStart = new Date(alert.start);
+          const alertEnd = new Date(alert.end);
           console.log(`Alert #${alert.id} - ${alert.title}: ${alertStart.toISOString()}`);
           
           // Cast the alert to our API interface type which includes snake_case properties
@@ -68,9 +86,25 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           
           // Debug the matching process
           console.log(`Alert ${alert.id} - Studio ID: ${apiAlert.studio_id}, Is facility-wide: ${isFacilityWideAlert}`);
-          console.log(`Comparing alert day: ${alertStart.getFullYear()}-${alertStart.getMonth()}-${alertStart.getDate()} to day cell: ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} - Same day: ${isSameDay(alertStart, date)}`);
           
-          return isSameDay(alertStart, date) && 
+          // Check if the alert overlaps with this date
+          // An alert overlaps if:
+          // 1. The date is between the alert start and end dates (inclusive)
+          // 2. For all-day or multi-day alerts, we need to check if this date falls within the range
+          
+          const startOfDay = new Date(date);
+          startOfDay.setHours(0, 0, 0, 0);
+          
+          const endOfDay = new Date(date);
+          endOfDay.setHours(23, 59, 59, 999);
+          
+          // Check if there's any overlap between the alert and this day
+          const overlapsWithDay = 
+            (alertStart <= endOfDay && alertEnd >= startOfDay);
+          
+          console.log(`Alert ${alert.id} - checking overlap with ${date.toDateString()}: ${overlapsWithDay}`);
+          
+          return overlapsWithDay && 
             (alert.type === "maintenance" || alert.type === "it_support") &&
             isFacilityWideAlert;
         });
@@ -129,7 +163,12 @@ ${alert.description ? `Description: ${alert.description}` : ''}
                         <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">{alert.title}</span>
                       </div>
                       <div className="text-xs pl-3">
-                        {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
+                        {/* Check if it's an all-day alert by comparing times */}
+                        {isAllDayAlert(alert) ? (
+                          <span className="font-medium">All Day</span>
+                        ) : (
+                          <>{formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}</>
+                        )}
                       </div>
                     </div>
                   );
