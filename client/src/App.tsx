@@ -12,17 +12,23 @@ import Settings from "@/pages/Settings";
 import { useEffect, useState } from "react";
 import ToastNotification from "@/components/ui/toast-notification";
 import AuthPage from "@/pages/auth-page";
+import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
   const [location, setLocation] = useLocation();
-
-  // For now, ensure we only show AuthPage until login is implemented
+  
   return (
     <Switch>
-      <Route path="/login" component={AuthPage} />
       <Route path="/auth" component={AuthPage} />
-      <Route path="/" component={AuthPage} />
-      <Route component={AuthPage} />
+      <Route path="/login" component={AuthPage} />
+      <ProtectedRoute path="/" component={CalendarPage} />
+      <ProtectedRoute path="/calendar" component={CalendarPage} />
+      <ProtectedRoute path="/my-bookings" component={MyBookingsPage} />
+      <ProtectedRoute path="/templates" component={TemplatesPage} />
+      <ProtectedRoute path="/reports" component={ReportsPage} />
+      <ProtectedRoute path="/users" component={UserManagement} />
+      <ProtectedRoute path="/settings" component={Settings} />
+      <Route component={NotFound} />
     </Switch>
   );
 }
@@ -32,7 +38,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   
   // Check if we're on an auth page
-  const isAuthPage = location === "/auth" || location === "/login" || location === "/";
+  const isAuthPage = location === "/auth" || location === "/login";
   
   return (
     <div className="flex h-screen overflow-hidden">

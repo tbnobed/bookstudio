@@ -110,10 +110,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Make sure user is explicitly null if undefined
   return (
     <AuthContext.Provider
       value={{
-        user,
+        user: user || null,
         isLoading,
         error,
         loginMutation,

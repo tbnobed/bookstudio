@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -80,7 +81,8 @@ export default function AuthPage() {
         title: "Login successful",
         description: `Welcome back, ${user.name || user.username}!`,
       });
-      setLocation("/");
+      // Force page reload to ensure auth state is properly captured
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
@@ -117,7 +119,8 @@ export default function AuthPage() {
         title: "Registration successful",
         description: `Welcome, ${user.name || user.username}! Your account has been created.`,
       });
-      setLocation("/");
+      // Force page reload to ensure auth state is properly captured
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
