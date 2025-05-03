@@ -23,7 +23,9 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
 
   return (
     <>
-      <div className="h-24 border-b"></div>
+      <div className="h-24 border-b flex items-center px-2">
+        <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
+      </div>
       {weekDates.map((date, index) => {
         // Filter bookings for this date and studio
         const dayBookings = bookings.filter(booking => 

@@ -84,14 +84,8 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
 
           {/* Calendar Time Grid */}
           <div className="relative">
-            {/* Studios List */}
-            <div className="absolute left-0 top-0 z-20 w-[80px] bg-white border-r">
-              {filteredStudios.map((studio) => (
-                <div key={studio.id} className="h-24 border-b px-2 flex items-center">
-                  <div className="text-xs font-medium text-gray-700 truncate">{studio.name}</div>
-                </div>
-              ))}
-            </div>
+            {/* We no longer need this absolute positioned list since we now include
+                 the studio name directly in each StudioRow */}
 
             {/* Calendar Grid */}
             <div className="grid grid-cols-[80px_repeat(7,1fr)]">
