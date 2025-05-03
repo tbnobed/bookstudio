@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Booking } from "@shared/schema";
 import { formatTime, isWeekend, isSameDay } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 interface AlertsRowProps {
   weekDates: Date[];
