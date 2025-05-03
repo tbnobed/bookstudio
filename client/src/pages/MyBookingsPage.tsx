@@ -1,0 +1,200 @@
+import { useState } from "react";
+import { Header } from "@/components/layout/Header";
+import { useStudioBookings } from "@/hooks/useStudioBookings";
+import { useQuery } from "@tanstack/react-query";
+import { Studio } from "@shared/schema";
+import { formatDateTimeRange } from "@/lib/dateUtils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import BookingModal from "@/components/booking/BookingModal";
+import { useAuth } from "@/hooks/useAuth";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+export default function MyBookingsPage() {
+  const { user } = useAuth();
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const { userBookings, isLoading, deleteBooking } = useStudioBookings();
+  const [editBookingId, setEditBookingId] = useState<number | null>(null);
+  const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
+  
+  // Fetch studios to display names
+  const { data: studios = [] } = useQuery<Studio[]>({
+    queryKey: ["/api/studios"],
+  });
+
+  // Get studio name by ID
+  const getStudioName = (studioId: number) => {
+    const studio = studios.find(s => s.id === studioId);
+    return studio ? studio.name : `Studio ${studioId}`;
+  };
+
+  // Get color for booking type
+  const getBookingTypeColor = (type: string) => {
+    switch (type) {
+      case "production":
+        return "bg-blue-100 text-blue-800 border-blue-300";
+      case "maintenance":
+        return "bg-amber-100 text-amber-800 border-amber-300";
+      case "it_support":
+        return "bg-red-100 text-red-800 border-red-300";
+      case "rehearsal":
+        return "bg-purple-100 text-purple-800 border-purple-300";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  };
+
+  // Format booking type for display
+  const formatBookingType = (type: string) => {
+    return type.replace("_", " ").split(" ").map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" ");
+  };
+
+  // Handle delete booking
+  const handleDeleteBooking = (id: number) => {
+    if (confirm("Are you sure you want to delete this booking?")) {
+      deleteBooking.mutate(id);
+    }
+  };
+
+  // Filter bookings
+  const upcomingBookings = userBookings.filter(booking => 
+    new Date(booking.start) >= new Date()
+  ).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+  const pastBookings = userBookings.filter(booking => 
+    new Date(booking.start) < new Date()
+  ).sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime());
+
+  // Find the booking to edit
+  const bookingToEdit = userBookings.find(booking => booking.id === editBookingId);
+
+  return (
+    <div className="flex flex-col h-screen">
+      <Header
+        currentDate={currentDate}
+        onDateChange={setCurrentDate}
+        view="week"
+        onViewChange={() => {}}
+        title="My Bookings"
+      />
+      
+      <div className="container mx-auto p-4 pb-16 overflow-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">My Bookings</h1>
+          <Button onClick={() => setIsNewBookingModalOpen(true)}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Booking
+          </Button>
+        </div>
+
+        <Tabs defaultValue="upcoming" className="w-full">
+          <TabsList>
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="past">Past</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="upcoming">
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : upcomingBookings.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                You don't have any upcoming bookings.
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {upcomingBookings.map(booking => (
+                  <Card key={booking.id} className="overflow-hidden">
+                    <div className={`h-2 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-lg">{booking.title}</h3>
+                        <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                          {formatBookingType(booking.type)}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-2">{getStudioName(booking.studioId)}</p>
+                      <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                      {booking.description && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
+                      )}
+                      <div className="flex justify-end space-x-2 mt-2">
+                        <Button variant="outline" size="sm" onClick={() => setEditBookingId(booking.id)}>
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => handleDeleteBooking(booking.id)}
+                          disabled={deleteBooking.isPending}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="past">
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : pastBookings.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                You don't have any past bookings.
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {pastBookings.map(booking => (
+                  <Card key={booking.id} className="overflow-hidden opacity-75">
+                    <div className={`h-2 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-lg">{booking.title}</h3>
+                        <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                          {formatBookingType(booking.type)}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-2">{getStudioName(booking.studioId)}</p>
+                      <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                      {booking.description && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Edit Booking Modal */}
+      {bookingToEdit && (
+        <BookingModal
+          isOpen={editBookingId !== null}
+          onClose={() => setEditBookingId(null)}
+          booking={bookingToEdit}
+        />
+      )}
+
+      {/* New Booking Modal */}
+      <BookingModal
+        isOpen={isNewBookingModalOpen}
+        onClose={() => setIsNewBookingModalOpen(false)}
+        selectedDate={currentDate}
+      />
+    </div>
+  );
+}
