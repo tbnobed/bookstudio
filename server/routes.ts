@@ -360,14 +360,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedBooking = await storage.updateBooking(id, updateData);
       
-      // Create notification for the booking owner
-      await storage.createNotification({
-        userId: booking.userId,
-        title: "Booking Updated",
-        message: `Your booking for "${booking.title}" has been updated.`,
-        type: "booking_updated",
-        bookingId: booking.id
-      });
+      // Only create notification if there's a user associated with this booking
+      // Facility-wide alerts may not have a specific user
+      if (booking.userId) {
+        try {
+          await storage.createNotification({
+            userId: booking.userId,
+            title: "Booking Updated",
+            message: `Your booking for "${booking.title}" has been updated.`,
+            type: "booking_updated",
+            bookingId: booking.id
+          });
+        } catch (notificationError) {
+          console.error("Error creating notification:", notificationError);
+          // Continue with the response even if notification creation fails
+        }
+      }
       
       res.json(updatedBooking);
     } catch (error) {
