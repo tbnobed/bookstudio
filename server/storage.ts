@@ -764,7 +764,26 @@ export class DatabaseStorage implements IStorage {
   
   async updateBooking(id: number, data: Partial<InsertBooking>): Promise<Booking | undefined> {
     try {
-      const [updatedBooking] = await db.update(bookings).set(data).where(eq(bookings.id, id)).returning();
+      // Process dates to ensure they're in the correct format
+      const processedData = { ...data };
+      
+      // Convert string dates to Date objects
+      if (processedData.start && typeof processedData.start === 'string') {
+        processedData.start = new Date(processedData.start);
+      }
+      
+      if (processedData.end && typeof processedData.end === 'string') {
+        processedData.end = new Date(processedData.end);
+      }
+      
+      console.log(`Updating booking ${id} with data:`, processedData);
+      
+      const [updatedBooking] = await db
+        .update(bookings)
+        .set(processedData)
+        .where(eq(bookings.id, id))
+        .returning();
+        
       if (updatedBooking) {
         this.bookings.set(id, updatedBooking);
       }
