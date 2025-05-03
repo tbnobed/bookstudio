@@ -131,7 +131,7 @@ export default function AlertModal({
     const alertData: Partial<InsertBooking> = {
       title,
       description,
-      studio_id: null, // Use snake_case to match API expectations
+      studioId: null, // Use camelCase to match the schema definitions
       type: alertType,
       start: localStartDate.toISOString(),
       end: localEndDate.toISOString(),
