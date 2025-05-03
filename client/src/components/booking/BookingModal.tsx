@@ -68,12 +68,10 @@ export default function BookingModal({
     queryKey: ["/api/studios"],
   });
 
-  const { data: templates = [] } = useQuery<Template[]>({
-    queryKey: ["/api/templates"],
-  });
+  // Templates are now provided by useStudioBookings hook
 
-  // Booking mutation
-  const { createBooking, updateBooking, deleteBooking } = useStudioBookings();
+  // Booking and template mutations with templates data
+  const { createBooking, updateBooking, deleteBooking, createTemplate, templates = [] } = useStudioBookings();
 
   // Set initial form values
   useEffect(() => {
@@ -236,14 +234,44 @@ export default function BookingModal({
         });
       } else {
         // Create new booking
-        await createBooking.mutateAsync(bookingData as InsertBooking);
+        const newBooking = await createBooking.mutateAsync(bookingData as InsertBooking);
         toast({
           title: "Success", 
           description: "Booking created successfully",
           variant: "default"
         });
         
-        // TODO: If saveAsTemplate is true, also save as a template
+        // If saveAsTemplate is true, also save as a template
+        if (formData.saveAsTemplate && formData.templateName) {
+          // Calculate duration in minutes
+          const durationMs = endDate.getTime() - startDate.getTime();
+          const durationMinutes = Math.floor(durationMs / 60000);
+          
+          const templateData: InsertTemplate = {
+            name: formData.templateName,
+            description: formData.description,
+            type: formData.bookingType,
+            duration: durationMinutes,
+            crewRequired: formData.notifyList,
+            createdBy: 1 // Assuming the logged-in user id is available, using 1 as admin for now
+          };
+          
+          try {
+            await createTemplate.mutateAsync(templateData);
+            toast({
+              title: "Success",
+              description: "Template saved successfully",
+              variant: "default"
+            });
+          } catch (templateError) {
+            console.error("Error saving template:", templateError);
+            toast({
+              title: "Warning",
+              description: "Booking was created but template could not be saved",
+              variant: "destructive"
+            });
+          }
+        }
       }
       
       // Reset form initialization state and close the modal

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Booking, InsertBooking } from "@shared/schema";
+import { Booking, InsertBooking, InsertTemplate, Template } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export function useStudioBookings(startDate?: Date, endDate?: Date) {
@@ -37,6 +37,12 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
     refetchOnWindowFocus: true,
   });
 
+  // Fetch templates
+  const templatesQuery = useQuery<Template[]>({
+    queryKey: ["/api/templates"],
+    refetchOnWindowFocus: true,
+  });
+
   // Create a booking
   const createBooking = useMutation({
     mutationFn: async (booking: InsertBooking) => {
@@ -56,6 +62,29 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
       toast({
         title: "Error",
         description: error.message || "Failed to create booking",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Create a template from booking data
+  const createTemplate = useMutation({
+    mutationFn: async (template: InsertTemplate) => {
+      const res = await apiRequest("POST", "/api/templates", template);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Your template has been saved successfully.",
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save template",
         variant: "destructive",
       });
     },
@@ -112,9 +141,11 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
   return {
     bookings: bookingsQuery.data || [],
     userBookings: userBookingsQuery.data || [],
+    templates: templatesQuery.data || [],
     isLoading: bookingsQuery.isLoading || userBookingsQuery.isLoading,
     isError: bookingsQuery.isError || userBookingsQuery.isError,
     createBooking,
+    createTemplate,
     updateBooking,
     deleteBooking,
   };
