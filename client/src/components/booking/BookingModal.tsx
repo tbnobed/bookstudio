@@ -40,6 +40,7 @@ export default function BookingModal({
   const [notifyList, setNotifyList] = useState<string[]>([]);
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [templateName, setTemplateName] = useState("");
+  const [severity, setSeverity] = useState("medium"); // low, medium, high, critical
 
   // Fetch data
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -153,6 +154,11 @@ export default function BookingModal({
       end: endDate.toISOString(),
       notifyList: notifyList,
     };
+    
+    // Add severity field for alerts
+    if (alertsOnly) {
+      bookingData.severity = severity;
+    }
     
     if (templateId) {
       bookingData.templateId = parseInt(templateId);
@@ -281,6 +287,44 @@ export default function BookingModal({
               </Select>
             </div>
           </div>
+          
+          {/* Severity field - only shown for alerts */}
+          {alertsOnly && (
+            <div>
+              <Label htmlFor="severity">Severity</Label>
+              <Select value={severity} onValueChange={setSeverity} required>
+                <SelectTrigger id="severity">
+                  <SelectValue placeholder="Select severity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                      Low - Informational
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="medium">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                      Medium - Planned Maintenance
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="high">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 rounded-full bg-orange-500 mr-2"></div>
+                      High - Urgent Issue
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="critical">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                      Critical - Outage
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           
           <div className="grid grid-cols-2 gap-4">
             <div>

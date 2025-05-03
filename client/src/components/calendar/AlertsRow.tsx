@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Booking } from "@shared/schema";
 import { formatTime, isWeekend, isSameDay } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AlertsRowProps {
   weekDates: Date[];
@@ -11,13 +12,20 @@ interface AlertsRowProps {
 }
 
 export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRowProps) {
+  const { user } = useAuth();
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  
+  // Check if user has permission to create alerts (only engineers and admins)
+  const canCreateAlerts = user?.role === "engineer" || user?.role === "admin" || user?.role === "it";
 
   // Handle cell click to create a new alert
   const handleCellClick = (date: Date) => {
-    setSelectedDate(date);
-    setIsNewAlertModalOpen(true);
+    // Only allow alert creation for users with permissions
+    if (canCreateAlerts) {
+      setSelectedDate(date);
+      setIsNewAlertModalOpen(true);
+    }
   };
 
   return (
@@ -73,9 +81,11 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
                 <span className="text-xs text-gray-400">No alerts</span>
-                <span className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer mt-0.5">
-                  + Add alert
-                </span>
+                {canCreateAlerts && (
+                  <span className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer mt-0.5">
+                    + Add alert
+                  </span>
+                )}
               </div>
             )}
           </div>
