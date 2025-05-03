@@ -115,10 +115,10 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Auth form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="w-full md:w-1/2 flex items-center justify-center p-2">
+        <Card className="w-full max-w-md p-2">
           <CardHeader>
-            <div className="flex justify-center mb-10">
+            <div className="flex justify-center mb-4">
               <img src={logoPath} alt="BookStud.io logo" className="h-60 w-auto" />
             </div>
             <CardDescription className="text-center">
@@ -270,7 +270,7 @@ export default function AuthPage() {
       {/* Right side - Hero section */}
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary to-primary-foreground flex-col justify-center items-center p-8 text-white">
         <div className="max-w-md space-y-6">
-          <div className="mb-10">
+          <div className="mb-4">
             <img src={logoPath} alt="BookStud.io logo" className="h-60 w-auto" />
           </div>
           <p className="text-xl">
