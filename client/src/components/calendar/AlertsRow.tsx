@@ -78,9 +78,9 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                     <div 
                       key={alert.id}
                       className={cn(
-                        "border rounded-md p-1 mb-1 overflow-hidden text-overflow-ellipsis whitespace-nowrap text-xs",
+                        "relative group border rounded-md p-1 mb-1 overflow-hidden text-overflow-ellipsis whitespace-nowrap text-xs",
                         colorClass,
-                        "transition-colors hover:bg-opacity-80"
+                        "transition-all hover:shadow-md cursor-pointer"
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -88,15 +88,45 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                       }}
                     >
                       <div className="font-medium truncate flex items-center">
-                        <span className={`w-2 h-2 rounded-full mr-1 ${
+                        <span className={`w-2 h-2 rounded-full mr-1 flex-shrink-0 ${
                           alert.severity === "critical" ? "bg-red-500" : 
                           alert.severity === "high" ? "bg-orange-500" :
                           alert.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
                         }`}></span>
-                        {alert.title}
+                        <span className="truncate">{alert.title}</span>
                       </div>
                       <div className="text-xs truncate pl-3">
                         {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
+                      </div>
+                      
+                      {/* Tooltip on hover */}
+                      <div className="absolute z-30 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white p-2 rounded-md shadow-lg border border-gray-200 w-56 left-1/2 -translate-x-1/2 top-full mt-1 text-left">
+                        {/* Pointer triangle */}
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-b-white"></div>
+                        
+                        <div className="font-semibold mb-1">{alert.title}</div>
+                        <div className="text-xs mb-1 text-gray-600">
+                          {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
+                        </div>
+                        <div className="text-xs mb-1">
+                          <span className="font-medium">Type:</span> {alert.type === "maintenance" ? "Maintenance" : "IT Support"}
+                        </div>
+                        <div className="text-xs mb-1">
+                          <span className="font-medium">Severity:</span> 
+                          <span className={`inline-block ml-1 px-1.5 py-0.5 rounded-full text-xs font-semibold ${
+                            alert.severity === "critical" ? "bg-red-100 text-red-800" : 
+                            alert.severity === "high" ? "bg-orange-100 text-orange-800" :
+                            alert.severity === "medium" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"
+                          }`}>
+                            {alert.severity}
+                          </span>
+                        </div>
+                        {alert.description && (
+                          <div className="text-xs">
+                            <span className="font-medium">Description:</span> {alert.description}
+                          </div>
+                        )}
+                        <div className="text-xs mt-2 italic bg-gray-50 p-1 rounded text-center">Click to edit</div>
                       </div>
                     </div>
                   );
@@ -105,29 +135,35 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                 {/* Even when there are alerts, still show the + Add button */}
                 {canCreateAlerts && (
                   <div 
-                    className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer mt-1 text-center bg-white/50 hover:bg-white/80 py-0.5 rounded"
+                    className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer mt-1.5 text-center bg-blue-50 hover:bg-blue-100 py-0.5 px-1 rounded border border-blue-200 shadow-sm flex items-center justify-center gap-1 transition-all hover:shadow"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleCellClick(date);
                     }}
                   >
-                    + Add alert
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span className="font-medium">Add alert</span>
                   </div>
                 )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
-                <span className="text-xs text-gray-400">No alerts</span>
+                <span className="text-xs text-gray-400 mb-1">No alerts</span>
                 {canCreateAlerts && (
-                  <span 
-                    className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer mt-0.5"
+                  <div 
+                    className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer text-center bg-blue-50 hover:bg-blue-100 py-0.5 px-2 rounded border border-blue-200 shadow-sm flex items-center justify-center gap-1 transition-all hover:shadow"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent parent click handler
                       handleCellClick(date);
                     }}
                   >
-                    + Add facility alert
-                  </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span className="font-medium">Add facility alert</span>
+                  </div>
                 )}
               </div>
             )}
