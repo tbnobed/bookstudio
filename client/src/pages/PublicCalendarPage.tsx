@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DateRange, addDays, startOfWeek, endOfWeek, format, addWeeks, subWeeks, isWithinInterval } from 'date-fns';
+import { addDays, startOfWeek, endOfWeek, format, addWeeks, subWeeks, isWithinInterval } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { 
-  BookingDisplay, 
-  WeeklyDisplay,
-  DailyDisplay,
-  MonthlyDisplay
-} from '@/components/calendar';
+import WeeklyCalendar from '@/components/calendar/WeeklyCalendar';
+import DailyCalendar from '@/components/calendar/DailyCalendar';
+import MonthlyCalendar from '@/components/calendar/MonthlyCalendar';
 import { Studio } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import Logo from '@/components/layout/Logo';
+
+// Define our own DateRange type since it's not exported from date-fns
+interface DateRange {
+  start: Date;
+  end: Date;
+}
 
 export interface ApiBooking {
   id: number;
@@ -159,7 +161,10 @@ function PublicCalendarPage() {
       <header className="sticky top-0 z-30 border-b bg-background px-4 py-2 shadow-sm sm:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Logo />
+            <div className="flex items-center">
+              <Calendar className="h-6 w-6 mr-2" />
+              <span className="font-bold text-xl">BookStud.io</span>
+            </div>
             <h1 className="ml-2 text-2xl font-bold">Public Calendar</h1>
           </div>
         </div>
@@ -235,7 +240,7 @@ function PublicCalendarPage() {
           {/* Calendar Views */}
           <div className="mt-2">
             {viewType === 'daily' && (
-              <DailyDisplay
+              <DailyCalendar
                 date={currentDate}
                 studios={studios}
                 bookings={filteredBookings}
@@ -243,7 +248,7 @@ function PublicCalendarPage() {
               />
             )}
             {viewType === 'weekly' && (
-              <WeeklyDisplay
+              <WeeklyCalendar
                 startDate={dateRange.start || new Date()}
                 studios={studios}
                 bookings={filteredBookings}
@@ -251,7 +256,7 @@ function PublicCalendarPage() {
               />
             )}
             {viewType === 'monthly' && (
-              <MonthlyDisplay
+              <MonthlyCalendar
                 date={currentDate}
                 studios={studios}
                 bookings={filteredBookings}

@@ -12,6 +12,7 @@ import Settings from "@/pages/Settings";
 import { useEffect, useState } from "react";
 import ToastNotification from "@/components/ui/toast-notification";
 import AuthPage from "@/pages/auth-page";
+import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
     <Switch>
       <Route path="/auth" component={AuthPage} />
       <Route path="/login" component={AuthPage} />
+      <Route path="/public-calendar" component={PublicCalendarPage} />
       <ProtectedRoute path="/" component={CalendarPage} />
       <ProtectedRoute path="/calendar" component={CalendarPage} />
       <ProtectedRoute path="/my-bookings" component={MyBookingsPage} />
@@ -37,13 +39,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [location] = useLocation();
   
-  // Check if we're on an auth page
-  const isAuthPage = location === "/auth" || location === "/login";
+  // Check if we're on an auth page or public page (no sidebar needed)
+  const isPublicPage = location === "/auth" || location === "/login" || location === "/public-calendar";
   
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Only show sidebar and menu button when not on auth pages */}
-      {!isAuthPage && (
+      {/* Only show sidebar and menu button when not on public pages */}
+      {!isPublicPage && (
         <>
           {/* Mobile menu button */}
           <div className="lg:hidden absolute top-4 left-4 z-50">
@@ -63,7 +65,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       )}
       
       {/* Main Content - adjust margin based on whether sidebar is showing */}
-      <div className={`flex-1 ${!isAuthPage ? 'lg:ml-64' : ''} p-0`}>
+      <div className={`flex-1 ${!isPublicPage ? 'lg:ml-64' : ''} p-0`}>
         {children}
       </div>
     </div>
