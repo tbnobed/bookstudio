@@ -234,21 +234,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const bookingData = insertBookingSchema.parse(requestData);
       
-      // Check for booking conflicts
-      const existingBookings = await storage.getBookingsByStudio(bookingData.studioId);
-      const start = new Date(bookingData.start);
-      const end = new Date(bookingData.end);
+      // Check for booking conflicts (only for studio-specific bookings)
+      let conflict = false;
       
-      const conflict = existingBookings.some(booking => {
-        const bookingStart = new Date(booking.start);
-        const bookingEnd = new Date(booking.end);
+      if (bookingData.studioId !== null) {
+        const existingBookings = await storage.getBookingsByStudio(bookingData.studioId);
+        const start = new Date(bookingData.start);
+        const end = new Date(bookingData.end);
         
-        return (
-          (start >= bookingStart && start < bookingEnd) ||
-          (end > bookingStart && end <= bookingEnd) ||
-          (start <= bookingStart && end >= bookingEnd)
-        );
-      });
+        conflict = existingBookings.some(booking => {
+          const bookingStart = new Date(booking.start);
+          const bookingEnd = new Date(booking.end);
+          
+          return (
+            (start >= bookingStart && start < bookingEnd) ||
+            (end > bookingStart && end <= bookingEnd) ||
+            (start <= bookingStart && end >= bookingEnd)
+          );
+        });
+      }
       
       if (conflict) {
         return res.status(409).json({ message: "There is a booking conflict for this time slot" });
@@ -315,29 +319,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the update data
       const updateData = req.body;
       
-      // If changing dates, check for conflicts
-      if (updateData.start || updateData.end) {
+      // If changing dates, check for conflicts (only for studio-specific bookings)
+      if ((updateData.start || updateData.end) && (updateData.studioId !== null && booking.studioId !== null)) {
         const start = new Date(updateData.start || booking.start);
         const end = new Date(updateData.end || booking.end);
         const studioId = updateData.studioId || booking.studioId;
         
-        const existingBookings = await storage.getBookingsByStudio(studioId);
-        
-        const conflict = existingBookings.some(b => {
-          if (b.id === id) return false; // Skip the current booking
+        if (studioId !== null) {
+          const existingBookings = await storage.getBookingsByStudio(studioId);
           
-          const bookingStart = new Date(b.start);
-          const bookingEnd = new Date(b.end);
+          const conflict = existingBookings.some(b => {
+            if (b.id === id) return false; // Skip the current booking
+            
+            const bookingStart = new Date(b.start);
+            const bookingEnd = new Date(b.end);
+            
+            return (
+              (start >= bookingStart && start < bookingEnd) ||
+              (end > bookingStart && end <= bookingEnd) ||
+              (start <= bookingStart && end >= bookingEnd)
+            );
+          });
           
-          return (
-            (start >= bookingStart && start < bookingEnd) ||
-            (end > bookingStart && end <= bookingEnd) ||
-            (start <= bookingStart && end >= bookingEnd)
-          );
-        });
-        
-        if (conflict) {
-          return res.status(409).json({ message: "There is a booking conflict for this time slot" });
+          if (conflict) {
+            return res.status(409).json({ message: "There is a booking conflict for this time slot" });
+          }
         }
       }
       

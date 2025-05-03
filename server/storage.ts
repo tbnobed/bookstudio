@@ -32,7 +32,7 @@ export interface IStorage {
   // Booking management
   getBooking(id: number): Promise<Booking | undefined>;
   getAllBookings(): Promise<Booking[]>;
-  getBookingsByStudio(studioId: number): Promise<Booking[]>;
+  getBookingsByStudio(studioId: number | null): Promise<Booking[]>;
   getBookingsByUser(userId: number): Promise<Booking[]>;
   getBookingsByDateRange(start: Date, end: Date): Promise<Booking[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
@@ -221,7 +221,14 @@ export class MemStorage implements IStorage {
     return Array.from(this.bookings.values());
   }
 
-  async getBookingsByStudio(studioId: number): Promise<Booking[]> {
+  async getBookingsByStudio(studioId: number | null): Promise<Booking[]> {
+    if (studioId === null) {
+      // For facility-wide alerts, get bookings that have null studioId
+      return Array.from(this.bookings.values()).filter(
+        (booking) => booking.studioId === null
+      );
+    }
+    
     return Array.from(this.bookings.values()).filter(
       (booking) => booking.studioId === studioId
     );
