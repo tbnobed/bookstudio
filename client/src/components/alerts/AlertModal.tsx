@@ -20,6 +20,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
 import { generateTimeOptions, timeToDate } from "@/lib/dateUtils";
 
 interface AlertModalProps {
@@ -44,9 +56,10 @@ export default function AlertModal({
   const [startTime, setStartTime] = useState("9:00am");
   const [endTime, setEndTime] = useState("10:00am");
   const [notifyList, setNotifyList] = useState<string[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Booking mutation
-  const { createBooking, updateBooking } = useStudioBookings();
+  const { createBooking, updateBooking, deleteBooking } = useStudioBookings();
 
   // Set initial form values
   useEffect(() => {
@@ -133,6 +146,18 @@ export default function AlertModal({
     }
     
     onClose();
+  };
+  
+  // Handle alert deletion
+  const handleDelete = async () => {
+    if (alert) {
+      try {
+        await deleteBooking.mutateAsync(alert.id);
+        onClose();
+      } catch (error) {
+        console.error("Error deleting alert:", error);
+      }
+    }
   };
 
   // Toggle crew notifications
@@ -292,21 +317,67 @@ export default function AlertModal({
             </div>
           </div>
           
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={createBooking.isPending || updateBooking.isPending}>
-              {createBooking.isPending || updateBooking.isPending ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Processing...
-                </span>
-              ) : alert ? "Update Alert" : "Create Alert"}
-            </Button>
+          <DialogFooter className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {alert && (
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Alert</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this alert? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDelete}
+                        disabled={deleteBooking.isPending}
+                        className="bg-red-500 hover:bg-red-600"
+                      >
+                        {deleteBooking.isPending ? (
+                          <span className="flex items-center">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Deleting...
+                          </span>
+                        ) : "Delete Alert"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createBooking.isPending || updateBooking.isPending}>
+                {createBooking.isPending || updateBooking.isPending ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </span>
+                ) : alert ? "Update Alert" : "Create Alert"}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -375,8 +375,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = req.user as any;
       
-      // Check permissions: only the creator or admin can delete
-      if (booking.userId !== user.id && user.role !== "admin") {
+      // Check permissions: only the creator, admin, or engineer/it for maintenance can delete
+      if (
+        booking.userId !== user.id && 
+        user.role !== "admin" && 
+        !(["engineer", "it"].includes(user.role) && 
+          (booking.type === "maintenance" || booking.type === "it_support") && 
+          booking.studioId === null)
+      ) {
         return res.status(403).json({ message: "You don't have permission to delete this booking" });
       }
       
@@ -385,10 +391,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (success) {
         // Create notification for the booking owner if not the deleter
         if (booking.userId !== user.id) {
+          let deletedByRole = "administrator";
+          if (["engineer", "it"].includes(user.role)) {
+            deletedByRole = user.role === "engineer" ? "an engineer" : "IT support";
+          }
+          
           await storage.createNotification({
             userId: booking.userId,
-            title: "Booking Deleted",
-            message: `Your booking for "${booking.title}" has been deleted by an administrator.`,
+            title: booking.studioId === null ? "Alert Deleted" : "Booking Deleted",
+            message: booking.studioId === null
+              ? `Your facility alert "${booking.title}" has been deleted by ${deletedByRole}.`
+              : `Your booking for "${booking.title}" has been deleted by ${deletedByRole}.`,
             type: "booking_deleted",
             bookingId: booking.id
           });
