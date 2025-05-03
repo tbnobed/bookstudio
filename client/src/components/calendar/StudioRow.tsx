@@ -43,12 +43,21 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
             onClick={() => handleCellClick(date)}
           >
             {dayBookings.map((booking, bookingIndex) => {
-              // Determine color based on booking type
+              // Determine color based on booking type and severity for alerts
               let colorClass = "bg-blue-100 border-blue-300 text-blue-800";
-              if (booking.type === "maintenance") {
-                colorClass = "bg-amber-100 border-amber-300 text-amber-800";
-              } else if (booking.type === "it_support") {
-                colorClass = "bg-red-500 border-red-600 text-white";
+              
+              // For alerts (maintenance and IT support), use severity
+              if (booking.type === "maintenance" || booking.type === "it_support") {
+                if (booking.severity === "critical") {
+                  colorClass = "bg-red-100 border-red-500 border text-red-800 shadow-sm";
+                } else if (booking.severity === "high") {
+                  colorClass = "bg-orange-100 border-orange-400 border text-orange-800 shadow-sm";
+                } else if (booking.severity === "medium") {
+                  colorClass = "bg-amber-100 border-amber-400 border text-amber-800 shadow-sm";
+                } else {
+                  // Low severity or undefined
+                  colorClass = "bg-blue-100 border-blue-400 border text-blue-800 shadow-sm";
+                }
               } else if (booking.type === "rehearsal") {
                 colorClass = "bg-purple-100 border-purple-300 text-purple-800";
               } else if (booking.type === "production") {
@@ -67,7 +76,16 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
                     onBookingClick(booking);
                   }}
                 >
-                  <div className="font-medium">{booking.title}</div>
+                  <div className="font-medium truncate flex items-center">
+                    {(booking.type === "maintenance" || booking.type === "it_support") && (
+                      <span className={`w-2 h-2 rounded-full mr-1 ${
+                        booking.severity === "critical" ? "bg-red-500" : 
+                        booking.severity === "high" ? "bg-orange-500" :
+                        booking.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
+                      }`}></span>
+                    )}
+                    {booking.title}
+                  </div>
                   <div className="text-xs">
                     {formatTime(booking.start)} - {formatTime(booking.end)}
                   </div>

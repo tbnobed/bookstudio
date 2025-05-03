@@ -12,7 +12,7 @@ interface AlertsRowProps {
 }
 
 export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRowProps) {
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
@@ -53,10 +53,16 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
             {dayAlerts.length > 0 ? (
               <div className="flex flex-col h-full w-full p-1 overflow-hidden">
                 {dayAlerts.map((alert) => {
-                  // Determine color based on alert type
-                  const colorClass = alert.type === "maintenance" 
-                    ? "bg-amber-100 border-amber-400 border text-amber-800 shadow-sm"
-                    : "bg-red-100 border-red-500 border text-red-800 shadow-sm";
+                  // Determine color based on alert severity
+                  let colorClass = "bg-blue-100 border-blue-400 border text-blue-800 shadow-sm"; // default - low severity
+                  
+                  if (alert.severity === "critical") {
+                    colorClass = "bg-red-100 border-red-500 border text-red-800 shadow-sm";
+                  } else if (alert.severity === "high") {
+                    colorClass = "bg-orange-100 border-orange-400 border text-orange-800 shadow-sm";
+                  } else if (alert.severity === "medium") {
+                    colorClass = "bg-amber-100 border-amber-400 border text-amber-800 shadow-sm";
+                  }
                   
                   return (
                     <div 
@@ -70,8 +76,15 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                         onAlertClick(alert);
                       }}
                     >
-                      <div className="font-medium truncate">{alert.title}</div>
-                      <div className="text-xs truncate">
+                      <div className="font-medium truncate flex items-center">
+                        <span className={`w-2 h-2 rounded-full mr-1 ${
+                          alert.severity === "critical" ? "bg-red-500" : 
+                          alert.severity === "high" ? "bg-orange-500" :
+                          alert.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
+                        }`}></span>
+                        {alert.title}
+                      </div>
+                      <div className="text-xs truncate pl-3">
                         {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
                       </div>
                     </div>
