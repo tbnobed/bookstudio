@@ -712,26 +712,17 @@ export class DatabaseStorage implements IStorage {
   
   async getBookingsByDateRange(start: Date, end: Date): Promise<Booking[]> {
     try {
-      // Use SQL that doesn't rely on between() which has type issues with dates
-      const dateRangeBookings = await db.select().from(bookings).where(
-        or(
-          // Event starts within the range
-          and(
-            gte(bookings.start, start),
-            lte(bookings.start, end)
-          ),
-          // Event ends within the range
-          and(
-            gte(bookings.end, start),
-            lte(bookings.end, end)
-          ),
-          // Event spans the entire range
-          and(
-            lte(bookings.start, start),
-            gte(bookings.end, end)
-          )
-        )
-      );
+      // Execute a raw query to avoid type issues with the dates
+      const query = `
+        SELECT * FROM bookings 
+        WHERE 
+          (start >= $1 AND start <= $2) OR
+          (end >= $1 AND end <= $2) OR
+          (start <= $1 AND end >= $2)
+      `;
+      
+      const result = await pool.query(query, [start, end]);
+      const dateRangeBookings = result.rows;
       
       console.log(`Found ${dateRangeBookings.length} bookings in date range ${start.toISOString()} to ${end.toISOString()}`);
       
