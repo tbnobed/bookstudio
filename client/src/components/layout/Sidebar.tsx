@@ -30,11 +30,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="flex flex-col h-full">
         <div className="p-4 border-b">
           <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 8.5v7L18.5 16l-1.5-.5v-7l1.5-.5zM4 4h16M4 20h16M4 8.5h7M4 15.5h7" />
-              <rect x="4" y="8.5" width="7" height="7" rx="2" />
-            </svg>
-            <h1 className="text-xl font-bold text-gray-800">Studio Booking</h1>
+            <img src="/assets/logo.png" alt="bookstud.io logo" className="h-8 w-8 mr-3" />
+            <h1 className="text-xl logo-text">bookstud.io</h1>
           </div>
         </div>
         
