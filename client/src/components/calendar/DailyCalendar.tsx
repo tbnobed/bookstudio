@@ -4,6 +4,7 @@ import { Booking, Studio } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { createTimeSlots, formatTime } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
+import AlertModal from "@/components/alerts/AlertModal";
 
 interface DailyCalendarProps {
   currentDate: Date;
@@ -14,6 +15,7 @@ export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: D
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ studio: Studio; time: string } | null>(null);
 
@@ -52,8 +54,16 @@ export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: D
 
   // Handle booking click for editing
   const handleBookingClick = (booking: Booking) => {
-    setEditBooking(booking);
-    setIsEditModalOpen(true);
+    // Check if it's a facility-wide alert
+    if ((booking.type === "maintenance" || booking.type === "it_support") && booking.studioId === null) {
+      // Use the dedicated AlertModal for facility-wide alerts
+      setEditBooking(booking);
+      setIsEditAlertModalOpen(true);
+    } else {
+      // Use regular BookingModal for studio bookings
+      setEditBooking(booking);
+      setIsEditModalOpen(true);
+    }
   };
 
   // Check if a booking overlaps with a time slot
@@ -158,12 +168,21 @@ export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: D
         </div>
       </div>
 
-      {/* Edit Booking Modal */}
+      {/* Edit Booking Modal - for studio bookings */}
       {editBooking && (
         <BookingModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           booking={editBooking}
+        />
+      )}
+      
+      {/* Edit Alert Modal - for facility-wide alerts */}
+      {editBooking && (
+        <AlertModal
+          isOpen={isEditAlertModalOpen}
+          onClose={() => setIsEditAlertModalOpen(false)}
+          alert={editBooking}
         />
       )}
 

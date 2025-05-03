@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import StudioRow from "./StudioRow";
 import AlertsRow from "./AlertsRow";
 import BookingModal from "../booking/BookingModal";
+import AlertModal from "../alerts/AlertModal";
 
 interface WeeklyCalendarProps {
   currentDate: Date;
@@ -16,8 +17,7 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
   const [weekDates, setWeekDates] = useState<Date[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
-  const [selectedAlertDate, setSelectedAlertDate] = useState<Date | null>(null);
+  const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   
   // Calculate week dates whenever current date changes
   useEffect(() => {
@@ -46,20 +46,22 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
 
   // Handle booking click for editing
   const handleBookingClick = (booking: Booking) => {
-    setEditBooking(booking);
-    setIsEditModalOpen(true);
+    // Check if it's a facility-wide alert
+    if ((booking.type === "maintenance" || booking.type === "it_support") && booking.studioId === null) {
+      // Use the dedicated AlertModal for facility-wide alerts
+      setEditBooking(booking);
+      setIsEditAlertModalOpen(true);
+    } else {
+      // Use regular BookingModal for studio bookings
+      setEditBooking(booking);
+      setIsEditModalOpen(true);
+    }
   };
   
   // Filter alerts (maintenance and IT support bookings)
   const alerts = bookings.filter(booking => 
     booking.type === "maintenance" || booking.type === "it_support"
   );
-  
-  // Handle alert creation
-  const handleAlertCreation = (date: Date) => {
-    setSelectedAlertDate(date);
-    setIsNewAlertModalOpen(true);
-  };
 
   return (
     <>
@@ -84,9 +86,6 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
 
           {/* Calendar Time Grid */}
           <div className="relative">
-            {/* We no longer need this absolute positioned list since we now include
-                 the studio name directly in each StudioRow */}
-
             {/* Calendar Grid */}
             <div className="grid grid-cols-[80px_repeat(7,1fr)]">
               {/* Alerts Row - First row of the grid */}
@@ -116,7 +115,7 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
         </div>
       </div>
 
-      {/* Edit Booking Modal */}
+      {/* Edit Booking Modal - for studio bookings */}
       {editBooking && (
         <BookingModal
           isOpen={isEditModalOpen}
@@ -125,13 +124,12 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
         />
       )}
 
-      {/* New Alert Modal */}
-      {selectedAlertDate && (
-        <BookingModal
-          isOpen={isNewAlertModalOpen}
-          onClose={() => setIsNewAlertModalOpen(false)}
-          selectedDate={selectedAlertDate}
-          alertsOnly={true}
+      {/* Edit Alert Modal - for facility-wide alerts */}
+      {editBooking && (
+        <AlertModal
+          isOpen={isEditAlertModalOpen}
+          onClose={() => setIsEditAlertModalOpen(false)}
+          alert={editBooking}
         />
       )}
     </>
