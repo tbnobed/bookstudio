@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Studio, Template, InsertBooking } from "@shared/schema";
 import { z } from "zod";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
-import { formatTime } from "@/lib/dateUtils";
+import { formatTime, generateTimeOptions, timeToDate } from "@/lib/dateUtils";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -126,34 +126,9 @@ export default function BookingModal({
       return;
     }
     
-    // Convert times to ISO format for API
-    const datePart = date;
-    
-    // Parse start time
-    let startHour = parseInt(startTime.split(":")[0]);
-    const startMinute = parseInt(startTime.split(":")[1].slice(0, 2));
-    const startPeriod = startTime.slice(-2).toLowerCase();
-    
-    if (startPeriod === "pm" && startHour < 12) {
-      startHour += 12;
-    } else if (startPeriod === "am" && startHour === 12) {
-      startHour = 0;
-    }
-    
-    // Parse end time
-    let endHour = parseInt(endTime.split(":")[0]);
-    const endMinute = parseInt(endTime.split(":")[1].slice(0, 2));
-    const endPeriod = endTime.slice(-2).toLowerCase();
-    
-    if (endPeriod === "pm" && endHour < 12) {
-      endHour += 12;
-    } else if (endPeriod === "am" && endHour === 12) {
-      endHour = 0;
-    }
-    
-    // Create start and end date objects
-    const startDate = new Date(`${datePart}T${startHour.toString().padStart(2, "0")}:${startMinute.toString().padStart(2, "0")}:00`);
-    const endDate = new Date(`${datePart}T${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}:00`);
+    // Convert times to date objects using our utility function
+    const startDate = timeToDate(date, startTime);
+    const endDate = timeToDate(date, endTime);
     
     const bookingData: Partial<InsertBooking> = {
       title,
@@ -206,19 +181,8 @@ export default function BookingModal({
         setDescription(selectedTemplate.description || "");
         setBookingType(selectedTemplate.type);
         
-        // Parse current start time to a Date object
-        const [timeStr, period] = startTime.split(/([ap]m)$/i);
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        let startHour = hours;
-        
-        if (period.toLowerCase() === 'pm' && startHour < 12) {
-          startHour += 12;
-        } else if (period.toLowerCase() === 'am' && startHour === 12) {
-          startHour = 0;
-        }
-        
-        const start = new Date(date);
-        start.setHours(startHour, minutes, 0, 0);
+        // Use our utility function to convert the time string to a Date object
+        const start = timeToDate(date, startTime);
         
         // Calculate end time based on template duration (in minutes)
         const end = new Date(start.getTime() + selectedTemplate.duration * 60000);
@@ -385,26 +349,34 @@ export default function BookingModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="start-time">Start Time</Label>
-              <Input
-                id="start-time"
-                type="text"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                placeholder="9:00am"
-                required
-              />
+              <Select value={startTime} onValueChange={setStartTime} required>
+                <SelectTrigger id="start-time">
+                  <SelectValue placeholder="Select start time" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {generateTimeOptions().map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div>
               <Label htmlFor="end-time">End Time</Label>
-              <Input
-                id="end-time"
-                type="text"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                placeholder="10:00am"
-                required
-              />
+              <Select value={endTime} onValueChange={setEndTime} required>
+                <SelectTrigger id="end-time">
+                  <SelectValue placeholder="Select end time" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {generateTimeOptions().map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           
