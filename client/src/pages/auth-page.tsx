@@ -118,7 +118,7 @@ export default function AuthPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="flex justify-center mb-2">
-              <img src="/assets/logo.png" alt="bookstud.io logo" className="h-12 w-12" />
+              <img src="/assets/logo.png" alt="BookStud.io logo" className="h-16 w-auto" />
             </div>
             <CardTitle className="text-center text-2xl logo-text">BookStud.io</CardTitle>
             <CardDescription className="text-center">
