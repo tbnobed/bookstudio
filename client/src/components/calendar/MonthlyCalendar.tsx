@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Booking } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { getMonthDays, MONTH_NAMES, isSameDay, formatTime } from "@/lib/dateUtils";
+import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 
 interface MonthlyCalendarProps {
   currentDate: Date;
@@ -56,7 +58,7 @@ export default function MonthlyCalendar({ currentDate }: MonthlyCalendarProps) {
     return cn(
       "h-32 border p-1 transition-colors duration-200",
       isCurrentMonth ? "bg-white" : "bg-gray-50 text-gray-400",
-      isToday && "bg-blue-50",
+      isToday && "bg-blue-50 border-blue-200",
       "cursor-pointer hover:bg-gray-100"
     );
   };
@@ -87,7 +89,12 @@ export default function MonthlyCalendar({ currentDate }: MonthlyCalendarProps) {
                 onClick={() => handleDayClick(date)}
               >
                 <div className="flex justify-between items-start">
-                  <span className="text-sm font-semibold">{date.getDate()}</span>
+                  <span className={cn(
+                    "text-sm font-semibold",
+                    isSameDay(date, new Date()) && "bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center"
+                  )}>
+                    {date.getDate()}
+                  </span>
                 </div>
                 
                 <div className="mt-1 space-y-1 max-h-[90px] overflow-y-auto text-xs">
@@ -105,14 +112,55 @@ export default function MonthlyCalendar({ currentDate }: MonthlyCalendarProps) {
                     }
                     
                     return (
-                      <div 
-                        key={booking.id}
-                        className={cn("p-1 rounded truncate", colorClass)}
-                        onClick={(e) => handleBookingClick(e, booking)}
-                      >
-                        <span className="font-medium">{booking.title}</span>
-                        <div>{formatTime(booking.start)}</div>
-                      </div>
+                      <HoverCard key={booking.id}>
+                        <HoverCardTrigger asChild>
+                          <div 
+                            className={cn("p-1 rounded truncate", colorClass)}
+                            onClick={(e) => handleBookingClick(e, booking)}
+                          >
+                            <span className="font-medium">{booking.title}</span>
+                            <div>{formatTime(booking.start)}</div>
+                          </div>
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-80 p-4">
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-semibold">{booking.title}</h4>
+                            <div className="space-y-1">
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <CalendarClock className="mr-1 h-3 w-3" />
+                                <span>{formatDate(booking.start)}</span>
+                              </div>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Clock className="mr-1 h-3 w-3" />
+                                <span>{formatTime(booking.start)} - {formatTime(booking.end)}</span>
+                              </div>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Tag className="mr-1 h-3 w-3" />
+                                <span className="capitalize">{booking.type.replace('_', ' ')}</span>
+                              </div>
+                              {booking.description && (
+                                <div className="flex items-start mt-2 text-xs text-muted-foreground">
+                                  <FileText className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
+                                  <span>{booking.description}</span>
+                                </div>
+                              )}
+                              {booking.notifyList && Array.isArray(booking.notifyList) && booking.notifyList.length > 0 && (
+                                <div className="mt-2">
+                                  <div className="text-xs font-medium mb-1">Notifying:</div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {booking.notifyList.map((crew: string, i: number) => (
+                                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
+                                        <User className="mr-1 h-3 w-3" />
+                                        {crew}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
                     );
                   })}
                   

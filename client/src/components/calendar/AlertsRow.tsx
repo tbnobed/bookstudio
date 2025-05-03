@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Booking } from "@shared/schema";
-import { formatTime, isWeekend, isSameDay } from "@/lib/dateUtils";
+import { formatTime, isWeekend, isSameDay, formatDate } from "@/lib/dateUtils";
 import AlertModal from "../alerts/AlertModal";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { queryClient } from "@/lib/queryClient";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { CalendarClock, Clock, FileText, AlertCircle, Bell } from "lucide-react";
 
 // Define an interface to match the API response format with snake_case
 interface ApiBooking extends Omit<Booking, 'studioId' | 'userId' | 'templateId' | 'createdAt' | 'notifyList'> {
