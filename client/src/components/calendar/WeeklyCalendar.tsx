@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import StudioRow from "./StudioRow";
+import AlertsRow from "./AlertsRow";
 import BookingModal from "../booking/BookingModal";
 
 interface WeeklyCalendarProps {
@@ -15,6 +16,8 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
   const [weekDates, setWeekDates] = useState<Date[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
+  const [selectedAlertDate, setSelectedAlertDate] = useState<Date | null>(null);
   
   // Calculate week dates whenever current date changes
   useEffect(() => {
@@ -45,6 +48,17 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
   const handleBookingClick = (booking: Booking) => {
     setEditBooking(booking);
     setIsEditModalOpen(true);
+  };
+  
+  // Filter alerts (maintenance and IT support bookings)
+  const alerts = bookings.filter(booking => 
+    booking.type === "maintenance" || booking.type === "it_support"
+  );
+  
+  // Handle alert creation
+  const handleAlertCreation = (date: Date) => {
+    setSelectedAlertDate(date);
+    setIsNewAlertModalOpen(true);
   };
 
   return (
@@ -79,6 +93,15 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
               ))}
             </div>
 
+            {/* Alerts Row */}
+            <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-200">
+              <AlertsRow
+                weekDates={weekDates}
+                alerts={alerts}
+                onAlertClick={handleBookingClick}
+              />
+            </div>
+              
             {/* Calendar Grid */}
             <div className="grid grid-cols-[80px_repeat(7,1fr)]">
               {filteredStudios.map((studio) => (
@@ -101,6 +124,16 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           booking={editBooking}
+        />
+      )}
+
+      {/* New Alert Modal */}
+      {selectedAlertDate && (
+        <BookingModal
+          isOpen={isNewAlertModalOpen}
+          onClose={() => setIsNewAlertModalOpen(false)}
+          selectedDate={selectedAlertDate}
+          alertsOnly={true}
         />
       )}
     </>

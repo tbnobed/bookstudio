@@ -229,7 +229,12 @@ export default function BookingModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{booking ? "Edit Booking" : "New Booking"}</DialogTitle>
+          <DialogTitle>
+            {booking 
+              ? (alertsOnly ? "Edit Alert" : "Edit Booking") 
+              : (alertsOnly ? "New Alert" : "New Booking")
+            }
+          </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -262,16 +267,16 @@ export default function BookingModal({
             </div>
             
             <div>
-              <Label htmlFor="type">Booking Type</Label>
+              <Label htmlFor="type">{alertsOnly ? "Alert Type" : "Booking Type"}</Label>
               <Select value={bookingType} onValueChange={setBookingType} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="production">Production</SelectItem>
+                  {!alertsOnly && <SelectItem value="production">Production</SelectItem>}
                   <SelectItem value="maintenance">Maintenance</SelectItem>
                   <SelectItem value="it_support">IT Support</SelectItem>
-                  <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                  {!alertsOnly && <SelectItem value="rehearsal">Rehearsal</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
@@ -408,9 +413,9 @@ export default function BookingModal({
                   Processing...
                 </span>
               ) : booking ? (
-                "Update Booking"
+                alertsOnly ? "Update Alert" : "Update Booking"
               ) : (
-                "Create Booking"
+                alertsOnly ? "Create Alert" : "Create Booking"
               )}
             </Button>
           </DialogFooter>
