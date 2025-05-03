@@ -4,10 +4,11 @@
 
 /* Custom styles for bookstud.io */
 .logo-text {
-  background: linear-gradient(90deg, #1e88e5 0%, #0d47a1 100%);
+  background: linear-gradient(90deg, #2196f3 0%, #1976d2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .booking-card {
@@ -31,7 +32,7 @@
 --card-foreground: 20 14.3% 4.1%;
 --border: 20 5.9% 90%;
 --input: 20 5.9% 90%;
---primary: 207 90% 54%;
+--primary: 200 98% 39%;
 --primary-foreground: 211 100% 99%;
 --secondary: 60 4.8% 95.9%;
 --secondary-foreground: 24 9.8% 10%;
@@ -53,7 +54,7 @@
 --card-foreground: 0 0% 98%;
 --border: 240 3.7% 15.9%;
 --input: 240 3.7% 15.9%;
---primary: 207 90% 54%;
+--primary: 200 98% 39%;
 --primary-foreground: 211 100% 99%;
 --secondary: 240 3.7% 15.9%;
 --secondary-foreground: 0 0% 98%;
