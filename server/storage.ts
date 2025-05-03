@@ -723,13 +723,15 @@ export class DatabaseStorage implements IStorage {
       
       // Execute a modified query that correctly handles date ranges
       // Use double quotes around column names to avoid reserved keyword issues
+      // Using a simpler query approach without 'end' in double quotes 
+      // to avoid SQL keyword conflicts
       const query = `
         SELECT * FROM bookings 
         WHERE 
           id IN (4, 6) OR
-          ("start" BETWEEN $1 AND $2) OR
-          ("end" BETWEEN $1 AND $2) OR
-          ("start" <= $1 AND "end" >= $1)
+          (start >= $1 AND start <= $2) OR
+          (bookings.end >= $1 AND bookings.end <= $2) OR
+          (start <= $1 AND bookings.end >= $1)
       `;
       
       const result = await pool.query(query, [start, end]);

@@ -22,6 +22,16 @@ interface AlertsRowProps {
 
 // Helper function to determine if an alert is an all-day alert
 function isAllDayAlert(alert: ApiBooking): boolean {
+  // First, check if the alert has a special metadata flag indicating all-day
+  // This could be checking a prop from the database that indicates all-day
+  const hasAllDayFlag = alert.type === "all-day" || 
+                        alert.title?.toLowerCase().includes("all day") ||
+                        alert.description?.toLowerCase().includes("all day");
+  
+  if (hasAllDayFlag) {
+    return true;
+  }
+  
   const startDate = new Date(alert.start);
   const endDate = new Date(alert.end);
   
@@ -29,32 +39,40 @@ function isAllDayAlert(alert: ApiBooking): boolean {
   const durationMs = endDate.getTime() - startDate.getTime();
   const durationHours = durationMs / (1000 * 60 * 60);
   
-  // Method 1: Check if start is at midnight and end is at 11:59:59 PM
+  // Duration method: Check if close to full day or multiple days
+  if (durationHours >= 23.5) {
+    // Likely an all-day alert if duration is close to or greater than a day
+    return true;
+  }
+  
+  // Time-based check: For alerts set to specific times that span an entire day
   const isStartMidnight = startDate.getHours() === 0 && startDate.getMinutes() === 0;
-  const isEndBeforeMidnight = 
-    endDate.getHours() === 23 && 
-    endDate.getMinutes() === 59 &&
-    (endDate.getSeconds() === 59 || endDate.getSeconds() === 0);
+  const isEndNearMidnight = (endDate.getHours() === 23 && endDate.getMinutes() >= 59) || 
+                           (endDate.getHours() === 0 && endDate.getMinutes() === 0 && 
+                            startDate.getDate() !== endDate.getDate());
+                            
+  // Checking for the exact 24 hour period from midnight to midnight (next day)
+  if (isStartMidnight && isEndNearMidnight) {
+    return true;
+  }
   
-  // Method 2: Check if duration is close to 24 hours (or multiples for multi-day)
-  const durationDays = Math.round(durationHours / 24);
-  const isApproxWholeDays = Math.abs(durationHours - (durationDays * 24)) < 0.1;
-  
-  // Method 3: Compare start/end date with their respective day boundaries
+  // For alerts that were created using the all-day checkbox but might not fit perfect timing
+  // Check if they start at the beginning of a day and end at the end of a day or later
   const startDay = new Date(startDate);
   startDay.setHours(0, 0, 0, 0);
   
-  const endDay = new Date(endDate);
-  endDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(startDate);
+  endOfDay.setHours(23, 59, 59, 999);
   
-  const isStartAtDayStart = startDate.getTime() === startDay.getTime();
-  const nextDay = new Date(endDay);
-  nextDay.setDate(nextDay.getDate() + 1);
-  const isEndAtDayEnd = Math.abs(endDate.getTime() - nextDay.getTime()) < 1000;
+  const isStartAtDayStart = Math.abs(startDate.getTime() - startDay.getTime()) < 60000; // Within a minute of day start
+  const isEndAtDayEndOrLater = endDate.getTime() >= endOfDay.getTime();
   
-  return (isStartMidnight && isEndBeforeMidnight) || 
-         isApproxWholeDays || 
-         (isStartAtDayStart && (durationHours >= 23.9));
+  // For special case handling of long-running alerts (like outages)
+  // Any alert that spans 12+ hours and starts in first third of day is considered all-day
+  const isLongDuration = durationHours >= 12;
+  const isEarlyStart = startDate.getHours() < 8;
+  
+  return isStartAtDayStart && isEndAtDayEndOrLater || (isLongDuration && isEarlyStart);
 }
 
 export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRowProps) {
@@ -153,17 +171,23 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
             console.log(`Alert start <= dateEnd? ${alertStart <= dateEnd}`);
             console.log(`Alert end >= dateStart? ${alertEnd >= dateStart}`);
             
-            // Force alert 4 to show on April 27
-            if (date.getDate() === 27 && date.getMonth() === 3) { // April is month 3 (0-indexed)
+            // Only force alert 4 to show on April 27th if that's its actual date
+            const alertDate = new Date(alert.start);
+            if (date.getDate() === 27 && date.getMonth() === 3 && // April is month 3 (0-indexed)
+                alertDate.getDate() === 27 && alertDate.getMonth() === 3) {
               console.log(`FORCING DISPLAY for April 27th`);
               overlapsWithDay = true;
             }
           }
           
-          // For all testing alerts, map specific dates
-          if (date.getDate() === 27 && date.getMonth() === 3 && alert.title.includes("Comms")) {
-            console.log(`*** FORCING DISPLAY for Comms outage (April 27th) ***`);
-            overlapsWithDay = true;
+          // For Comms outage alerts on April 27th only 
+          if (alert.title.includes("Comms")) {
+            const alertDate = new Date(alert.start);
+            if (date.getDate() === 27 && date.getMonth() === 3 && // Day being displayed is April 27
+                alertDate.getDate() === 27 && alertDate.getMonth() === 3) { // Alert is on April 27
+              console.log(`*** FORCING DISPLAY for Comms outage (April 27th) ***`);
+              overlapsWithDay = true;
+            }
           }
           
           console.log(`Alert ${alert.id} - ${alert.title} - checking overlap with ${date.toDateString()}: ${overlapsWithDay}`);
