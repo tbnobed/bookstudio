@@ -118,8 +118,8 @@ export default function AuthPage() {
       <div className="w-full md:w-1/2 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <div className="flex justify-center mb-6">
-              <img src={logoPath} alt="BookStud.io logo" className="h-32 w-auto" />
+            <div className="flex justify-center mb-10">
+              <img src={logoPath} alt="BookStud.io logo" className="h-60 w-auto" />
             </div>
             <CardDescription className="text-center">
               Sign in to your account or create a new one
@@ -270,8 +270,8 @@ export default function AuthPage() {
       {/* Right side - Hero section */}
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary to-primary-foreground flex-col justify-center items-center p-8 text-white">
         <div className="max-w-md space-y-6">
-          <div className="mb-6">
-            <img src={logoPath} alt="BookStud.io logo" className="h-32 w-auto" />
+          <div className="mb-10">
+            <img src={logoPath} alt="BookStud.io logo" className="h-60 w-auto" />
           </div>
           <p className="text-xl">
             The complete studio booking platform for broadcast facilities. Manage bookings, create templates, and track schedules all in one place.
