@@ -18,6 +18,9 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
   const [editAlert, setEditAlert] = useState<Booking | null>(null);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   
+  // Debug the alerts collection
+  console.log("All alerts in AlertsRow: ", JSON.stringify(alerts));
+  
   // Check if user has permission to create alerts (only engineers and admins)
   const canCreateAlerts = user?.role === "engineer" || user?.role === "admin" || user?.role === "it";
 
