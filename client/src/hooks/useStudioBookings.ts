@@ -26,11 +26,15 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
   const bookingsQuery = useQuery<Booking[]>({
     queryKey: ["/api/bookings" + getQueryString()],
     enabled: true,
+    refetchInterval: 3000, // Refetch every 3 seconds to keep UI in sync
+    refetchOnWindowFocus: true,
   });
 
   // Fetch user's bookings
   const userBookingsQuery = useQuery<Booking[]>({
     queryKey: ["/api/bookings/user"],
+    refetchInterval: 3000, // Refetch every 3 seconds
+    refetchOnWindowFocus: true,
   });
 
   // Create a booking

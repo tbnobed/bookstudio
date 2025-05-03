@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Booking } from "@shared/schema";
 import { formatTime, isWeekend, isSameDay } from "@/lib/dateUtils";
 import AlertModal from "../alerts/AlertModal";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { queryClient } from "@/lib/queryClient";
 
 // Define an interface to match the API response format with snake_case
 interface ApiBooking extends Omit<Booking, 'studioId' | 'userId' | 'templateId' | 'createdAt' | 'notifyList'> {
@@ -83,6 +84,16 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editAlert, setEditAlert] = useState<ApiBooking | null>(null);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
+  
+  // Set up auto-refresh of alerts data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Invalidate the bookings queries to force a refetch
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+    }, 2000); // Check every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
   
   // Debug the alerts collection
   console.log("All alerts in AlertsRow: ", JSON.stringify(alerts));

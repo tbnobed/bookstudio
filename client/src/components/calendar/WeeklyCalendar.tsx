@@ -26,9 +26,11 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
   }, [currentDate]);
 
   // Fetch studios
-  const { data: studios = [] } = useQuery<Studio[]>({
+  const studiosQuery = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
+    refetchInterval: 5000, // Refetch every 5 seconds
   });
+  const studios = studiosQuery.data || [];
 
   // Fetch bookings for the week
   const weekStart = weekDates[0] ? new Date(weekDates[0]) : new Date();
@@ -36,7 +38,17 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
   weekEnd.setHours(23, 59, 59, 999);
 
   // Import useStudioBookings to use the date-aware hook
-  const { bookings = [] } = useStudioBookings(weekStart, weekEnd);
+  const { bookings = [], isLoading: bookingsLoading } = useStudioBookings(weekStart, weekEnd);
+  
+  // Setup a polling effect to refetch bookings every 2 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Force re-render to pickup changes from the bookings query
+      setWeekDates([...getWeekDates(currentDate)]);
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [currentDate]);
 
   // Filter studios if selectedStudioIds is provided
   const filteredStudios = selectedStudioIds.length > 0
