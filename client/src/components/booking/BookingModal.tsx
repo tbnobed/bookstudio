@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -40,20 +41,28 @@ export default function BookingModal({
   selectedStudio,
   alertsOnly = false
 }: BookingModalProps) {
+  const { toast } = useToast();
+  const formInitializedRef = useRef(false);
+  
+  // Set default form values
+  const defaultValues = {
+    title: "",
+    description: "",
+    studioId: selectedStudio?.toString() || "",
+    bookingType: alertsOnly ? "maintenance" : "production",
+    date: selectedDate ? selectedDate.toISOString().split("T")[0] : "",
+    startTime: "9:00am",
+    endTime: "10:00am",
+    templateId: "",
+    notifyList: [] as string[],
+    saveAsTemplate: false,
+    templateName: "",
+    severity: "medium" // low, medium, high, critical
+  };
+  
   // State for form fields
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [studioId, setStudioId] = useState<string>("");
-  const [bookingType, setBookingType] = useState(alertsOnly ? "maintenance" : "production");
-  const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [templateId, setTemplateId] = useState<string>("");
-  const [notifyList, setNotifyList] = useState<string[]>([]);
-  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
-  const [templateName, setTemplateName] = useState("");
-  const [severity, setSeverity] = useState("medium"); // low, medium, high, critical
-
+  const [formData, setFormData] = useState({ ...defaultValues });
+  
   // Fetch data
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
@@ -68,157 +77,147 @@ export default function BookingModal({
 
   // Set initial form values
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !formInitializedRef.current) {
       if (booking) {
         // Edit mode - populate form with booking data
         console.log("Populating form with booking data:", booking);
-        setTitle(booking.title);
-        setDescription(booking.description || "");
         
-        // Handle potential property name differences (studioId vs studio_id)
-        if (booking.studioId !== undefined) {
-          setStudioId(booking.studioId ? booking.studioId.toString() : "");
-        } else if (booking.studio_id !== undefined) { 
-          setStudioId(booking.studio_id ? booking.studio_id.toString() : "");
-        }
+        // Handle potential property name differences and create a normalized booking object
+        const normalizedBooking = {
+          id: booking.id,
+          title: booking.title || "",
+          description: booking.description || "",
+          studioId: (booking.studioId !== undefined 
+            ? booking.studioId 
+            : booking.studio_id) || null,
+          type: booking.type || "",
+          start: booking.start,
+          end: booking.end,
+          templateId: (booking.templateId !== undefined 
+            ? booking.templateId 
+            : booking.template_id) || null,
+          notifyList: (booking.notifyList !== undefined 
+            ? booking.notifyList 
+            : booking.notify_list) || [],
+          severity: booking.severity || "medium"
+        };
         
-        // Check if type includes "all-day:" prefix and handle it
-        const bookingType = booking.type.replace("all-day:", "");
-        setBookingType(bookingType);
+        // Clean all-day prefix from type
+        const bookingType = normalizedBooking.type.replace("all-day:", "");
         
-        // Handle date formatting
-        const bookingDate = new Date(booking.start);
-        setDate(bookingDate.toISOString().split("T")[0]);
+        // Format the date and times
+        const bookingDate = new Date(normalizedBooking.start);
+        const dateStr = bookingDate.toISOString().split("T")[0];
+        const startTimeStr = formatTime(normalizedBooking.start).toLowerCase().replace(" ", "");
+        const endTimeStr = formatTime(normalizedBooking.end).toLowerCase().replace(" ", "");
         
-        // Format times properly
-        const formattedStartTime = formatTime(booking.start).toLowerCase().replace(" ", "");
-        const formattedEndTime = formatTime(booking.end).toLowerCase().replace(" ", "");
-        setStartTime(formattedStartTime);
-        setEndTime(formattedEndTime);
-        
-        // Handle templateId vs template_id
-        if (booking.templateId !== undefined) {
-          setTemplateId(booking.templateId ? booking.templateId.toString() : "");
-        } else if (booking.template_id !== undefined) {
-          setTemplateId(booking.template_id ? booking.template_id.toString() : "");
-        }
-        
-        // Handle notifyList vs notify_list
-        if (booking.notifyList !== undefined) {
-          setNotifyList(booking.notifyList || []);
-        } else if (booking.notify_list !== undefined) {
-          setNotifyList(booking.notify_list || []);
-        }
-        
-        // Set severity if it exists
-        if (booking.severity) {
-          setSeverity(booking.severity);
-        }
+        // Set the form data all at once to prevent partial updates
+        setFormData({
+          title: normalizedBooking.title,
+          description: normalizedBooking.description,
+          studioId: normalizedBooking.studioId ? normalizedBooking.studioId.toString() : "",
+          bookingType,
+          date: dateStr,
+          startTime: startTimeStr,
+          endTime: endTimeStr,
+          templateId: normalizedBooking.templateId ? normalizedBooking.templateId.toString() : "",
+          notifyList: normalizedBooking.notifyList,
+          saveAsTemplate: false,
+          templateName: "",
+          severity: normalizedBooking.severity
+        });
       } else {
         // Create mode - set defaults
-        resetForm();
+        const newFormData = { ...defaultValues };
         
         // Set selected date if provided
         if (selectedDate) {
-          setDate(selectedDate.toISOString().split("T")[0]);
-          
-          // Set default times (9 AM - 10 AM)
-          const defaultStart = new Date(selectedDate);
-          defaultStart.setHours(9, 0, 0, 0);
-          setStartTime("9:00am");
-          
-          const defaultEnd = new Date(selectedDate);
-          defaultEnd.setHours(10, 0, 0, 0);
-          setEndTime("10:00am");
+          newFormData.date = selectedDate.toISOString().split("T")[0];
+          newFormData.startTime = "9:00am";
+          newFormData.endTime = "10:00am";
         }
         
         // Set selected studio if provided
         if (selectedStudio) {
-          setStudioId(selectedStudio.toString());
+          newFormData.studioId = selectedStudio.toString();
         } else if (studios.length > 0) {
           // Set first studio as default if none selected
-          setStudioId(studios[0].id.toString());
+          newFormData.studioId = studios[0].id.toString();
         }
+        
+        setFormData(newFormData);
       }
+      
+      // Mark form as initialized
+      formInitializedRef.current = true;
     }
   }, [isOpen, booking, selectedDate, selectedStudio, studios]);
+  
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      formInitializedRef.current = false;
+    }
+  }, [isOpen]);
 
-  // Reset form to defaults
-  const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setStudioId(selectedStudio?.toString() || "");
-    setBookingType(alertsOnly ? "maintenance" : "production");
-    setDate(selectedDate ? selectedDate.toISOString().split("T")[0] : "");
-    setStartTime("9:00am");
-    setEndTime("10:00am");
-    setTemplateId("");
-    setNotifyList([]);
-    setSaveAsTemplate(false);
-    setTemplateName("");
+  // Handle form field changes
+  const updateFormField = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log("Form submission data:", {
-      title,
-      description,
-      studioId,
-      bookingType,
-      date,
-      startTime,
-      endTime,
-      templateId,
-      notifyList,
-      severity,
-      alertsOnly
-    });
+    console.log("Form submission data:", formData);
     
     // Studio is required for regular bookings, but optional for facility-wide maintenance/IT alerts
-    if (!studioId && (!alertsOnly || (alertsOnly && bookingType !== "maintenance" && bookingType !== "it_support"))) {
-      // Highlight required fields and show error
+    if (!formData.studioId && (!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support"))) {
+      toast({
+        title: "Error",
+        description: "Studio selection is required for this booking type",
+        variant: "destructive"
+      });
       return;
     }
     
     // Convert times to date objects using our utility function
-    const startDate = timeToDate(date, startTime);
-    const endDate = timeToDate(date, endTime);
+    const startDate = timeToDate(formData.date, formData.startTime);
+    const endDate = timeToDate(formData.date, formData.endTime);
     
     // Check if this is an all-day booking (for maintenance and IT alerts)
     // If it's all day, set the booking type to include the prefix
-    let finalBookingType = bookingType;
+    let finalBookingType = formData.bookingType;
     
     // Check if it's an existing booking with all-day prefix
     if (booking && booking.type && booking.type.includes("all-day:")) {
-      finalBookingType = `all-day:${bookingType}`;
+      finalBookingType = `all-day:${formData.bookingType}`;
     }
     
     const bookingData: Partial<InsertBooking> = {
-      title,
-      description,
+      title: formData.title,
+      description: formData.description,
       type: finalBookingType,
       start: startDate.toISOString(),
       end: endDate.toISOString(),
-      notifyList: notifyList,
+      notifyList: formData.notifyList,
     };
     
     // Add studioId only if it's provided and valid
-    if (studioId) {
-      bookingData.studioId = parseInt(studioId);
-    } else if (alertsOnly && (bookingType === "maintenance" || bookingType === "it_support")) {
+    if (formData.studioId) {
+      bookingData.studioId = parseInt(formData.studioId);
+    } else if (alertsOnly && (formData.bookingType === "maintenance" || formData.bookingType === "it_support")) {
       // Set to null explicitly for facility-wide maintenance/IT alerts
       bookingData.studioId = null;
     }
     
     // Add severity field for alerts
     if (alertsOnly) {
-      bookingData.severity = severity;
+      bookingData.severity = formData.severity;
     }
     
-    if (templateId && templateId !== "0") {
-      bookingData.templateId = parseInt(templateId);
+    if (formData.templateId && formData.templateId !== "0") {
+      bookingData.templateId = parseInt(formData.templateId);
     } else {
       // Set to null explicitly when no template is selected
       bookingData.templateId = null;
@@ -230,33 +229,50 @@ export default function BookingModal({
       if (booking) {
         // Update existing booking
         await updateBooking.mutateAsync({ id: booking.id, data: bookingData });
+        toast({
+          title: "Success",
+          description: "Booking updated successfully",
+          variant: "default"
+        });
       } else {
         // Create new booking
         await createBooking.mutateAsync(bookingData as InsertBooking);
+        toast({
+          title: "Success", 
+          description: "Booking created successfully",
+          variant: "default"
+        });
         
         // TODO: If saveAsTemplate is true, also save as a template
       }
       
+      // Reset form initialization state and close the modal
+      formInitializedRef.current = false;
       onClose();
     } catch (error) {
       console.error("Error submitting booking:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save booking",
+        variant: "destructive"
+      });
     }
   };
 
   // Handle template selection
   const handleTemplateChange = (value: string) => {
-    setTemplateId(value);
+    updateFormField('templateId', value);
     
     if (value && value !== "0") {
       const selectedTemplate = templates.find(t => t.id === parseInt(value));
       if (selectedTemplate) {
         // Pre-fill form with template data
-        setTitle(selectedTemplate.name);
-        setDescription(selectedTemplate.description || "");
-        setBookingType(selectedTemplate.type);
+        updateFormField('title', selectedTemplate.name);
+        updateFormField('description', selectedTemplate.description || "");
+        updateFormField('bookingType', selectedTemplate.type);
         
         // Use our utility function to convert the time string to a Date object
-        const start = timeToDate(date, startTime);
+        const start = timeToDate(formData.date, formData.startTime);
         
         // Calculate end time based on template duration (in minutes)
         const end = new Date(start.getTime() + selectedTemplate.duration * 60000);
@@ -272,17 +288,20 @@ export default function BookingModal({
           endHour = 12;
         }
         
-        setEndTime(`${endHour}:${endMinutes.toString().padStart(2, '0')}${endPeriod}`);
+        const newEndTime = `${endHour}:${endMinutes.toString().padStart(2, '0')}${endPeriod}`;
+        updateFormField('endTime', newEndTime);
       }
     }
   };
 
   // Toggle crew notifications
   const handleCrewToggle = (crewId: string) => {
-    if (notifyList.includes(crewId)) {
-      setNotifyList(notifyList.filter(id => id !== crewId));
+    const currentNotifyList = [...formData.notifyList];
+    
+    if (currentNotifyList.includes(crewId)) {
+      updateFormField('notifyList', currentNotifyList.filter(id => id !== crewId));
     } else {
-      setNotifyList([...notifyList, crewId]);
+      updateFormField('notifyList', [...currentNotifyList, crewId]);
     }
   };
 
@@ -303,8 +322,8 @@ export default function BookingModal({
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={formData.title}
+              onChange={(e) => updateFormField('title', e.target.value)}
               placeholder="Enter booking title"
               required
             />
@@ -316,11 +335,11 @@ export default function BookingModal({
                 Studio <span className="text-red-500 ml-1">*</span>
               </Label>
               <Select 
-                value={studioId} 
-                onValueChange={setStudioId} 
+                value={formData.studioId} 
+                onValueChange={(value) => updateFormField('studioId', value)} 
                 required
               >
-                <SelectTrigger className={!studioId ? "border-red-500" : ""}>
+                <SelectTrigger className={!formData.studioId ? "border-red-500" : ""}>
                   <SelectValue placeholder="Select studio" />
                 </SelectTrigger>
                 <SelectContent>
@@ -331,14 +350,18 @@ export default function BookingModal({
                   ))}
                 </SelectContent>
               </Select>
-              {!studioId && (
+              {!formData.studioId && (
                 <p className="text-sm text-red-500 mt-1">Studio selection is required</p>
               )}
             </div>
             
             <div>
               <Label htmlFor="type">{alertsOnly ? "Alert Type" : "Booking Type"}</Label>
-              <Select value={bookingType} onValueChange={setBookingType} required>
+              <Select 
+                value={formData.bookingType} 
+                onValueChange={(value) => updateFormField('bookingType', value)} 
+                required
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
@@ -363,7 +386,11 @@ export default function BookingModal({
           {alertsOnly && (
             <div>
               <Label htmlFor="severity">Severity</Label>
-              <Select value={severity} onValueChange={setSeverity} required>
+              <Select 
+                value={formData.severity} 
+                onValueChange={(value) => updateFormField('severity', value)} 
+                required
+              >
                 <SelectTrigger id="severity">
                   <SelectValue placeholder="Select severity" />
                 </SelectTrigger>
@@ -403,15 +430,18 @@ export default function BookingModal({
               <Input
                 id="date"
                 type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                value={formData.date}
+                onChange={(e) => updateFormField('date', e.target.value)}
                 required
               />
             </div>
             
             <div>
               <Label htmlFor="template">Template (Optional)</Label>
-              <Select value={templateId} onValueChange={handleTemplateChange}>
+              <Select 
+                value={formData.templateId} 
+                onValueChange={handleTemplateChange}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="None" />
                 </SelectTrigger>
@@ -430,7 +460,11 @@ export default function BookingModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="start-time">Start Time</Label>
-              <Select value={startTime} onValueChange={setStartTime} required>
+              <Select 
+                value={formData.startTime} 
+                onValueChange={(value) => updateFormField('startTime', value)} 
+                required
+              >
                 <SelectTrigger id="start-time">
                   <SelectValue placeholder="Select start time" />
                 </SelectTrigger>
@@ -446,7 +480,11 @@ export default function BookingModal({
             
             <div>
               <Label htmlFor="end-time">End Time</Label>
-              <Select value={endTime} onValueChange={setEndTime} required>
+              <Select 
+                value={formData.endTime} 
+                onValueChange={(value) => updateFormField('endTime', value)} 
+                required
+              >
                 <SelectTrigger id="end-time">
                   <SelectValue placeholder="Select end time" />
                 </SelectTrigger>
@@ -465,8 +503,8 @@ export default function BookingModal({
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={formData.description}
+              onChange={(e) => updateFormField('description', e.target.value)}
               placeholder="Add details about this booking"
               rows={3}
             />
@@ -479,46 +517,47 @@ export default function BookingModal({
                 <div key={crew} className="flex items-center space-x-2">
                   <Checkbox
                     id={`crew-${crew}`}
-                    checked={notifyList.includes(crew)}
+                    checked={formData.notifyList.includes(crew)}
                     onCheckedChange={() => handleCrewToggle(crew)}
                   />
-                  <label
+                  <Label
                     htmlFor={`crew-${crew}`}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-normal"
                   >
                     {crew}
-                  </label>
+                  </Label>
                 </div>
               ))}
             </div>
           </div>
           
           {!booking && (
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="save-template"
-                checked={saveAsTemplate}
-                onCheckedChange={(checked) => setSaveAsTemplate(!!checked)}
-              />
-              <label
-                htmlFor="save-template"
-                className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Save as template for future use
-              </label>
-            </div>
-          )}
-          
-          {saveAsTemplate && (
-            <div>
-              <Label htmlFor="template-name">Template Name</Label>
-              <Input
-                id="template-name"
-                value={templateName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                placeholder="Enter template name"
-                required={saveAsTemplate}
-              />
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="save-template"
+                  checked={formData.saveAsTemplate}
+                  onCheckedChange={(checked) => updateFormField('saveAsTemplate', checked === true)}
+                />
+                <Label
+                  htmlFor="save-template"
+                  className="text-sm font-normal"
+                >
+                  Save as template
+                </Label>
+              </div>
+              
+              {formData.saveAsTemplate && (
+                <div>
+                  <Label htmlFor="template-name">Template Name</Label>
+                  <Input
+                    id="template-name"
+                    value={formData.templateName}
+                    onChange={(e) => updateFormField('templateName', e.target.value)}
+                    placeholder="Enter template name"
+                  />
+                </div>
+              )}
             </div>
           )}
           
