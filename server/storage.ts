@@ -6,6 +6,7 @@ import {
   notifications, type Notification, type InsertNotification
 } from "@shared/schema";
 
+import { db, pool } from "./db";
 import session from "express-session";
 import { eq, and, or, isNull, not, desc, gte, lte } from "drizzle-orm";
 
@@ -314,9 +315,7 @@ export class MemStorage implements IStorage {
 }
 
 // Database storage implementation
-import { db } from "./db";
 import connectPg from "connect-pg-simple";
-import { pool } from "./db";
 
 const PostgresSessionStore = connectPg(session);
 
