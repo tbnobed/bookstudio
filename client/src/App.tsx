@@ -1,11 +1,9 @@
-import { Switch, Route, useLocation, Link } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import { Sidebar } from "@/components/layout/Sidebar";
 import CalendarPage from "@/pages/CalendarPage";
-import Login from "@/pages/Login";
 import MyBookingsPage from "@/pages/MyBookingsPage";
 import TemplatesPage from "@/pages/TemplatesPage";
 import ReportsPage from "@/pages/ReportsPage";
@@ -13,67 +11,23 @@ import UserManagement from "@/pages/UserManagement";
 import Settings from "@/pages/Settings";
 import { useEffect, useState } from "react";
 import ToastNotification from "@/components/ui/toast-notification";
+import AuthPage from "@/pages/auth-page";
 
 function Router() {
-  const { user, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
-
-  useEffect(() => {
-    if (!isLoading && !user && location !== "/login") {
-      setLocation("/login");
-    }
-  }, [user, isLoading, location, setLocation]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center w-full h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <Switch>
-      <Route path="/login" component={Login} />
-      
-      {/* Protected Routes */}
-      {user && (
-        <Switch>
-          <Route path="/" component={CalendarPage} />
-          <Route path="/calendar" component={CalendarPage} />
-          <Route path="/my-bookings" component={MyBookingsPage} />
-          <Route path="/templates" component={TemplatesPage} />
-          <Route path="/reports" component={ReportsPage} />
-          
-          {/* Admin Routes */}
-          {user.role === "admin" && (
-            <Switch>
-              <Route path="/user-management" component={UserManagement} />
-              <Route path="/settings" component={Settings} />
-            </Switch>
-          )}
-          
-          {/* Fallback */}
-          <Route component={NotFound} />
-        </Switch>
-      )}
-      
-      {/* Fallback when not logged in */}
-      {!user && !isLoading && location !== "/login" && (
-        <Route component={() => {
-          setLocation("/login");
-          return null;
-        }} />
-      )}
+      <Route path="/login" component={AuthPage} />
+      <Route path="/auth" component={AuthPage} />
+      <Route path="/" component={AuthPage} />
+      <Route component={AuthPage} />
     </Switch>
   );
 }
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
-  if (!user) return <>{children}</>;
   
   return (
     <div className="flex h-screen overflow-hidden">
@@ -101,9 +55,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const { user } = useAuth();
-  const [location] = useLocation();
-  
   return (
     <TooltipProvider>
       <AppLayout>

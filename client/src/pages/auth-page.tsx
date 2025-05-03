@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { insertUserSchema } from "@shared/schema";
 import { useForm } from "react-hook-form";
@@ -13,15 +12,7 @@ import { z } from "zod";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
-  const { user, loginMutation, registerMutation } = useAuth();
   const [_, setLocation] = useLocation();
-
-  // Redirect if user is already logged in
-  useEffect(() => {
-    if (user) {
-      setLocation("/");
-    }
-  }, [user, setLocation]);
 
   const loginSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -32,7 +23,7 @@ export default function AuthPage() {
     .pick({
       username: true,
       password: true,
-      fullName: true,
+      name: true,
       email: true,
     })
     .extend({
@@ -57,21 +48,21 @@ export default function AuthPage() {
       username: "",
       password: "",
       confirmPassword: "",
-      fullName: "",
+      name: "",
       email: "",
     },
   });
 
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
-    loginMutation.mutate(data);
+    // Simulate login for now
+    console.log("Login data:", data);
+    setLocation("/");
   };
 
   const onRegisterSubmit = (data: z.infer<typeof registerSchema>) => {
-    const { confirmPassword, ...userData } = data;
-    registerMutation.mutate({
-      ...userData,
-      role: "producer", // Default role for new users
-    });
+    // Simulate registration for now
+    console.log("Register data:", data);
+    setLocation("/");
   };
 
   return (
@@ -122,8 +113,8 @@ export default function AuthPage() {
                       )}
                     </div>
                     
-                    <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-                      {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                    <Button type="submit" className="w-full">
+                      Sign In
                     </Button>
                   </div>
                 </form>
@@ -154,14 +145,14 @@ export default function AuthPage() {
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)}>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name</Label>
+                      <Label htmlFor="name">Full Name</Label>
                       <Input
-                        id="fullName"
+                        id="name"
                         placeholder="Enter your full name"
-                        {...registerForm.register("fullName")}
+                        {...registerForm.register("name")}
                       />
-                      {registerForm.formState.errors.fullName && (
-                        <p className="text-sm text-red-500">{registerForm.formState.errors.fullName.message}</p>
+                      {registerForm.formState.errors.name && (
+                        <p className="text-sm text-red-500">{registerForm.formState.errors.name.message}</p>
                       )}
                     </div>
                     
@@ -216,8 +207,8 @@ export default function AuthPage() {
                       )}
                     </div>
                     
-                    <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-                      {registerMutation.isPending ? "Creating Account..." : "Create Account"}
+                    <Button type="submit" className="w-full">
+                      Create Account
                     </Button>
                   </div>
                 </form>
