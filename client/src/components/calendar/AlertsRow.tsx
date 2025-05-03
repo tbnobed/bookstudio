@@ -125,7 +125,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           
           console.log(`Alert ${alert.id} - ${alert.title} - checking overlap with ${date.toDateString()}: ${overlapsWithDay}`);
           console.log(`  Alert time range: ${alertStart.toLocaleString()} - ${alertEnd.toLocaleString()}`);
-          console.log(`  Day check: ${date.toLocaleString()} is between ${alertStartDay.toLocaleString()} and ${alertEndDay.toLocaleString()}`);
+          console.log(`  Day check: ${date.toLocaleString()} with range ${dateStart.toLocaleString()} - ${dateEnd.toLocaleString()}`);
           
           return overlapsWithDay;
         });
