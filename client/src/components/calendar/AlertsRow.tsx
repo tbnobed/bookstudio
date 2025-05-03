@@ -5,17 +5,26 @@ import { formatTime, isWeekend, isSameDay } from "@/lib/dateUtils";
 import AlertModal from "../alerts/AlertModal";
 import { useAuthContext } from "@/contexts/AuthContext";
 
+// Define an interface to match the API response format with snake_case
+interface ApiBooking extends Omit<Booking, 'studioId' | 'userId' | 'templateId' | 'createdAt' | 'notifyList'> {
+  studio_id: number | null;
+  user_id: number;
+  template_id: number | null;
+  created_at: string | Date | null;
+  notify_list: any;
+}
+
 interface AlertsRowProps {
   weekDates: Date[];
-  alerts: Booking[];
-  onAlertClick: (booking: Booking) => void;
+  alerts: ApiBooking[]; // Now using our custom API type
+  onAlertClick: (booking: ApiBooking) => void;
 }
 
 export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRowProps) {
   const { user } = useAuthContext();
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [editAlert, setEditAlert] = useState<Booking | null>(null);
+  const [editAlert, setEditAlert] = useState<ApiBooking | null>(null);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   
   // Debug the alerts collection
@@ -34,7 +43,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
   };
   
   // Handle alert click for editing
-  const handleAlertEditClick = (alert: Booking) => {
+  const handleAlertEditClick = (alert: ApiBooking) => {
     setEditAlert(alert);
     setIsEditAlertModalOpen(true);
   };
@@ -51,15 +60,14 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           const alertStart = new Date(alert.start);
           console.log(`Alert #${alert.id} - ${alert.title}: ${alertStart.toISOString()}`);
           
-          // Check if this is a facility-wide alert
-          // Handle both snake_case and camelCase property names for compatibility
-          const studioId = alert.studio_id !== undefined ? alert.studio_id : (alert as any).studioId;
+          // Cast the alert to our API interface type which includes snake_case properties
+          const apiAlert = alert as unknown as ApiBooking;
           
           // Check for facility-wide alerts (null studioId)
-          const isFacilityWideAlert = studioId === null;
+          const isFacilityWideAlert = apiAlert.studio_id === null;
           
           // Debug the matching process
-          console.log(`Alert ${alert.id} - Studio ID: ${studioId}, Is facility-wide: ${isFacilityWideAlert}`);
+          console.log(`Alert ${alert.id} - Studio ID: ${apiAlert.studio_id}, Is facility-wide: ${isFacilityWideAlert}`);
           console.log(`Comparing alert day: ${alertStart.getFullYear()}-${alertStart.getMonth()}-${alertStart.getDate()} to day cell: ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} - Same day: ${isSameDay(alertStart, date)}`);
           
           return isSameDay(alertStart, date) && 
