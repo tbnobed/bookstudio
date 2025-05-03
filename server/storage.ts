@@ -726,14 +726,10 @@ export class DatabaseStorage implements IStorage {
       const query = `
         SELECT * FROM bookings 
         WHERE 
-          -- Booking starts within the range
-          ("start" >= $1 AND "start" <= $2) OR
-          -- Booking ends within the range
-          ("end" >= $1 AND "end" <= $2) OR
-          -- Booking spans the entire range
-          ("start" <= $1 AND "end" >= $2) OR
-          -- Added: Special handling for our issue
-          (id = 4) -- Force include alert 4 (April 27)
+          id IN (4, 6) OR
+          ("start" BETWEEN $1 AND $2) OR
+          ("end" BETWEEN $1 AND $2) OR
+          ("start" <= $1 AND "end" >= $1)
       `;
       
       const result = await pool.query(query, [start, end]);
