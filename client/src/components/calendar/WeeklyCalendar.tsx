@@ -82,17 +82,41 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
   console.log("All bookings:", JSON.stringify(bookings));
   
   const filteredAlerts = bookings.filter(booking => {
+    // Check if we're getting snake_case properties (from API) or camelCase (from our code)
+    const hasSnakeCase = 'studio_id' in booking;
+    const studioId = hasSnakeCase ? booking.studio_id : booking.studioId;
+    
     const isMaintenanceOrIT = booking.type === "maintenance" || booking.type === "it_support";
-    const isFacilityWide = booking.studioId === null;
-    console.log(`Booking ${booking.id}: type=${booking.type}, studioId=${booking.studioId}, isMaintenanceOrIT=${isMaintenanceOrIT}, isFacilityWide=${isFacilityWide}`);
+    const isFacilityWide = studioId === null;
+    
+    console.log(`Booking ${booking.id}: type=${booking.type}, studioId=${studioId}, format=${hasSnakeCase ? 'snake_case' : 'camelCase'}, isMaintenanceOrIT=${isMaintenanceOrIT}, isFacilityWide=${isFacilityWide}`);
+    
     return isMaintenanceOrIT && isFacilityWide;
   });
   
   console.log("Filtered facility-wide alerts:", JSON.stringify(filteredAlerts));
   
-  // Convert from Booking format to ApiBooking format
+  // Convert to consistent ApiBooking format
   const alerts = filteredAlerts.map(booking => {
-    const apiBooking = {
+    // Check if we're getting snake_case properties (from API) or camelCase (from our code)
+    const hasSnakeCase = 'studio_id' in booking;
+    
+    const apiBooking = hasSnakeCase ? {
+      // Already in API format, just pass it through
+      id: booking.id,
+      title: booking.title,
+      description: booking.description,
+      studio_id: booking.studio_id, // Already null for facility-wide alerts
+      user_id: booking.user_id,
+      start: booking.start,
+      end: booking.end,
+      type: booking.type,
+      template_id: booking.template_id,
+      notify_list: booking.notify_list,
+      created_at: booking.created_at,
+      severity: booking.severity
+    } : {
+      // Convert from camelCase to snake_case
       id: booking.id,
       title: booking.title,
       description: booking.description,
@@ -106,6 +130,7 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
       created_at: booking.createdAt,
       severity: booking.severity
     };
+    
     console.log("Converted API booking:", JSON.stringify(apiBooking));
     return apiBooking;
   });

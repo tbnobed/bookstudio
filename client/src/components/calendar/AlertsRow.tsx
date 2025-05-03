@@ -25,16 +25,36 @@ function isAllDayAlert(alert: ApiBooking): boolean {
   const startDate = new Date(alert.start);
   const endDate = new Date(alert.end);
   
-  // Check if the alert starts at the beginning of the day (midnight)
-  const isStartMidnight = startDate.getHours() === 0 && startDate.getMinutes() === 0;
+  // Calculate duration in hours
+  const durationMs = endDate.getTime() - startDate.getTime();
+  const durationHours = durationMs / (1000 * 60 * 60);
   
-  // Check if the alert ends at the end of the day (11:59:59 PM)
+  // Method 1: Check if start is at midnight and end is at 11:59:59 PM
+  const isStartMidnight = startDate.getHours() === 0 && startDate.getMinutes() === 0;
   const isEndBeforeMidnight = 
     endDate.getHours() === 23 && 
     endDate.getMinutes() === 59 &&
     (endDate.getSeconds() === 59 || endDate.getSeconds() === 0);
   
-  return isStartMidnight && isEndBeforeMidnight;
+  // Method 2: Check if duration is close to 24 hours (or multiples for multi-day)
+  const durationDays = Math.round(durationHours / 24);
+  const isApproxWholeDays = Math.abs(durationHours - (durationDays * 24)) < 0.1;
+  
+  // Method 3: Compare start/end date with their respective day boundaries
+  const startDay = new Date(startDate);
+  startDay.setHours(0, 0, 0, 0);
+  
+  const endDay = new Date(endDate);
+  endDay.setHours(0, 0, 0, 0);
+  
+  const isStartAtDayStart = startDate.getTime() === startDay.getTime();
+  const nextDay = new Date(endDay);
+  nextDay.setDate(nextDay.getDate() + 1);
+  const isEndAtDayEnd = Math.abs(endDate.getTime() - nextDay.getTime()) < 1000;
+  
+  return (isStartMidnight && isEndBeforeMidnight) || 
+         isApproxWholeDays || 
+         (isStartAtDayStart && (durationHours >= 23.9));
 }
 
 export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRowProps) {
@@ -46,6 +66,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
   
   // Debug the alerts collection
   console.log("All alerts in AlertsRow: ", JSON.stringify(alerts));
+  console.log("Alert IDs in AlertsRow: ", alerts.map(a => a.id).join(', '));
   
   // Check if user has permission to create alerts (only engineers and admins)
   const canCreateAlerts = user?.role === "engineer" || user?.role === "admin" || user?.role === "it";
@@ -82,24 +103,29 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           const apiAlert = alert as unknown as ApiBooking;
           
           // All alerts in this component should be facility-wide alerts (studioId === null)
-          // The filtering is now done in WeeklyCalendar, so we just need to check for date overlap
-          
           // Check if the alert overlaps with this date
-          // An alert overlaps if:
-          // 1. The date is between the alert start and end dates (inclusive)
-          // 2. For all-day or multi-day alerts, we need to check if this date falls within the range
-          
           const startOfDay = new Date(date);
           startOfDay.setHours(0, 0, 0, 0);
           
           const endOfDay = new Date(date);
           endOfDay.setHours(23, 59, 59, 999);
           
-          // Check if there's any overlap between the alert and this day
-          const overlapsWithDay = 
-            (alertStart <= endOfDay && alertEnd >= startOfDay);
+          // Check if alert spans this date
+          const dateStart = new Date(date);
+          dateStart.setHours(0, 0, 0, 0);
           
-          console.log(`Alert ${alert.id} - checking overlap with ${date.toDateString()}: ${overlapsWithDay}`);
+          const dateEnd = new Date(date);
+          dateEnd.setHours(23, 59, 59, 999);
+          
+          // Alert overlaps with this day if:
+          // - Alert start is on or before the end of this day AND
+          // - Alert end is on or after the start of this day
+          const overlapsWithDay = 
+            (alertStart <= dateEnd) && (alertEnd >= dateStart);
+          
+          console.log(`Alert ${alert.id} - ${alert.title} - checking overlap with ${date.toDateString()}: ${overlapsWithDay}`);
+          console.log(`  Alert time range: ${alertStart.toLocaleString()} - ${alertEnd.toLocaleString()}`);
+          console.log(`  Day check: ${date.toLocaleString()} is between ${alertStartDay.toLocaleString()} and ${alertEndDay.toLocaleString()}`);
           
           return overlapsWithDay;
         });
