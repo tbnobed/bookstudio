@@ -63,22 +63,24 @@ export default function AuthPage() {
       setIsLoading(true);
       try {
         console.log("Login data:", credentials);
-        const res = await apiRequest("POST", "/api/login", credentials);
+        // Use the legacy auth endpoint for compatibility
+        const res = await apiRequest("POST", "/api/auth/login", credentials);
         if (!res.ok) {
           const error = await res.json();
           throw new Error(error.message || "Login failed");
         }
-        return await res.json();
+        const data = await res.json();
+        return data.user || data; // Handle both formats
       } finally {
         setIsLoading(false);
       }
     },
-    onSuccess: () => {
+    onSuccess: (user) => {
       toast({
         title: "Login successful",
-        description: "Welcome back!",
+        description: `Welcome back, ${user.name || user.username}!`,
       });
-      setLocation("/calendar");
+      setLocation("/");
     },
     onError: (error: Error) => {
       toast({
@@ -104,17 +106,18 @@ export default function AuthPage() {
           const error = await res.json();
           throw new Error(error.message || "Registration failed");
         }
-        return await res.json();
+        const responseData = await res.json();
+        return responseData.user || responseData; // Handle both formats
       } finally {
         setIsLoading(false);
       }
     },
-    onSuccess: () => {
+    onSuccess: (user) => {
       toast({
         title: "Registration successful",
-        description: "Your account has been created.",
+        description: `Welcome, ${user.name || user.username}! Your account has been created.`,
       });
-      setLocation("/calendar");
+      setLocation("/");
     },
     onError: (error: Error) => {
       toast({

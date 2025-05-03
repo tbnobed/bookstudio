@@ -116,11 +116,37 @@ export function setupAuth(app: Express) {
       });
     })(req, res, next);
   });
+  
+  // For backward compatibility
+  app.post("/api/auth/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Login failed" });
+      }
+      req.login(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+        return res.json({ user });
+      });
+    })(req, res, next);
+  });
 
   app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
       res.sendStatus(200);
+    });
+  });
+  
+  // For backward compatibility
+  app.post("/api/auth/logout", (req, res, next) => {
+    req.logout((err) => {
+      if (err) return next(err);
+      res.json({ message: "Logged out successfully" });
     });
   });
 
@@ -129,5 +155,13 @@ export function setupAuth(app: Express) {
       return res.status(401).json({ message: "Not authenticated" });
     }
     res.json(req.user);
+  });
+  
+  // For backward compatibility
+  app.get("/api/auth/user", (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    res.json({ user: req.user });
   });
 }
