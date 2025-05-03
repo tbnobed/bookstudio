@@ -20,6 +20,8 @@ export default function Settings() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [selectedStudio, setSelectedStudio] = useState<Studio | undefined>(undefined);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [studioToDelete, setStudioToDelete] = useState<Studio | null>(null);
   
   // Fetch studios for studio settings
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -53,6 +55,44 @@ export default function Settings() {
   const toggleStudioAvailability = (studio: Studio) => {
     const newStatus = studio.status === "available" ? "maintenance" : "available";
     updateStudioStatus.mutate({ id: studio.id, status: newStatus });
+  };
+  
+  // Delete studio mutation
+  const deleteStudioMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/studios/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Studio deleted successfully.",
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/studios"] });
+      setIsDeleteDialogOpen(false);
+      setStudioToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete studio. The studio might have active bookings.",
+        variant: "destructive",
+      });
+      setIsDeleteDialogOpen(false);
+    },
+  });
+  
+  // Handle delete studio button click
+  const handleDeleteStudio = (studio: Studio) => {
+    setStudioToDelete(studio);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  // Confirm delete studio
+  const confirmDeleteStudio = () => {
+    if (studioToDelete) {
+      deleteStudioMutation.mutate(studioToDelete.id);
+    }
   };
 
   // Format time options display
@@ -311,6 +351,29 @@ export default function Settings() {
                     onClose={() => setIsStudioModalOpen(false)}
                     studio={selectedStudio}
                   />
+                  
+                  {/* Delete Studio Confirmation Dialog */}
+                  <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the studio
+                          <strong>{studioToDelete ? ` "${studioToDelete.name}"` : ""}</strong> from the system.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleteStudioMutation.isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={confirmDeleteStudio} 
+                          disabled={deleteStudioMutation.isPending}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          {deleteStudioMutation.isPending ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>
