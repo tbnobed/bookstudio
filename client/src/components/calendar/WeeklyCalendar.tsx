@@ -7,7 +7,7 @@ import StudioRow from "./StudioRow";
 import AlertsRow from "./AlertsRow";
 import BookingModal from "../booking/BookingModal";
 import AlertModal from "../alerts/AlertModal";
-import { useStudioBookings } from "@/hooks/useStudioBookings";
+import { useStudioBookings } from "../../hooks/useStudioBookings";
 
 interface WeeklyCalendarProps {
   currentDate: Date;
@@ -44,23 +44,71 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
     : studios;
 
   // Handle booking click for editing
-  const handleBookingClick = (booking: Booking) => {
+  const handleBookingClick = (booking: any) => {
+    // Check if it's an ApiBooking format (for alerts) or regular Booking
+    const isApiFormat = 'studio_id' in booking;
+    
+    // Convert ApiBooking to Booking format if needed
+    const bookingToEdit: Booking = isApiFormat 
+      ? {
+          id: booking.id,
+          title: booking.title,
+          description: booking.description,
+          studioId: booking.studio_id,
+          userId: booking.user_id,
+          start: booking.start,
+          end: booking.end,
+          type: booking.type,
+          templateId: booking.template_id,
+          notifyList: booking.notify_list,
+          createdAt: booking.created_at,
+          severity: booking.severity
+        }
+      : booking;
+    
     // Check if it's a facility-wide alert
-    if ((booking.type === "maintenance" || booking.type === "it_support") && booking.studioId === null) {
+    if ((bookingToEdit.type === "maintenance" || bookingToEdit.type === "it_support") && bookingToEdit.studioId === null) {
       // Use the dedicated AlertModal for facility-wide alerts
-      setEditBooking(booking);
+      setEditBooking(bookingToEdit);
       setIsEditAlertModalOpen(true);
     } else {
       // Use regular BookingModal for studio bookings
-      setEditBooking(booking);
+      setEditBooking(bookingToEdit);
       setIsEditModalOpen(true);
     }
   };
   
-  // Filter alerts (maintenance and IT support bookings)
-  const alerts = bookings.filter(booking => 
-    booking.type === "maintenance" || booking.type === "it_support"
-  );
+  // Filter alerts (maintenance and IT support bookings) and only include facility-wide alerts
+  console.log("All bookings:", JSON.stringify(bookings));
+  
+  const filteredAlerts = bookings.filter(booking => {
+    const isMaintenanceOrIT = booking.type === "maintenance" || booking.type === "it_support";
+    const isFacilityWide = booking.studioId === null;
+    console.log(`Booking ${booking.id}: type=${booking.type}, studioId=${booking.studioId}, isMaintenanceOrIT=${isMaintenanceOrIT}, isFacilityWide=${isFacilityWide}`);
+    return isMaintenanceOrIT && isFacilityWide;
+  });
+  
+  console.log("Filtered facility-wide alerts:", JSON.stringify(filteredAlerts));
+  
+  // Convert from Booking format to ApiBooking format
+  const alerts = filteredAlerts.map(booking => {
+    const apiBooking = {
+      id: booking.id,
+      title: booking.title,
+      description: booking.description,
+      studio_id: booking.studioId, // This is explicitly null for facility-wide alerts
+      user_id: booking.userId,
+      start: booking.start,
+      end: booking.end,
+      type: booking.type,
+      template_id: booking.templateId,
+      notify_list: booking.notifyList,
+      created_at: booking.createdAt,
+      severity: booking.severity
+    };
+    console.log("Converted API booking:", JSON.stringify(apiBooking));
+    return apiBooking;
+  });
 
   return (
     <>

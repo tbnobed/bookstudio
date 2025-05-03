@@ -81,11 +81,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           // Cast the alert to our API interface type which includes snake_case properties
           const apiAlert = alert as unknown as ApiBooking;
           
-          // Check for facility-wide alerts (null studioId)
-          const isFacilityWideAlert = apiAlert.studio_id === null;
-          
-          // Debug the matching process
-          console.log(`Alert ${alert.id} - Studio ID: ${apiAlert.studio_id}, Is facility-wide: ${isFacilityWideAlert}`);
+          // All alerts in this component should be facility-wide alerts (studioId === null)
+          // The filtering is now done in WeeklyCalendar, so we just need to check for date overlap
           
           // Check if the alert overlaps with this date
           // An alert overlaps if:
@@ -104,9 +101,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           
           console.log(`Alert ${alert.id} - checking overlap with ${date.toDateString()}: ${overlapsWithDay}`);
           
-          return overlapsWithDay && 
-            (alert.type === "maintenance" || alert.type === "it_support") &&
-            isFacilityWideAlert;
+          return overlapsWithDay;
         });
         
         console.log(`Day cell ${date.toDateString()} has ${dayAlerts.length} alerts`);
