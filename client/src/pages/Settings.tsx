@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Studio } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import StudioManagementModal from "@/components/studio/StudioManagementModal";
 
 export default function Settings() {
   const { user } = useAuth();
