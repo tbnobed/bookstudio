@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Booking } from "@shared/schema";
 import { formatTime, isWeekend, isSameDay, formatDate } from "@/lib/dateUtils";
 import AlertModal from "../alerts/AlertModal";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { queryClient } from "@/lib/queryClient";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, AlertCircle, Bell } from "lucide-react";
@@ -81,7 +81,7 @@ function isAllDayAlert(alert: ApiBooking): boolean {
 }
 
 export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRowProps) {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editAlert, setEditAlert] = useState<ApiBooking | null>(null);

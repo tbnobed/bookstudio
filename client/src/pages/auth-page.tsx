@@ -12,14 +12,13 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../assets/logo.png";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
-  const [_, setLocation] = useLocation();
+  const [_, navigate] = useLocation();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
 
   const loginSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -60,58 +59,35 @@ export default function AuthPage() {
     },
   });
 
-  // Use our AuthContext
-  const { login, logout, isLoading: authLoading } = useAuthContext();
-
-  // Create login mutation using our login function
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: z.infer<typeof loginSchema>) => {
-      setIsLoading(true);
-      try {
-        console.log("Login data:", credentials);
-        const user = await login(credentials.username, credentials.password);
-        return user;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    onSuccess: () => {
-      // Redirect to home page
-      window.location.href = "/";
+  // Use our Auth Context
+  const { loginMutation, registerMutation, user } = useAuth();
+  
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/");
     }
-  });
-
-  // Create register mutation using our register function
-  const registerMutation = useMutation({
-    mutationFn: async (userData: z.infer<typeof registerSchema>) => {
-      setIsLoading(true);
-      try {
-        // Remove confirmPassword as it's not in the schema
-        const { confirmPassword, ...registerData } = userData;
-        // Add role as producer by default
-        const data = { ...registerData, role: "producer" };
-        
-        console.log("Register data:", data);
-        // Since our context doesn't have register, use api directly
-        const res = await apiRequest("POST", "/api/register", data);
-        const user = await res.json();
-        return user;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    onSuccess: () => {
-      // Redirect to home page
-      window.location.href = "/";
-    }
-  });
+  }, [user, navigate]);
 
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        navigate("/");
+      }
+    });
   };
 
   const onRegisterSubmit = (data: z.infer<typeof registerSchema>) => {
-    registerMutation.mutate(data);
+    // Remove confirmPassword as it's not in the schema
+    const { confirmPassword, ...registerData } = data;
+    // Add role as producer by default
+    const userData = { ...registerData, role: "producer" };
+    
+    registerMutation.mutate(userData, {
+      onSuccess: () => {
+        navigate("/");
+      }
+    });
   };
 
   return (
@@ -164,8 +140,8 @@ export default function AuthPage() {
                       )}
                     </div>
                     
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Signing In..." : "Sign In"}
+                    <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+                      {loginMutation.isPending ? "Signing In..." : "Sign In"}
                     </Button>
                   </div>
                 </form>
@@ -258,8 +234,8 @@ export default function AuthPage() {
                       )}
                     </div>
                     
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Creating Account..." : "Create Account"}
+                    <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+                      {registerMutation.isPending ? "Creating Account..." : "Create Account"}
                     </Button>
                   </div>
                 </form>
