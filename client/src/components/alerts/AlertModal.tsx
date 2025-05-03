@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
 import { generateTimeOptions, timeToDate } from "@/lib/dateUtils";
+import { queryClient } from "@/lib/queryClient";
 
 interface AlertModalProps {
   isOpen: boolean;
@@ -179,12 +180,17 @@ export default function AlertModal({
     if (alert) {
       // Update existing alert
       await updateBooking.mutateAsync({ id: alert.id, data: alertData });
+      // Invalidate queries to ensure data is refreshed immediately
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
     } else {
       // Create new alert
       console.log("Creating alert with data:", alertData);
       try {
         const result = await createBooking.mutateAsync(alertData as InsertBooking);
         console.log("Alert creation result:", result);
+        
+        // Invalidate queries to ensure data is refreshed immediately
+        queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
       } catch (error) {
         console.error("Error creating alert:", error);
       }
@@ -198,6 +204,8 @@ export default function AlertModal({
     if (alert) {
       try {
         await deleteBooking.mutateAsync(alert.id);
+        // Invalidate queries to ensure data is refreshed immediately
+        queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
         onClose();
       } catch (error) {
         console.error("Error deleting alert:", error);
