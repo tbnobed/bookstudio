@@ -61,7 +61,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
             onClick={() => handleCellClick(date)}
           >
             {dayAlerts.length > 0 ? (
-              <div className="flex flex-col h-full w-full p-1 overflow-hidden">
+              <div className="flex flex-col h-full w-full p-1 overflow-y-auto">
                 {dayAlerts.map((alert) => {
                   // Determine color based on alert severity
                   let colorClass = "bg-blue-100 border-blue-400 border text-blue-800 shadow-sm"; // default - low severity
@@ -79,7 +79,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                       key={alert.id}
                       className={cn(
                         "border rounded-md p-1 mb-1 overflow-hidden text-overflow-ellipsis whitespace-nowrap text-xs",
-                        colorClass
+                        colorClass,
+                        "transition-colors hover:bg-opacity-80"
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -100,6 +101,19 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                     </div>
                   );
                 })}
+                
+                {/* Even when there are alerts, still show the + Add button */}
+                {canCreateAlerts && (
+                  <div 
+                    className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer mt-1 text-center bg-white/50 hover:bg-white/80 py-0.5 rounded"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCellClick(date);
+                    }}
+                  >
+                    + Add alert
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
