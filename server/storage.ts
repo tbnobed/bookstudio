@@ -6,6 +6,8 @@ import {
   notifications, type Notification, type InsertNotification
 } from "@shared/schema";
 
+import session from "express-session";
+
 export interface IStorage {
   // User management
   getUser(id: number): Promise<User | undefined>;
@@ -41,7 +43,14 @@ export interface IStorage {
   createNotification(notification: InsertNotification): Promise<Notification>;
   getNotificationsByUser(userId: number): Promise<Notification[]>;
   markNotificationAsRead(id: number): Promise<Notification | undefined>;
+  
+  // Session management
+  sessionStore: session.Store;
 }
+
+import createMemoryStore from "memorystore";
+
+const MemoryStore = createMemoryStore(session);
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
@@ -55,6 +64,8 @@ export class MemStorage implements IStorage {
   private templateIdCounter: number;
   private bookingIdCounter: number;
   private notificationIdCounter: number;
+  
+  public sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
@@ -68,6 +79,11 @@ export class MemStorage implements IStorage {
     this.templateIdCounter = 1;
     this.bookingIdCounter = 1;
     this.notificationIdCounter = 1;
+    
+    // Create memory store for sessions
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
     
     // Initialize with some sample data
     this.initializeData();
