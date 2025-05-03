@@ -71,18 +71,49 @@ export default function BookingModal({
     if (isOpen) {
       if (booking) {
         // Edit mode - populate form with booking data
+        console.log("Populating form with booking data:", booking);
         setTitle(booking.title);
         setDescription(booking.description || "");
-        setStudioId(booking.studioId.toString());
-        setBookingType(booking.type);
         
+        // Handle potential property name differences (studioId vs studio_id)
+        if (booking.studioId !== undefined) {
+          setStudioId(booking.studioId ? booking.studioId.toString() : "");
+        } else if (booking.studio_id !== undefined) { 
+          setStudioId(booking.studio_id ? booking.studio_id.toString() : "");
+        }
+        
+        // Check if type includes "all-day:" prefix and handle it
+        const bookingType = booking.type.replace("all-day:", "");
+        setBookingType(bookingType);
+        
+        // Handle date formatting
         const bookingDate = new Date(booking.start);
         setDate(bookingDate.toISOString().split("T")[0]);
-        setStartTime(formatTime(booking.start).toLowerCase().replace(" ", ""));
-        setEndTime(formatTime(booking.end).toLowerCase().replace(" ", ""));
         
-        setTemplateId(booking.templateId ? booking.templateId.toString() : "");
-        setNotifyList(booking.notifyList || []);
+        // Format times properly
+        const formattedStartTime = formatTime(booking.start).toLowerCase().replace(" ", "");
+        const formattedEndTime = formatTime(booking.end).toLowerCase().replace(" ", "");
+        setStartTime(formattedStartTime);
+        setEndTime(formattedEndTime);
+        
+        // Handle templateId vs template_id
+        if (booking.templateId !== undefined) {
+          setTemplateId(booking.templateId ? booking.templateId.toString() : "");
+        } else if (booking.template_id !== undefined) {
+          setTemplateId(booking.template_id ? booking.template_id.toString() : "");
+        }
+        
+        // Handle notifyList vs notify_list
+        if (booking.notifyList !== undefined) {
+          setNotifyList(booking.notifyList || []);
+        } else if (booking.notify_list !== undefined) {
+          setNotifyList(booking.notify_list || []);
+        }
+        
+        // Set severity if it exists
+        if (booking.severity) {
+          setSeverity(booking.severity);
+        }
       } else {
         // Create mode - set defaults
         resetForm();
@@ -131,6 +162,20 @@ export default function BookingModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log("Form submission data:", {
+      title,
+      description,
+      studioId,
+      bookingType,
+      date,
+      startTime,
+      endTime,
+      templateId,
+      notifyList,
+      severity,
+      alertsOnly
+    });
+    
     // Studio is required for regular bookings, but optional for facility-wide maintenance/IT alerts
     if (!studioId && (!alertsOnly || (alertsOnly && bookingType !== "maintenance" && bookingType !== "it_support"))) {
       // Highlight required fields and show error
@@ -141,10 +186,19 @@ export default function BookingModal({
     const startDate = timeToDate(date, startTime);
     const endDate = timeToDate(date, endTime);
     
+    // Check if this is an all-day booking (for maintenance and IT alerts)
+    // If it's all day, set the booking type to include the prefix
+    let finalBookingType = bookingType;
+    
+    // Check if it's an existing booking with all-day prefix
+    if (booking && booking.type && booking.type.includes("all-day:")) {
+      finalBookingType = `all-day:${bookingType}`;
+    }
+    
     const bookingData: Partial<InsertBooking> = {
       title,
       description,
-      type: bookingType,
+      type: finalBookingType,
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       notifyList: notifyList,
@@ -163,21 +217,30 @@ export default function BookingModal({
       bookingData.severity = severity;
     }
     
-    if (templateId) {
+    if (templateId && templateId !== "0") {
       bookingData.templateId = parseInt(templateId);
-    }
-    
-    if (booking) {
-      // Update existing booking
-      await updateBooking.mutateAsync({ id: booking.id, data: bookingData });
     } else {
-      // Create new booking
-      await createBooking.mutateAsync(bookingData as InsertBooking);
-      
-      // TODO: If saveAsTemplate is true, also save as a template
+      // Set to null explicitly when no template is selected
+      bookingData.templateId = null;
     }
     
-    onClose();
+    console.log("Submitting booking data:", bookingData);
+    
+    try {
+      if (booking) {
+        // Update existing booking
+        await updateBooking.mutateAsync({ id: booking.id, data: bookingData });
+      } else {
+        // Create new booking
+        await createBooking.mutateAsync(bookingData as InsertBooking);
+        
+        // TODO: If saveAsTemplate is true, also save as a template
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error("Error submitting booking:", error);
+    }
   };
 
   // Handle template selection
