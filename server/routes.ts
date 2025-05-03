@@ -215,6 +215,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch bookings" });
     }
   });
+  
+  // Public API for calendar view - no authentication required
+  app.get("/api/public/bookings", async (req, res) => {
+    try {
+      let bookings;
+      
+      // Filter by date range if provided
+      if (req.query.start && req.query.end) {
+        const start = new Date(req.query.start as string);
+        const end = new Date(req.query.end as string);
+        bookings = await storage.getBookingsByDateRange(start, end);
+      } else {
+        bookings = await storage.getAllBookings();
+      }
+      
+      // Remove any sensitive information for the public view
+      const sanitizedBookings = bookings.map(booking => ({
+        id: booking.id,
+        title: booking.title,
+        description: booking.description,
+        start: booking.start,
+        end: booking.end,
+        studioId: booking.studioId,
+        type: booking.type,
+        severity: booking.severity,
+        // Exclude userId, templateId, notifyList, and other private data
+      }));
+      
+      res.json(sanitizedBookings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch public bookings" });
+    }
+  });
 
   app.get("/api/bookings/user", isAuthenticated, async (req, res) => {
     try {
@@ -240,9 +273,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       
-      // Check role permissions
-      if (req.body.type === "maintenance" && !["admin", "engineer", "it"].includes(user.role)) {
-        return res.status(403).json({ message: "Only admin, engineers, and IT staff can create maintenance bookings" });
+      // Check role permissions based on booking types
+      if (req.body.type === "maintenance" || req.body.type === "all-day:maintenance") {
+        // Only admin, engineers, and IT staff can create maintenance bookings
+        if (!["admin", "engineer", "it"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin, engineers, and IT staff can create maintenance bookings" });
+        }
+      } else if (req.body.type === "it_support") {
+        // Only admin and IT staff can create IT support bookings
+        if (!["admin", "it"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin and IT staff can create IT support bookings" });
+        }
+      } else {
+        // For regular production bookings, ensure producers have access
+        if (user.role !== "admin" && user.role !== "producer") {
+          return res.status(403).json({ message: "Only admin and producers can create regular bookings" });
+        }
       }
       
       console.log("Booking request data:", JSON.stringify(req.body));
@@ -343,13 +389,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = req.user as any;
       
-      // Check permissions: only the creator, admin, or engineer/it for maintenance can update
-      if (
-        booking.userId !== user.id && 
-        user.role !== "admin" && 
-        !(["engineer", "it"].includes(user.role) && booking.type === "maintenance")
-      ) {
-        return res.status(403).json({ message: "You don't have permission to update this booking" });
+      // Check permissions based on booking type and role
+      if (booking.type === "maintenance" || booking.type === "all-day:maintenance") {
+        // Only admin, engineers, and IT staff can update maintenance bookings
+        if (!["admin", "engineer", "it"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin, engineers, and IT staff can update maintenance bookings" });
+        }
+      } else if (booking.type === "it_support") {
+        // Only admin and IT staff can update IT support bookings
+        if (!["admin", "it"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin and IT staff can update IT support bookings" });
+        }
+      } else {
+        // For regular production bookings, only the creator, admin, or producers can update
+        if (booking.userId !== user.id && user.role !== "admin" && user.role !== "producer") {
+          return res.status(403).json({ message: "You don't have permission to update this booking" });
+        }
       }
       
       // Validate the update data
@@ -435,15 +490,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = req.user as any;
       
-      // Check permissions: only the creator, admin, or engineer/it for maintenance can delete
-      if (
-        booking.userId !== user.id && 
-        user.role !== "admin" && 
-        !(["engineer", "it"].includes(user.role) && 
-          (booking.type === "maintenance" || booking.type === "it_support") && 
-          booking.studioId === null)
-      ) {
-        return res.status(403).json({ message: "You don't have permission to delete this booking" });
+      // Check permissions based on booking type and role
+      if (booking.type === "maintenance" || booking.type === "all-day:maintenance") {
+        // Only admin, engineers, and IT staff can delete maintenance bookings
+        if (!["admin", "engineer", "it"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin, engineers, and IT staff can delete maintenance bookings" });
+        }
+      } else if (booking.type === "it_support") {
+        // Only admin and IT staff can delete IT support bookings
+        if (!["admin", "it"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin and IT staff can delete IT support bookings" });
+        }
+      } else {
+        // For regular production bookings, only the creator, admin, or producers can delete
+        if (booking.userId !== user.id && user.role !== "admin" && user.role !== "producer") {
+          return res.status(403).json({ message: "You don't have permission to delete this booking" });
+        }
       }
       
       const success = await storage.deleteBooking(id);
