@@ -128,15 +128,21 @@ export default function AlertModal({
     let finalAlertType = alertType; // Create a mutable copy of alertType
     
     if (isAllDay) {
-      // For all-day events, set time from 00:00 to 23:59
-      const startDateObj = new Date(date);
-      startDateObj.setHours(0, 0, 0, 0);
+      // For all-day events, we need to account for timezone issues
+      // Parse the date string (YYYY-MM-DD) into its components
+      const [year, month, day] = date.split('-').map(Number);
       
-      const endDateObj = new Date(date);
-      endDateObj.setHours(23, 59, 59, 999);
+      // Create start and end dates in the local timezone to maintain the intended date
+      // Month is 0-indexed in JavaScript Date, so subtract 1
+      const startDateObj = new Date(year, month-1, day, 0, 0, 0, 0);
+      const endDateObj = new Date(year, month-1, day, 23, 59, 59, 999);
       
       localStartDate = startDateObj;
       localEndDate = endDateObj;
+      
+      // Log the intended start and end date in user's timezone for debugging
+      console.log(`All-day alert intended date: ${date}`);
+      console.log(`Local timestamps - Start: ${startDateObj}, End: ${endDateObj}`);
       
       // Add a special flag to the type field to ensure it's recognized as all-day
       // This will be used by isAllDayAlert in AlertsRow.tsx
