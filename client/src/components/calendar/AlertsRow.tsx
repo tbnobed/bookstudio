@@ -38,7 +38,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
 
   return (
     <>
-      <div className="h-14 border-b bg-gray-100 flex items-center justify-center sticky left-0 top-0 z-10">
+      <div className="h-20 border-b bg-gray-100 flex items-center justify-center sticky left-0 top-0 z-10">
         <span className="text-xs font-bold uppercase text-gray-700">Facility Alerts</span>
       </div>
       {weekDates.map((date, index) => {
@@ -54,7 +54,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           <div 
             key={index} 
             className={cn(
-              "relative h-14 border-b border-r",
+              "relative h-20 border-b border-r",
               isWeekend(date) ? "bg-gray-50" : "bg-white",
               "cursor-pointer hover:bg-gray-100"
             )}
