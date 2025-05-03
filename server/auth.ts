@@ -53,9 +53,8 @@ export function setupAuth(app: Express) {
           return done(null, false, { message: "Invalid username" });
         }
         
-        // Using simple password comparison for demo purposes
-        // In a real app, we would use password hashing
-        if (user.password !== password) {
+        // Check if password matches using our comparePasswords function
+        if (!(await comparePasswords(password, user.password))) {
           return done(null, false, { message: "Invalid password" });
         }
         
@@ -83,8 +82,13 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      // In a real app, we would hash the password here
-      const user = await storage.createUser(req.body);
+      // Hash the password before creating the user
+      const hashedUser = {
+        ...req.body,
+        password: await hashPassword(req.body.password)
+      };
+      
+      const user = await storage.createUser(hashedUser);
 
       req.login(user, (err) => {
         if (err) return next(err);
@@ -96,7 +100,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/auth/login", (req, res, next) => {
+  app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
       if (err) {
         return next(err);
@@ -108,22 +112,22 @@ export function setupAuth(app: Express) {
         if (err) {
           return next(err);
         }
-        return res.json({ user });
+        return res.json(user);
       });
     })(req, res, next);
   });
 
-  app.post("/api/auth/logout", (req, res, next) => {
+  app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
-      res.json({ message: "Logged out successfully" });
+      res.sendStatus(200);
     });
   });
 
-  app.get("/api/auth/user", (req, res) => {
+  app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    res.json({ user: req.user });
+    res.json(req.user);
   });
 }

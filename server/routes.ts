@@ -11,67 +11,13 @@ import {
 import { z } from "zod";
 import { ValidationError } from "zod-validation-error";
 import { ZodError } from "zod";
-import session from "express-session";
-import MemoryStore from "memorystore";
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
-  const SessionStore = MemoryStore(session);
 
-  // Session setup
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || "studio-booking-secret",
-      resave: false,
-      saveUninitialized: false,
-      store: new SessionStore({
-        checkPeriod: 86400000, // prune expired entries every 24h
-      }),
-      cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        secure: process.env.NODE_ENV === "production",
-      },
-    })
-  );
-
-  // Passport setup
-  app.use(passport.initialize());
-  app.use(passport.session());
-
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user) {
-          return done(null, false, { message: "Invalid username" });
-        }
-        
-        // In a real app, use proper password hashing/comparison
-        if (user.password !== password) {
-          return done(null, false, { message: "Invalid password" });
-        }
-        
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    })
-  );
-
-  passport.serializeUser((user: any, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
-  });
+  // Setup authentication with passport
+  setupAuth(app);
 
   // Middleware to check if user is authenticated
   const isAuthenticated = (req: Request, res: Response, next: Function) => {
@@ -96,40 +42,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next();
     };
   };
-
-  // Auth routes
-  app.post("/api/auth/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
-      if (err) {
-        return next(err);
-      }
-      if (!user) {
-        return res.status(401).json({ message: info.message || "Login failed" });
-      }
-      req.logIn(user, (err) => {
-        if (err) {
-          return next(err);
-        }
-        return res.json({ user });
-      });
-    })(req, res, next);
-  });
-
-  app.post("/api/auth/logout", (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ message: "Logout failed" });
-      }
-      res.json({ message: "Logged out successfully" });
-    });
-  });
-
-  app.get("/api/auth/user", (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    res.json({ user: req.user });
-  });
 
   // User routes
   app.get("/api/users", isAuthenticated, hasRole(["admin"]), async (req, res) => {

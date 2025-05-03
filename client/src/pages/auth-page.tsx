@@ -9,10 +9,15 @@ import { insertUserSchema } from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [_, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const loginSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -53,16 +58,79 @@ export default function AuthPage() {
     },
   });
 
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: z.infer<typeof loginSchema>) => {
+      setIsLoading(true);
+      try {
+        console.log("Login data:", credentials);
+        const res = await apiRequest("POST", "/api/login", credentials);
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || "Login failed");
+        }
+        return await res.json();
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+      setLocation("/calendar");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async (userData: z.infer<typeof registerSchema>) => {
+      setIsLoading(true);
+      try {
+        // Remove confirmPassword as it's not in the schema
+        const { confirmPassword, ...registerData } = userData;
+        // Add role as producer by default
+        const data = { ...registerData, role: "producer" };
+        
+        console.log("Register data:", data);
+        const res = await apiRequest("POST", "/api/register", data);
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || "Registration failed");
+        }
+        return await res.json();
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created.",
+      });
+      setLocation("/calendar");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
-    // Simulate login for now
-    console.log("Login data:", data);
-    setLocation("/");
+    loginMutation.mutate(data);
   };
 
   const onRegisterSubmit = (data: z.infer<typeof registerSchema>) => {
-    // Simulate registration for now
-    console.log("Register data:", data);
-    setLocation("/");
+    registerMutation.mutate(data);
   };
 
   return (
@@ -113,8 +181,8 @@ export default function AuthPage() {
                       )}
                     </div>
                     
-                    <Button type="submit" className="w-full">
-                      Sign In
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Signing In..." : "Sign In"}
                     </Button>
                   </div>
                 </form>
@@ -207,8 +275,8 @@ export default function AuthPage() {
                       )}
                     </div>
                     
-                    <Button type="submit" className="w-full">
-                      Create Account
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Creating Account..." : "Create Account"}
                     </Button>
                   </div>
                 </form>
