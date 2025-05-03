@@ -186,12 +186,18 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
               <div 
                 key={index} 
                 className={cn(
-                  "h-20 border-b bg-white text-center py-2",
-                  isWeekend(date) && "bg-gray-50"
+                  "h-20 border-b text-center py-2",
+                  isWeekend(date) ? "bg-gray-50" : "bg-white",
+                  new Date().toDateString() === date.toDateString() && "bg-blue-50 border-blue-200"
                 )}
               >
                 <div className="text-sm font-medium">{SHORT_DAY_NAMES[date.getDay()]}</div>
-                <div className="text-lg font-semibold">{date.getDate()}</div>
+                <div className={cn(
+                  "text-lg font-semibold",
+                  new Date().toDateString() === date.toDateString() && "text-blue-600 rounded-full w-8 h-8 mx-auto flex items-center justify-center bg-blue-100"
+                )}>
+                  {date.getDate()}
+                </div>
               </div>
             ))}
           </div>

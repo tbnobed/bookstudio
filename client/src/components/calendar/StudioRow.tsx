@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio } from "@shared/schema";
-import { formatTime, isWeekend, isSameDay } from "@/lib/dateUtils";
+import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 
 interface StudioRowProps {
   studio: Studio;
@@ -40,6 +42,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
             className={cn(
               "relative h-24 border-b border-r",
               isWeekend(date) ? "bg-gray-50" : "bg-white",
+              isSameDay(date, new Date()) ? "bg-blue-50 border-blue-200" : "",
               "cursor-pointer hover:bg-gray-100"
             )}
             onClick={() => handleCellClick(date)}
@@ -67,31 +70,72 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
               }
               
               return (
-                <div 
-                  key={booking.id}
-                  className={cn(
-                    "absolute w-[calc(100%-4px)] left-[2px] border rounded-md p-1 overflow-hidden text-overflow-ellipsis whitespace-nowrap text-xs z-10 top-2 h-20",
-                    colorClass
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onBookingClick(booking);
-                  }}
-                >
-                  <div className="font-medium truncate flex items-center">
-                    {(booking.type === "maintenance" || booking.type === "it_support") && (
-                      <span className={`w-2 h-2 rounded-full mr-1 ${
-                        booking.severity === "critical" ? "bg-red-500" : 
-                        booking.severity === "high" ? "bg-orange-500" :
-                        booking.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
-                      }`}></span>
-                    )}
-                    {booking.title}
-                  </div>
-                  <div className="text-xs">
-                    {formatTime(booking.start)} - {formatTime(booking.end)}
-                  </div>
-                </div>
+                <HoverCard key={booking.id}>
+                  <HoverCardTrigger asChild>
+                    <div 
+                      className={cn(
+                        "absolute w-[calc(100%-4px)] left-[2px] border rounded-md p-1 overflow-hidden text-overflow-ellipsis whitespace-nowrap text-xs z-10 top-2 h-20",
+                        colorClass
+                      )}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onBookingClick(booking);
+                      }}
+                    >
+                      <div className="font-medium truncate flex items-center">
+                        {(booking.type === "maintenance" || booking.type === "it_support") && (
+                          <span className={`w-2 h-2 rounded-full mr-1 ${
+                            booking.severity === "critical" ? "bg-red-500" : 
+                            booking.severity === "high" ? "bg-orange-500" :
+                            booking.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
+                          }`}></span>
+                        )}
+                        {booking.title}
+                      </div>
+                      <div className="text-xs">
+                        {formatTime(booking.start)} - {formatTime(booking.end)}
+                      </div>
+                    </div>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80 p-4">
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold">{booking.title}</h4>
+                      <div className="space-y-1">
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <CalendarClock className="mr-1 h-3 w-3" />
+                          <span>{formatDate(booking.start)}</span>
+                        </div>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Clock className="mr-1 h-3 w-3" />
+                          <span>{formatTime(booking.start)} - {formatTime(booking.end)}</span>
+                        </div>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Tag className="mr-1 h-3 w-3" />
+                          <span className="capitalize">{booking.type.replace('_', ' ')}</span>
+                        </div>
+                        {booking.description && (
+                          <div className="flex items-start mt-2 text-xs text-muted-foreground">
+                            <FileText className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
+                            <span>{booking.description}</span>
+                          </div>
+                        )}
+                        {booking.notifyList && booking.notifyList.length > 0 && (
+                          <div className="mt-2">
+                            <div className="text-xs font-medium mb-1">Notifying:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {Array.isArray(booking.notifyList) && booking.notifyList.map((crew: string, i: number) => (
+                                <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
+                                  <User className="mr-1 h-3 w-3" />
+                                  {crew}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
               );
             })}
           </div>
