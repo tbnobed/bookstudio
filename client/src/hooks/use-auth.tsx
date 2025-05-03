@@ -53,11 +53,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/auth/login", credentials);
       return await res.json();
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/auth/user"], user);
+    onSuccess: (data) => {
+      // Extract user from response - API returns { user: {...} }
+      const user = data.user || data;
+      queryClient.setQueryData(["/api/auth/user"], { user });
       toast({
         title: "Login successful",
-        description: `Welcome back, ${user.username}!`,
+        description: `Welcome back, ${user.name || user.username}!`,
       });
     },
     onError: (error: Error) => {
