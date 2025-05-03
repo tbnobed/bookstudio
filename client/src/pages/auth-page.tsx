@@ -12,7 +12,7 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 import logoPath from "../assets/logo.png";
 
 export default function AuthPage() {
@@ -60,8 +60,8 @@ export default function AuthPage() {
     },
   });
 
-  // Use our enhanced useAuth hook
-  const { login, register, isLoading: authLoading } = useAuth();
+  // Use our AuthContext
+  const { login, logout, isLoading: authLoading } = useAuthContext();
 
   // Create login mutation using our login function
   const loginMutation = useMutation({
@@ -92,7 +92,9 @@ export default function AuthPage() {
         const data = { ...registerData, role: "producer" };
         
         console.log("Register data:", data);
-        const user = await register(data);
+        // Since our context doesn't have register, use api directly
+        const res = await apiRequest("POST", "/api/register", data);
+        const user = await res.json();
         return user;
       } finally {
         setIsLoading(false);
