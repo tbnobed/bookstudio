@@ -51,9 +51,11 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           const alertStart = new Date(alert.start);
           console.log(`Alert #${alert.id} - ${alert.title}: ${alertStart.toISOString()}`);
           console.log(`Comparing alert day: ${alertStart.getFullYear()}-${alertStart.getMonth()}-${alertStart.getDate()} to day cell: ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} - Same day: ${isSameDay(alertStart, date)}`);
+          // Check facility-wide alerts (studio_id is null)
+          // The API returns snake_case properties, so we need to use studio_id
           return isSameDay(alertStart, date) && 
             (alert.type === "maintenance" || alert.type === "it_support") &&
-            alert.studioId === null;
+            alert.studio_id === null;
         });
         
         return (
