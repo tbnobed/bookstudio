@@ -160,3 +160,37 @@ export function isWeekend(date: Date): boolean {
   const day = date.getDay();
   return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday
 }
+
+export function generateTimeOptions(): string[] {
+  const timeOptions: string[] = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const h = hour % 12 || 12;
+      const period = hour < 12 ? "am" : "pm";
+      timeOptions.push(`${h}:${minute.toString().padStart(2, "0")}${period}`);
+    }
+  }
+  return timeOptions;
+}
+
+export function timeToDate(dateStr: string, timeStr: string): Date {
+  // Extract hours and minutes from timeStr (format: "1:30pm", "12:00am", etc.)
+  const timeParts = timeStr.match(/^(\d+):(\d+)([ap]m)$/i);
+  if (!timeParts) throw new Error("Invalid time format");
+  
+  let [_, hours, minutes, period] = timeParts;
+  let hourNum = parseInt(hours);
+  const minuteNum = parseInt(minutes);
+  
+  // Convert to 24-hour format
+  if (period.toLowerCase() === "pm" && hourNum < 12) {
+    hourNum += 12;
+  } else if (period.toLowerCase() === "am" && hourNum === 12) {
+    hourNum = 0;
+  }
+  
+  // Create a new date with the given date and time
+  const dateObj = new Date(dateStr);
+  dateObj.setHours(hourNum, minuteNum, 0, 0);
+  return dateObj;
+}
