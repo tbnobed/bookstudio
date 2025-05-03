@@ -13,6 +13,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import logoPath from "../assets/logo.png";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -118,7 +119,7 @@ export default function AuthPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="flex justify-center mb-2">
-              <img src="/assets/logo.png" alt="BookStud.io logo" className="h-16 w-auto" />
+              <img src={logoPath} alt="BookStud.io logo" className="h-16 w-auto" />
             </div>
             <CardTitle className="text-center text-2xl logo-text">BookStud.io</CardTitle>
             <CardDescription className="text-center">
