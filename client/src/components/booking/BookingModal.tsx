@@ -17,6 +17,7 @@ interface BookingModalProps {
   booking?: any; // Optional existing booking for editing
   selectedDate?: Date;
   selectedStudio?: number;
+  alertsOnly?: boolean; // If true, only maintenance and IT support options are available
 }
 
 export default function BookingModal({ 
@@ -24,7 +25,8 @@ export default function BookingModal({
   onClose, 
   booking, 
   selectedDate = new Date(),
-  selectedStudio
+  selectedStudio,
+  alertsOnly = false
 }: BookingModalProps) {
   // State for form fields
   const [title, setTitle] = useState("");
@@ -99,7 +101,7 @@ export default function BookingModal({
     setTitle("");
     setDescription("");
     setStudioId(selectedStudio?.toString() || "");
-    setBookingType("production");
+    setBookingType(alertsOnly ? "maintenance" : "production");
     setDate(selectedDate ? selectedDate.toISOString().split("T")[0] : "");
     setStartTime("9:00am");
     setEndTime("10:00am");
