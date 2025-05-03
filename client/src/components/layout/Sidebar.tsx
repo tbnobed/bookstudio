@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import logoPath from "../../assets/logo.png";
 
 type SidebarProps = {
   isOpen: boolean;
@@ -30,7 +31,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="flex flex-col h-full">
         <div className="p-4 border-b">
           <div className="flex items-center">
-            <img src="/assets/logo.png" alt="bookstud.io logo" className="h-8 w-8 mr-3" />
+            <img src={logoPath} alt="BookStud.io logo" className="h-8 w-auto mr-3" />
             <h1 className="text-xl logo-text">BookStud.io</h1>
           </div>
         </div>
