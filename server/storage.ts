@@ -170,7 +170,9 @@ export class MemStorage implements IStorage {
   }
 
   async getAllStudios(): Promise<Studio[]> {
-    return Array.from(this.studios.values());
+    // Return all studios sorted alphabetically by name
+    return Array.from(this.studios.values())
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async createStudio(studio: InsertStudio): Promise<Studio> {
@@ -552,10 +554,13 @@ export class DatabaseStorage implements IStorage {
       allStudios.forEach(studio => {
         this.studios.set(studio.id, studio);
       });
-      return allStudios;
+      // Sort studios alphabetically by name
+      return allStudios.sort((a, b) => a.name.localeCompare(b.name));
     } catch (error) {
       console.error("Error getting all studios:", error);
-      return Array.from(this.studios.values());
+      // Also sort the fallback array
+      return Array.from(this.studios.values())
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
   }
   
