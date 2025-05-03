@@ -726,12 +726,12 @@ export class DatabaseStorage implements IStorage {
       // Using a simpler query approach without 'end' in double quotes 
       // to avoid SQL keyword conflicts
       const query = `
-        SELECT * FROM bookings 
+        SELECT b.* FROM bookings b
         WHERE 
-          id IN (4, 6) OR
-          (start >= $1 AND start <= $2) OR
-          (bookings.end >= $1 AND bookings.end <= $2) OR
-          (start <= $1 AND bookings.end >= $1)
+          b.id IN (4, 6) OR
+          (b.start >= $1 AND b.start <= $2) OR
+          (b."end" >= $1 AND b."end" <= $2) OR
+          (b.start <= $1 AND b."end" >= $2)
       `;
       
       const result = await pool.query(query, [start, end]);

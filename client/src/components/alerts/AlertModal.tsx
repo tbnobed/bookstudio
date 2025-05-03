@@ -125,6 +125,7 @@ export default function AlertModal({
     e.preventDefault();
     
     let localStartDate, localEndDate;
+    let finalAlertType = alertType; // Create a mutable copy of alertType
     
     if (isAllDay) {
       // For all-day events, set time from 00:00 to 23:59
@@ -137,8 +138,13 @@ export default function AlertModal({
       localStartDate = startDateObj;
       localEndDate = endDateObj;
       
+      // Add a special flag to the type field to ensure it's recognized as all-day
+      // This will be used by isAllDayAlert in AlertsRow.tsx
+      finalAlertType = `all-day:${alertType}`;
+      
       console.log(`Creating all-day alert for date: ${date}`);
       console.log(`Start: ${localStartDate.toISOString()}, End: ${localEndDate.toISOString()}`);
+      console.log(`Modified type with flag: ${finalAlertType}`);
     } else {
       // Regular time-bound event
       // Convert times to date objects using our utility function
@@ -157,7 +163,7 @@ export default function AlertModal({
       title,
       description,
       studioId: null, // Use camelCase to match the schema definitions
-      type: alertType,
+      type: finalAlertType, // Use our modified type with all-day flag if applicable
       start: localStartDate.toISOString(),
       end: localEndDate.toISOString(),
       notifyList: notifyList,

@@ -24,7 +24,9 @@ interface AlertsRowProps {
 function isAllDayAlert(alert: ApiBooking): boolean {
   // First, check if the alert has a special metadata flag indicating all-day
   // This could be checking a prop from the database that indicates all-day
-  const hasAllDayFlag = alert.type === "all-day" || 
+  const hasAllDayFlag = 
+                        alert.type === "all-day" || 
+                        alert.type?.startsWith("all-day:") ||
                         alert.title?.toLowerCase().includes("all day") ||
                         alert.description?.toLowerCase().includes("all day");
   
