@@ -323,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if ((updateData.start || updateData.end) && (updateData.studioId !== null && booking.studioId !== null)) {
         const start = new Date(updateData.start || booking.start);
         const end = new Date(updateData.end || booking.end);
-        const studioId = updateData.studioId || booking.studioId;
+        const studioId = updateData.studioId !== undefined ? updateData.studioId : booking.studioId;
         
         if (studioId !== null) {
           const existingBookings = await storage.getBookingsByStudio(studioId);

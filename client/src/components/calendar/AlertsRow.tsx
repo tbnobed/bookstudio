@@ -43,9 +43,11 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
       </div>
       {weekDates.map((date, index) => {
         // Filter alerts for this date (maintenance and IT support)
+        // Only include facility-wide alerts (with null studioId) in this row
         const dayAlerts = alerts.filter(alert => 
           isSameDay(new Date(alert.start), date) && 
-          (alert.type === "maintenance" || alert.type === "it_support")
+          (alert.type === "maintenance" || alert.type === "it_support") &&
+          alert.studioId === null
         );
         
         return (

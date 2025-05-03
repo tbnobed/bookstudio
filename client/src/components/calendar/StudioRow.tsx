@@ -28,8 +28,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
       </div>
       {weekDates.map((date, index) => {
         // Filter bookings for this date and studio
+        // Include only studio-specific bookings (including studio-specific maintenance)
         const dayBookings = bookings.filter(booking => 
-          isSameDay(new Date(booking.start), date)
+          isSameDay(new Date(booking.start), date) && 
+          booking.studioId !== null
         );
         
         return (
