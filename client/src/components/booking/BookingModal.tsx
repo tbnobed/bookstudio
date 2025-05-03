@@ -33,7 +33,7 @@ export default function BookingModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [studioId, setStudioId] = useState<string>("");
-  const [bookingType, setBookingType] = useState("production");
+  const [bookingType, setBookingType] = useState(alertsOnly ? "maintenance" : "production");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -269,10 +269,17 @@ export default function BookingModal({
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {!alertsOnly && <SelectItem value="production">Production</SelectItem>}
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="it_support">IT Support</SelectItem>
-                  {!alertsOnly && <SelectItem value="rehearsal">Rehearsal</SelectItem>}
+                  {!alertsOnly ? (
+                    <>
+                      <SelectItem value="production">Production</SelectItem>
+                      <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                      <SelectItem value="it_support">IT Support</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
