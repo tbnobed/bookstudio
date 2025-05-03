@@ -28,26 +28,35 @@ function Router() {
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [location] = useLocation();
+  
+  // Check if we're on an auth page
+  const isAuthPage = location === "/auth" || location === "/login" || location === "/";
   
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Mobile menu button */}
-      <div className="lg:hidden absolute top-4 left-4 z-50">
-        <button 
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
+      {/* Only show sidebar and menu button when not on auth pages */}
+      {!isAuthPage && (
+        <>
+          {/* Mobile menu button */}
+          <div className="lg:hidden absolute top-4 left-4 z-50">
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* Sidebar Navigation */}
+          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        </>
+      )}
       
-      {/* Sidebar Navigation */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      
-      {/* Main Content */}
-      <div className="flex-1 lg:ml-64 p-0">
+      {/* Main Content - adjust margin based on whether sidebar is showing */}
+      <div className={`flex-1 ${!isAuthPage ? 'lg:ml-64' : ''} p-0`}>
         {children}
       </div>
     </div>
