@@ -111,7 +111,10 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
     const hasSnakeCase = 'studio_id' in booking;
     const studioId = hasSnakeCase ? booking.studio_id : booking.studioId;
     
-    const isMaintenanceOrIT = booking.type === "maintenance" || booking.type === "it_support";
+    const isMaintenanceOrIT = booking.type === "maintenance" || 
+                     booking.type === "it_support" || 
+                     booking.type?.startsWith("all-day:maintenance") ||
+                     booking.type?.startsWith("all-day:it_support");
     const isFacilityWide = studioId === null;
     
     console.log(`Booking ${booking.id}: type=${booking.type}, studioId=${studioId}, format=${hasSnakeCase ? 'snake_case' : 'camelCase'}, isMaintenanceOrIT=${isMaintenanceOrIT}, isFacilityWide=${isFacilityWide}`);
