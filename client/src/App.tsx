@@ -21,7 +21,13 @@ function Router() {
       <Route path="/login" component={AuthPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/" component={AuthPage} />
-      <Route component={AuthPage} />
+      <Route path="/calendar" component={CalendarPage} />
+      <Route path="/my-bookings" component={MyBookingsPage} />
+      <Route path="/templates" component={TemplatesPage} />
+      <Route path="/reports" component={ReportsPage} />
+      <Route path="/user-management" component={UserManagement} />
+      <Route path="/settings" component={Settings} />
+      <Route component={NotFound} />
     </Switch>
   );
 }
