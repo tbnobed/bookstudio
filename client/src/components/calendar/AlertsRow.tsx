@@ -239,41 +239,93 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                   }
                   
                   return (
-                    <div 
-                      key={alert.id}
-                      className={cn(
-                        "relative group border rounded-md px-2 py-1 mb-1 overflow-visible text-xs",
-                        colorClass,
-                        "transition-all hover:shadow-md cursor-pointer"
-                      )}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAlertEditClick(alert);
-                      }}
-                      title={`${alert.title}
-Type: ${alert.type === "maintenance" ? "Maintenance" : "IT Support"}
-Severity: ${alert.severity}
-Time: ${formatTime(new Date(alert.start))} - ${formatTime(new Date(alert.end))}
-${alert.description ? `Description: ${alert.description}` : ''}
-(Click to edit)`}
-                    >
-                      <div className="flex items-center w-full">
-                        <span className={`w-2 h-2 rounded-full mr-1 flex-shrink-0 ${
-                          alert.severity === "critical" ? "bg-red-500" : 
-                          alert.severity === "high" ? "bg-orange-500" :
-                          alert.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
-                        }`}></span>
-                        <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">{alert.title}</span>
-                      </div>
-                      <div className="text-xs pl-3">
-                        {/* Check if it's an all-day alert by comparing times */}
-                        {isAllDayAlert(alert) ? (
-                          <span className="font-medium">All Day</span>
-                        ) : (
-                          <>{formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}</>
-                        )}
-                      </div>
-                    </div>
+                    <HoverCard key={alert.id}>
+                      <HoverCardTrigger asChild>
+                        <div 
+                          className={cn(
+                            "relative group border rounded-md px-2 py-1 mb-1 overflow-visible text-xs",
+                            colorClass,
+                            "transition-all hover:shadow-md cursor-pointer"
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAlertEditClick(alert);
+                          }}
+                        >
+                          <div className="flex items-center w-full">
+                            <span className={`w-2 h-2 rounded-full mr-1 flex-shrink-0 ${
+                              alert.severity === "critical" ? "bg-red-500" : 
+                              alert.severity === "high" ? "bg-orange-500" :
+                              alert.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
+                            }`}></span>
+                            <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">{alert.title}</span>
+                          </div>
+                          <div className="text-xs pl-3">
+                            {/* Check if it's an all-day alert by comparing times */}
+                            {isAllDayAlert(alert) ? (
+                              <span className="font-medium">All Day</span>
+                            ) : (
+                              <>{formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}</>
+                            )}
+                          </div>
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80 p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "w-3 h-3 rounded-full",
+                              alert.severity === "critical" ? "bg-red-500" : 
+                              alert.severity === "high" ? "bg-orange-500" :
+                              alert.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
+                            )}></span>
+                            <h4 className="text-sm font-semibold">{alert.title}</h4>
+                          </div>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <AlertCircle className="mr-1 h-3 w-3" />
+                            <span className="capitalize">{alert.severity || "Low"} Severity</span>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <CalendarClock className="mr-1 h-3 w-3" />
+                              <span>{formatDate(new Date(alert.start))}</span>
+                            </div>
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <Clock className="mr-1 h-3 w-3" />
+                              {isAllDayAlert(alert) ? (
+                                <span className="font-medium">All Day</span>
+                              ) : (
+                                <span>
+                                  {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center text-xs text-muted-foreground mt-1">
+                              <Bell className="mr-1 h-3 w-3 flex-shrink-0" />
+                              <span className="capitalize">{alert.type?.replace("all-day:", "").replace("_", " ")}</span>
+                            </div>
+                            {alert.description && (
+                              <div className="flex items-start mt-2 text-xs text-muted-foreground">
+                                <FileText className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
+                                <span>{alert.description}</span>
+                              </div>
+                            )}
+                            {alert.notify_list && Array.isArray(alert.notify_list) && alert.notify_list.length > 0 && (
+                              <div className="mt-2">
+                                <div className="text-xs font-medium mb-1">Notifying:</div>
+                                <div className="flex flex-wrap gap-1">
+                                  {alert.notify_list.map((person: string, i: number) => (
+                                    <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
+                                      {person}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
                   );
                 })}
                 
