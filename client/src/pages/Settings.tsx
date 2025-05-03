@@ -17,6 +17,8 @@ export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
+  const [selectedStudio, setSelectedStudio] = useState<Studio | undefined>(undefined);
   
   // Fetch studios for studio settings
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -263,7 +265,16 @@ export default function Settings() {
                               />
                             </td>
                             <td className="py-3 px-4">
-                              <Button variant="outline" size="sm">Edit</Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedStudio(studio);
+                                  setIsStudioModalOpen(true);
+                                }}
+                              >
+                                Edit
+                              </Button>
                             </td>
                           </tr>
                         ))}
@@ -271,13 +282,25 @@ export default function Settings() {
                     </table>
                   </div>
                   
-                  <Button>
+                  <Button
+                    onClick={() => {
+                      setSelectedStudio(undefined);
+                      setIsStudioModalOpen(true);
+                    }}
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="5" x2="12" y2="19"></line>
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
                     Add Studio
                   </Button>
+                  
+                  {/* Studio Management Modal */}
+                  <StudioManagementModal
+                    isOpen={isStudioModalOpen}
+                    onClose={() => setIsStudioModalOpen(false)}
+                    studio={selectedStudio}
+                  />
                 </div>
               </CardContent>
             </Card>
