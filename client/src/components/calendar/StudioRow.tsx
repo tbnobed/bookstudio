@@ -99,7 +99,24 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
                   </HoverCardTrigger>
                   <HoverCardContent className="w-80 p-4">
                     <div className="space-y-3">
-                      <h4 className="text-sm font-semibold">{booking.title}</h4>
+                      <div className="flex justify-between items-start">
+                        <h4 className="text-sm font-semibold">{booking.title}</h4>
+                        <div className="flex space-x-1">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onBookingClick(booking);
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                            title="Edit booking"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 hover:text-blue-500">
+                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                              <path d="m15 5 4 4"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                       <div className="space-y-1">
                         <div className="flex items-center text-xs text-muted-foreground">
                           <CalendarClock className="mr-1 h-3 w-3" />
