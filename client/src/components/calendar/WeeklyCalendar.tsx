@@ -93,17 +93,21 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
               ))}
             </div>
 
-            {/* Alerts Row */}
-            <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-200">
-              <AlertsRow
-                weekDates={weekDates}
-                alerts={alerts}
-                onAlertClick={handleBookingClick}
-              />
-            </div>
-              
             {/* Calendar Grid */}
             <div className="grid grid-cols-[80px_repeat(7,1fr)]">
+              {/* Alerts Row - First row of the grid */}
+              <div className="contents">
+                <AlertsRow
+                  weekDates={weekDates}
+                  alerts={alerts}
+                  onAlertClick={handleBookingClick}
+                />
+              </div>
+              
+              {/* Visual separator */}
+              <div className="col-span-8 h-2 bg-gray-200 border-b border-gray-300"></div>
+              
+              {/* Studio Rows */}
               {filteredStudios.map((studio) => (
                 <StudioRow
                   key={studio.id}

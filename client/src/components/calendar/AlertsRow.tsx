@@ -22,8 +22,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
 
   return (
     <>
-      <div className="h-16 border-b bg-gray-100 flex items-center justify-center">
-        <span className="text-xs font-bold uppercase text-gray-700">Outages & Alerts</span>
+      <div className="h-14 border-b bg-gray-100 flex items-center justify-center sticky left-0 top-0 z-10">
+        <span className="text-xs font-bold uppercase text-gray-700">Alerts & Outages</span>
       </div>
       {weekDates.map((date, index) => {
         // Filter alerts for this date (maintenance and IT support)
@@ -36,7 +36,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           <div 
             key={index} 
             className={cn(
-              "relative h-16 border-b border-r",
+              "relative h-14 border-b border-r",
               isWeekend(date) ? "bg-gray-50" : "bg-white",
               "cursor-pointer hover:bg-gray-100"
             )}
@@ -47,8 +47,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                 {dayAlerts.map((alert) => {
                   // Determine color based on alert type
                   const colorClass = alert.type === "maintenance" 
-                    ? "bg-amber-100 border-amber-300 text-amber-800"
-                    : "bg-red-500 border-red-600 text-white";
+                    ? "bg-amber-100 border-amber-400 border text-amber-800 shadow-sm"
+                    : "bg-red-100 border-red-500 border text-red-800 shadow-sm";
                   
                   return (
                     <div 
@@ -71,8 +71,11 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                 })}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-xs text-gray-400">
-                No alerts
+              <div className="flex flex-col items-center justify-center h-full">
+                <span className="text-xs text-gray-400">No alerts</span>
+                <span className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer mt-0.5">
+                  + Add alert
+                </span>
               </div>
             )}
           </div>
