@@ -712,12 +712,13 @@ export class DatabaseStorage implements IStorage {
   async getBookingsByDateRange(start: Date, end: Date): Promise<Booking[]> {
     try {
       // Execute a raw query to avoid type issues with the dates
+      // Use double quotes around column names to avoid reserved keyword issues
       const query = `
         SELECT * FROM bookings 
         WHERE 
-          (start >= $1 AND start <= $2) OR
-          (end >= $1 AND end <= $2) OR
-          (start <= $1 AND end >= $2)
+          ("start" >= $1 AND "start" <= $2) OR
+          ("end" >= $1 AND "end" <= $2) OR
+          ("start" <= $1 AND "end" >= $2)
       `;
       
       const result = await pool.query(query, [start, end]);
