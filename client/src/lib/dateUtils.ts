@@ -189,8 +189,14 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
     hourNum = 0;
   }
   
-  // Create a new date with the given date and time
-  const dateObj = new Date(dateStr);
-  dateObj.setHours(hourNum, minuteNum, 0, 0);
+  // Parse the date string (format: "YYYY-MM-DD")
+  const [year, month, day] = dateStr.split('-').map(Number);
+  
+  // Create a date object with the local time zone (avoid timezone shifting)
+  // Month is zero-indexed in JavaScript Date
+  const dateObj = new Date(year, month - 1, day, hourNum, minuteNum, 0, 0);
+  
+  console.log(`Original date string: ${dateStr}, parsed as: ${dateObj.toISOString()}`);
+  
   return dateObj;
 }

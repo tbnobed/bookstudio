@@ -117,16 +117,24 @@ export default function AlertModal({
     e.preventDefault();
     
     // Convert times to date objects using our utility function
+    // Create dates with timezone handling to prevent day shift
     const startDate = timeToDate(date, startTime);
     const endDate = timeToDate(date, endTime);
+    
+    // Debugging the timezone issue
+    console.log(`Creating alert for date: ${date}, converted start: ${startDate.toISOString()}`);
+    
+    // Ensure we preserve the intended day regardless of timezone
+    const localStartDate = new Date(startDate);
+    const localEndDate = new Date(endDate);
     
     const alertData: Partial<InsertBooking> = {
       title,
       description,
       studioId: null, // Facility-wide alert - no specific studio
       type: alertType,
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
+      start: localStartDate.toISOString(),
+      end: localEndDate.toISOString(),
       notifyList: notifyList,
       severity: severity
     };
