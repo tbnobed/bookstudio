@@ -281,8 +281,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(booking);
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({ message: "Invalid booking data", errors: error.errors });
+        console.error("ZodError:", JSON.stringify(error.errors));
+        return res.status(400).json({ 
+          message: "Invalid booking data: " + error.errors.map(e => `${e.path}: ${e.message}`).join(', '),
+          errors: error.errors 
+        });
       }
+      console.error("Booking error:", error);
       res.status(500).json({ message: "Failed to create booking" });
     }
   });

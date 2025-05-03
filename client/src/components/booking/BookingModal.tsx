@@ -93,10 +93,13 @@ export default function BookingModal({
         // Set selected studio if provided
         if (selectedStudio) {
           setStudioId(selectedStudio.toString());
+        } else if (studios.length > 0) {
+          // Set first studio as default if none selected
+          setStudioId(studios[0].id.toString());
         }
       }
     }
-  }, [isOpen, booking, selectedDate, selectedStudio]);
+  }, [isOpen, booking, selectedDate, selectedStudio, studios]);
 
   // Reset form to defaults
   const resetForm = () => {
@@ -116,6 +119,12 @@ export default function BookingModal({
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!studioId) {
+      // Highlight required fields and show error
+      return;
+    }
     
     // Convert times to ISO format for API
     const datePart = date;
@@ -258,9 +267,15 @@ export default function BookingModal({
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="studio">Studio</Label>
-              <Select value={studioId} onValueChange={setStudioId} required>
-                <SelectTrigger>
+              <Label htmlFor="studio" className="flex items-center">
+                Studio <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <Select 
+                value={studioId} 
+                onValueChange={setStudioId} 
+                required
+              >
+                <SelectTrigger className={!studioId ? "border-red-500" : ""}>
                   <SelectValue placeholder="Select studio" />
                 </SelectTrigger>
                 <SelectContent>
@@ -271,6 +286,9 @@ export default function BookingModal({
                   ))}
                 </SelectContent>
               </Select>
+              {!studioId && (
+                <p className="text-sm text-red-500 mt-1">Studio selection is required</p>
+              )}
             </div>
             
             <div>
