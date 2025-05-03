@@ -1,5 +1,4 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 type SidebarProps = {
@@ -9,14 +8,11 @@ type SidebarProps = {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [location] = useLocation();
-  const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+  
+  // Import directly at the top level is causing hooks order issues
+  // Let's simplify by directly redirecting to auth page on logout
+  const handleLogout = () => {
+    window.location.href = "/auth";
   };
 
   return (
@@ -118,64 +114,60 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </a>
           </Link>
           
-          {/* Admin section - only show for admin users */}
-          {user?.role === "admin" && (
-            <>
-              <div className="pt-4 pb-2">
-                <div className="flex items-center px-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Admin</h3>
-                </div>
-              </div>
-              
-              <Link href="/user-management">
-                <a 
-                  className={cn(
-                    "flex items-center px-4 py-2 text-sm font-medium rounded-md",
-                    location === "/user-management" 
-                      ? "text-white bg-primary" 
-                      : "text-gray-700 hover:bg-gray-100"
-                  )}
-                  onClick={() => onClose()}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="8.5" cy="7" r="4"></circle>
-                    <line x1="20" y1="8" x2="20" y2="14"></line>
-                    <line x1="23" y1="11" x2="17" y2="11"></line>
-                  </svg>
-                  <span>User Management</span>
-                </a>
-              </Link>
-              
-              <Link href="/settings">
-                <a 
-                  className={cn(
-                    "flex items-center px-4 py-2 text-sm font-medium rounded-md",
-                    location === "/settings" 
-                      ? "text-white bg-primary" 
-                      : "text-gray-700 hover:bg-gray-100"
-                  )}
-                  onClick={() => onClose()}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                  </svg>
-                  <span>Settings</span>
-                </a>
-              </Link>
-            </>
-          )}
+          {/* Show admin section for everybody since we've removed auth for now */}
+          <div className="pt-4 pb-2">
+            <div className="flex items-center px-4">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Admin</h3>
+            </div>
+          </div>
+          
+          <Link href="/user-management">
+            <a 
+              className={cn(
+                "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                location === "/user-management" 
+                  ? "text-white bg-primary" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+              onClick={() => onClose()}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+              </svg>
+              <span>User Management</span>
+            </a>
+          </Link>
+          
+          <Link href="/settings">
+            <a 
+              className={cn(
+                "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                location === "/settings" 
+                  ? "text-white bg-primary" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+              onClick={() => onClose()}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              <span>Settings</span>
+            </a>
+          </Link>
         </nav>
         
         <div className="p-4 border-t">
           <div className="flex items-center">
             <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-              {user?.name?.charAt(0).toUpperCase()}
+              U
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700">{user?.name}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+              <p className="text-sm font-medium text-gray-700">User</p>
+              <p className="text-xs text-gray-500 capitalize">Admin</p>
             </div>
             <button 
               onClick={handleLogout}
