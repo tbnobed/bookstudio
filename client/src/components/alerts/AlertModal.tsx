@@ -55,6 +55,7 @@ export default function AlertModal({
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("9:00am");
   const [endTime, setEndTime] = useState("10:00am");
+  const [isAllDay, setIsAllDay] = useState(false);
   const [notifyList, setNotifyList] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -87,6 +88,12 @@ export default function AlertModal({
         const formattedEndHours = endHours > 12 ? endHours - 12 : (endHours === 0 ? 12 : endHours);
         setEndTime(`${formattedEndHours}:${endMinutes.toString().padStart(2, "0")}${endPeriod}`);
         
+        // Check if this is an all-day alert
+        // If start is 00:00 and end is 23:59, it's an all-day alert
+        const isStartMidnight = startHours === 0 && startMinutes === 0;
+        const isEndBeforeMidnight = endHours === 23 && endMinutes === 59;
+        setIsAllDay(isStartMidnight && isEndBeforeMidnight);
+        
         setNotifyList(alert.notifyList || []);
       } else {
         // Create mode - set defaults
@@ -109,6 +116,7 @@ export default function AlertModal({
     setDate(selectedDate ? selectedDate.toISOString().split("T")[0] : "");
     setStartTime("9:00am");
     setEndTime("10:00am");
+    setIsAllDay(false);
     setNotifyList([]);
   };
 
@@ -116,17 +124,34 @@ export default function AlertModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Convert times to date objects using our utility function
-    // Create dates with timezone handling to prevent day shift
-    const startDate = timeToDate(date, startTime);
-    const endDate = timeToDate(date, endTime);
+    let localStartDate, localEndDate;
     
-    // Debugging the timezone issue
-    console.log(`Creating alert for date: ${date}, converted start: ${startDate.toISOString()}`);
-    
-    // Ensure we preserve the intended day regardless of timezone
-    const localStartDate = new Date(startDate);
-    const localEndDate = new Date(endDate);
+    if (isAllDay) {
+      // For all-day events, set time from 00:00 to 23:59
+      const startDateObj = new Date(date);
+      startDateObj.setHours(0, 0, 0, 0);
+      
+      const endDateObj = new Date(date);
+      endDateObj.setHours(23, 59, 59, 999);
+      
+      localStartDate = startDateObj;
+      localEndDate = endDateObj;
+      
+      console.log(`Creating all-day alert for date: ${date}`);
+      console.log(`Start: ${localStartDate.toISOString()}, End: ${localEndDate.toISOString()}`);
+    } else {
+      // Regular time-bound event
+      // Convert times to date objects using our utility function
+      const startDate = timeToDate(date, startTime);
+      const endDate = timeToDate(date, endTime);
+      
+      // Debugging the timezone issue
+      console.log(`Creating time-bound alert for date: ${date}, converted start: ${startDate.toISOString()}`);
+      
+      // Ensure we preserve the intended day regardless of timezone
+      localStartDate = new Date(startDate);
+      localEndDate = new Date(endDate);
+    }
     
     const alertData: Partial<InsertBooking> = {
       title,
@@ -248,48 +273,74 @@ export default function AlertModal({
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="date">Date</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className={isAllDay ? "opacity-50" : ""}>
+                <Label htmlFor="start-time">Start Time</Label>
+                <Select 
+                  value={startTime} 
+                  onValueChange={setStartTime} 
+                  required
+                  disabled={isAllDay}
+                >
+                  <SelectTrigger id="start-time">
+                    <SelectValue placeholder="Select start time" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {generateTimeOptions().map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className={isAllDay ? "opacity-50" : ""}>
+                <Label htmlFor="end-time">End Time</Label>
+                <Select 
+                  value={endTime} 
+                  onValueChange={setEndTime} 
+                  required
+                  disabled={isAllDay}
+                >
+                  <SelectTrigger id="end-time">
+                    <SelectValue placeholder="Select end time" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {generateTimeOptions().map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 ml-1">
+              <Checkbox
+                id="all-day"
+                checked={isAllDay}
+                onCheckedChange={(checked) => setIsAllDay(checked === true)}
               />
-            </div>
-            
-            <div>
-              <Label htmlFor="start-time">Start Time</Label>
-              <Select value={startTime} onValueChange={setStartTime} required>
-                <SelectTrigger id="start-time">
-                  <SelectValue placeholder="Select start time" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {generateTimeOptions().map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="end-time">End Time</Label>
-              <Select value={endTime} onValueChange={setEndTime} required>
-                <SelectTrigger id="end-time">
-                  <SelectValue placeholder="Select end time" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {generateTimeOptions().map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label
+                htmlFor="all-day"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                All Day Alert
+              </label>
             </div>
           </div>
           
