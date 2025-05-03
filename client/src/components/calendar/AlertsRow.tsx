@@ -50,13 +50,24 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
         const dayAlerts = alerts.filter(alert => {
           const alertStart = new Date(alert.start);
           console.log(`Alert #${alert.id} - ${alert.title}: ${alertStart.toISOString()}`);
+          
+          // Check if this is a facility-wide alert
+          // Handle both snake_case and camelCase property names for compatibility
+          const studioId = alert.studio_id !== undefined ? alert.studio_id : (alert as any).studioId;
+          
+          // Check for facility-wide alerts (null studioId)
+          const isFacilityWideAlert = studioId === null;
+          
+          // Debug the matching process
+          console.log(`Alert ${alert.id} - Studio ID: ${studioId}, Is facility-wide: ${isFacilityWideAlert}`);
           console.log(`Comparing alert day: ${alertStart.getFullYear()}-${alertStart.getMonth()}-${alertStart.getDate()} to day cell: ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} - Same day: ${isSameDay(alertStart, date)}`);
-          // Check facility-wide alerts (studio_id is null)
-          // The API returns snake_case properties, so we need to use studio_id
+          
           return isSameDay(alertStart, date) && 
             (alert.type === "maintenance" || alert.type === "it_support") &&
-            alert.studio_id === null;
+            isFacilityWideAlert;
         });
+        
+        console.log(`Day cell ${date.toDateString()} has ${dayAlerts.length} alerts`);
         
         return (
           <div 
