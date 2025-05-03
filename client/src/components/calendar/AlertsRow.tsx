@@ -2,7 +2,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Booking } from "@shared/schema";
 import { formatTime, isWeekend, isSameDay } from "@/lib/dateUtils";
-import BookingModal from "../booking/BookingModal";
+import AlertModal from "../alerts/AlertModal";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 interface AlertsRowProps {
@@ -15,6 +15,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
   const { user } = useAuthContext();
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [editAlert, setEditAlert] = useState<Booking | null>(null);
+  const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   
   // Check if user has permission to create alerts (only engineers and admins)
   const canCreateAlerts = user?.role === "engineer" || user?.role === "admin" || user?.role === "it";
@@ -27,11 +29,17 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
       setIsNewAlertModalOpen(true);
     }
   };
+  
+  // Handle alert click for editing
+  const handleAlertEditClick = (alert: Booking) => {
+    setEditAlert(alert);
+    setIsEditAlertModalOpen(true);
+  };
 
   return (
     <>
       <div className="h-14 border-b bg-gray-100 flex items-center justify-center sticky left-0 top-0 z-10">
-        <span className="text-xs font-bold uppercase text-gray-700">Alerts & Outages</span>
+        <span className="text-xs font-bold uppercase text-gray-700">Facility Alerts</span>
       </div>
       {weekDates.map((date, index) => {
         // Filter alerts for this date (maintenance and IT support)
@@ -73,7 +81,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onAlertClick(alert);
+                        handleAlertEditClick(alert);
                       }}
                     >
                       <div className="font-medium truncate flex items-center">
@@ -96,7 +104,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                 <span className="text-xs text-gray-400">No alerts</span>
                 {canCreateAlerts && (
                   <span className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer mt-0.5">
-                    + Add alert
+                    + Add facility alert
                   </span>
                 )}
               </div>
@@ -107,11 +115,19 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
 
       {/* New Alert Modal */}
       {selectedDate && (
-        <BookingModal 
+        <AlertModal 
           isOpen={isNewAlertModalOpen}
           onClose={() => setIsNewAlertModalOpen(false)}
           selectedDate={selectedDate}
-          alertsOnly={true}
+        />
+      )}
+      
+      {/* Edit Alert Modal */}
+      {editAlert && (
+        <AlertModal
+          isOpen={isEditAlertModalOpen}
+          onClose={() => setIsEditAlertModalOpen(false)}
+          alert={editAlert}
         />
       )}
     </>

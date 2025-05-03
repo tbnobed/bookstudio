@@ -120,8 +120,8 @@ export default function BookingModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields
-    if (!studioId) {
+    // Studio is required for regular bookings, but optional for facility-wide maintenance/IT alerts
+    if (!studioId && (!alertsOnly || (alertsOnly && bookingType !== "maintenance" && bookingType !== "it_support"))) {
       // Highlight required fields and show error
       return;
     }
@@ -158,12 +158,19 @@ export default function BookingModal({
     const bookingData: Partial<InsertBooking> = {
       title,
       description,
-      studioId: parseInt(studioId),
       type: bookingType,
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       notifyList: notifyList,
     };
+    
+    // Add studioId only if it's provided and valid
+    if (studioId) {
+      bookingData.studioId = parseInt(studioId);
+    } else if (alertsOnly && (bookingType === "maintenance" || bookingType === "it_support")) {
+      // Set to null explicitly for facility-wide maintenance/IT alerts
+      bookingData.studioId = null;
+    }
     
     // Add severity field for alerts
     if (alertsOnly) {

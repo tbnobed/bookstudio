@@ -71,6 +71,8 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   end: z.union([z.string(), z.date()]).transform(val => 
     typeof val === 'string' ? new Date(val) : val
   ),
+  // Make studioId optional for maintenance and IT alerts
+  studioId: z.number().optional().nullable(),
 });
 
 // Notifications schema
