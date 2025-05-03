@@ -147,7 +147,7 @@ export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: D
                     {booking && (
                       <div className="px-2 py-1 text-xs truncate">
                         <div className="font-medium">{booking.title}</div>
-                        <div>{formatTime(booking.start)} - {formatTime(booking.end)}</div>
+                        <div>{formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}</div>
                       </div>
                     )}
                   </div>

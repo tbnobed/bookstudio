@@ -149,7 +149,7 @@ export default function BookingModal({
       type: bookingType,
       start: startDate.toISOString(),
       end: endDate.toISOString(),
-      notifyList: notifyList.map(id => parseInt(id)),
+      notifyList: notifyList,
     };
     
     if (templateId) {

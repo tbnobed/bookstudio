@@ -59,40 +59,28 @@ export default function AuthPage() {
     },
   });
 
+  // Use our enhanced useAuth hook
+  const { login, register, isLoading: authLoading } = useAuth();
+
+  // Create login mutation using our login function
   const loginMutation = useMutation({
     mutationFn: async (credentials: z.infer<typeof loginSchema>) => {
       setIsLoading(true);
       try {
         console.log("Login data:", credentials);
-        // Use the legacy auth endpoint for compatibility
-        const res = await apiRequest("POST", "/api/auth/login", credentials);
-        if (!res.ok) {
-          const error = await res.json();
-          throw new Error(error.message || "Login failed");
-        }
-        const data = await res.json();
-        return data.user || data; // Handle both formats
+        const user = await login(credentials.username, credentials.password);
+        return user;
       } finally {
         setIsLoading(false);
       }
     },
-    onSuccess: (user) => {
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.name || user.username}!`,
-      });
-      // Force page reload to ensure auth state is properly captured
+    onSuccess: () => {
+      // Redirect to home page
       window.location.href = "/";
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+    }
   });
 
+  // Create register mutation using our register function
   const registerMutation = useMutation({
     mutationFn: async (userData: z.infer<typeof registerSchema>) => {
       setIsLoading(true);
@@ -103,32 +91,16 @@ export default function AuthPage() {
         const data = { ...registerData, role: "producer" };
         
         console.log("Register data:", data);
-        const res = await apiRequest("POST", "/api/register", data);
-        if (!res.ok) {
-          const error = await res.json();
-          throw new Error(error.message || "Registration failed");
-        }
-        const responseData = await res.json();
-        return responseData.user || responseData; // Handle both formats
+        const user = await register(data);
+        return user;
       } finally {
         setIsLoading(false);
       }
     },
-    onSuccess: (user) => {
-      toast({
-        title: "Registration successful",
-        description: `Welcome, ${user.name || user.username}! Your account has been created.`,
-      });
-      // Force page reload to ensure auth state is properly captured
+    onSuccess: () => {
+      // Redirect to home page
       window.location.href = "/";
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Registration failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+    }
   });
 
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
