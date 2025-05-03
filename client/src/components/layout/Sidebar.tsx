@@ -30,9 +30,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     >
       <div className="flex flex-col h-full">
         <div className="p-4 border-b">
-          <div className="flex items-center">
-            <img src={logoPath} alt="BookStud.io logo" className="h-8 w-auto mr-3" />
-            <h1 className="text-xl logo-text">BookStud.io</h1>
+          <div className="flex items-center justify-center">
+            <img src={logoPath} alt="BookStud.io logo" className="h-12 w-auto" />
           </div>
         </div>
         
