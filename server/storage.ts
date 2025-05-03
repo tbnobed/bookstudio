@@ -7,6 +7,7 @@ import {
 } from "@shared/schema";
 
 import session from "express-session";
+import { eq, and, or, isNull, not, desc, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User management
@@ -314,7 +315,6 @@ export class MemStorage implements IStorage {
 
 // Database storage implementation
 import { db } from "./db";
-import { eq, and, or, between, isNull, desc } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 
@@ -712,19 +712,29 @@ export class DatabaseStorage implements IStorage {
   
   async getBookingsByDateRange(start: Date, end: Date): Promise<Booking[]> {
     try {
+      // Use SQL that doesn't rely on between() which has type issues with dates
       const dateRangeBookings = await db.select().from(bookings).where(
         or(
+          // Event starts within the range
           and(
-            between(bookings.start, start, end)
+            gte(bookings.start, start),
+            lte(bookings.start, end)
           ),
+          // Event ends within the range
           and(
-            between(bookings.end, start, end)
+            gte(bookings.end, start),
+            lte(bookings.end, end)
           ),
+          // Event spans the entire range
           and(
-            between(start, bookings.start, bookings.end)
+            lte(bookings.start, start),
+            gte(bookings.end, end)
           )
         )
       );
+      
+      console.log(`Found ${dateRangeBookings.length} bookings in date range ${start.toISOString()} to ${end.toISOString()}`);
+      
       dateRangeBookings.forEach(booking => {
         this.bookings.set(booking.id, booking);
       });

@@ -317,12 +317,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate the update data
-      const updateData = req.body;
+      let updateData = { ...req.body };
+      
+      // Convert date strings to Date objects
+      if (updateData.start && typeof updateData.start === 'string') {
+        updateData.start = new Date(updateData.start);
+      }
+      
+      if (updateData.end && typeof updateData.end === 'string') {
+        updateData.end = new Date(updateData.end);
+      }
+      
+      console.log("Processing update with data:", updateData);
       
       // If changing dates, check for conflicts (only for studio-specific bookings)
       if ((updateData.start || updateData.end) && (updateData.studioId !== null && booking.studioId !== null)) {
-        const start = new Date(updateData.start || booking.start);
-        const end = new Date(updateData.end || booking.end);
+        const start = updateData.start || new Date(booking.start);
+        const end = updateData.end || new Date(booking.end);
         const studioId = updateData.studioId !== undefined ? updateData.studioId : booking.studioId;
         
         if (studioId !== null) {
