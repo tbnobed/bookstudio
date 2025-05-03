@@ -173,7 +173,7 @@ export default function BookingModal({
   const handleTemplateChange = (value: string) => {
     setTemplateId(value);
     
-    if (value) {
+    if (value && value !== "0") {
       const selectedTemplate = templates.find(t => t.id === parseInt(value));
       if (selectedTemplate) {
         // Pre-fill form with template data
@@ -181,10 +181,35 @@ export default function BookingModal({
         setDescription(selectedTemplate.description || "");
         setBookingType(selectedTemplate.type);
         
-        // Calculate end time based on template duration
-        const start = new Date(`${date}T${startTime}`);
+        // Parse current start time to a Date object
+        const [timeStr, period] = startTime.split(/([ap]m)$/i);
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        let startHour = hours;
+        
+        if (period.toLowerCase() === 'pm' && startHour < 12) {
+          startHour += 12;
+        } else if (period.toLowerCase() === 'am' && startHour === 12) {
+          startHour = 0;
+        }
+        
+        const start = new Date(date);
+        start.setHours(startHour, minutes, 0, 0);
+        
+        // Calculate end time based on template duration (in minutes)
         const end = new Date(start.getTime() + selectedTemplate.duration * 60000);
-        setEndTime(formatTime(end).toLowerCase().replace(" ", ""));
+        
+        // Format end time in 12-hour format (e.g. 1:30pm)
+        let endHour = end.getHours();
+        const endMinutes = end.getMinutes();
+        const endPeriod = endHour >= 12 ? 'pm' : 'am';
+        
+        if (endHour > 12) {
+          endHour -= 12;
+        } else if (endHour === 0) {
+          endHour = 12;
+        }
+        
+        setEndTime(`${endHour}:${endMinutes.toString().padStart(2, '0')}${endPeriod}`);
       }
     }
   };
@@ -269,7 +294,7 @@ export default function BookingModal({
                   <SelectValue placeholder="None" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="0">None</SelectItem>
                   {templates.map((template) => (
                     <SelectItem key={template.id} value={template.id.toString()}>
                       {template.name}
