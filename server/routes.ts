@@ -221,10 +221,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only admin, engineers, and IT staff can create maintenance bookings" });
       }
       
-      const bookingData = insertBookingSchema.parse({
+      console.log("Booking request data:", JSON.stringify(req.body));
+      
+      // Ensure studioId is a number and proper date formats
+      const requestData = {
         ...req.body,
-        userId: user.id
-      });
+        userId: user.id,
+        studioId: typeof req.body.studioId === 'string' ? parseInt(req.body.studioId) : req.body.studioId
+      };
+      
+      console.log("Modified request data:", JSON.stringify(requestData));
+      
+      const bookingData = insertBookingSchema.parse(requestData);
       
       // Check for booking conflicts
       const existingBookings = await storage.getBookingsByStudio(bookingData.studioId);
