@@ -123,7 +123,13 @@ export default function AlertModal({
       await updateBooking.mutateAsync({ id: alert.id, data: alertData });
     } else {
       // Create new alert
-      await createBooking.mutateAsync(alertData as InsertBooking);
+      console.log("Creating alert with data:", alertData);
+      try {
+        const result = await createBooking.mutateAsync(alertData as InsertBooking);
+        console.log("Alert creation result:", result);
+      } catch (error) {
+        console.error("Error creating alert:", error);
+      }
     }
     
     onClose();
