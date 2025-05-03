@@ -261,24 +261,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const booking = await storage.createBooking(bookingData);
       
       // Create notifications for the booking creator
-      await storage.createNotification({
-        userId: user.id,
-        title: "Booking Confirmation",
-        message: `Your booking for ${booking.title} has been created successfully.`,
-        type: "booking_created",
-        bookingId: booking.id
-      });
+      try {
+        await storage.createNotification({
+          userId: user.id,
+          title: "Booking Confirmation",
+          message: `Your booking for ${booking.title} has been created successfully.`,
+          type: "booking_created",
+          bookingId: booking.id
+        });
+      } catch (notificationError) {
+        console.error("Error creating notification for new booking:", notificationError);
+        // Continue with the response even if notification creation fails
+      }
       
       // If there's a notify list, create notifications for those users too
       if (booking.notifyList && Array.isArray(booking.notifyList)) {
         for (const userId of booking.notifyList as number[]) {
-          await storage.createNotification({
-            userId,
-            title: "New Booking Notification",
-            message: `A new booking "${booking.title}" has been created that requires your attention.`,
-            type: "booking_created",
-            bookingId: booking.id
-          });
+          if (userId !== null && userId !== undefined) {
+            try {
+              await storage.createNotification({
+                userId,
+                title: "New Booking Notification",
+                message: `A new booking "${booking.title}" has been created that requires your attention.`,
+                type: "booking_created",
+                bookingId: booking.id
+              });
+            } catch (notifyError) {
+              console.error(`Error creating notification for user ${userId} in notify list:`, notifyError);
+              // Continue with the next notification
+            }
+          }
         }
       }
       
@@ -360,10 +372,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedBooking = await storage.updateBooking(id, updateData);
       
-      // Only create notification if there's a user associated with this booking
+      // Only create notification if there's a valid user associated with this booking
       // Facility-wide alerts may not have a specific user
-      if (booking.userId) {
+      console.log(`Booking user ID before notification check: ${booking.userId}`);
+      
+      if (booking.userId !== null && booking.userId !== undefined) {
         try {
+          console.log(`Creating notification for user ID: ${booking.userId}`);
           await storage.createNotification({
             userId: booking.userId,
             title: "Booking Updated",
@@ -375,6 +390,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error creating notification:", notificationError);
           // Continue with the response even if notification creation fails
         }
+      } else {
+        console.log(`Skipping notification creation - no valid userId found (userId = ${booking.userId})`);
       }
       
       res.json(updatedBooking);
@@ -409,21 +426,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (success) {
         // Create notification for the booking owner if not the deleter
-        if (booking.userId !== user.id) {
+        // and if there is a valid userId (facility-wide alerts might not have one)
+        if (booking.userId !== null && booking.userId !== undefined && booking.userId !== user.id) {
           let deletedByRole = "administrator";
           if (["engineer", "it"].includes(user.role)) {
             deletedByRole = user.role === "engineer" ? "an engineer" : "IT support";
           }
           
-          await storage.createNotification({
-            userId: booking.userId,
-            title: booking.studioId === null ? "Alert Deleted" : "Booking Deleted",
-            message: booking.studioId === null
-              ? `Your facility alert "${booking.title}" has been deleted by ${deletedByRole}.`
-              : `Your booking for "${booking.title}" has been deleted by ${deletedByRole}.`,
-            type: "booking_deleted",
-            bookingId: booking.id
-          });
+          try {
+            await storage.createNotification({
+              userId: booking.userId,
+              title: booking.studioId === null ? "Alert Deleted" : "Booking Deleted",
+              message: booking.studioId === null
+                ? `Your facility alert "${booking.title}" has been deleted by ${deletedByRole}.`
+                : `Your booking for "${booking.title}" has been deleted by ${deletedByRole}.`,
+              type: "booking_deleted",
+              bookingId: booking.id
+            });
+          } catch (notificationError) {
+            console.error("Error creating notification for deletion:", notificationError);
+            // Continue with the response even if notification creation fails
+          }
         }
         
         return res.json({ message: "Booking deleted successfully" });
