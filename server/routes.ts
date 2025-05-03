@@ -107,6 +107,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update studio status" });
     }
   });
+  
+  app.delete("/api/studios/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check for active bookings on this studio
+      const studioBookings = await storage.getBookingsByStudio(id);
+      if (studioBookings.length > 0) {
+        return res.status(400).json({ 
+          message: "Cannot delete studio with active bookings. Please remove all bookings first."
+        });
+      }
+      
+      const deleted = await storage.deleteStudio(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Studio not found or could not be deleted" });
+      }
+      
+      res.status(200).json({ message: "Studio deleted successfully" });
+    } catch (error) {
+      console.error(`Error deleting studio:`, error);
+      res.status(500).json({ message: "Failed to delete studio" });
+    }
+  });
 
   // Template routes
   app.get("/api/templates", isAuthenticated, async (req, res) => {

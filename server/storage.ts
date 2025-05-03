@@ -23,6 +23,7 @@ export interface IStorage {
   getAllStudios(): Promise<Studio[]>;
   createStudio(studio: InsertStudio): Promise<Studio>;
   updateStudioStatus(id: number, status: string): Promise<Studio | undefined>;
+  deleteStudio(id: number): Promise<boolean>;
   
   // Template management
   getTemplate(id: number): Promise<Template | undefined>;
@@ -186,6 +187,14 @@ export class MemStorage implements IStorage {
     const updatedStudio: Studio = { ...studio, status };
     this.studios.set(id, updatedStudio);
     return updatedStudio;
+  }
+  
+  async deleteStudio(id: number): Promise<boolean> {
+    // Check if the studio exists
+    const studioExists = this.studios.has(id);
+    
+    // Delete the studio
+    return this.studios.delete(id);
   }
 
   // Template methods
@@ -572,6 +581,38 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error(`Error updating studio status for ID ${id}:`, error);
       return undefined;
+    }
+  }
+  
+  async deleteStudio(id: number): Promise<boolean> {
+    try {
+      // First check if the studio exists
+      const studio = await this.getStudio(id);
+      if (!studio) {
+        return false;
+      }
+      
+      // Check if the studio has any bookings
+      const studioBookings = await this.getBookingsByStudio(id);
+      if (studioBookings.length > 0) {
+        console.error(`Cannot delete studio ${id} because it has active bookings`);
+        return false;
+      }
+      
+      // Delete the studio from the database
+      const result = await db.delete(studios).where(eq(studios.id, id));
+      
+      // If the delete was successful, also remove from memory cache
+      if (result.rowCount && result.rowCount > 0) {
+        // Also remove from in-memory cache
+        this.studios.delete(id);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error(`Error deleting studio with ID ${id}:`, error);
+      return false;
     }
   }
   

@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Studio } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import StudioManagementModal from "@/components/studio/StudioManagementModal";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -265,16 +266,25 @@ export default function Settings() {
                               />
                             </td>
                             <td className="py-3 px-4">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedStudio(studio);
-                                  setIsStudioModalOpen(true);
-                                }}
-                              >
-                                Edit
-                              </Button>
+                              <div className="flex space-x-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedStudio(studio);
+                                    setIsStudioModalOpen(true);
+                                  }}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDeleteStudio(studio)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         ))}
