@@ -14,14 +14,25 @@ services:
       - PGUSER=${PGUSER:-postgres}
       - PGPASSWORD=${PGPASSWORD:-postgres}
       - PGDATABASE=${PGDATABASE:-bookstudio}
-      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
-      - SESSION_SECRET=${SESSION_SECRET:-changeme_in_production}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-placeholder_key}
+      - SESSION_SECRET=${SESSION_SECRET:-$(openssl rand -hex 32)}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./logs:/app/logs
     networks:
       - app-network
+    # Run database migration and initialization after the app starts
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        sleep 5 &&
+        echo 'Running database migrations and initialization...' &&
+        npx tsx scripts/migrate-db.ts &&
+        echo 'Starting application...' &&
+        npm start
+      "
 
   db:
     image: postgres:14-alpine

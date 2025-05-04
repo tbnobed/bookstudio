@@ -4,6 +4,13 @@ WORKDIR /app
 
 # Set environment variable to indicate we're in a Docker container
 ENV RUNNING_IN_DOCKER=true
+ENV PORT=5000
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ wget curl
+
+# Create logs directory
+RUN mkdir -p logs
 
 # Install dependencies first (for better caching)
 COPY package*.json ./
@@ -22,5 +29,5 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:5000/ || exit 1
 
-# Start the application
+# Default command is overridden in docker-compose.yml to add migration step
 CMD ["npm", "start"]
