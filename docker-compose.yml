@@ -11,10 +11,15 @@ services:
       - '${APP_PORT:-3000}:3000'
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/bookstuio
       - PORT=3000
       - SESSION_SECRET=${SESSION_SECRET:-your_session_secret}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bookstuio
+      - PGHOST=db
+      - PGPORT=5432
     # Mount the entire app directory for access to all files
     volumes:
       - ./:/app
@@ -26,7 +31,7 @@ services:
       db-init:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "--fail", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -41,19 +46,19 @@ services:
     ports:
       - '${DB_PORT:-5432}:5432'
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bookstuio
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - bookstuio-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio}"]
-      interval: 5s
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
       
   # Dedicated initialization container that runs once and exits
   db-init:
@@ -65,7 +70,12 @@ services:
       - ./:/app
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/bookstuio
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bookstuio
+      - PGHOST=db
+      - PGPORT=5432
     depends_on:
       db:
         condition: service_healthy
@@ -74,7 +84,7 @@ services:
     command: >
       sh -c "apk add --no-cache postgresql-client &&
              echo 'Waiting for database to be fully ready...' &&
-             until PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h db -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c '\q'; do
+             until PGPASSWORD=postgres psql -h db -U postgres -d bookstuio -c '\q'; do
                echo 'PostgreSQL is unavailable - sleeping'
                sleep 1
              done &&

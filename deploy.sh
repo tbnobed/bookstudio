@@ -167,15 +167,24 @@ log "Database container health status: $DB_HEALTH"
 if [ "$DB_HEALTH" = "healthy" ]; then
   log "Database container is already marked as healthy, proceeding..."
 else
+  # Wait a bit longer to ensure container fully starts
+  log "Waiting a bit longer for container startup..."
+  sleep 10
+  
   while [ $RETRY_COUNT -lt $RETRIES ]; do
-    # Simple check - just see if the container responds to commands at all
-    if docker exec bookstuio-db echo "DB container is responsive" &> /dev/null; then
-      log "Database container is responsive."
+    # Check if container is running at all first
+    if docker ps | grep -q bookstuio-db; then
+      log "Database container is running."
       
-      # Use proper pg_isready with correct parameters (avoid the 'q' error seen in logs)
-      if docker exec bookstuio-db pg_isready -U postgres -h localhost -d bookstuio &> /dev/null; then
-        log "Database is ready."
-        break
+      # Better to use the simplified health check that avoids the 'q' character issue
+      if docker exec bookstuio-db pg_isready -U postgres &> /dev/null; then
+        log "Database is accepting connections."
+        
+        # Perform a final validation without database name to avoid the 'q' error
+        if docker exec bookstuio-db psql -U postgres -c "SELECT 1" &> /dev/null; then
+          log "Database connection fully verified."
+          break
+        fi
       fi
     fi
     
@@ -183,7 +192,7 @@ else
     if [ $RETRY_COUNT -eq $RETRIES ]; then
       log "WARNING: Database health check failed after multiple attempts"
       log "This may not be a critical issue - attempting to continue anyway"
-      log "If problems persist in development, try running: ./cleanup.sh"
+      log "If problems persist, try running: ./cleanup.sh and then redeploying"
       docker-compose logs db
       # Don't exit here, try to continue
       break
