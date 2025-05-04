@@ -32,6 +32,5 @@ EXPOSE 3000
 # Use our custom entrypoint script
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
-# Default command - use tail -f /dev/null to keep container running 
-# even if the app crashes or exits
-CMD ["sh", "-c", "npm run start & tail -f /dev/null"]
+# Default command - we'll now use the entrypoint script to handle keep-alive behavior
+CMD ["npm", "run", "start"]
