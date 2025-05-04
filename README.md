@@ -65,6 +65,7 @@ These are the important environment variables you can configure in your `.env` f
 | POSTGRES_PASSWORD | PostgreSQL password | (needs to be set) |
 | POSTGRES_DB | PostgreSQL database name | bookstuio |
 | DB_PORT | PostgreSQL port | 5432 |
+| SENDGRID_API_KEY | API key for SendGrid email service | (needs to be set) |
 
 ### Using with a Reverse Proxy (NGINX)
 
@@ -102,3 +103,24 @@ The system comes with these default users for initial login:
 - **Engineer**: username: `engineer`, password: `engineer123`
 
 *Important: Change these passwords immediately after first login for security.*
+
+## Notification Groups
+
+The system comes with pre-configured notification groups for different departments:
+
+- **Camera Operators**: Notifications for camera department staff
+- **Lighting Technicians**: Notifications for lighting department staff
+- **Sound Engineers**: Notifications for audio engineers and technicians
+- **Directors**: Notifications for show directors and production leaders
+- **Facility Maintenance**: Notifications for maintenance staff
+- **All Staff**: Facility-wide announcements for all studio personnel
+
+Administrators can modify these groups, add new ones, or change the associated email addresses from the Settings page. The system uses SendGrid to send professionally formatted email notifications for:
+
+- New booking confirmations
+- Booking updates/changes
+- Booking cancellations
+- Maintenance alerts
+- Facility alerts and announcements
+
+For proper email functionality, make sure to set the `SENDGRID_API_KEY` environment variable in your `.env` file.
