@@ -14,6 +14,10 @@ echo "PostgreSQL started"
 echo "Running database migrations..."
 npm run db:push
 
+# Run the notification groups migration and setup
+echo "Setting up notification groups..."
+node scripts/migrate-db.js
+
 # Seed initial data if needed
 echo "Seeding initial data..."
 node scripts/init-db.js
