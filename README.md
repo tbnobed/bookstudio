@@ -76,6 +76,77 @@ The Docker deployment follows this sequence:
 
 This process ensures that the database is fully configured before the application attempts to use it.
 
+### Troubleshooting Docker Deployment
+
+If you encounter issues during deployment, here are some common solutions:
+
+#### Database Connection Issues
+
+1. **Check container status**:
+   ```bash
+   docker compose ps
+   ```
+   Ensure that the `db` container shows as "running" and "healthy".
+
+2. **View database initialization logs**:
+   ```bash
+   docker compose logs db-init
+   ```
+   Look for any error messages during the database setup process.
+
+3. **Reset the database** if needed:
+   ```bash
+   # Stop all containers
+   docker compose down
+   
+   # Remove the database volume
+   docker volume rm bookstudio_postgres_data
+   
+   # Restart the application
+   docker compose up -d
+   ```
+
+#### Application Container Not Starting
+
+1. **Check app container logs**:
+   ```bash
+   docker compose logs app
+   ```
+   Look for error messages like "Error connecting to database" or other startup failures.
+
+2. **Verify environment variables**:
+   Make sure your `.env` file contains all necessary configuration, especially database connection parameters.
+
+3. **Increase initialization wait time** if needed:
+   If the database initialization is completing successfully but the app still has connection issues,
+   edit the `db-init` container's command in `docker-compose.yml` to increase the `sleep` duration
+   from 5 seconds to 10-15 seconds.
+
+#### Network or Port Issues
+
+1. **Check if port 5000 is available**:
+   ```bash
+   netstat -tuln | grep 5000
+   ```
+   If it's already in use, edit the port mapping in `docker-compose.yml`.
+
+2. **Verify network connectivity** between containers:
+   ```bash
+   # Enter the app container
+   docker compose exec app sh
+   
+   # Test database connection
+   ping db
+   ```
+
+#### SendGrid Email Issues
+
+1. **Verify your SendGrid API key** is correctly set in the `.env` file
+2. **Check email logs** in the application container:
+   ```bash
+   docker compose logs app | grep "SendGrid"
+   ```
+
 ## Environment Configuration
 
 ### Required Environment Variables
