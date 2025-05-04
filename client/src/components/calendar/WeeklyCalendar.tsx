@@ -179,14 +179,14 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
     <>
       <div className="overflow-auto h-[calc(100vh-8rem)]">
         <div className="min-w-[800px]">
-          {/* Calendar Days Header */}
+          {/* Calendar Days Header - Using default height */}
           <div className="grid grid-cols-[80px_repeat(7,1fr)] sticky top-0 z-10">
-            <div className="h-20 border-b bg-white"></div>
+            <div className="h-12 border-b bg-white"></div>
             {weekDates.map((date, index) => (
               <div 
                 key={index} 
                 className={cn(
-                  "h-20 border-b text-center py-2",
+                  "h-12 border-b text-center flex flex-col justify-center",
                   isWeekend(date) ? "bg-gray-50" : "bg-white",
                   new Date().toDateString() === date.toDateString() && "bg-blue-50 border-blue-200"
                 )}

@@ -25,9 +25,34 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
 
   return (
     <>
-      <div className="h-48 border-b flex items-center px-2">
-        <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
-      </div>
+      {/* Calculate row height dynamically based on the maximum number of bookings for this studio on any day */}
+      {(() => {
+        // Count max bookings for this studio in any day
+        const maxBookingsForStudio = weekDates.reduce((max, date) => {
+          const count = bookings.filter(
+            booking => isSameDay(new Date(booking.start), date) && booking.studioId === studio.id
+          ).length;
+          return Math.max(max, count);
+        }, 0);
+        
+        // Calculate dynamic height - base height plus additional space for each booking
+        // Min height is 32px, and each booking adds 16px up to a reasonable maximum
+        const baseHeight = 32; // Minimum height for a row with no bookings
+        const heightPerBooking = 16; // Additional height per booking
+        const maxAdditionalHeight = 160; // Maximum additional height
+        const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
+        const rowHeight = baseHeight + additionalHeight;
+        
+        return (
+          <div 
+            className="border-b flex items-center px-2" 
+            style={{ height: `${rowHeight}px` }}
+          >
+            <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
+          </div>
+        );
+      })()}
+      
       {weekDates.map((date, index) => {
         // Filter bookings for this date and this specific studio
         const dayBookings = bookings.filter(booking => 
@@ -35,15 +60,32 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
           booking.studioId === studio.id
         );
         
+        // Calculate dynamic height for cells - same logic as row header
+        const baseHeight = 32; // Minimum height for a row with no bookings
+        const heightPerBooking = 16; // Additional height per booking
+        const maxAdditionalHeight = 160; // Maximum additional height
+        
+        // Find max bookings across the entire row to keep consistent height
+        const maxBookingsForStudio = weekDates.reduce((max, date) => {
+          const count = bookings.filter(
+            booking => isSameDay(new Date(booking.start), date) && booking.studioId === studio.id
+          ).length;
+          return Math.max(max, count);
+        }, 0);
+        
+        const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
+        const cellHeight = baseHeight + additionalHeight;
+        
         return (
           <div 
             key={index} 
             className={cn(
-              "relative h-48 border-b border-r", // Increased height to accommodate more bookings
+              "relative border-b border-r", // Height set by style below
               isWeekend(date) ? "bg-gray-50" : "bg-white",
               isSameDay(date, new Date()) ? "bg-blue-50 border-blue-200" : "",
               "cursor-pointer hover:bg-gray-100 overflow-y-auto" // Added overflow-y-auto for scrolling
             )}
+            style={{ height: `${cellHeight}px` }}
             onClick={() => handleCellClick(date)}
           >
             {/* Display booking count if there are many */}
