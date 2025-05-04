@@ -1,0 +1,119 @@
+obtv-admin@dev-bookstudio:~/bookstudio$ ./deploy.sh
+==============================================
+BookStud.io Deployment Script
+==============================================
+[2025-05-04 07:02:37] Checking prerequisites...
+[2025-05-04 07:02:37] Making scripts executable...
+[2025-05-04 07:02:37] Stopping any existing containers...
+[+] Running 3/3
+ ✔ Container bookstuio-app               Removed                                                                                                                                                                                     10.7s
+ ✔ Container bookstuio-db                Removed                                                                                                                                                                                      0.4s
+ ✔ Network bookstudio_bookstuio-network  Removed                                                                                                                                                                                      0.3s
+[2025-05-04 07:02:49] Cleaning up any stale resources...
+Total reclaimed space: 0B
+[2025-05-04 07:02:49] Building and starting BookStud.io...
+[+] Building 70.1s (15/15) FINISHED                                                                                                                                                                                         docker:default
+ => [app internal] load build definition from Dockerfile                                                                                                                                                                              0.0s
+ => => transferring dockerfile: 1.50kB                                                                                                                                                                                                0.0s
+ => [app internal] load metadata for docker.io/library/node:20-alpine                                                                                                                                                                 0.6s
+ => [app internal] load .dockerignore                                                                                                                                                                                                 0.0s
+ => => transferring context: 2B                                                                                                                                                                                                       0.0s
+ => [app  1/10] FROM docker.io/library/node:20-alpine@sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f                                                                                                         0.0s
+ => [app internal] load build context                                                                                                                                                                                                 0.1s
+ => => transferring context: 96.45kB                                                                                                                                                                                                  0.1s
+ => CACHED [app  2/10] WORKDIR /app                                                                                                                                                                                                   0.0s
+ => [app  3/10] RUN apk add --no-cache netcat-openbsd postgresql-client bash                                                                                                                                                          2.6s
+ => [app  4/10] COPY package.json package-lock.json ./                                                                                                                                                                                0.0s
+ => [app  5/10] RUN npm ci                                                                                                                                                                                                           21.6s
+ => [app  6/10] COPY . .                                                                                                                                                                                                              0.3s
+ => [app  7/10] RUN chmod +x wait-for-postgres.sh docker-entrypoint.sh init-db-docker.sh simple-entrypoint.sh                                                                                                                         0.4s
+ => [app  8/10] RUN mkdir -p /app/scripts                                                                                                                                                                                             0.6s
+ => [app  9/10] RUN echo '// This file is a specialized version for use with ES modules in scripts\nimport { Pool } from \"pg\";\nimport { drizzle } from \"drizzle-orm/node-postgres\";\nimport * as schema from \"../shared/schema  0.6s
+ => [app 10/10] RUN npm run build                                                                                                                                                                                                    21.3s
+ => [app] exporting to image                                                                                                                                                                                                         21.9s
+ => => exporting layers                                                                                                                                                                                                              21.9s
+ => => writing image sha256:61eef6f7b07c0495f67bacb8c5c7729c47d9b21aba5663865deca4276ce39130                                                                                                                                          0.0s
+ => => naming to docker.io/library/bookstudio-app                                                                                                                                                                                     0.0s
+[+] Building 0.0s (0/0)                                                                                                                                                                                                     docker:default
+[+] Running 3/3
+ ✔ Network bookstudio_bookstuio-network  Created                                                                                                                                                                                      0.1s
+ ✔ Container bookstuio-db                Healthy                                                                                                                                                                                      0.1s
+ ✔ Container bookstuio-app               Started                                                                                                                                                                                      0.1s
+[2025-05-04 07:04:06] Verifying containers are running...
+[2025-05-04 07:04:11] Waiting for database to be ready...
+[2025-05-04 07:04:12] Database is ready.
+[2025-05-04 07:04:12] Preparing ES module compatibility for database initialization...
+[2025-05-04 07:04:13] Running database initialization with enhanced compatibility...
+========================================
+BookStud.io Database Initialization
+========================================
+[2025-05-04 07:04:13] Verifying container 'bookstuio-db' status...
+[2025-05-04 07:04:13] Container 'bookstuio-db' is running.
+[2025-05-04 07:04:13] Verifying container 'bookstuio-app' status...
+[2025-05-04 07:04:13] Container 'bookstuio-app' is running.
+[2025-05-04 07:04:13] Verifying database connection to 'bookstuio' with user 'postgres'...
+[2025-05-04 07:04:13] Database is ready and accepting connections.
+[2025-05-04 07:04:13] Database connection verified with a test query.
+[2025-05-04 07:04:13] All prerequisites verified. Proceeding with database initialization...
+[2025-05-04 07:04:13] Running: Creating database schema...
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/app/drizzle.config.ts'
+Using 'pg' driver for database querying
+[⣷] Pulling schema from database...
+[⣯] Pulling schema from database...
+[⣟] Pulling schema from database...
+[⡿] Pulling schema from database...
+[⢿] Pulling schema from database...
+[⣻] Pulling schema from database...
+[✓] Pulling schema from database...
+[i] No changes detected
+[2025-05-04 07:04:16] Successfully completed: Creating database schema
+[2025-05-04 07:04:16] Preparing ES module compatibility for database initialization...
+[2025-05-04 07:04:16] Running: Creating db-es directory...
+[2025-05-04 07:04:16] Successfully completed: Creating db-es directory
+[2025-05-04 07:04:16] Running: Setting up permissions for existing script files...
+file: line 0: syntax error: unterminated quoted string
+[2025-05-04 07:04:16] Failed: Setting up permissions for existing script files. Retry 1/5...
+file: line 0: syntax error: unterminated quoted string
+[2025-05-04 07:04:22] Failed: Setting up permissions for existing script files. Retry 2/5...
+file: line 0: syntax error: unterminated quoted string
+[2025-05-04 07:04:27] Failed: Setting up permissions for existing script files. Retry 3/5...
+file: line 0: syntax error: unterminated quoted string
+[2025-05-04 07:04:32] Failed: Setting up permissions for existing script files. Retry 4/5...
+file: line 0: syntax error: unterminated quoted string
+[2025-05-04 07:04:37] Failed: Setting up permissions for existing script files. Retry 5/5...
+[2025-05-04 07:04:42] ERROR: Failed to complete: Setting up permissions for existing script files after 5 attempts.
+[2025-05-04 07:04:42] Check application logs with: docker-compose logs bookstuio-app
+[2025-05-04 07:04:42] ==============================================
+[2025-05-04 07:04:42] Error during deployment at step: ./init-db-docker.sh
+[2025-05-04 07:04:42] ==============================================
+[2025-05-04 07:04:42] Checking container logs...
+[2025-05-04 07:04:42] Database container logs:
+2025-05-04 07:04:01.063 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+2025-05-04 07:04:01.063 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2025-05-04 07:04:01.063 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2025-05-04 07:04:01.068 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2025-05-04 07:04:01.085 UTC [29] LOG:  database system was shut down at 2025-05-04 07:02:48 UTC
+2025-05-04 07:04:01.100 UTC [1] LOG:  database system is ready to accept connections
+
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+
+[2025-05-04 07:04:42] Application container logs:
+========================================
+BookStud.io Simple Application Startup
+========================================
+Environment: production
+Application port: 3000
+SendGrid email service initialized
+========================================
+Starting the BookStud.io application...
+========================================
+SendGrid email service initialized
+7:04:07 AM [express] serving on port 5000
+Default notification groups created in memory.
+[2025-05-04 07:04:43] Deployment failed. Please fix the issues and try again.
+obtv-admin@dev-bookstudio:~/bookstudio$
