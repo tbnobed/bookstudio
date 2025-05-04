@@ -24,6 +24,7 @@ COPY . .
 # Set proper permissions for scripts
 RUN find ./scripts -name "*.sh" -exec chmod +x {} \; || true
 RUN chmod +x ./docker-entrypoint.sh
+RUN chmod +x ./docker-healthcheck.sh
 
 # Expose the port that the app will run on
 EXPOSE 3000
