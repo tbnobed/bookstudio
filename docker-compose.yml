@@ -20,8 +20,54 @@ services:
       start_period: 10s
     networks:
       - bookstuio-network
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
 
-  # Main application service (handles both app and DB initialization)
+  # Database initialization service (runs once and exits)
+  db-init:
+    image: node:20-slim
+    container_name: bookstuio-db-init
+    restart: "no"
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
+      - PGHOST=db
+      - PGUSER=${POSTGRES_USER:-postgres}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - PGDATABASE=${POSTGRES_DB:-bookstuio}
+      - PGPORT=5432
+      - NODE_ENV=development
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bookstuio-network
+    command: >
+      bash -c "apt-get update && apt-get install -y postgresql-client &&
+             echo '[INFO] Installing dependencies...' &&
+             npm ci &&
+             echo '[INFO] Waiting for database connection...' &&
+             for i in {1..30}; do
+               echo \"[INFO] Attempt $$i/30: Testing database connection...\"
+               if PGPASSWORD=$$PGPASSWORD psql -h $$PGHOST -p $$PGPORT -U $$PGUSER -d $$PGDATABASE -c 'SELECT 1' >/dev/null 2>&1; then
+                 echo '[SUCCESS] Successfully connected to PostgreSQL!'
+                 break
+               fi
+               if [ $$i -eq 30 ]; then
+                 echo '[ERROR] Failed to connect to database after 30 attempts'
+                 exit 1
+               fi
+               sleep 3
+             done &&
+             echo '[INFO] Running database migrations...' &&
+             npm run db:push &&
+             echo '[INFO] Initializing database with seed data...' &&
+             node scripts/init-db.js &&
+             echo '[SUCCESS] Database initialization complete!'"
+
+  # Main application service
   app:
     build: 
       context: .
@@ -42,10 +88,10 @@ services:
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
       - HOST=0.0.0.0
       - PORT=3000
+      - IS_DOCKER=true
     depends_on:
-      db:
-        condition: service_healthy
-    command: ["npm", "run", "start"]
+      db-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
       interval: 30s

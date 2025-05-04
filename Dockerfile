@@ -7,8 +7,8 @@ ENV IS_DOCKER=true
 # Create app directory
 WORKDIR /app
 
-# Install postgresql-client for database health checks
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+# Install wget for health check
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
 # Copy package files first (for better caching)
 COPY package*.json ./
@@ -19,15 +19,14 @@ RUN npm ci
 # Copy the rest of the application
 COPY . .
 
-# Set proper permissions for scripts
-RUN find ./scripts -name "*.sh" -exec chmod +x {} \; || true
-RUN chmod +x ./docker-entrypoint.sh
+# Build the application
+RUN npm run build
+
+# Remove development dependencies
+RUN npm prune --production
 
 # Expose the port that the app will run on
 EXPOSE 3000
-
-# Use our custom entrypoint script
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Default command
 CMD ["npm", "run", "start"]
