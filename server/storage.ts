@@ -779,14 +779,8 @@ export class DatabaseStorage implements IStorage {
         );
       });
       
-      // Manually add specific bookings if they're missing (for hard-coded IDs)
-      const specialIds = [4, 6, 7, 12]; // Add ID 12 (Better Together) to always show
-      for (const id of specialIds) {
-        const specialBooking = await this.getBooking(id);
-        if (specialBooking && !dateRangeBookings.some(b => b.id === id)) {
-          dateRangeBookings.push(specialBooking);
-        }
-      }
+      // Remove the manual addition of bookings that don't match the date range
+      // This was causing bookings from dates outside the range to appear
       
       console.log(`[Storage] Found ${dateRangeBookings.length} bookings in date range ${adjustedStart.toISOString()} to ${end.toISOString()}`);
       dateRangeBookings.forEach(booking => {
@@ -812,11 +806,7 @@ export class DatabaseStorage implements IStorage {
         );
       });
       
-      // Special case for ID 12 if it's not already in the filtered list
-      const booking12 = this.bookings.get(12);
-      if (booking12 && !filteredBookings.some(b => b.id === 12)) {
-        filteredBookings.push(booking12);
-      }
+      // Remove special handling for ID 12
       
       return filteredBookings;
     }

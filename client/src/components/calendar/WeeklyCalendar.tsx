@@ -78,7 +78,11 @@ export default function WeeklyCalendar({
   // Update week start and end dates whenever week dates change
   useEffect(() => {
     if (weekDates.length >= 7) {
+      // Use the first day (Sunday) as the start date
       const newWeekStart = new Date(weekDates[0]);
+      // Make sure to set hours to 00:00:00 to include all bookings on first day
+      newWeekStart.setHours(0, 0, 0, 0);
+      
       const newWeekEnd = new Date(weekDates[6]);
       newWeekEnd.setHours(23, 59, 59, 999);
       
