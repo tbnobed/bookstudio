@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { addDays, startOfWeek, endOfWeek, format, addWeeks, subWeeks, isWithinInterval } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import WeeklyCalendar from '@/components/calendar/WeeklyCalendar';
 import DailyCalendar from '@/components/calendar/DailyCalendar';
 import MonthlyCalendar from '@/components/calendar/MonthlyCalendar';
 import { Studio } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
+import logoPath from '@assets/bookstuio.png';
 
 // Define our own DateRange type since it's not exported from date-fns
 interface DateRange {
@@ -186,12 +187,8 @@ function PublicCalendarPage() {
     <div className="flex h-screen flex-col bg-background">
       {/* Header */}
       <header className="sticky top-0 z-30 border-b bg-[#003366] px-4 py-2 shadow-sm">
-        <div className="flex items-center">
-          <div className="flex items-center">
-            <Calendar className="h-5 w-5 mr-2 text-white" />
-            <span className="font-bold text-xl text-white">BookStud.io</span>
-            <span className="ml-2 text-xl font-bold text-white">Public Calendar</span>
-          </div>
+        <div className="flex items-center justify-center">
+          <img src={logoPath} alt="BookStud.io logo" className="h-10 w-auto my-1" />
         </div>
       </header>
 
