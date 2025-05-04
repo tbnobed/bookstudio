@@ -32,6 +32,7 @@ services:
     stdin_open: true    # Keep container running with stdin open
     ports:
       - "${APP_PORT:-3000}:3000"
+    # Use regular networking for now
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
       - PGHOST=db
@@ -50,10 +51,10 @@ services:
     command: ["npm", "run", "start"]
     healthcheck:
       test: ["CMD", "/app/docker-healthcheck.sh"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 20s
     networks:
       - bookstuio-network
 
