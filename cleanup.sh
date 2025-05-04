@@ -1,13 +1,30 @@
 #!/bin/bash
-# BookStud.io Complete Docker Cleanup Script
-# This script thoroughly cleans all Docker resources related to the application
-# to ensure a fresh start for the deployment process
+# BookStud.io Development Environment Cleanup Script
+# IMPORTANT: This script is for DEVELOPMENT ENVIRONMENTS ONLY
+# DO NOT run this in production as it will destroy all user data!
 
 set -e
 
 echo "========================================================="
-echo "BookStud.io Docker Environment Cleanup"
+echo "⚠️  WARNING: DEVELOPMENT ENVIRONMENT CLEANUP ONLY ⚠️"
+echo "This script will destroy all data and should NEVER be"
+echo "used in production environments!"
 echo "========================================================="
+echo
+
+# Check if this is being run in a development environment
+read -p "Are you sure this is a development environment? (yes/no): " confirm
+if [[ "$confirm" != "yes" ]]; then
+  echo "Cleanup aborted. If you need to deploy in production, use ./deploy.sh without the reset flag."
+  exit 1
+fi
+
+# Double confirmation for data-destructive operations
+read -p "This will DELETE ALL DATA. Are you ABSOLUTELY SURE? (type 'DELETE' to confirm): " confirm_delete
+if [[ "$confirm_delete" != "DELETE" ]]; then
+  echo "Cleanup aborted. If you need to deploy in production, use ./deploy.sh without the reset flag."
+  exit 1
+fi
 
 # Function to display section headers
 section() {
@@ -37,7 +54,7 @@ if [ -n "$NETWORKS" ]; then
 fi
 
 # Remove all volumes to ensure clean data
-section "Cleaning up Docker volumes"
+section "⚠️ WARNING: Cleaning up Docker volumes (THIS WILL DELETE ALL DATA) ⚠️"
 VOLUMES=$(docker volume ls --filter name=bookstuio --format "{{.Name}}" 2>/dev/null || echo "")
 if [ -n "$VOLUMES" ]; then
   echo "Found volumes related to BookStud.io, removing them..."
@@ -70,4 +87,5 @@ npm run build
 echo
 echo "========================================================="
 echo "Cleanup complete! You can now run ./deploy.sh to start fresh"
+echo "WARNING: Remember, this is for development only!"
 echo "========================================================="

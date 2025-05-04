@@ -41,40 +41,27 @@ handle_error() {
   exit 1
 }
 
-# Function to do a full reset if requested
-do_full_reset() {
-  log "Performing a complete cleanup before deployment"
-  
-  if [ -f "./cleanup.sh" ]; then
-    chmod +x ./cleanup.sh
-    ./cleanup.sh
-    log "Cleanup completed successfully"
-  else
-    log "Warning: cleanup.sh script not found. Performing basic cleanup..."
-    
-    # Basic cleanup as fallback
-    docker-compose down --remove-orphans || true
-    docker volume prune -f || true
-    docker network prune -f || true
-  fi
-}
-
 # Set up trap to catch errors
 trap 'handle_error "$BASH_COMMAND"' ERR
 
 # Parse command line parameters
-FULL_RESET=false
 SHOW_HELP=false
 
 for arg in "$@"; do
   case $arg in
-    --reset)
-      FULL_RESET=true
-      shift
-      ;;
     --help)
       SHOW_HELP=true
       shift
+      ;;
+    --reset|--clean|--cleanup)
+      echo "=============================================="
+      echo "⚠️  WARNING: The --reset flag has been removed for safety ⚠️"
+      echo "For development environments only, use the separate script:"
+      echo "./cleanup.sh"
+      echo ""
+      echo "This prevents accidental data loss in production."
+      echo "=============================================="
+      exit 1
       ;;
   esac
 done
@@ -84,16 +71,13 @@ if [ "$SHOW_HELP" = true ]; then
   echo "Usage: ./deploy.sh [OPTIONS]"
   echo ""
   echo "Options:"
-  echo "  --reset    Perform a complete cleanup before deployment"
   echo "  --help     Show this help message"
   echo ""
-  echo "Example: ./deploy.sh --reset"
+  echo "For development environment cleanup (CAUTION: destroys all data):"
+  echo "  ./cleanup.sh"
+  echo ""
+  echo "Example: ./deploy.sh"
   exit 0
-fi
-
-# Perform full reset if requested
-if [ "$FULL_RESET" = true ]; then
-  do_full_reset
 fi
 
 # Check for required commands
@@ -105,15 +89,14 @@ check_command docker-compose
 log "Making scripts executable..."
 chmod +x docker-entrypoint.sh 2>/dev/null || true
 
-# If not doing a full reset, just stop existing containers
-if [ "$FULL_RESET" = false ]; then
-  log "Stopping any existing containers..."
-  docker-compose down || true  # Continue even if this fails (e.g., no containers running)
-  
-  # Clean up any old volumes if needed
-  log "Cleaning up any stale resources..."
-  docker volume prune -f || true  # Continue even if this fails
-fi
+# Stop existing containers
+log "Stopping any existing containers..."
+docker-compose down || true  # Continue even if this fails (e.g., no containers running)
+
+# Clean up any stale/dangling resources (doesn't remove volumes with data)
+log "Cleaning up stale resources..."
+docker network prune -f || true  # Continue even if this fails
+docker image prune -f || true    # Clean up dangling images only
 
 # Build and start the containers
 log "Building and starting BookStud.io..."
@@ -141,7 +124,7 @@ log "Checking database initialization container status..."
 if ! docker ps -a | grep -q "bookstuio-db-init.*Exited (0)"; then
   log "ERROR: Database initialization container did not complete successfully"
   docker-compose logs db-init
-  log "If problems persist, try running with: ./deploy.sh --reset"
+  log "If problems persist in development, try running: ./cleanup.sh"
   exit 1
 fi
 
