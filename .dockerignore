@@ -1,0 +1,57 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Node.js
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build and test
+dist
+coverage
+.nyc_output
+
+# Environment and configuration
+.env
+.env.local
+.env.development
+.env.test
+*.env
+*.env.*
+!.env.example
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Temp files
+.DS_Store
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Logs
+logs
+*.log
+
+# Database
+data
+*.sqlite
+*.db
+
+# Backups
+backups
+*.bak
+*.backup
+
+# Miscellaneous
+README.md
+LICENSE
+CHANGELOG.md
+.editorconfig
