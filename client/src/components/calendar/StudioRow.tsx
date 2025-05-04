@@ -25,28 +25,35 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
 
   return (
     <>
-      <div className="h-24 border-b flex items-center px-2">
+      <div className="h-48 border-b flex items-center px-2">
         <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
       </div>
       {weekDates.map((date, index) => {
-        // Filter bookings for this date and studio
-        // Include only studio-specific bookings (including studio-specific maintenance)
+        // Filter bookings for this date and this specific studio
         const dayBookings = bookings.filter(booking => 
           isSameDay(new Date(booking.start), date) && 
-          booking.studioId !== null
+          booking.studioId === studio.id
         );
         
         return (
           <div 
             key={index} 
             className={cn(
-              "relative h-24 border-b border-r",
+              "relative h-48 border-b border-r", // Increased height to accommodate more bookings
               isWeekend(date) ? "bg-gray-50" : "bg-white",
               isSameDay(date, new Date()) ? "bg-blue-50 border-blue-200" : "",
-              "cursor-pointer hover:bg-gray-100"
+              "cursor-pointer hover:bg-gray-100 overflow-y-auto" // Added overflow-y-auto for scrolling
             )}
             onClick={() => handleCellClick(date)}
           >
+            {/* Display booking count if there are many */}
+            {dayBookings.length > 5 && (
+              <div className="absolute top-0 right-0 z-20 px-1 text-xs font-semibold bg-gray-700 text-white rounded-bl-md">
+                {dayBookings.length}
+              </div>
+            )}
+            
+            {/* Map through studio bookings and position them dynamically */}
             {dayBookings.map((booking, bookingIndex) => {
               // Determine color based on booking type and severity for alerts
               let colorClass = "bg-blue-100 border-blue-300 text-blue-800";
@@ -69,20 +76,37 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
                 colorClass = "bg-red-100 border-red-300 text-red-800";
               }
               
+              // Calculate position based on booking index
+              let topPosition = 2 + (bookingIndex * 20); // 20px spacing between bookings
+              
+              // If we have more than 10 bookings, adjust the spacing to be more compact
+              if (dayBookings.length > 10) {
+                topPosition = 2 + (bookingIndex * 14); // 14px spacing for dense days
+              } else if (dayBookings.length > 5) {
+                topPosition = 2 + (bookingIndex * 16); // 16px spacing for medium density days
+              }
+              
+              // Calculate height - make compact for many bookings
+              const height = dayBookings.length > 10 ? 12 : dayBookings.length > 5 ? 14 : 20;
+              
               return (
                 <HoverCard key={booking.id}>
                   <HoverCardTrigger asChild>
                     <div 
                       className={cn(
-                        "absolute w-[calc(100%-4px)] left-[2px] border rounded-md p-1 overflow-hidden text-overflow-ellipsis whitespace-nowrap text-xs z-10 top-2 h-20",
+                        "absolute w-[calc(100%-4px)] left-[2px] border rounded-md p-1 overflow-hidden text-overflow-ellipsis whitespace-nowrap text-xs z-10",
                         colorClass
                       )}
+                      style={{
+                        top: `${topPosition}px`,
+                        height: `${height}px`,
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         onBookingClick(booking);
                       }}
                     >
-                      <div className="font-medium truncate flex items-center">
+                      <div className="font-medium truncate flex items-center text-[10px]">
                         {(booking.type === "maintenance" || booking.type === "it_support") && (
                           <span className={`w-2 h-2 rounded-full mr-1 ${
                             booking.severity === "critical" ? "bg-red-500" : 
@@ -90,10 +114,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
                             booking.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
                           }`}></span>
                         )}
-                        {booking.title}
-                      </div>
-                      <div className="text-xs">
-                        {formatTime(booking.start)} - {formatTime(booking.end)}
+                        {formatTime(booking.start)} - {booking.title}
                       </div>
                     </div>
                   </HoverCardTrigger>
