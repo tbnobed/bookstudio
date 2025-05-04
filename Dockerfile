@@ -11,7 +11,7 @@ RUN npm ci
 
 # Copy application files
 COPY . .
-RUN chmod +x simple-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh
 
 # Build the application
 RUN npm run build

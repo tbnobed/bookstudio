@@ -10,11 +10,19 @@ handle_error() {
   
   if [ -n "$DATABASE_URL" ]; then
     echo "Testing database connection..."
-    if PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h ${PGHOST:-db} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c '\q' 2>/dev/null; then
-      echo "Database connection is working."
+    # First check if port is open
+    if nc -z -w1 ${PGHOST:-db} ${PGPORT:-5432} > /dev/null 2>&1; then
+      echo "PostgreSQL port is accessible."
+      # Then check actual database connection
+      if PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h ${PGHOST:-db} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c '\q' 2>/dev/null; then
+        echo "Database connection is working."
+      else
+        echo "FAILED: Could establish network connection but PostgreSQL authentication failed."
+        echo "Check database credentials and database name."
+      fi
     else
-      echo "FAILED: Could not connect to database."
-      echo "Check database configuration and ensure database container is running."
+      echo "FAILED: Could not connect to database port."
+      echo "Check network configuration and ensure database container is running."
     fi
   else
     echo "DATABASE_URL is not set. Make sure environment variables are properly configured."
@@ -47,15 +55,19 @@ if [ -z "$DATABASE_URL" ]; then
   echo "WARNING: DATABASE_URL is not set. Using default connection parameters."
 fi
 
-# Verify database connection
+# Verify database connection with a progressive approach
 echo "Verifying database connection..."
 MAX_RETRIES=10
 RETRY_COUNT=0
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-  if PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h ${PGHOST:-db} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c '\q' 2>/dev/null; then
-    echo "Database connection verified."
-    break
+  # First check if port is open
+  if nc -z -w1 ${PGHOST:-db} ${PGPORT:-5432} > /dev/null 2>&1; then
+    # Then try to actually connect to PostgreSQL
+    if PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h ${PGHOST:-db} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c '\q' 2>/dev/null; then
+      echo "Database connection verified."
+      break
+    fi
   fi
   
   RETRY_COUNT=$((RETRY_COUNT+1))
