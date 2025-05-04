@@ -119,11 +119,58 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
     setIsEditAlertModalOpen(true);
   };
 
+  // Calculate max alerts for any day in this week for consistent row heights
+  const maxAlertsForWeek = weekDates.reduce((max, date) => {
+    const count = alerts.filter(alert => {
+      const alertStart = new Date(alert.start);
+      const alertEnd = new Date(alert.end);
+      
+      // Check if alert spans this date
+      const dateStart = new Date(date);
+      dateStart.setHours(0, 0, 0, 0);
+      
+      const dateEnd = new Date(date);
+      dateEnd.setHours(23, 59, 59, 999);
+      
+      return (alertStart <= dateEnd) && (alertEnd >= dateStart);
+    }).length;
+    return Math.max(max, count);
+  }, 0);
+  
+  // Calculate dynamic height - base height plus additional space for each alert
+  const baseHeight = 32; // Minimum height for a row with no alerts
+  const heightPerAlert = 16; // Additional height per alert
+  const maxAdditionalHeight = 100; // Maximum additional height
+  const additionalHeight = Math.min(maxAlertsForWeek * heightPerAlert, maxAdditionalHeight);
+  const rowHeight = baseHeight + additionalHeight;
+
   return (
     <>
-      <div className="h-20 border-b bg-gray-100 flex items-center justify-center sticky left-0 top-0 z-10">
+      <div 
+        className="border-b bg-gray-100 flex items-center justify-center sticky left-0 top-0 z-10"
+        style={{ height: `${rowHeight}px` }}
+      >
         <span className="text-xs font-bold uppercase text-gray-700">Facility Alerts</span>
       </div>
+      
+      {/* New Alert Modal */}
+      {selectedDate && (
+        <AlertModal 
+          isOpen={isNewAlertModalOpen}
+          onClose={() => setIsNewAlertModalOpen(false)}
+          selectedDate={selectedDate}
+        />
+      )}
+      
+      {/* Edit Alert Modal */}
+      {editAlert && (
+        <AlertModal
+          isOpen={isEditAlertModalOpen}
+          onClose={() => setIsEditAlertModalOpen(false)}
+          alert={editAlert}
+        />
+      )}
+      
       {weekDates.map((date, index) => {
         // Filter alerts for this date (maintenance and IT support)
         // Only include facility-wide alerts (with null studioId) in this row
@@ -135,14 +182,6 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           // Cast the alert to our API interface type which includes snake_case properties
           const apiAlert = alert as unknown as ApiBooking;
           
-          // All alerts in this component should be facility-wide alerts (studioId === null)
-          // Check if the alert overlaps with this date
-          const startOfDay = new Date(date);
-          startOfDay.setHours(0, 0, 0, 0);
-          
-          const endOfDay = new Date(date);
-          endOfDay.setHours(23, 59, 59, 999);
-          
           // Check if alert spans this date
           const dateStart = new Date(date);
           dateStart.setHours(0, 0, 0, 0);
@@ -153,7 +192,6 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           // Alert overlaps with this day if:
           // - Alert start is on or before the end of this day AND
           // - Alert end is on or after the start of this day
-          // Handle multi-day alerts
           let overlapsWithDay = (alertStart <= dateEnd) && (alertEnd >= dateStart);
           
           // Debug multi-day alert 6 specifically to track the issue
@@ -218,10 +256,11 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
           <div 
             key={index} 
             className={cn(
-              "relative h-20 border-b border-r",
+              "relative border-b border-r",
               isWeekend(date) ? "bg-gray-50" : "bg-white",
               "cursor-pointer hover:bg-gray-100"
             )}
+            style={{ height: `${rowHeight}px` }}
             onClick={() => handleCellClick(date)}
           >
             {dayAlerts.length > 0 ? (
