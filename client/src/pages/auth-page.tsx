@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../assets/logo.png";
@@ -69,27 +69,99 @@ export default function AuthPage() {
     }
   }, [user, navigate]);
 
-  const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
-    loginMutation.mutate(data, {
-      onSuccess: (data) => {
-        // Force a direct window.location change rather than using the router
-        window.location.href = "/";
+  const onLoginSubmit = async (data: z.infer<typeof loginSchema>) => {
+    console.log("Login submit with data:", data);
+    
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Login failed:", errorText);
+        toast({
+          title: "Login failed",
+          description: errorText || "Invalid username or password",
+          variant: "destructive",
+        });
+        return;
       }
-    });
+      
+      const userData = await response.json();
+      console.log("Login successful, received data:", userData);
+      
+      queryClient.setQueryData(["/api/user"], userData);
+      toast({
+        title: "Login successful",
+        description: `Welcome back, ${userData.name || userData.username}!`,
+      });
+      
+      // Force a direct window.location change rather than using the router
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Login failed",
+        description: "An error occurred during login",
+        variant: "destructive",
+      });
+    }
   };
 
-  const onRegisterSubmit = (data: z.infer<typeof registerSchema>) => {
-    // Remove confirmPassword as it's not in the schema
-    const { confirmPassword, ...registerData } = data;
-    // Add role as producer by default
-    const userData = { ...registerData, role: "producer" };
+  const onRegisterSubmit = async (data: z.infer<typeof registerSchema>) => {
+    console.log("Register submit with data:", data);
     
-    registerMutation.mutate(userData, {
-      onSuccess: () => {
-        // Force a direct window.location change rather than using the router
-        window.location.href = "/";
+    try {
+      // Remove confirmPassword as it's not in the schema
+      const { confirmPassword, ...registerData } = data;
+      // Add role as producer by default
+      const userData = { ...registerData, role: "producer" };
+      
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Registration failed:", errorText);
+        toast({
+          title: "Registration failed",
+          description: errorText || "Could not create account",
+          variant: "destructive",
+        });
+        return;
       }
-    });
+      
+      const newUserData = await response.json();
+      console.log("Registration successful, received data:", newUserData);
+      
+      queryClient.setQueryData(["/api/user"], newUserData);
+      toast({
+        title: "Account created",
+        description: `Welcome, ${newUserData.name || newUserData.username}!`,
+      });
+      
+      // Force a direct window.location change rather than using the router
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Registration failed",
+        description: "An error occurred during account creation",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -142,8 +214,8 @@ export default function AuthPage() {
                       )}
                     </div>
                     
-                    <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-                      {loginMutation.isPending ? "Signing In..." : "Sign In"}
+                    <Button type="submit" className="w-full">
+                      Sign In
                     </Button>
                   </div>
                 </form>
@@ -236,8 +308,8 @@ export default function AuthPage() {
                       )}
                     </div>
                     
-                    <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-                      {registerMutation.isPending ? "Creating Account..." : "Create Account"}
+                    <Button type="submit" className="w-full">
+                      Create Account
                     </Button>
                   </div>
                 </form>
