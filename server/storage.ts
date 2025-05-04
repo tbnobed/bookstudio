@@ -3,7 +3,8 @@ import {
   studios, type Studio, type InsertStudio,
   templates, type Template, type InsertTemplate,
   bookings, type Booking, type InsertBooking,
-  notifications, type Notification, type InsertNotification
+  notifications, type Notification, type InsertNotification,
+  notificationGroups, type NotificationGroup, type InsertNotificationGroup
 } from "@shared/schema";
 
 import { db, pool } from "./db";
@@ -142,6 +143,63 @@ export class MemStorage implements IStorage {
         description: `Television studio #${i}`,
         status: "available"
       });
+    }
+    
+    // Create default notification groups
+    const notificationGroups = [
+      {
+        name: "Camera Operators",
+        email: "camera-team@studios.com",
+        groupType: "department",
+        description: "All camera operators and video technicians"
+      },
+      {
+        name: "Lighting Technicians",
+        email: "lighting@studios.com",
+        groupType: "department",
+        description: "Lighting setup and operation staff"
+      },
+      {
+        name: "Directors",
+        email: "directors@studios.com",
+        groupType: "department",
+        description: "Program directors and assistant directors"
+      },
+      {
+        name: "Sound Engineers",
+        email: "sound@studios.com",
+        groupType: "department",
+        description: "Audio and sound personnel"
+      },
+      {
+        name: "Production Assistants",
+        email: "pa@studios.com",
+        groupType: "department",
+        description: "PAs and floor managers"
+      },
+      {
+        name: "Engineering",
+        email: "engineering@studios.com",
+        groupType: "department",
+        description: "Engineering and maintenance team"
+      },
+      {
+        name: "IT Support",
+        email: "it@studios.com",
+        groupType: "department",
+        description: "IT support and network team"
+      },
+      {
+        name: "All Staff",
+        email: "all-staff@studios.com",
+        groupType: "facility",
+        description: "All facility personnel"
+      }
+    ];
+    
+    // Create each notification group
+    for (const group of notificationGroups) {
+      this.createNotificationGroup(group);
     }
   }
 
@@ -335,6 +393,41 @@ export class MemStorage implements IStorage {
     this.notifications.set(id, updatedNotification);
     return updatedNotification;
   }
+
+  // Notification Group methods
+  async getNotificationGroup(id: number): Promise<NotificationGroup | undefined> {
+    return this.notificationGroups.get(id);
+  }
+
+  async getNotificationGroupByType(groupType: string): Promise<NotificationGroup | undefined> {
+    return Array.from(this.notificationGroups.values()).find(
+      (group) => group.groupType === groupType
+    );
+  }
+
+  async getAllNotificationGroups(): Promise<NotificationGroup[]> {
+    return Array.from(this.notificationGroups.values());
+  }
+
+  async createNotificationGroup(group: InsertNotificationGroup): Promise<NotificationGroup> {
+    const id = this.notificationGroupIdCounter++;
+    const newGroup: NotificationGroup = { ...group, id };
+    this.notificationGroups.set(id, newGroup);
+    return newGroup;
+  }
+
+  async updateNotificationGroup(id: number, data: Partial<InsertNotificationGroup>): Promise<NotificationGroup | undefined> {
+    const group = await this.getNotificationGroup(id);
+    if (!group) return undefined;
+    
+    const updatedGroup: NotificationGroup = { ...group, ...data };
+    this.notificationGroups.set(id, updatedGroup);
+    return updatedGroup;
+  }
+  
+  async deleteNotificationGroup(id: number): Promise<boolean> {
+    return this.notificationGroups.delete(id);
+  }
 }
 
 // Database storage implementation
@@ -348,12 +441,14 @@ export class DatabaseStorage implements IStorage {
   private templates: Map<number, Template>;
   private bookings: Map<number, Booking>;
   private notifications: Map<number, Notification>;
+  private notificationGroups: Map<number, NotificationGroup>;
   
   private userIdCounter: number;
   private studioIdCounter: number;
   private templateIdCounter: number;
   private bookingIdCounter: number;
   private notificationIdCounter: number;
+  private notificationGroupIdCounter: number;
   
   public sessionStore: session.Store;
   
@@ -363,12 +458,14 @@ export class DatabaseStorage implements IStorage {
     this.templates = new Map();
     this.bookings = new Map();
     this.notifications = new Map();
+    this.notificationGroups = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
     this.templateIdCounter = 1;
     this.bookingIdCounter = 1;
     this.notificationIdCounter = 1;
+    this.notificationGroupIdCounter = 1;
     
     this.sessionStore = new PostgresSessionStore({
       pool,
@@ -458,6 +555,75 @@ export class DatabaseStorage implements IStorage {
         this.notifications.set(notification.id, notification);
         this.notificationIdCounter = Math.max(this.notificationIdCounter, notification.id + 1);
       });
+      
+      // Load notification groups
+      const allNotificationGroups = await db.select().from(notificationGroups);
+      allNotificationGroups.forEach(group => {
+        this.notificationGroups.set(group.id, group);
+        this.notificationGroupIdCounter = Math.max(this.notificationGroupIdCounter, group.id + 1);
+      });
+      
+      // If no notification groups exist, create default ones
+      if (allNotificationGroups.length === 0) {
+        console.log("Creating default notification groups...");
+        
+        const defaultGroups = [
+          {
+            name: "Camera Operators",
+            email: "camera-team@studios.com",
+            groupType: "department",
+            description: "All camera operators and video technicians"
+          },
+          {
+            name: "Lighting Technicians",
+            email: "lighting@studios.com",
+            groupType: "department",
+            description: "Lighting setup and operation staff"
+          },
+          {
+            name: "Directors",
+            email: "directors@studios.com",
+            groupType: "department",
+            description: "Program directors and assistant directors"
+          },
+          {
+            name: "Sound Engineers",
+            email: "sound@studios.com",
+            groupType: "department",
+            description: "Audio and sound personnel"
+          },
+          {
+            name: "Production Assistants",
+            email: "pa@studios.com",
+            groupType: "department",
+            description: "PAs and floor managers"
+          },
+          {
+            name: "Engineering",
+            email: "engineering@studios.com",
+            groupType: "department",
+            description: "Engineering and maintenance team"
+          },
+          {
+            name: "IT Support",
+            email: "it@studios.com",
+            groupType: "department",
+            description: "IT support and network team"
+          },
+          {
+            name: "All Staff",
+            email: "all-staff@studios.com",
+            groupType: "facility",
+            description: "All facility personnel"
+          }
+        ];
+        
+        for (const group of defaultGroups) {
+          await db.insert(notificationGroups).values(group);
+        }
+        
+        console.log("Default notification groups created.");
+      }
       
     } catch (error) {
       console.error("Error initializing database:", error);
