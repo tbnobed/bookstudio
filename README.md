@@ -35,23 +35,37 @@ A comprehensive web application for television studio management, providing inte
    cd bookstuio
    ```
 
-2. Run the deployment script:
+2. Make the scripts executable:
    ```bash
-   chmod +x deploy.sh
+   chmod +x deploy.sh wait-for-postgres.sh
+   ```
+
+3. Run the deployment script:
+   ```bash
    ./deploy.sh
    ```
 
-3. The script will create a `.env` file from the example if one doesn't exist. Edit this file with your specific configuration:
+4. The script will create a `.env` file from the example if one doesn't exist. Edit this file with your specific configuration:
    ```bash
    nano .env
    ```
+   
+   Be sure to set:
+   - `POSTGRES_PASSWORD` to a secure password
+   - `SESSION_SECRET` to a secure random string
+   - `SENDGRID_API_KEY` to your SendGrid API key for email notifications
 
-4. Run the deployment script again to start the application:
+5. Run the deployment script again to start the application:
    ```bash
    ./deploy.sh
    ```
 
-5. The application will be running at `http://your-server-ip:3000`
+6. The application will be running at `http://your-server-ip:3000`
+
+7. Initial login credentials:
+   - Admin: admin / admin123
+   - Producer: producer / producer123
+   - Engineer: engineer / engineer123
 
 ### Environment Variables
 
@@ -104,7 +118,17 @@ The system comes with these default users for initial login:
 
 *Important: Change these passwords immediately after first login for security.*
 
-## Notification Groups
+## Email Notifications with SendGrid
+
+BookStud.io uses SendGrid to deliver professionally formatted emails for all system notifications. The application includes specialized templates for different notification types that match your studio branding.
+
+### Setting Up SendGrid
+
+1. [Sign up](https://signup.sendgrid.com/) for a SendGrid account if you don't have one
+2. Create an API key with full access to "Mail Send" permissions
+3. Add your API key to the `.env` file as `SENDGRID_API_KEY`
+
+### Notification Groups
 
 The system comes with pre-configured notification groups for different departments:
 
@@ -115,7 +139,7 @@ The system comes with pre-configured notification groups for different departmen
 - **Facility Maintenance**: Notifications for maintenance staff
 - **All Staff**: Facility-wide announcements for all studio personnel
 
-Administrators can modify these groups, add new ones, or change the associated email addresses from the Settings page. The system uses SendGrid to send professionally formatted email notifications for:
+Administrators can modify these groups, add new ones, or change the associated email addresses from the Settings page. The system sends formatted email notifications for:
 
 - New booking confirmations
 - Booking updates/changes
@@ -123,4 +147,4 @@ Administrators can modify these groups, add new ones, or change the associated e
 - Maintenance alerts
 - Facility alerts and announcements
 
-For proper email functionality, make sure to set the `SENDGRID_API_KEY` environment variable in your `.env` file.
+Each notification type uses a specifically designed email template with your studio's branding. If the SendGrid API key is missing or invalid, notifications will still be recorded in the system but emails will not be sent.
