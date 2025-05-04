@@ -150,8 +150,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
         className="border-b bg-gray-100 flex items-center justify-center sticky left-0 top-0 z-10"
         style={{ height: `${rowHeight}px` }}
       >
-        <div className="flex flex-col items-center justify-center w-full">
-          <span className="text-lg font-bold uppercase text-gray-700 tracking-wider">Facility Alerts</span>
+        <div className="flex items-center justify-center w-full">
+          <span className="text-xs font-bold uppercase text-gray-700">Facility Alerts</span>
         </div>
       </div>
       
