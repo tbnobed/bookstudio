@@ -1,62 +1,46 @@
-version: '3.8'
-
 services:
-  # PostgreSQL database
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bookstuio-app
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/bookstudio
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - IS_DOCKER=true
+    networks:
+      - bookstuio-network
+    healthcheck:
+      test: ["CMD", "/docker-healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
   db:
     image: postgres:15-alpine
     container_name: bookstuio-db
-    restart: always
+    restart: unless-stopped
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bookstudio
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bookstuio-network
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -d bookstudio -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-    networks:
-      - bookstuio-network
-
-  # Main application service (handles both app and DB initialization)
-  app:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    container_name: bookstuio-app
-    restart: on-failure:3
-    tty: true           # Keep container running with a TTY
-    stdin_open: true    # Keep container running with stdin open
-    ports:
-      - "${APP_PORT:-3000}:3000"
-    # Use regular networking for now
-    environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
-      - PGHOST=db
-      - PGUSER=${POSTGRES_USER:-postgres}
-      - PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - PGDATABASE=${POSTGRES_DB:-bookstuio}
-      - PGPORT=5432
-      - NODE_ENV=production
-      - SESSION_SECRET=${SESSION_SECRET:-changeme}
-      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
-      - HOST=0.0.0.0
-      - PORT=3000
-    depends_on:
-      db:
-        condition: service_healthy
-    command: ["/app/docker-start.sh"]
-    healthcheck:
-      test: ["CMD", "/app/docker-healthcheck.sh"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    networks:
-      - bookstuio-network
 
 networks:
   bookstuio-network:
