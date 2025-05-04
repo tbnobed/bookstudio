@@ -48,7 +48,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: ["npm", "run", "start"]
+    command: ["/app/docker-start.sh"]
     healthcheck:
       test: ["CMD", "/app/docker-healthcheck.sh"]
       interval: 10s

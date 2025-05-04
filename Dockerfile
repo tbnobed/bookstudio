@@ -25,6 +25,7 @@ COPY . .
 RUN find ./scripts -name "*.sh" -exec chmod +x {} \; || true
 RUN chmod +x ./docker-entrypoint.sh
 RUN chmod +x ./docker-healthcheck.sh
+RUN chmod +x ./docker-start.sh
 
 # Expose the port that the app will run on
 EXPOSE 3000
@@ -32,5 +33,5 @@ EXPOSE 3000
 # Use our custom entrypoint script
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
-# Default command - use production start script
-CMD ["npm", "run", "start"]
+# Default command - use our custom start script that ensures proper environment variables
+CMD ["/app/docker-start.sh"]
