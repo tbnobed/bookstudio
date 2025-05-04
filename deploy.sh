@@ -157,8 +157,6 @@ fi
 
 # Wait for DB to be ready
 log "Waiting for database to be ready..."
-RETRIES=15  # Increased retries for more patience
-RETRY_COUNT=0
 
 # First check if the DB container is in a healthy state according to Docker
 DB_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' bookstuio-db 2>/dev/null || echo "not found")
@@ -171,36 +169,72 @@ else
   log "Waiting a bit longer for container startup..."
   sleep 10
   
-  while [ $RETRY_COUNT -lt $RETRIES ]; do
-    # Check if container is running at all first
-    if docker ps | grep -q bookstuio-db; then
-      log "Database container is running."
+  # Copy wait-for-db.sh into the container for health check
+  CONTAINER_RUNNING=$(docker ps | grep -q bookstuio-db && echo "yes" || echo "no")
+  
+  if [ "$CONTAINER_RUNNING" = "yes" ]; then
+    log "Database container is running. Using wait-for-db.sh to verify database health..."
+    
+    # First try using the scripts/wait-for-db.sh script if it exists
+    if [ -f "scripts/wait-for-db.sh" ]; then
+      # Make sure it's executable
+      chmod +x scripts/wait-for-db.sh
       
-      # Better to use the simplified health check that avoids the 'q' character issue
-      if docker exec bookstuio-db pg_isready -U postgres &> /dev/null; then
-        log "Database is accepting connections."
+      # Copy it into the container
+      docker cp scripts/wait-for-db.sh bookstuio-db:/tmp/wait-for-db.sh
+      docker exec bookstuio-db chmod +x /tmp/wait-for-db.sh
+      
+      # Run it in the container with the appropriate environment
+      if docker exec -e "PGHOST=localhost" -e "PGUSER=postgres" -e "PGPASSWORD=tbn123456789" -e "PGDATABASE=bookstuio" bookstuio-db /tmp/wait-for-db.sh; then
+        log "Database connection verified with wait-for-db.sh script."
+      else
+        log "WARNING: Database verification failed with wait-for-db.sh script"
+        log "Falling back to simpler health checks..."
         
-        # Perform a final validation without database name to avoid the 'q' error
-        if docker exec bookstuio-db psql -U postgres -c "SELECT 1" &> /dev/null; then
-          log "Database connection fully verified."
-          break
+        # Use the simplified check as fallback
+        if docker exec bookstuio-db pg_isready -U postgres &> /dev/null; then
+          log "Database is accepting connections via pg_isready."
+          
+          # Perform a final validation using SELECT 1
+          if docker exec bookstuio-db psql -U postgres -d bookstuio -c "SELECT 1" -w PGPASSWORD=tbn123456789 &> /dev/null; then
+            log "Database connection fully verified."
+          else
+            log "WARNING: Database query check failed!"
+            log "This may not be critical - attempting to continue anyway"
+          fi
+        else
+          log "WARNING: Database connection check failed!"
+          log "This may not be critical - attempting to continue anyway" 
         fi
       fi
+    else
+      # Fallback to the old method if script is not found
+      log "wait-for-db.sh script not found, using fallback health checks..."
+      
+      # Use the simplified check
+      if docker exec bookstuio-db pg_isready -U postgres &> /dev/null; then
+        log "Database is accepting connections via pg_isready."
+        
+        # Perform a final validation
+        if docker exec bookstuio-db psql -U postgres -d bookstuio -c "SELECT 1" -w PGPASSWORD=tbn123456789 &> /dev/null; then
+          log "Database connection fully verified."
+        else
+          log "WARNING: Database query check failed!"
+          log "This may not be critical - attempting to continue anyway"
+        fi
+      else
+        log "WARNING: Database connection check failed!"
+        log "This may not be critical - attempting to continue anyway"
+      fi
     fi
-    
-    RETRY_COUNT=$((RETRY_COUNT+1))
-    if [ $RETRY_COUNT -eq $RETRIES ]; then
-      log "WARNING: Database health check failed after multiple attempts"
-      log "This may not be a critical issue - attempting to continue anyway"
-      log "If problems persist, try running: ./cleanup.sh and then redeploying"
-      docker-compose logs db
-      # Don't exit here, try to continue
-      break
-    fi
-    
-    log "Waiting for database to become ready (attempt $RETRY_COUNT/$RETRIES)..."
-    sleep 3
-  done
+  else
+    log "WARNING: Database container is not running!"
+    log "This is a critical issue - check docker-compose.yml and try again"
+    log "Running docker-compose ps to show service status:"
+    docker-compose ps
+    log "You may need to run: ./cleanup.sh and then try again"
+    exit 1
+  fi
 fi
 
 # No need to prepare CommonJS files anymore, volumes will mount directly

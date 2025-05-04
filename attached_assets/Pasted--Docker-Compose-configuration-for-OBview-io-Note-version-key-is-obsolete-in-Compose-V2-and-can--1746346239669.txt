@@ -1,0 +1,72 @@
+# Docker Compose configuration for OBview.io
+# Note: version key is obsolete in Compose V2 and can be removed
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: obview_app
+    restart: always
+    ports:
+      - "5000:5000"  # Map host port 5000 to container port 5000 (where the server is actually listening)
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=5000  # Match the server's actual PORT
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/obview
+      - SESSION_SECRET=${SESSION_SECRET}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - ADMIN_NAME=${ADMIN_NAME:-Administrator}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+      # Flag to signal a Docker environment to use proper database connection strategy
+      - IS_DOCKER=true
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s # More time for application startup and database migration
+    # Restart the container if it fails the health check
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  db:
+    image: postgres:16-alpine
+    container_name: obview_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=obview
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
+  uploads:
+
+networks:
+  app_network:
+    driver: bridge
