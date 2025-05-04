@@ -1,0 +1,122 @@
+🌐 Pulling latest code from GitHub...
+remote: Enumerating objects: 10, done.
+remote: Counting objects: 100% (10/10), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 6 (delta 4), reused 6 (delta 4), pack-reused 0 (from 0)
+Unpacking objects: 100% (6/6), 2.34 KiB | 400.00 KiB/s, done.
+From https://github.com/tbnobed/bookstudio
+ * branch            main       -> FETCH_HEAD
+Updating eb9bce0..6be8f30
+Fast-forward
+ Dockerfile                                                                                                                              |  2 ++
+ attached_assets/Pasted-obtv-admin-dev-bookstudio-bookstudio-docker-compose-logs-WARN-0000-home-obtv-admin-bookstudio--1746396530097.txt | 69 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ docker-compose.yml                                                                                                                      |  2 +-
+ docker-entrypoint.sh                                                                                                                    |  0
+ 4 files changed, 72 insertions(+), 1 deletion(-)
+ create mode 100644 attached_assets/Pasted-obtv-admin-dev-bookstudio-bookstudio-docker-compose-logs-WARN-0000-home-obtv-admin-bookstudio--1746396530097.txt
+ mode change 100644 => 100755 docker-entrypoint.sh
+🔨 Rebuilding Docker images without cache...
+Compose can now delegate builds to bake for better performance.
+ To do so, set COMPOSE_BAKE=true.
+[+] Building 68.6s (21/21) FINISHED                                                                                                                                                                                                                docker:default
+ => [app internal] load build definition from Dockerfile                                                                                                                                                                                                     0.0s
+ => => transferring dockerfile: 953B                                                                                                                                                                                                                         0.0s
+ => [app internal] load metadata for docker.io/library/node:20-alpine                                                                                                                                                                                        0.3s
+ => [app internal] load .dockerignore                                                                                                                                                                                                                        0.0s
+ => => transferring context: 442B                                                                                                                                                                                                                            0.0s
+ => [app app-base 1/2] FROM docker.io/library/node:20-alpine@sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f                                                                                                                         0.0s
+ => [app internal] load build context                                                                                                                                                                                                                        0.1s
+ => => transferring context: 17.90kB                                                                                                                                                                                                                         0.1s
+ => CACHED [app app-base 2/2] WORKDIR /app                                                                                                                                                                                                                   0.0s
+ => [app app-builder 1/6] COPY package*.json ./                                                                                                                                                                                                              0.0s
+ => [app app-builder 2/6] RUN npm ci                                                                                                                                                                                                                        22.1s
+ => [app app-runner 2/8] RUN npm ci --omit=dev                                                                                                                                                                                                              18.7s
+ => [app app-builder 3/6] COPY . .                                                                                                                                                                                                                           0.2s
+ => [app app-builder 4/6] RUN chmod +x docker-entrypoint.sh                                                                                                                                                                                                  0.4s
+ => [app app-builder 5/6] RUN mkdir -p client/dist                                                                                                                                                                                                           0.5s
+ => [app app-builder 6/6] RUN npm run build                                                                                                                                                                                                                 22.3s
+ => [app app-runner 3/8] COPY --from=app-builder /app/dist /app/dist                                                                                                                                                                                         0.1s
+ => [app app-runner 4/8] COPY --from=app-builder /app/server /app/server                                                                                                                                                                                     0.1s
+ => [app app-runner 5/8] COPY --from=app-builder /app/shared /app/shared                                                                                                                                                                                     0.0s
+ => [app app-runner 6/8] COPY --from=app-builder /app/scripts /app/scripts                                                                                                                                                                                   0.1s
+ => [app app-runner 7/8] COPY --from=app-builder /app/docker-entrypoint.sh /app/docker-entrypoint.sh                                                                                                                                                         0.0s
+ => [app app-runner 8/8] RUN chmod +x /app/docker-entrypoint.sh                                                                                                                                                                                              0.4s
+ => [app] exporting to image                                                                                                                                                                                                                                20.7s
+ => => exporting layers                                                                                                                                                                                                                                     20.7s
+ => => writing image sha256:8cf06c5c9fa88838c08d33af742aaef22aa2a653a322f088ace4ab6cea4f19b8                                                                                                                                                                 0.0s
+ => => naming to docker.io/library/bookstudio-app                                                                                                                                                                                                            0.0s
+ => [app] resolving provenance for metadata file                                                                                                                                                                                                             0.0s
+[+] Building 1/1
+ ✔ app  Built                                                                                                                                                                                                                                                0.0s
+🚀 Starting containers in detached mode...
+[+] Running 4/4
+ ✔ Network bookstudio_bookstudio-network  Created                                                                                                                                                                                                            0.1s
+ ✔ Volume "bookstudio_postgres-data"      Created                                                                                                                                                                                                            0.0s
+ ✔ Container bookstudio-postgres-1        Started                                                                                                                                                                                                            0.6s
+ ✔ Container bookstudio-app-1             Started                                                                                                                                                                                                            0.9s
+✅ Deployment complete!
+obtv-admin@dev-bookstudio:~/bookstudio$ docker compose logs
+postgres-1  | The files belonging to this database system will be owned by user "postgres".
+postgres-1  | This user must also own the server process.
+postgres-1  |
+postgres-1  | The database cluster will be initialized with locale "en_US.utf8".
+postgres-1  | The default database encoding has accordingly been set to "UTF8".
+postgres-1  | The default text search configuration will be set to "english".
+postgres-1  |
+postgres-1  | Data page checksums are disabled.
+postgres-1  |
+postgres-1  | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+postgres-1  | creating subdirectories ... ok
+postgres-1  | selecting dynamic shared memory implementation ... posix
+postgres-1  | selecting default max_connections ... 100
+postgres-1  | selecting default shared_buffers ... 128MB
+postgres-1  | selecting default time zone ... UTC
+postgres-1  | creating configuration files ... ok
+postgres-1  | running bootstrap script ... ok
+postgres-1  | sh: locale: not found
+postgres-1  | 2025-05-04 22:13:21.283 UTC [36] WARNING:  no usable system locales were found
+postgres-1  | performing post-bootstrap initialization ... ok
+postgres-1  | syncing data to disk ... ok
+postgres-1  | initdb: warning: enabling "trust" authentication for local connections
+postgres-1  | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+postgres-1  |
+postgres-1  |
+postgres-1  | Success. You can now start the database server using:
+postgres-1  |
+postgres-1  |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+postgres-1  |
+postgres-1  | waiting for server to start....2025-05-04 22:13:22.743 UTC [42] LOG:  starting PostgreSQL 16.8 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+postgres-1  | 2025-05-04 22:13:22.745 UTC [42] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+postgres-1  | 2025-05-04 22:13:22.756 UTC [45] LOG:  database system was shut down at 2025-05-04 22:13:22 UTC
+postgres-1  | 2025-05-04 22:13:22.770 UTC [42] LOG:  database system is ready to accept connections
+postgres-1  |  done
+postgres-1  | server started
+postgres-1  | CREATE DATABASE
+postgres-1  |
+postgres-1  |
+postgres-1  | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+postgres-1  |
+postgres-1  | waiting for server to shut down...2025-05-04 22:13:23.052 UTC [42] LOG:  received fast shutdown request
+postgres-1  | .2025-05-04 22:13:23.055 UTC [42] LOG:  aborting any active transactions
+postgres-1  | 2025-05-04 22:13:23.062 UTC [42] LOG:  background worker "logical replication launcher" (PID 48) exited with exit code 1
+postgres-1  | 2025-05-04 22:13:23.063 UTC [43] LOG:  shutting down
+postgres-1  | 2025-05-04 22:13:23.065 UTC [43] LOG:  checkpoint starting: shutdown immediate
+postgres-1  | 2025-05-04 22:13:23.205 UTC [43] LOG:  checkpoint complete: wrote 924 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.074 s, sync=0.059 s, total=0.143 s; sync files=301, longest=0.003 s, average=0.001 s; distance=4267 kB, estimate=4267 kB; lsn=0/191AB68, redo lsn=0/191AB68
+postgres-1  | 2025-05-04 22:13:23.224 UTC [42] LOG:  database system is shut down
+postgres-1  |  done
+postgres-1  | server stopped
+postgres-1  |
+postgres-1  | PostgreSQL init process complete; ready for start up.
+postgres-1  |
+postgres-1  | 2025-05-04 22:13:23.328 UTC [1] LOG:  starting PostgreSQL 16.8 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+postgres-1  | 2025-05-04 22:13:23.329 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+postgres-1  | 2025-05-04 22:13:23.329 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+postgres-1  | 2025-05-04 22:13:23.333 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+postgres-1  | 2025-05-04 22:13:23.345 UTC [58] LOG:  database system was shut down at 2025-05-04 22:13:23 UTC
+postgres-1  | 2025-05-04 22:13:23.363 UTC [1] LOG:  database system is ready to accept connections
+app-1       | exec /app/docker-entrypoint.sh: no such file or directory
+app-1       | exec /app/docker-entrypoint.sh: no such file or directory
+app-1       | exec /app/docker-entrypoint.sh: no such file or directory
+app-1       | exec /app/docker-entrypoint.sh: no such file or directory
+app-1       | exec /app/docker-entrypoint.sh: no such file or directory
+app-1       | exec /app/docker-entrypoint.sh: no such file or directory
