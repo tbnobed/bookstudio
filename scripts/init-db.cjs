@@ -1,83 +1,104 @@
 // CommonJS version for database initialization in Docker environment
-const crypto = require('crypto');
-const util = require('util');
 const { db } = require('./db.cjs');
+const { scrypt, randomBytes } = require('crypto');
+const { promisify } = require('util');
 
-const scryptAsync = util.promisify(crypto.scrypt);
+const scryptAsync = promisify(scrypt);
 
+// Function to hash a password
 async function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString('hex');
+  const salt = randomBytes(16).toString('hex');
   const buf = await scryptAsync(password, salt, 64);
   return `${buf.toString('hex')}.${salt}`;
 }
 
 async function initDb() {
-  console.log('Initializing database with sample data...');
-  
+  console.log('Initializing database...');
+
   try {
-    // Create initial users if they don't exist
-    const existingUsers = await db.query.users.findMany();
+    // Check if users table is empty
+    const usersCount = await db.select({ count: db.sql`count(*)` })
+      .from(db.users);
     
-    if (existingUsers.length === 0) {
+    if (parseInt(usersCount[0]?.count || '0', 10) === 0) {
       console.log('Creating initial users...');
       
       // Create admin user
-      await db.insert(db.users).values({
+      const adminUser = {
         username: 'admin',
-        password: await hashPassword('admin123'),
+        name: 'System Administrator',
         email: 'admin@bookstud.io',
-        name: 'Admin User',
+        password: await hashPassword('admin123'),
         role: 'admin'
-      });
+      };
       
       // Create producer user
-      await db.insert(db.users).values({
+      const producerUser = {
         username: 'producer',
-        password: await hashPassword('producer123'),
+        name: 'Test Producer',
         email: 'producer@bookstud.io',
-        name: 'Producer User',
+        password: await hashPassword('producer123'),
         role: 'producer'
-      });
+      };
       
       // Create engineer user
-      await db.insert(db.users).values({
+      const engineerUser = {
         username: 'engineer',
-        password: await hashPassword('engineer123'),
+        name: 'Test Engineer',
         email: 'engineer@bookstud.io',
-        name: 'Engineer User',
+        password: await hashPassword('engineer123'),
         role: 'engineer'
-      });
+      };
+      
+      // Insert users
+      await db.insert(db.users).values(adminUser);
+      await db.insert(db.users).values(producerUser);
+      await db.insert(db.users).values(engineerUser);
       
       console.log('Initial users created successfully');
     } else {
       console.log('Users already exist, skipping user creation');
     }
     
-    // Create initial studios if they don't exist
-    const existingStudios = await db.query.studios.findMany();
+    // Check if studios table is empty
+    const studiosCount = await db.select({ count: db.sql`count(*)` })
+      .from(db.studios);
     
-    if (existingStudios.length === 0) {
+    if (parseInt(studiosCount[0]?.count || '0', 10) === 0) {
       console.log('Creating initial studios...');
       
+      // Create demo studios
       const studioNames = [
-        'Studio A',
-        'Studio B',
-        'Studio C',
-        'Control Room 1',
-        'Control Room 2',
-        'Production Suite',
-        'Edit Bay 1',
-        'Edit Bay 2',
-        'Audio Room',
-        'Green Screen',
+        'Studio A - News', 
+        'Studio B - Drama',
+        'Studio C - Talk Shows',
+        'Studio D - Sports',
+        'Studio E - Weather',
+        'Studio F - Children',
+        'Studio G - Game Shows',
+        'Studio H - Multi-purpose',
+        'Studio I - Cooking',
+        'Studio J - Documentary',
+        'Studio K - Music',
+        'Studio L - Virtual Reality',
+        'Studio M - Radio',
+        'Studio N - Podcast',
+        'Studio O - Interview',
+        'Studio P - Green Screen',
+        'Studio Q - Commercial',
+        'Studio R - Live Audience',
+        'Studio S - Post-production',
+        'Studio T - Custom Events'
       ];
       
       for (let i = 0; i < studioNames.length; i++) {
-        await db.insert(db.studios).values({
+        const studio = {
           name: studioNames[i],
           status: 'available',
-          description: `${studioNames[i]} - Multi-purpose production space`
-        });
+          description: `${studioNames[i]} for television production.`
+        };
+        
+        await db.insert(db.studios).values(studio);
       }
       
       console.log('Initial studios created successfully');
@@ -85,49 +106,9 @@ async function initDb() {
       console.log('Studios already exist, skipping studio creation');
     }
     
-    // Create initial templates if they don't exist
-    const existingTemplates = await db.query.templates.findMany();
-    
-    if (existingTemplates.length === 0) {
-      console.log('Creating initial templates...');
-      
-      // Get admin user ID
-      const adminUser = await db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.username, 'admin')
-      });
-      
-      if (adminUser) {
-        await db.insert(db.templates).values({
-          name: 'DP Podcast',
-          description: '',
-          type: 'podcast',
-          duration: 90,
-          crewRequired: JSON.stringify(['Host', 'Producer', 'Audio Engineer']),
-          equipment: JSON.stringify(['Microphones (4)', 'Audio Mixer', 'DSLR Camera']),
-          createdBy: adminUser.id
-        });
-        
-        await db.insert(db.templates).values({
-          name: 'News Interview',
-          description: 'Standard news interview setup',
-          type: 'interview',
-          duration: 45,
-          crewRequired: JSON.stringify(['Host', 'Camera Operator', 'Guest Coordinator']),
-          equipment: JSON.stringify(['Interview Set', 'Lavalier Mics (2)', 'Studio Lighting']),
-          createdBy: adminUser.id
-        });
-        
-        console.log('Initial templates created successfully');
-      } else {
-        console.log('Admin user not found, skipping template creation');
-      }
-    } else {
-      console.log('Templates already exist, skipping template creation');
-    }
-    
     console.log('Database initialization completed successfully');
   } catch (err) {
-    console.error('Error initializing database:', err);
+    console.error('Error during database initialization:', err);
     process.exit(1);
   }
 }
@@ -135,7 +116,7 @@ async function initDb() {
 // Run the initialization
 initDb()
   .then(() => {
-    console.log('Database initialization completed');
+    console.log('Database initialized');
     process.exit(0);
   })
   .catch(err => {

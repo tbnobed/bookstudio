@@ -124,7 +124,7 @@ run_in_app_container "npm run db:push" "Creating database schema"
 
 # Step 4: Prepare CommonJS compatibility for database initialization
 log "Preparing CommonJS database compatibility for Docker environment..."
-run_in_app_container "chmod +x /app/scripts/*.cjs 2>/dev/null || true" "Setting permissions for CommonJS scripts"
+run_in_app_container "bash -c \"find /app/scripts -name '*.cjs' -type f -exec chmod +x {} \\; 2>/dev/null || true\"" "Setting permissions for CommonJS scripts"
 
 # Step 5: Copy pre-created CommonJS schema file if needed
 run_in_app_container "bash -c \"if [ ! -f /app/shared/schema.cjs ]; then cp /app/scripts/schema.cjs /app/shared/ 2>/dev/null || echo 'Schema file not copied - this is expected on first run'; fi\"" "Setting up CommonJS schema"

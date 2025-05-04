@@ -110,9 +110,9 @@ done
 log "Preparing CommonJS files for database initialization..."
 docker exec bookstuio-app /bin/sh -c "mkdir -p /app/scripts /app/shared"
 
-# Copy the CommonJS files that are already in the container via Dockerfile
-docker exec bookstuio-app /bin/sh -c "chmod +x /app/scripts/*.cjs"
-docker exec bookstuio-app /bin/sh -c "cp /app/scripts/schema.cjs /app/shared/ 2>/dev/null || echo 'Schema file already exists'"
+# Use find to locate and set permissions on CommonJS files
+docker exec bookstuio-app /bin/sh -c "find /app/scripts -name '*.cjs' -type f -exec chmod +x {} \; 2>/dev/null || echo 'No CommonJS files found'"
+docker exec bookstuio-app /bin/sh -c "if [ -f /app/scripts/schema.cjs ]; then cp /app/scripts/schema.cjs /app/shared/ 2>/dev/null || echo 'Schema file already exists'; else echo 'Schema file not found'; fi"
 
 # Run database initialization
 log "Running database initialization with enhanced compatibility..."
