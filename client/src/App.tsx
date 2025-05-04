@@ -14,6 +14,7 @@ import ToastNotification from "@/components/ui/toast-notification";
 import AuthPage from "@/pages/auth-page";
 import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { TimezoneProvider } from "@/contexts/TimezoneContext";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -74,13 +75,15 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <TooltipProvider>
-      <AppLayout>
-        <Router />
-      </AppLayout>
-      <Toaster />
-      <ToastNotification />
-    </TooltipProvider>
+    <TimezoneProvider>
+      <TooltipProvider>
+        <AppLayout>
+          <Router />
+        </AppLayout>
+        <Toaster />
+        <ToastNotification />
+      </TooltipProvider>
+    </TimezoneProvider>
   );
 }
 
