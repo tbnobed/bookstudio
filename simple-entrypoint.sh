@@ -1,10 +1,10 @@
 #!/bin/bash
 # Simple entrypoint script for Docker that only starts the application
-# The database initialization is handled separately by init-db-docker.sh
+# Database initialization is now handled by the db-init container
 set -e
 
 echo "========================================"
-echo "BookStud.io Simple Application Startup"
+echo "BookStud.io Application Startup"
 echo "========================================"
 
 # Check if we have a DATABASE_URL environment variable
@@ -23,8 +23,8 @@ echo "Environment: ${NODE_ENV:-development}"
 echo "Application port: ${PORT:-3000}"
 echo "SendGrid email service initialized"
 
-# Start the application - no database initialization here
+# Start the application
 echo "========================================"
 echo "Starting the BookStud.io application..."
 echo "========================================"
-exec node dist/index.js
+exec node dist/server.js
