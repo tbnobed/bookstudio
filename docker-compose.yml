@@ -16,7 +16,8 @@ services:
       - SESSION_SECRET=${SESSION_SECRET:-your_session_secret}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - bookstuio-network
 
@@ -34,6 +35,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - bookstuio-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   bookstuio-network:

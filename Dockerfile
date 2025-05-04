@@ -2,12 +2,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install netcat for the wait script
+RUN apk add --no-cache netcat-openbsd
+
 # Install dependencies first (for better caching)
 COPY package.json package-lock.json ./
 RUN npm ci
 
 # Copy the rest of the application
 COPY . .
+
+# Make the wait script executable
+RUN chmod +x wait-for-postgres.sh
 
 # Build the application
 RUN npm run build
@@ -22,5 +28,5 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Start the application
-CMD ["node", "dist/index.js"]
+# Start the application with the wait script
+CMD ["./wait-for-postgres.sh", "db", "5432", "node", "dist/index.js"]
