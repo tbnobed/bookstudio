@@ -215,19 +215,9 @@ main() {
   # Execute the command passed to the script (typically npm run start)
   log_info "Starting with command: $*"
   
-  # Run the command in the background
-  "$@" &
-  CMD_PID=$!
-  
-  # Log the process ID
-  log_info "Application process started with PID: $CMD_PID"
-  
-  # Handle container termination signals
-  trap "kill -TERM $CMD_PID" SIGTERM SIGINT
-  
-  # Keep the container running
-  log_info "Container will stay running even if application exits"
-  tail -f /dev/null & wait $!
+  # Just execute the command directly
+  # This is simpler and more reliable for Docker containers
+  exec "$@"
 }
 
 # Run the main function

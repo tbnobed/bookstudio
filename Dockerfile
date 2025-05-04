@@ -32,5 +32,5 @@ EXPOSE 3000
 # Use our custom entrypoint script
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
-# Default command - we'll now use the entrypoint script to handle keep-alive behavior
+# Default command - use production start script
 CMD ["npm", "run", "start"]
