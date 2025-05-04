@@ -62,13 +62,13 @@ check_database() {
   
   while [ $retry_count -lt $MAX_RETRIES ]; do
     local db_ready
-    db_ready=$(docker exec bookstuio-db pg_isready -U "$db_username" -d "$db_name" 2>/dev/null || echo "not_ready")
+    db_ready=$(docker exec -e PGPASSWORD=tbn123456789 bookstuio-db pg_isready -U "$db_username" -d "$db_name" 2>/dev/null || echo "not_ready")
     
     if [[ "$db_ready" != *"not_ready"* ]]; then
       log "Database is ready and accepting connections."
       
       # Extra verification - try a simple query
-      if docker exec bookstuio-db psql -U "$db_username" -d "$db_name" -c "SELECT 1" >/dev/null 2>&1; then
+      if docker exec -e PGPASSWORD=tbn123456789 bookstuio-db psql -U "$db_username" -d "$db_name" -c "SELECT 1" >/dev/null 2>&1; then
         log "Database connection verified with a test query."
         return 0
       else

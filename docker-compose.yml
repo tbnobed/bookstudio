@@ -11,12 +11,12 @@ services:
       - '${APP_PORT:-3000}:3000'
     environment:
       - NODE_ENV=${NODE_ENV:-production}
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:${PGPORT:-5432}/${POSTGRES_DB:-bookstuio}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-tbn123456789}@db:${PGPORT:-5432}/${POSTGRES_DB:-bookstuio}
       - PORT=${APP_PORT:-3000}
       - SESSION_SECRET=${SESSION_SECRET:-your_session_secret}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-tbn123456789}
       - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
       - PGHOST=db
       - PGPORT=${PGPORT:-5432}
@@ -57,7 +57,7 @@ services:
       - '${DB_PORT:-5432}:5432'
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-tbn123456789}
       - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -80,9 +80,9 @@ services:
       - ./:/app
     environment:
       - NODE_ENV=${NODE_ENV:-production}
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:${PGPORT:-5432}/${POSTGRES_DB:-bookstuio}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-tbn123456789}@db:${PGPORT:-5432}/${POSTGRES_DB:-bookstuio}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-tbn123456789}
       - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
       - PGHOST=db
       - PGPORT=${PGPORT:-5432}
