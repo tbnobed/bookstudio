@@ -13,8 +13,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { logoutMutation } = useAuth();
   
   const handleLogout = async () => {
-    await logoutMutation.mutate();
-    navigate('/auth');
+    try {
+      await logoutMutation.mutateAsync();
+      // Force a direct location change instead of using router
+      window.location.href = '/auth';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const handleNavigate = (path: string) => {

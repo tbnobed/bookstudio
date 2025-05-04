@@ -71,8 +71,9 @@ export default function AuthPage() {
 
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
     loginMutation.mutate(data, {
-      onSuccess: () => {
-        navigate("/");
+      onSuccess: (data) => {
+        // Force a direct window.location change rather than using the router
+        window.location.href = "/";
       }
     });
   };
@@ -85,7 +86,8 @@ export default function AuthPage() {
     
     registerMutation.mutate(userData, {
       onSuccess: () => {
-        navigate("/");
+        // Force a direct window.location change rather than using the router
+        window.location.href = "/";
       }
     });
   };
