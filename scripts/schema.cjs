@@ -1,53 +1,81 @@
-// CommonJS version of the schema for Docker compatibility
-const { pgTable, serial, text, timestamp, integer, boolean, jsonb } = require('drizzle-orm/pg-core');
+// CommonJS version of schema for Docker environment
+const { 
+  pgTable, 
+  serial, 
+  text, 
+  timestamp, 
+  pgEnum, 
+  integer, 
+  boolean, 
+  json, 
+  uniqueIndex 
+} = require('drizzle-orm/pg-core');
 
-// User table
+// User roles enum
+const userRolesEnum = pgEnum('user_role', ['admin', 'producer', 'engineer']);
+
+// Users table
 const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
   password: text('password').notNull(),
   email: text('email').notNull(),
   name: text('name').notNull(),
-  role: text('role').notNull().default('user'),
+  role: text('role').notNull().default('producer')
+}, (table) => {
+  return {
+    usernameIdx: uniqueIndex('username_idx').on(table.username),
+    emailIdx: uniqueIndex('email_idx').on(table.email)
+  };
 });
 
-// Studio table
+// Studios table
 const studios = pgTable('studios', {
   id: serial('id').primaryKey(),
-  name: text('name').notNull().unique(),
-  description: text('description'),
-  status: text('status').notNull().default('active')
+  name: text('name').notNull(),
+  status: text('status').notNull().default('available'),
+  description: text('description')
 });
 
-// Template table
+// Templates table
 const templates = pgTable('templates', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
-  description: text('description'),
   type: text('type').notNull(),
+  description: text('description'),
   duration: integer('duration').notNull(),
-  crewRequired: jsonb('crew_required'),
-  equipment: jsonb('equipment'),
-  createdBy: integer('created_by').notNull(),
+  crewRequired: json('crew_required'),
+  equipment: json('equipment'),
+  createdBy: integer('created_by').notNull()
 });
 
-// Booking table
+// Bookings table
 const bookings = pgTable('bookings', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description'),
-  type: text('type').notNull().default('standard'),
+  type: text('type').notNull(),
   start: timestamp('start_time').notNull(),
   end: timestamp('end_time').notNull(),
-  userId: integer('user_id').notNull(),
   studioId: integer('studio_id'),
-  templateId: integer('template_id'),
+  userId: integer('user_id').notNull(),
   severity: text('severity'),
-  notifyList: jsonb('notify_list'),
-  createdAt: timestamp('created_at').defaultNow(),
+  templateId: integer('template_id'),
+  notifyList: json('notify_list'),
+  createdAt: timestamp('created_at').defaultNow()
 });
 
-// Notification table
+// Notification groups table
+const notificationGroups = pgTable('notification_groups', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  description: text('description'),
+  groupType: text('group_type').notNull(),
+  enabled: boolean('enabled').default(true)
+});
+
+// Notifications table
 const notifications = pgTable('notifications', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull(),
@@ -56,24 +84,15 @@ const notifications = pgTable('notifications', {
   type: text('type').notNull(),
   read: boolean('read').default(false),
   bookingId: integer('booking_id'),
-  createdAt: timestamp('created_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow()
 });
 
-// Notification Group table
-const notificationGroups = pgTable('notification_groups', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull().unique(),
-  email: text('email').notNull(),
-  groupType: text('group_type').notNull(),
-  description: text('description'),
-  enabled: boolean('enabled').default(true),
-});
-
+// Export tables and relationships
 module.exports = {
   users,
   studios,
   templates,
   bookings,
-  notifications,
-  notificationGroups
+  notificationGroups,
+  notifications
 };

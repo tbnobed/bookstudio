@@ -1,8 +1,7 @@
-#!/usr/bin/env node
-// This is a CommonJS version for use in Docker environment
-const { Pool } = require("pg");
-const { drizzle } = require("drizzle-orm/node-postgres");
-const schema = require("../shared/schema.cjs");
+// CommonJS version for database initialization in Docker environment
+const { Pool } = require('pg');
+const { drizzle } = require('drizzle-orm/node-postgres');
+const schema = require('../shared/schema.cjs');
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -14,4 +13,4 @@ if (!process.env.DATABASE_URL) {
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
 
-module.exports = { pool, db };
+module.exports = { db, pool };

@@ -106,28 +106,13 @@ while [ $RETRY_COUNT -lt $RETRIES ]; do
   sleep 3
 done
 
-# Prepare ES module compatibility for database initialization
-log "Preparing ES module compatibility for database initialization..."
-docker exec bookstuio-app /bin/sh -c "mkdir -p /app/scripts"
-docker exec bookstuio-app /bin/sh -c "cat > /app/scripts/db.js << 'EOL'
-// This file is a specialized version for use with ES modules in scripts
-import { Pool } from \"pg\";
-import { drizzle } from \"drizzle-orm/node-postgres\";
-import * as schema from \"../shared/schema.js\";
+# Prepare CommonJS files for more reliable database initialization
+log "Preparing CommonJS files for database initialization..."
+docker exec bookstuio-app /bin/sh -c "mkdir -p /app/scripts /app/shared"
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    \"DATABASE_URL must be set. Did you forget to provision a database?\",
-  );
-}
-
-// PostgreSQL connection for initialization scripts
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
-EOL"
-docker exec bookstuio-app /bin/sh -c "chmod +x /app/scripts/db.js"
-docker exec bookstuio-app /bin/sh -c "chmod +x /app/scripts/migrate-db.js"
-docker exec bookstuio-app /bin/sh -c "chmod +x /app/scripts/init-db.js"
+# Copy the CommonJS files that are already in the container via Dockerfile
+docker exec bookstuio-app /bin/sh -c "chmod +x /app/scripts/*.cjs"
+docker exec bookstuio-app /bin/sh -c "cp /app/scripts/schema.cjs /app/shared/ 2>/dev/null || echo 'Schema file already exists'"
 
 # Run database initialization
 log "Running database initialization with enhanced compatibility..."
