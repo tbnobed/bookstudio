@@ -1,0 +1,87 @@
+obtv-admin@dev-bookstudio:~/bookstudio$ docker compose up -d
+WARN[0000] /home/obtv-admin/bookstudio/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] Running 5/5
+ ✔ Network bookstudio_bookstuio-network  Created                                                                                                                                                                                          0.1s
+ ✔ Volume "bookstudio_postgres_data"     Created                                                                                                                                                                                          0.0s
+ ✔ Container bookstuio-db                Healthy                                                                                                                                                                                          7.0s
+ ✘ Container bookstuio-db-init           service "db-init" didn't complete successfully: exit 127                                                                                                                                         9.0s
+ ✔ Container bookstuio-app               Created                                                                                                                                                                                          0.0s
+service "db-init" didn't complete successfully: exit 127
+obtv-admin@dev-bookstudio:~/bookstudio$ docker-compose logs -f
+bookstuio-db-init  | fetch https://dl-cdn.alpinelinux.org/alpine/v3.21/main/x86_64/APKINDEX.tar.gz
+bookstuio-db-init  | fetch https://dl-cdn.alpinelinux.org/alpine/v3.21/community/x86_64/APKINDEX.tar.gz
+bookstuio-db-init  | (1/8) Installing postgresql-common (1.2-r1)
+bookstuio-db-init  | Executing postgresql-common-1.2-r1.pre-install
+bookstuio-db-init  | (2/8) Installing lz4-libs (1.10.0-r0)
+bookstuio-db-init  | (3/8) Installing libpq (17.4-r0)
+bookstuio-db-init  | (4/8) Installing ncurses-terminfo-base (6.5_p20241006-r3)
+bookstuio-db-init  | (5/8) Installing libncursesw (6.5_p20241006-r3)
+bookstuio-db-init  | (6/8) Installing readline (8.2.13-r0)
+bookstuio-db-init  | (7/8) Installing zstd-libs (1.5.6-r2)
+bookstuio-db-init  | (8/8) Installing postgresql17-client (17.4-r0)
+bookstuio-db-init  | Executing busybox-1.37.0-r12.trigger
+bookstuio-db-init  | Executing postgresql-common-1.2-r1.trigger
+bookstuio-db-init  | * Setting postgresql17 as the default version
+bookstuio-db-init  | WARNING: opening from cache https://dl-cdn.alpinelinux.org/alpine/v3.21/main: No such file or directory
+bookstuio-db-init  | WARNING: opening from cache https://dl-cdn.alpinelinux.org/alpine/v3.21/community: No such file or directory
+bookstuio-db       | The files belonging to this database system will be owned by user "postgres".
+bookstuio-db       | This user must also own the server process.
+bookstuio-db       |
+bookstuio-db-init  | OK: 15 MiB in 25 packages
+bookstuio-db-init  | Waiting for database to be fully ready...
+bookstuio-db       | The database cluster will be initialized with locale "en_US.utf8".
+bookstuio-db-init  | sh: /app/scripts/wait-for-db.sh: not found
+bookstuio-db       | The default database encoding has accordingly been set to "UTF8".
+bookstuio-db       | The default text search configuration will be set to "english".
+bookstuio-db       |
+bookstuio-db       | Data page checksums are disabled.
+bookstuio-db       |
+bookstuio-db       | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+bookstuio-db       | creating subdirectories ... ok
+bookstuio-db       | selecting dynamic shared memory implementation ... posix
+bookstuio-db       | selecting default max_connections ... 100
+bookstuio-db       | selecting default shared_buffers ... 128MB
+bookstuio-db       | selecting default time zone ... UTC
+bookstuio-db       | creating configuration files ... ok
+bookstuio-db       | running bootstrap script ... ok
+bookstuio-db       | sh: locale: not found
+bookstuio-db       | 2025-05-04 08:23:35.767 UTC [35] WARNING:  no usable system locales were found
+bookstuio-db       | performing post-bootstrap initialization ... ok
+bookstuio-db       | initdb: warning: enabling "trust" authentication for local connections
+bookstuio-db       | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+bookstuio-db       | syncing data to disk ... ok
+bookstuio-db       |
+bookstuio-db       |
+bookstuio-db       | Success. You can now start the database server using:
+bookstuio-db       |
+bookstuio-db       |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+bookstuio-db       |
+bookstuio-db       | waiting for server to start....2025-05-04 08:23:37.006 UTC [41] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-db       | 2025-05-04 08:23:37.009 UTC [41] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db       | 2025-05-04 08:23:37.019 UTC [44] LOG:  database system was shut down at 2025-05-04 08:23:36 UTC
+bookstuio-db       | 2025-05-04 08:23:37.032 UTC [41] LOG:  database system is ready to accept connections
+bookstuio-db       |  done
+bookstuio-db       | server started
+bookstuio-db       | CREATE DATABASE
+bookstuio-db       |
+bookstuio-db       |
+bookstuio-db       | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+bookstuio-db       |
+bookstuio-db       | waiting for server to shut down....2025-05-04 08:23:37.273 UTC [41] LOG:  received fast shutdown request
+bookstuio-db       | 2025-05-04 08:23:37.274 UTC [41] LOG:  aborting any active transactions
+bookstuio-db       | 2025-05-04 08:23:37.279 UTC [41] LOG:  background worker "logical replication launcher" (PID 47) exited with exit code 1
+bookstuio-db       | 2025-05-04 08:23:37.280 UTC [42] LOG:  shutting down
+bookstuio-db       | 2025-05-04 08:23:37.282 UTC [42] LOG:  checkpoint starting: shutdown immediate
+bookstuio-db       | 2025-05-04 08:23:37.367 UTC [42] LOG:  checkpoint complete: wrote 920 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.055 s, sync=0.025 s, total=0.087 s; sync files=301, longest=0.001 s, average=0.001 s; distance=4233 kB, estimate=4233 kB
+bookstuio-db       | 2025-05-04 08:23:37.382 UTC [41] LOG:  database system is shut down
+bookstuio-db       |  done
+bookstuio-db       | server stopped
+bookstuio-db       |
+bookstuio-db       | PostgreSQL init process complete; ready for start up.
+bookstuio-db       |
+bookstuio-db       | 2025-05-04 08:23:37.545 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-db       | 2025-05-04 08:23:37.545 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+bookstuio-db       | 2025-05-04 08:23:37.545 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+bookstuio-db       | 2025-05-04 08:23:37.550 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db       | 2025-05-04 08:23:37.560 UTC [57] LOG:  database system was shut down at 2025-05-04 08:23:37 UTC
+bookstuio-db       | 2025-05-04 08:23:37.573 UTC [1] LOG:  database system is ready to accept connections

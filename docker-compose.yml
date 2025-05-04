@@ -95,9 +95,28 @@ services:
     command: >
       sh -c "apk add --no-cache postgresql-client &&
              echo 'Waiting for database to be fully ready...' &&
-             chmod +x /app/scripts/wait-for-db.sh && 
-             /app/scripts/wait-for-db.sh &&
-             echo 'PostgreSQL is ready - proceeding with initialization' &&
+             
+             if [ -f /app/scripts/wait-for-db.sh ]; then
+               echo 'Using wait-for-db.sh script...' &&
+               chmod +x /app/scripts/wait-for-db.sh && 
+               /app/scripts/wait-for-db.sh && 
+               echo 'PostgreSQL is ready - proceeding with initialization'
+             else
+               echo 'wait-for-db.sh not found, using direct connection check...' &&
+               max_attempts=30 &&
+               attempt=0 &&
+               until PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h db -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c 'SELECT 1' > /dev/null 2>&1 || [ $attempt -eq $max_attempts ]; do
+                 echo \"Waiting for PostgreSQL, attempt $(($attempt+1))/$max_attempts...\" &&
+                 attempt=$(($attempt+1)) &&
+                 sleep 2
+               done &&
+               if [ $attempt -eq $max_attempts ]; then
+                 echo 'Failed to connect to PostgreSQL after maximum attempts' &&
+                 exit 1
+               fi &&
+               echo 'PostgreSQL is ready - proceeding with initialization'
+             fi &&
+             
              cd /app &&
              echo 'Running database schema creation...' &&
              npm run db:push &&

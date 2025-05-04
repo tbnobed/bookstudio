@@ -216,7 +216,7 @@ else
         log "Database is accepting connections via pg_isready."
         
         # Perform a final validation
-        if docker exec bookstuio-db psql -U postgres -d bookstuio -c "SELECT 1" -w PGPASSWORD=tbn123456789 &> /dev/null; then
+        if docker exec bookstuio-db psql -U postgres -d bookstuio -c "SELECT 1" -w PGPASSWORD=${POSTGRES_PASSWORD:-postgres} &> /dev/null; then
           log "Database connection fully verified."
         else
           log "WARNING: Database query check failed!"
