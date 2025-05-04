@@ -155,35 +155,44 @@ else
   log "Database initialization completed successfully"
 fi
 
-# Wait for DB to be ready - using a more reliable approach than just sleeping
+# Wait for DB to be ready
 log "Waiting for database to be ready..."
 RETRIES=15  # Increased retries for more patience
 RETRY_COUNT=0
 
-while [ $RETRY_COUNT -lt $RETRIES ]; do
-  if docker exec bookstuio-db pg_isready -U postgres -d bookstuio &> /dev/null; then
-    log "Database is ready."
-    break
-  fi
-  
-  # Try alternative check if the standard one fails
-  if docker-compose exec db pg_isready -U postgres -d bookstuio &> /dev/null; then
-    log "Database is ready (verified with docker-compose exec)."
-    break
-  fi
-  
-  RETRY_COUNT=$((RETRY_COUNT+1))
-  if [ $RETRY_COUNT -eq $RETRIES ]; then
-    log "WARNING: Database health check failed after multiple attempts"
-    log "This may not be a critical issue - attempting to continue anyway"
-    log "If problems persist in development, try running: ./cleanup.sh"
-    docker-compose logs db
-    # Don't exit here, try to continue
-  fi
-  
-  log "Waiting for database to become ready (attempt $RETRY_COUNT/$RETRIES)..."
-  sleep 3
-done
+# First check if the DB container is in a healthy state according to Docker
+DB_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' bookstuio-db 2>/dev/null || echo "not found")
+log "Database container health status: $DB_HEALTH"
+
+if [ "$DB_HEALTH" = "healthy" ]; then
+  log "Database container is already marked as healthy, proceeding..."
+else
+  while [ $RETRY_COUNT -lt $RETRIES ]; do
+    # Simple check - just see if the container responds to commands at all
+    if docker exec bookstuio-db echo "DB container is responsive" &> /dev/null; then
+      log "Database container is responsive."
+      
+      # Use proper pg_isready with correct parameters (avoid the 'q' error seen in logs)
+      if docker exec bookstuio-db pg_isready -U postgres -h localhost -d bookstuio &> /dev/null; then
+        log "Database is ready."
+        break
+      fi
+    fi
+    
+    RETRY_COUNT=$((RETRY_COUNT+1))
+    if [ $RETRY_COUNT -eq $RETRIES ]; then
+      log "WARNING: Database health check failed after multiple attempts"
+      log "This may not be a critical issue - attempting to continue anyway"
+      log "If problems persist in development, try running: ./cleanup.sh"
+      docker-compose logs db
+      # Don't exit here, try to continue
+      break
+    fi
+    
+    log "Waiting for database to become ready (attempt $RETRY_COUNT/$RETRIES)..."
+    sleep 3
+  done
+fi
 
 # No need to prepare CommonJS files anymore, volumes will mount directly
 log "Using Docker volumes for direct script access, no file manipulation needed..."
