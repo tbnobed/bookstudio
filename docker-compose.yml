@@ -1,60 +1,11 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: bookstuio-app
-    restart: unless-stopped
-    ports:
-      - '${APP_PORT:-3000}:3000'
-    environment:
-      - NODE_ENV=${NODE_ENV:-production}
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:${PGPORT:-5432}/${POSTGRES_DB:-bookstuio}
-      - PORT=${APP_PORT:-3000}
-      - SESSION_SECRET=${SESSION_SECRET:-your_session_secret}
-      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
-      - PGHOST=db
-      - PGPORT=${PGPORT:-5432}
-      - HOST=${HOST:-0.0.0.0}
-      # Flag to signal Docker environment for proper connection handling
-      - IS_DOCKER=true
-    # Mount the entire app directory for access to all files
-    volumes:
-      - ./:/app
-    # Use the enhanced entrypoint script for better error handling and more reliable startup
-    command: sh -c "cd /app && bash docker-entrypoint.sh"
-    depends_on:
-      db:
-        condition: service_healthy
-      db-init:
-        condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:3000/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    # Restart policy for more resilience
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-    networks:
-      - bookstuio-network
-
+  # Database service
   db:
     image: postgres:15-alpine
     container_name: bookstuio-db
-    restart: unless-stopped
-    ports:
-      - '${DB_PORT:-5432}:5432'
+    restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
@@ -68,9 +19,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
-      
-  # Dedicated initialization container that runs once and exits
+      start_period: 10s
+
+  # Database initialization service - runs once and exits
   db-init:
     image: node:20-alpine
     container_name: bookstuio-db-init
@@ -79,14 +30,13 @@ services:
     volumes:
       - ./:/app
     environment:
-      - NODE_ENV=${NODE_ENV:-production}
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:${PGPORT:-5432}/${POSTGRES_DB:-bookstuio}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
       - PGHOST=db
-      - PGPORT=${PGPORT:-5432}
-      - IS_DOCKER=true
+      - PGUSER=${POSTGRES_USER:-postgres}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - PGDATABASE=${POSTGRES_DB:-bookstuio}
+      - PGPORT=5432
+      - NODE_ENV=production
     depends_on:
       db:
         condition: service_healthy
@@ -94,36 +44,46 @@ services:
       - bookstuio-network
     command: >
       sh -c "apk add --no-cache postgresql-client &&
-             echo 'Waiting for database to be fully ready...' &&
-             
-             if [ -f /app/scripts/wait-for-db.sh ]; then
-               echo 'Using wait-for-db.sh script...' &&
-               chmod +x /app/scripts/wait-for-db.sh && 
-               /app/scripts/wait-for-db.sh && 
-               echo 'PostgreSQL is ready - proceeding with initialization'
-             else
-               echo 'wait-for-db.sh not found, using direct connection check...' &&
-               max_attempts=30 &&
-               attempt=0 &&
-               until PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h db -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c 'SELECT 1' > /dev/null 2>&1 || [ $attempt -eq $max_attempts ]; do
-                 echo \"Waiting for PostgreSQL, attempt $(($attempt+1))/$max_attempts...\" &&
-                 attempt=$(($attempt+1)) &&
-                 sleep 2
-               done &&
-               if [ $attempt -eq $max_attempts ]; then
-                 echo 'Failed to connect to PostgreSQL after maximum attempts' &&
-                 exit 1
-               fi &&
-               echo 'PostgreSQL is ready - proceeding with initialization'
-             fi &&
-             
+             chmod +x /app/scripts/wait-for-db.sh &&
+             /app/scripts/wait-for-db.sh &&
              cd /app &&
-             echo 'Running database schema creation...' &&
              npm run db:push &&
-             echo 'Running database initialization and migration...' &&
              node --experimental-specifier-resolution=node scripts/init-db.js &&
-             node --experimental-specifier-resolution=node scripts/migrate-db.js &&
-             echo 'Database initialization complete'"
+             echo 'Database initialization complete!'"
+
+  # Main application service
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: bookstuio-app
+    restart: always
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
+      - PGHOST=db
+      - PGUSER=${POSTGRES_USER:-postgres}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - PGDATABASE=${POSTGRES_DB:-bookstuio}
+      - PGPORT=5432
+      - NODE_ENV=production
+      - SESSION_SECRET=${SESSION_SECRET:-changeme}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - HOST=0.0.0.0
+      - PORT=3000
+      - IS_DOCKER=true
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - bookstuio-network
 
 networks:
   bookstuio-network:
