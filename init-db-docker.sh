@@ -124,10 +124,11 @@ run_in_app_container "npm run db:push" "Creating database schema"
 
 # Step 4: Prepare ES module compatibility for database initialization
 log "Preparing ES module compatibility for database initialization..."
-run_in_app_container "mkdir -p /app/scripts/db-es && chmod +x /app/scripts/db.js /app/scripts/migrate-db.js /app/scripts/init-db.js" "Setting up ES module compatibility"
+run_in_app_container "mkdir -p /app/scripts/db-es 2>/dev/null || true" "Creating db-es directory"
+run_in_app_container "for file in /app/scripts/db.js /app/scripts/migrate-db.js /app/scripts/init-db.js; do [ -f \$file ] && chmod +x \$file || echo \"File \$file not found, will be created if needed\"; done" "Setting up permissions for existing script files"
 
 # Step 5: Create a specialized ES-compatible database connection file
-run_in_app_container "cat > /app/scripts/db-es.js << 'EOL'
+run_in_app_container "[ -f /app/scripts/db-es.js ] && echo 'db-es.js file already exists, skipping creation' || (cat > /app/scripts/db-es.js << 'EOL'
 #!/usr/bin/env node
 // This file is a specialized version for use with ES modules in scripts
 import { Pool } from \"pg\";
@@ -144,7 +145,7 @@ if (!process.env.DATABASE_URL) {
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle(pool, { schema });
 EOL
-chmod +x /app/scripts/db-es.js" "Creating ES module database connection file"
+chmod +x /app/scripts/db-es.js)" "Creating ES module database connection file"
 
 # Step 6: Update initialization scripts to use the new database connection
 run_in_app_container "sed -i 's|import { db } from \"./db.js\";|import { db } from \"./db-es.js\";|g' /app/scripts/migrate-db.js /app/scripts/init-db.js" "Updating database imports in scripts"
