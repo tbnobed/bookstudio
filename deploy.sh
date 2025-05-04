@@ -142,7 +142,7 @@ while [ $RETRY_COUNT -lt $RETRIES ]; do
   RETRY_COUNT=$((RETRY_COUNT+1))
   if [ $RETRY_COUNT -eq $RETRIES ]; then
     log "Error: Database failed to become ready after multiple attempts"
-    log "Try running with: ./deploy.sh --reset"
+    log "If problems persist in development, try running: ./cleanup.sh"
     docker-compose logs db
     exit 1
   fi
@@ -177,7 +177,7 @@ while [ $RETRY_COUNT -lt $RETRIES ]; do
     # Print recent logs to help diagnose issues
     log "Recent application logs:"
     docker-compose logs --tail=20 app
-    log "If problems persist, try running with: ./deploy.sh --reset"
+    log "If problems persist in development, try running: ./cleanup.sh"
   fi
   
   log "Waiting for application to respond (attempt $RETRY_COUNT/$RETRIES)..."
