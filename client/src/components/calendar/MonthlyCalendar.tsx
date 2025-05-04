@@ -8,10 +8,13 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 
 interface MonthlyCalendarProps {
-  currentDate: Date;
+  date: Date;
+  studios: any[];
+  bookings: any[];
+  readOnly?: boolean;
 }
 
-export default function MonthlyCalendar({ currentDate }: MonthlyCalendarProps) {
+export default function MonthlyCalendar({ date: currentDate, studios, bookings: propBookings = [], readOnly = false }: MonthlyCalendarProps) {
   const [monthDays, setMonthDays] = useState<Date[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -34,15 +37,21 @@ export default function MonthlyCalendar({ currentDate }: MonthlyCalendarProps) {
 
   // Handle day click to create a new booking
   const handleDayClick = (date: Date) => {
-    setSelectedDate(date);
-    setIsNewBookingModalOpen(true);
+    // Only allow booking creation if not in readOnly mode
+    if (!readOnly) {
+      setSelectedDate(date);
+      setIsNewBookingModalOpen(true);
+    }
   };
 
   // Handle booking click for editing
   const handleBookingClick = (e: React.MouseEvent, booking: Booking) => {
     e.stopPropagation();
-    setEditBooking(booking);
-    setIsEditModalOpen(true);
+    // Only allow editing if not in readOnly mode
+    if (!readOnly) {
+      setEditBooking(booking);
+      setIsEditModalOpen(true);
+    }
   };
 
   // Get bookings for a specific day
@@ -59,7 +68,7 @@ export default function MonthlyCalendar({ currentDate }: MonthlyCalendarProps) {
       "h-32 border p-1 transition-colors duration-200",
       isCurrentMonth ? "bg-white" : "bg-gray-50 text-gray-400",
       isToday && "bg-blue-50 border-blue-200",
-      "cursor-pointer hover:bg-gray-100"
+      readOnly ? "cursor-default" : "cursor-pointer hover:bg-gray-100"
     );
   };
 
@@ -115,7 +124,11 @@ export default function MonthlyCalendar({ currentDate }: MonthlyCalendarProps) {
                       <HoverCard key={booking.id}>
                         <HoverCardTrigger asChild>
                           <div 
-                            className={cn("p-1 rounded truncate", colorClass)}
+                            className={cn(
+                              "p-1 rounded truncate", 
+                              colorClass, 
+                              readOnly ? "cursor-default" : "cursor-pointer"
+                            )}
                             onClick={(e) => handleBookingClick(e, booking)}
                           >
                             <span className="font-medium">{booking.title}</span>
