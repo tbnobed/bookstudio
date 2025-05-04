@@ -30,4 +30,4 @@ EXPOSE 3000
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Default command
-CMD ["npm", "run", "start:prod"]
+CMD ["npm", "run", "start"]
