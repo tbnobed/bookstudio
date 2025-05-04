@@ -19,18 +19,30 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
     if (startDate) params.append("start", formatDateParam(startDate)!);
     if (endDate) params.append("end", formatDateParam(endDate)!);
     const queryString = params.toString();
+    
+    // Log date range for debugging
+    console.log(`useStudioBookings - Fetching bookings with date range: ${startDate?.toISOString()} to ${endDate?.toISOString()}`);
+    
     return queryString ? `?${queryString}` : "";
   };
 
+  // Create a stable key that changes when dates change
+  const dateRangeKey = `${formatDateParam(startDate)}-${formatDateParam(endDate)}`;
+  
   // Fetch all bookings
   const bookingsQuery = useQuery<Booking[]>({
-    queryKey: ["/api/bookings", { start: formatDateParam(startDate), end: formatDateParam(endDate) }],
+    queryKey: ["/api/bookings", dateRangeKey],
     queryFn: async () => {
-      const response = await fetch(`/api/bookings${getQueryString()}`);
+      const queryString = getQueryString();
+      console.log(`useStudioBookings - Executing fetch with query string: ${queryString}`);
+      
+      const response = await fetch(`/api/bookings${queryString}`);
       if (!response.ok) {
         throw new Error('Failed to fetch bookings');
       }
-      return response.json();
+      const data = await response.json();
+      console.log(`useStudioBookings - Received ${data.length} bookings`);
+      return data;
     },
     enabled: true,
     refetchInterval: 3000, // Refetch every 3 seconds to keep UI in sync

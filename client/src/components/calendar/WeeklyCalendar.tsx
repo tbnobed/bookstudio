@@ -27,11 +27,18 @@ export default function WeeklyCalendar({
   selectedStudioIds = [] 
 }: WeeklyCalendarProps) {
   // Use startDate if provided (for public calendar), fall back to currentDate
-  const effectiveDate = startDate || currentDate || new Date();
+  const [effectiveDate, setEffectiveDate] = useState(startDate || currentDate || new Date());
   const [weekDates, setWeekDates] = useState<Date[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
+  
+  // Update effectiveDate when props change
+  useEffect(() => {
+    const newDate = startDate || currentDate || new Date();
+    console.log(`WeeklyCalendar - Props changed, new date: ${newDate.toISOString()}`);
+    setEffectiveDate(newDate);
+  }, [startDate, currentDate]);
   
   // Calculate week dates whenever effective date changes
   useEffect(() => {
@@ -71,6 +78,12 @@ export default function WeeklyCalendar({
   // Use the useStudioBookings hook if no external bookings are provided
   const { bookings: fetchedBookings = [], isLoading: bookingsLoading } = 
     useStudioBookings(weekStart, weekEnd);
+  
+  // Log when fetchedBookings changes
+  useEffect(() => {
+    console.log(`WeeklyCalendar - Fetched bookings updated, received ${fetchedBookings.length} bookings`);
+    console.log(`WeeklyCalendar - Current date range: ${weekStart?.toISOString()} to ${weekEnd?.toISOString()}`);
+  }, [fetchedBookings, weekStart, weekEnd]);
   
   // Use external bookings if provided, otherwise use fetched bookings
   const bookings = externalBookings || fetchedBookings;

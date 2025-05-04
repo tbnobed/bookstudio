@@ -55,7 +55,9 @@ export function Header({
       return; // Shouldn't happen
     }
     
-    console.log(`Header - Navigate Previous - Current: ${currentDate.toISOString()}, New: ${newDate.toISOString()}`);
+    console.log(`Header - Navigate Previous - Current: ${currentDate.toISOString()}, New: ${newDate.toISOString()}, View: ${view}`);
+    // Add a timestamp to verify the callback was called with the expected date
+    console.log(`Navigation timestamp: ${Date.now()}`);
     onDateChange(newDate);
   };
 
@@ -72,7 +74,9 @@ export function Header({
       return; // Shouldn't happen
     }
     
-    console.log(`Header - Navigate Next - Current: ${currentDate.toISOString()}, New: ${newDate.toISOString()}`);
+    console.log(`Header - Navigate Next - Current: ${currentDate.toISOString()}, New: ${newDate.toISOString()}, View: ${view}`);
+    // Add a timestamp to verify the callback was called with the expected date
+    console.log(`Navigation timestamp: ${Date.now()}`);
     onDateChange(newDate);
   };
 
