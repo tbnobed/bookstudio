@@ -37,11 +37,64 @@ handle_error() {
   fi
   
   log "Deployment failed. Please fix the issues and try again."
+  log "Consider running ./cleanup.sh first to start from a clean state."
   exit 1
+}
+
+# Function to do a full reset if requested
+do_full_reset() {
+  log "Performing a complete cleanup before deployment"
+  
+  if [ -f "./cleanup.sh" ]; then
+    chmod +x ./cleanup.sh
+    ./cleanup.sh
+    log "Cleanup completed successfully"
+  else
+    log "Warning: cleanup.sh script not found. Performing basic cleanup..."
+    
+    # Basic cleanup as fallback
+    docker-compose down --remove-orphans || true
+    docker volume prune -f || true
+    docker network prune -f || true
+  fi
 }
 
 # Set up trap to catch errors
 trap 'handle_error "$BASH_COMMAND"' ERR
+
+# Parse command line parameters
+FULL_RESET=false
+SHOW_HELP=false
+
+for arg in "$@"; do
+  case $arg in
+    --reset)
+      FULL_RESET=true
+      shift
+      ;;
+    --help)
+      SHOW_HELP=true
+      shift
+      ;;
+  esac
+done
+
+# Display help if requested
+if [ "$SHOW_HELP" = true ]; then
+  echo "Usage: ./deploy.sh [OPTIONS]"
+  echo ""
+  echo "Options:"
+  echo "  --reset    Perform a complete cleanup before deployment"
+  echo "  --help     Show this help message"
+  echo ""
+  echo "Example: ./deploy.sh --reset"
+  exit 0
+fi
+
+# Perform full reset if requested
+if [ "$FULL_RESET" = true ]; then
+  do_full_reset
+fi
 
 # Check for required commands
 log "Checking prerequisites..."
@@ -52,13 +105,15 @@ check_command docker-compose
 log "Making scripts executable..."
 chmod +x docker-entrypoint.sh 2>/dev/null || true
 
-# Stop any existing containers
-log "Stopping any existing containers..."
-docker-compose down || true  # Continue even if this fails (e.g., no containers running)
-
-# Clean up any old volumes if needed
-log "Cleaning up any stale resources..."
-docker volume prune -f || true  # Continue even if this fails
+# If not doing a full reset, just stop existing containers
+if [ "$FULL_RESET" = false ]; then
+  log "Stopping any existing containers..."
+  docker-compose down || true  # Continue even if this fails (e.g., no containers running)
+  
+  # Clean up any old volumes if needed
+  log "Cleaning up any stale resources..."
+  docker volume prune -f || true  # Continue even if this fails
+fi
 
 # Build and start the containers
 log "Building and starting BookStud.io..."
@@ -86,12 +141,13 @@ log "Checking database initialization container status..."
 if ! docker ps -a | grep -q "bookstuio-db-init.*Exited (0)"; then
   log "ERROR: Database initialization container did not complete successfully"
   docker-compose logs db-init
+  log "If problems persist, try running with: ./deploy.sh --reset"
   exit 1
 fi
 
 # Wait for DB to be ready - using a more reliable approach than just sleeping
 log "Waiting for database to be ready..."
-RETRIES=10
+RETRIES=15  # Increased retries for more patience
 RETRY_COUNT=0
 
 while [ $RETRY_COUNT -lt $RETRIES ]; do
@@ -103,6 +159,7 @@ while [ $RETRY_COUNT -lt $RETRIES ]; do
   RETRY_COUNT=$((RETRY_COUNT+1))
   if [ $RETRY_COUNT -eq $RETRIES ]; then
     log "Error: Database failed to become ready after multiple attempts"
+    log "Try running with: ./deploy.sh --reset"
     docker-compose logs db
     exit 1
   fi
@@ -120,7 +177,7 @@ log "Database initialization will be performed by the db-init container..."
 
 # Verify application is responding
 log "Verifying application is responding..."
-RETRIES=5
+RETRIES=10  # Increased retries for more patience
 RETRY_COUNT=0
 
 while [ $RETRY_COUNT -lt $RETRIES ]; do
@@ -137,10 +194,11 @@ while [ $RETRY_COUNT -lt $RETRIES ]; do
     # Print recent logs to help diagnose issues
     log "Recent application logs:"
     docker-compose logs --tail=20 app
+    log "If problems persist, try running with: ./deploy.sh --reset"
   fi
   
   log "Waiting for application to respond (attempt $RETRY_COUNT/$RETRIES)..."
-  sleep 3
+  sleep 5  # Increased wait time
 done
 
 log "=============================================="
