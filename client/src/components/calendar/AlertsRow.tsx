@@ -138,9 +138,9 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
   }, 0);
   
   // Calculate dynamic height - base height plus additional space for each alert
-  const baseHeight = 42; // Minimum height for a row with no alerts
-  const heightPerAlert = 24; // Additional height per alert
-  const maxAdditionalHeight = 160; // Maximum additional height
+  const baseHeight = 60; // Minimum height for a row with no alerts
+  const heightPerAlert = 32; // Additional height per alert
+  const maxAdditionalHeight = 200; // Maximum additional height
   const additionalHeight = Math.min(maxAlertsForWeek * heightPerAlert, maxAdditionalHeight);
   const rowHeight = baseHeight + additionalHeight;
 
@@ -150,7 +150,9 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
         className="border-b bg-gray-100 flex items-center justify-center sticky left-0 top-0 z-10"
         style={{ height: `${rowHeight}px` }}
       >
-        <span className="text-xs font-bold uppercase text-gray-700">Facility Alerts</span>
+        <div className="flex flex-col items-center justify-center w-full">
+          <span className="text-lg font-bold uppercase text-gray-700 tracking-wider">Facility Alerts</span>
+        </div>
       </div>
       
       {/* New Alert Modal */}
@@ -282,7 +284,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
                       <HoverCardTrigger asChild>
                         <div 
                           className={cn(
-                            "relative group border rounded-md px-2 py-1 mb-1 overflow-visible text-xs",
+                            "relative group border rounded-md px-2 py-2 mb-4 overflow-visible text-xs",
                             colorClass,
                             "transition-all hover:shadow-md cursor-pointer"
                           )}
