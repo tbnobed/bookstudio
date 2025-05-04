@@ -1,25 +1,10 @@
 #!/bin/bash
 set -e
 
-# Wait for PostgreSQL to start
-echo "Waiting for PostgreSQL to start..."
-until PGPASSWORD=$POSTGRES_PASSWORD psql -h db -U $POSTGRES_USER -d $POSTGRES_DB -c '\q'; do
-  echo "PostgreSQL is unavailable - sleeping"
-  sleep 1
-done
+# DEPRECATED: This script is no longer used
+# Database initialization is now handled by the dedicated db-init container in docker-compose.yml
 
-echo "PostgreSQL started"
-
-# Run migrations
-echo "Running database migrations..."
-npm run db:push
-
-# Run the notification groups migration and setup
-echo "Setting up notification groups..."
-node scripts/migrate-db.js
-
-# Seed initial data if needed
-echo "Seeding initial data..."
-node scripts/init-db.js
-
-echo "Database setup complete!"
+echo "WARNING: This script is deprecated and should not be used directly."
+echo "Database initialization is now handled by the db-init container in docker-compose.yml"
+echo "Run ./deploy.sh instead to properly deploy the application"
+exit 1

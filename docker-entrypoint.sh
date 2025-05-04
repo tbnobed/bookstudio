@@ -71,51 +71,9 @@ fi
 # Continue with application setup
 echo "Database connection confirmed. Starting application setup..."
 
-# Run database setup if INITIALIZE_DB is set (or if this is a development environment)
-if [ "${INITIALIZE_DB:-true}" = "true" ] || [ "${NODE_ENV:-development}" = "development" ]; then
-  # Prepare the scripts directory
-  echo "Preparing ES module compatibility for database initialization..."
-  # Create db-es.js specifically for ES module scripts
-  cat > scripts/db-es.js << 'EOL'
-#!/usr/bin/env node
-// This file is a specialized version for use with ES modules in scripts
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import * as schema from '../shared/schema.js';
-
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
-
-// PostgreSQL connection for initialization scripts
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
-EOL
-  chmod +x scripts/db-es.js
-
-  # Update the initialization scripts to import from db-es.js if needed
-  sed -i 's|import { db } from "./db.js";|// Dynamically select the appropriate database connection module\n// for compatibility in both Docker and development environments\nlet dbModule;\ntry {\n  dbModule = await import("./db-es.js");\n} catch (error) {\n  // Fallback to standard db.js if db-es.js is not available\n  dbModule = await import("./db.js");\n}\n\nconst { db } = dbModule;|g' scripts/migrate-db.js scripts/init-db.js
-
-  # Run initialization script to create tables
-  echo "Initializing database schema and tables..."
-  npm run db:push || handle_error "Database schema creation" $?
-  
-  # Run migration for notification groups
-  echo "Setting up notification groups..."
-  chmod +x scripts/migrate-db.js
-  node --experimental-specifier-resolution=node scripts/migrate-db.js || handle_error "Notification group migration" $?
-  
-  # Seed initial data
-  echo "Seeding initial data..."
-  chmod +x scripts/init-db.js
-  node --experimental-specifier-resolution=node scripts/init-db.js || handle_error "Data seeding" $?
-  
-  echo "Database initialization complete!"
-else
-  echo "Skipping database initialization (INITIALIZE_DB is not set to 'true')"
-fi
+# Database initialization is now handled by the dedicated db-init container
+echo "Database initialization is performed by the db-init container"
+echo "Skipping database setup steps in the app container"
 
 # Check SendGrid configuration
 if [ -n "$SENDGRID_API_KEY" ]; then
