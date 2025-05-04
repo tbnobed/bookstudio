@@ -12,9 +12,8 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Compile TypeScript files for database initialization and migration
-RUN npx tsc scripts/init-db.ts --outDir scripts/ --esModuleInterop true --module CommonJS
-RUN npx tsc scripts/migrate-db.ts --outDir scripts/ --esModuleInterop true --module CommonJS
+# Skip TypeScript compilation - we'll use the JavaScript files directly
+# The JS files are already created and work properly
 
 # Expose the port
 EXPOSE 3000
