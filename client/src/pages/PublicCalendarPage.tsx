@@ -185,14 +185,11 @@ function PublicCalendarPage() {
   return (
     <div className="flex h-screen flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b bg-background px-4 py-2 shadow-sm sm:px-6">
-        <div className="flex items-center justify-between">
+      <header className="sticky top-0 z-30 border-b bg-[#003366] px-4 py-3 shadow-sm sm:px-6">
+        <div className="flex items-center justify-center">
           <div className="flex items-center">
-            <div className="flex items-center">
-              <Calendar className="h-6 w-6 mr-2" />
-              <span className="font-bold text-xl">BookStud.io</span>
-            </div>
-            <h1 className="ml-2 text-2xl font-bold">Public Calendar</h1>
+            <Calendar className="h-5 w-5 mr-2 text-white" />
+            <span className="font-bold text-xl text-white">BookStud.io Public Calendar</span>
           </div>
         </div>
       </header>
