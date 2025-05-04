@@ -79,8 +79,25 @@ function PublicCalendarPage() {
     queryKey: ['/api/studios'],
     staleTime: 5 * 60 * 1000,
   });
+  
+  // Fetch ALL bookings for status calculation (no date filter)
+  const { data: allBookings = [] } = useQuery<ApiBooking[]>({
+    queryKey: ['/api/public/bookings', 'all'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', `/api/public/bookings`);
+      const data = await res.json();
+      
+      // Convert string dates to Date objects
+      return data.map((booking: any) => ({
+        ...booking,
+        start: new Date(booking.start),
+        end: new Date(booking.end)
+      }));
+    },
+    staleTime: 60 * 1000, // 1 minute
+  });
 
-  // Fetch bookings from the public endpoint
+  // Fetch bookings from the public endpoint for the current view
   const { data: bookings = [], isLoading: isLoadingBookings } = useQuery<ApiBooking[]>({
     queryKey: ['/api/public/bookings', dateRange],
     queryFn: async () => {
@@ -279,8 +296,8 @@ function PublicCalendarPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               {studios.map((studio) => {
-                // Calculate real-time status for each studio
-                const studioStatus = calculateStudioStatus(studio, bookings as Booking[], currentDate);
+                // Calculate real-time status using ALL bookings instead of just current view
+                const studioStatus = calculateStudioStatus(studio, allBookings as Booking[], new Date());
                 const statusColor = getStudioStatusColor(studioStatus);
                 
                 return (
