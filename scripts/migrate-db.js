@@ -1,5 +1,15 @@
 #!/usr/bin/env node
-import { db } from './db.js';
+// Dynamically select the appropriate database connection module
+// for compatibility in both Docker and development environments
+let dbModule;
+try {
+  dbModule = await import('./db-es.js');
+} catch (error) {
+  // Fallback to standard db.js if db-es.js is not available
+  dbModule = await import('./db.js');
+}
+
+const { db } = dbModule;
 import { sql } from 'drizzle-orm';
 
 async function migrateDb() {

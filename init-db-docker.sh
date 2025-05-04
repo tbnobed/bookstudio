@@ -124,12 +124,35 @@ run_in_app_container "npm run db:push" "Creating database schema"
 
 # Step 4: Prepare ES module compatibility for database initialization
 log "Preparing ES module compatibility for database initialization..."
-run_in_app_container "mkdir -p /app/scripts/db-es && cp -f /app/scripts/db.js /app/scripts/db-es/" "Setting up ES module compatibility"
+run_in_app_container "mkdir -p /app/scripts/db-es && chmod +x /app/scripts/db.js /app/scripts/migrate-db.js /app/scripts/init-db.js" "Setting up ES module compatibility"
 
-# Step 5: Run migrations for notification groups with ES module compatibility
+# Step 5: Create a specialized ES-compatible database connection file
+run_in_app_container "cat > /app/scripts/db-es.js << 'EOL'
+#!/usr/bin/env node
+// This file is a specialized version for use with ES modules in scripts
+import { Pool } from \"pg\";
+import { drizzle } from \"drizzle-orm/node-postgres\";
+import * as schema from \"../shared/schema.js\";
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    \"DATABASE_URL must be set. Did you forget to provision a database?\",
+  );
+}
+
+// PostgreSQL connection for initialization scripts
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle(pool, { schema });
+EOL
+chmod +x /app/scripts/db-es.js" "Creating ES module database connection file"
+
+# Step 6: Update initialization scripts to use the new database connection
+run_in_app_container "sed -i 's|import { db } from \"./db.js\";|import { db } from \"./db-es.js\";|g' /app/scripts/migrate-db.js /app/scripts/init-db.js" "Updating database imports in scripts"
+
+# Step 7: Run migrations for notification groups with ES module compatibility
 run_in_app_container "node --experimental-specifier-resolution=node scripts/migrate-db.js" "Running notification group migrations"
 
-# Step 6: Seed initial data with ES module compatibility
+# Step 8: Seed initial data with ES module compatibility
 run_in_app_container "node --experimental-specifier-resolution=node scripts/init-db.js" "Seeding initial data"
 
 log "========================================"

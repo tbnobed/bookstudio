@@ -106,14 +106,31 @@ while [ $RETRY_COUNT -lt $RETRIES ]; do
   sleep 3
 done
 
-# Create an alias to node that runs with ES module compatibility
+# Prepare ES module compatibility for database initialization
 log "Preparing ES module compatibility for database initialization..."
-docker exec bookstuio-app /bin/sh -c "echo '#!/bin/sh' > /tmp/node_esm_alias.sh"
-docker exec bookstuio-app /bin/sh -c "echo 'node --experimental-specifier-resolution=node \"\$@\"' >> /tmp/node_esm_alias.sh"
-docker exec bookstuio-app /bin/sh -c "chmod +x /tmp/node_esm_alias.sh"
+docker exec bookstuio-app /bin/sh -c "mkdir -p /app/scripts"
+docker exec bookstuio-app /bin/sh -c "cat > /app/scripts/db.js << 'EOL'
+// This file is a specialized version for use with ES modules in scripts
+import { Pool } from \"pg\";
+import { drizzle } from \"drizzle-orm/node-postgres\";
+import * as schema from \"../shared/schema.js\";
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    \"DATABASE_URL must be set. Did you forget to provision a database?\",
+  );
+}
+
+// PostgreSQL connection for initialization scripts
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle(pool, { schema });
+EOL"
+docker exec bookstuio-app /bin/sh -c "chmod +x /app/scripts/db.js"
+docker exec bookstuio-app /bin/sh -c "chmod +x /app/scripts/migrate-db.js"
+docker exec bookstuio-app /bin/sh -c "chmod +x /app/scripts/init-db.js"
 
 # Run database initialization
-log "Running database initialization..."
+log "Running database initialization with enhanced compatibility..."
 ./init-db-docker.sh
 
 # Verify application is responding
