@@ -48,11 +48,8 @@ log "Checking prerequisites..."
 check_command docker
 check_command docker-compose
 
-# Ensure scripts are executable
+# Ensure simple entrypoint script is executable
 log "Making scripts executable..."
-chmod +x wait-for-postgres.sh
-chmod +x init-db-docker.sh
-chmod +x docker-entrypoint.sh 2>/dev/null || true
 chmod +x simple-entrypoint.sh 2>/dev/null || true
 
 # Stop any existing containers
@@ -84,6 +81,14 @@ if ! docker ps | grep -q bookstuio-db; then
   exit 1
 fi
 
+# Check if db-init container completed successfully
+log "Checking database initialization container status..."
+if ! docker ps -a | grep -q "bookstuio-db-init.*Exited (0)"; then
+  log "ERROR: Database initialization container did not complete successfully"
+  docker-compose logs db-init
+  exit 1
+fi
+
 # Wait for DB to be ready - using a more reliable approach than just sleeping
 log "Waiting for database to be ready..."
 RETRIES=10
@@ -106,17 +111,12 @@ while [ $RETRY_COUNT -lt $RETRIES ]; do
   sleep 3
 done
 
-# Prepare CommonJS files for more reliable database initialization
-log "Preparing CommonJS files for database initialization..."
-docker exec bookstuio-app /bin/sh -c "mkdir -p /app/scripts /app/shared"
+# No need to prepare CommonJS files anymore, volumes will mount directly
+log "Using Docker volumes for direct script access, no file manipulation needed..."
 
-# Use find to locate and set permissions on CommonJS files
-docker exec bookstuio-app /bin/sh -c "find /app/scripts -name '*.cjs' -type f -exec chmod +x {} \; 2>/dev/null || echo 'No CommonJS files found'"
-docker exec bookstuio-app /bin/sh -c "if [ -f /app/scripts/schema.cjs ]; then cp /app/scripts/schema.cjs /app/shared/ 2>/dev/null || echo 'Schema file already exists'; else echo 'Schema file not found'; fi"
-
-# Run database initialization
-log "Running database initialization with enhanced compatibility..."
-./init-db-docker.sh
+# Database initialization is now handled by the db-init container
+log "Database initialization will be performed by the db-init container..."
+# No need to manually run initialization scripts anymore
 
 # Verify application is responding
 log "Verifying application is responding..."
