@@ -1126,39 +1126,88 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Notification Group methods - in-memory implementation until db table is created
+  // Notification Group methods - database implementation
   async getNotificationGroup(id: number): Promise<NotificationGroup | undefined> {
-    return this.notificationGroups.get(id);
+    try {
+      const [group] = await db
+        .select()
+        .from(notificationGroups)
+        .where(eq(notificationGroups.id, id));
+      
+      return group;
+    } catch (error) {
+      console.error(`Error getting notification group with ID ${id}:`, error);
+      return undefined;
+    }
   }
 
   async getNotificationGroupByType(groupType: string): Promise<NotificationGroup | undefined> {
-    return Array.from(this.notificationGroups.values()).find(
-      group => group.groupType === groupType
-    );
+    try {
+      const [group] = await db
+        .select()
+        .from(notificationGroups)
+        .where(eq(notificationGroups.groupType, groupType));
+      
+      return group;
+    } catch (error) {
+      console.error(`Error getting notification group by type ${groupType}:`, error);
+      return undefined;
+    }
   }
 
   async getAllNotificationGroups(): Promise<NotificationGroup[]> {
-    return Array.from(this.notificationGroups.values());
+    try {
+      const groups = await db
+        .select()
+        .from(notificationGroups);
+      
+      return groups;
+    } catch (error) {
+      console.error("Error getting all notification groups:", error);
+      return [];
+    }
   }
 
   async createNotificationGroup(group: InsertNotificationGroup): Promise<NotificationGroup> {
-    const id = this.notificationGroupIdCounter++;
-    const newGroup: NotificationGroup = { ...group, id };
-    this.notificationGroups.set(id, newGroup);
-    return newGroup;
+    try {
+      const [newGroup] = await db
+        .insert(notificationGroups)
+        .values(group)
+        .returning();
+      
+      return newGroup;
+    } catch (error) {
+      console.error("Error creating notification group:", error);
+      throw error;
+    }
   }
 
   async updateNotificationGroup(id: number, data: Partial<InsertNotificationGroup>): Promise<NotificationGroup | undefined> {
-    const group = this.notificationGroups.get(id);
-    if (!group) return undefined;
-    
-    const updatedGroup: NotificationGroup = { ...group, ...data };
-    this.notificationGroups.set(id, updatedGroup);
-    return updatedGroup;
+    try {
+      const [updatedGroup] = await db
+        .update(notificationGroups)
+        .set(data)
+        .where(eq(notificationGroups.id, id))
+        .returning();
+      
+      return updatedGroup;
+    } catch (error) {
+      console.error(`Error updating notification group with ID ${id}:`, error);
+      return undefined;
+    }
   }
   
   async deleteNotificationGroup(id: number): Promise<boolean> {
-    return this.notificationGroups.delete(id);
+    try {
+      const result = await db
+        .delete(notificationGroups)
+        .where(eq(notificationGroups.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error(`Error deleting notification group with ID ${id}:`, error);
+      return false;
+    }
   }
 }
 
