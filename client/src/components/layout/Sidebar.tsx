@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../../assets/logo.png";
 
 type SidebarProps = {
@@ -118,11 +118,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div 
             className={cn(
               "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
-              location === "/user-management" 
+              location === "/users" 
                 ? "text-white bg-primary" 
                 : "text-gray-700 hover:bg-gray-100"
             )}
-            onClick={() => handleNavigate("/user-management")}
+            onClick={() => handleNavigate("/users")}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
