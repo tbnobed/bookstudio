@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // CommonJS version of the initialization script specifically for Docker environment
 const { Pool } = require('pg');
-const { drizzle } = require('drizzle-orm/node-postgres');
 const crypto = require('crypto');
 const util = require('util');
 
@@ -14,8 +13,8 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
+// Create a PostgreSQL connection pool
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle(pool);
 
 // Hash password function
 async function hashPassword(password) {
@@ -30,7 +29,7 @@ async function initDb() {
   
   try {
     // Check if admin already exists
-    const existingAdmin = await db.execute(
+    const existingAdmin = await pool.query(
       `SELECT * FROM users WHERE username = 'admin' LIMIT 1`
     );
 
@@ -42,7 +41,8 @@ async function initDb() {
       // Create admin user
       const hashedPassword = await hashPassword('admin123');
       
-      await db.execute(
+      // Use the raw pool.query instead of drizzle's execute
+      await pool.query(
         `INSERT INTO users (username, password, email, name, role) VALUES ($1, $2, $3, $4, $5)`,
         ['admin', hashedPassword, 'admin@example.com', 'Admin User', 'admin']
       );
@@ -52,7 +52,7 @@ async function initDb() {
       // Add an engineer user as well
       const engineerPassword = await hashPassword('engineer123');
       
-      await db.execute(
+      await pool.query(
         `INSERT INTO users (username, password, email, name, role) VALUES ($1, $2, $3, $4, $5)`,
         ['engineer', engineerPassword, 'engineer@example.com', 'Engineer User', 'engineer']
       );
@@ -62,7 +62,7 @@ async function initDb() {
       // Add some initial studios
       console.log('Creating initial studios...');
       for (let i = 1; i <= 20; i++) {
-        await db.execute(
+        await pool.query(
           `INSERT INTO studios (name, status, description) VALUES ($1, $2, $3)`,
           [`Studio ${i}`, 'active', `Television studio ${i} with standard equipment`]
         );
