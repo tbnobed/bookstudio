@@ -10,10 +10,11 @@ handle_error() {
   
   if [ -n "$DATABASE_URL" ]; then
     echo "Testing database connection..."
-    if pg_isready -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-bookstuio}" -h "${PGHOST:-db}"; then
+    if PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h ${PGHOST:-db} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c '\q' 2>/dev/null; then
       echo "Database connection is working."
     else
-      echo "Database connection failed. Check database configuration."
+      echo "FAILED: Could not connect to database."
+      echo "Check database configuration and ensure database container is running."
     fi
   else
     echo "DATABASE_URL is not set. Make sure environment variables are properly configured."
@@ -27,8 +28,16 @@ handle_error() {
 trap 'handle_error "$BASH_COMMAND" "$?"' ERR
 
 echo "========================================================="
-echo "BookStud.io Container Startup"
+echo "BookStud.io Application Startup"
 echo "========================================================="
+
+# Check if we're in the correct directory with the correct built files
+if [ ! -f "dist/index.js" ]; then
+  echo "ERROR: Cannot find dist/index.js. Are we in the correct directory?"
+  echo "Current directory: $(pwd)"
+  echo "Directory contents of dist/: $(ls -la dist/ 2>/dev/null || echo 'dist/ directory not found')"
+  exit 1
+fi
 
 echo "Environment: ${NODE_ENV:-development}"
 echo "Application port: ${PORT:-3000}"
@@ -38,35 +47,27 @@ if [ -z "$DATABASE_URL" ]; then
   echo "WARNING: DATABASE_URL is not set. Using default connection parameters."
 fi
 
-# Wait for PostgreSQL to start with a timeout
-echo "Waiting for PostgreSQL to start..."
-timeout_seconds=30
-start_time=$(date +%s)
+# Verify database connection
+echo "Verifying database connection..."
+MAX_RETRIES=10
+RETRY_COUNT=0
 
-while true; do
-  if ./wait-for-postgres.sh db 5432 -t 1 > /dev/null 2>&1; then
-    echo "PostgreSQL is up and running at db:5432"
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+  if PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h ${PGHOST:-db} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c '\q' 2>/dev/null; then
+    echo "Database connection verified."
     break
   fi
   
-  current_time=$(date +%s)
-  elapsed_time=$((current_time - start_time))
-  
-  if [ $elapsed_time -gt $timeout_seconds ]; then
-    echo "ERROR: Timed out waiting for PostgreSQL after ${timeout_seconds} seconds"
+  RETRY_COUNT=$((RETRY_COUNT+1))
+  if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+    echo "ERROR: Failed to connect to database after $MAX_RETRIES attempts."
+    echo "Please check that the database container is running and accessible."
     exit 1
   fi
   
-  echo "Still waiting for PostgreSQL... (${elapsed_time}s elapsed)"
+  echo "Waiting for database connection (attempt $RETRY_COUNT/$MAX_RETRIES)..."
   sleep 2
 done
-
-# Verify database is accessible with a real query
-echo "Verifying database access..."
-if ! psql -h db -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-bookstuio}" -c "SELECT 1" > /dev/null 2>&1; then
-  echo "ERROR: Unable to execute query on database. Check credentials and configuration."
-  exit 1
-fi
 
 # Continue with application setup
 echo "Database connection confirmed. Starting application setup..."

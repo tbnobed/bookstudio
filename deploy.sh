@@ -48,9 +48,9 @@ log "Checking prerequisites..."
 check_command docker
 check_command docker-compose
 
-# Ensure simple entrypoint script is executable
+# Ensure docker entrypoint script is executable
 log "Making scripts executable..."
-chmod +x simple-entrypoint.sh 2>/dev/null || true
+chmod +x docker-entrypoint.sh 2>/dev/null || true
 
 # Stop any existing containers
 log "Stopping any existing containers..."
