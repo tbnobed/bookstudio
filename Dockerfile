@@ -28,9 +28,17 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy the entrypoint script
-COPY docker-entrypoint.sh /app/
-RUN chmod +x /app/docker-entrypoint.sh
-
-# Start with the entrypoint script
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+# Use CMD instead of ENTRYPOINT for more robustness
+CMD ["sh", "-c", "\
+    echo 'Waiting for PostgreSQL to start...' && \
+    ./wait-for-postgres.sh db 5432 && \
+    echo 'PostgreSQL is up and running at db:5432 - executing command' && \
+    echo 'Initializing database schema and tables...' && \
+    npm run db:push && \
+    echo 'Setting up notification groups...' && \
+    node scripts/migrate-db.js && \
+    echo 'Seeding initial data...' && \
+    node scripts/init-db.js && \
+    echo 'Database initialization complete!' && \
+    echo 'Starting the application...' && \
+    node dist/index.js"]

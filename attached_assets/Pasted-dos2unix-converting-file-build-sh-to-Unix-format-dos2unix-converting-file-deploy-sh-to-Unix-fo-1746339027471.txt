@@ -1,0 +1,58 @@
+dos2unix: converting file build.sh to Unix format...
+dos2unix: converting file deploy.sh to Unix format...
+dos2unix: converting file docker-entrypoint.sh to Unix format...
+dos2unix: converting file init-db.sh to Unix format...
+dos2unix: converting file wait-for-postgres.sh to Unix format...
+obtv-admin@dev-bookstudio:~/bookstudio$ docker-compose up -ddocker-compose down
+docker-compose build --no-cache
+docker-compose up -d^C
+obtv-admin@dev-bookstudio:~/bookstudio$ docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+[+] Running 3/3
+ ✔ Container bookstuio-app               Removed                                                                                                                                                                                      0.0s
+ ✔ Container bookstuio-db                Removed                                                                                                                                                                                      0.5s
+ ✔ Network bookstudio_bookstuio-network  Removed                                                                                                                                                                                      0.4s
+[+] Building 67.8s (15/15) FINISHED                                                                                                                                                                                         docker:default
+ => [app internal] load build definition from Dockerfile                                                                                                                                                                              0.0s
+ => => transferring dockerfile: 811B                                                                                                                                                                                                  0.0s
+ => [app internal] load metadata for docker.io/library/node:20-alpine                                                                                                                                                                 0.3s
+ => [app internal] load .dockerignore                                                                                                                                                                                                 0.0s
+ => => transferring context: 2B                                                                                                                                                                                                       0.0s
+ => [app internal] load build context                                                                                                                                                                                                 0.1s
+ => => transferring context: 21.67kB                                                                                                                                                                                                  0.1s
+ => [app  1/10] FROM docker.io/library/node:20-alpine@sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f                                                                                                         0.0s
+ => CACHED [app  2/10] WORKDIR /app                                                                                                                                                                                                   0.0s
+ => [app  3/10] RUN apk add --no-cache netcat-openbsd                                                                                                                                                                                 1.9s
+ => [app  4/10] COPY package.json package-lock.json ./                                                                                                                                                                                0.0s
+ => [app  5/10] RUN npm ci                                                                                                                                                                                                           22.7s
+ => [app  6/10] COPY . .                                                                                                                                                                                                              0.3s
+ => [app  7/10] RUN chmod +x wait-for-postgres.sh                                                                                                                                                                                     0.4s
+ => [app  8/10] RUN npm run build                                                                                                                                                                                                    22.1s
+ => [app  9/10] COPY docker-entrypoint.sh /app/                                                                                                                                                                                       0.0s
+ => [app 10/10] RUN chmod +x /app/docker-entrypoint.sh                                                                                                                                                                                0.4s
+ => [app] exporting to image                                                                                                                                                                                                         19.4s
+ => => exporting layers                                                                                                                                                                                                              19.3s
+ => => writing image sha256:3a5b8805a8cdb406b463e8335bb41704cbcc9b8d9d88cccbb8f2e33fcfdee6f6                                                                                                                                          0.0s
+ => => naming to docker.io/library/bookstudio-app                                                                                                                                                                                     0.0s
+[+] Building 0.0s (0/0)                                                                                                                                                                                                     docker:default
+[+] Running 3/3
+ ✔ Network bookstudio_bookstuio-network  Created                                                                                                                                                                                      0.1s
+ ✔ Container bookstuio-db                Healthy                                                                                                                                                                                      0.1s
+ ✔ Container bookstuio-app               Started                                                                                                                                                                                      0.0s
+obtv-admin@dev-bookstudio:~/bookstudio$ docker-compose logs -f
+bookstuio-db  |
+bookstuio-db  | PostgreSQL Database directory appears to contain a database; Skipping initialization
+bookstuio-db  |
+bookstuio-db  | 2025-05-04 06:10:06.143 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-db  | 2025-05-04 06:10:06.144 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+bookstuio-db  | 2025-05-04 06:10:06.144 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+bookstuio-db  | 2025-05-04 06:10:06.149 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db  | 2025-05-04 06:10:06.159 UTC [29] LOG:  database system was shut down at 2025-05-04 06:08:56 UTC
+bookstuio-db  | 2025-05-04 06:10:06.173 UTC [1] LOG:  database system is ready to accept connections
+bookstuio-app  | exec /app/docker-entrypoint.sh: no such file or directory
+bookstuio-app  | exec /app/docker-entrypoint.sh: no such file or directory
+bookstuio-app  | exec /app/docker-entrypoint.sh: no such file or directory
+bookstuio-app  | exec /app/docker-entrypoint.sh: no such file or directory
+bookstuio-app  | exec /app/docker-entrypoint.sh: no such file or directory
+bookstuio-app  | exec /app/docker-entrypoint.sh: no such file or directory
