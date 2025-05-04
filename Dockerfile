@@ -5,6 +5,8 @@ FROM app-base AS app-builder
 COPY package*.json ./
 RUN npm ci
 COPY . .
+# Make sure the docker-entrypoint.sh file has executable permissions
+RUN chmod +x docker-entrypoint.sh
 # First make sure the client/dist directory exists
 RUN mkdir -p client/dist
 # Now run the build

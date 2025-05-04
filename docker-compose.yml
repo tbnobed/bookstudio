@@ -1,4 +1,4 @@
-version: '3.8'
+# Using docker compose format
 
 services:
   app:
