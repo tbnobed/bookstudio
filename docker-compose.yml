@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-5000}:5000"
+    depends_on:
+      - postgres
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://${POSTGRES_USER:-bookstudio}:${POSTGRES_PASSWORD:-bookstudiopass}@postgres:5432/${POSTGRES_DB:-bookstudio}
+      - SESSION_SECRET=${SESSION_SECRET:-bookstudio_secret_change_me_in_production}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-}
+    restart: unless-stopped
+    networks:
+      - bookstudio-network
+    
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bookstudiopass}
+      - POSTGRES_USER=${POSTGRES_USER:-bookstudio}
+      - POSTGRES_DB=${POSTGRES_DB:-bookstudio}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - bookstudio-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bookstudio}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  bookstudio-network:
+    driver: bridge
