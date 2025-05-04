@@ -293,7 +293,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
                           className={cn(
                             "relative group border rounded-md px-2 py-2 mb-4 overflow-visible text-xs",
                             colorClass,
-                            "transition-all hover:shadow-md cursor-pointer"
+                            "transition-all hover:shadow-md",
+                            readOnly ? "cursor-default" : "cursor-pointer"
                           )}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -378,7 +379,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
                 })}
                 
                 {/* Even when there are alerts, still show the + Add button */}
-                {canCreateAlerts && (
+                {canCreateAlerts && !readOnly && (
                   <div 
                     className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer mt-1.5 text-center bg-blue-50 hover:bg-blue-100 py-0.5 px-1 rounded border border-blue-200 shadow-sm flex items-center justify-center gap-1 transition-all hover:shadow"
                     onClick={(e) => {
@@ -396,7 +397,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
                 <span className="text-xs text-gray-400 mb-1">No alerts</span>
-                {canCreateAlerts && (
+                {canCreateAlerts && !readOnly && (
                   <div 
                     className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer text-center bg-blue-50 hover:bg-blue-100 py-0.5 px-2 rounded border border-blue-200 shadow-sm flex items-center justify-center gap-1 transition-all hover:shadow"
                     onClick={(e) => {
