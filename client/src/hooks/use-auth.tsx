@@ -7,6 +7,7 @@ import {
 import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 type AuthContextType = {
   user: SelectUser | null;
@@ -22,6 +23,8 @@ type LoginData = Pick<InsertUser, "username" | "password">;
 export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const [_, navigate] = useLocation();
+  
   const {
     data: user,
     error,
@@ -56,11 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (data) => {
       // Extract user from response - API returns { user: {...} }
       const user = data.user || data;
-      queryClient.setQueryData(["/api/auth/user"], { user });
+      queryClient.setQueryData(["/api/auth/user"], user);
       toast({
         title: "Login successful",
         description: `Welcome back, ${user.name || user.username}!`,
       });
+      // Auto-navigate to home page after successful login
+      navigate("/");
     },
     onError: (error: Error) => {
       toast({
@@ -82,6 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Registration successful",
         description: `Welcome, ${user.username}!`,
       });
+      // Auto-navigate to home page after successful registration
+      navigate("/");
     },
     onError: (error: Error) => {
       toast({
@@ -102,6 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Logged out",
         description: "You have been successfully logged out",
       });
+      // Auto-navigate to auth page after successful logout
+      navigate("/auth");
     },
     onError: (error: Error) => {
       toast({
