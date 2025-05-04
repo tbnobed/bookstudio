@@ -556,133 +556,88 @@ export class DatabaseStorage implements IStorage {
         this.notificationIdCounter = Math.max(this.notificationIdCounter, notification.id + 1);
       });
       
-      // Check for existing notification groups in the database
-      try {
-        // Initialize notification group memory cache
-        this.notificationGroups = new Map();
-        this.notificationGroupIdCounter = 1;
-        
-        // Check if notification groups table exists and has data
-        const existingGroups = await db.select().from(notificationGroups);
-        
-        if (existingGroups && existingGroups.length > 0) {
-          // Load existing notification groups into memory cache
-          existingGroups.forEach(group => {
-            this.notificationGroups.set(group.id, group);
-            this.notificationGroupIdCounter = Math.max(this.notificationGroupIdCounter, group.id + 1);
-          });
-          console.log(`Loaded ${existingGroups.length} notification groups from database.`);
-        } else {
-          // No notification groups found, create default ones in the database
-          const defaultGroups = [
-            {
-              name: "Camera Operators",
-              email: "camera-team@studios.com",
-              groupType: "department",
-              description: "All camera operators and video technicians",
-              enabled: true
-            },
-            {
-              name: "Lighting Technicians",
-              email: "lighting@studios.com",
-              groupType: "department",
-              description: "Lighting setup and operation staff",
-              enabled: true
-            },
-            {
-              name: "Directors",
-              email: "directors@studios.com",
-              groupType: "department",
-              description: "Program directors and assistant directors",
-              enabled: true
-            },
-            {
-              name: "Sound Engineers",
-              email: "sound@studios.com",
-              groupType: "department",
-              description: "Audio and sound personnel",
-              enabled: true
-            },
-            {
-              name: "Production Assistants",
-              email: "pa@studios.com",
-              groupType: "department",
-              description: "PAs and floor managers",
-              enabled: true
-            },
-            {
-              name: "Engineering",
-              email: "engineering@studios.com",
-              groupType: "department",
-              description: "Engineering and maintenance team",
-              enabled: true
-            },
-            {
-              name: "IT Support",
-              email: "it@studios.com",
-              groupType: "department",
-              description: "IT support and network team",
-              enabled: true
-            },
-            {
-              name: "All Staff",
-              email: "all-staff@studios.com",
-              groupType: "facility",
-              description: "All facility personnel",
-              enabled: true
-            }
-          ];
-          
-          // Insert default groups into the database
-          for (const group of defaultGroups) {
-            const [newGroup] = await db.insert(notificationGroups).values(group).returning();
-            this.notificationGroups.set(newGroup.id, newGroup);
-            this.notificationGroupIdCounter = Math.max(this.notificationGroupIdCounter, newGroup.id + 1);
-          }
-          
-          console.log(`Created ${defaultGroups.length} default notification groups in database.`);
+      // We'll handle notification groups with in-memory implementation for now
+      // since the table might not exist yet
+      this.notificationGroups = new Map();
+      this.notificationGroupIdCounter = 1;
+      
+      // Set up default notification groups in memory
+      const defaultGroups = [
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Camera Operators",
+          email: "camera-team@studios.com",
+          groupType: "department",
+          description: "All camera operators and video technicians",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Lighting Technicians",
+          email: "lighting@studios.com",
+          groupType: "department",
+          description: "Lighting setup and operation staff",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Directors",
+          email: "directors@studios.com",
+          groupType: "department",
+          description: "Program directors and assistant directors",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Sound Engineers",
+          email: "sound@studios.com",
+          groupType: "department",
+          description: "Audio and sound personnel",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Production Assistants",
+          email: "pa@studios.com",
+          groupType: "department",
+          description: "PAs and floor managers",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Engineering",
+          email: "engineering@studios.com",
+          groupType: "department",
+          description: "Engineering and maintenance team",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "IT Support",
+          email: "it@studios.com",
+          groupType: "department",
+          description: "IT support and network team",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "All Staff",
+          email: "all-staff@studios.com",
+          groupType: "facility",
+          description: "All facility personnel",
+          enabled: true
         }
-      } catch (error) {
-        console.error("Error initializing notification groups:", error);
-        console.log("Falling back to in-memory notification groups.");
-        
-        // Fallback to in-memory implementation if database operations fail
-        this.notificationGroups = new Map();
-        this.notificationGroupIdCounter = 1;
-        
-        const fallbackGroups = [
-          {
-            id: this.notificationGroupIdCounter++,
-            name: "Camera Operators",
-            email: "camera-team@studios.com",
-            groupType: "department",
-            description: "All camera operators and video technicians",
-            enabled: true
-          },
-          {
-            id: this.notificationGroupIdCounter++,
-            name: "Lighting Technicians",
-            email: "lighting@studios.com",
-            groupType: "department",
-            description: "Lighting setup and operation staff",
-            enabled: true
-          },
-          {
-            id: this.notificationGroupIdCounter++,
-            name: "All Staff",
-            email: "all-staff@studios.com",
-            groupType: "facility",
-            description: "All facility personnel",
-            enabled: true
-          }
-        ];
-        
-        for (const group of fallbackGroups) {
-          this.notificationGroups.set(group.id, group);
-        }
-        
-        console.log("Default notification groups created in memory as fallback.");
+      ];
+      
+      // Add default groups to our in-memory store
+      for (const group of defaultGroups) {
+        this.notificationGroups.set(group.id, group);
       }
+      
+      console.log("Default notification groups created in memory.");
+      
+      // Note: We'll need to run the db migration to create the notification_groups table
+      // before we can use the database for notification groups
       
     } catch (error) {
       console.error("Error initializing database:", error);
@@ -1171,88 +1126,39 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Notification Group methods - database implementation
+  // Notification Group methods - in-memory implementation until db table is created
   async getNotificationGroup(id: number): Promise<NotificationGroup | undefined> {
-    try {
-      const [group] = await db
-        .select()
-        .from(notificationGroups)
-        .where(eq(notificationGroups.id, id));
-      
-      return group;
-    } catch (error) {
-      console.error(`Error getting notification group with ID ${id}:`, error);
-      return undefined;
-    }
+    return this.notificationGroups.get(id);
   }
 
   async getNotificationGroupByType(groupType: string): Promise<NotificationGroup | undefined> {
-    try {
-      const [group] = await db
-        .select()
-        .from(notificationGroups)
-        .where(eq(notificationGroups.groupType, groupType));
-      
-      return group;
-    } catch (error) {
-      console.error(`Error getting notification group by type ${groupType}:`, error);
-      return undefined;
-    }
+    return Array.from(this.notificationGroups.values()).find(
+      group => group.groupType === groupType
+    );
   }
 
   async getAllNotificationGroups(): Promise<NotificationGroup[]> {
-    try {
-      const groups = await db
-        .select()
-        .from(notificationGroups);
-      
-      return groups;
-    } catch (error) {
-      console.error("Error getting all notification groups:", error);
-      return [];
-    }
+    return Array.from(this.notificationGroups.values());
   }
 
   async createNotificationGroup(group: InsertNotificationGroup): Promise<NotificationGroup> {
-    try {
-      const [newGroup] = await db
-        .insert(notificationGroups)
-        .values(group)
-        .returning();
-      
-      return newGroup;
-    } catch (error) {
-      console.error("Error creating notification group:", error);
-      throw error;
-    }
+    const id = this.notificationGroupIdCounter++;
+    const newGroup: NotificationGroup = { ...group, id };
+    this.notificationGroups.set(id, newGroup);
+    return newGroup;
   }
 
   async updateNotificationGroup(id: number, data: Partial<InsertNotificationGroup>): Promise<NotificationGroup | undefined> {
-    try {
-      const [updatedGroup] = await db
-        .update(notificationGroups)
-        .set(data)
-        .where(eq(notificationGroups.id, id))
-        .returning();
-      
-      return updatedGroup;
-    } catch (error) {
-      console.error(`Error updating notification group with ID ${id}:`, error);
-      return undefined;
-    }
+    const group = this.notificationGroups.get(id);
+    if (!group) return undefined;
+    
+    const updatedGroup: NotificationGroup = { ...group, ...data };
+    this.notificationGroups.set(id, updatedGroup);
+    return updatedGroup;
   }
   
   async deleteNotificationGroup(id: number): Promise<boolean> {
-    try {
-      const result = await db
-        .delete(notificationGroups)
-        .where(eq(notificationGroups.id, id));
-      
-      return true;
-    } catch (error) {
-      console.error(`Error deleting notification group with ID ${id}:`, error);
-      return false;
-    }
+    return this.notificationGroups.delete(id);
   }
 }
 
