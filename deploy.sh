@@ -6,32 +6,37 @@ echo "=============================================="
 echo "BookStud.io Deployment Script"
 echo "=============================================="
 
+# Function to log messages with timestamp
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
 # Function to check if a command exists
 check_command() {
   if ! command -v $1 &> /dev/null; then
-    echo "Error: $1 is not installed. Please install $1 first."
+    log "Error: $1 is not installed. Please install $1 first."
     exit 1
   fi
 }
 
 # Function to handle errors during deployment
 handle_error() {
-  echo "=============================================="
-  echo "Error during deployment at step: $1"
-  echo "=============================================="
-  echo "Checking container logs..."
+  log "=============================================="
+  log "Error during deployment at step: $1"
+  log "=============================================="
+  log "Checking container logs..."
   
   if docker ps | grep -q bookstuio-db; then
-    echo "Database container logs:"
+    log "Database container logs:"
     docker logs bookstuio-db | tail -n 20
   fi
   
   if docker ps | grep -q bookstuio-app; then
-    echo "Application container logs:"
+    log "Application container logs:"
     docker logs bookstuio-app | tail -n 20
   fi
   
-  echo "Deployment failed. Please fix the issues and try again."
+  log "Deployment failed. Please fix the issues and try again."
   exit 1
 }
 
@@ -39,93 +44,104 @@ handle_error() {
 trap 'handle_error "$BASH_COMMAND"' ERR
 
 # Check for required commands
-echo "Checking prerequisites..."
+log "Checking prerequisites..."
 check_command docker
 check_command docker-compose
 
 # Ensure scripts are executable
-echo "Setting up execution permissions..."
+log "Making scripts executable..."
 chmod +x wait-for-postgres.sh
 chmod +x init-db-docker.sh
 chmod +x docker-entrypoint.sh 2>/dev/null || true
+chmod +x simple-entrypoint.sh 2>/dev/null || true
 
 # Stop any existing containers
-echo "Stopping any existing containers..."
+log "Stopping any existing containers..."
 docker-compose down || true  # Continue even if this fails (e.g., no containers running)
 
 # Clean up any old volumes if needed
-echo "Cleaning up any stale resources..."
+log "Cleaning up any stale resources..."
 docker volume prune -f || true  # Continue even if this fails
 
 # Build and start the containers
-echo "Building and starting BookStud.io..."
+log "Building and starting BookStud.io..."
 docker-compose build --no-cache
 docker-compose up -d
 
 # Verify containers started properly
-echo "Verifying containers are running..."
+log "Verifying containers are running..."
 sleep 5  # Short wait to ensure containers are registered
 
 if ! docker ps | grep -q bookstuio-app; then
-  echo "ERROR: Application container failed to start"
+  log "ERROR: Application container failed to start"
   docker-compose logs app
   exit 1
 fi
 
 if ! docker ps | grep -q bookstuio-db; then
-  echo "ERROR: Database container failed to start"
+  log "ERROR: Database container failed to start"
   docker-compose logs db
   exit 1
 fi
 
 # Wait for DB to be ready - using a more reliable approach than just sleeping
-echo "Waiting for database to be ready..."
+log "Waiting for database to be ready..."
 RETRIES=10
 RETRY_COUNT=0
 
 while [ $RETRY_COUNT -lt $RETRIES ]; do
   if docker exec bookstuio-db pg_isready -U postgres -d bookstuio &> /dev/null; then
-    echo "Database is ready."
+    log "Database is ready."
     break
   fi
   
   RETRY_COUNT=$((RETRY_COUNT+1))
   if [ $RETRY_COUNT -eq $RETRIES ]; then
-    echo "Error: Database failed to become ready after multiple attempts"
+    log "Error: Database failed to become ready after multiple attempts"
     docker-compose logs db
     exit 1
   fi
   
-  echo "Waiting for database to become ready (attempt $RETRY_COUNT/$RETRIES)..."
+  log "Waiting for database to become ready (attempt $RETRY_COUNT/$RETRIES)..."
   sleep 3
 done
 
+# Create an alias to node that runs with ES module compatibility
+log "Preparing ES module compatibility for database initialization..."
+docker exec bookstuio-app /bin/sh -c "echo '#!/bin/sh' > /tmp/node_esm_alias.sh"
+docker exec bookstuio-app /bin/sh -c "echo 'node --experimental-specifier-resolution=node \"\$@\"' >> /tmp/node_esm_alias.sh"
+docker exec bookstuio-app /bin/sh -c "chmod +x /tmp/node_esm_alias.sh"
+
 # Run database initialization
-echo "Running database initialization..."
+log "Running database initialization..."
 ./init-db-docker.sh
 
 # Verify application is responding
-echo "Verifying application is responding..."
+log "Verifying application is responding..."
 RETRIES=5
 RETRY_COUNT=0
 
 while [ $RETRY_COUNT -lt $RETRIES ]; do
   if curl -s http://localhost:3000 > /dev/null; then
-    echo "Application is responding."
+    log "Application is responding."
     break
   fi
   
   RETRY_COUNT=$((RETRY_COUNT+1))
   if [ $RETRY_COUNT -eq $RETRIES ]; then
-    echo "Warning: Application is not responding on http://localhost:3000"
-    echo "Check application logs with: docker-compose logs app"
+    log "Warning: Application is not responding on http://localhost:3000"
+    log "Check application logs with: docker-compose logs app"
+    
+    # Print recent logs to help diagnose issues
+    log "Recent application logs:"
+    docker-compose logs --tail=20 app
   fi
   
-  echo "Waiting for application to respond (attempt $RETRY_COUNT/$RETRIES)..."
+  log "Waiting for application to respond (attempt $RETRY_COUNT/$RETRIES)..."
   sleep 3
 done
 
-echo "=============================================="
-echo "Deployment complete!"
-echo "BookStud.io is now accessible at http://localhost:3000"
-echo "=============================================="
+log "=============================================="
+log "Deployment complete!"
+log "BookStud.io is now accessible at http://localhost:3000"
+log "=============================================="

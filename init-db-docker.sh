@@ -6,61 +6,129 @@ echo "========================================"
 echo "BookStud.io Database Initialization"
 echo "========================================"
 
-# Verify containers are running - don't skip this check
-echo "Verifying Docker containers..."
-if ! docker ps | grep -q bookstuio-db; then
-  echo "ERROR: Database container 'bookstuio-db' is not running"
-  echo "Run 'docker-compose up -d' first"
+# Global timeout settings
+MAX_RETRIES=5
+SLEEP_TIME=5
+TOTAL_WAIT_TIME=60
+
+# Function to log messages with timestamp
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+# Function to display error and exit
+error_exit() {
+  log "ERROR: $1"
+  log "$2"
   exit 1
-fi
+}
 
-if ! docker ps | grep -q bookstuio-app; then
-  echo "ERROR: Application container 'bookstuio-app' is not running"
-  echo "Run 'docker-compose up -d' first"
-  exit 1
-fi
+# Function to check if a container is running
+check_container() {
+  local container_name="$1"
+  local retry_count=0
+  
+  log "Verifying container '$container_name' status..."
+  
+  while [ $retry_count -lt $MAX_RETRIES ]; do
+    if docker ps | grep -q "$container_name"; then
+      log "Container '$container_name' is running."
+      return 0
+    else
+      retry_count=$((retry_count + 1))
+      log "Container '$container_name' is not running. Retry $retry_count/$MAX_RETRIES..."
+      
+      # Check if it exists but is not running
+      if docker ps -a | grep -q "$container_name"; then
+        log "Container '$container_name' exists but is not running. Attempting to start it..."
+        docker start "$container_name" || log "Failed to start container '$container_name'"
+      fi
+      
+      sleep $SLEEP_TIME
+    fi
+  done
+  
+  error_exit "Container '$container_name' is not running after $MAX_RETRIES attempts." \
+             "Run 'docker-compose up -d' to start all containers."
+}
 
-# Verify PostgreSQL is ready to accept connections
-echo "Verifying database connection..."
-DB_READY=$(docker exec bookstuio-db pg_isready -U postgres -d bookstuio 2>/dev/null || echo "not_ready")
-if [[ "$DB_READY" == *"not_ready"* ]]; then
-  echo "Waiting for PostgreSQL to become available..."
-  sleep 5
-  DB_READY=$(docker exec bookstuio-db pg_isready -U postgres -d bookstuio 2>/dev/null || echo "not_ready")
-  if [[ "$DB_READY" == *"not_ready"* ]]; then
-    echo "ERROR: Database is not responding. Please check database logs:"
-    echo "docker-compose logs bookstuio-db"
-    exit 1
-  fi
-fi
+# Function to verify database connection
+check_database() {
+  local retry_count=0
+  local db_username="${1:-postgres}"
+  local db_name="${2:-bookstuio}"
+  
+  log "Verifying database connection to '$db_name' with user '$db_username'..."
+  
+  while [ $retry_count -lt $MAX_RETRIES ]; do
+    local db_ready
+    db_ready=$(docker exec bookstuio-db pg_isready -U "$db_username" -d "$db_name" 2>/dev/null || echo "not_ready")
+    
+    if [[ "$db_ready" != *"not_ready"* ]]; then
+      log "Database is ready and accepting connections."
+      
+      # Extra verification - try a simple query
+      if docker exec bookstuio-db psql -U "$db_username" -d "$db_name" -c "SELECT 1" >/dev/null 2>&1; then
+        log "Database connection verified with a test query."
+        return 0
+      else
+        log "Database is accepting connections but test query failed."
+      fi
+    fi
+    
+    retry_count=$((retry_count + 1))
+    log "Database not ready. Retry $retry_count/$MAX_RETRIES..."
+    sleep $SLEEP_TIME
+  done
+  
+  error_exit "Database is not responding after $MAX_RETRIES attempts." \
+             "Check database logs with: docker-compose logs bookstuio-db"
+}
 
-echo "Database is ready. Proceeding with initialization..."
+# Function to run a command in the app container with retries
+run_in_app_container() {
+  local command="$1"
+  local description="$2"
+  local retry_count=0
+  
+  log "Running: $description..."
+  
+  while [ $retry_count -lt $MAX_RETRIES ]; do
+    if docker exec bookstuio-app $command; then
+      log "Successfully completed: $description"
+      return 0
+    else
+      retry_count=$((retry_count + 1))
+      log "Failed: $description. Retry $retry_count/$MAX_RETRIES..."
+      sleep $SLEEP_TIME
+    fi
+  done
+  
+  error_exit "Failed to complete: $description after $MAX_RETRIES attempts." \
+             "Check application logs with: docker-compose logs bookstuio-app"
+}
 
-# Step 1: Create schema tables using Drizzle
-echo "Creating database schema..."
-if ! docker exec bookstuio-app npm run db:push; then
-  echo "ERROR: Failed to create database schema."
-  echo "Check application logs: docker-compose logs bookstuio-app"
-  exit 1
-fi
+# Main execution flow
 
-# Step 2: Run migrations for notification groups
-echo "Running notification group migrations..."
-if ! docker exec bookstuio-app node scripts/migrate-db.js; then
-  echo "ERROR: Failed to run notification group migrations."
-  echo "Check application logs: docker-compose logs bookstuio-app"
-  exit 1
-fi
+# Step 1: Verify containers are running
+check_container "bookstuio-db"
+check_container "bookstuio-app"
 
-# Step 3: Seed initial data
-echo "Seeding initial data..."
-if ! docker exec bookstuio-app node scripts/init-db.js; then
-  echo "ERROR: Failed to seed initial data."
-  echo "Check application logs: docker-compose logs bookstuio-app"
-  exit 1
-fi
+# Step 2: Verify database connection
+check_database "postgres" "bookstuio"
 
-echo "========================================"
-echo "Database initialization complete!"
-echo "BookStud.io is now accessible at http://localhost:3000"
-echo "========================================"
+log "All prerequisites verified. Proceeding with database initialization..."
+
+# Step 3: Create schema tables using Drizzle
+run_in_app_container "npm run db:push" "Creating database schema"
+
+# Step 4: Run migrations for notification groups with ES module compatibility
+run_in_app_container "node --experimental-specifier-resolution=node scripts/migrate-db.js" "Running notification group migrations"
+
+# Step 5: Seed initial data with ES module compatibility
+run_in_app_container "node --experimental-specifier-resolution=node scripts/init-db.js" "Seeding initial data"
+
+log "========================================"
+log "Database initialization complete!"
+log "BookStud.io is now accessible at http://localhost:3000"
+log "========================================"
