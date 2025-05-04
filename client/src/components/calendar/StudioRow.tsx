@@ -27,25 +27,35 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
     <>
       {/* Calculate row height dynamically based on the maximum number of bookings for this studio on any day */}
       {(() => {
-        // Count max bookings for this studio in any day
-        const maxBookingsForStudio = weekDates.reduce((max, date) => {
+        // Count max bookings for this studio in any day, adding debug output
+        const maxBookingsPerDay = weekDates.map(date => {
           const count = bookings.filter(
             booking => isSameDay(new Date(booking.start), date) && booking.studioId === studio.id
           ).length;
-          return Math.max(max, count);
-        }, 0);
+          
+          return { date: date.toDateString(), count };
+        });
+        
+        // Log max bookings info for this studio
+        console.log(`Studio ${studio.name} - max bookings per day:`, maxBookingsPerDay);
+        
+        // Get the actual max number
+        const maxBookingsForStudio = Math.max(...maxBookingsPerDay.map(day => day.count), 0);
+        console.log(`Studio ${studio.name} - max booking count: ${maxBookingsForStudio}`);
         
         // Calculate dynamic height - base height plus additional space for each booking
-        // Min height is 42px, and each booking adds 24px up to a reasonable maximum
+        // Min height is 42px, and each booking adds 32px up to a reasonable maximum
         const baseHeight = 42; // Minimum height for a row with no bookings
-        const heightPerBooking = 24; // Additional height per booking
-        const maxAdditionalHeight = 160; // Maximum additional height
+        const heightPerBooking = 32; // Additional height per booking (increased from 24px)
+        const maxAdditionalHeight = 320; // Maximum additional height (increased from 160px)
         const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
         const rowHeight = baseHeight + additionalHeight;
         
+        console.log(`Studio ${studio.name} - calculated row height: ${rowHeight}px`);
+        
         return (
           <div 
-            className="border-b flex items-center px-2" 
+            className="border-b flex items-center px-2 sticky left-0 z-10 bg-white" 
             style={{ height: `${rowHeight}px` }}
           >
             <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
@@ -62,16 +72,26 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
         
         // Calculate dynamic height for cells - same logic as row header
         const baseHeight = 42; // Minimum height for a row with no bookings
-        const heightPerBooking = 24; // Additional height per booking
-        const maxAdditionalHeight = 160; // Maximum additional height
+        const heightPerBooking = 32; // Additional height per booking (same as header)
+        const maxAdditionalHeight = 320; // Maximum additional height (same as header)
         
         // Find max bookings across the entire row to keep consistent height
-        const maxBookingsForStudio = weekDates.reduce((max, date) => {
+        // Use the same calculation as in the header to ensure cells match the row height
+        const maxBookingsPerDay = weekDates.map(date => {
           const count = bookings.filter(
             booking => isSameDay(new Date(booking.start), date) && booking.studioId === studio.id
           ).length;
-          return Math.max(max, count);
-        }, 0);
+          return { date: date.toDateString(), count };
+        });
+        
+        // Get the actual max number
+        const maxBookingsForStudio = Math.max(...weekDates.map(date => 
+          bookings.filter(
+            booking => isSameDay(new Date(booking.start), date) && booking.studioId === studio.id
+          ).length
+        ), 0);
+        
+        console.log(`Cell for ${studio.name} - ${date.toDateString()} has ${dayBookings.length} bookings`);
         
         const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
         const cellHeight = baseHeight + additionalHeight;
