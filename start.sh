@@ -45,6 +45,51 @@ if ! command -v npm >/dev/null 2>&1; then
     exit 1
 fi
 
+# Check for correct Node.js version
+REQUIRED_NODE_VERSION="20.18.1"
+CURRENT_NODE_VERSION=$(node -v | sed 's/^v//')
+
+if [ "$CURRENT_NODE_VERSION" != "$REQUIRED_NODE_VERSION" ]; then
+    print_message "$YELLOW" "Warning: Current Node.js version is $CURRENT_NODE_VERSION, but BookStud.io requires version $REQUIRED_NODE_VERSION"
+    
+    # Try to use nvm if available
+    if command -v nvm >/dev/null 2>&1 || [ -f "$HOME/.nvm/nvm.sh" ]; then
+        if [ -f "$HOME/.nvm/nvm.sh" ]; then
+            . "$HOME/.nvm/nvm.sh"
+        fi
+        
+        if command -v nvm >/dev/null 2>&1; then
+            print_message "$BLUE" "Attempting to switch to Node.js $REQUIRED_NODE_VERSION using nvm..."
+            if nvm ls $REQUIRED_NODE_VERSION >/dev/null 2>&1; then
+                nvm use $REQUIRED_NODE_VERSION
+            else
+                print_message "$BLUE" "Installing Node.js $REQUIRED_NODE_VERSION using nvm..."
+                nvm install $REQUIRED_NODE_VERSION
+                nvm use $REQUIRED_NODE_VERSION
+            fi
+        fi
+    else
+        # Try to use n if available
+        if command -v npm >/dev/null 2>&1; then
+            print_message "$BLUE" "Attempting to install Node.js $REQUIRED_NODE_VERSION using n..."
+            npm install -g n
+            n $REQUIRED_NODE_VERSION
+        else
+            print_message "$RED" "Please install Node.js version $REQUIRED_NODE_VERSION manually or run ./install.sh"
+            printf "Press enter to continue anyway (not recommended) or Ctrl+C to abort..."
+            read dummy
+        fi
+    fi
+    
+    # Verify if version changed
+    CURRENT_NODE_VERSION=$(node -v | sed 's/^v//')
+    if [ "$CURRENT_NODE_VERSION" != "$REQUIRED_NODE_VERSION" ]; then
+        print_message "$YELLOW" "Warning: Still using Node.js $CURRENT_NODE_VERSION. Some features may not work correctly."
+    else
+        print_message "$GREEN" "Successfully switched to Node.js $REQUIRED_NODE_VERSION"
+    fi
+fi
+
 # Check if .env file exists
 if [ ! -f .env ]; then
     print_message "$YELLOW" "Warning: .env file not found. Creating from .env.example..."

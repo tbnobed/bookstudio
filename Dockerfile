@@ -1,6 +1,9 @@
-FROM node:20-alpine
+FROM node:20.18.1-alpine3.19
 
 WORKDIR /app
+
+# Set environment variable to indicate we're in a Docker container
+ENV RUNNING_IN_DOCKER=true
 
 # Install dependencies first (for better caching)
 COPY package*.json ./

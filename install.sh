@@ -119,30 +119,62 @@ if ! command -v node >/dev/null 2>&1; then
         fi
     fi
     
+    NODE_VERSION="20.18.1"
+    
     if command -v nvm >/dev/null 2>&1; then
-        nvm install 20
-        nvm use 20
+        print_message "$BLUE" "Installing Node.js $NODE_VERSION using nvm..."
+        nvm install $NODE_VERSION
+        nvm use $NODE_VERSION
+        nvm alias default $NODE_VERSION
     else
         # Fallback to package manager if nvm installation failed
         case $PKG_MANAGER in
             apt-get)
+                print_message "$BLUE" "Installing Node.js $NODE_VERSION using apt..."
                 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
                 apt-get install -y nodejs
+                # Verify and potentially install specific version using n
+                npm install -g n
+                n $NODE_VERSION
                 ;;
             dnf)
+                print_message "$BLUE" "Installing Node.js using dnf..."
                 dnf module install -y nodejs:20/default
+                # Install n to get specific version
+                npm install -g n
+                n $NODE_VERSION
                 ;;
             yum)
+                print_message "$BLUE" "Installing Node.js using yum..."
                 curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
                 yum install -y nodejs
+                # Install n to get specific version
+                npm install -g n
+                n $NODE_VERSION
                 ;;
             pacman)
+                print_message "$BLUE" "Installing Node.js using pacman..."
                 pacman -S --noconfirm nodejs npm
+                # Install n to get specific version
+                npm install -g n
+                n $NODE_VERSION
                 ;;
             zypper)
+                print_message "$BLUE" "Installing Node.js using zypper..."
                 zypper install -y nodejs20 npm20
+                # Install n to get specific version
+                npm install -g n
+                n $NODE_VERSION
                 ;;
         esac
+    fi
+    
+    # Verify Node.js version
+    node_current_version=$(node -v)
+    if [ "$node_current_version" != "v$NODE_VERSION" ]; then
+        print_message "$YELLOW" "Warning: Installed Node.js version ($node_current_version) differs from target version (v$NODE_VERSION)"
+    else
+        print_message "$GREEN" "Successfully installed Node.js $NODE_VERSION"
     fi
 fi
 
