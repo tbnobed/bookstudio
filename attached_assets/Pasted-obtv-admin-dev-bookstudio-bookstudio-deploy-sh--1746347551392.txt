@@ -1,0 +1,55 @@
+obtv-admin@dev-bookstudio:~/bookstudio$ ./deploy.sh
+┌─────────────────────────────────────────────┐
+│          BookStud.io Deployment             │
+└─────────────────────────────────────────────┘
+Stopping any existing containers...
+Building and starting BookStud.io...
+[+] Building 34.9s (11/11) FINISHED                                                                                                                                                                                             docker:default
+ => [app internal] load build definition from Dockerfile                                                                                                                                                                                  0.0s
+ => => transferring dockerfile: 572B                                                                                                                                                                                                      0.0s
+ => [app internal] load metadata for docker.io/library/node:20-slim                                                                                                                                                                       1.2s
+ => [app internal] load .dockerignore                                                                                                                                                                                                     0.0s
+ => => transferring context: 2B                                                                                                                                                                                                           0.0s
+ => [app internal] load build context                                                                                                                                                                                                     0.2s
+ => => transferring context: 94.68kB                                                                                                                                                                                                      0.2s
+ => [app 1/7] FROM docker.io/library/node:20-slim@sha256:83e53269616ca1b22cf7533e5db4e2f1a0c24a8e818b21691d6d4a69ec9e2c6d                                                                                                                13.2s
+ => => resolve docker.io/library/node:20-slim@sha256:83e53269616ca1b22cf7533e5db4e2f1a0c24a8e818b21691d6d4a69ec9e2c6d                                                                                                                     0.0s
+ => => sha256:bcdabde5c430cba279ae277ea741cd8a685e405683c3fdea29abe8344677c9ef 41.16MB / 41.16MB                                                                                                                                          1.3s
+ => => sha256:83e53269616ca1b22cf7533e5db4e2f1a0c24a8e818b21691d6d4a69ec9e2c6d 6.49kB / 6.49kB                                                                                                                                            0.0s
+ => => sha256:1779b45aa618898c30b3d24a7b8bc812119652a32da3416a9155b95546386743 1.93kB / 1.93kB                                                                                                                                            0.0s
+ => => sha256:82c6e3eb0c2b93a8c5a7d7c2e60398f3c21c032d6a902fd212ab25622c54d8d5 6.58kB / 6.58kB                                                                                                                                            0.0s
+ => => sha256:254e724d77862dc53abbd3bf0e27f9d2f64293909cdd3d0aad6a8fe5a6680659 28.23MB / 28.23MB                                                                                                                                          1.0s
+ => => sha256:3c889a5e6143de08865ecca8a2a7615b7050daa6f9fa502ce48cf1a5c82e5988 3.31kB / 3.31kB                                                                                                                                            0.5s
+ => => sha256:e1c750a98ab3c150e621f478236977983066d6c7ab1965d7ecf14c8397daf560 1.71MB / 1.71MB                                                                                                                                            0.8s
+ => => sha256:322ae2fb7527057ada622ab2f3ab6d57f74cc0210c46112ddeec03f93197112f 446B / 446B                                                                                                                                                1.0s
+ => => extracting sha256:254e724d77862dc53abbd3bf0e27f9d2f64293909cdd3d0aad6a8fe5a6680659                                                                                                                                                 5.2s
+ => => extracting sha256:3c889a5e6143de08865ecca8a2a7615b7050daa6f9fa502ce48cf1a5c82e5988                                                                                                                                                 0.0s
+ => => extracting sha256:bcdabde5c430cba279ae277ea741cd8a685e405683c3fdea29abe8344677c9ef                                                                                                                                                 6.0s
+ => => extracting sha256:e1c750a98ab3c150e621f478236977983066d6c7ab1965d7ecf14c8397daf560                                                                                                                                                 0.2s
+ => => extracting sha256:322ae2fb7527057ada622ab2f3ab6d57f74cc0210c46112ddeec03f93197112f                                                                                                                                                 0.0s
+ => [app 2/7] WORKDIR /app                                                                                                                                                                                                                0.4s
+ => [app 3/7] COPY package*.json ./                                                                                                                                                                                                       0.1s
+ => [app 4/7] RUN npm ci --only=production                                                                                                                                                                                               17.7s
+ => [app 5/7] COPY . .                                                                                                                                                                                                                    0.6s
+ => [app 6/7] RUN chmod +x scripts/*.sh                                                                                                                                                                                                   0.4s
+ => ERROR [app 7/7] RUN npm run build                                                                                                                                                                                                     1.4s
+------
+ > [app 7/7] RUN npm run build:
+0.836
+0.836 > rest-express@1.0.0 build
+0.836 > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+0.836
+1.270 failed to load config from /app/vite.config.ts
+1.271 error during build:
+1.271 Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@vitejs/plugin-react' imported from /app/vite.config.ts.timestamp-1746347539510-e3a664f961016.mjs
+1.271     at packageResolve (node:internal/modules/esm/resolve:873:9)
+1.271     at moduleResolve (node:internal/modules/esm/resolve:946:18)
+1.271     at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+1.271     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+1.271     at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+1.271     at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+1.271     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+1.271     at ModuleJob._link (node:internal/modules/esm/module_job:130:49)
+------
+failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+obtv-admin@dev-bookstudio:~/bookstudio$

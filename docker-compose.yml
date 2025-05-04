@@ -36,7 +36,7 @@ services:
       - PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
       - PGDATABASE=${POSTGRES_DB:-bookstuio}
       - PGPORT=5432
-      - NODE_ENV=production
+      - NODE_ENV=development
     depends_on:
       db:
         condition: service_healthy
@@ -44,10 +44,15 @@ services:
       - bookstuio-network
     command: >
       sh -c "apk add --no-cache postgresql-client &&
+             echo 'Installing dependencies...' &&
+             npm ci &&
+             echo 'Setting script permissions...' &&
              chmod +x /app/scripts/wait-for-db.sh &&
+             echo 'Waiting for database...' &&
              /app/scripts/wait-for-db.sh &&
-             cd /app &&
+             echo 'Running database migrations...' &&
              npm run db:push &&
+             echo 'Initializing database with seed data...' &&
              node --experimental-specifier-resolution=node scripts/init-db.js &&
              echo 'Database initialization complete!'"
 
@@ -56,6 +61,8 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+      args:
+        - NODE_ENV=development
     container_name: bookstuio-app
     restart: always
     ports:
