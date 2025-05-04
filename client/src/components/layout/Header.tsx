@@ -122,11 +122,12 @@ export function Header({
     onStudioFilterChange(newSelectedIds);
   };
 
-  // Fetch bookings for status calculation
+  // Fetch ALL bookings for status calculation (no date filters)
   const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
     // Only used for status calculation, so no need to refetch often
-    refetchInterval: 60000,
+    refetchInterval: 60000, 
+    // Don't add any query params so we get all bookings across all date ranges
   });
 
   return (

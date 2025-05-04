@@ -13,20 +13,19 @@ export function calculateStudioStatus(studio: Studio, bookings: Booking[], curre
   
   // Check if there are any active bookings for this studio right now
   const hasActiveBooking = bookings.some(booking => {
+    // Get studioId regardless of property naming
     const studioId = booking.studioId;
+    
     // Skip if not for this studio
     if (studioId !== studio.id) return false;
     
-    // Check if booking is on the current date
+    // Get booking dates
     const bookingStart = new Date(booking.start);
     const bookingEnd = new Date(booking.end);
     
     // Only show as booked if we're currently within the booking time window
-    return (
-      isSameDay(bookingStart, currentDate) && 
-      now >= bookingStart && 
-      now <= bookingEnd
-    );
+    // No longer requiring it to be the same day as currentDate
+    return now >= bookingStart && now <= bookingEnd;
   });
   
   // Return booked if there are active bookings now, otherwise use the studio's configured status
