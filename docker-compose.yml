@@ -29,6 +29,7 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
+      - ./scripts:/app/scripts
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
       - PGHOST=db
@@ -47,9 +48,20 @@ services:
              echo 'Installing dependencies...' &&
              npm ci &&
              echo 'Setting script permissions...' &&
-             chmod +x /app/scripts/wait-for-db.sh &&
+             find /app/scripts -name '*.sh' -exec chmod +x {} \; &&
              echo 'Waiting for database...' &&
-             /app/scripts/wait-for-db.sh &&
+             for i in $(seq 1 30); do
+               echo "Attempt $i/30: Checking database connection..."
+               if PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h db -p 5432 -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c 'SELECT 1' -q >/dev/null 2>&1; then
+                 echo "Database is ready!"
+                 break
+               fi
+               if [ $i -eq 30 ]; then
+                 echo "Database connection failed after 30 attempts"
+                 exit 1
+               fi
+               sleep 3
+             done &&
              echo 'Running database migrations...' &&
              npm run db:push &&
              echo 'Initializing database with seed data...' &&
