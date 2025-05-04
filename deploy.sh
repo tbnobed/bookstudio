@@ -185,7 +185,7 @@ else
       docker exec bookstuio-db chmod +x /tmp/wait-for-db.sh
       
       # Run it in the container with the appropriate environment
-      if docker exec -e "PGHOST=localhost" -e "PGUSER=postgres" -e "PGPASSWORD=tbn123456789" -e "PGDATABASE=bookstuio" bookstuio-db /tmp/wait-for-db.sh; then
+      if docker exec -e "PGHOST=localhost" -e "PGUSER=postgres" -e "PGPASSWORD=${POSTGRES_PASSWORD:-postgres}" -e "PGDATABASE=bookstuio" bookstuio-db /tmp/wait-for-db.sh; then
         log "Database connection verified with wait-for-db.sh script."
       else
         log "WARNING: Database verification failed with wait-for-db.sh script"
@@ -196,7 +196,7 @@ else
           log "Database is accepting connections via pg_isready."
           
           # Perform a final validation using SELECT 1
-          if docker exec bookstuio-db psql -U postgres -d bookstuio -c "SELECT 1" -w PGPASSWORD=tbn123456789 &> /dev/null; then
+          if docker exec bookstuio-db psql -U postgres -d bookstuio -c "SELECT 1" -w PGPASSWORD=${POSTGRES_PASSWORD:-postgres} &> /dev/null; then
             log "Database connection fully verified."
           else
             log "WARNING: Database query check failed!"

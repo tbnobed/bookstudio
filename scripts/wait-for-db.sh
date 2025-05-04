@@ -22,7 +22,7 @@ else
   DB_PORT=${PGPORT:-5432}
   DB_NAME=${POSTGRES_DB:-bookstuio}
   DB_USER=${POSTGRES_USER:-postgres}
-  DB_PASS=${POSTGRES_PASSWORD:-tbn123456789}
+  DB_PASS=${POSTGRES_PASSWORD:-postgres}
 fi
 
 echo "Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT}..."
