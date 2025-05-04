@@ -1,51 +1,33 @@
 #!/bin/bash
 set -e
 
-# Display welcome message
-echo "======================="
-echo "BookStud.io Deployment"
-echo "======================="
-echo ""
+echo "========================================"
+echo "BookStud.io Deployment Script"
+echo "========================================"
 
-# If .env doesn't exist, copy from example
-if [ ! -f .env ]; then
-  echo "Creating .env file from .env.example..."
-  cp .env.example .env
-  echo "Please edit .env file with your configuration settings!"
-  exit 1
-fi
+# Ensure scripts are executable
+echo "Making scripts executable..."
+chmod +x wait-for-postgres.sh
+chmod +x init-db-docker.sh
 
-# Make init script executable
-chmod +x init-db.sh
-
-# Check if docker and docker-compose are installed
-if ! command -v docker &> /dev/null; then
-  echo "Docker is not installed. Please install Docker first."
-  echo "Visit https://docs.docker.com/get-docker/ for installation instructions."
-  exit 1
-fi
-
-if ! command -v docker-compose &> /dev/null; then
-  echo "Docker Compose is not installed. Please install Docker Compose first."
-  echo "Visit https://docs.docker.com/compose/install/ for installation instructions."
-  exit 1
-fi
-
-# Stop existing containers if they exist
+# Stop any existing containers
 echo "Stopping any existing containers..."
-docker-compose down 2>/dev/null || true
+docker-compose down
 
-# Build and start the application
+# Build the containers without cache
 echo "Building and starting BookStud.io..."
-docker-compose up -d --build
+docker-compose build --no-cache
+docker-compose up -d
 
-echo ""
-echo "===================="
-echo "Deployment Complete!"
-echo "===================="
-echo ""
-echo "BookStud.io is now running!"
-echo "Access it at: http://localhost:3000"
-echo ""
-echo "To check logs: docker-compose logs -f"
-echo "To stop the application: docker-compose down"
+# Wait for containers to start fully
+echo "Waiting for containers to start..."
+sleep 10
+
+# Run database initialization
+echo "Initializing database..."
+./init-db-docker.sh
+
+echo "========================================"
+echo "Deployment complete!"
+echo "BookStud.io should now be accessible at http://localhost:3000"
+echo "========================================"

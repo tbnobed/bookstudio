@@ -32,20 +32,20 @@ A comprehensive web application for television studio management, providing inte
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd bookstuio
+   cd bookstudio
    ```
 
-2. Make the scripts executable:
+2. Make the deployment scripts executable:
    ```bash
-   chmod +x deploy.sh wait-for-postgres.sh init-db.sh docker-entrypoint.sh
+   chmod +x deploy.sh wait-for-postgres.sh init-db-docker.sh
    ```
 
-3. Run the deployment script:
+3. Create a `.env` file from the example:
    ```bash
-   ./deploy.sh
+   cp .env.example .env
    ```
 
-4. The script will create a `.env` file from the example if one doesn't exist. Edit this file with your specific configuration:
+4. Edit the `.env` file with your specific configuration:
    ```bash
    nano .env
    ```
@@ -55,10 +55,16 @@ A comprehensive web application for television studio management, providing inte
    - `SESSION_SECRET` to a secure random string
    - `SENDGRID_API_KEY` to your SendGrid API key for email notifications
 
-5. Run the deployment script again to start the application:
+5. Run the deployment script:
    ```bash
    ./deploy.sh
    ```
+
+   This script will:
+   - Stop any existing containers
+   - Build fresh Docker images
+   - Start the database and application containers
+   - Initialize the database schema and seed data
 
 6. The application will be running at `http://your-server-ip:3000`
 
@@ -66,6 +72,11 @@ A comprehensive web application for television studio management, providing inte
    - Admin: admin / admin123
    - Producer: producer / producer123
    - Engineer: engineer / engineer123
+   
+Note: If you encounter any issues with the deployment, check the logs with:
+```bash
+docker-compose logs -f
+```
 
 ### Environment Variables
 
@@ -103,18 +114,21 @@ server {
 
 ## Docker Deployment Architecture
 
-BookStud.io uses a carefully sequenced initialization process to ensure reliable database setup before the application starts. This prevents "relation does not exist" errors that can occur when the application starts before the database is fully initialized.
+BookStud.io uses a two-stage deployment process to ensure reliable database setup and application startup.
 
 ### Database Initialization Sequence
 
-1. The PostgreSQL container starts and performs its internal setup
-2. The application container runs a health check to verify the database is accepting connections
-3. Once connectivity is confirmed, the database initialization sequence runs:
-   - `npm run db:push` - Creates all database tables based on the Drizzle schema
-   - `scripts/migrate-db.js` - Sets up the notification group structure 
-   - `scripts/init-db.js` - Seeds initial user data and other required records
+1. The containers are built and started:
+   - PostgreSQL database container starts with required environment variables
+   - Application container starts with a simple command
 
-This sequence is managed by the `docker-entrypoint.sh` script which is the container's entrypoint.
+2. After the containers are running, a separate initialization script (`init-db-docker.sh`) is executed which:
+   - Verifies the database and application containers are running
+   - Runs `npm run db:push` to create all database tables based on the Drizzle schema
+   - Executes `scripts/migrate-db.js` to set up the notification group structure
+   - Runs `scripts/init-db.js` to seed initial user data and other required records
+
+This approach ensures the application container starts cleanly, and database initialization happens as a separate step.
 
 ### Troubleshooting Database Errors
 

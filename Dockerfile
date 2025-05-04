@@ -28,9 +28,5 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy the simple entrypoint script
-COPY simple-entrypoint.sh /app/
-RUN chmod +x /app/simple-entrypoint.sh
-
-# Start with the simple entrypoint script
-ENTRYPOINT ["/app/simple-entrypoint.sh"]
+# Use a direct command rather than an entrypoint script
+CMD ["node", "dist/index.js"]
