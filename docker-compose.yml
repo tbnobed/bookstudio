@@ -74,9 +74,15 @@ services:
     command: >
       sh -c "apk add --no-cache postgresql-client &&
              echo 'Waiting for database to be fully ready...' &&
-             sleep 5 &&
-             echo 'Running database initialization...' &&
+             until PGPASSWORD=${POSTGRES_PASSWORD:-postgres} psql -h db -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bookstuio} -c '\q'; do
+               echo 'PostgreSQL is unavailable - sleeping'
+               sleep 1
+             done &&
+             echo 'PostgreSQL started' &&
              cd /app &&
+             echo 'Running database schema creation...' &&
+             npm run db:push &&
+             echo 'Running database initialization and migration...' &&
              node --experimental-specifier-resolution=node scripts/init-db.js &&
              node --experimental-specifier-resolution=node scripts/migrate-db.js &&
              echo 'Database initialization complete'"
