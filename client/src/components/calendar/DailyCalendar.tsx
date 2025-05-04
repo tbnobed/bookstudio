@@ -7,11 +7,20 @@ import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
 
 interface DailyCalendarProps {
-  currentDate: Date;
+  date: Date;
   selectedStudioIds?: number[];
+  studios?: Studio[];
+  bookings?: Booking[];
+  readOnly?: boolean;
 }
 
-export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: DailyCalendarProps) {
+export default function DailyCalendar({ 
+  date: currentDate, 
+  selectedStudioIds = [], 
+  studios: propStudios = [], 
+  bookings: propBookings = [], 
+  readOnly = false 
+}: DailyCalendarProps) {
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -24,10 +33,13 @@ export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: D
     setTimeSlots(createTimeSlots(6, 22, 30));
   }, []);
 
-  // Fetch studios
-  const { data: studios = [] } = useQuery<Studio[]>({
+  // Fetch studios only if not provided via props
+  const { data: fetchedStudios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
+    enabled: propStudios.length === 0,
   });
+
+  const studios = propStudios.length > 0 ? propStudios : fetchedStudios;
 
   // Prepare date range for the day (midnight to midnight)
   const dayStart = new Date(currentDate);
@@ -36,10 +48,13 @@ export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: D
   const dayEnd = new Date(currentDate);
   dayEnd.setHours(23, 59, 59, 999);
 
-  // Fetch bookings for the day
-  const { data: bookings = [] } = useQuery<Booking[]>({
+  // Fetch bookings only if not provided via props
+  const { data: fetchedBookings = [] } = useQuery<Booking[]>({
     queryKey: [`/api/bookings?start=${dayStart.toISOString()}&end=${dayEnd.toISOString()}`],
+    enabled: propBookings.length === 0,
   });
+
+  const bookings = propBookings.length > 0 ? propBookings : fetchedBookings;
 
   // Filter studios if selectedStudioIds is provided
   const filteredStudios = selectedStudioIds.length > 0
@@ -48,21 +63,27 @@ export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: D
 
   // Handle cell click to create a new booking
   const handleSlotClick = (studio: Studio, time: string) => {
-    setSelectedSlot({ studio, time });
-    setIsNewBookingModalOpen(true);
+    // Only allow booking creation if not in readOnly mode
+    if (!readOnly) {
+      setSelectedSlot({ studio, time });
+      setIsNewBookingModalOpen(true);
+    }
   };
 
   // Handle booking click for editing
   const handleBookingClick = (booking: Booking) => {
-    // Check if it's a facility-wide alert
-    if ((booking.type === "maintenance" || booking.type === "it_support") && booking.studioId === null) {
-      // Use the dedicated AlertModal for facility-wide alerts
-      setEditBooking(booking);
-      setIsEditAlertModalOpen(true);
-    } else {
-      // Use regular BookingModal for studio bookings
-      setEditBooking(booking);
-      setIsEditModalOpen(true);
+    // Only allow editing if not in readOnly mode
+    if (!readOnly) {
+      // Check if it's a facility-wide alert
+      if ((booking.type === "maintenance" || booking.type === "it_support") && booking.studioId === null) {
+        // Use the dedicated AlertModal for facility-wide alerts
+        setEditBooking(booking);
+        setIsEditAlertModalOpen(true);
+      } else {
+        // Use regular BookingModal for studio bookings
+        setEditBooking(booking);
+        setIsEditModalOpen(true);
+      }
     }
   };
 
@@ -103,19 +124,20 @@ export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: D
 
   // Get the appropriate slot class based on booking type
   const getSlotClass = (booking: Booking | undefined) => {
-    if (!booking) return "bg-white hover:bg-gray-100";
+    const baseClass = readOnly ? "bg-white" : "bg-white hover:bg-gray-100";
+    if (!booking) return baseClass;
     
     switch (booking.type) {
       case "maintenance":
-        return "bg-amber-100 hover:bg-amber-200";
+        return readOnly ? "bg-amber-100" : "bg-amber-100 hover:bg-amber-200";
       case "it_support":
-        return "bg-red-100 hover:bg-red-200";
+        return readOnly ? "bg-red-100" : "bg-red-100 hover:bg-red-200";
       case "rehearsal":
-        return "bg-purple-100 hover:bg-purple-200";
+        return readOnly ? "bg-purple-100" : "bg-purple-100 hover:bg-purple-200";
       case "production":
-        return "bg-blue-100 hover:bg-blue-200";
+        return readOnly ? "bg-blue-100" : "bg-blue-100 hover:bg-blue-200";
       default:
-        return "bg-gray-100 hover:bg-gray-200";
+        return readOnly ? "bg-gray-100" : "bg-gray-100 hover:bg-gray-200";
     }
   };
 
@@ -146,7 +168,8 @@ export default function DailyCalendar({ currentDate, selectedStudioIds = [] }: D
                   <div 
                     key={studio.id} 
                     className={cn(
-                      "h-12 border-b border-r cursor-pointer",
+                      "h-12 border-b border-r",
+                      readOnly ? "cursor-default" : "cursor-pointer",
                       getSlotClass(booking)
                     )}
                     onClick={() => booking 
