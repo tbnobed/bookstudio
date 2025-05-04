@@ -10,45 +10,66 @@ import AlertModal from "../alerts/AlertModal";
 import { useStudioBookings } from "../../hooks/useStudioBookings";
 
 interface WeeklyCalendarProps {
-  currentDate: Date;
+  currentDate?: Date;
+  startDate?: Date;
+  studios?: Studio[];
+  bookings?: any[];
+  readOnly?: boolean;
   selectedStudioIds?: number[];
 }
 
-export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: WeeklyCalendarProps) {
+export default function WeeklyCalendar({ 
+  currentDate, 
+  startDate,
+  studios: externalStudios, 
+  bookings: externalBookings,
+  readOnly = false,
+  selectedStudioIds = [] 
+}: WeeklyCalendarProps) {
+  // Use startDate if provided (for public calendar), fall back to currentDate
+  const effectiveDate = startDate || currentDate || new Date();
   const [weekDates, setWeekDates] = useState<Date[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   
-  // Calculate week dates whenever current date changes
+  // Calculate week dates whenever effective date changes
   useEffect(() => {
-    setWeekDates(getWeekDates(currentDate));
-  }, [currentDate]);
+    setWeekDates(getWeekDates(effectiveDate));
+  }, [effectiveDate]);
 
-  // Fetch studios
+  // Fetch studios if not provided externally
   const studiosQuery = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
     refetchInterval: 5000, // Refetch every 5 seconds
+    enabled: !externalStudios // Only run this query if no external studios are provided
   });
-  const studios = studiosQuery.data || [];
+  const studios = externalStudios || studiosQuery.data || [];
 
-  // Fetch bookings for the week
+  // Fetch bookings for the week if not provided externally
   const weekStart = weekDates[0] ? new Date(weekDates[0]) : new Date();
   const weekEnd = weekDates[6] ? new Date(weekDates[6]) : new Date();
   weekEnd.setHours(23, 59, 59, 999);
 
-  // Import useStudioBookings to use the date-aware hook
-  const { bookings = [], isLoading: bookingsLoading } = useStudioBookings(weekStart, weekEnd);
+  // Use the useStudioBookings hook if no external bookings are provided
+  const { bookings: fetchedBookings = [], isLoading: bookingsLoading } = 
+    useStudioBookings(weekStart, weekEnd);
+  
+  // Use external bookings if provided, otherwise use fetched bookings
+  const bookings = externalBookings || fetchedBookings;
   
   // Setup a polling effect to refetch bookings every 2 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Force re-render to pickup changes from the bookings query
-      setWeekDates([...getWeekDates(currentDate)]);
-    }, 2000);
-    
-    return () => clearInterval(interval);
-  }, [currentDate]);
+    // Only set up polling if we're not in read-only mode (public view)
+    if (!readOnly) {
+      const interval = setInterval(() => {
+        // Force re-render to pickup changes from the bookings query
+        setWeekDates([...getWeekDates(effectiveDate)]);
+      }, 2000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [effectiveDate, readOnly]);
 
   // Filter studios if selectedStudioIds is provided
   const filteredStudios = selectedStudioIds.length > 0
@@ -224,7 +245,13 @@ export default function WeeklyCalendar({ currentDate, selectedStudioIds = [] }: 
                   key={studio.id}
                   studio={studio}
                   weekDates={weekDates}
-                  bookings={bookings.filter(b => b.studioId === studio.id)}
+                  bookings={bookings.filter(b => {
+                    // Handle both camelCase and snake_case bookings
+                    const hasSnakeCase = 'studio_id' in b;
+                    return hasSnakeCase 
+                      ? b.studio_id === studio.id 
+                      : b.studioId === studio.id;
+                  })}
                   onBookingClick={handleBookingClick}
                 />
               ))}
