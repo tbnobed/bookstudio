@@ -11,14 +11,20 @@ interface StudioRowProps {
   weekDates: Date[];
   bookings: Booking[];
   onBookingClick: (booking: Booking) => void;
+  readOnly?: boolean;
 }
 
-export default function StudioRow({ studio, weekDates, bookings, onBookingClick }: StudioRowProps) {
+export default function StudioRow({ studio, weekDates, bookings, onBookingClick, readOnly = false }: StudioRowProps) {
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  // Handle cell click to create a new booking
+  // Handle cell click to create a new booking - only if not in read-only mode
   const handleCellClick = (date: Date) => {
+    // If in read-only mode, do nothing
+    if (readOnly) {
+      return;
+    }
+    
     setSelectedDate(date);
     setIsNewBookingModalOpen(true);
   };

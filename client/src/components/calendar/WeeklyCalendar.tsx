@@ -76,8 +76,13 @@ export default function WeeklyCalendar({
     ? studios.filter((studio) => selectedStudioIds.includes(studio.id))
     : studios;
 
-  // Handle booking click for editing
+  // Handle booking click for editing (only if not in read-only mode)
   const handleBookingClick = (booking: any) => {
+    // If in read-only mode (public view), don't allow editing
+    if (readOnly) {
+      return;
+    }
+    
     // Check if it's an ApiBooking format (for alerts) or regular Booking
     const isApiFormat = 'studio_id' in booking;
     
@@ -253,6 +258,7 @@ export default function WeeklyCalendar({
                       : b.studioId === studio.id;
                   })}
                   onBookingClick={handleBookingClick}
+                  readOnly={readOnly}
                 />
               ))}
             </div>

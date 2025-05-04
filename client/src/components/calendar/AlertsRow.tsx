@@ -21,6 +21,7 @@ interface AlertsRowProps {
   weekDates: Date[];
   alerts: ApiBooking[]; // Now using our custom API type
   onAlertClick: (booking: ApiBooking) => void;
+  readOnly?: boolean;
 }
 
 // Helper function to determine if an alert is an all-day alert
@@ -80,7 +81,7 @@ function isAllDayAlert(alert: ApiBooking): boolean {
   return isStartAtDayStart && isEndAtDayEndOrLater || (isLongDuration && isEarlyStart);
 }
 
-export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRowProps) {
+export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = false }: AlertsRowProps) {
   const { user } = useAuth();
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -106,8 +107,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
 
   // Handle cell click to create a new alert
   const handleCellClick = (date: Date) => {
-    // Only allow alert creation for users with permissions
-    if (canCreateAlerts) {
+    // Only allow alert creation for users with permissions and if not in readOnly mode
+    if (canCreateAlerts && !readOnly) {
       setSelectedDate(date);
       setIsNewAlertModalOpen(true);
     }
@@ -115,8 +116,14 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
   
   // Handle alert click for editing
   const handleAlertEditClick = (alert: ApiBooking) => {
-    setEditAlert(alert);
-    setIsEditAlertModalOpen(true);
+    // Only allow editing if not in readOnly mode
+    if (!readOnly) {
+      setEditAlert(alert);
+      setIsEditAlertModalOpen(true);
+    } else {
+      // In readOnly mode, just call the click handler to show the hover card
+      onAlertClick(alert);
+    }
   };
 
   // Calculate max alerts for any day in this week for consistent row heights
