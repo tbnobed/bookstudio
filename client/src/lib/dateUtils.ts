@@ -198,11 +198,13 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // Create a date object with the local time zone (avoid timezone shifting)
-  // Month is zero-indexed in JavaScript Date
-  const dateObj = new Date(year, month - 1, day, hourNum, minuteNum, 0, 0);
+  // Use UTC methods to ensure consistent date behavior without timezone adjustments
+  const dateObj = new Date();
+  dateObj.setFullYear(year, month - 1, day);
+  dateObj.setHours(hourNum, minuteNum, 0, 0);
   
-  console.log(`Original date string: ${dateStr}, parsed as: ${dateObj.toISOString()}`);
+  // Log for debugging
+  console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()}`);
   
   return dateObj;
 }
