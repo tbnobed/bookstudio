@@ -14,6 +14,7 @@ import StudioManagementModal from "@/components/studio/StudioManagementModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTimezone } from "@/contexts/TimezoneContext";
+import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -425,56 +426,61 @@ export default function Settings() {
           </TabsContent>
           
           <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Settings</CardTitle>
-                <CardDescription>Configure email notifications and alerts</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="email-notifications">Email Notifications</Label>
-                    <Switch id="email-notifications" defaultChecked />
+            <div className="grid gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notification Settings</CardTitle>
+                  <CardDescription>Configure email notifications and alerts</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="email-notifications">Email Notifications</Label>
+                      <Switch id="email-notifications" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="sms-notifications">SMS Notifications</Label>
+                      <Switch id="sms-notifications" />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="browser-notifications">Browser Notifications</Label>
+                      <Switch id="browser-notifications" defaultChecked />
+                    </div>
+                    
+                    <div className="pt-4 pb-2">
+                      <h3 className="text-sm font-medium">Notification Events</h3>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="notify-new-booking">New Bookings</Label>
+                      <Switch id="notify-new-booking" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="notify-updates">Booking Updates</Label>
+                      <Switch id="notify-updates" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="notify-cancellations">Cancellations</Label>
+                      <Switch id="notify-cancellations" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="notify-reminders">Booking Reminders (24h before)</Label>
+                      <Switch id="notify-reminders" defaultChecked />
+                    </div>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                    <Switch id="sms-notifications" />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="browser-notifications">Browser Notifications</Label>
-                    <Switch id="browser-notifications" defaultChecked />
-                  </div>
-                  
-                  <div className="pt-4 pb-2">
-                    <h3 className="text-sm font-medium">Notification Events</h3>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="notify-new-booking">New Bookings</Label>
-                    <Switch id="notify-new-booking" defaultChecked />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="notify-updates">Booking Updates</Label>
-                    <Switch id="notify-updates" defaultChecked />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="notify-cancellations">Cancellations</Label>
-                    <Switch id="notify-cancellations" defaultChecked />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="notify-reminders">Booking Reminders (24h before)</Label>
-                    <Switch id="notify-reminders" defaultChecked />
-                  </div>
-                </div>
-                
-                <Button>Save Notification Settings</Button>
-              </CardContent>
-            </Card>
+                  <Button>Save Notification Settings</Button>
+                </CardContent>
+              </Card>
+              
+              {/* Notification Groups Panel */}
+              <NotificationGroupsPanel />
+            </div>
           </TabsContent>
           
           <TabsContent value="backup">
