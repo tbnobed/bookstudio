@@ -138,18 +138,21 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
                 colorClass = "bg-red-100 border-red-300 text-red-800";
               }
               
-              // Calculate position based on booking index
-              let topPosition = 4 + (bookingIndex * 28); // 28px spacing between bookings
+              // Calculate position based on booking index with larger spacing
+              // Use a base spacing of 40px between bookings (increased from 28px)
+              let topPosition = 4 + (bookingIndex * 40); 
               
               // If we have more than 10 bookings, adjust the spacing to be more compact
               if (dayBookings.length > 10) {
-                topPosition = 4 + (bookingIndex * 20); // 20px spacing for dense days
+                topPosition = 4 + (bookingIndex * 30); // 30px spacing for dense days (increased from 20px)
               } else if (dayBookings.length > 5) {
-                topPosition = 4 + (bookingIndex * 24); // 24px spacing for medium density days
+                topPosition = 4 + (bookingIndex * 35); // 35px spacing for medium density days (increased from 24px)
               }
               
-              // Calculate height - make compact for many bookings, but larger than before
-              const height = dayBookings.length > 10 ? 18 : dayBookings.length > 5 ? 22 : 26;
+              console.log(`Booking ${booking.title} in ${studio.name} on ${date.toDateString()} - position: ${topPosition}px`);
+              
+              // Calculate height for bookings - bigger than before
+              const height = dayBookings.length > 10 ? 28 : dayBookings.length > 5 ? 32 : 38;
               
               return (
                 <HoverCard key={booking.id}>
