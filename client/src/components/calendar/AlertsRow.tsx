@@ -147,10 +147,10 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
   return (
     <>
       <div 
-        className="border-b bg-gray-100 flex items-center justify-center sticky left-0 top-0 z-10"
+        className="border-b bg-gray-100 flex items-center sticky left-0 top-0 z-10"
         style={{ height: `${rowHeight}px` }}
       >
-        <div className="flex items-center justify-center w-full">
+        <div className="text-center w-full">
           <span className="text-xs font-bold uppercase text-gray-700">Facility Alerts</span>
         </div>
       </div>
