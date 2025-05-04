@@ -2,26 +2,13 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { addDays, startOfWeek, endOfWeek, format, addWeeks, subWeeks, isWithinInterval } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronsUpDown, ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import WeeklyCalendar from '@/components/calendar/WeeklyCalendar';
 import DailyCalendar from '@/components/calendar/DailyCalendar';
 import MonthlyCalendar from '@/components/calendar/MonthlyCalendar';
 import { Studio } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import { Badge } from "@/components/ui/badge";
 
 // Define our own DateRange type since it's not exported from date-fns
 interface DateRange {
@@ -45,7 +32,6 @@ function PublicCalendarPage() {
   const [viewType, setViewType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
   const [dateRange, setDateRange] = useState<DateRange>(getDatesForWeek(currentDate));
   const [selectedStudioIds, setSelectedStudioIds] = useState<number[]>([]);
-  const [studioSelectorOpen, setStudioSelectorOpen] = useState(false);
 
   function getDatesForWeek(date: Date): DateRange {
     const startDate = startOfWeek(date, { weekStartsOn: 0 });
@@ -167,12 +153,8 @@ function PublicCalendarPage() {
     });
   };
   
-  const removeStudio = (studioId: number) => {
-    setSelectedStudioIds(prev => prev.filter(id => id !== studioId));
-  };
-  
-  const clearSelectedStudios = () => {
-    setSelectedStudioIds([]);
+  const isStudioSelected = (studioId: number) => {
+    return selectedStudioIds.length === 0 || selectedStudioIds.includes(studioId);
   };
   
   // Get the studio objects that correspond to the selected IDs
@@ -275,48 +257,6 @@ function PublicCalendarPage() {
               >
                 Month
               </Button>
-              
-              {/* Studio Selector */}
-              <Popover open={studioSelectorOpen} onOpenChange={setStudioSelectorOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    size="sm"
-                    aria-expanded={studioSelectorOpen}
-                    className="h-8 flex gap-1 items-center"
-                  >
-                    <span>Studios</span>
-                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[250px] p-0" align="end">
-                  <Command>
-                    <CommandInput placeholder="Search studios..." />
-                    <CommandEmpty>No studio found.</CommandEmpty>
-                    <CommandGroup>
-                      {studios.map((studio) => (
-                        <CommandItem
-                          key={studio.id}
-                          value={studio.name}
-                          onSelect={() => {
-                            toggleStudio(studio.id);
-                            // Keep the popover open for multiple selections
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedStudioIds.includes(studio.id) ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {studio.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
             </div>
           </div>
 
@@ -324,35 +264,29 @@ function PublicCalendarPage() {
             {getDateRangeLabel()}
           </div>
           
-          {/* Selected Studios Badges */}
-          {selectedStudioIds.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-2 items-center">
-              <span className="text-sm font-medium mr-1">Showing:</span>
-              {selectedStudios.map((studio) => (
-                <Badge key={studio.id} variant="secondary" className="flex items-center gap-1">
-                  {studio.name}
-                  <button
-                    type="button"
-                    onClick={() => removeStudio(studio.id)}
-                    className="rounded-full outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    <X className="h-3 w-3" />
-                    <span className="sr-only">Remove {studio.name}</span>
-                  </button>
-                </Badge>
-              ))}
-              {selectedStudioIds.length > 1 && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={clearSelectedStudios}
-                  className="h-6 text-xs"
-                >
-                  Clear all
-                </Button>
-              )}
+          {/* Studio Selector Pills */}
+          <div className="bg-gray-50 p-3 mb-4 rounded-md border">
+            <div className="flex items-center mb-2">
+              <h3 className="text-sm font-medium">Studios:</h3>
             </div>
-          )}
+            <div className="flex flex-wrap gap-2">
+              {studios.map((studio) => (
+                <Button
+                  key={studio.id}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "rounded-full border-gray-300",
+                    isStudioSelected(studio.id) ? "border-primary/50 bg-primary/5" : "bg-white"
+                  )}
+                  onClick={() => toggleStudio(studio.id)}
+                >
+                  <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+                  {studio.name}
+                </Button>
+              ))}
+            </div>
+          </div>
 
           {/* Calendar Views */}
           <div className="mt-2">
