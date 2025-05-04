@@ -1,5 +1,5 @@
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import postgres from 'postgres';
+import pg from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import * as schema from '../shared/schema.js';
 
@@ -14,7 +14,7 @@ async function migrateDb() {
   console.log('Connecting to the database...');
   const connectionString = process.env.DATABASE_URL;
   // For migrations, we need a direct connection with more control
-  const migrationClient = postgres(connectionString, { max: 1 });
+  const migrationClient = pg(connectionString, { max: 1 });
   
   try {
     console.log('Creating database client for migration...');

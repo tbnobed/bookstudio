@@ -1,4 +1,4 @@
-import postgres from 'postgres';
+import pg from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import * as schema from '../shared/schema.js';
 import { scrypt, randomBytes } from 'crypto';
@@ -24,7 +24,7 @@ async function initDb() {
 
   console.log('Connecting to the database...');
   const connectionString = process.env.DATABASE_URL;
-  const client = postgres(connectionString);
+  const client = pg(connectionString);
   const db = drizzle(client, { schema });
   
   try {

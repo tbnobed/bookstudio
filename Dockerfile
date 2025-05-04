@@ -6,7 +6,10 @@ FROM base AS builder
 COPY package*.json ./
 RUN npm ci
 COPY . .
+# Build the client for production
 RUN npm run build
+# Compile the server TypeScript files to JavaScript
+RUN npx tsc --project tsconfig.prod.json
 
 # Production image with minimal dependencies
 FROM base AS runner
@@ -23,6 +26,7 @@ COPY --from=builder /app/shared ./shared
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/drizzle.config.js ./drizzle.config.js
+COPY --from=builder /app/drizzle ./drizzle
 
 # Create an entrypoint script for container initialization
 COPY docker-entrypoint.sh /docker-entrypoint.sh
