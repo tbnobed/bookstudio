@@ -30,10 +30,8 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
 
-  // Fetch bookings for the month
-  const { data: bookings = [] } = useQuery<Booking[]>({
-    queryKey: [`/api/bookings?start=${monthStart.toISOString()}&end=${monthEnd.toISOString()}`],
-  });
+  // Use bookings passed from props
+  const bookings = propBookings;
 
   // Handle day click to create a new booking
   const handleDayClick = (date: Date) => {
