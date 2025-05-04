@@ -122,10 +122,14 @@ log "All prerequisites verified. Proceeding with database initialization..."
 # Step 3: Create schema tables using Drizzle
 run_in_app_container "npm run db:push" "Creating database schema"
 
-# Step 4: Run migrations for notification groups with ES module compatibility
+# Step 4: Prepare ES module compatibility for database initialization
+log "Preparing ES module compatibility for database initialization..."
+run_in_app_container "mkdir -p /app/scripts/db-es && cp -f /app/scripts/db.js /app/scripts/db-es/" "Setting up ES module compatibility"
+
+# Step 5: Run migrations for notification groups with ES module compatibility
 run_in_app_container "node --experimental-specifier-resolution=node scripts/migrate-db.js" "Running notification group migrations"
 
-# Step 5: Seed initial data with ES module compatibility
+# Step 6: Seed initial data with ES module compatibility
 run_in_app_container "node --experimental-specifier-resolution=node scripts/init-db.js" "Seeding initial data"
 
 log "========================================"

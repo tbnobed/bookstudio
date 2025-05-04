@@ -1,7 +1,7 @@
 // This file is a specialized version for use with ES modules in scripts
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import * as schema from '../shared/schema.js';
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
+import * as schema from "../shared/schema.js";
 
 if (!process.env.DATABASE_URL) {
   throw new Error(

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { db } from './db.js';
 import { sql } from 'drizzle-orm';
 

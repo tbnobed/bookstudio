@@ -73,17 +73,37 @@ echo "Database connection confirmed. Starting application setup..."
 
 # Run database setup if INITIALIZE_DB is set (or if this is a development environment)
 if [ "${INITIALIZE_DB:-true}" = "true" ] || [ "${NODE_ENV:-development}" = "development" ]; then
+  # Prepare the scripts directory
+  echo "Preparing ES module compatibility for database initialization..."
+  # Create db.js specifically for ES module scripts
+  cat > scripts/db.js << 'EOL'
+// This file is a specialized version for use with ES modules in scripts
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '../shared/schema.js';
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
+}
+
+// PostgreSQL connection for initialization scripts
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle(pool, { schema });
+EOL
+
   # Run initialization script to create tables
   echo "Initializing database schema and tables..."
   npm run db:push || handle_error "Database schema creation" $?
   
   # Run migration for notification groups
   echo "Setting up notification groups..."
-  node scripts/migrate-db.js || handle_error "Notification group migration" $?
+  node --experimental-specifier-resolution=node scripts/migrate-db.js || handle_error "Notification group migration" $?
   
   # Seed initial data
   echo "Seeding initial data..."
-  node scripts/init-db.js || handle_error "Data seeding" $?
+  node --experimental-specifier-resolution=node scripts/init-db.js || handle_error "Data seeding" $?
   
   echo "Database initialization complete!"
 else
