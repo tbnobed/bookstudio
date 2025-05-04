@@ -62,7 +62,7 @@ async function migrateDb() {
         studio_id INTEGER REFERENCES studios(id),
         user_id INTEGER REFERENCES users(id) NOT NULL,
         start TIMESTAMP NOT NULL,
-        end TIMESTAMP NOT NULL,
+        "end" TIMESTAMP NOT NULL,
         type TEXT NOT NULL,
         severity TEXT DEFAULT 'medium',
         template_id INTEGER REFERENCES templates(id),
