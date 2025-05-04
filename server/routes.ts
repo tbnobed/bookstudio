@@ -221,13 +221,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       let bookings;
       
+      console.log("[Public Bookings] Request query params:", req.query);
+      
       // Filter by date range if provided
       if (req.query.start && req.query.end) {
         const start = new Date(req.query.start as string);
         const end = new Date(req.query.end as string);
+        console.log(`[Public Bookings] Date range: ${start.toISOString()} - ${end.toISOString()}`);
+        
         bookings = await storage.getBookingsByDateRange(start, end);
+        console.log(`[Public Bookings] Found ${bookings.length} bookings in date range`);
       } else {
+        console.log("[Public Bookings] No date range provided, fetching all bookings");
         bookings = await storage.getAllBookings();
+        console.log(`[Public Bookings] Found ${bookings.length} bookings total`);
       }
       
       // Remove any sensitive information for the public view
@@ -243,8 +250,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Exclude userId, templateId, notifyList, and other private data
       }));
       
+      console.log(`[Public Bookings] Returning ${sanitizedBookings.length} bookings`);
+      if (sanitizedBookings.length > 0) {
+        console.log(`[Public Bookings] First booking:`, JSON.stringify(sanitizedBookings[0]));
+      }
+      
       res.json(sanitizedBookings);
     } catch (error) {
+      console.error("[Public Bookings] Error:", error);
       res.status(500).json({ message: "Failed to fetch public bookings" });
     }
   });
