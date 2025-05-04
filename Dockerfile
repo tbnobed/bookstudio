@@ -3,21 +3,21 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install dependencies first (for better caching)
-COPY package.json package-lock.json ./
+COPY package*.json ./
 RUN npm ci
 
-# Copy the rest of the application
+# Copy all source files
 COPY . .
 
 # Build the application
 RUN npm run build
 
-# Expose the port
-EXPOSE 3000
+# Expose application port
+EXPOSE 5000
 
-# Define environment variables
-ENV NODE_ENV=production
-ENV PORT=3000
+# Healthcheck to verify application is running
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:5000/ || exit 1
 
 # Start the application
-CMD ["node", "dist/index.js"]
+CMD ["npm", "start"]

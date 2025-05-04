@@ -1,51 +1,89 @@
 #!/bin/bash
+
 set -e
 
-# Display welcome message
-echo "======================="
-echo "BookStud.io Deployment"
-echo "======================="
-echo ""
+# Colors for better readability
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-# If .env doesn't exist, copy from example
-if [ ! -f .env ]; then
-  echo "Creating .env file from .env.example..."
-  cp .env.example .env
-  echo "Please edit .env file with your configuration settings!"
-  exit 1
-fi
+echo -e "${GREEN}Starting BookStud.io deployment process...${NC}"
 
-# Make init script executable
-chmod +x init-db.sh
-
-# Check if docker and docker-compose are installed
+# Check if Docker is installed
 if ! command -v docker &> /dev/null; then
-  echo "Docker is not installed. Please install Docker first."
-  echo "Visit https://docs.docker.com/get-docker/ for installation instructions."
-  exit 1
+    echo -e "${RED}Error: Docker is not installed. Please install Docker before proceeding.${NC}"
+    exit 1
 fi
 
 if ! command -v docker-compose &> /dev/null; then
-  echo "Docker Compose is not installed. Please install Docker Compose first."
-  echo "Visit https://docs.docker.com/compose/install/ for installation instructions."
-  exit 1
+    echo -e "${RED}Error: Docker Compose is not installed. Please install Docker Compose before proceeding.${NC}"
+    exit 1
 fi
 
-# Stop existing containers if they exist
-echo "Stopping any existing containers..."
-docker-compose down 2>/dev/null || true
+# Check if .env file exists
+if [ ! -f .env ]; then
+    echo -e "${YELLOW}Warning: .env file not found. Creating from .env.example...${NC}"
+    if [ -f .env.example ]; then
+        cp .env.example .env
+        echo -e "${YELLOW}Please update the .env file with your actual values before continuing${NC}"
+        read -p "Press enter to continue after updating .env..."
+    else
+        echo -e "${RED}Error: .env.example file not found. Cannot create .env file.${NC}"
+        exit 1
+    fi
+fi
 
-# Build and start the application
-echo "Building and starting BookStud.io..."
+# Check required environment variables
+source .env
+REQUIRED_VARS=("DATABASE_URL" "PGUSER" "PGPASSWORD" "PGDATABASE" "SENDGRID_API_KEY" "SESSION_SECRET")
+MISSING_VARS=false
+
+for VAR in "${REQUIRED_VARS[@]}"; do
+    if [ -z "${!VAR}" ]; then
+        echo -e "${RED}Error: Required environment variable $VAR is not set in .env file.${NC}"
+        MISSING_VARS=true
+    fi
+done
+
+if [ "$MISSING_VARS" = true ]; then
+    echo -e "${RED}Please update the .env file with the missing variables before continuing.${NC}"
+    exit 1
+fi
+
+# Create backup directory if it doesn't exist
+mkdir -p backups
+
+# Check if we're running in a production environment
+if [ "$NODE_ENV" = "production" ]; then
+    echo -e "${YELLOW}Production environment detected. Creating database backup...${NC}"
+    
+    # Create backup timestamp
+    TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+    
+    # Check if we can connect to existing database for backup
+    if docker-compose exec -T db pg_isready -U $PGUSER > /dev/null 2>&1; then
+        echo -e "${GREEN}Backing up existing database...${NC}"
+        docker-compose exec -T db pg_dump -U $PGUSER $PGDATABASE > "backups/backup_${TIMESTAMP}.sql"
+        echo -e "${GREEN}Database backup created at backups/backup_${TIMESTAMP}.sql${NC}"
+    else
+        echo -e "${YELLOW}No existing database found or database is not running. Skipping backup.${NC}"
+    fi
+fi
+
+echo -e "${GREEN}Building and starting containers...${NC}"
 docker-compose up -d --build
 
-echo ""
-echo "===================="
-echo "Deployment Complete!"
-echo "===================="
-echo ""
-echo "BookStud.io is now running!"
-echo "Access it at: http://localhost:3000"
-echo ""
-echo "To check logs: docker-compose logs -f"
-echo "To stop the application: docker-compose down"
+echo -e "${GREEN}Waiting for database to be ready...${NC}"
+sleep 10 # Give the database some time to initialize
+
+echo -e "${GREEN}Running database migrations...${NC}"
+docker-compose exec -T app npx tsx scripts/migrate-db.ts
+
+echo -e "${GREEN}============================================${NC}"
+echo -e "${GREEN}BookStud.io deployment completed successfully!${NC}"
+echo -e "${GREEN}The application should now be running at:${NC}"
+echo -e "${GREEN}http://localhost:${PORT:-5000}${NC}"
+echo -e "${GREEN}============================================${NC}"
+
+exit 0

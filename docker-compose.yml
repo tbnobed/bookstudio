@@ -2,42 +2,49 @@ version: '3.8'
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: bookstuio-app
-    restart: unless-stopped
+    build: .
+    restart: always
     ports:
-      - '${APP_PORT:-3000}:3000'
+      - "${PORT:-5000}:5000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
-      - PORT=3000
-      - SESSION_SECRET=${SESSION_SECRET:-your_session_secret}
+      - DATABASE_URL=postgresql://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@db:5432/${PGDATABASE:-bookstudio}
+      - PGHOST=db
+      - PGPORT=5432
+      - PGUSER=${PGUSER:-postgres}
+      - PGPASSWORD=${PGPASSWORD:-postgres}
+      - PGDATABASE=${PGDATABASE:-bookstudio}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - SESSION_SECRET=${SESSION_SECRET:-changeme_in_production}
     depends_on:
       - db
+    volumes:
+      - ./logs:/app/logs
     networks:
-      - bookstuio-network
+      - app-network
 
   db:
-    image: postgres:15-alpine
-    container_name: bookstuio-db
-    restart: unless-stopped
-    ports:
-      - '${DB_PORT:-5432}:5432'
+    image: postgres:14-alpine
+    restart: always
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
+      - POSTGRES_USER=${PGUSER:-postgres}
+      - POSTGRES_PASSWORD=${PGPASSWORD:-postgres}
+      - POSTGRES_DB=${PGDATABASE:-bookstudio}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     networks:
-      - bookstuio-network
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
-  bookstuio-network:
+  app-network:
     driver: bridge
 
 volumes:
   postgres_data:
-    driver: local
