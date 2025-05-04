@@ -37,7 +37,7 @@ A comprehensive web application for television studio management, providing inte
 
 2. Make the scripts executable:
    ```bash
-   chmod +x deploy.sh wait-for-postgres.sh
+   chmod +x deploy.sh wait-for-postgres.sh init-db.sh docker-entrypoint.sh
    ```
 
 3. Run the deployment script:
@@ -100,6 +100,30 @@ server {
     }
 }
 ```
+
+## Docker Deployment Architecture
+
+BookStud.io uses a carefully sequenced initialization process to ensure reliable database setup before the application starts. This prevents "relation does not exist" errors that can occur when the application starts before the database is fully initialized.
+
+### Database Initialization Sequence
+
+1. The PostgreSQL container starts and performs its internal setup
+2. The application container runs a health check to verify the database is accepting connections
+3. Once connectivity is confirmed, the database initialization sequence runs:
+   - `npm run db:push` - Creates all database tables based on the Drizzle schema
+   - `scripts/migrate-db.js` - Sets up the notification group structure 
+   - `scripts/init-db.js` - Seeds initial user data and other required records
+
+This sequence is managed by the `docker-entrypoint.sh` script which is the container's entrypoint.
+
+### Troubleshooting Database Errors
+
+If you encounter "relation does not exist" errors in logs, it usually means the database initialization sequence was interrupted. Common solutions:
+
+1. Make sure all scripts have execute permissions: `chmod +x *.sh`
+2. Check that the database container is running: `docker-compose ps`
+3. Review all logs: `docker-compose logs -f`
+4. Rebuild the containers: `docker-compose down && docker-compose up -d --build`
 
 ## Maintenance
 
