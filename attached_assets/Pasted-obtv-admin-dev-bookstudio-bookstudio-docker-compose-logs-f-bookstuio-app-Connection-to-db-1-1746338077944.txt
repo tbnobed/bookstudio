@@ -1,0 +1,88 @@
+obtv-admin@dev-bookstudio:~/bookstudio$ docker-compose logs -f
+bookstuio-app  | Connection to db (172.18.0.2) 5432 port [tcp/postgresql] succeeded!
+bookstuio-db   | The files belonging to this database system will be owned by user "postgres".
+bookstuio-db   | This user must also own the server process.
+bookstuio-db   |
+bookstuio-db   | The database cluster will be initialized with locale "en_US.utf8".
+bookstuio-db   | The default database encoding has accordingly been set to "UTF8".
+bookstuio-db   | The default text search configuration will be set to "english".
+bookstuio-db   |
+bookstuio-db   | Data page checksums are disabled.
+bookstuio-db   |
+bookstuio-app  | PostgreSQL is up and running at db:5432 - executing command
+bookstuio-app  | SendGrid email service initialized
+bookstuio-app  | 5:54:14 AM [express] serving on port 5000
+bookstuio-db   | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+bookstuio-db   | creating subdirectories ... ok
+bookstuio-app  | Error initializing database: error: relation "users" does not exist
+bookstuio-db   | selecting dynamic shared memory implementation ... posix
+bookstuio-app  |     at /app/node_modules/pg-pool/index.js:45:11
+bookstuio-db   | selecting default max_connections ... 100
+bookstuio-db   | selecting default shared_buffers ... 128MB
+bookstuio-app  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+bookstuio-app  |     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+bookstuio-app  |     at async DatabaseStorage.initializeData (file:///app/dist/index.js:187:25) {
+bookstuio-app  |   length: 104,
+bookstuio-app  |   severity: 'ERROR',
+bookstuio-app  |   code: '42P01',
+bookstuio-app  |   detail: undefined,
+bookstuio-app  |   hint: undefined,
+bookstuio-app  |   position: '67',
+bookstuio-app  |   internalPosition: undefined,
+bookstuio-app  |   internalQuery: undefined,
+bookstuio-db   | selecting default time zone ... UTC
+bookstuio-db   | creating configuration files ... ok
+bookstuio-db   | running bootstrap script ... ok
+bookstuio-db   | sh: locale: not found
+bookstuio-app  |   where: undefined,
+bookstuio-app  |   schema: undefined,
+bookstuio-app  |   table: undefined,
+bookstuio-app  |   column: undefined,
+bookstuio-app  |   dataType: undefined,
+bookstuio-db   | 2025-05-04 05:54:08.225 UTC [35] WARNING:  no usable system locales were found
+bookstuio-db   | performing post-bootstrap initialization ... ok
+bookstuio-db   | syncing data to disk ... ok
+bookstuio-db   |
+bookstuio-db   |
+bookstuio-db   | Success. You can now start the database server using:
+bookstuio-app  |   constraint: undefined,
+bookstuio-app  |   file: 'parse_relation.c',
+bookstuio-app  |   line: '1392',
+bookstuio-db   | initdb: warning: enabling "trust" authentication for local connections
+bookstuio-db   | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+bookstuio-db   |
+bookstuio-db   |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+bookstuio-db   |
+bookstuio-db   | waiting for server to start....2025-05-04 05:54:09.506 UTC [41] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-db   | 2025-05-04 05:54:09.509 UTC [41] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-app  |   routine: 'parserOpenTable'
+bookstuio-app  | }
+bookstuio-db   | 2025-05-04 05:54:09.519 UTC [44] LOG:  database system was shut down at 2025-05-04 05:54:09 UTC
+bookstuio-db   | 2025-05-04 05:54:09.532 UTC [41] LOG:  database system is ready to accept connections
+bookstuio-db   |  done
+bookstuio-db   | server started
+bookstuio-db   | CREATE DATABASE
+bookstuio-db   |
+bookstuio-db   |
+bookstuio-db   | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+bookstuio-db   |
+bookstuio-db   | waiting for server to shut down....2025-05-04 05:54:09.792 UTC [41] LOG:  received fast shutdown request
+bookstuio-db   | 2025-05-04 05:54:09.795 UTC [41] LOG:  aborting any active transactions
+bookstuio-db   | 2025-05-04 05:54:09.804 UTC [41] LOG:  background worker "logical replication launcher" (PID 47) exited with exit code 1
+bookstuio-db   | 2025-05-04 05:54:09.805 UTC [42] LOG:  shutting down
+bookstuio-db   | 2025-05-04 05:54:09.807 UTC [42] LOG:  checkpoint starting: shutdown immediate
+bookstuio-db   | 2025-05-04 05:54:09.936 UTC [42] LOG:  checkpoint complete: wrote 920 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.066 s, sync=0.057 s, total=0.132 s; sync files=301, longest=0.002 s, average=0.001 s; distance=4233 kB, estimate=4233 kB
+bookstuio-db   | 2025-05-04 05:54:09.954 UTC [41] LOG:  database system is shut down
+bookstuio-db   |  done
+bookstuio-db   | server stopped
+bookstuio-db   |
+bookstuio-db   | PostgreSQL init process complete; ready for start up.
+bookstuio-db   |
+bookstuio-db   | 2025-05-04 05:54:10.064 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-db   | 2025-05-04 05:54:10.064 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+bookstuio-db   | 2025-05-04 05:54:10.064 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+bookstuio-db   | 2025-05-04 05:54:10.069 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db   | 2025-05-04 05:54:10.079 UTC [57] LOG:  database system was shut down at 2025-05-04 05:54:09 UTC
+bookstuio-db   | 2025-05-04 05:54:10.092 UTC [1] LOG:  database system is ready to accept connections
+bookstuio-db   | 2025-05-04 05:54:14.239 UTC [69] ERROR:  relation "users" does not exist at character 67
+bookstuio-db   | 2025-05-04 05:54:14.239 UTC [69] STATEMENT:  select "id", "username", "password", "email", "name", "role" from "users"

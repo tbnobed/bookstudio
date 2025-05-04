@@ -28,5 +28,9 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Start the application with the wait script
-CMD ["./wait-for-postgres.sh", "db", "5432", "node", "dist/index.js"]
+# Copy the entrypoint script
+COPY docker-entrypoint.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Start with the entrypoint script
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
