@@ -1,4 +1,4 @@
-import { db } from '../server/db.js';
+import { db } from './db.js';
 import { scrypt, randomBytes } from 'crypto';
 import { promisify } from 'util';
 import { eq } from 'drizzle-orm';
