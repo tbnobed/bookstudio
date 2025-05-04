@@ -9,6 +9,8 @@ services:
       - "${PORT:-5000}:5000"
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://${POSTGRES_USER:-bookstudio}:${POSTGRES_PASSWORD:-bookstudiopass}@postgres:5432/${POSTGRES_DB:-bookstudio}
@@ -20,6 +22,8 @@ services:
     
   postgres:
     image: postgres:16-alpine
+    env_file:
+      - .env
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bookstudiopass}
       - POSTGRES_USER=${POSTGRES_USER:-bookstudio}

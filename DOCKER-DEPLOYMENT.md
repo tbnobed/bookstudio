@@ -65,6 +65,8 @@ Make sure to update at minimum:
 - `POSTGRES_PASSWORD`: Set to a strong password
 - `SENDGRID_API_KEY`: Your SendGrid API key for email notifications (if used)
 
+> **IMPORTANT:** The docker-compose.yml file is configured to read environment variables directly from the `.env` file. Any changes to environment variables should be made in this file. Both the application and database containers will automatically load these variables.
+
 ## Step 4: Deploy with Docker Compose
 
 Build and start the containers:
