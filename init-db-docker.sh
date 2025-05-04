@@ -122,42 +122,18 @@ log "All prerequisites verified. Proceeding with database initialization..."
 # Step 3: Create schema tables using Drizzle
 run_in_app_container "npm run db:push" "Creating database schema"
 
-# Step 4: Prepare ES module compatibility for database initialization
-log "Preparing ES module compatibility for database initialization..."
-run_in_app_container "mkdir -p /app/scripts/db-es 2>/dev/null || true" "Creating db-es directory"
-run_in_app_container "bash -c \"find /app/scripts -name '*.js' -type f -exec chmod +x {} \\;\"" "Setting up permissions for existing script files"
+# Step 4: Prepare CommonJS compatibility for database initialization
+log "Preparing CommonJS database compatibility for Docker environment..."
+run_in_app_container "chmod +x /app/scripts/*.cjs 2>/dev/null || true" "Setting permissions for CommonJS scripts"
 
-# Step 5: Create a specialized ES-compatible database connection file
-run_in_app_container "bash -c \"if [ ! -f /app/scripts/db-es.js ]; then cat > /app/scripts/db-es.js << 'EOFMARKER'
-#!/usr/bin/env node
-// This file is a specialized version for use with ES modules in scripts
-import { Pool } from \\\"pg\\\";
-import { drizzle } from \\\"drizzle-orm/node-postgres\\\";
-import * as schema from \\\"../shared/schema.js\\\";
+# Step 5: Copy pre-created CommonJS schema file if needed
+run_in_app_container "bash -c \"if [ ! -f /app/shared/schema.cjs ]; then cp /app/scripts/schema.cjs /app/shared/ 2>/dev/null || echo 'Schema file not copied - this is expected on first run'; fi\"" "Setting up CommonJS schema"
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    \\\"DATABASE_URL must be set. Did you forget to provision a database?\\\",
-  );
-}
+# Step 7: Run migrations with CommonJS scripts (more compatible with Docker environment)
+run_in_app_container "bash -c \"if [ -f /app/scripts/migrate-db.cjs ]; then node scripts/migrate-db.cjs; else echo 'CommonJS migration script not found, skipping migrations'; fi\"" "Running notification group migrations"
 
-// PostgreSQL connection for initialization scripts
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
-EOFMARKER
-chmod +x /app/scripts/db-es.js
-else
-  echo 'db-es.js file already exists, skipping creation'
-fi\"" "Creating ES module database connection file"
-
-# Step 6: Update initialization scripts to use the new database connection
-run_in_app_container "bash -c \"if [ -f /app/scripts/migrate-db.js ] && [ -f /app/scripts/init-db.js ]; then sed -i 's|import { db } from \\\"./db.js\\\";|import { db } from \\\"./db-es.js\\\";|g' /app/scripts/migrate-db.js /app/scripts/init-db.js; else echo 'Migration scripts not found, skipping import updates'; fi\"" "Updating database imports in scripts"
-
-# Step 7: Run migrations for notification groups with ES module compatibility
-run_in_app_container "bash -c \"if [ -f /app/scripts/migrate-db.js ]; then node --experimental-specifier-resolution=node scripts/migrate-db.js; else echo 'Migration script not found, skipping migrations'; fi\"" "Running notification group migrations"
-
-# Step 8: Seed initial data with ES module compatibility
-run_in_app_container "bash -c \"if [ -f /app/scripts/init-db.js ]; then node --experimental-specifier-resolution=node scripts/init-db.js; else echo 'Initialization script not found, skipping data seeding'; fi\"" "Seeding initial data"
+# Step 8: Seed initial data with CommonJS scripts
+run_in_app_container "bash -c \"if [ -f /app/scripts/init-db.cjs ]; then node scripts/init-db.cjs; else echo 'CommonJS initialization script not found, skipping data seeding'; fi\"" "Seeding initial data"
 
 log "========================================"
 log "Database initialization complete!"
