@@ -2,6 +2,20 @@ import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzl
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Notification Groups schema
+export const notificationGroups = pgTable("notification_groups", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  email: text("email").notNull(),
+  groupType: text("group_type").notNull(), // camera, lighting, sound, directors, production, engineering
+  description: text("description"),
+  enabled: boolean("enabled").default(true),
+});
+
+export const insertNotificationGroupSchema = createInsertSchema(notificationGroups).omit({
+  id: true,
+});
+
 // User schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -94,6 +108,9 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 });
 
 // Type exports
+export type NotificationGroup = typeof notificationGroups.$inferSelect;
+export type InsertNotificationGroup = z.infer<typeof insertNotificationGroupSchema>;
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 

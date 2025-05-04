@@ -42,6 +42,14 @@ export interface IStorage {
   updateBooking(id: number, data: Partial<InsertBooking>): Promise<Booking | undefined>;
   deleteBooking(id: number): Promise<boolean>;
   
+  // Notification group management
+  getNotificationGroup(id: number): Promise<NotificationGroup | undefined>;
+  getNotificationGroupByType(groupType: string): Promise<NotificationGroup | undefined>;
+  getAllNotificationGroups(): Promise<NotificationGroup[]>;
+  createNotificationGroup(group: InsertNotificationGroup): Promise<NotificationGroup>;
+  updateNotificationGroup(id: number, data: Partial<InsertNotificationGroup>): Promise<NotificationGroup | undefined>;
+  deleteNotificationGroup(id: number): Promise<boolean>;
+  
   // Notification management
   createNotification(notification: InsertNotification): Promise<Notification>;
   getNotificationsByUser(userId: number): Promise<Notification[]>;
@@ -61,12 +69,14 @@ export class MemStorage implements IStorage {
   private templates: Map<number, Template>;
   private bookings: Map<number, Booking>;
   private notifications: Map<number, Notification>;
+  private notificationGroups: Map<number, NotificationGroup>;
   
   private userIdCounter: number;
   private studioIdCounter: number;
   private templateIdCounter: number;
   private bookingIdCounter: number;
   private notificationIdCounter: number;
+  private notificationGroupIdCounter: number;
   
   public sessionStore: session.Store;
 
@@ -76,12 +86,14 @@ export class MemStorage implements IStorage {
     this.templates = new Map();
     this.bookings = new Map();
     this.notifications = new Map();
+    this.notificationGroups = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
     this.templateIdCounter = 1;
     this.bookingIdCounter = 1;
     this.notificationIdCounter = 1;
+    this.notificationGroupIdCounter = 1;
     
     // Create memory store for sessions
     this.sessionStore = new MemoryStore({
