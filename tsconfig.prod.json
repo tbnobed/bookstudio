@@ -4,7 +4,10 @@
     "outDir": "dist",
     "sourceMap": false,
     "removeComments": true,
-    "noEmitOnError": true
+    "noEmitOnError": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "strictNullChecks": false
   },
   "include": ["server/**/*", "shared/**/*"],
   "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts"]

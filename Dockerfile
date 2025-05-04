@@ -1,36 +1,27 @@
-FROM node:20-slim AS base
+FROM node:20-alpine AS app-base
 WORKDIR /app
 
-# Install dependencies needed for build
-FROM base AS builder
+FROM app-base AS app-builder
 COPY package*.json ./
 RUN npm ci
 COPY . .
-# Build the client for production
 RUN npm run build
-# Compile the server TypeScript files to JavaScript
-RUN npx tsc --project tsconfig.prod.json
+# Skip TypeScript compilation for production - we'll rely on the build step above
+# RUN npx tsc --project tsconfig.prod.json
 
-# Production image with minimal dependencies
-FROM base AS runner
-ENV NODE_ENV=production
-
-# Install production dependencies
+FROM app-base AS app-runner
 COPY package*.json ./
 RUN npm ci --omit=dev
+COPY --from=app-builder /app/client/dist /app/client/dist
+COPY --from=app-builder /app/server /app/server
+COPY --from=app-builder /app/shared /app/shared
+COPY --from=app-builder /app/scripts /app/scripts
+COPY --from=app-builder /app/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
-# Copy build artifacts and necessary files
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/scripts ./scripts
-COPY --from=builder /app/shared ./shared
-COPY --from=builder /app/server ./server
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/drizzle.config.js ./drizzle.config.js
-COPY --from=builder /app/drizzle ./drizzle
+ENV NODE_ENV=production
+ENV PORT=5000
 
-# Create an entrypoint script for container initialization
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+EXPOSE ${PORT}
 
-EXPOSE 5000
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

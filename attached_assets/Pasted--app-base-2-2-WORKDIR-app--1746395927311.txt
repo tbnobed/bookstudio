@@ -1,0 +1,79 @@
+ => [app base 2/2] WORKDIR /app                                                                                                                                                                    0.2s
+ => [app builder 1/5] COPY package*.json ./                                                                                                                                                        0.0s
+ => [app runner  2/11] RUN npm ci --omit=dev                                                                                                                                                      18.3s
+ => [app builder 2/5] RUN npm ci                                                                                                                                                                  22.0s
+ => [app builder 3/5] COPY . .                                                                                                                                                                     0.2s
+ => [app builder 4/5] RUN npm run build                                                                                                                                                           18.8s
+ => ERROR [app builder 5/5] RUN npx tsc --project tsconfig.prod.json                                                                                                                               7.9s
+------
+ > [app builder 5/5] RUN npx tsc --project tsconfig.prod.json:
+7.679 server/auth.ts(115,37): error TS7006: Parameter 'err' implicitly has an 'any' type.
+7.680 server/auth.ts(115,42): error TS7006: Parameter 'user' implicitly has an 'any' type.
+7.680 server/auth.ts(115,48): error TS7006: Parameter 'info' implicitly has an 'any' type.
+7.680 server/auth.ts(133,37): error TS7006: Parameter 'err' implicitly has an 'any' type.
+7.680 server/auth.ts(133,42): error TS7006: Parameter 'user' implicitly has an 'any' type.
+7.680 server/auth.ts(133,48): error TS7006: Parameter 'info' implicitly has an 'any' type.
+7.680 server/routes.ts(332,68): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number | null'.
+7.680   Type 'undefined' is not assignable to type 'number | null'.
+7.680 server/services/emailService.ts(42,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+7.680   Type 'undefined' is not assignable to type 'string'.
+7.680 server/storage.ts(219,11): error TS2322: Type '{ id: number; name: string; email: string; username: string; password: string; role?: string | undefined; }' is not assignable to type '{ id: number; name: string; email: string; username: string; password: string; role: string; }'.
+7.680   Types of property 'role' are incompatible.
+7.680     Type 'string | undefined' is not assignable to type 'string'.
+7.680       Type 'undefined' is not assignable to type 'string'.
+7.681 server/storage.ts(250,11): error TS2322: Type '{ id: number; name: string; description?: string | null | undefined; status?: string | undefined; }' is not assignable to type '{ id: number; name: string; description: string | null; status: string; }'.
+7.681   Types of property 'description' are incompatible.
+7.681     Type 'string | null | undefined' is not assignable to type 'string | null'.
+7.681       Type 'undefined' is not assignable to type 'string | null'.
+7.681 server/storage.ts(289,11): error TS2322: Type '{ id: number; name: string; type: string; duration: number; createdBy: number; description?: string | null | undefined; crewRequired?: Json | undefined; equipment?: Json | undefined; }' is not assignable to type '{ id: number; name: string; description: string | null; type: string; duration: number; crewRequired: unknown; equipment: unknown; createdBy: number; }'.
+7.681   Types of property 'description' are incompatible.
+7.681     Type 'string | null | undefined' is not assignable to type 'string | null'.
+7.681       Type 'undefined' is not assignable to type 'string | null'.
+7.681 server/storage.ts(344,11): error TS2322: Type '{ id: number; createdAt: Date; type: string; title: string; userId: number; start: Date; end: Date; description?: string | null | undefined; studioId?: number | null | undefined; severity?: string | ... 1 more ... | undefined; templateId?: number | ... 1 more ... | undefined; notifyList?: Json | undefined; }' is not assignable to type '{ id: number; description: string | null; type: string; title: string; studioId: number | null; userId: number; start: Date; end: Date; severity: string | null; templateId: number | null; notifyList: unknown; createdAt: Date | null; }'.
+7.681   Types of property 'description' are incompatible.
+7.681     Type 'string | null | undefined' is not assignable to type 'string | null'.
+7.681       Type 'undefined' is not assignable to type 'string | null'.
+7.681 server/storage.ts(369,11): error TS2322: Type '{ id: number; read: false; createdAt: Date; message: string; type: string; title: string; userId: number; bookingId?: number | null | undefined; }' is not assignable to type '{ id: number; message: string; type: string; title: string; userId: number; createdAt: Date | null; read: boolean | null; bookingId: number | null; }'.
+7.681   Types of property 'bookingId' are incompatible.
+7.681     Type 'number | null | undefined' is not assignable to type 'number | null'.
+7.681       Type 'undefined' is not assignable to type 'number | null'.
+7.681 server/storage.ts(384,25): error TS2769: No overload matches this call.
+7.681   Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+7.681     Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+7.681       Type 'null' is not assignable to type 'string | number | Date'.
+7.681   Overload 2 of 4, '(value: string | number): Date', gave the following error.
+7.681     Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+7.681       Type 'null' is not assignable to type 'string | number'.
+7.681 server/storage.ts(384,59): error TS2769: No overload matches this call.
+7.681   Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+7.681     Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+7.681       Type 'null' is not assignable to type 'string | number | Date'.
+7.681   Overload 2 of 4, '(value: string | number): Date', gave the following error.
+7.681     Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+7.681       Type 'null' is not assignable to type 'string | number'.
+7.681 server/storage.ts(414,11): error TS2322: Type '{ id: number; name: string; email: string; groupType: string; description?: string | null | undefined; enabled?: boolean | null | undefined; }' is not assignable to type '{ id: number; name: string; email: string; groupType: string; description: string | null; enabled: boolean | null; }'.
+7.681   Types of property 'description' are incompatible.
+7.681     Type 'string | null | undefined' is not assignable to type 'string | null'.
+7.681       Type 'undefined' is not assignable to type 'string | null'.
+7.681 server/storage.ts(920,11): error TS18047: 'result.rowCount' is possibly 'null'.
+7.682 server/storage.ts(1105,11): error TS18047: 'result.rowCount' is possibly 'null'.
+7.682 server/storage.ts(1152,34): error TS2769: No overload matches this call.
+7.682   Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+7.682     Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+7.682       Type 'null' is not assignable to type 'string | number | Date'.
+7.682   Overload 2 of 4, '(value: string | number): Date', gave the following error.
+7.682     Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+7.682       Type 'null' is not assignable to type 'string | number'.
+7.682 server/storage.ts(1152,68): error TS2769: No overload matches this call.
+7.682   Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+7.682     Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+7.682       Type 'null' is not assignable to type 'string | number | Date'.
+7.682   Overload 2 of 4, '(value: string | number): Date', gave the following error.
+7.682     Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+7.682       Type 'null' is not assignable to type 'string | number'.
+7.682 server/vite.ts(39,5): error TS2322: Type '{ middlewareMode: boolean; hmr: { server: Server<typeof IncomingMessage, typeof ServerResponse>; }; allowedHosts: boolean; }' is not assignable to type 'ServerOptions'.
+7.682   Types of property 'allowedHosts' are incompatible.
+7.682     Type 'boolean' is not assignable to type 'true | string[] | undefined'.
+------
+failed to solve: process "/bin/sh -c npx tsc --project tsconfig.prod.json" did not complete successfully: exit code: 2
+obtv-admin@dev-bookstudio:~/bookstudio$
