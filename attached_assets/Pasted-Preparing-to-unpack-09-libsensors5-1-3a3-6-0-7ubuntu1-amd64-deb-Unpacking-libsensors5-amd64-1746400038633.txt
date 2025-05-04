@@ -1,0 +1,202 @@
+Preparing to unpack .../09-libsensors5_1%3a3.6.0-7ubuntu1_amd64.deb ...
+Unpacking libsensors5:amd64 (1:3.6.0-7ubuntu1) ...
+Selecting previously unselected package libxslt1.1:amd64.
+Preparing to unpack .../10-libxslt1.1_1.1.34-4ubuntu0.22.04.3_amd64.deb ...
+Unpacking libxslt1.1:amd64 (1.1.34-4ubuntu0.22.04.3) ...
+Selecting previously unselected package postgresql-client-common.
+Preparing to unpack .../11-postgresql-client-common_238_all.deb ...
+Unpacking postgresql-client-common (238) ...
+Selecting previously unselected package postgresql-client-14.
+Preparing to unpack .../12-postgresql-client-14_14.17-0ubuntu0.22.04.1_amd64.deb ...
+Unpacking postgresql-client-14 (14.17-0ubuntu0.22.04.1) ...
+Selecting previously unselected package ssl-cert.
+Preparing to unpack .../13-ssl-cert_1.1.2_all.deb ...
+Unpacking ssl-cert (1.1.2) ...
+Selecting previously unselected package postgresql-common.
+Preparing to unpack .../14-postgresql-common_238_all.deb ...
+Adding 'diversion of /usr/bin/pg_config to /usr/bin/pg_config.libpq-dev by postgresql-common'
+Unpacking postgresql-common (238) ...
+Selecting previously unselected package postgresql-14.
+Preparing to unpack .../15-postgresql-14_14.17-0ubuntu0.22.04.1_amd64.deb ...
+Unpacking postgresql-14 (14.17-0ubuntu0.22.04.1) ...
+Selecting previously unselected package postgresql.
+Preparing to unpack .../16-postgresql_14+238_all.deb ...
+Unpacking postgresql (14+238) ...
+Selecting previously unselected package postgresql-contrib.
+Preparing to unpack .../17-postgresql-contrib_14+238_all.deb ...
+Unpacking postgresql-contrib (14+238) ...
+Selecting previously unselected package sysstat.
+Preparing to unpack .../18-sysstat_12.5.2-2ubuntu0.2_amd64.deb ...
+Unpacking sysstat (12.5.2-2ubuntu0.2) ...
+Setting up logrotate (3.19.0-1ubuntu1.1) ...
+Created symlink /etc/systemd/system/timers.target.wants/logrotate.timer → /lib/systemd/system/logrotate.timer.
+logrotate.service is a disabled or a static unit, not starting it.
+Setting up postgresql-client-common (238) ...
+Setting up libsensors-config (1:3.6.0-7ubuntu1) ...
+Setting up libpq5:amd64 (14.17-0ubuntu0.22.04.1) ...
+Setting up libcommon-sense-perl:amd64 (3.75-2build1) ...
+Setting up postgresql-client-14 (14.17-0ubuntu0.22.04.1) ...
+update-alternatives: using /usr/share/postgresql/14/man/man1/psql.1.gz to provide /usr/share/man/man1/psql.1.gz (psql.1.gz) in auto mode
+Setting up locales (2.35-0ubuntu3.9) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 78.)
+debconf: falling back to frontend: Readline
+Generating locales (this might take a while)...
+Generation complete.
+Setting up ssl-cert (1.1.2) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 78.)
+debconf: falling back to frontend: Readline
+Setting up libsensors5:amd64 (1:3.6.0-7ubuntu1) ...
+Setting up libllvm14:amd64 (1:14.0.0-1ubuntu1.1) ...
+Setting up libtypes-serialiser-perl (1.01-1) ...
+Setting up libjson-perl (4.04000-1) ...
+Setting up libxslt1.1:amd64 (1.1.34-4ubuntu0.22.04.3) ...
+Setting up sysstat (12.5.2-2ubuntu0.2) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 78.)
+debconf: falling back to frontend: Readline
+
+Creating config file /etc/default/sysstat with new version
+update-alternatives: using /usr/bin/sar.sysstat to provide /usr/bin/sar (sar) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/man1/sar.1.gz because associated file /usr/share/man/man1/sar.sysstat.1.gz (of link group sar) doesn't exist
+Created symlink /etc/systemd/system/sysstat.service.wants/sysstat-collect.timer → /lib/systemd/system/sysstat-collect.timer.
+Created symlink /etc/systemd/system/sysstat.service.wants/sysstat-summary.timer → /lib/systemd/system/sysstat-summary.timer.
+Created symlink /etc/systemd/system/multi-user.target.wants/sysstat.service → /lib/systemd/system/sysstat.service.
+Setting up libjson-xs-perl (4.030-1build3) ...
+Setting up postgresql-common (238) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 78.)
+debconf: falling back to frontend: Readline
+Adding user postgres to group ssl-cert
+
+Creating config file /etc/postgresql-common/createcluster.conf with new version
+Building PostgreSQL dictionaries from installed myspell/hunspell packages...
+Removing obsolete dictionary files:
+Created symlink /etc/systemd/system/multi-user.target.wants/postgresql.service → /lib/systemd/system/postgresql.service.
+Setting up postgresql-14 (14.17-0ubuntu0.22.04.1) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 78.)
+debconf: falling back to frontend: Readline
+Creating new PostgreSQL cluster 14/main ...
+/usr/lib/postgresql/14/bin/initdb -D /var/lib/postgresql/14/main --auth-local peer --auth-host scram-sha-256 --no-instructions
+The files belonging to this database system will be owned by user "postgres".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "C.UTF-8".
+The default database encoding has accordingly been set to "UTF8".
+The default text search configuration will be set to "english".
+
+Data page checksums are disabled.
+
+fixing permissions on existing directory /var/lib/postgresql/14/main ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default max_connections ... 100
+selecting default shared_buffers ... 128MB
+selecting default time zone ... Etc/UTC
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+update-alternatives: using /usr/share/postgresql/14/man/man1/postmaster.1.gz to provide /usr/share/man/man1/postmaster.1.gz (postmaster.1.gz) in auto mode
+Setting up postgresql-contrib (14+238) ...
+Setting up postgresql (14+238) ...
+Processing triggers for libc-bin (2.35-0ubuntu3.9) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 78.)
+debconf: falling back to frontend: Readline
+Scanning processes...
+Scanning linux images...
+
+Running kernel seems to be up-to-date.
+
+No services need to be restarted.
+
+No containers need to be restarted.
+
+No user sessions are running outdated binaries.
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+Installing PM2 process manager...
+
+added 134 packages in 9s
+
+13 packages are looking for funding
+  run `npm fund` for details
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.3.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.3.0
+npm notice To update run: npm install -g npm@11.3.0
+npm notice
+Installation completed successfully!
+------------------------------------
+To deploy BookStud.io, run:
+  1. Copy your project files to the server
+  2. Create a PostgreSQL database and user
+  3. Configure .env file with your settings
+  4. Run './deploy.sh' (with Docker) or './start.sh' (without Docker)
+------------------------------------
+obtv-admin@dev-bookstudio:~/bookstudio$ ./deploy.sh
+Starting BookStud.io deployment process...
+Warning: .env file not found. Creating from .env.example...
+Please update the .env file with your actual values before continuing
+Press enter to continue after updating .env...^C
+obtv-admin@dev-bookstudio:~/bookstudio$ nano .env
+obtv-admin@dev-bookstudio:~/bookstudio$ ./deploy.sh
+Starting BookStud.io deployment process...
+Production environment detected. Creating database backup...
+No existing database found or database is not running. Skipping backup.
+Building and starting containers...
+[+] Running 12/12
+ ✔ db 11 layers [⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿]      0B/0B      Pulled                                                                                                                                                                                                        16.8s
+   ✔ f18232174bc9 Already exists                                                                                                                                                                                                                             0.0s
+   ✔ 7f5e6267c369 Pull complete                                                                                                                                                                                                                              0.3s
+   ✔ ca182ce80bc5 Pull complete                                                                                                                                                                                                                              0.4s
+   ✔ 649c8bbc7c81 Pull complete                                                                                                                                                                                                                              0.3s
+   ✔ 09acd1a8ea8b Pull complete                                                                                                                                                                                                                              0.7s
+   ✔ a99e6a42ea19 Pull complete                                                                                                                                                                                                                              4.7s
+   ✔ bb91798c23d9 Pull complete                                                                                                                                                                                                                              0.7s
+   ✔ 41e14243a74d Pull complete                                                                                                                                                                                                                              1.0s
+   ✔ 2735b2433cd0 Pull complete                                                                                                                                                                                                                              1.1s
+   ✔ 4f7fc7a279d8 Pull complete                                                                                                                                                                                                                              1.3s
+   ✔ 5fe01fe29394 Pull complete                                                                                                                                                                                                                              1.4s
+[+] Building 84.0s (11/11) FINISHED                                                                                                                                                                                                                docker:default
+ => [app internal] load build definition from Dockerfile                                                                                                                                                                                                     0.0s
+ => => transferring dockerfile: 592B                                                                                                                                                                                                                         0.0s
+ => [app internal] load metadata for docker.io/library/node:20.18.1-alpine3.19                                                                                                                                                                               1.1s
+ => [app internal] load .dockerignore                                                                                                                                                                                                                        0.0s
+ => => transferring context: 552B                                                                                                                                                                                                                            0.0s
+ => [app 1/6] FROM docker.io/library/node:20.18.1-alpine3.19@sha256:1cc9088b0fbcb2009a8fc2cb57916cd129cd5e32b3c75fb12bb24bac76917a96                                                                                                                         5.9s
+ => => resolve docker.io/library/node:20.18.1-alpine3.19@sha256:1cc9088b0fbcb2009a8fc2cb57916cd129cd5e32b3c75fb12bb24bac76917a96                                                                                                                             0.0s
+ => => sha256:1cc9088b0fbcb2009a8fc2cb57916cd129cd5e32b3c75fb12bb24bac76917a96 7.69kB / 7.69kB                                                                                                                                                               0.0s
+ => => sha256:50209a555b1016096a415de2c055bc88dffb31b5afbca0ac237f027a41cbbe6e 1.72kB / 1.72kB                                                                                                                                                               0.0s
+ => => sha256:6b6f766ab64e08a57fa2255a5347d83880d1947f1bfea9ab55dfd760daec1784 6.20kB / 6.20kB                                                                                                                                                               0.0s
+ => => sha256:a7cd7d9a21440da0d765f2989d75f069adf9b3463a765421a0590bca720920d4 3.42MB / 3.42MB                                                                                                                                                               0.4s
+ => => sha256:b508a0a802cc38d079a5055ea5b2663aa750189a5a59534c154b6e89bf0697c5 42.63MB / 42.63MB                                                                                                                                                             1.0s
+ => => sha256:24ccc27c613d79e23ab0d19893d0505ba531b266e6b6c56267c0635c5ae8410e 1.39MB / 1.39MB                                                                                                                                                               0.2s
+ => => sha256:c53026b414f8e18bfde927049ab4a6e1ec606161d8f06145728f87b6a2334050 445B / 445B                                                                                                                                                                   0.4s
+ => => extracting sha256:a7cd7d9a21440da0d765f2989d75f069adf9b3463a765421a0590bca720920d4                                                                                                                                                                    0.3s
+ => => extracting sha256:b508a0a802cc38d079a5055ea5b2663aa750189a5a59534c154b6e89bf0697c5                                                                                                                                                                    4.4s
+ => => extracting sha256:24ccc27c613d79e23ab0d19893d0505ba531b266e6b6c56267c0635c5ae8410e                                                                                                                                                                    0.1s
+ => => extracting sha256:c53026b414f8e18bfde927049ab4a6e1ec606161d8f06145728f87b6a2334050                                                                                                                                                                    0.0s
+ => [app internal] load build context                                                                                                                                                                                                                        7.2s
+ => => transferring context: 222.71MB                                                                                                                                                                                                                        7.2s
+ => [app 2/6] WORKDIR /app                                                                                                                                                                                                                                   0.4s
+ => [app 3/6] COPY package*.json ./                                                                                                                                                                                                                          0.4s
+ => [app 4/6] RUN npm ci                                                                                                                                                                                                                                    23.1s
+ => [app 5/6] COPY . .                                                                                                                                                                                                                                       3.5s
+ => [app 6/6] RUN npm run build                                                                                                                                                                                                                             23.0s
+ => [app] exporting to image                                                                                                                                                                                                                                25.4s
+ => => exporting layers                                                                                                                                                                                                                                     25.3s
+ => => writing image sha256:9b426411a11acb2b5c83eed3718b8750a37be33fdadefec9feadb28fc44c0590                                                                                                                                                                 0.0s
+ => => naming to docker.io/library/bookstudio-app                                                                                                                                                                                                            0.0s
+[+] Running 0/0
+[+] Running 4/4studio_app-network  Creating                                                                                                                                                                                                                  0.1s
+ ✔ Network bookstudio_app-network     Created                                                                                                                                                                                                                0.1s
+ ✔ Volume "bookstudio_postgres_data"  Created                                                                                                                                                                                                                0.0s
+ ✔ Container bookstudio-db-1          Created                                                                                                                                                                                                                0.1s
+ ✔ Container bookstudio-app-1         Recreated                                                                                                                                                                                                              0.1s
+Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint bookstudio-db-1 (5a97f917a83d525a80171f0f1c89c5a241ef06b006b711e4bf63eedcd1e4b058): failed to bind host port for 0.0.0.0:5432:172.19.0.2:5432/tcp: address already in use
+obtv-admin@dev-bookstudio:~/bookstudio$ ^C
+obtv-admin@dev-bookstudio:~/bookstudio$
