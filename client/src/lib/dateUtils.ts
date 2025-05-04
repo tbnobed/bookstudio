@@ -38,29 +38,46 @@ export function formatDateTimeRange(start: Date | string, end: Date | string): s
 }
 
 export function getWeekDates(date: Date | null | undefined): Date[] {
-  // If no date is provided, use current date
-  const safeDate = date || new Date();
+  // Always create a fresh copy of the date to avoid reference issues
+  const safeDate = date ? new Date(date.getTime()) : new Date();
   
+  // Add timestamp for debugging and tracking
+  const timestamp = Date.now();
+  console.log(`getWeekDates - [Timestamp: ${timestamp}] Input date: ${safeDate.toISOString()}`);
+  
+  // Get the day of the week (0-6, where 0 is Sunday)
   const day = safeDate.getDay();
+  
+  // Calculate the date of Sunday (start of week)
   const diff = safeDate.getDate() - day;
-  const weekStart = new Date(safeDate);
+  const weekStart = new Date(safeDate.getTime());
   weekStart.setDate(diff);
   
+  console.log(`getWeekDates - [Timestamp: ${timestamp}] Calculated week start: ${weekStart.toISOString()}`);
+  
+  // Create an array of dates for the week
   const weekDates: Date[] = [];
+  
+  // Generate 7 days starting from Sunday
   for (let i = 0; i < 7; i++) {
-    const nextDate = new Date(weekStart);
+    // Create a fresh date object for each day to avoid reference issues
+    const nextDate = new Date(weekStart.getTime());
     nextDate.setDate(weekStart.getDate() + i);
     weekDates.push(nextDate);
   }
+  
+  console.log(`getWeekDates - [Timestamp: ${timestamp}] First date in array: ${weekDates[0].toISOString()}, Last date: ${weekDates[6].toISOString()}`);
   
   return weekDates;
 }
 
 export function getWeekRange(date: Date | null | undefined): { start: Date; end: Date } {
   const weekDates = getWeekDates(date);
+  
+  // Always create new date objects to avoid reference issues
   return {
-    start: weekDates[0],
-    end: weekDates[6],
+    start: new Date(weekDates[0].getTime()),
+    end: new Date(weekDates[6].getTime()),
   };
 }
 
@@ -109,17 +126,21 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
 
 export function formatWeekRangeText(currentDate: Date | null | undefined): string {
   // If no date is provided, use current date
-  const safeDate = currentDate || new Date();
+  // Always create a clean copy of the date to avoid reference issues
+  const safeDate = currentDate ? new Date(currentDate.getTime()) : new Date();
+  
+  // Add timestamp for unique logging
+  const timestamp = Date.now();
+  console.log(`formatWeekRangeText - [Timestamp: ${timestamp}] Date input: ${safeDate.toISOString()}`);
   
   // Get the fresh week dates for the current date - always calculate this
   // directly from the input date to ensure it's up to date
   const weekDates = getWeekDates(safeDate);
-  const start = weekDates[0];
-  const end = weekDates[6];
   
-  // Add timestamp to force recalculation on each render
-  const timestamp = Date.now();
-  console.log(`formatWeekRangeText - [Timestamp: ${timestamp}] Date input: ${safeDate.toISOString()}`);
+  // Make clean copies of start and end dates
+  const start = new Date(weekDates[0].getTime());
+  const end = new Date(weekDates[6].getTime());
+  
   console.log(`formatWeekRangeText - [Timestamp: ${timestamp}] Week start: ${start.toISOString()}, end: ${end.toISOString()}`);
   
   // Format month names
