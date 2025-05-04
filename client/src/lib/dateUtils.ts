@@ -37,10 +37,13 @@ export function formatDateTimeRange(start: Date | string, end: Date | string): s
   }
 }
 
-export function getWeekDates(date: Date): Date[] {
-  const day = date.getDay();
-  const diff = date.getDate() - day;
-  const weekStart = new Date(date);
+export function getWeekDates(date: Date | null | undefined): Date[] {
+  // If no date is provided, use current date
+  const safeDate = date || new Date();
+  
+  const day = safeDate.getDay();
+  const diff = safeDate.getDate() - day;
+  const weekStart = new Date(safeDate);
   weekStart.setDate(diff);
   
   const weekDates: Date[] = [];
@@ -53,7 +56,7 @@ export function getWeekDates(date: Date): Date[] {
   return weekDates;
 }
 
-export function getWeekRange(date: Date): { start: Date; end: Date } {
+export function getWeekRange(date: Date | null | undefined): { start: Date; end: Date } {
   const weekDates = getWeekDates(date);
   return {
     start: weekDates[0],
@@ -104,8 +107,11 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
   );
 }
 
-export function formatWeekRangeText(currentDate: Date): string {
-  const { start, end } = getWeekRange(currentDate);
+export function formatWeekRangeText(currentDate: Date | null | undefined): string {
+  // If no date is provided, use current date
+  const safeDate = currentDate || new Date();
+  
+  const { start, end } = getWeekRange(safeDate);
   const startMonth = MONTH_NAMES[start.getMonth()].substring(0, 3);
   const endMonth = MONTH_NAMES[end.getMonth()].substring(0, 3);
   
