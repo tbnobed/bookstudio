@@ -97,8 +97,67 @@ rm -rf ./tmp 2>/dev/null || true
 rm -rf ./logs/*.log 2>/dev/null || true
 print_message "$GREEN" "Temporary files removed."
 
-# Step 5: Remove the install.sh and start.sh scripts - they're not needed
-print_message "$BLUE" "STEP 5: Removing obsolete scripts (install.sh and start.sh)..."
+# Step 5: Remove system PostgreSQL installation
+print_message "$BLUE" "STEP 5: Removing PostgreSQL server from host system..."
+
+# Determine package manager
+PKG_MANAGER=""
+if command -v apt-get >/dev/null 2>&1; then
+    PKG_MANAGER="apt-get"
+elif command -v dnf >/dev/null 2>&1; then
+    PKG_MANAGER="dnf"
+elif command -v yum >/dev/null 2>&1; then
+    PKG_MANAGER="yum"
+elif command -v pacman >/dev/null 2>&1; then
+    PKG_MANAGER="pacman"
+elif command -v zypper >/dev/null 2>&1; then
+    PKG_MANAGER="zypper"
+fi
+
+if [ -n "$PKG_MANAGER" ]; then
+    # Check if PostgreSQL is installed
+    if command -v psql >/dev/null 2>&1 || systemctl is-active postgresql &>/dev/null || service postgresql status &>/dev/null; then
+        print_message "$BLUE" "PostgreSQL is installed on the system."
+        print_message "$YELLOW" "This will be removed since Docker will manage its own PostgreSQL instance."
+        
+        # Stop PostgreSQL service if running
+        if systemctl is-active postgresql &>/dev/null || service postgresql status &>/dev/null; then
+            print_message "$BLUE" "Stopping PostgreSQL service..."
+            sudo systemctl stop postgresql &>/dev/null || sudo service postgresql stop &>/dev/null
+        fi
+        
+        # Uninstall PostgreSQL based on package manager
+        case "$PKG_MANAGER" in
+            "apt-get")
+                print_message "$BLUE" "Removing PostgreSQL packages using apt..."
+                sudo apt-get remove -y postgresql postgresql-contrib postgresql-common &>/dev/null || true
+                sudo apt-get autoremove -y &>/dev/null || true
+                ;;
+            "dnf"|"yum")
+                print_message "$BLUE" "Removing PostgreSQL packages using ${PKG_MANAGER}..."
+                sudo $PKG_MANAGER remove -y postgresql postgresql-server &>/dev/null || true
+                ;;
+            "pacman")
+                print_message "$BLUE" "Removing PostgreSQL packages using pacman..."
+                sudo pacman -Rs --noconfirm postgresql &>/dev/null || true
+                ;;
+            "zypper")
+                print_message "$BLUE" "Removing PostgreSQL packages using zypper..."
+                sudo zypper remove -y postgresql postgresql-server &>/dev/null || true
+                ;;
+        esac
+        
+        print_message "$GREEN" "PostgreSQL packages removed from the host system."
+        print_message "$YELLOW" "Note: PostgreSQL data will be managed by Docker containers instead."
+    else
+        print_message "$GREEN" "PostgreSQL not found on the system. Nothing to remove."
+    fi
+else
+    print_message "$YELLOW" "No supported package manager found, skipping PostgreSQL removal."
+fi
+
+# Step 6: Remove the install.sh and start.sh scripts - they're not needed
+print_message "$BLUE" "STEP 6: Removing obsolete scripts (install.sh and start.sh)..."
 if [ -f "./install.sh" ]; then
     rm -f ./install.sh
     print_message "$GREEN" "Removed install.sh script."
@@ -116,7 +175,7 @@ print_message "$GREEN" "You can now deploy BookStud.io with just:"
 print_message "$BLUE" "  docker compose build"
 print_message "$BLUE" "  docker compose up -d"
 print_message "$GREEN" "============================================"
-print_message "$YELLOW" "Note: This script did NOT remove Docker, Docker Compose, or PostgreSQL"
+print_message "$YELLOW" "Note: This script did NOT remove Docker or Docker Compose"
 print_message "$YELLOW" "as they are required for the Docker-based deployment."
 print_message "$GREEN" "============================================"
 
