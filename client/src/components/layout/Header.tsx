@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { subtractDays, addDays, formatWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
 import { useQuery } from "@tanstack/react-query";
-import { Studio } from "@shared/schema";
+import { Studio, Booking } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 
@@ -91,7 +91,7 @@ export function Header({
   };
 
   // Fetch bookings for status calculation
-  const { data: bookings = [] } = useQuery({
+  const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
     // Only used for status calculation, so no need to refetch often
     refetchInterval: 60000,

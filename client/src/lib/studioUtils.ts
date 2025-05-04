@@ -1,4 +1,4 @@
-import { Studio, Booking } from "@shared/schema";
+import type { Studio, Booking } from "@shared/schema";
 import { isSameDay } from "./dateUtils";
 
 // Calculate the effective studio status based on bookings
