@@ -125,10 +125,10 @@ run_in_app_container "npm run db:push" "Creating database schema"
 # Step 4: Prepare ES module compatibility for database initialization
 log "Preparing ES module compatibility for database initialization..."
 run_in_app_container "mkdir -p /app/scripts/db-es 2>/dev/null || true" "Creating db-es directory"
-run_in_app_container "for file in /app/scripts/db.js /app/scripts/migrate-db.js /app/scripts/init-db.js; do [ -f \$file ] && chmod +x \$file || echo \"File \$file not found, will be created if needed\"; done" "Setting up permissions for existing script files"
+run_in_app_container "sh -c 'for file in /app/scripts/db.js /app/scripts/migrate-db.js /app/scripts/init-db.js; do if [ -f \$file ]; then chmod +x \$file; else echo \"File \$file not found, will be created if needed\"; fi; done'" "Setting up permissions for existing script files"
 
 # Step 5: Create a specialized ES-compatible database connection file
-run_in_app_container "[ -f /app/scripts/db-es.js ] && echo 'db-es.js file already exists, skipping creation' || (cat > /app/scripts/db-es.js << 'EOL'
+run_in_app_container "sh -c '[ -f /app/scripts/db-es.js ] && echo \"db-es.js file already exists, skipping creation\" || (cat > /app/scripts/db-es.js << \"EOL\"
 #!/usr/bin/env node
 // This file is a specialized version for use with ES modules in scripts
 import { Pool } from \"pg\";
@@ -145,16 +145,16 @@ if (!process.env.DATABASE_URL) {
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle(pool, { schema });
 EOL
-chmod +x /app/scripts/db-es.js)" "Creating ES module database connection file"
+chmod +x /app/scripts/db-es.js)'" "Creating ES module database connection file"
 
 # Step 6: Update initialization scripts to use the new database connection
-run_in_app_container "sed -i 's|import { db } from \"./db.js\";|import { db } from \"./db-es.js\";|g' /app/scripts/migrate-db.js /app/scripts/init-db.js" "Updating database imports in scripts"
+run_in_app_container "sh -c 'if [ -f /app/scripts/migrate-db.js ] && [ -f /app/scripts/init-db.js ]; then sed -i \"s|import { db } from \\\"./db.js\\\";|import { db } from \\\"./db-es.js\\\";|g\" /app/scripts/migrate-db.js /app/scripts/init-db.js; else echo \"Migration scripts not found, skipping import updates\"; fi'" "Updating database imports in scripts"
 
 # Step 7: Run migrations for notification groups with ES module compatibility
-run_in_app_container "node --experimental-specifier-resolution=node scripts/migrate-db.js" "Running notification group migrations"
+run_in_app_container "sh -c 'if [ -f /app/scripts/migrate-db.js ]; then node --experimental-specifier-resolution=node scripts/migrate-db.js; else echo \"Migration script not found, skipping migrations\"; fi'" "Running notification group migrations"
 
 # Step 8: Seed initial data with ES module compatibility
-run_in_app_container "node --experimental-specifier-resolution=node scripts/init-db.js" "Seeding initial data"
+run_in_app_container "sh -c 'if [ -f /app/scripts/init-db.js ]; then node --experimental-specifier-resolution=node scripts/init-db.js; else echo \"Initialization script not found, skipping data seeding\"; fi'" "Seeding initial data"
 
 log "========================================"
 log "Database initialization complete!"
