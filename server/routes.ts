@@ -6,7 +6,8 @@ import {
   insertStudioSchema, 
   insertTemplateSchema, 
   insertBookingSchema, 
-  insertNotificationSchema
+  insertNotificationSchema,
+  insertNotificationGroupSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { ValidationError } from "zod-validation-error";
@@ -686,6 +687,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedNotification);
     } catch (error) {
       res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  // Notification Group routes
+  app.get("/api/notification-groups", isAuthenticated, async (req, res) => {
+    try {
+      const groups = await storage.getAllNotificationGroups();
+      res.json(groups);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notification groups" });
+    }
+  });
+
+  app.get("/api/notification-groups/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const group = await storage.getNotificationGroup(id);
+      
+      if (!group) {
+        return res.status(404).json({ message: "Notification group not found" });
+      }
+      
+      res.json(group);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notification group" });
+    }
+  });
+
+  app.get("/api/notification-groups/type/:groupType", isAuthenticated, async (req, res) => {
+    try {
+      const { groupType } = req.params;
+      const group = await storage.getNotificationGroupByType(groupType);
+      
+      if (!group) {
+        return res.status(404).json({ message: "Notification group not found" });
+      }
+      
+      res.json(group);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notification group by type" });
+    }
+  });
+
+  app.post("/api/notification-groups", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // Only admins, engineers, and IT can manage notification groups
+      if (!["admin", "engineer", "it"].includes(user.role)) {
+        return res.status(403).json({ 
+          message: "Only administrators, engineers, and IT support can manage notification groups" 
+        });
+      }
+      
+      // Validate request body
+      const groupData = insertNotificationGroupSchema.parse(req.body);
+      const newGroup = await storage.createNotificationGroup(groupData);
+      res.status(201).json(newGroup);
+    } catch (error) {
+      if (error instanceof ValidationError || error instanceof ZodError) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to create notification group" });
+    }
+  });
+
+  app.patch("/api/notification-groups/:id", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const id = parseInt(req.params.id);
+      
+      // Only admins, engineers, and IT can manage notification groups
+      if (!["admin", "engineer", "it"].includes(user.role)) {
+        return res.status(403).json({ 
+          message: "Only administrators, engineers, and IT support can manage notification groups" 
+        });
+      }
+      
+      const group = await storage.getNotificationGroup(id);
+      if (!group) {
+        return res.status(404).json({ message: "Notification group not found" });
+      }
+      
+      const updateData = req.body;
+      const updatedGroup = await storage.updateNotificationGroup(id, updateData);
+      res.json(updatedGroup);
+    } catch (error) {
+      if (error instanceof ValidationError || error instanceof ZodError) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to update notification group" });
+    }
+  });
+
+  app.delete("/api/notification-groups/:id", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const id = parseInt(req.params.id);
+      
+      // Only admins, engineers, and IT can manage notification groups
+      if (!["admin", "engineer", "it"].includes(user.role)) {
+        return res.status(403).json({ 
+          message: "Only administrators, engineers, and IT support can manage notification groups" 
+        });
+      }
+      
+      const group = await storage.getNotificationGroup(id);
+      if (!group) {
+        return res.status(404).json({ message: "Notification group not found" });
+      }
+      
+      const success = await storage.deleteNotificationGroup(id);
+      if (success) {
+        res.status(204).end();
+      } else {
+        res.status(500).json({ message: "Failed to delete notification group" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete notification group" });
     }
   });
 

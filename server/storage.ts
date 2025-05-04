@@ -556,74 +556,88 @@ export class DatabaseStorage implements IStorage {
         this.notificationIdCounter = Math.max(this.notificationIdCounter, notification.id + 1);
       });
       
-      // Load notification groups
-      const allNotificationGroups = await db.select().from(notificationGroups);
-      allNotificationGroups.forEach(group => {
-        this.notificationGroups.set(group.id, group);
-        this.notificationGroupIdCounter = Math.max(this.notificationGroupIdCounter, group.id + 1);
-      });
+      // We'll handle notification groups with in-memory implementation for now
+      // since the table might not exist yet
+      this.notificationGroups = new Map();
+      this.notificationGroupIdCounter = 1;
       
-      // If no notification groups exist, create default ones
-      if (allNotificationGroups.length === 0) {
-        console.log("Creating default notification groups...");
-        
-        const defaultGroups = [
-          {
-            name: "Camera Operators",
-            email: "camera-team@studios.com",
-            groupType: "department",
-            description: "All camera operators and video technicians"
-          },
-          {
-            name: "Lighting Technicians",
-            email: "lighting@studios.com",
-            groupType: "department",
-            description: "Lighting setup and operation staff"
-          },
-          {
-            name: "Directors",
-            email: "directors@studios.com",
-            groupType: "department",
-            description: "Program directors and assistant directors"
-          },
-          {
-            name: "Sound Engineers",
-            email: "sound@studios.com",
-            groupType: "department",
-            description: "Audio and sound personnel"
-          },
-          {
-            name: "Production Assistants",
-            email: "pa@studios.com",
-            groupType: "department",
-            description: "PAs and floor managers"
-          },
-          {
-            name: "Engineering",
-            email: "engineering@studios.com",
-            groupType: "department",
-            description: "Engineering and maintenance team"
-          },
-          {
-            name: "IT Support",
-            email: "it@studios.com",
-            groupType: "department",
-            description: "IT support and network team"
-          },
-          {
-            name: "All Staff",
-            email: "all-staff@studios.com",
-            groupType: "facility",
-            description: "All facility personnel"
-          }
-        ];
-        
-        for (const group of defaultGroups) {
-          await db.insert(notificationGroups).values(group);
+      // Set up default notification groups in memory
+      const defaultGroups = [
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Camera Operators",
+          email: "camera-team@studios.com",
+          groupType: "department",
+          description: "All camera operators and video technicians",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Lighting Technicians",
+          email: "lighting@studios.com",
+          groupType: "department",
+          description: "Lighting setup and operation staff",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Directors",
+          email: "directors@studios.com",
+          groupType: "department",
+          description: "Program directors and assistant directors",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Sound Engineers",
+          email: "sound@studios.com",
+          groupType: "department",
+          description: "Audio and sound personnel",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Production Assistants",
+          email: "pa@studios.com",
+          groupType: "department",
+          description: "PAs and floor managers",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "Engineering",
+          email: "engineering@studios.com",
+          groupType: "department",
+          description: "Engineering and maintenance team",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "IT Support",
+          email: "it@studios.com",
+          groupType: "department",
+          description: "IT support and network team",
+          enabled: true
+        },
+        {
+          id: this.notificationGroupIdCounter++,
+          name: "All Staff",
+          email: "all-staff@studios.com",
+          groupType: "facility",
+          description: "All facility personnel",
+          enabled: true
         }
-        
-        console.log("Default notification groups created.");
+      ];
+      
+      // Add default groups to our in-memory store
+      for (const group of defaultGroups) {
+        this.notificationGroups.set(group.id, group);
       }
+      
+      console.log("Default notification groups created in memory.");
+      
+      // Note: We'll need to run the db migration to create the notification_groups table
+      // before we can use the database for notification groups
       
     } catch (error) {
       console.error("Error initializing database:", error);
@@ -1110,6 +1124,41 @@ export class DatabaseStorage implements IStorage {
       console.error(`Error marking notification with ID ${id} as read:`, error);
       return undefined;
     }
+  }
+
+  // Notification Group methods - in-memory implementation until db table is created
+  async getNotificationGroup(id: number): Promise<NotificationGroup | undefined> {
+    return this.notificationGroups.get(id);
+  }
+
+  async getNotificationGroupByType(groupType: string): Promise<NotificationGroup | undefined> {
+    return Array.from(this.notificationGroups.values()).find(
+      group => group.groupType === groupType
+    );
+  }
+
+  async getAllNotificationGroups(): Promise<NotificationGroup[]> {
+    return Array.from(this.notificationGroups.values());
+  }
+
+  async createNotificationGroup(group: InsertNotificationGroup): Promise<NotificationGroup> {
+    const id = this.notificationGroupIdCounter++;
+    const newGroup: NotificationGroup = { ...group, id };
+    this.notificationGroups.set(id, newGroup);
+    return newGroup;
+  }
+
+  async updateNotificationGroup(id: number, data: Partial<InsertNotificationGroup>): Promise<NotificationGroup | undefined> {
+    const group = this.notificationGroups.get(id);
+    if (!group) return undefined;
+    
+    const updatedGroup: NotificationGroup = { ...group, ...data };
+    this.notificationGroups.set(id, updatedGroup);
+    return updatedGroup;
+  }
+  
+  async deleteNotificationGroup(id: number): Promise<boolean> {
+    return this.notificationGroups.delete(id);
   }
 }
 
