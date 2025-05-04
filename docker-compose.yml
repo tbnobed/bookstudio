@@ -27,7 +27,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: bookstuio-app
-    restart: always
+    restart: on-failure:3
     tty: true           # Keep container running with a TTY
     stdin_open: true    # Keep container running with stdin open
     ports:
