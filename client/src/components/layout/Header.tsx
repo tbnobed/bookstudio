@@ -80,21 +80,33 @@ export function Header({
     onDateChange(newDate);
   };
 
-  // Get date display text based on view
-  const getDateDisplayText = () => {
+  // Get date display text based on view (using state to trigger re-renders)
+  const [dateDisplayText, setDateDisplayText] = useState<string>("");
+
+  // Update display text whenever currentDate or view changes
+  useEffect(() => {
+    console.log(`Header - Date changed to: ${currentDate.toISOString()}, view: ${view}`);
+    
+    let text = "";
     if (view === "day") {
-      return currentDate.toLocaleDateString("en-US", { 
+      text = currentDate.toLocaleDateString("en-US", { 
         weekday: "short", 
         month: "short", 
         day: "numeric",
         year: "numeric"
       });
     } else if (view === "week") {
-      return formatWeekRangeText(currentDate);
+      text = formatWeekRangeText(currentDate);
     } else {
-      return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      text = currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
     }
-  };
+    
+    console.log(`Header - New date display text: ${text}`);
+    setDateDisplayText(text);
+  }, [currentDate, view]);
+  
+  // Function for direct access if needed
+  const getDateDisplayText = () => dateDisplayText;
 
   // Handle studio filter change
   const toggleStudioFilter = (studioId: number) => {

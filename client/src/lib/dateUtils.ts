@@ -111,15 +111,26 @@ export function formatWeekRangeText(currentDate: Date | null | undefined): strin
   // If no date is provided, use current date
   const safeDate = currentDate || new Date();
   
-  const { start, end } = getWeekRange(safeDate);
+  // Get the fresh week dates for the current date
+  const weekDates = getWeekDates(safeDate);
+  const start = weekDates[0];
+  const end = weekDates[6];
+  
+  // Debug information to ensure we're using the correct date
+  console.log(`formatWeekRangeText - Date input: ${safeDate.toISOString()}`);
+  console.log(`formatWeekRangeText - Week start: ${start.toISOString()}, end: ${end.toISOString()}`);
+  
+  // Format month names
   const startMonth = MONTH_NAMES[start.getMonth()].substring(0, 3);
   const endMonth = MONTH_NAMES[end.getMonth()].substring(0, 3);
   
-  if (start.getMonth() === end.getMonth()) {
-    return `${startMonth} ${start.getDate()} - ${end.getDate()}, ${start.getFullYear()}`;
-  } else {
-    return `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}, ${start.getFullYear()}`;
-  }
+  // Format the week range text
+  const result = (start.getMonth() === end.getMonth()) 
+    ? `${startMonth} ${start.getDate()} - ${end.getDate()}, ${start.getFullYear()}`
+    : `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}, ${start.getFullYear()}`;
+    
+  console.log(`formatWeekRangeText - Result: ${result}`);
+  return result;
 }
 
 export function createTimeSlots(startHour: number, endHour: number, interval: number): string[] {
