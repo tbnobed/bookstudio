@@ -1,0 +1,122 @@
+[+] Running 5/5studio_app-network  Creating                                                                                                                                                                                 0.1s
+ ✔ Network bookstudio_app-network     Created                                                                                                                                                                               0.1s
+ ✔ Volume "bookstudio_postgres_data"  Created                                                                                                                                                                               0.0s
+ ✔ Container bookstudio-db-1          Healthy                                                                                                                                                                               7.0s
+ ✔ Container bookstudio-db-init-1     Exited                                                                                                                                                                               17.6s
+ ✔ Container bookstudio-app-1         Started                                                                                                                                                                              18.0s
+obtv-admin@dev-bookstudio:~/bookstudio$ docker compose logs
+db-1       | The files belonging to this database system will be owned by user "postgres".
+db-1       | This user must also own the server process.
+db-1       |
+db-1       | The database cluster will be initialized with locale "en_US.utf8".
+db-1       | The default database encoding has accordingly been set to "UTF8".
+db-1       | The default text search configuration will be set to "english".
+db-1       |
+db-1       | Data page checksums are disabled.
+db-init-1  | Waiting for database to be fully ready...
+db-init-1  | Creating database schema...
+db-init-1  | Creating database tables...
+db-init-1  | Creating users table...
+db-1       |
+db-1       | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+db-1       | creating subdirectories ... ok
+db-1       | selecting dynamic shared memory implementation ... posix
+db-1       | selecting default max_connections ... 100
+db-init-1  | Users table created successfully!
+db-init-1  | Creating studios table...
+db-init-1  | Studios table created successfully!
+db-1       | selecting default shared_buffers ... 128MB
+db-1       | selecting default time zone ... UTC
+app-1      | Starting application...
+app-1      |
+db-init-1  | Creating templates table...
+db-init-1  | Templates table created successfully!
+db-init-1  | Creating bookings table...
+db-init-1  | Bookings table created successfully!
+db-1       | creating configuration files ... ok
+app-1      | > rest-express@1.0.0 start
+db-init-1  | Creating notification_groups table...
+app-1      | > NODE_ENV=production node dist/index.js
+app-1      |
+db-1       | running bootstrap script ... ok
+db-1       | sh: locale: not found
+db-1       | 2025-05-04 23:39:50.716 UTC [35] WARNING:  no usable system locales were found
+db-1       | performing post-bootstrap initialization ... ok
+app-1      | SendGrid email service initialized
+app-1      | 11:40:08 PM [express] serving on port 5000
+app-1      | Error initializing database: error: column "type" does not exist
+app-1      |     at /app/node_modules/pg-pool/index.js:45:11
+db-1       | syncing data to disk ... ok
+db-1       |
+db-1       |
+app-1      |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+app-1      |     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+app-1      |     at async DatabaseStorage.initializeData (file:///app/dist/index.js:243:28) {
+app-1      |   length: 104,
+app-1      |   severity: 'ERROR',
+app-1      |   code: '42703',
+app-1      |   detail: undefined,
+db-1       | Success. You can now start the database server using:
+db-1       |
+app-1      |   hint: undefined,
+app-1      |   position: '37',
+app-1      |   internalPosition: undefined,
+db-1       |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+db-1       |
+db-1       | initdb: warning: enabling "trust" authentication for local connections
+db-1       | You can change this by editing pg_hba.conf or using the option -A, or
+db-1       | --auth-local and --auth-host, the next time you run initdb.
+db-init-1  | Notification_groups table created successfully!
+db-init-1  | Creating notifications table...
+db-init-1  | Notifications table created successfully!
+db-init-1  | All database tables created successfully!
+db-init-1  | Database migration completed successfully
+db-init-1  | Initializing database data...
+db-1       | waiting for server to start....2025-05-04 23:39:52.304 UTC [41] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+db-1       | 2025-05-04 23:39:52.307 UTC [41] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+db-1       | 2025-05-04 23:39:52.316 UTC [42] LOG:  database system was shut down at 2025-05-04 23:39:51 UTC
+db-1       | 2025-05-04 23:39:52.329 UTC [41] LOG:  database system is ready to accept connections
+db-1       |  done
+db-1       | server started
+db-init-1  | Initializing database with admin user
+db-init-1  | Admin user created successfully!
+db-1       | CREATE DATABASE
+app-1      |   internalQuery: undefined,
+db-1       |
+app-1      |   where: undefined,
+app-1      |   schema: undefined,
+app-1      |   table: undefined,
+db-1       |
+db-1       | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+db-1       |
+db-1       | waiting for server to shut down....2025-05-04 23:39:52.673 UTC [41] LOG:  received fast shutdown request
+db-1       | 2025-05-04 23:39:52.675 UTC [41] LOG:  aborting any active transactions
+db-1       | 2025-05-04 23:39:52.681 UTC [41] LOG:  background worker "logical replication launcher" (PID 48) exited with exit code 1
+app-1      |   column: undefined,
+db-init-1  | Engineer user created successfully!
+app-1      |   dataType: undefined,
+db-init-1  | Initializing default notification groups
+db-init-1  | Default notification groups created successfully!
+db-init-1  | Database initialization completed
+app-1      |   constraint: undefined,
+app-1      |   file: 'parse_relation.c',
+app-1      |   line: '3647',
+app-1      |   routine: 'errorMissingColumn'
+app-1      | }
+db-init-1  | Database initialization completed successfully
+db-1       | 2025-05-04 23:39:52.681 UTC [43] LOG:  shutting down
+db-1       | 2025-05-04 23:39:52.710 UTC [41] LOG:  database system is shut down
+db-1       |  done
+db-1       | server stopped
+db-1       |
+db-1       | PostgreSQL init process complete; ready for start up.
+db-1       |
+db-1       | 2025-05-04 23:39:52.837 UTC [1] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+db-1       | 2025-05-04 23:39:52.837 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+db-1       | 2025-05-04 23:39:52.838 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+db-1       | 2025-05-04 23:39:52.841 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+db-1       | 2025-05-04 23:39:52.849 UTC [56] LOG:  database system was shut down at 2025-05-04 23:39:52 UTC
+db-1       | 2025-05-04 23:39:52.859 UTC [1] LOG:  database system is ready to accept connections
+db-1       | 2025-05-04 23:40:08.707 UTC [86] ERROR:  column "type" does not exist at character 37
+db-1       | 2025-05-04 23:40:08.707 UTC [86] STATEMENT:  select "id", "name", "description", "type", "duration", "crew_required", "equipment", "created_by" from "templates"
+obtv-admin@dev-bookstudio:~/bookstudio$

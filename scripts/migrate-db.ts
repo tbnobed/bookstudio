@@ -41,9 +41,13 @@ async function migrateDb() {
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT,
+        type TEXT NOT NULL,
+        duration INTEGER NOT NULL,
+        crew_required JSONB DEFAULT '[]',
+        equipment JSONB DEFAULT '[]',
+        created_by INTEGER NOT NULL,
         user_id INTEGER REFERENCES users(id),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        configuration JSONB
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
     console.log('Templates table created successfully!');
@@ -55,15 +59,15 @@ async function migrateDb() {
         id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         description TEXT,
-        start_time TIMESTAMP NOT NULL,
-        end_time TIMESTAMP NOT NULL,
         studio_id INTEGER REFERENCES studios(id),
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES users(id) NOT NULL,
+        start TIMESTAMP NOT NULL,
+        end TIMESTAMP NOT NULL,
+        type TEXT NOT NULL,
+        severity TEXT DEFAULT 'medium',
         template_id INTEGER REFERENCES templates(id),
-        status TEXT DEFAULT 'confirmed',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        metadata JSONB
+        notify_list JSONB DEFAULT '[]',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
     console.log('Bookings table created successfully!');
@@ -87,14 +91,13 @@ async function migrateDb() {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS notifications (
         id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) NOT NULL,
         title TEXT NOT NULL,
         message TEXT NOT NULL,
-        user_id INTEGER REFERENCES users(id),
+        type TEXT NOT NULL,
         read BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        notification_type TEXT NOT NULL,
-        related_id INTEGER,
-        metadata JSONB
+        booking_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
     console.log('Notifications table created successfully!');
