@@ -1,0 +1,146 @@
+obtv-admin@dev-bookstudio:~/bookstudio$ ./deploy.sh
+=======================
+BookStud.io Deployment
+=======================
+
+Stopping any existing containers...
+Building and starting BookStud.io...
+[+] Building 40.6s (11/11) FINISHED                                                                                                                                                                                         docker:default
+ => [app internal] load build definition from Dockerfile                                                                                                                                                                              0.0s
+ => => transferring dockerfile: 543B                                                                                                                                                                                                  0.0s
+ => [app internal] load metadata for docker.io/library/node:20-alpine                                                                                                                                                                 0.3s
+ => [app internal] load .dockerignore                                                                                                                                                                                                 0.0s
+ => => transferring context: 2B                                                                                                                                                                                                       0.0s
+ => [app 1/6] FROM docker.io/library/node:20-alpine@sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f                                                                                                           0.0s
+ => [app internal] load build context                                                                                                                                                                                                 0.1s
+ => => transferring context: 83.20kB                                                                                                                                                                                                  0.1s
+ => CACHED [app 2/6] WORKDIR /app                                                                                                                                                                                                     0.0s
+ => CACHED [app 3/6] COPY package.json package-lock.json ./                                                                                                                                                                           0.0s
+ => CACHED [app 4/6] RUN npm ci                                                                                                                                                                                                       0.0s
+ => [app 5/6] COPY . .                                                                                                                                                                                                                0.2s
+ => [app 6/6] RUN npm run build                                                                                                                                                                                                      20.7s
+ => [app] exporting to image                                                                                                                                                                                                         19.2s
+ => => exporting layers                                                                                                                                                                                                              19.1s
+ => => writing image sha256:f19c80690d192e29d512b0fa1bbf7522bf11b5c0149cdeda74f59cc7a2e41946                                                                                                                                          0.0s
+ => => naming to docker.io/library/bookstudio-app                                                                                                                                                                                     0.0s
+[+] Running 4/4
+ ✔ Network bookstudio_bookstuio-network  Created                                                                                                                                                                                      0.1s
+ ✔ Volume "bookstudio_postgres_data"     Created                                                                                                                                                                                      0.0s
+ ✔ Container bookstuio-db                Started                                                                                                                                                                                      0.1s
+ ✔ Container bookstuio-app               Started                                                                                                                                                                                      0.1s
+
+====================
+Deployment Complete!
+====================
+
+BookStud.io is now running!
+Access it at: http://localhost:3000
+
+To check logs: docker-compose logs -f
+To stop the application: docker-compose down
+obtv-admin@dev-bookstudio:~/bookstudio$ docker-compose logs -f
+bookstuio-db   | The files belonging to this database system will be owned by user "postgres".
+bookstuio-db   | This user must also own the server process.
+bookstuio-db   |
+bookstuio-db   | The database cluster will be initialized with locale "en_US.utf8".
+bookstuio-db   | The default database encoding has accordingly been set to "UTF8".
+bookstuio-db   | The default text search configuration will be set to "english".
+bookstuio-db   |
+bookstuio-db   | Data page checksums are disabled.
+bookstuio-db   |
+bookstuio-db   | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+bookstuio-db   | creating subdirectories ... ok
+bookstuio-db   | selecting dynamic shared memory implementation ... posix
+bookstuio-db   | selecting default max_connections ... 100
+bookstuio-db   | selecting default shared_buffers ... 128MB
+bookstuio-db   | selecting default time zone ... UTC
+bookstuio-db   | creating configuration files ... ok
+bookstuio-db   | running bootstrap script ... ok
+bookstuio-db   | sh: locale: not found
+bookstuio-db   | 2025-05-04 05:39:48.085 UTC [35] WARNING:  no usable system locales were found
+bookstuio-db   | performing post-bootstrap initialization ... ok
+bookstuio-db   | syncing data to disk ... ok
+bookstuio-db   |
+bookstuio-db   |
+bookstuio-db   | Success. You can now start the database server using:
+bookstuio-db   |
+bookstuio-db   |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+bookstuio-db   |
+bookstuio-db   | initdb: warning: enabling "trust" authentication for local connections
+bookstuio-db   | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+bookstuio-db   | waiting for server to start....2025-05-04 05:39:49.395 UTC [41] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-db   | 2025-05-04 05:39:49.398 UTC [41] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db   | 2025-05-04 05:39:49.408 UTC [44] LOG:  database system was shut down at 2025-05-04 05:39:48 UTC
+bookstuio-db   | 2025-05-04 05:39:49.422 UTC [41] LOG:  database system is ready to accept connections
+bookstuio-db   |  done
+bookstuio-db   | server started
+bookstuio-db   | CREATE DATABASE
+bookstuio-db   |
+bookstuio-db   |
+bookstuio-db   | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+bookstuio-db   |
+bookstuio-db   | waiting for server to shut down....2025-05-04 05:39:49.664 UTC [41] LOG:  received fast shutdown request
+bookstuio-db   | 2025-05-04 05:39:49.665 UTC [41] LOG:  aborting any active transactions
+bookstuio-db   | 2025-05-04 05:39:49.673 UTC [41] LOG:  background worker "logical replication launcher" (PID 47) exited with exit code 1
+bookstuio-db   | 2025-05-04 05:39:49.674 UTC [42] LOG:  shutting down
+bookstuio-db   | 2025-05-04 05:39:49.675 UTC [42] LOG:  checkpoint starting: shutdown immediate
+bookstuio-db   | 2025-05-04 05:39:49.800 UTC [42] LOG:  checkpoint complete: wrote 920 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.065 s, sync=0.055 s, total=0.127 s; sync files=301, longest=0.002 s, average=0.001 s; distance=4233 kB, estimate=4233 kB
+bookstuio-db   | 2025-05-04 05:39:49.818 UTC [41] LOG:  database system is shut down
+bookstuio-db   |  done
+bookstuio-db   | server stopped
+bookstuio-db   |
+bookstuio-db   | PostgreSQL init process complete; ready for start up.
+bookstuio-db   |
+bookstuio-db   | 2025-05-04 05:39:49.936 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-db   | 2025-05-04 05:39:49.936 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+bookstuio-db   | 2025-05-04 05:39:49.936 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+bookstuio-db   | 2025-05-04 05:39:49.941 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db   | 2025-05-04 05:39:49.950 UTC [57] LOG:  database system was shut down at 2025-05-04 05:39:49 UTC
+bookstuio-db   | 2025-05-04 05:39:49.963 UTC [1] LOG:  database system is ready to accept connections
+bookstuio-app  | SendGrid email service initialized
+bookstuio-app  | 5:39:48 AM [express] serving on port 5000
+bookstuio-app  | Error initializing database: ErrorEvent {
+bookstuio-app  |   [Symbol(kTarget)]: WebSocket {
+bookstuio-app  |     _events: [Object: null prototype] {
+bookstuio-app  |       error: [Function],
+bookstuio-app  |       message: [Function],
+bookstuio-app  |       close: [Function],
+bookstuio-app  |       open: [Function]
+bookstuio-app  |     },
+bookstuio-app  |     _eventsCount: 4,
+bookstuio-app  |     _maxListeners: undefined,
+bookstuio-app  |     _binaryType: 'arraybuffer',
+bookstuio-app  |     _closeCode: 1006,
+bookstuio-app  |     _closeFrameReceived: false,
+bookstuio-app  |     _closeFrameSent: false,
+bookstuio-app  |     _closeMessage: <Buffer >,
+bookstuio-app  |     _closeTimer: null,
+bookstuio-app  |     _errorEmitted: true,
+bookstuio-app  |     _extensions: {},
+bookstuio-app  |     _paused: false,
+bookstuio-app  |     _protocol: '',
+bookstuio-app  |     _readyState: 3,
+bookstuio-app  |     _receiver: null,
+bookstuio-app  |     _sender: null,
+bookstuio-app  |     _socket: null,
+bookstuio-app  |     _bufferedAmount: 0,
+bookstuio-app  |     _isServer: false,
+bookstuio-app  |     _redirects: 0,
+bookstuio-app  |     _autoPong: true,
+bookstuio-app  |     _url: 'wss://db/v2',
+bookstuio-app  |     _req: null,
+bookstuio-app  |     [Symbol(shapeMode)]: false,
+bookstuio-app  |     [Symbol(kCapture)]: false
+bookstuio-app  |   },
+bookstuio-app  |   [Symbol(kType)]: 'error',
+bookstuio-app  |   [Symbol(kError)]: Error: connect ECONNREFUSED 172.18.0.2:443
+bookstuio-app  |       at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+bookstuio-app  |     errno: -111,
+bookstuio-app  |     code: 'ECONNREFUSED',
+bookstuio-app  |     syscall: 'connect',
+bookstuio-app  |     address: '172.18.0.2',
+bookstuio-app  |     port: 443
+bookstuio-app  |   },
+bookstuio-app  |   [Symbol(kMessage)]: 'connect ECONNREFUSED 172.18.0.2:443'
+bookstuio-app  | }
+^Ccanceled
