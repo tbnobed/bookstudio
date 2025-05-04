@@ -1,0 +1,40 @@
+app-1      | 11:56:36 PM [express] GET /api/bookings 401 in 3ms :: {"message":"Unauthorized"}
+db-init-1  | Admin user created successfully!
+db-init-1  | Engineer user created successfully!
+db-init-1  | Initializing default notification groups
+app-1      | 11:56:36 PM [express] GET /api/bookings 401 in 3ms :: {"message":"Unauthorized"}
+db-1       | server started
+db-1       | CREATE DATABASE
+db-init-1  | Default notification groups created successfully!
+db-init-1  | Database initialization completed
+db-1       |
+db-1       |
+db-1       | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+db-1       |
+db-init-1  | Database initialization completed successfully
+db-1       | waiting for server to shut down....2025-05-04 23:53:28.361 UTC [41] LOG:  received fast shutdown request
+db-1       | 2025-05-04 23:53:28.362 UTC [41] LOG:  aborting any active transactions
+db-1       | 2025-05-04 23:53:28.365 UTC [41] LOG:  background worker "logical replication launcher" (PID 48) exited with exit code 1
+db-1       | 2025-05-04 23:53:28.365 UTC [43] LOG:  shutting down
+db-1       | 2025-05-04 23:53:28.391 UTC [41] LOG:  database system is shut down
+db-1       |  done
+db-1       | server stopped
+db-1       |
+db-1       | PostgreSQL init process complete; ready for start up.
+app-1      | 11:56:36 PM [express] GET /api/bookings/user 401 in 3ms :: {"message":"Unauthorized"}
+app-1      | 11:56:36 PM [express] GET /api/templates 401 in 3ms :: {"message":"Unauthorized"}
+app-1      | 11:56:36 PM [express] GET /api/auth/user 401 in 2ms :: {"message":"Not authenticated"}
+app-1      | 11:56:38 PM [express] GET /api/auth/user 401 in 3ms :: {"message":"Not authenticated"}
+db-1       |
+db-1       | 2025-05-04 23:53:28.533 UTC [1] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+db-1       | 2025-05-04 23:53:28.533 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+db-1       | 2025-05-04 23:53:28.533 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+db-1       | 2025-05-04 23:53:28.538 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+app-1      | 11:56:39 PM [express] GET /api/auth/user 401 in 3ms :: {"message":"Not authenticated"}
+app-1      | 11:56:39 PM [express] GET /api/auth/user 401 in 3ms :: {"message":"Not authenticated"}
+db-1       | 2025-05-04 23:53:28.547 UTC [56] LOG:  database system was shut down at 2025-05-04 23:53:28 UTC
+db-1       | 2025-05-04 23:53:28.559 UTC [1] LOG:  database system is ready to accept connections
+app-1      | 11:56:40 PM [express] GET /api/auth/user 401 in 3ms :: {"message":"Not authenticated"}
+app-1      | 11:56:40 PM [express] GET /api/auth/user 401 in 3ms :: {"message":"Not authenticated"}
+app-1      | 11:56:40 PM [express] GET /api/auth/user 401 in 2ms :: {"message":"Not authenticated"}
+obtv-admin@dev-bookstudio:~/bookstudio$

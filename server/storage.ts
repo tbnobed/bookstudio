@@ -9,6 +9,7 @@ import {
 
 import { db, pool } from "./db";
 import session from "express-session";
+import connectPg from "connect-pg-simple";
 import { eq, and, or, isNull, not, desc, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
