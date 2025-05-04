@@ -9,6 +9,7 @@ A comprehensive web application for television studio management, providing inte
 - **Template System**: Save and reuse common production setups
 - **Role-based Authentication**: Different access levels for producers, engineers, and administrators
 - **Facility-wide Alerts**: System for outages and maintenance notifications
+- **Email Notifications**: Automated emails for booking confirmations, updates, and cancellations
 - **Public Calendar Integration**: Embeddable public view of studio availability
 - **Mobile-friendly UI**: Fully responsive design works on all devices
 
@@ -18,76 +19,77 @@ A comprehensive web application for television studio management, providing inte
 - **Backend**: Node.js with Express
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Passport.js with session-based auth
-- **Deployment**: Docker and Docker Compose
+- **Email**: SendGrid for transactional emails
+- **Deployment**: Docker Compose for simplified deployment
 
-## Deployment Instructions
+## Docker-Only Deployment
+
+BookStud.io uses a Docker-only deployment approach for maximum consistency and reliability across environments. This eliminates system-level dependency conflicts and ensures a predictable deployment experience.
 
 ### Prerequisites
 
-- Docker and Docker Compose installed on your Linux system (Compatible with any version of Ubuntu, Debian, CentOS, etc.)
-- Git for cloning the repository
+- Docker and Docker Compose installed on your system
+- Compatible with any Linux distribution (Ubuntu, Debian, CentOS, etc.)
 
-### Simple Two-Step Deployment
+### Simple Two-Command Deployment
 
-1. Clone the repository:
+1. Clone the repository and navigate to the directory:
    ```bash
    git clone <repository-url>
-   cd bookstuio
+   cd bookstudio
    ```
 
-2. Create a `.env` file from the example (or use environment variables in step 3):
+2. Create a `.env` file from the example:
    ```bash
    cp .env.example .env
-   # Edit the .env file with your desired configuration
+   # Edit the .env file with your configuration
    nano .env
    ```
 
-3. Build and start with just two commands:
+3. Deploy with just two commands:
    ```bash
-   # Build the application
+   # Build the application containers
    docker compose build
    
    # Start the application
    docker compose up -d
    ```
 
-That's it! The application will automatically:
-- Set up the PostgreSQL database
-- Run all necessary migrations
-- Initialize default data
-- Start the web server
+That's it! The system automatically:
+- Sets up the PostgreSQL database
+- Runs all necessary migrations
+- Initializes default data
+- Starts the web server
 
 The application will be running at `http://your-server-ip:5000`
 
-### Checking Application Status
+## Environment Configuration
 
-```bash
-# View logs
-docker compose logs -f
+### Required Environment Variables
 
-# Check container status
-docker compose ps
-```
-
-### Environment Variables
-
-These are the important environment variables you can configure in your `.env` file:
+These can be configured in your `.env` file:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| PORT | Port where the application will run | 5000 |
-| SESSION_SECRET | Secret for session encryption | (auto-generated if not set) |
+| PORT | Application port | 5000 |
+| SESSION_SECRET | Secret for session encryption | Auto-generated |
+| SENDGRID_API_KEY | API key for SendGrid email notifications | Required for emails |
+
+### Database Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | PGUSER | PostgreSQL username | postgres |
 | PGPASSWORD | PostgreSQL password | postgres |
 | PGDATABASE | PostgreSQL database name | bookstudio |
-| PGPORT | PostgreSQL port | 5432 |
 | PGHOST | PostgreSQL host | db |
-| DATABASE_URL | Full PostgreSQL connection string | (auto-generated from other variables) |
-| SENDGRID_API_KEY | SendGrid API key for email notifications | (required for email functionality) |
+| PGPORT | PostgreSQL port | 5432 |
 
-### Using with a Reverse Proxy (NGINX)
+## Production Deployment
 
-For production use, it's recommended to set up NGINX as a reverse proxy to handle SSL termination and serve the application. Here's a sample NGINX configuration:
+### Using with NGINX as a Reverse Proxy
+
+For production use, we recommend NGINX as a reverse proxy to handle SSL termination:
 
 ```nginx
 server {
@@ -107,12 +109,57 @@ server {
 }
 ```
 
-## Maintenance
+### Updating the Application
 
-- **Viewing Logs**: `docker compose logs -f`
-- **Stopping the Application**: `docker compose down`
-- **Restarting the Application**: `docker compose restart`
-- **Updating the Application**: Pull the latest changes, then run `docker compose build && docker compose up -d`
+To update to the latest version:
+
+```bash
+git pull
+docker compose build
+docker compose up -d
+```
+
+### Database Backups
+
+To backup the PostgreSQL database:
+
+```bash
+docker compose exec db pg_dump -U postgres bookstudio > backup_$(date +%Y%m%d_%H%M%S).sql
+```
+
+To restore from a backup:
+
+```bash
+cat backup_file.sql | docker compose exec -T db psql -U postgres bookstudio
+```
+
+## Administration
+
+### Viewing Container Logs
+
+```bash
+# View all container logs
+docker compose logs -f
+
+# View only app container logs
+docker compose logs -f app
+
+# View only database logs
+docker compose logs -f db
+```
+
+### Container Management
+
+```bash
+# Stop all containers
+docker compose down
+
+# Restart all containers
+docker compose restart
+
+# View container status
+docker compose ps
+```
 
 ## Default Users
 
