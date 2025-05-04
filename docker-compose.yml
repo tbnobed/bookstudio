@@ -17,19 +17,45 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     volumes:
       - ./logs:/app/logs
     networks:
       - app-network
-    # Run database migration and initialization after the app starts
+    # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Waiting for database to be ready...' &&
-        sleep 10 &&
-        echo 'Running database migrations and initialization...' &&
-        npx tsx scripts/migrate-db.ts &&
         echo 'Starting application...' &&
         npm start
+      "
+
+  # Separate container for database initialization
+  db-init:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@db:5432/${PGDATABASE:-bookstudio}
+      - PGHOST=db
+      - PGPORT=5432
+      - PGUSER=${PGUSER:-postgres}
+      - PGPASSWORD=${PGPASSWORD:-postgres}
+      - PGDATABASE=${PGDATABASE:-bookstudio}
+    networks:
+      - app-network
+    # Run database migrations and initialization
+    command: >
+      sh -c "
+        echo 'Waiting for database to be fully ready...' &&
+        sleep 5 &&
+        echo 'Creating database schema...' &&
+        npx tsx scripts/migrate-db.ts &&
+        echo 'Initializing database data...' &&
+        npx tsx scripts/init-db.ts &&
+        echo 'Database initialization completed successfully' 
       "
 
   db:
@@ -41,15 +67,14 @@ services:
       - POSTGRES_DB=${PGDATABASE:-bookstudio}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     networks:
       - app-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres}"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
 networks:
   app-network:

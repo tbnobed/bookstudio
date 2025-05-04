@@ -1,0 +1,123 @@
+obtv-admin@dev-bookstudio:~/bookstudio$ docker compose logs
+app-1  | Waiting for database to be ready...
+db-1   | The files belonging to this database system will be owned by user "postgres".
+app-1  | Running database migrations and initialization...
+db-1   | This user must also own the server process.
+app-1  | Creating notification_groups table...
+app-1  | notification_groups table created successfully!
+db-1   |
+db-1   | The database cluster will be initialized with locale "en_US.utf8".
+db-1   | The default database encoding has accordingly been set to "UTF8".
+app-1  | Running initialization script to create default notification groups...
+db-1   | The default text search configuration will be set to "english".
+db-1   |
+db-1   | Data page checksums are disabled.
+db-1   |
+db-1   | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+db-1   | creating subdirectories ... ok
+app-1  | Initializing database with admin user
+app-1  | Database migration completed successfully
+app-1  | Error initializing database: error: relation "users" does not exist
+app-1  |     at /app/node_modules/pg-pool/index.js:45:11
+app-1  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+app-1  |     at async <anonymous> (/app/node_modules/src/node-postgres/session.ts:104:19)
+app-1  |     at async initDb (/app/scripts/init-db.ts:19:25) {
+db-1   | selecting dynamic shared memory implementation ... posix
+app-1  |   length: 104,
+app-1  |   severity: 'ERROR',
+app-1  |   code: '42P01',
+app-1  |   detail: undefined,
+app-1  |   hint: undefined,
+app-1  |   position: '67',
+db-1   | selecting default max_connections ... 100
+db-1   | selecting default shared_buffers ... 128MB
+db-1   | selecting default time zone ... UTC
+db-1   | creating configuration files ... ok
+db-1   | running bootstrap script ... ok
+db-1   | sh: locale: not found
+db-1   | 2025-05-04 23:27:30.512 UTC [35] WARNING:  no usable system locales were found
+db-1   | performing post-bootstrap initialization ... ok
+app-1  |   internalPosition: undefined,
+app-1  |   internalQuery: undefined,
+db-1   | syncing data to disk ... ok
+app-1  |   where: undefined,
+db-1   |
+db-1   |
+db-1   | Success. You can now start the database server using:
+db-1   | initdb: warning: enabling "trust" authentication for local connections
+db-1   | You can change this by editing pg_hba.conf or using the option -A, or
+app-1  |   schema: undefined,
+app-1  |   table: undefined,
+app-1  |   column: undefined,
+app-1  |   dataType: undefined,
+db-1   | --auth-local and --auth-host, the next time you run initdb.
+db-1   |
+db-1   |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+db-1   |
+db-1   | waiting for server to start....2025-05-04 23:27:32.280 UTC [41] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+db-1   | 2025-05-04 23:27:32.283 UTC [41] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+app-1  |   constraint: undefined,
+app-1  |   file: 'parse_relation.c',
+db-1   | 2025-05-04 23:27:32.292 UTC [42] LOG:  database system was shut down at 2025-05-04 23:27:31 UTC
+db-1   | 2025-05-04 23:27:32.304 UTC [41] LOG:  database system is ready to accept connections
+app-1  |   line: '1381',
+app-1  |   routine: 'parserOpenTable'
+app-1  | }
+app-1  | Waiting for database to be ready...
+app-1  | Running database migrations and initialization...
+app-1  | Creating notification_groups table...
+app-1  | notification_groups table created successfully!
+app-1  | Running initialization script to create default notification groups...
+app-1  | Initializing database with admin user
+app-1  | Database migration completed successfully
+app-1  | Error initializing database: error: relation "users" does not exist
+app-1  |     at /app/node_modules/pg-pool/index.js:45:11
+app-1  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+app-1  |     at async <anonymous> (/app/node_modules/src/node-postgres/session.ts:104:19)
+app-1  |     at async initDb (/app/scripts/init-db.ts:19:25) {
+app-1  |   length: 104,
+app-1  |   severity: 'ERROR',
+db-1   |  done
+db-1   | server started
+db-1   | CREATE DATABASE
+db-1   |
+db-1   |
+app-1  |   code: '42P01',
+app-1  |   detail: undefined,
+app-1  |   hint: undefined,
+app-1  |   position: '67',
+app-1  |   internalPosition: undefined,
+db-1   | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+db-1   |
+db-1   | waiting for server to shut down....2025-05-04 23:27:32.661 UTC [41] LOG:  received fast shutdown request
+db-1   | 2025-05-04 23:27:32.662 UTC [41] LOG:  aborting any active transactions
+db-1   | 2025-05-04 23:27:32.671 UTC [41] LOG:  background worker "logical replication launcher" (PID 48) exited with exit code 1
+app-1  |   internalQuery: undefined,
+app-1  |   where: undefined,
+app-1  |   schema: undefined,
+db-1   | 2025-05-04 23:27:32.671 UTC [43] LOG:  shutting down
+db-1   | 2025-05-04 23:27:32.698 UTC [41] LOG:  database system is shut down
+db-1   |  done
+db-1   | server stopped
+app-1  |   table: undefined,
+app-1  |   column: undefined,
+db-1   |
+db-1   | PostgreSQL init process complete; ready for start up.
+db-1   |
+app-1  |   dataType: undefined,
+app-1  |   constraint: undefined,
+app-1  |   file: 'parse_relation.c',
+app-1  |   line: '1381',
+db-1   | 2025-05-04 23:27:32.831 UTC [1] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+db-1   | 2025-05-04 23:27:32.831 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+db-1   | 2025-05-04 23:27:32.831 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+db-1   | 2025-05-04 23:27:32.837 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+db-1   | 2025-05-04 23:27:32.845 UTC [56] LOG:  database system was shut down at 2025-05-04 23:27:32 UTC
+db-1   | 2025-05-04 23:27:32.858 UTC [1] LOG:  database system is ready to accept connections
+app-1  |   routine: 'parserOpenTable'
+db-1   | 2025-05-04 23:33:32.214 UTC [314] ERROR:  relation "users" does not exist at character 67
+db-1   | 2025-05-04 23:33:32.214 UTC [314] STATEMENT:  select "id", "username", "password", "email", "name", "role" from "users" where "users"."username" = $1
+db-1   | 2025-05-04 23:33:45.642 UTC [330] ERROR:  relation "users" does not exist at character 67
+db-1   | 2025-05-04 23:33:45.642 UTC [330] STATEMENT:  select "id", "username", "password", "email", "name", "role" from "users" where "users"."username" = $1
+app-1  | }
+app-1  | Waiting for database to be ready...

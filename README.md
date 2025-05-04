@@ -63,6 +63,19 @@ That's it! The system automatically:
 
 The application will be running at `http://your-server-ip:5000`
 
+### Understanding the Docker Deployment Process
+
+The Docker deployment follows this sequence:
+1. The PostgreSQL database container (`db`) starts first
+2. Once the database is healthy (responds to connection attempts), the database initialization container (`db-init`) runs:
+   - Creates all necessary database tables
+   - Seeds initial data including default users and notification groups
+   - Exits when complete
+3. After successful database initialization, the main application container (`app`) starts
+4. The application serves both the frontend and backend on port 5000
+
+This process ensures that the database is fully configured before the application attempts to use it.
+
 ## Environment Configuration
 
 ### Required Environment Variables
