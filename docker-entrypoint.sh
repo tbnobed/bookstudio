@@ -213,9 +213,21 @@ main() {
   print_success_banner
   
   # Execute the command passed to the script (typically npm run start)
-  # Keep the container running even if the Node.js process exits
   log_info "Starting with command: $*"
-  exec "$@"
+  
+  # Run the command in the background
+  "$@" &
+  CMD_PID=$!
+  
+  # Log the process ID
+  log_info "Application process started with PID: $CMD_PID"
+  
+  # Handle container termination signals
+  trap "kill -TERM $CMD_PID" SIGTERM SIGINT
+  
+  # Keep the container running
+  log_info "Container will stay running even if application exits"
+  tail -f /dev/null & wait $!
 }
 
 # Run the main function

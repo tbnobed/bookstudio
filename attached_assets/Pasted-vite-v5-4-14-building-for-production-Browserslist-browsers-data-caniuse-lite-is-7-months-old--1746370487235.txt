@@ -1,0 +1,220 @@
+vite v5.4.14 building for production...
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+bookstuio-app  |   npx update-browserslist-db@latest
+bookstuio-app  |   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+bookstuio-db   |  done
+bookstuio-db   | server started
+bookstuio-db   | CREATE DATABASE
+bookstuio-db   |
+bookstuio-db   |
+bookstuio-db   | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+bookstuio-db   |
+bookstuio-db   | waiting for server to shut down....2025-05-04 14:53:25.032 UTC [41] LOG:  received fast shutdown request
+bookstuio-db   | 2025-05-04 14:53:25.033 UTC [41] LOG:  aborting any active transactions
+bookstuio-db   | 2025-05-04 14:53:25.038 UTC [41] LOG:  background worker "logical replication launcher" (PID 47) exited with exit code 1
+bookstuio-db   | 2025-05-04 14:53:25.039 UTC [42] LOG:  shutting down
+bookstuio-db   | 2025-05-04 14:53:25.041 UTC [42] LOG:  checkpoint starting: shutdown immediate
+bookstuio-db   | 2025-05-04 14:53:25.169 UTC [42] LOG:  checkpoint complete: wrote 920 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.064 s, sync=0.056 s, total=0.130 s; sync files=301, longest=0.002 s, average=0.001 s; distance=4233 kB, estimate=4233 kB
+bookstuio-db   | 2025-05-04 14:53:25.187 UTC [41] LOG:  database system is shut down
+bookstuio-db   |  done
+bookstuio-db   | server stopped
+bookstuio-db   |
+bookstuio-db   | PostgreSQL init process complete; ready for start up.
+bookstuio-db   |
+bookstuio-db   | 2025-05-04 14:53:25.306 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-db   | 2025-05-04 14:53:25.306 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+bookstuio-db   | 2025-05-04 14:53:25.306 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+bookstuio-db   | 2025-05-04 14:53:25.311 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db   | 2025-05-04 14:53:25.321 UTC [57] LOG:  database system was shut down at 2025-05-04 14:53:25 UTC
+bookstuio-db   | 2025-05-04 14:53:25.335 UTC [1] LOG:  database system is ready to accept connections
+✓ 2964 modules transformed.
+../dist/public/index.html                     0.87 kB │ gzip:   0.51 kB
+bookstuio-app  | ../dist/public/assets/logo-DQ77icJN.png   1,388.30 kB
+bookstuio-app  | ../dist/public/assets/index-C7RzjuuP.css     70.20 kB │ gzip:  12.12 kB
+bookstuio-app  | ../dist/public/assets/index-BYyjKuUN.js   1,052.82 kB │ gzip: 297.32 kB
+bookstuio-app  |
+bookstuio-app  | (!) Some chunks are larger than 500 kB after minification. Consider:
+bookstuio-app  | - Using dynamic import() to code-split the application
+bookstuio-app  | - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+bookstuio-app  | - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+bookstuio-app  | ✓ built in 18.72s
+bookstuio-app  |
+bookstuio-app  |   dist/index.js  63.9kb
+bookstuio-app  |
+bookstuio-app  | ⚡ Done in 36ms
+[SUCCESS] Application built successfully.
+bookstuio-app  | [INFO] All initialization steps completed successfully.
+bookstuio-app  | [INFO] Starting BookStud.io application...
+bookstuio-app  |
+bookstuio-app  | ┌─────────────────────────────────────────────┐
+bookstuio-app  | │      BookStud.io started successfully!      │
+bookstuio-app  | │                                             │
+bookstuio-app  | │  Application is running at port 3000   │
+bookstuio-app  | └─────────────────────────────────────────────┘
+bookstuio-app  |
+bookstuio-app  | [INFO] Starting with command:
+bookstuio-app exited with code 0
+bookstuio-app  | [INFO] Attempt 1/30: Connecting to database...
+bookstuio-app  | [SUCCESS] Successfully connected to PostgreSQL database!
+bookstuio-app  | [INFO] Checking database schema status...
+bookstuio-app  | [INFO] Database has 6 tables.
+bookstuio-app  | [INFO] Running database schema migrations...
+bookstuio-app  |
+bookstuio-app  | > rest-express@1.0.0 db:push
+bookstuio-app  | > drizzle-kit push
+bookstuio-app  |
+No config path provided, using default 'drizzle.config.ts'
+bookstuio-app  | Reading config file '/app/drizzle.config.ts'
+bookstuio-app  | Using 'pg' driver for database querying
+bookstuio-app  | [⣷] Pulling schema from database...
+[⣯] Pulling schema from database...
+[⣟] Pulling schema from database...
+[⡿] Pulling schema from database...
+[⢿] Pulling schema from database...
+[✓] Pulling schema from database...
+bookstuio-app  | [i] No changes detected
+[SUCCESS] Database schema migrations completed successfully
+bookstuio-app  | [INFO] Checking if database needs initialization with seed data...
+bookstuio-app  | [INFO] Database already contains 2 users. Skipping initialization.
+bookstuio-app  | [INFO] Application is already built or running in development mode.
+bookstuio-app  | [INFO] All initialization steps completed successfully.
+bookstuio-app  | [INFO] Starting BookStud.io application...
+bookstuio-app  |
+bookstuio-app  | ┌─────────────────────────────────────────────┐
+bookstuio-app  | │      BookStud.io started successfully!      │
+bookstuio-app  | │                                             │
+bookstuio-app  | │  Application is running at port 3000   │
+bookstuio-app  | └─────────────────────────────────────────────┘
+bookstuio-app  |
+bookstuio-app  | [INFO] Starting with command:
+bookstuio-app exited with code 0
+bookstuio-app  | [SUCCESS] Successfully connected to PostgreSQL database!
+bookstuio-app  | [INFO] Checking database schema status...
+bookstuio-app  | [INFO] Database has 6 tables.
+bookstuio-app  | [INFO] Running database schema migrations...
+bookstuio-app  |
+bookstuio-app  | > rest-express@1.0.0 db:push
+bookstuio-app  | > drizzle-kit push
+bookstuio-app  |
+No config path provided, using default 'drizzle.config.ts'
+bookstuio-app  | Reading config file '/app/drizzle.config.ts'
+bookstuio-app  | Using 'pg' driver for database querying
+bookstuio-app  | [⣷] Pulling schema from database...
+[⣯] Pulling schema from database...
+[⣟] Pulling schema from database...
+[⡿] Pulling schema from database...
+[⢿] Pulling schema from database...
+[✓] Pulling schema from database...
+bookstuio-app  | [i] No changes detected
+[SUCCESS] Database schema migrations completed successfully
+bookstuio-app  | [INFO] Checking if database needs initialization with seed data...
+bookstuio-app  | [INFO] Database already contains 2 users. Skipping initialization.
+bookstuio-app  | [INFO] Application is already built or running in development mode.
+bookstuio-app  | [INFO] All initialization steps completed successfully.
+bookstuio-app  | [INFO] Starting BookStud.io application...
+bookstuio-app  |
+bookstuio-app  | ┌─────────────────────────────────────────────┐
+bookstuio-app  | │      BookStud.io started successfully!      │
+bookstuio-app  | │                                             │
+bookstuio-app  | │  Application is running at port 3000   │
+bookstuio-app  | └─────────────────────────────────────────────┘
+bookstuio-app  |
+bookstuio-app  | [INFO] Starting with command:
+bookstuio-app exited with code 0
+bookstuio-app  | [SUCCESS] Successfully connected to PostgreSQL database!
+bookstuio-app  | [INFO] Checking database schema status...
+bookstuio-app  | [INFO] Database has 6 tables.
+bookstuio-app  | [INFO] Running database schema migrations...
+bookstuio-app  |
+bookstuio-app  | > rest-express@1.0.0 db:push
+bookstuio-app  | > drizzle-kit push
+bookstuio-app  |
+No config path provided, using default 'drizzle.config.ts'
+bookstuio-app  | Reading config file '/app/drizzle.config.ts'
+bookstuio-app  | Using 'pg' driver for database querying
+bookstuio-app  | [⣷] Pulling schema from database...
+[⣯] Pulling schema from database...
+[⣟] Pulling schema from database...
+[⡿] Pulling schema from database...
+[⢿] Pulling schema from database...
+[✓] Pulling schema from database...
+bookstuio-app  | [i] No changes detected
+[SUCCESS] Database schema migrations completed successfully
+bookstuio-app  | [INFO] Checking if database needs initialization with seed data...
+bookstuio-app  | [INFO] Database already contains 2 users. Skipping initialization.
+bookstuio-app  | [INFO] Application is already built or running in development mode.
+bookstuio-app  | [INFO] All initialization steps completed successfully.
+bookstuio-app  | [INFO] Starting BookStud.io application...
+bookstuio-app  |
+bookstuio-app  | ┌─────────────────────────────────────────────┐
+bookstuio-app  | │      BookStud.io started successfully!      │
+bookstuio-app  | │                                             │
+bookstuio-app  | │  Application is running at port 3000   │
+bookstuio-app  | └─────────────────────────────────────────────┘
+bookstuio-app  |
+bookstuio-app  | [INFO] Starting with command:
+bookstuio-app exited with code 0
+bookstuio-app  | [SUCCESS] Successfully connected to PostgreSQL database!
+bookstuio-app  | [INFO] Checking database schema status...
+bookstuio-app  | [INFO] Database has 6 tables.
+bookstuio-app  | [INFO] Running database schema migrations...
+bookstuio-app  |
+bookstuio-app  | > rest-express@1.0.0 db:push
+bookstuio-app  | > drizzle-kit push
+bookstuio-app  |
+No config path provided, using default 'drizzle.config.ts'
+bookstuio-app  | Reading config file '/app/drizzle.config.ts'
+bookstuio-app  | Using 'pg' driver for database querying
+bookstuio-app  | [⣷] Pulling schema from database...
+[⣯] Pulling schema from database...
+[⣟] Pulling schema from database...
+[⡿] Pulling schema from database...
+[⢿] Pulling schema from database...
+[✓] Pulling schema from database...
+bookstuio-app  | [i] No changes detected
+[SUCCESS] Database schema migrations completed successfully
+bookstuio-app  | [INFO] Checking if database needs initialization with seed data...
+bookstuio-app  | [INFO] Database already contains 2 users. Skipping initialization.
+bookstuio-app  | [INFO] Application is already built or running in development mode.
+bookstuio-app  | [INFO] All initialization steps completed successfully.
+bookstuio-app  | [INFO] Starting BookStud.io application...
+bookstuio-app  |
+bookstuio-app  | ┌─────────────────────────────────────────────┐
+bookstuio-app  | │      BookStud.io started successfully!      │
+bookstuio-app  | │                                             │
+bookstuio-app  | │  Application is running at port 3000   │
+bookstuio-app  | └─────────────────────────────────────────────┘
+bookstuio-app  |
+bookstuio-app  | [INFO] Starting with command:
+bookstuio-app exited with code 0
+bookstuio-app  | [SUCCESS] Successfully connected to PostgreSQL database!
+bookstuio-app  | [INFO] Checking database schema status...
+bookstuio-app  | [INFO] Database has 6 tables.
+bookstuio-app  | [INFO] Running database schema migrations...
+bookstuio-app  |
+bookstuio-app  | > rest-express@1.0.0 db:push
+bookstuio-app  | > drizzle-kit push
+bookstuio-app  |
+No config path provided, using default 'drizzle.config.ts'
+bookstuio-app  | Reading config file '/app/drizzle.config.ts'
+bookstuio-app  | Using 'pg' driver for database querying
+bookstuio-app  | [⣷] Pulling schema from database...
+[⣯] Pulling schema from database...
+[⣟] Pulling schema from database...
+[⡿] Pulling schema from database...
+[⢿] Pulling schema from database...
+[⣻] Pulling schema from database...
+[✓] Pulling schema from database...
+bookstuio-app  | [i] No changes detected
+[SUCCESS] Database schema migrations completed successfully
+bookstuio-app  | [INFO] Checking if database needs initialization with seed data...
+bookstuio-app  | [INFO] Database already contains 2 users. Skipping initialization.
+bookstuio-app  | [INFO] Application is already built or running in development mode.
+bookstuio-app  | [INFO] All initialization steps completed successfully.
+bookstuio-app  | [INFO] Starting BookStud.io application...
+bookstuio-app  |
+bookstuio-app  | ┌─────────────────────────────────────────────┐
+bookstuio-app  | │      BookStud.io started successfully!      │
+bookstuio-app  | │                                             │
+bookstuio-app  | │  Application is running at port 3000   │
+bookstuio-app  | └─────────────────────────────────────────────┘
