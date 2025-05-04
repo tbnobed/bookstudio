@@ -10,10 +10,11 @@ type SidebarProps = {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [location, navigate] = useLocation();
-  const { logout } = useAuth();
+  const { logoutMutation } = useAuth();
   
   const handleLogout = async () => {
-    await logout();
+    await logoutMutation.mutate();
+    navigate('/auth');
   };
 
   const handleNavigate = (path: string) => {
