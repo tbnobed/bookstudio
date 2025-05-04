@@ -6,10 +6,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import WeeklyCalendar from '@/components/calendar/WeeklyCalendar';
 import DailyCalendar from '@/components/calendar/DailyCalendar';
 import MonthlyCalendar from '@/components/calendar/MonthlyCalendar';
-import { Studio } from '@shared/schema';
+import { Studio, Booking } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import logoPath from '@assets/bookstuio.png';
+import { calculateStudioStatus, getStudioStatusColor } from '@/lib/studioUtils';
 
 // Define our own DateRange type since it's not exported from date-fns
 interface DateRange {
@@ -259,25 +260,45 @@ function PublicCalendarPage() {
           
           {/* Studio Selector Pills */}
           <div className="bg-gray-50 p-3 mb-4 rounded-md border">
-            <div className="flex items-center mb-2">
+            <div className="flex items-center mb-2 justify-between">
               <h3 className="text-sm font-medium">Studios:</h3>
+              <div className="flex items-center space-x-2 text-sm">
+                <div className="flex items-center">
+                  <span className="h-3 w-3 rounded-full bg-green-500 mr-1"></span>
+                  <span className="text-xs">Available</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="h-3 w-3 rounded-full bg-orange-500 mr-1"></span>
+                  <span className="text-xs">Maintenance</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="h-3 w-3 rounded-full bg-red-500 mr-1"></span>
+                  <span className="text-xs">Booked</span>
+                </div>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {studios.map((studio) => (
-                <Button
-                  key={studio.id}
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "rounded-full border-gray-300",
-                    isStudioSelected(studio.id) ? "border-primary/50 bg-primary/5" : "bg-white"
-                  )}
-                  onClick={() => toggleStudio(studio.id)}
-                >
-                  <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-                  {studio.name}
-                </Button>
-              ))}
+              {studios.map((studio) => {
+                // Calculate real-time status for each studio
+                const studioStatus = calculateStudioStatus(studio, bookings as Booking[], currentDate);
+                const statusColor = getStudioStatusColor(studioStatus);
+                
+                return (
+                  <Button
+                    key={studio.id}
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "rounded-full border-gray-300",
+                      isStudioSelected(studio.id) ? "border-primary/50 bg-primary/5" : "bg-white"
+                    )}
+                    onClick={() => toggleStudio(studio.id)}
+                  >
+                    <div className={cn("w-2 h-2 rounded-full mr-2", statusColor)} />
+                    {studio.name}
+                  </Button>
+                );
+              })}
             </div>
           </div>
 
