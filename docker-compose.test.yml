@@ -1,42 +1,37 @@
-version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bookstuio-app-test
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/bookstudio_test
+      - IS_DOCKER=true
+    depends_on:
+      - db
+    networks:
+      - bookstuio-test-network
+    command: ["npm", "test"]
+
+  db:
+    image: postgres:15-alpine
+    container_name: bookstuio-db-test
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bookstudio_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - bookstuio-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d bookstudio_test -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
 
 networks:
-  bookstuio-network:
+  bookstuio-test-network:
     driver: bridge
-
-services:
-  db:
-    image: postgres:14-alpine
-    container_name: bookstuio-db
-    restart: always
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - bookstuio-network
-
-  # Test server container - a minimal container specifically for testing network connectivity
-  test-server:
-    image: node:16-alpine
-    container_name: test-server
-    working_dir: /app
-    volumes:
-      - ./test-server.js:/app/test-server.js
-    ports:
-      - "8080:8080"
-    command: ["node", "test-server.js"]
-    networks:
-      - bookstuio-network
-
-volumes:
-  postgres_data:
