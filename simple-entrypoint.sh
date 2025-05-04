@@ -32,10 +32,10 @@ echo "BookStud.io Application Startup"
 echo "========================================"
 
 # Check if we're in the correct directory
-if [ ! -f "dist/server.js" ]; then
-  echo "Error: Cannot find dist/server.js. Are we in the correct directory?"
+if [ ! -f "dist/index.js" ]; then
+  echo "Error: Cannot find dist/index.js. Are we in the correct directory?"
   echo "Current directory: $(pwd)"
-  echo "Directory contents: $(ls -la)"
+  echo "Directory contents: $(ls -la dist/)"
   exit 1
 fi
 
@@ -83,4 +83,4 @@ fi
 echo "========================================"
 echo "Starting the BookStud.io application..."
 echo "========================================"
-exec node dist/server.js
+exec node dist/index.js

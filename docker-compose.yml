@@ -18,8 +18,8 @@ services:
     # Mount the entire app directory for access to all files
     volumes:
       - ./:/app
-    # Use a simple command to start the application
-    command: node dist/server.js
+    # Use a simple command to start the application - must match output path from package.json build script
+    command: node dist/index.js
     depends_on:
       db:
         condition: service_healthy
