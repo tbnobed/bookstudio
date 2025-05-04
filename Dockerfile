@@ -3,6 +3,8 @@ FROM node:20-slim
 # Set environment variables
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
 # Create app directory
 WORKDIR /app

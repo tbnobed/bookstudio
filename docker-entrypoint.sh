@@ -213,6 +213,8 @@ main() {
   print_success_banner
   
   # Execute the command passed to the script (typically npm run start)
+  # Keep the container running even if the Node.js process exits
+  log_info "Starting with command: $*"
   exec "$@"
 }
 
