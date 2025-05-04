@@ -33,14 +33,26 @@ export default function WeeklyCalendar({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   
-  // Update effectiveDate when props change
+  // Update effectiveDate when props change with guaranteed fresh Date object
   useEffect(() => {
+    // Always create a new Date object to ensure we break any reference issues
     if (startDate || currentDate) {
-      const newDate = startDate || currentDate || new Date();
-      console.log(`WeeklyCalendar - Props changed, new date: ${newDate.toISOString()}`);
-      setEffectiveDate(newDate);
+      const sourceDate = startDate || currentDate || new Date();
+      const newDate = new Date(sourceDate.getTime());
+      
+      // Add timestamp to ensure unique logging and force re-renders
+      const timestamp = Date.now();
+      console.log(`WeeklyCalendar - [Timestamp: ${timestamp}] Props changed, new date: ${newDate.toISOString()}`);
+      
+      // Only update if the date has actually changed (comparing ISO strings)
+      if (newDate.toISOString() !== effectiveDate.toISOString()) {
+        console.log(`WeeklyCalendar - [Timestamp: ${timestamp}] Setting new effectiveDate`);
+        setEffectiveDate(newDate);
+      } else {
+        console.log(`WeeklyCalendar - [Timestamp: ${timestamp}] Date unchanged, skipping update`);
+      }
     }
-  }, [startDate, currentDate, setEffectiveDate]);
+  }, [startDate, currentDate, effectiveDate]);
   
   // Calculate week dates whenever effective date changes
   useEffect(() => {

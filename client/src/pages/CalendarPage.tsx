@@ -25,10 +25,20 @@ export default function CalendarPage() {
     }
   }, [studios, selectedStudioIds]);
 
-  // Handle date change - this is where we need to add logging
+  // Handle date change with enhanced debugging and force clean date object
   const handleDateChange = (date: Date) => {
-    console.log(`CalendarPage - Date changed to: ${date.toISOString()}`);
-    setCurrentDate(date);
+    // Create a clean date object to avoid reference issues
+    const cleanDate = new Date(date.getTime());
+    
+    // Add timestamp to force re-renders
+    const timestamp = Date.now();
+    console.log(`CalendarPage - [Timestamp: ${timestamp}] Date changed from: ${currentDate.toISOString()} to: ${cleanDate.toISOString()}`);
+    
+    // Force update the state with the clean date
+    setCurrentDate(cleanDate);
+    
+    // Log again after state update attempt
+    console.log(`CalendarPage - [Timestamp: ${timestamp}] Date state updated`);
   };
 
   // Handle view change

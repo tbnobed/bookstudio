@@ -41,43 +41,51 @@ export function Header({
     onDateChange(new Date());
   };
 
-  // Navigate based on view
+  // Navigate based on view - using clean date objects
   const navigatePrevious = () => {
+    // Create a clean copy of the date to ensure we're working with a fresh object
+    const dateToUse = new Date(currentDate.getTime());
     let newDate: Date;
     
     if (view === "day") {
-      newDate = subtractDays(currentDate, 1);
+      newDate = subtractDays(dateToUse, 1);
     } else if (view === "week") {
-      newDate = subtractWeeks(currentDate, 1);
+      newDate = subtractWeeks(dateToUse, 1);
     } else if (view === "month") {
-      newDate = subtractMonths(currentDate, 1);
+      newDate = subtractMonths(dateToUse, 1);
     } else {
       return; // Shouldn't happen
     }
     
-    console.log(`Header - Navigate Previous - Current: ${currentDate.toISOString()}, New: ${newDate.toISOString()}, View: ${view}`);
-    // Add a timestamp to verify the callback was called with the expected date
-    console.log(`Navigation timestamp: ${Date.now()}`);
-    onDateChange(newDate);
+    // Generate timestamp for unique logging
+    const timestamp = Date.now();
+    console.log(`Header - [Timestamp: ${timestamp}] Navigate Previous - From: ${dateToUse.toISOString()}, To: ${newDate.toISOString()}, View: ${view}`);
+    
+    // Make sure we're passing a clean date object
+    onDateChange(new Date(newDate.getTime()));
   };
 
   const navigateNext = () => {
+    // Create a clean copy of the date to ensure we're working with a fresh object
+    const dateToUse = new Date(currentDate.getTime());
     let newDate: Date;
     
     if (view === "day") {
-      newDate = addDays(currentDate, 1);
+      newDate = addDays(dateToUse, 1);
     } else if (view === "week") {
-      newDate = addWeeks(currentDate, 1);
+      newDate = addWeeks(dateToUse, 1);
     } else if (view === "month") {
-      newDate = addMonths(currentDate, 1);
+      newDate = addMonths(dateToUse, 1);
     } else {
       return; // Shouldn't happen
     }
     
-    console.log(`Header - Navigate Next - Current: ${currentDate.toISOString()}, New: ${newDate.toISOString()}, View: ${view}`);
-    // Add a timestamp to verify the callback was called with the expected date
-    console.log(`Navigation timestamp: ${Date.now()}`);
-    onDateChange(newDate);
+    // Generate timestamp for unique logging
+    const timestamp = Date.now();
+    console.log(`Header - [Timestamp: ${timestamp}] Navigate Next - From: ${dateToUse.toISOString()}, To: ${newDate.toISOString()}, View: ${view}`);
+    
+    // Make sure we're passing a clean date object
+    onDateChange(new Date(newDate.getTime()));
   };
 
   // Get date display text based on view (using state to trigger re-renders)
