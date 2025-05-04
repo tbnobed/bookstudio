@@ -32,4 +32,13 @@ NODE_ENV=production node --input-type=module scripts/init-db.js
 
 # Start the server
 echo "Starting BookStud.io application server..."
-exec node --input-type=module server/docker-index.js
+if [ -f "dist/index.js" ]; then
+  # First check if the built server exists
+  exec node --input-type=module dist/index.js
+elif [ -f "server/docker-index.js" ]; then
+  # Fall back to the Docker-specific server entry point
+  exec node --input-type=module server/docker-index.js
+else
+  echo "Error: No server entry point found!"
+  exit 1
+fi

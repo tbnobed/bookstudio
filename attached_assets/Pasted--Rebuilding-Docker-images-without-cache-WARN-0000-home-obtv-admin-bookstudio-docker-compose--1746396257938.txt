@@ -1,0 +1,37 @@
+🔨 Rebuilding Docker images without cache...
+WARN[0000] /home/obtv-admin/bookstudio/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+Compose can now delegate builds to bake for better performance.
+ To do so, set COMPOSE_BAKE=true.
+[+] Building 54.9s (12/17)                                                                                                                                                               docker:default
+ => [app internal] load build definition from Dockerfile                                                                                                                                           0.0s
+ => => transferring dockerfile: 787B                                                                                                                                                               0.0s
+ => [app internal] load metadata for docker.io/library/node:20-alpine                                                                                                                              1.1s
+ => [app internal] load .dockerignore                                                                                                                                                              0.0s
+ => => transferring context: 442B                                                                                                                                                                  0.0s
+ => [app app-base 1/2] FROM docker.io/library/node:20-alpine@sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f                                                               7.9s
+ => => resolve docker.io/library/node:20-alpine@sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f                                                                            0.0s
+ => => sha256:6bf3eed75316cc1c58cc9bd678ce26260a7aacf7847462efa4a1cbf240a7c4d8 1.26MB / 1.26MB                                                                                                     0.4s
+ => => sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f 7.67kB / 7.67kB                                                                                                     0.0s
+ => => sha256:b18325f01afbb59e65e32609c3337f46358ebcb13784103e6d4e41cee6180fa0 1.72kB / 1.72kB                                                                                                     0.0s
+ => => sha256:0160beacba2dcf6695e3cf292ed8003aa36f538b6a6fd931878bfc4ea7914555 6.21kB / 6.21kB                                                                                                     0.0s
+ => => sha256:f18232174bc91741fdf3da96d85011092101a032a93a388b79e99e69c2d5c870 3.64MB / 3.64MB                                                                                                     0.4s
+ => => sha256:a54ab62fca2da06cf1bd0418fcd2dbb09ba6f43db517f705291fdfb723fbc642 42.95MB / 42.95MB                                                                                                   1.2s
+ => => extracting sha256:f18232174bc91741fdf3da96d85011092101a032a93a388b79e99e69c2d5c870                                                                                                          0.4s
+ => => sha256:efb51bda5e8760a6e79d8bf56d88f21d5255ac614cb6dd14ee65a868e7aa8387 445B / 445B                                                                                                         0.5s
+ => => extracting sha256:a54ab62fca2da06cf1bd0418fcd2dbb09ba6f43db517f705291fdfb723fbc642                                                                                                          5.8s
+ => => extracting sha256:6bf3eed75316cc1c58cc9bd678ce26260a7aacf7847462efa4a1cbf240a7c4d8                                                                                                          0.2s
+ => => extracting sha256:efb51bda5e8760a6e79d8bf56d88f21d5255ac614cb6dd14ee65a868e7aa8387                                                                                                          0.0s
+ => [app internal] load build context                                                                                                                                                              0.1s
+ => => transferring context: 21.70kB                                                                                                                                                               0.1s
+ => [app app-base 2/2] WORKDIR /app                                                                                                                                                                0.2s
+ => [app app-builder 1/4] COPY package*.json ./                                                                                                                                                    0.0s
+ => [app app-runner 2/8] RUN npm ci --omit=dev                                                                                                                                                    19.0s
+ => [app app-builder 2/4] RUN npm ci                                                                                                                                                              22.5s
+ => [app app-builder 3/4] COPY . .                                                                                                                                                                 0.2s
+ => [app app-builder 4/4] RUN npm run build                                                                                                                                                       21.8s
+ => ERROR [app app-runner 3/8] COPY --from=app-builder /app/client/dist /app/client/dist                                                                                                           0.0s
+------
+ > [app app-runner 3/8] COPY --from=app-builder /app/client/dist /app/client/dist:
+------
+failed to solve: failed to compute cache key: failed to calculate checksum of ref 620f9311-710c-4447-afc4-e299aabbc244::q71hmkjec3aurqi5h7fzaq1ly: "/app/client/dist": not found
+obtv-admin@dev-bookstudio:~/bookstudio$

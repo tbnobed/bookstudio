@@ -5,14 +5,17 @@ FROM app-base AS app-builder
 COPY package*.json ./
 RUN npm ci
 COPY . .
+# First make sure the client/dist directory exists
+RUN mkdir -p client/dist
+# Now run the build
 RUN npm run build
-# Skip TypeScript compilation for production - we'll rely on the build step above
-# RUN npx tsc --project tsconfig.prod.json
 
 FROM app-base AS app-runner
 COPY package*.json ./
 RUN npm ci --omit=dev
-COPY --from=app-builder /app/client/dist /app/client/dist
+# Copy the dist directory which contains the built client and server
+COPY --from=app-builder /app/dist /app/dist
+# Copy necessary files for operation
 COPY --from=app-builder /app/server /app/server
 COPY --from=app-builder /app/shared /app/shared
 COPY --from=app-builder /app/scripts /app/scripts
