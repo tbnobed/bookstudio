@@ -25,8 +25,9 @@ export default function CalendarPage() {
     }
   }, [studios, selectedStudioIds]);
 
-  // Handle date change
+  // Handle date change - this is where we need to add logging
   const handleDateChange = (date: Date) => {
+    console.log(`CalendarPage - Date changed to: ${date.toISOString()}`);
     setCurrentDate(date);
   };
 

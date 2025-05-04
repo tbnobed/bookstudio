@@ -43,23 +43,37 @@ export function Header({
 
   // Navigate based on view
   const navigatePrevious = () => {
+    let newDate: Date;
+    
     if (view === "day") {
-      onDateChange(subtractDays(currentDate, 1));
+      newDate = subtractDays(currentDate, 1);
     } else if (view === "week") {
-      onDateChange(subtractWeeks(currentDate, 1));
+      newDate = subtractWeeks(currentDate, 1);
     } else if (view === "month") {
-      onDateChange(subtractMonths(currentDate, 1));
+      newDate = subtractMonths(currentDate, 1);
+    } else {
+      return; // Shouldn't happen
     }
+    
+    console.log(`Header - Navigate Previous - Current: ${currentDate.toISOString()}, New: ${newDate.toISOString()}`);
+    onDateChange(newDate);
   };
 
   const navigateNext = () => {
+    let newDate: Date;
+    
     if (view === "day") {
-      onDateChange(addDays(currentDate, 1));
+      newDate = addDays(currentDate, 1);
     } else if (view === "week") {
-      onDateChange(addWeeks(currentDate, 1));
+      newDate = addWeeks(currentDate, 1);
     } else if (view === "month") {
-      onDateChange(addMonths(currentDate, 1));
+      newDate = addMonths(currentDate, 1);
+    } else {
+      return; // Shouldn't happen
     }
+    
+    console.log(`Header - Navigate Next - Current: ${currentDate.toISOString()}, New: ${newDate.toISOString()}`);
+    onDateChange(newDate);
   };
 
   // Get date display text based on view

@@ -35,7 +35,10 @@ export default function WeeklyCalendar({
   
   // Calculate week dates whenever effective date changes
   useEffect(() => {
-    setWeekDates(getWeekDates(effectiveDate));
+    console.log(`WeeklyCalendar - effectiveDate changed: ${effectiveDate.toISOString()}`);
+    const dates = getWeekDates(effectiveDate);
+    console.log(`WeeklyCalendar - New week dates: ${dates.map(d => d.toISOString()).join(', ')}`);
+    setWeekDates(dates);
   }, [effectiveDate]);
 
   // Fetch studios if not provided externally
