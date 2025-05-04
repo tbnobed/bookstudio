@@ -54,6 +54,7 @@ export default function CalendarPage() {
   return (
     <div className="flex flex-col h-screen">
       <CalendarHeader
+        key={`header-${currentDate.toISOString()}-${view}`} // Add key to force re-render when date or view changes
         currentDate={currentDate}
         onDateChange={handleDateChange}
         view={view}

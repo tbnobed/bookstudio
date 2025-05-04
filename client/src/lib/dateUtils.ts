@@ -131,29 +131,39 @@ export function formatWeekRangeText(currentDate: Date | null | undefined): strin
   
   // Add timestamp for unique logging
   const timestamp = Date.now();
-  console.log(`formatWeekRangeText - [Timestamp: ${timestamp}] Date input: ${safeDate.toISOString()}`);
+  console.log(`formatWeekRangeText - [CALLED at ${timestamp}] Date input: ${safeDate.toISOString()}`);
   
-  // Get the fresh week dates for the current date - always calculate this
-  // directly from the input date to ensure it's up to date
-  const weekDates = getWeekDates(safeDate);
-  
-  // Make clean copies of start and end dates
-  const start = new Date(weekDates[0].getTime());
-  const end = new Date(weekDates[6].getTime());
-  
-  console.log(`formatWeekRangeText - [Timestamp: ${timestamp}] Week start: ${start.toISOString()}, end: ${end.toISOString()}`);
-  
-  // Format month names
-  const startMonth = MONTH_NAMES[start.getMonth()].substring(0, 3);
-  const endMonth = MONTH_NAMES[end.getMonth()].substring(0, 3);
-  
-  // Format the week range text
-  const result = (start.getMonth() === end.getMonth()) 
-    ? `${startMonth} ${start.getDate()} - ${end.getDate()}, ${start.getFullYear()}`
-    : `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}, ${start.getFullYear()}`;
+  try {
+    // Calculate week start (Sunday) and end (Saturday) from scratch
+    const dayOfWeek = safeDate.getDay(); // 0-6, 0 is Sunday
     
-  console.log(`formatWeekRangeText - [Timestamp: ${timestamp}] Result: ${result}`);
-  return result;
+    // Calculate Sunday (start of week)
+    const startDate = new Date(safeDate);
+    startDate.setDate(safeDate.getDate() - dayOfWeek);
+    
+    // Calculate Saturday (end of week)
+    const endDate = new Date(safeDate);
+    endDate.setDate(safeDate.getDate() - dayOfWeek + 6);
+    
+    console.log(`formatWeekRangeText - [${timestamp}] Direct calculation - Week start: ${startDate.toISOString()}, end: ${endDate.toISOString()}`);
+    
+    // Format month names
+    const startMonth = MONTH_NAMES[startDate.getMonth()].substring(0, 3);
+    const endMonth = MONTH_NAMES[endDate.getMonth()].substring(0, 3);
+    
+    // Format the week range text
+    const result = (startDate.getMonth() === endDate.getMonth()) 
+      ? `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}, ${startDate.getFullYear()}`
+      : `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startDate.getFullYear()}`;
+      
+    console.log(`formatWeekRangeText - [${timestamp}] Result: ${result}`);
+    return result;
+  } catch (error) {
+    console.error(`formatWeekRangeText - Error: ${error}`);
+    
+    // Fallback in case of any error
+    return safeDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  }
 }
 
 export function createTimeSlots(startHour: number, endHour: number, interval: number): string[] {
