@@ -12,6 +12,13 @@ import { z } from "zod";
 import { ValidationError } from "zod-validation-error";
 import { ZodError } from "zod";
 import { setupAuth } from "./auth";
+import { 
+  sendBookingConfirmation, 
+  sendBookingUpdate, 
+  sendBookingCancellation, 
+  sendMaintenanceAlert,
+  sendFacilityAlert
+} from "./services/emailService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -343,6 +350,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const booking = await storage.createBooking(bookingData);
       
+      // Handle facility-wide maintenance alerts (for all users)
+      // These are recognized by null studioId and maintenance or it_support type
+      if (booking.studioId === null && (booking.type === "maintenance" || booking.type === "it_support" || 
+          booking.type === "all-day:maintenance")) {
+        try {
+          console.log(`Processing facility-wide alert: ${booking.title}`);
+          // Get all users to notify
+          const allUsers = await storage.getAllUsers();
+          
+          // Send email notifications to all users about the facility-wide alert
+          // Use bulk email sending to avoid API rate limits
+          if (allUsers.length > 0) {
+            try {
+              console.log(`Sending facility alert emails to ${allUsers.length} users`);
+              await sendFacilityAlert(booking, allUsers);
+            } catch (emailError) {
+              console.error("Error sending facility-wide alert emails:", emailError);
+              // Continue even if emails fail
+            }
+          }
+        } catch (error) {
+          console.error("Error processing facility-wide alert:", error);
+          // Continue with the response even if facility alert processing fails
+        }
+      }
+      
       // Create notifications for the booking creator
       try {
         await storage.createNotification({
@@ -352,6 +385,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: "booking_created",
           bookingId: booking.id
         });
+        
+        // Send email confirmation if this is a standard booking with a studio
+        if (booking.studioId) {
+          try {
+            const studio = await storage.getStudio(booking.studioId);
+            if (studio) {
+              console.log(`Sending booking confirmation email to user ${user.email} for booking "${booking.title}"`);
+              await sendBookingConfirmation(booking, studio, user);
+            }
+          } catch (emailError) {
+            console.error("Error sending booking confirmation email:", emailError);
+            // Continue even if the email fails
+          }
+        }
       } catch (notificationError) {
         console.error("Error creating notification for new booking:", notificationError);
         // Continue with the response even if notification creation fails
@@ -464,6 +511,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedBooking = await storage.updateBooking(id, updateData);
       
+      // Check if this is a facility-wide alert (null studioId and maintenance/IT related type)
+      if (updatedBooking && updatedBooking.studioId === null && 
+          (updatedBooking.type === "maintenance" || updatedBooking.type === "it_support" || 
+           updatedBooking.type === "all-day:maintenance")) {
+        try {
+          console.log(`Processing updated facility-wide alert: ${updatedBooking.title}`);
+          // Get all users to notify
+          const allUsers = await storage.getAllUsers();
+          
+          // Send email notifications to all users about the updated facility-wide alert
+          if (allUsers.length > 0) {
+            try {
+              console.log(`Sending updated facility alert emails to ${allUsers.length} users`);
+              await sendMaintenanceAlert(updatedBooking, allUsers);
+            } catch (emailError) {
+              console.error("Error sending updated facility-wide alert emails:", emailError);
+              // Continue even if emails fail
+            }
+          }
+        } catch (error) {
+          console.error("Error processing updated facility-wide alert:", error);
+          // Continue with the response even if facility alert processing fails
+        }
+      }
+      
       // Only create notification if there's a valid user associated with this booking
       // Facility-wide alerts may not have a specific user
       console.log(`Booking user ID before notification check: ${booking.userId}`);
@@ -478,6 +550,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: "booking_updated",
             bookingId: booking.id
           });
+          
+          // Send email notification about the update if this is a standard booking with a studio
+          if (updatedBooking && updatedBooking.studioId) {
+            try {
+              // Get the user and studio info
+              const bookingUser = await storage.getUser(booking.userId);
+              const studio = await storage.getStudio(updatedBooking.studioId);
+              
+              if (bookingUser && studio) {
+                console.log(`Sending booking update email to user ${bookingUser.email} for booking "${updatedBooking.title}"`);
+                await sendBookingUpdate(updatedBooking, studio, bookingUser);
+              }
+            } catch (emailError) {
+              console.error("Error sending booking update email:", emailError);
+              // Continue even if the email fails
+            }
+          }
         } catch (notificationError) {
           console.error("Error creating notification:", notificationError);
           // Continue with the response even if notification creation fails
@@ -542,6 +631,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
               type: "booking_deleted",
               bookingId: booking.id
             });
+            
+            // Send email notification about the deletion if this is a standard booking with a studio
+            if (booking.studioId) {
+              try {
+                // Get the user and studio info
+                const bookingUser = await storage.getUser(booking.userId);
+                const studio = await storage.getStudio(booking.studioId);
+                
+                if (bookingUser && studio) {
+                  console.log(`Sending booking cancellation email to user ${bookingUser.email} for booking "${booking.title}"`);
+                  await sendBookingCancellation(booking, studio, bookingUser);
+                }
+              } catch (emailError) {
+                console.error("Error sending booking cancellation email:", emailError);
+                // Continue even if the email fails
+              }
+            }
           } catch (notificationError) {
             console.error("Error creating notification for deletion:", notificationError);
             // Continue with the response even if notification creation fails
