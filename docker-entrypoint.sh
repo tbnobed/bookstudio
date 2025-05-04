@@ -139,7 +139,10 @@ init_database() {
   if [ -z "$USER_COUNT" ] || [ "$USER_COUNT" = "0" ]; then
     log_info "Database has no users. Initializing with seed data..."
     
-    if node scripts/init-db.js; then
+    # Make the docker-init-db.js script executable
+    chmod +x scripts/docker-init-db.js
+    
+    if node scripts/docker-init-db.js; then
       log_success "Database initialization completed successfully"
       return 0
     else

@@ -1,0 +1,135 @@
+obtv-admin@dev-bookstudio:~/bookstudio$ docker compose up -d
+WARN[0000] /home/obtv-admin/bookstudio/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] Running 12/12
+ ✔ db Pulled                                                                                                                                                                                                                             16.7s
+   ✔ f18232174bc9 Pull complete                                                                                                                                                                                                           1.1s
+   ✔ 8a2edfdb35c6 Pull complete                                                                                                                                                                                                           1.1s
+   ✔ 6f9b50b896a1 Pull complete                                                                                                                                                                                                           1.2s
+   ✔ 13886c256568 Pull complete                                                                                                                                                                                                           1.3s
+   ✔ 802eb898846e Pull complete                                                                                                                                                                                                           1.3s
+   ✔ 90ae0fa821d6 Pull complete                                                                                                                                                                                                          15.1s
+   ✔ ee6a9e2f733b Pull complete                                                                                                                                                                                                          15.2s
+   ✔ c6d60e92ec68 Pull complete                                                                                                                                                                                                          15.3s
+   ✔ 1e12aa04e4ae Pull complete                                                                                                                                                                                                          15.3s
+   ✔ cecf636096cd Pull complete                                                                                                                                                                                                          15.3s
+   ✔ 68163dbc791a Pull complete                                                                                                                                                                                                          15.4s
+[+] Running 4/4
+ ✔ Network bookstudio_bookstuio-network  Created                                                                                                                                                                                          0.1s
+ ✔ Volume "bookstudio_postgres_data"     Created                                                                                                                                                                                          0.0s
+ ✔ Container bookstuio-db                Healthy                                                                                                                                                                                          6.3s
+ ✔ Container bookstuio-app               Started                                                                                                                                                                                          6.4s
+obtv-admin@dev-bookstudio:~/bookstudio$ docker compose logs -f
+WARN[0000] /home/obtv-admin/bookstudio/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+bookstuio-db   | The files belonging to this database system will be owned by user "postgres".
+bookstuio-db   | This user must also own the server process.
+bookstuio-db   |
+bookstuio-db   | The database cluster will be initialized with locale "en_US.utf8".
+bookstuio-app  | ┌─────────────────────────────────────────────┐
+bookstuio-db   | The default database encoding has accordingly been set to "UTF8".
+bookstuio-app  | │        BookStud.io Container Startup        │
+bookstuio-app  | └─────────────────────────────────────────────┘
+bookstuio-app  | [INFO] Verifying environment variables...
+bookstuio-db   | The default text search configuration will be set to "english".
+bookstuio-db   |
+bookstuio-db   | Data page checksums are disabled.
+bookstuio-db   |
+bookstuio-app  | [SUCCESS] All required environment variables are properly set.
+bookstuio-app  | [INFO] Starting BookStud.io application initialization...
+bookstuio-app  | [INFO] Waiting for PostgreSQL at db:5432...
+bookstuio-app  | [INFO] Attempt 1/30: Connecting to database...
+bookstuio-app  | [SUCCESS] Successfully connected to PostgreSQL database!
+bookstuio-app  | [INFO] Checking database schema status...
+bookstuio-app  | [INFO] Database appears to be empty (no tables found). Will need to create schema.
+bookstuio-app  | [INFO] Running database schema migrations...
+bookstuio-db   | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+bookstuio-db   | creating subdirectories ... ok
+bookstuio-db   | selecting dynamic shared memory implementation ... posix
+bookstuio-db   | selecting default max_connections ... 100
+bookstuio-db   | selecting default shared_buffers ... 128MB
+bookstuio-db   | selecting default time zone ... UTC
+bookstuio-db   | creating configuration files ... ok
+bookstuio-db   | running bootstrap script ... ok
+bookstuio-db   | sh: locale: not found
+bookstuio-db   | 2025-05-04 14:22:09.845 UTC [35] WARNING:  no usable system locales were found
+bookstuio-db   | performing post-bootstrap initialization ... ok
+bookstuio-db   | syncing data to disk ... ok
+bookstuio-db   |
+bookstuio-db   |
+bookstuio-db   | Success. You can now start the database server using:
+bookstuio-db   |
+bookstuio-app  |
+bookstuio-app  | > rest-express@1.0.0 db:push
+bookstuio-app  | > drizzle-kit push
+bookstuio-app  |
+bookstuio-app  | No config path provided, using default 'drizzle.config.ts'
+bookstuio-app  | Reading config file '/app/drizzle.config.ts'
+bookstuio-db   |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+bookstuio-db   |
+bookstuio-db   | initdb: warning: enabling "trust" authentication for local connections
+bookstuio-db   | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+bookstuio-db   | waiting for server to start....2025-05-04 14:22:11.213 UTC [41] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-app  | Using 'pg' driver for database querying
+bookstuio-app  | [⣷] Pulling schema from database...
+[✓] Pulling schema from database...
+bookstuio-app  | [✓] Changes applied
+bookstuio-app  | [SUCCESS] Database schema migrations completed successfully
+bookstuio-app  | [INFO] Checking if database needs initialization with seed data...
+bookstuio-app  | [INFO] Database has no users. Initializing with seed data...
+bookstuio-app  | node:internal/modules/esm/resolve:283
+bookstuio-app  |     throw new ERR_MODULE_NOT_FOUND(
+bookstuio-app  |           ^
+bookstuio-app  |
+bookstuio-app  | Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/shared/schema.js' imported from /app/scripts/db.js
+bookstuio-app  |     at finalizeResolution (node:internal/modules/esm/resolve:283:11)
+bookstuio-app  |     at moduleResolve (node:internal/modules/esm/resolve:952:10)
+bookstuio-app  |     at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+bookstuio-db   | 2025-05-04 14:22:11.216 UTC [41] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db   | 2025-05-04 14:22:11.226 UTC [44] LOG:  database system was shut down at 2025-05-04 14:22:10 UTC
+bookstuio-db   | 2025-05-04 14:22:11.240 UTC [41] LOG:  database system is ready to accept connections
+bookstuio-db   |  done
+bookstuio-db   | server started
+bookstuio-db   | CREATE DATABASE
+bookstuio-db   |
+bookstuio-db   |
+bookstuio-db   | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+bookstuio-db   |
+bookstuio-app  |     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+bookstuio-app  |     at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+bookstuio-app  |     at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+bookstuio-app  |     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+bookstuio-app  |     at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+bookstuio-app  |   code: 'ERR_MODULE_NOT_FOUND',
+bookstuio-db   | waiting for server to shut down....2025-05-04 14:22:11.513 UTC [41] LOG:  received fast shutdown request
+bookstuio-db   | 2025-05-04 14:22:11.516 UTC [41] LOG:  aborting any active transactions
+bookstuio-db   | 2025-05-04 14:22:11.522 UTC [41] LOG:  background worker "logical replication launcher" (PID 47) exited with exit code 1
+bookstuio-db   | 2025-05-04 14:22:11.523 UTC [42] LOG:  shutting down
+bookstuio-db   | 2025-05-04 14:22:11.526 UTC [42] LOG:  checkpoint starting: shutdown immediate
+bookstuio-db   | 2025-05-04 14:22:11.659 UTC [42] LOG:  checkpoint complete: wrote 920 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.071 s, sync=0.055 s, total=0.137 s; sync files=301, longest=0.003 s, average=0.001 s; distance=4233 kB, estimate=4233 kB
+bookstuio-db   | 2025-05-04 14:22:11.679 UTC [41] LOG:  database system is shut down
+bookstuio-db   |  done
+bookstuio-db   | server stopped
+bookstuio-db   |
+bookstuio-db   | PostgreSQL init process complete; ready for start up.
+bookstuio-db   |
+bookstuio-db   | 2025-05-04 14:22:11.785 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-app  |   url: 'file:///app/shared/schema.js'
+bookstuio-app  | }
+bookstuio-app  |
+bookstuio-app  | Node.js v20.19.1
+bookstuio-db   | 2025-05-04 14:22:11.786 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+bookstuio-db   | 2025-05-04 14:22:11.786 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+bookstuio-db   | 2025-05-04 14:22:11.791 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db   | 2025-05-04 14:22:11.799 UTC [57] LOG:  database system was shut down at 2025-05-04 14:22:11 UTC
+bookstuio-db   | 2025-05-04 14:22:11.813 UTC [1] LOG:  database system is ready to accept connections
+bookstuio-app  | [ERROR] Failed to initialize database with seed data
+bookstuio-app  | [WARNING] Database initialization failed, but continuing anyway.
+bookstuio-app  | [INFO] Production environment detected but no dist folder found. Building application...
+bookstuio-app  |
+bookstuio-app  | > rest-express@1.0.0 build
+bookstuio-app  | > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+bookstuio-app  |
+bookstuio-app  | vite v5.4.14 building for production...
+bookstuio-app  | transforming...
+bookstuio-app  | Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+bookstuio-app  |   npx update-browserslist-db@latest
+bookstuio-app  |   Why you should do it regularly: https://github.com/browserslist/update-db#readme
