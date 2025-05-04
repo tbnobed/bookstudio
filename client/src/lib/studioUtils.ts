@@ -8,16 +8,29 @@ export function calculateStudioStatus(studio: Studio, bookings: Booking[], curre
     return "maintenance";
   }
   
-  // Check if there are any bookings for this studio on the current date
-  const hasBookingsToday = bookings.some(booking => {
-    const bookingStart = new Date(booking.start);
+  // Get the current time 
+  const now = new Date();
+  
+  // Check if there are any active bookings for this studio right now
+  const hasActiveBooking = bookings.some(booking => {
     const studioId = booking.studioId;
+    // Skip if not for this studio
+    if (studioId !== studio.id) return false;
     
-    return studioId === studio.id && isSameDay(bookingStart, currentDate);
+    // Check if booking is on the current date
+    const bookingStart = new Date(booking.start);
+    const bookingEnd = new Date(booking.end);
+    
+    // Only show as booked if we're currently within the booking time window
+    return (
+      isSameDay(bookingStart, currentDate) && 
+      now >= bookingStart && 
+      now <= bookingEnd
+    );
   });
   
-  // Return booked if there are bookings today, otherwise use the studio's configured status
-  return hasBookingsToday ? "booked" : studio.status;
+  // Return booked if there are active bookings now, otherwise use the studio's configured status
+  return hasActiveBooking ? "booked" : studio.status;
 }
 
 // Get the appropriate color class for a studio's status
