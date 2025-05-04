@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bookstuio-app
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
+      - PORT=3000
+      - SESSION_SECRET=${SESSION_SECRET:-your_session_secret}
+    depends_on:
+      - db
+    networks:
+      - bookstuio-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: bookstuio-db
+    restart: unless-stopped
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-bookstuio}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bookstuio-network
+
+networks:
+  bookstuio-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

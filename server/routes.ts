@@ -27,28 +27,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication with passport
   setupAuth(app);
 
-  // Health check endpoint for Docker and monitoring systems
-  app.get('/health', (req: Request, res: Response) => {
-    // Check database connection
-    try {
-      // For now, just return a 200 OK
-      // In a production system, we would check actual database connectivity
-      // and other health metrics
-      res.status(200).json({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        version: process.env.npm_package_version || '1.0.0',
-        environment: process.env.NODE_ENV || 'development'
-      });
-    } catch (error) {
-      res.status(500).json({
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: new Date().toISOString()
-      });
-    }
-  });
-
   // Middleware to check if user is authenticated
   const isAuthenticated = (req: Request, res: Response, next: Function) => {
     if (req.isAuthenticated()) {

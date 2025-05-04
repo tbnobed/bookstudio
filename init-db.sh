@@ -1,21 +1,21 @@
 #!/bin/bash
 set -e
 
-echo "Initializing PostgreSQL database for BookStud.io..."
-
-# Wait for PostgreSQL to be ready
-echo "Waiting for PostgreSQL to be ready..."
-until pg_isready -h db -U postgres; do
+# Wait for PostgreSQL to start
+echo "Waiting for PostgreSQL to start..."
+until PGPASSWORD=$POSTGRES_PASSWORD psql -h db -U $POSTGRES_USER -d $POSTGRES_DB -c '\q'; do
   echo "PostgreSQL is unavailable - sleeping"
   sleep 1
 done
 
-echo "PostgreSQL is ready, creating database..."
+echo "PostgreSQL started"
 
-# Create database if it doesn't exist
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE DATABASE bookstudio;
-    GRANT ALL PRIVILEGES ON DATABASE bookstudio TO postgres;
-EOSQL
+# Run migrations
+echo "Running database migrations..."
+npm run db:push
 
-echo "Database initialization completed successfully."
+# Seed initial data if needed
+echo "Seeding initial data..."
+node scripts/init-db.js
+
+echo "Database setup complete!"
