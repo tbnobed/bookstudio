@@ -15,10 +15,9 @@ services:
       - PORT=3000
       - SESSION_SECRET=${SESSION_SECRET:-your_session_secret}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
-    # Mount scripts and shared directories as volumes for direct access
+    # Mount the entire app directory for access to all files
     volumes:
-      - ./scripts:/app/scripts:ro
-      - ./shared:/app/shared:ro
+      - ./:/app
     # Use a simple command to start the application
     command: node dist/server.js
     depends_on:
@@ -63,8 +62,7 @@ services:
     restart: "no"
     working_dir: /app
     volumes:
-      - ./scripts:/app/scripts
-      - ./shared:/app/shared
+      - ./:/app
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bookstuio}
@@ -78,6 +76,7 @@ services:
              echo 'Waiting for database to be fully ready...' &&
              sleep 5 &&
              echo 'Running database initialization...' &&
+             cd /app &&
              node --experimental-specifier-resolution=node scripts/init-db.js &&
              node --experimental-specifier-resolution=node scripts/migrate-db.js &&
              echo 'Database initialization complete'"

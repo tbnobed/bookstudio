@@ -1,0 +1,108 @@
+obtv-admin@dev-bookstudio:~/bookstudio$ ./deploy.sh
+==============================================
+BookStud.io Deployment Script
+==============================================
+[2025-05-04 07:31:27] Checking prerequisites...
+[2025-05-04 07:31:27] Making scripts executable...
+[2025-05-04 07:31:27] Stopping any existing containers...
+[+] Running 3/3
+ ✔ Container bookstuio-app               Removed                                                                                                                                                                                     10.6s
+ ✔ Container bookstuio-db                Removed                                                                                                                                                                                      0.4s
+ ✔ Network bookstudio_bookstuio-network  Removed                                                                                                                                                                                      0.4s
+[2025-05-04 07:31:39] Cleaning up any stale resources...
+Total reclaimed space: 0B
+[2025-05-04 07:31:39] Building and starting BookStud.io...
+[+] Building 70.7s (13/13) FINISHED                                                                                                                                                                                         docker:default
+ => [app internal] load build definition from Dockerfile                                                                                                                                                                              0.0s
+ => => transferring dockerfile: 413B                                                                                                                                                                                                  0.0s
+ => [app internal] load metadata for docker.io/library/node:20-alpine                                                                                                                                                                 0.6s
+ => [app internal] load .dockerignore                                                                                                                                                                                                 0.0s
+ => => transferring context: 2B                                                                                                                                                                                                       0.0s
+ => [app 1/8] FROM docker.io/library/node:20-alpine@sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f                                                                                                           0.0s
+ => [app internal] load build context                                                                                                                                                                                                 0.1s
+ => => transferring context: 91.44kB                                                                                                                                                                                                  0.1s
+ => CACHED [app 2/8] WORKDIR /app                                                                                                                                                                                                     0.0s
+ => [app 3/8] RUN apk add --no-cache curl postgresql-client bash                                                                                                                                                                      2.6s
+ => [app 4/8] COPY package.json package-lock.json ./                                                                                                                                                                                  0.1s
+ => [app 5/8] RUN npm ci                                                                                                                                                                                                             22.0s
+ => [app 6/8] COPY . .                                                                                                                                                                                                                0.3s
+ => [app 7/8] RUN chmod +x simple-entrypoint.sh                                                                                                                                                                                       0.4s
+ => [app 8/8] RUN npm run build                                                                                                                                                                                                      22.6s
+ => [app] exporting to image                                                                                                                                                                                                         22.0s
+ => => exporting layers                                                                                                                                                                                                              22.0s
+ => => writing image sha256:de835d349a3e70dc5d3884d16fdfa6e4539400aef3dd3a5d741097fdf75146cc                                                                                                                                          0.0s
+ => => naming to docker.io/library/bookstudio-app                                                                                                                                                                                     0.0s
+[+] Running 5/5
+ ✔ db-init 4 layers [⣿⣿⣿⣿]      0B/0B      Pulled                                                                                                                                                                                     1.6s
+   ✔ f18232174bc9 Already exists                                                                                                                                                                                                      0.0s
+   ✔ a54ab62fca2d Already exists                                                                                                                                                                                                      0.0s
+   ✔ 6bf3eed75316 Already exists                                                                                                                                                                                                      0.0s
+   ✔ efb51bda5e87 Already exists                                                                                                                                                                                                      0.0s
+[+] Building 0.0s (0/0)                                                                                                                                                                                                     docker:default
+[+] Running 4/4
+ ✔ Network bookstudio_bookstuio-network  Created                                                                                                                                                                                      0.1s
+ ✔ Container bookstuio-db                Healthy                                                                                                                                                                                      0.1s
+ ✘ Container bookstuio-db-init           service "db-init" didn't complete successfully: exit 1                                                                                                                                       0.1s
+ ✔ Container bookstuio-app               Created                                                                                                                                                                                      0.0s
+service "db-init" didn't complete successfully: exit 1
+[2025-05-04 07:33:06] ==============================================
+[2025-05-04 07:33:06] Error during deployment at step: docker-compose up -d
+[2025-05-04 07:33:06] ==============================================
+[2025-05-04 07:33:06] Checking container logs...
+[2025-05-04 07:33:06] Database container logs:
+2025-05-04 07:32:52.936 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+2025-05-04 07:32:52.937 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2025-05-04 07:32:52.937 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2025-05-04 07:32:52.941 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2025-05-04 07:32:52.958 UTC [29] LOG:  database system was shut down at 2025-05-04 07:31:38 UTC
+2025-05-04 07:32:52.979 UTC [1] LOG:  database system is ready to accept connections
+
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+
+[2025-05-04 07:33:06] Deployment failed. Please fix the issues and try again.
+obtv-admin@dev-bookstudio:~/bookstudio$ docker-compose logs -f
+bookstuio-db       |
+bookstuio-db-init  | fetch https://dl-cdn.alpinelinux.org/alpine/v3.21/main/x86_64/APKINDEX.tar.gz
+bookstuio-db       | PostgreSQL Database directory appears to contain a database; Skipping initialization
+bookstuio-db       |
+bookstuio-db       | 2025-05-04 07:32:52.936 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+bookstuio-db       | 2025-05-04 07:32:52.937 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+bookstuio-db       | 2025-05-04 07:32:52.937 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+bookstuio-db       | 2025-05-04 07:32:52.941 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+bookstuio-db-init  | fetch https://dl-cdn.alpinelinux.org/alpine/v3.21/community/x86_64/APKINDEX.tar.gz
+bookstuio-db-init  | (1/8) Installing postgresql-common (1.2-r1)
+bookstuio-db-init  | Executing postgresql-common-1.2-r1.pre-install
+bookstuio-db-init  | (2/8) Installing lz4-libs (1.10.0-r0)
+bookstuio-db-init  | (3/8) Installing libpq (17.4-r0)
+bookstuio-db-init  | (4/8) Installing ncurses-terminfo-base (6.5_p20241006-r3)
+bookstuio-db-init  | (5/8) Installing libncursesw (6.5_p20241006-r3)
+bookstuio-db-init  | (6/8) Installing readline (8.2.13-r0)
+bookstuio-db       | 2025-05-04 07:32:52.958 UTC [29] LOG:  database system was shut down at 2025-05-04 07:31:38 UTC
+bookstuio-db-init  | (7/8) Installing zstd-libs (1.5.6-r2)
+bookstuio-db       | 2025-05-04 07:32:52.979 UTC [1] LOG:  database system is ready to accept connections
+bookstuio-db-init  | (8/8) Installing postgresql17-client (17.4-r0)
+bookstuio-db-init  | Executing busybox-1.37.0-r12.trigger
+bookstuio-db-init  | Executing postgresql-common-1.2-r1.trigger
+bookstuio-db-init  | * Setting postgresql17 as the default version
+bookstuio-db-init  | WARNING: opening from cache https://dl-cdn.alpinelinux.org/alpine/v3.21/main: No such file or directory
+bookstuio-db-init  | WARNING: opening from cache https://dl-cdn.alpinelinux.org/alpine/v3.21/community: No such file or directory
+bookstuio-db-init  | OK: 15 MiB in 25 packages
+bookstuio-db-init  | Waiting for database to be fully ready...
+bookstuio-db-init  | Running database initialization...
+bookstuio-db-init  | node:internal/modules/esm/resolve:873
+bookstuio-db-init  |   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+bookstuio-db-init  |         ^
+bookstuio-db-init  |
+bookstuio-db-init  | Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'drizzle-orm' imported from /app/scripts/init-db.js
+bookstuio-db-init  |     at packageResolve (node:internal/modules/esm/resolve:873:9)
+bookstuio-db-init  |     at moduleResolve (node:internal/modules/esm/resolve:946:18)
+bookstuio-db-init  |     at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+bookstuio-db-init  |     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+bookstuio-db-init  |     at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+bookstuio-db-init  |     at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+bookstuio-db-init  |     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+bookstuio-db-init  |     at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+bookstuio-db-init  |   code: 'ERR_MODULE_NOT_FOUND'
+bookstuio-db-init  | }
+bookstuio-db-init  |
+bookstuio-db-init  | Node.js v20.19.1
