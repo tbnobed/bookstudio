@@ -138,9 +138,9 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick }: AlertsRow
   }, 0);
   
   // Calculate dynamic height - base height plus additional space for each alert
-  const baseHeight = 32; // Minimum height for a row with no alerts
-  const heightPerAlert = 16; // Additional height per alert
-  const maxAdditionalHeight = 100; // Maximum additional height
+  const baseHeight = 42; // Minimum height for a row with no alerts
+  const heightPerAlert = 24; // Additional height per alert
+  const maxAdditionalHeight = 160; // Maximum additional height
   const additionalHeight = Math.min(maxAlertsForWeek * heightPerAlert, maxAdditionalHeight);
   const rowHeight = baseHeight + additionalHeight;
 

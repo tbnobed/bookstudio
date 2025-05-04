@@ -36,9 +36,9 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
         }, 0);
         
         // Calculate dynamic height - base height plus additional space for each booking
-        // Min height is 32px, and each booking adds 16px up to a reasonable maximum
-        const baseHeight = 32; // Minimum height for a row with no bookings
-        const heightPerBooking = 16; // Additional height per booking
+        // Min height is 42px, and each booking adds 24px up to a reasonable maximum
+        const baseHeight = 42; // Minimum height for a row with no bookings
+        const heightPerBooking = 24; // Additional height per booking
         const maxAdditionalHeight = 160; // Maximum additional height
         const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
         const rowHeight = baseHeight + additionalHeight;
@@ -61,8 +61,8 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
         );
         
         // Calculate dynamic height for cells - same logic as row header
-        const baseHeight = 32; // Minimum height for a row with no bookings
-        const heightPerBooking = 16; // Additional height per booking
+        const baseHeight = 42; // Minimum height for a row with no bookings
+        const heightPerBooking = 24; // Additional height per booking
         const maxAdditionalHeight = 160; // Maximum additional height
         
         // Find max bookings across the entire row to keep consistent height
@@ -119,44 +119,47 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick 
               }
               
               // Calculate position based on booking index
-              let topPosition = 2 + (bookingIndex * 20); // 20px spacing between bookings
+              let topPosition = 4 + (bookingIndex * 28); // 28px spacing between bookings
               
               // If we have more than 10 bookings, adjust the spacing to be more compact
               if (dayBookings.length > 10) {
-                topPosition = 2 + (bookingIndex * 14); // 14px spacing for dense days
+                topPosition = 4 + (bookingIndex * 20); // 20px spacing for dense days
               } else if (dayBookings.length > 5) {
-                topPosition = 2 + (bookingIndex * 16); // 16px spacing for medium density days
+                topPosition = 4 + (bookingIndex * 24); // 24px spacing for medium density days
               }
               
-              // Calculate height - make compact for many bookings
-              const height = dayBookings.length > 10 ? 12 : dayBookings.length > 5 ? 14 : 20;
+              // Calculate height - make compact for many bookings, but larger than before
+              const height = dayBookings.length > 10 ? 18 : dayBookings.length > 5 ? 22 : 26;
               
               return (
                 <HoverCard key={booking.id}>
                   <HoverCardTrigger asChild>
                     <div 
                       className={cn(
-                        "absolute w-[calc(100%-4px)] left-[2px] border rounded-md p-1 overflow-hidden text-overflow-ellipsis whitespace-nowrap text-xs z-10",
+                        "absolute w-[calc(100%-4px)] left-[2px] border rounded-md px-2 py-1 overflow-hidden text-overflow-ellipsis text-xs z-10 transition-all hover:shadow-md",
                         colorClass
                       )}
                       style={{
                         top: `${topPosition}px`,
-                        height: `${height}px`,
+                        minHeight: `${height}px`,
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
                         onBookingClick(booking);
                       }}
                     >
-                      <div className="font-medium truncate flex items-center text-[10px]">
+                      <div className="flex items-center w-full">
                         {(booking.type === "maintenance" || booking.type === "it_support") && (
-                          <span className={`w-2 h-2 rounded-full mr-1 ${
+                          <span className={`w-2 h-2 rounded-full mr-1 flex-shrink-0 ${
                             booking.severity === "critical" ? "bg-red-500" : 
                             booking.severity === "high" ? "bg-orange-500" :
                             booking.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
                           }`}></span>
                         )}
-                        {formatTime(booking.start)} - {booking.title}
+                        <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">{booking.title}</span>
+                      </div>
+                      <div className="text-xs pl-3">
+                        {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
                       </div>
                     </div>
                   </HoverCardTrigger>
