@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,16 +12,20 @@ import { Studio } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import StudioManagementModal from "@/components/studio/StudioManagementModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTimezone } from "@/contexts/TimezoneContext";
 
 export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { timezone, setTimezone } = useTimezone();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [selectedStudio, setSelectedStudio] = useState<Studio | undefined>(undefined);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [studioToDelete, setStudioToDelete] = useState<Studio | null>(null);
+  const [timezones, setTimezones] = useState<string[]>([]);
   
   // Fetch studios for studio settings
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -99,6 +103,23 @@ export default function Settings() {
   const timeOptions = ["12-hour (AM/PM)", "24-hour"];
   const dateOptions = ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"];
   const firstDayOptions = ["Sunday", "Monday"];
+  
+  // Initialize timezone data
+  useEffect(() => {
+    // Common timezone options
+    const commonTimezones = [
+      "UTC",
+      "America/Los_Angeles", // Pacific Time (US & Canada)
+      "America/Denver",      // Mountain Time (US & Canada)
+      "America/Chicago",     // Central Time (US & Canada)
+      "America/New_York",    // Eastern Time (US & Canada)
+      "Europe/London",       // GMT/UTC
+      "Europe/Paris",        // Central European Time
+      "Asia/Tokyo",          // Japan
+      "Australia/Sydney",    // Australia Eastern Time
+    ];
+    setTimezones(commonTimezones);
+  }, []);
 
   if (user?.role !== "admin") {
     return (
@@ -221,6 +242,30 @@ export default function Settings() {
                             </label>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="timezone-select">Timezone</Label>
+                      <div className="mt-2">
+                        <Select
+                          value={timezone}
+                          onValueChange={(value) => setTimezone(value)}
+                        >
+                          <SelectTrigger id="timezone-select" className="w-full">
+                            <SelectValue placeholder="Select a timezone" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timezones.map((tz) => (
+                              <SelectItem key={tz} value={tz}>
+                                {tz.replace("_", " ").replace(/\//g, " / ")}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Current timezone: {timezone || "UTC"} ({new Date().toLocaleString('en-US', { timeZone: timezone })}
+                        </p>
                       </div>
                     </div>
                   </div>
