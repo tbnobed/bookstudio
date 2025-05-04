@@ -24,7 +24,14 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
 
   // Fetch all bookings
   const bookingsQuery = useQuery<Booking[]>({
-    queryKey: ["/api/bookings" + getQueryString()],
+    queryKey: ["/api/bookings", { start: formatDateParam(startDate), end: formatDateParam(endDate) }],
+    queryFn: async () => {
+      const response = await fetch(`/api/bookings${getQueryString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch bookings');
+      }
+      return response.json();
+    },
     enabled: true,
     refetchInterval: 3000, // Refetch every 3 seconds to keep UI in sync
     refetchOnWindowFocus: true,

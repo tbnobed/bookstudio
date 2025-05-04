@@ -47,9 +47,23 @@ export default function WeeklyCalendar({
   const studios = externalStudios || studiosQuery.data || [];
 
   // Fetch bookings for the week if not provided externally
-  const weekStart = weekDates[0] ? new Date(weekDates[0]) : new Date();
-  const weekEnd = weekDates[6] ? new Date(weekDates[6]) : new Date();
-  weekEnd.setHours(23, 59, 59, 999);
+  // Move these calculations inside the useEffect to ensure they update with weekDates
+  const [weekStart, setWeekStart] = useState<Date>(new Date());
+  const [weekEnd, setWeekEnd] = useState<Date>(new Date());
+
+  // Update week start and end dates whenever week dates change
+  useEffect(() => {
+    if (weekDates.length >= 7) {
+      const newWeekStart = new Date(weekDates[0]);
+      const newWeekEnd = new Date(weekDates[6]);
+      newWeekEnd.setHours(23, 59, 59, 999);
+      
+      console.log(`Setting new date range: ${newWeekStart.toISOString()} to ${newWeekEnd.toISOString()}`);
+      
+      setWeekStart(newWeekStart);
+      setWeekEnd(newWeekEnd);
+    }
+  }, [weekDates]);
 
   // Use the useStudioBookings hook if no external bookings are provided
   const { bookings: fetchedBookings = [], isLoading: bookingsLoading } = 
