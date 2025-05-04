@@ -45,12 +45,20 @@ export default function BookingModal({
   const formInitializedRef = useRef(false);
   
   // Set default form values
+  // Ensure selectedDate is correctly formatted to local timezone date
+  const formatDateForForm = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const defaultValues = {
     title: "",
     description: "",
     studioId: selectedStudio?.toString() || "",
     bookingType: alertsOnly ? "maintenance" : "production",
-    date: selectedDate ? selectedDate.toISOString().split("T")[0] : "",
+    date: formatDateForForm(selectedDate),
     startTime: "9:00am",
     endTime: "10:00am",
     templateId: "",
@@ -130,7 +138,7 @@ export default function BookingModal({
         
         // Set selected date if provided
         if (selectedDate) {
-          newFormData.date = selectedDate.toISOString().split("T")[0];
+          newFormData.date = formatDateForForm(selectedDate);
           newFormData.startTime = "9:00am";
           newFormData.endTime = "10:00am";
         }
