@@ -111,14 +111,16 @@ export function formatWeekRangeText(currentDate: Date | null | undefined): strin
   // If no date is provided, use current date
   const safeDate = currentDate || new Date();
   
-  // Get the fresh week dates for the current date
+  // Get the fresh week dates for the current date - always calculate this
+  // directly from the input date to ensure it's up to date
   const weekDates = getWeekDates(safeDate);
   const start = weekDates[0];
   const end = weekDates[6];
   
-  // Debug information to ensure we're using the correct date
-  console.log(`formatWeekRangeText - Date input: ${safeDate.toISOString()}`);
-  console.log(`formatWeekRangeText - Week start: ${start.toISOString()}, end: ${end.toISOString()}`);
+  // Add timestamp to force recalculation on each render
+  const timestamp = Date.now();
+  console.log(`formatWeekRangeText - [Timestamp: ${timestamp}] Date input: ${safeDate.toISOString()}`);
+  console.log(`formatWeekRangeText - [Timestamp: ${timestamp}] Week start: ${start.toISOString()}, end: ${end.toISOString()}`);
   
   // Format month names
   const startMonth = MONTH_NAMES[start.getMonth()].substring(0, 3);
@@ -129,7 +131,7 @@ export function formatWeekRangeText(currentDate: Date | null | undefined): strin
     ? `${startMonth} ${start.getDate()} - ${end.getDate()}, ${start.getFullYear()}`
     : `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}, ${start.getFullYear()}`;
     
-  console.log(`formatWeekRangeText - Result: ${result}`);
+  console.log(`formatWeekRangeText - [Timestamp: ${timestamp}] Result: ${result}`);
   return result;
 }
 

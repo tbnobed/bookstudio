@@ -35,10 +35,12 @@ export default function WeeklyCalendar({
   
   // Update effectiveDate when props change
   useEffect(() => {
-    const newDate = startDate || currentDate || new Date();
-    console.log(`WeeklyCalendar - Props changed, new date: ${newDate.toISOString()}`);
-    setEffectiveDate(newDate);
-  }, [startDate, currentDate]);
+    if (startDate || currentDate) {
+      const newDate = startDate || currentDate || new Date();
+      console.log(`WeeklyCalendar - Props changed, new date: ${newDate.toISOString()}`);
+      setEffectiveDate(newDate);
+    }
+  }, [startDate, currentDate, setEffectiveDate]);
   
   // Calculate week dates whenever effective date changes
   useEffect(() => {
