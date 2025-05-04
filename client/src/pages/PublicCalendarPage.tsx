@@ -186,9 +186,9 @@ function PublicCalendarPage() {
   return (
     <div className="flex h-screen flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b bg-[#003366] px-4 py-8 shadow-sm">
+      <header className="sticky top-0 z-30 border-b bg-[#003366] px-4 py-2 shadow-sm">
         <div className="flex items-center justify-center">
-          <img src={logoPath} alt="BookStud.io logo" className="h-96 w-auto my-4" />
+          <img src={logoPath} alt="BookStud.io logo" className="h-60 w-auto" />
         </div>
       </header>
 
