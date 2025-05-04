@@ -1,5 +1,5 @@
-const { db } = require('../server/db');
-const { sql } = require('drizzle-orm');
+import { db } from '../server/db.js';
+import { sql } from 'drizzle-orm';
 
 async function migrateDb() {
   console.log('Creating notification_groups table...');

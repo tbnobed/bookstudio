@@ -1,7 +1,7 @@
-const { db } = require('../server/db');
-const { scrypt, randomBytes } = require('crypto');
-const { promisify } = require('util');
-const { eq } = require('drizzle-orm');
+import { db } from '../server/db.js';
+import { scrypt, randomBytes } from 'crypto';
+import { promisify } from 'util';
+import { eq } from 'drizzle-orm';
 
 const scryptAsync = promisify(scrypt);
 
