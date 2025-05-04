@@ -5,6 +5,7 @@ import BookingModal from "@/components/booking/BookingModal";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
 import { cn } from "@/lib/utils";
+import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 
 type HeaderProps = {
   currentDate: Date;
@@ -89,19 +90,12 @@ export function Header({
     onStudioFilterChange(newSelectedIds);
   };
 
-  // Get studio status color
-  const getStudioStatusColor = (status: string) => {
-    switch (status) {
-      case "available":
-        return "bg-green-500";
-      case "maintenance":
-        return "bg-orange-500";
-      case "booked":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
+  // Fetch bookings for status calculation
+  const { data: bookings = [] } = useQuery({
+    queryKey: ["/api/bookings"],
+    // Only used for status calculation, so no need to refetch often
+    refetchInterval: 60000,
+  });
 
   return (
     <header className="bg-white shadow-sm">
@@ -210,7 +204,7 @@ export function Header({
                   )}
                   onClick={() => toggleStudioFilter(studio.id)}
                 >
-                  <span className={cn("h-2 w-2 inline-block rounded-full mr-1", getStudioStatusColor(studio.status))}></span>
+                  <span className={cn("h-2 w-2 inline-block rounded-full mr-1", getStudioStatusColor(calculateStudioStatus(studio, bookings, currentDate)))}></span>
                   {studio.name}
                 </button>
               ))}
