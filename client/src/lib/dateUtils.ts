@@ -117,11 +117,12 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
   const d1 = typeof date1 === "string" ? new Date(date1) : date1;
   const d2 = typeof date2 === "string" ? new Date(date2) : date2;
   
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  );
+  // Create local dates to compare only year, month, day components
+  const d1Local = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
+  const d2Local = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+  
+  // Compare dates in local time to avoid timezone offset issues
+  return d1Local.getTime() === d2Local.getTime();
 }
 
 export function formatWeekRangeText(currentDate: Date | null | undefined): string {
@@ -242,10 +243,8 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // Use UTC methods to ensure consistent date behavior without timezone adjustments
-  const dateObj = new Date();
-  dateObj.setFullYear(year, month - 1, day);
-  dateObj.setHours(hourNum, minuteNum, 0, 0);
+  // Create a date object with year, month, day in local time
+  const dateObj = new Date(year, month - 1, day, hourNum, minuteNum, 0, 0);
   
   // Log for debugging
   console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()}`);
