@@ -140,6 +140,9 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
         notes: values.notes,
       });
       
+      // Manually refetch the booking resources to ensure we have the latest data
+      await refetchBookingResources();
+      
       setIsAddDialogOpen(false);
       addForm.reset();
     } catch (error) {
@@ -161,6 +164,9 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
         bookingId: booking.id,
       });
       
+      // Manually refetch the booking resources to ensure we have the latest data
+      await refetchBookingResources();
+      
       setIsEditDialogOpen(false);
       setEditingResource(null);
     } catch (error) {
@@ -175,6 +181,9 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
         id,
         bookingId: booking.id,
       });
+      
+      // Manually refetch the booking resources to ensure we have the latest data
+      await refetchBookingResources();
     } catch (error) {
       console.error('Failed to remove resource from booking:', error);
     }
@@ -184,6 +193,9 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
   const handleRemoveAllResources = async () => {
     try {
       await removeAllBookingResourcesMutation.mutateAsync(booking.id);
+      
+      // Manually refetch the booking resources to ensure we have the latest data
+      await refetchBookingResources();
     } catch (error) {
       console.error('Failed to remove all resources from booking:', error);
     }
