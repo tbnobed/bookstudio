@@ -440,9 +440,16 @@ export default function BookingModal({
               studioIds: studioIds
             });
             successCount++;
-          } catch (error) {
+          } catch (error: any) {
             console.error(`Failed to create booking for date ${dateStr}:`, error);
-            // Continue with other dates even if one fails
+            // Show a toast with the error message if available
+            toast({
+              title: "Booking Error",
+              description: error.message || `Failed to create booking for ${dateStr}`,
+              variant: "destructive"
+            });
+            // Stop processing additional dates if we encounter an error
+            break;
           }
         }
         

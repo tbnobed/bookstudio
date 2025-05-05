@@ -499,18 +499,35 @@ export class MemStorage implements IStorage {
   }
   
   async createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]> {
-    const createdLinks: BookingStudio[] = [];
-    
-    for (const studioId of studioIds) {
-      const id = this.bookingStudioIdCounter++;
-      const key = `${bookingId}-${studioId}`;
-      const link: BookingStudio = { id, bookingId, studioId };
+    try {
+      const createdLinks: BookingStudio[] = [];
       
-      this.bookingStudios.set(key, link);
-      createdLinks.push(link);
+      // Validate the booking ID exists before attempting to create links
+      const booking = await this.getBooking(bookingId);
+      if (!booking) {
+        throw new Error(`Cannot create links: Booking with ID ${bookingId} does not exist`);
+      }
+      
+      // Validate that all studio IDs exist
+      for (const studioId of studioIds) {
+        const studio = await this.getStudio(studioId);
+        if (!studio) {
+          throw new Error(`Cannot create link: Studio with ID ${studioId} does not exist`);
+        }
+        
+        const id = this.bookingStudioIdCounter++;
+        const key = `${bookingId}-${studioId}`;
+        const link: BookingStudio = { id, bookingId, studioId };
+        
+        this.bookingStudios.set(key, link);
+        createdLinks.push(link);
+      }
+      
+      return createdLinks;
+    } catch (error) {
+      console.error("Error creating booking studio links:", error);
+      throw error; // Properly propagate the error for better error handling
     }
-    
-    return createdLinks;
   }
   
   async deleteBookingStudioLinks(bookingId: number): Promise<boolean> {
@@ -1525,14 +1542,31 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
+      // Validate the booking ID exists before attempting to create links
+      const booking = await this.getBooking(bookingId);
+      if (!booking) {
+        throw new Error(`Cannot create links: Booking with ID ${bookingId} does not exist`);
+      }
+      
+      // Validate that all studio IDs exist
+      for (const studioId of studioIds) {
+        const studio = await this.getStudio(studioId);
+        if (!studio) {
+          throw new Error(`Cannot create link: Studio with ID ${studioId} does not exist`);
+        }
+      }
+      
       const links = studioIds.map(studioId => ({
         bookingId,
         studioId
       }));
       
-      return db.insert(bookingStudios)
+      const createdLinks = await db.insert(bookingStudios)
         .values(links)
         .returning();
+      
+      console.log(`Created ${createdLinks.length} booking-studio links in database`);
+      return createdLinks;
     } catch (error) {
       console.error(`Error creating studio links for booking ID ${bookingId}:`, error);
       throw error;
@@ -1744,6 +1778,20 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
+      // Validate the booking ID exists before attempting to create links
+      const booking = await this.getBooking(bookingId);
+      if (!booking) {
+        throw new Error(`Cannot create links: Booking with ID ${bookingId} does not exist`);
+      }
+      
+      // Validate that all studio IDs exist
+      for (const studioId of studioIds) {
+        const studio = await this.getStudio(studioId);
+        if (!studio) {
+          throw new Error(`Cannot create link: Studio with ID ${studioId} does not exist`);
+        }
+      }
+      
       console.log(`Creating booking-studio links for booking ID ${bookingId} with studios:`, studioIds);
       
       // Create the links in the database
@@ -1768,7 +1816,7 @@ export class DatabaseStorage implements IStorage {
       return createdLinks;
     } catch (error) {
       console.error(`Error creating booking-studio links for booking ID ${bookingId}:`, error);
-      return [];
+      throw error; // Properly propagate the error
     }
   }
   

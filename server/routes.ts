@@ -814,11 +814,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (studioIds && studioIds.length > 0) {
         try {
           const parsedStudioIds = studioIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          await storage.createBookingStudioLinks(booking.id, parsedStudioIds);
-          console.log(`Created ${parsedStudioIds.length} studio links for booking ${booking.id}`);
+          const studioLinks = await storage.createBookingStudioLinks(booking.id, parsedStudioIds);
+          console.log(`Created ${studioLinks.length} studio links for booking ${booking.id}`);
+          
+          // If we didn't create the expected number of links, log a warning
+          if (studioLinks.length !== parsedStudioIds.length) {
+            console.warn(`Warning: Expected to create ${parsedStudioIds.length} studio links, but only created ${studioLinks.length}`);
+          }
         } catch (error) {
           console.error("Error creating studio links:", error);
-          // Continue with the response even if junction table entries fail
+          // Delete the booking since we couldn't create the studio links
+          await storage.deleteBooking(booking.id);
+          return res.status(500).json({ message: "Failed to link booking to selected studios. Booking was not created." });
         }
       }
       
