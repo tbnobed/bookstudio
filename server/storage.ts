@@ -1211,7 +1211,12 @@ export class DatabaseStorage implements IStorage {
   
   async getAllBookings(): Promise<Booking[]> {
     try {
-      const allBookings = await db.select().from(bookings);
+      // Include the PCR room relation to get the PCR room name
+      const allBookings = await db.query.bookings.findMany({
+        with: {
+          pcrRoom: true
+        }
+      });
       allBookings.forEach(booking => {
         this.bookings.set(booking.id, booking);
       });
@@ -1304,9 +1309,12 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`[Storage] Fetching bookings between ${adjustedStart.toISOString()} and ${end.toISOString()}`);
       
-      // Fallback to in-memory approach to avoid PostgreSQL reserved keyword issues
-      // Get all bookings and filter them
-      const allBookings = await this.getAllBookings();
+      // Query with PCR room relation included
+      const allBookings = await db.query.bookings.findMany({
+        with: {
+          pcrRoom: true
+        }
+      });
       
       // Now filter the bookings to those in the date range
       const dateRangeBookings = allBookings.filter(booking => {
