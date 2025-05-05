@@ -694,11 +694,11 @@ export default function BookingModal({
                   </div>
                   
                   {formData.useMultiDateSelection && (
-                    <div className="border rounded-md p-1 mb-2 bg-background">
-                      <div className="flex items-center justify-between mb-1">
-                        <Label className="text-xs font-medium">Select multiple dates</Label>
+                    <div className="border rounded-md p-1 mb-2 bg-background max-w-[250px] mx-auto">
+                      <div className="flex items-center justify-between mb-1 px-1">
+                        <Label className="text-xs font-medium">Select dates</Label>
                         <span className="text-xs text-muted-foreground">
-                          {selectedDates.length} date(s) selected
+                          {selectedDates.length} selected
                         </span>
                       </div>
                       <DayPicker
@@ -724,8 +724,8 @@ export default function BookingModal({
                           nav: { fontSize: '0.8rem' }
                         }}
                       />
-                      <p className="text-xs text-muted-foreground mt-1 text-center">
-                        A separate booking will be created for each selected date.
+                      <p className="text-xs text-muted-foreground mt-1 text-center px-1">
+                        Creates a booking for each date.
                       </p>
                     </div>
                   )}
@@ -1083,11 +1083,11 @@ export default function BookingModal({
               </div>
               
               {formData.useMultiDateSelection && (
-                <div className="border rounded-md p-1 mb-2 bg-background">
-                  <div className="flex items-center justify-between mb-1">
-                    <Label className="text-xs font-medium">Select multiple dates</Label>
+                <div className="border rounded-md p-1 mb-2 bg-background max-w-[250px] mx-auto">
+                  <div className="flex items-center justify-between mb-1 px-1">
+                    <Label className="text-xs font-medium">Select dates</Label>
                     <span className="text-xs text-muted-foreground">
-                      {selectedDates.length} date(s) selected
+                      {selectedDates.length} selected
                     </span>
                   </div>
                   <DayPicker
@@ -1113,8 +1113,8 @@ export default function BookingModal({
                       nav: { fontSize: '0.8rem' }
                     }}
                   />
-                  <p className="text-xs text-muted-foreground mt-1 text-center">
-                    A separate booking will be created for each selected date.
+                  <p className="text-xs text-muted-foreground mt-1 text-center px-1">
+                    Creates a booking for each date.
                   </p>
                 </div>
               )}
