@@ -152,7 +152,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/forgot-password", async (req, res) => {
     try {
       // Validate request body
-      const { email } = z.object({ email: z.string().email() }).parse(req.body);
+      const { email, origin } = z.object({ 
+        email: z.string().email(),
+        origin: z.string().optional()
+      }).parse(req.body);
+      
+      console.log("Received origin from client:", origin);
       
       // Find user by email
       const users = await storage.getAllUsers();
@@ -166,11 +171,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate password reset token
       const token = generatePasswordResetToken(user.id);
       
-      // Generate reset link - for Replit we use the relative path
-      const resetLink = `/reset-password/${token}`;
+      // Generate reset link path
+      const resetPath = `/reset-password/${token}`;
       
       // Send password reset email
-      const emailSent = await sendPasswordResetEmail(user.email, resetLink);
+      const emailSent = await sendPasswordResetEmail(user.email, resetPath, origin);
       
       if (!emailSent) {
         console.error(`Failed to send password reset email to ${user.email}`);

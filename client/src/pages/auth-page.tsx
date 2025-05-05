@@ -106,7 +106,15 @@ export default function AuthPage() {
     try {
       setForgotPasswordLoading(true);
       
-      const response = await apiRequest("POST", "/api/forgot-password", data);
+      // Include the current origin in the request
+      const origin = window.location.origin;
+      console.log("Current origin:", origin);
+      
+      const response = await apiRequest("POST", "/api/forgot-password", {
+        ...data,
+        origin
+      });
+      
       const result = await response.json();
       
       if (result.success) {

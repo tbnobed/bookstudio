@@ -68,22 +68,26 @@ export function invalidatePasswordResetToken(token: string): void {
 /**
  * Send a password reset email
  * @param to The recipient's email address
- * @param resetLink The password reset link
+ * @param resetPath The password reset path (e.g., /reset-password/token)
+ * @param clientOrigin The origin provided by the client (optional)
  * @returns A promise that resolves when the email is sent
  */
-export async function sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean> {
+export async function sendPasswordResetEmail(to: string, resetPath: string, clientOrigin?: string): Promise<boolean> {
   // For testing purposes - we're logging the reset link directly in development
   // This is helpful when SendGrid isn't working or in development environments
   if (process.env.NODE_ENV === 'development') {
-    // Get the current origin for Replit
-    const origin = process.env.REPL_SLUG 
+    // Get the appropriate origin (client-provided or fallback)
+    const origin = clientOrigin || (process.env.REPL_SLUG 
       ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
-      : 'http://localhost:5000';
+      : 'http://localhost:5000');
+    
+    const fullResetLink = `${origin}${resetPath}`;
     
     console.log('====== PASSWORD RESET LINK ======');
     console.log(`Email would be sent to: ${to}`);
-    console.log(`Reset link: ${origin}${resetLink}`);
-    console.log(`Direct link to copy/paste: ${origin}${resetLink}`);
+    console.log(`Using origin: ${origin}`);
+    console.log(`Reset link: ${fullResetLink}`);
+    console.log(`Direct link to copy/paste: ${fullResetLink}`);
     console.log('=================================');
     
     // In a real production environment, remove this return and use only SendGrid
@@ -92,12 +96,12 @@ export async function sendPasswordResetEmail(to: string, resetLink: string): Pro
   }
   
   try {
-    // Get the current origin for Replit (or use localhost for local dev)
-    const origin = process.env.REPL_SLUG 
+    // Get the appropriate origin (client-provided or fallback)
+    const origin = clientOrigin || (process.env.REPL_SLUG 
       ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
-      : 'http://localhost:5000';
+      : 'http://localhost:5000');
     
-    const fullResetLink = `${origin}${resetLink}`;
+    const fullResetLink = `${origin}${resetPath}`;
     
     // In production, we would use SendGrid
     const msg = {
