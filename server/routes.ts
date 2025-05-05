@@ -1449,7 +1449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Remove a resource from a booking
-  app.delete("/api/booking-resources/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/bookings/:bookingId/resources/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const deleted = await resourceService.removeResourceFromBooking(id);
