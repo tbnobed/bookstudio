@@ -64,7 +64,7 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
 
   // Create a booking
   const createBooking = useMutation({
-    mutationFn: async (booking: InsertBooking) => {
+    mutationFn: async (booking: InsertBooking & { studioIds?: number[] }) => {
       const res = await apiRequest("POST", "/api/bookings", booking);
       return res.json();
     },
@@ -111,8 +111,10 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
 
   // Update a booking
   const updateBooking = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertBooking> }) => {
-      const res = await apiRequest("PATCH", `/api/bookings/${id}`, data);
+    mutationFn: async ({ id, data, studioIds }: { id: number; data: Partial<InsertBooking>; studioIds?: number[] }) => {
+      // Include studioIds in the request body if provided
+      const requestData = studioIds ? { ...data, studioIds } : data;
+      const res = await apiRequest("PATCH", `/api/bookings/${id}`, requestData);
       return res.json();
     },
     onSuccess: () => {
