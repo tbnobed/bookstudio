@@ -698,42 +698,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Booking request data:", JSON.stringify(req.body));
       
+      // Extract studio IDs for conflict checking and junction table
+      const studioIds = req.body.studioIds || [];
+      const mainStudioId = typeof req.body.studioId === 'string' ? parseInt(req.body.studioId) : req.body.studioId;
+      
       // Ensure studioId is a number and proper date formats
       const requestData = {
         ...req.body,
         userId: user.id,
-        studioId: typeof req.body.studioId === 'string' ? parseInt(req.body.studioId) : req.body.studioId
+        studioId: mainStudioId
       };
       
       console.log("Modified request data:", JSON.stringify(requestData));
       
       const bookingData = insertBookingSchema.parse(requestData);
       
-      // Check for booking conflicts (only for studio-specific bookings)
+      // Check for booking conflicts for all studios in the request
       let conflict = false;
+      let conflictingStudio = null;
       
-      if (bookingData.studioId !== null && bookingData.studioId !== undefined) {
-        const existingBookings = await storage.getBookingsByStudio(bookingData.studioId);
+      // Only check for conflicts if we have studio selections
+      if (studioIds && studioIds.length > 0) {
         const start = new Date(bookingData.start);
         const end = new Date(bookingData.end);
         
-        conflict = existingBookings.some(booking => {
-          const bookingStart = new Date(booking.start);
-          const bookingEnd = new Date(booking.end);
+        // Check each studio for conflicts
+        for (const studioIdStr of studioIds) {
+          const studioId = parseInt(studioIdStr);
+          const existingBookings = await storage.getBookingsByStudio(studioId);
           
-          return (
-            (start >= bookingStart && start < bookingEnd) ||
-            (end > bookingStart && end <= bookingEnd) ||
-            (start <= bookingStart && end >= bookingEnd)
-          );
-        });
+          const hasConflict = existingBookings.some(booking => {
+            const bookingStart = new Date(booking.start);
+            const bookingEnd = new Date(booking.end);
+            
+            return (
+              (start >= bookingStart && start < bookingEnd) ||
+              (end > bookingStart && end <= bookingEnd) ||
+              (start <= bookingStart && end >= bookingEnd)
+            );
+          });
+          
+          if (hasConflict) {
+            conflict = true;
+            conflictingStudio = studioId;
+            break;
+          }
+        }
       }
       
       if (conflict) {
-        return res.status(409).json({ message: "There is a booking conflict for this time slot" });
+        // Get the studio name for better error message
+        const studio = await storage.getStudio(conflictingStudio);
+        return res.status(409).json({ 
+          message: `There is a booking conflict for ${studio ? studio.name : `studio ID ${conflictingStudio}`} during this time slot`
+        });
       }
       
       const booking = await storage.createBooking(bookingData);
+      
+      // Create entries in the junction table for each selected studio
+      if (studioIds && studioIds.length > 0) {
+        try {
+          const parsedStudioIds = studioIds.map(id => typeof id === 'string' ? parseInt(id) : id);
+          await storage.createBookingStudioLinks(booking.id, parsedStudioIds);
+          console.log(`Created ${parsedStudioIds.length} studio links for booking ${booking.id}`);
+        } catch (error) {
+          console.error("Error creating studio links:", error);
+          // Continue with the response even if junction table entries fail
+        }
+      }
       
       // Handle facility-wide maintenance alerts (for all users)
       // These are recognized by null studioId and maintenance or it_support type
@@ -855,6 +888,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the update data
       let updateData = { ...req.body };
       
+      // Extract studio IDs for conflict checking and junction table
+      const studioIds = updateData.studioIds || [];
+      
       // Convert date strings to Date objects
       if (updateData.start && typeof updateData.start === 'string') {
         updateData.start = new Date(updateData.start);
@@ -866,16 +902,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Processing update with data:", updateData);
       
-      // If changing dates, check for conflicts (only for studio-specific bookings)
-      if ((updateData.start || updateData.end) && (updateData.studioId !== null && booking.studioId !== null)) {
+      // Check for booking conflicts for all studios in the request
+      let conflict = false;
+      let conflictingStudio = null;
+      
+      // Only check for conflicts if we have studio selections and date is changing
+      if (studioIds.length > 0 && (updateData.start || updateData.end)) {
         const start = updateData.start || new Date(booking.start);
         const end = updateData.end || new Date(booking.end);
-        const studioId = updateData.studioId !== undefined ? updateData.studioId : booking.studioId;
         
-        if (studioId !== null) {
+        // Check each studio for conflicts
+        for (const studioIdStr of studioIds) {
+          const studioId = parseInt(studioIdStr);
           const existingBookings = await storage.getBookingsByStudio(studioId);
           
-          const conflict = existingBookings.some(b => {
+          const hasConflict = existingBookings.some(b => {
             if (b.id === id) return false; // Skip the current booking
             
             const bookingStart = new Date(b.start);
@@ -888,13 +929,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
           });
           
-          if (conflict) {
-            return res.status(409).json({ message: "There is a booking conflict for this time slot" });
+          if (hasConflict) {
+            conflict = true;
+            conflictingStudio = studioId;
+            break;
+          }
+        }
+      }
+      // If no studioIds provided, but dates and studioId are changing, check for conflicts the old way
+      else if ((updateData.start || updateData.end) && 
+               (updateData.studioId !== null && booking.studioId !== null)) {
+        const start = updateData.start || new Date(booking.start);
+        const end = updateData.end || new Date(booking.end);
+        const studioId = updateData.studioId !== undefined ? updateData.studioId : booking.studioId;
+        
+        if (studioId !== null) {
+          const existingBookings = await storage.getBookingsByStudio(studioId);
+          
+          const hasConflict = existingBookings.some(b => {
+            if (b.id === id) return false; // Skip the current booking
+            
+            const bookingStart = new Date(b.start);
+            const bookingEnd = new Date(b.end);
+            
+            return (
+              (start >= bookingStart && start < bookingEnd) ||
+              (end > bookingStart && end <= bookingEnd) ||
+              (start <= bookingStart && end >= bookingEnd)
+            );
+          });
+          
+          if (hasConflict) {
+            conflict = true;
+            conflictingStudio = studioId;
           }
         }
       }
       
+      if (conflict) {
+        // Get the studio name for better error message
+        const studio = await storage.getStudio(conflictingStudio);
+        return res.status(409).json({ 
+          message: `There is a booking conflict for ${studio ? studio.name : `studio ID ${conflictingStudio}`} during this time slot`
+        });
+      }
+      
       const updatedBooking = await storage.updateBooking(id, updateData);
+      
+      // Update the studio links if studio IDs were provided
+      if (studioIds && studioIds.length > 0) {
+        try {
+          const parsedStudioIds = studioIds.map(id => typeof id === 'string' ? parseInt(id) : id);
+          
+          // Delete existing studio links and create new ones
+          await storage.deleteBookingStudioLinks(id);
+          await storage.createBookingStudioLinks(id, parsedStudioIds);
+          
+          console.log(`Updated studio links for booking ${id}: ${parsedStudioIds.join(', ')}`);
+        } catch (error) {
+          console.error("Error updating studio links:", error);
+          // Continue with the response even if junction table entries fail
+        }
+      }
       
       // Check if this is a facility-wide alert (null studioId and maintenance/IT related type)
       if (updatedBooking && updatedBooking.studioId === null && 
