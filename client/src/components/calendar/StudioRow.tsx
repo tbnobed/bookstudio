@@ -23,20 +23,30 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
   const { data: bookingStudioLinks = [] } = useBookingStudioLinks();
   
   // Create a filtered list of bookings that contains:
-  // 1. Bookings linked to this studio through the booking-studio junction table (preferred)
-  // 2. Bookings with studioId directly set to this studio's ID (legacy way, only if not in junction table)
+  // 1. Bookings linked to this studio through the booking-studio junction table
+  // 2. Bookings with studioId directly set to this studio's ID
   const studioBookings = useMemo(() => {
     console.log(`[DEBUG] Processing studio: ${studio.name} (ID: ${studio.id})`);
     console.log(`[DEBUG] Total bookings available: ${bookings.length}`);
     console.log(`[DEBUG] Total booking-studio links available: ${bookingStudioLinks.length}`);
     
-    // Log all bookings for debugging
-    const relevantBookings = bookings.filter(b => 
-      b.studioId === studio.id || 
-      bookingStudioLinks.some(link => link.bookingId === b.id && link.studioId === studio.id)
-    );
+    // IMPORTANT CHANGE: We need to find ALL bookings that are relevant to this studio
+    // either through direct studio ID or through the junction table.
+    // We shouldn't exclude any booking that has a record in the junction table.
+    const relevantBookings = bookings.filter(booking => {
+      // Check if linked through junction table
+      const hasJunctionLink = bookingStudioLinks.some(
+        link => link.bookingId === booking.id && link.studioId === studio.id
+      );
+      
+      // Check if directly assigned 
+      const hasDirectLink = booking.studioId === studio.id;
+      
+      // Include the booking if it has either link type
+      return hasJunctionLink || hasDirectLink;
+    });
     
-    console.log(`[DEBUG] Bookings potentially relevant to Studio ${studio.name}:`, 
+    console.log(`[DEBUG] Bookings relevant to Studio ${studio.name}:`, 
       relevantBookings.map(b => ({id: b.id, title: b.title, studioId: b.studioId}))
     );
     
@@ -45,50 +55,28 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       .filter(link => link.studioId === studio.id)
       .map(link => link.bookingId);
     
-    console.log(`[DEBUG] booking-studio links for Studio ${studio.name}:`, 
-      bookingStudioLinks.filter(link => link.studioId === studio.id)
-    );
+    console.log(`[DEBUG] Linked booking IDs for Studio ${studio.name}: ${linkedBookingIds.join(', ') || 'none'}`);
     
-    console.log(`[DEBUG] Linked booking IDs for Studio ${studio.name}: ${linkedBookingIds.join(', ')}`);
-    
-    // Find bookings from the main bookings array that match the linked IDs in junction table
-    // This is our preferred source of truth for studio-booking relationships
-    const linkedBookings = bookings.filter(booking => 
-      linkedBookingIds.includes(booking.id)
-    );
-    
-    // For each linked booking ID, check if we found a booking
-    linkedBookingIds.forEach(id => {
-      const found = bookings.find(b => b.id === id);
-      console.log(`[DEBUG] Linked booking ID ${id}: ${found ? 'Found in bookings' : 'NOT FOUND in bookings'}`);
+    // Log relationship between each booking's direct studio ID and junction table entries
+    relevantBookings.forEach(booking => {
+      const hasDirectLink = booking.studioId === studio.id;
+      const hasJunctionLink = linkedBookingIds.includes(booking.id);
+      
+      console.log(`[DEBUG] Booking ${booking.id} (${booking.title}): ` +
+        `direct studioId=${booking.studioId}, ` +
+        `in junction table=${hasJunctionLink}`);
     });
     
-    // If no linked bookings are found, fall back to direct bookings
-    // This keeps backward compatibility with older bookings that might not have junction table entries
-    const directBookings = bookings.filter(booking => 
-      booking.studioId === studio.id && !linkedBookingIds.includes(booking.id)
-    );
-    
-    // Combine both lists (prioritizing linked bookings)
-    const combinedBookings = [...linkedBookings, ...directBookings];
+    // Return all relevant bookings without any filtering 
+    // This ensures we show all bookings linked to this studio in any way
     
     // Log details for debugging
-    if (linkedBookings.length > 0) {
-      console.log(`Studio ${studio.name} has ${linkedBookings.length} linked bookings through junction table`);
-      console.log(`[DEBUG] Linked bookings:`, linkedBookings.map(b => ({id: b.id, title: b.title})));
+    if (relevantBookings.length > 0) {
+      console.log(`Studio ${studio.name} has ${relevantBookings.length} total bookings`);
+      console.log(`[DEBUG] All bookings:`, relevantBookings.map(b => ({id: b.id, title: b.title})));
     }
     
-    if (directBookings.length > 0) {
-      console.log(`Studio ${studio.name} has ${directBookings.length} direct bookings`);
-      console.log(`[DEBUG] Direct bookings:`, directBookings.map(b => ({id: b.id, title: b.title})));
-    }
-    
-    if (combinedBookings.length > 0) {
-      console.log(`Studio ${studio.name} has ${combinedBookings.length} total bookings`);
-      console.log(`[DEBUG] Combined bookings:`, combinedBookings.map(b => ({id: b.id, title: b.title})));
-    }
-    
-    return combinedBookings;
+    return relevantBookings;
   }, [studio.id, bookings, bookingStudioLinks]);
 
   // Handle cell click to create a new booking - only if not in read-only mode
