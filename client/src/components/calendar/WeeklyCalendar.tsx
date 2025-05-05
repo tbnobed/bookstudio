@@ -298,13 +298,7 @@ export default function WeeklyCalendar({
                   key={studio.id}
                   studio={studio}
                   weekDates={weekDates}
-                  bookings={bookings.filter(b => {
-                    // Handle both camelCase and snake_case bookings
-                    const hasSnakeCase = 'studio_id' in b;
-                    return hasSnakeCase 
-                      ? b.studio_id === studio.id 
-                      : b.studioId === studio.id;
-                  })}
+                  bookings={bookings} // Pass ALL bookings and let StudioRow filter by both direct ID and junction table
                   onBookingClick={handleBookingClick}
                   readOnly={readOnly}
                 />
