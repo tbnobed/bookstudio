@@ -1,6 +1,6 @@
 import { MailService } from '@sendgrid/mail';
 import { randomBytes } from 'crypto';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from './db';
 import { passwordResetTokens, inviteTokens } from '../shared/schema';
 
@@ -50,8 +50,10 @@ export async function verifyPasswordResetToken(token: string): Promise<number | 
   const [tokenData] = await db.select()
     .from(passwordResetTokens)
     .where(
-      eq(passwordResetTokens.token, token) && 
-      eq(passwordResetTokens.used, false)
+      and(
+        eq(passwordResetTokens.token, token),
+        eq(passwordResetTokens.used, false)
+      )
     );
   
   // Check if token exists
@@ -119,8 +121,10 @@ export async function verifyInviteToken(token: string): Promise<{ role: string, 
   const [tokenData] = await db.select()
     .from(inviteTokens)
     .where(
-      eq(inviteTokens.token, token) && 
-      eq(inviteTokens.used, false)
+      and(
+        eq(inviteTokens.token, token),
+        eq(inviteTokens.used, false)
+      )
     );
   
   // Check if token exists

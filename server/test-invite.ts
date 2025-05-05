@@ -1,31 +1,21 @@
 import { verifyInviteToken, generateInviteToken, invalidateInviteToken } from "./email";
 
-// Generate a test token
+// Main async test function
 async function runTest() {
+  // Generate a new test token
   const testToken = await generateInviteToken("producer", "test@example.com", 1);
   console.log("Generated test token:", testToken);
 
-  // Verify the test token
+  // Verify the new test token
   const inviteInfo = await verifyInviteToken(testToken);
   console.log("Verification result:", inviteInfo);
   
-  // Now test the specific token from the URL
-  const urlToken = "f0755a5c1035b5845891dcf781f3d98e29b498f8941c1a34e7c77f0670645782";
-  const urlTokenInfo = await verifyInviteToken(urlToken);
-  console.log("URL token verification result:", urlTokenInfo);
-  
-  // Verify the API endpoint URL format
-  console.log("API endpoint URL:", `/api/invite/${urlToken}`);
-  console.log("Frontend route:", `/invite/${urlToken}`);
+  // Test the invite token API flow
+  console.log("API endpoint URL:", `/api/invite/${testToken}`);
+  console.log("Frontend route:", `/invite/${testToken}`);
 }
 
-runTest();
-
-// Now test the specific token from the URL
-const urlToken = "f0755a5c1035b5845891dcf781f3d98e29b498f8941c1a34e7c77f0670645782";
-const urlTokenInfo = verifyInviteToken(urlToken);
-console.log("URL token verification result:", urlTokenInfo);
-
-// Verify the API endpoint URL format
-console.log("API endpoint URL:", `/api/invite/${urlToken}`);
-console.log("Frontend route:", `/invite/${urlToken}`);
+// Run the main test
+runTest().catch(err => {
+  console.error("Error running test:", err);
+});
