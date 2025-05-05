@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, bigint } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -186,3 +186,44 @@ export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSc
 
 export type InviteToken = typeof inviteTokens.$inferSelect;
 export type InsertInviteToken = z.infer<typeof insertInviteTokenSchema>;
+
+// File Attachments schema
+export const fileAttachments = pgTable("file_attachments", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").notNull(),
+  fileName: text("file_name").notNull(),
+  fileSize: bigint("file_size", { mode: "number" }).notNull(), // in bytes
+  mimeType: text("mime_type").notNull(),
+  path: text("path").notNull(), // file storage path
+  uploadedBy: integer("uploaded_by").notNull(), // user id
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+});
+
+export const insertFileAttachmentSchema = createInsertSchema(fileAttachments).omit({
+  id: true,
+  uploadedAt: true,
+}).extend({
+  // 100MB file size limit (100 * 1024 * 1024 bytes)
+  fileSize: z.number().max(104857600, "File size cannot exceed 100MB"),
+});
+
+// Type exports for file attachments
+export type FileAttachment = typeof fileAttachments.$inferSelect;
+export type InsertFileAttachment = z.infer<typeof insertFileAttachmentSchema>;
+
+// Add the relations
+export const bookingsRelations = relations(bookings, ({ many }) => ({
+  fileAttachments: many(fileAttachments),
+}));
+
+export const fileAttachmentsRelations = relations(fileAttachments, ({ one }) => ({
+  booking: one(bookings, {
+    fields: [fileAttachments.bookingId],
+    references: [bookings.id],
+  }),
+  uploader: one(users, {
+    fields: [fileAttachments.uploadedBy],
+    references: [users.id],
+  }),
+}));
