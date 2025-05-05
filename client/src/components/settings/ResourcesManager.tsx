@@ -138,6 +138,8 @@ export default function ResourcesManager() {
       category: values.category,
       quantity: values.quantity,
       isAvailable: values.isAvailable,
+      createdAt: null,
+      updatedAt: null,
     };
 
     try {

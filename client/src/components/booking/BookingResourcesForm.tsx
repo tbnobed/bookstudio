@@ -265,10 +265,12 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
             {bookingResources.map((bookingResource) => (
               <div key={bookingResource.id} className="grid grid-cols-[auto,1fr,auto,auto] gap-4 p-4 border-b last:border-b-0 items-center">
                 <Badge variant="outline" className="capitalize">
-                  {bookingResource.resource.category}
+                  {bookingResource.resource && bookingResource.resource.category ? bookingResource.resource.category : "Unknown"}
                 </Badge>
                 <div>
-                  <div className="font-medium">{bookingResource.resource.name}</div>
+                  <div className="font-medium">
+                    {bookingResource.resource && bookingResource.resource.name ? bookingResource.resource.name : "Unknown Resource"}
+                  </div>
                   {bookingResource.notes && (
                     <div className="text-sm text-muted-foreground mt-1">{bookingResource.notes}</div>
                   )}
@@ -294,7 +296,7 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
                       <AlertDialogHeader>
                         <AlertDialogTitle>Remove Resource</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to remove "{bookingResource.resource.name}" from this booking?
+                          Are you sure you want to remove "{bookingResource.resource && bookingResource.resource.name ? bookingResource.resource.name : 'this resource'}" from this booking?
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -466,7 +468,9 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
           <DialogHeader>
             <DialogTitle>Edit Booking Resource</DialogTitle>
             <DialogDescription>
-              {editingResource && `Update details for ${editingResource.resource.name}`}
+              {editingResource && editingResource.resource && editingResource.resource.name ? 
+                `Update details for ${editingResource.resource.name}` : 
+                'Update resource details'}
             </DialogDescription>
           </DialogHeader>
           <Form {...editForm}>
