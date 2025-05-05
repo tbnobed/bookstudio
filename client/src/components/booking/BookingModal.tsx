@@ -918,16 +918,41 @@ export default function BookingModal({
               <div>
                 <Label htmlFor="date">Date Selection</Label>
                 <div className="border rounded-md p-2 mt-1">
-                  <div className="mb-2">
-                    <Label htmlFor="singleDate" className="text-sm mb-1">Single Date:</Label>
-                    <Input
-                      id="singleDate"
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => updateFormField('date', e.target.value)}
-                      className="w-full"
-                    />
-                  </div>
+                  <DayPicker
+                    mode="single"
+                    selected={formData.date ? new Date(formData.date) : undefined}
+                    onSelect={(selectedDay) => {
+                      if (selectedDay) {
+                        const formattedDate = formatDateForForm(selectedDay);
+                        updateFormField('date', formattedDate);
+                      }
+                    }}
+                    className="border-none p-0"
+                    classNames={{
+                      caption: "flex justify-center py-2 mb-1 relative items-center",
+                      caption_label: "text-sm font-medium",
+                      nav: "flex items-center",
+                      nav_button: "h-6 w-6 bg-transparent p-0 opacity-75 hover:opacity-100",
+                      nav_button_previous: "absolute left-1",
+                      nav_button_next: "absolute right-1",
+                      table: "w-full border-collapse",
+                      head_row: "flex",
+                      head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
+                      row: "flex w-full mt-2",
+                      cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                      day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
+                      day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                      day_today: "bg-accent text-accent-foreground",
+                      day_outside: "text-muted-foreground opacity-50",
+                      day_disabled: "text-muted-foreground opacity-50",
+                      day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                      day_hidden: "invisible",
+                    }}
+                    styles={{
+                      caption: { margin: '0', padding: '0' },
+                      month: { width: '100%' },
+                    }}
+                  />
                   
                   <div className="flex items-center mt-2">
                     <Button 
