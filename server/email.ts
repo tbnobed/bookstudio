@@ -72,10 +72,24 @@ export function invalidatePasswordResetToken(token: string): void {
  * @returns A promise that resolves when the email is sent
  */
 export async function sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean> {
+  // For testing purposes - we're logging the reset link directly in development
+  // This is helpful when SendGrid isn't working or in development environments
+  if (process.env.NODE_ENV === 'development') {
+    console.log('====== PASSWORD RESET LINK ======');
+    console.log(`Email would be sent to: ${to}`);
+    console.log(`Reset link: ${resetLink}`);
+    console.log('=================================');
+    
+    // In a real production environment, remove this return and use only SendGrid
+    // For now, we'll consider this successful in development
+    return true;
+  }
+  
   try {
+    // In production, we would use SendGrid
     const msg = {
       to,
-      from: 'no-reply@bookstud.io', // Update with your verified sender
+      from: 'alerts@obedtv.com', // This should be a verified sender in your SendGrid account
       subject: 'Reset your BookStud.io password',
       text: `You requested a password reset for your BookStud.io account. Please click the following link to reset your password (valid for 30 minutes): ${resetLink}`,
       html: `
