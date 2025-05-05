@@ -70,10 +70,15 @@ export default function AuthPage() {
   }, [user, navigate]);
 
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
+    console.log("Login form submitted with data:", data);
     loginMutation.mutate(data, {
-      onSuccess: (data) => {
+      onSuccess: (response) => {
+        console.log("Login successful, received response:", response);
         // Force a direct window.location change rather than using the router
         window.location.href = "/";
+      },
+      onError: (error) => {
+        console.error("Login failed with error:", error);
       }
     });
   };
@@ -84,10 +89,16 @@ export default function AuthPage() {
     // Add role as producer by default
     const userData = { ...registerData, role: "producer" };
     
+    console.log("Register form submitted with data:", userData);
+    
     registerMutation.mutate(userData, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        console.log("Registration successful, received response:", response);
         // Force a direct window.location change rather than using the router
         window.location.href = "/";
+      },
+      onError: (error) => {
+        console.error("Registration failed with error:", error);
       }
     });
   };

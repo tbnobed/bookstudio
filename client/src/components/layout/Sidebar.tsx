@@ -12,6 +12,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [location, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
   
+  // Debug log to track user changes in sidebar
+  console.log("Sidebar rendering with user:", user);
+  
   const handleLogout = async () => {
     try {
       await logoutMutation.mutateAsync();
