@@ -28,6 +28,9 @@ export default function UserManagement() {
   const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   
   // New user form state
   const [newUser, setNewUser] = useState({
@@ -36,6 +39,14 @@ export default function UserManagement() {
     email: "",
     name: "",
     role: "producer"
+  });
+  
+  // Edit user form state
+  const [editUser, setEditUser] = useState({
+    username: "",
+    email: "",
+    name: "",
+    role: ""
   });
 
   // Fetch users
@@ -76,8 +87,62 @@ export default function UserManagement() {
       });
     },
   });
+  
+  // Update user mutation
+  const updateUser = useMutation({
+    mutationFn: async ({ id, userData }: { id: number, userData: Partial<Omit<InsertUser, 'password'>> }) => {
+      const res = await apiRequest("PATCH", `/api/users/${id}`, userData);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "User updated successfully.",
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setIsEditUserOpen(false);
+      setSelectedUser(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Delete user mutation
+  const deleteUser = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/users/${id}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to delete user");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "User deleted successfully.",
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setIsDeleteUserOpen(false);
+      setSelectedUser(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user",
+        variant: "destructive",
+      });
+    },
+  });
 
-  // Handle form input change
+  // Handle form input change for new user
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewUser({
       ...newUser,
@@ -85,7 +150,7 @@ export default function UserManagement() {
     });
   };
 
-  // Handle role change
+  // Handle role change for new user
   const handleRoleChange = (role: string) => {
     setNewUser({
       ...newUser,
@@ -93,10 +158,62 @@ export default function UserManagement() {
     });
   };
 
-  // Handle form submission
+  // Handle form input change for edit user
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditUser({
+      ...editUser,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  // Handle role change for edit user
+  const handleEditRoleChange = (role: string) => {
+    setEditUser({
+      ...editUser,
+      role
+    });
+  };
+
+  // Handle create user form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createUser.mutateAsync(newUser);
+  };
+  
+  // Handle edit user form submission
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedUser) {
+      updateUser.mutateAsync({
+        id: selectedUser.id,
+        userData: editUser
+      });
+    }
+  };
+  
+  // Open edit user dialog
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setEditUser({
+      username: user.username,
+      email: user.email,
+      name: user.name,
+      role: user.role
+    });
+    setIsEditUserOpen(true);
+  };
+  
+  // Open delete user dialog
+  const handleDeleteUser = (user: User) => {
+    setSelectedUser(user);
+    setIsDeleteUserOpen(true);
+  };
+  
+  // Confirm user deletion
+  const confirmDeleteUser = () => {
+    if (selectedUser) {
+      deleteUser.mutateAsync(selectedUser.id);
+    }
   };
 
   // Format role for display
@@ -191,18 +308,49 @@ export default function UserManagement() {
                       <th className="text-left py-3 px-4 font-medium">Username</th>
                       <th className="text-left py-3 px-4 font-medium">Email</th>
                       <th className="text-left py-3 px-4 font-medium">Role</th>
+                      <th className="text-right py-3 px-4 font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map(user => (
-                      <tr key={user.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-4">{user.name}</td>
-                        <td className="py-3 px-4">{user.username}</td>
-                        <td className="py-3 px-4">{user.email}</td>
+                    {users.map(userData => (
+                      <tr key={userData.id} className="border-b hover:bg-gray-50">
+                        <td className="py-3 px-4">{userData.name}</td>
+                        <td className="py-3 px-4">{userData.username}</td>
+                        <td className="py-3 px-4">{userData.email}</td>
                         <td className="py-3 px-4">
-                          <Badge variant="outline" className={getRoleBadgeColor(user.role)}>
-                            {formatRole(user.role)}
+                          <Badge variant="outline" className={getRoleBadgeColor(userData.role)}>
+                            {formatRole(userData.role)}
                           </Badge>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          {/* Don't allow editing or deleting the current user to prevent self-lockout */}
+                          {userData.id !== user?.id ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => handleEditUser(userData)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteUser(userData)}
+                                  className="text-red-600 focus:text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            <span className="text-sm text-gray-500 italic">Current user</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -293,6 +441,116 @@ export default function UserManagement() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit User Dialog */}
+      <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleEditSubmit} className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Full Name</Label>
+                <Input
+                  id="edit-name"
+                  name="name"
+                  value={editUser.name}
+                  onChange={handleEditInputChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-username">Username</Label>
+                <Input
+                  id="edit-username"
+                  name="username"
+                  value={editUser.username}
+                  onChange={handleEditInputChange}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                name="email"
+                type="email"
+                value={editUser.email}
+                onChange={handleEditInputChange}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-role">Role</Label>
+              <Select value={editUser.role} onValueChange={handleEditRoleChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="producer">Producer</SelectItem>
+                  <SelectItem value="engineer">Engineer</SelectItem>
+                  <SelectItem value="it">IT</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsEditUserOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateUser.isPending}>
+                {updateUser.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={isDeleteUserOpen} onOpenChange={setIsDeleteUserOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription className="pt-2 text-red-600">
+              This action cannot be undone. 
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="mb-4">
+              Are you sure you want to delete the user <strong>{selectedUser?.name}</strong>?
+            </p>
+            <p className="text-sm text-gray-500">
+              This will permanently remove the user account and all associated data from the system.
+            </p>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setIsDeleteUserOpen(false)}
+              disabled={deleteUser.isPending}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={confirmDeleteUser}
+              disabled={deleteUser.isPending}
+            >
+              {deleteUser.isPending ? "Deleting..." : "Delete User"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
