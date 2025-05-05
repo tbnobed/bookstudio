@@ -148,6 +148,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Password reset routes
+  app.post("/api/forgot-password", async (req, res) => {
+    try {
+      // Validate request body
+      const { email } = z.object({ email: z.string().email() }).parse(req.body);
+      
+      // Find user by email
+      const users = await storage.getAllUsers();
+      const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      
+      // If no user is found, we still return success (for security reasons)
+      if (!user) {
+        return res.json({ success: true });
+      }
+      
+      // Generate password reset token
+      const token = generatePasswordResetToken(user.id);
+      
+      // Generate reset link
+      const resetLink = `${req.protocol}://${req.get('host')}/reset-password/${token}`;
+      
+      // Send password reset email
+      const emailSent = await sendPasswordResetEmail(user.email, resetLink);
+      
+      if (!emailSent) {
+        console.error(`Failed to send password reset email to ${user.email}`);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to send password reset email. Please try again later." 
+        });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid email address" 
+        });
+      }
+      res.status(500).json({ 
+        success: false, 
+        message: "An error occurred. Please try again later." 
+      });
+    }
+  });
+  
+  app.get("/api/reset-password/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      // Verify token
+      const userId = verifyPasswordResetToken(token);
+      
+      if (!userId) {
+        return res.json({ valid: false });
+      }
+      
+      // Check if user exists
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.json({ valid: false });
+      }
+      
+      res.json({ valid: true });
+    } catch (error) {
+      console.error("Reset password token validation error:", error);
+      res.status(500).json({ 
+        valid: false, 
+        message: "An error occurred while validating the token." 
+      });
+    }
+  });
+  
+  app.post("/api/reset-password/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { password } = z.object({ password: z.string().min(6) }).parse(req.body);
+      
+      // Verify token
+      const userId = verifyPasswordResetToken(token);
+      
+      if (!userId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid or expired token. Please request a new password reset link." 
+        });
+      }
+      
+      // Get user
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "User not found" 
+        });
+      }
+      
+      // Hash the new password
+      const { hashPassword } = require('./auth');
+      const hashedPassword = await hashPassword(password);
+      
+      // Update user's password
+      const updatedUser = await storage.updateUser(userId, { password: hashedPassword });
+      
+      if (!updatedUser) {
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to update password" 
+        });
+      }
+      
+      // Invalidate token
+      invalidatePasswordResetToken(token);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Password must be at least 6 characters long" 
+        });
+      }
+      res.status(500).json({ 
+        success: false, 
+        message: "An error occurred while resetting your password. Please try again." 
+      });
+    }
+  });
+
   // Studio routes
   app.get("/api/studios", async (req, res) => {
     try {
