@@ -282,7 +282,7 @@ export default function MobileDailyView({
             {todayBookings.length > 0 ? (
               <div className="space-y-3">
                 {todayBookings
-                  .filter(booking => booking.studioId !== null) // Filter out facility alerts
+                  // Include both studio bookings and facility alerts in timeline view
                   .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
                   .map(booking => {
                     const bookingStart = new Date(booking.start);
@@ -291,8 +291,11 @@ export default function MobileDailyView({
                     const isUpcoming = isAfter(bookingStart, now);
                     const isPastBooking = isBefore(bookingEnd, now);
                     
-                    // Find studio name
-                    const studio = studios.find(s => s.id === booking.studioId);
+                    // Determine if this is a facility alert
+                    const isFacilityAlert = booking.studioId === null;
+                    
+                    // Find studio name if not a facility alert
+                    const studio = !isFacilityAlert ? studios.find(s => s.id === booking.studioId) : null;
                     
                     return (
                       <div 
@@ -300,6 +303,7 @@ export default function MobileDailyView({
                         onClick={() => handleBookingClick(booking)}
                         className={cn(
                           "p-4 rounded-lg border shadow-sm cursor-pointer transition-colors active:bg-gray-100",
+                          isFacilityAlert ? "bg-rose-50 border-rose-300" :
                           isActive ? "bg-red-50 border-red-200" : 
                           isUpcoming ? "bg-amber-50 border-amber-200" : 
                           "bg-gray-50 border-gray-200"
@@ -307,13 +311,24 @@ export default function MobileDailyView({
                       >
                         <div className="flex justify-between items-start">
                           <h3 className="font-medium">{booking.title}</h3>
-                          <Badge variant="outline">{studio?.name || 'Unknown'}</Badge>
+                          {isFacilityAlert ? (
+                            <Badge variant="destructive">Facility Alert</Badge>
+                          ) : (
+                            <Badge variant="outline">{studio?.name || 'Unknown'}</Badge>
+                          )}
                         </div>
                         
                         <div className="text-sm text-gray-500 flex items-center gap-1 mt-2">
                           <Clock size={14} />
                           {format(bookingStart, "h:mm a")} - {format(bookingEnd, "h:mm a")}
                         </div>
+                        
+                        {isFacilityAlert && booking.severity && (
+                          <div className="text-xs text-red-600 mt-1 flex items-center">
+                            <AlertTriangle size={12} className="mr-1" />
+                            <span className="capitalize">{booking.severity} severity</span>
+                          </div>
+                        )}
                         
                         {isUpcoming && (
                           <div className="text-xs text-amber-700 mt-2 flex items-center gap-1">
