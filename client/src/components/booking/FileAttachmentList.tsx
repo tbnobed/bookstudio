@@ -52,9 +52,11 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
   // Enrich the attachments with additional information if needed
   useEffect(() => {
     if (attachments.length > 0) {
-      console.log(`[FileAttachmentList] We have ${attachments.length} valid attachments`);
+      console.log(`[FileAttachmentList] We have ${attachments.length} valid attachments:`, attachments);
+    } else {
+      console.log(`[FileAttachmentList] No attachments found for booking ${bookingId}. Is loading: ${isLoading}. Error: ${isError ? error?.message : 'none'}`);
     }
-  }, [attachments]);
+  }, [attachments, bookingId, isLoading, isError, error]);
 
   // Format file size for display
   const formatFileSize = (bytes: number) => {

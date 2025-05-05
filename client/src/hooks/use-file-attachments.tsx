@@ -51,9 +51,28 @@ export function useFileAttachments(bookingId?: number) {
     data: rawAttachments = [], 
     isLoading, 
     error,
-    isError
+    isError,
+    refetch
   } = useQuery<any[], Error>({
     queryKey,
+    queryFn: async () => {
+      console.log(`[useFileAttachments] Making direct fetch to ${`/api/bookings/${bookingId}/attachments`}`);
+      const response = await fetch(`/api/bookings/${bookingId}/attachments`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch attachments');
+      }
+      
+      const data = await response.json();
+      console.log(`[useFileAttachments] Received data:`, data);
+      return data;
+    },
     staleTime: 1000 * 60, // 1 minute
     retry: false, // Don't retry if we get an error (like 401)
     enabled: !!bookingId, // Only run query if bookingId is provided
