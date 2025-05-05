@@ -28,10 +28,13 @@ export function useFileAttachments(bookingId?: number) {
   const { 
     data: attachments = [], 
     isLoading, 
-    error 
+    error,
+    isError
   } = useQuery<FileAttachment[]>({
     queryKey,
     staleTime: 1000 * 60, // 1 minute
+    retry: false, // Don't retry if we get an error (like 401)
+    enabled: !!bookingId, // Only run query if bookingId is provided
   });
 
   // Upload file mutation
@@ -143,6 +146,7 @@ export function useFileAttachments(bookingId?: number) {
     attachments,
     isLoading,
     error,
+    isError,
     
     // Mutations
     uploadFile: uploadFileMutation.mutateAsync,
