@@ -71,8 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Login successful",
         description: `Welcome back, ${user.name || user.username}!`,
       });
-      // Auto-navigate to home page after successful login
-      navigate("/");
+      // Use window.location for hard redirect to ensure full page reload
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
@@ -94,8 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Registration successful",
         description: `Welcome, ${user.username}!`,
       });
-      // Auto-navigate to home page after successful registration
-      navigate("/");
+      // Use window.location for hard redirect to ensure full page reload
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
