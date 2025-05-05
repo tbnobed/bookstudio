@@ -692,7 +692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get all studios for a booking
-  app.get("/api/booking/:id/studios", isAuthenticated, async (req, res) => {
+  app.get("/api/bookings/:id/studios", isAuthenticated, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);
       const studios = await storage.getStudiosForBooking(bookingId);

@@ -100,6 +100,24 @@ export default function BookingModal({
     templates = [] 
   } = useStudioBookings();
 
+  // Fetch linked studios for a booking (when editing)
+  const fetchBookingStudios = async (bookingId: number) => {
+    try {
+      const response = await fetch(`/api/bookings/${bookingId}/studios`);
+      if (!response.ok) {
+        console.error(`Error fetching linked studios for booking ${bookingId}: ${response.statusText}`);
+        return [];
+      }
+      
+      const studioData = await response.json();
+      console.log(`Fetched linked studios for booking ${bookingId}:`, studioData);
+      return studioData.map((studio: any) => studio.id.toString());
+    } catch (error) {
+      console.error(`Error fetching linked studios for booking ${bookingId}:`, error);
+      return [];
+    }
+  };
+
   // Initialize form when modal opens
   useEffect(() => {
     if (isOpen && !formInitializedRef.current) {
@@ -141,23 +159,40 @@ export default function BookingModal({
         
         console.log(`Booking ${normalizedBooking.id}: Original date ${normalizedBooking.start}, converted to form date ${dateStr}`);
         
-        // Set form data
-        setFormData({
-          title: normalizedBooking.title,
-          description: normalizedBooking.description,
-          studioId: normalizedBooking.studioId ? normalizedBooking.studioId.toString() : "",
-          studioIds: normalizedBooking.studioId ? [normalizedBooking.studioId.toString()] : [], // Initialize with main studioId for now
-          pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "",
-          bookingType,
-          date: dateStr,
-          startTime: startTimeStr,
-          endTime: endTimeStr,
-          templateId: normalizedBooking.templateId ? normalizedBooking.templateId.toString() : "",
-          notifyList: normalizedBooking.notifyList,
-          saveAsTemplate: false,
-          templateName: "",
-          severity: normalizedBooking.severity
-        });
+        // Fetch linked studios for this booking
+        const initializeFormWithStudios = async () => {
+          // Default to main studioId
+          let studioIds = normalizedBooking.studioId ? [normalizedBooking.studioId.toString()] : [];
+          
+          try {
+            // Try to fetch linked studios from the junction table
+            studioIds = await fetchBookingStudios(normalizedBooking.id);
+            console.log(`Setting up form with linked studios:`, studioIds);
+          } catch (error) {
+            console.error("Error fetching linked studios:", error);
+            // Fall back to the main studioId if there's an error
+          }
+          
+          // Set form data with the fetched studio IDs
+          setFormData({
+            title: normalizedBooking.title,
+            description: normalizedBooking.description,
+            studioId: normalizedBooking.studioId ? normalizedBooking.studioId.toString() : "",
+            studioIds: studioIds.length > 0 ? studioIds : [], 
+            pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "",
+            bookingType,
+            date: dateStr,
+            startTime: startTimeStr,
+            endTime: endTimeStr,
+            templateId: normalizedBooking.templateId ? normalizedBooking.templateId.toString() : "",
+            notifyList: normalizedBooking.notifyList,
+            saveAsTemplate: false,
+            templateName: "",
+            severity: normalizedBooking.severity
+          });
+        };
+        
+        initializeFormWithStudios();
       } else {
         // Create mode - set defaults
         const newFormData = { ...defaultValues };
