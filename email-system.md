@@ -1,81 +1,135 @@
-# BookStud.io Email System
+# Email System in BookStud.io
 
-This document explains how the email system in BookStud.io works, particularly for user invitations and password resets.
+The BookStud.io application integrates email functionality for user invitations and password reset features using SendGrid.
 
-## Overview
+## Configuration
 
-BookStud.io uses SendGrid for sending transactional emails. There are two primary types of emails sent:
+Email functionality requires the following environment variables:
 
-1. **User Invitation Emails**: Sent when an admin invites a new user to join the system
-2. **Password Reset Emails**: Sent when a user requests to reset their password
+- `SENDGRID_API_KEY`: Your SendGrid API key
+- `SENDGRID_VERIFIED_SENDER`: The verified sender email address (default: alerts@obedtv.com)
 
-## Implementation Details
+These values should be set in your `.env` file or environment configuration.
 
-### Configuration
+## Features
 
-The email system uses the following environment variables:
+### User Invitations
 
-- `SENDGRID_API_KEY`: API key for SendGrid service
-- `SENDGRID_VERIFIED_SENDER`: Verified sender email address recognized by SendGrid
+- Administrators can invite new users to the platform by sending invitation emails
+- Each invitation includes a unique, secure token linked to the specified email address
+- Tokens expire after 7 days for security
+- Users can create an account with the appropriate role by clicking the link in the email
 
-### Token Generation
+### Password Reset
 
-Both invitation and password reset flows use secure tokens:
+- Users can request a password reset email from the login page
+- Reset emails contain a secure, time-limited token valid for 30 minutes
+- The system prevents token reuse for security
 
-1. **Invitation Tokens**:
-   - Generated with `generateInviteToken(role, email, createdBy)`
-   - Stored in database with expiration date (default: 7 days)
-   - Include user role and email information
+## Database Schema
 
-2. **Password Reset Tokens**:
-   - Generated with `generatePasswordResetToken(userId)`
-   - Stored in database with expiration date (default: 30 minutes)
-   - Associated with specific user account
+The email system uses two dedicated database tables to store tokens securely:
 
-### Email Delivery
+### Password Reset Tokens
 
-Email delivery is handled in the `server/email.ts` module with these key functions:
+```sql
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id SERIAL PRIMARY KEY,
+  token TEXT NOT NULL UNIQUE,
+  user_id INTEGER REFERENCES users(id) NOT NULL,
+  expires TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  used BOOLEAN DEFAULT FALSE
+);
+```
 
-- `sendInviteEmail(to, role, invitePath, adminName)`: Sends invitation emails
-- `sendPasswordResetEmail(to, resetPath)`: Sends password reset emails
+### Invitation Tokens
 
-Both functions include fallback mechanisms that log the generated links to the console if email delivery fails, making it possible to test the system even when email delivery is unavailable.
+```sql
+CREATE TABLE IF NOT EXISTS invite_tokens (
+  id SERIAL PRIMARY KEY,
+  token TEXT NOT NULL UNIQUE,
+  role TEXT NOT NULL,
+  email TEXT NOT NULL,
+  expires TIMESTAMP NOT NULL,
+  created_by INTEGER REFERENCES users(id) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  used BOOLEAN DEFAULT FALSE
+);
+```
 
-### Token Verification & Security
+## Docker Deployment
 
-- Tokens are verified using `verifyInviteToken(token)` and `verifyPasswordResetToken(token)`
-- Both verification functions check that the token:
-  - Exists in the database
-  - Has not been used previously
-  - Has not expired
-- After a token is used, it's marked as such in the database using `invalidateInviteToken(token)` or `invalidatePasswordResetToken(token)`
+When deploying with Docker, the database schema for these tables is automatically created during the deployment process using the `scripts/migrate-db.ts` script.
 
-### Error Handling
+To deploy with Docker Compose:
 
-The email system includes robust error handling:
+1. Ensure your `.env` file contains the necessary SendGrid variables:
+   ```
+   SENDGRID_API_KEY=your_sendgrid_key
+   SENDGRID_VERIFIED_SENDER=alerts@obedtv.com
+   ```
 
-- Detailed error logging for SendGrid API errors
-- Fallback console output of links when email delivery fails
-- Clear user feedback in the UI for both successful and failed operations
+2. Run the standard Docker Compose commands:
+   ```bash
+   docker-compose build  # Build the images
+   docker-compose up -d  # Start the containers in detached mode
+   ```
+
+3. The database initialization container will automatically:
+   - Create the required database tables including token tables
+   - Initialize default data
+   - Exit once complete, allowing the main application to start
+
+## Backing Up Token Data
+
+To ensure token data is not lost during deployments, the Docker configuration uses a named volume (`postgres_data`) to persist database data between container restarts:
+
+```yaml
+volumes:
+  postgres_data:
+```
+
+To manually backup the database including token tables:
+
+```bash
+docker-compose exec db pg_dump -U postgres bookstudio > backup.sql
+```
 
 ## Testing
 
+For testing and development, the system includes fallback behavior when SendGrid is not configured:
+
+- Test scripts in the `server` directory allow manual testing of the invite and reset functionality
+- When SendGrid is unavailable, the system logs the generated links to the console
+
+## Implementation Details
+
+The email system is implemented using the following components:
+
+1. Token generation and verification functions in `server/email.ts`
+2. Database tables for storing tokens securely
+3. API endpoints for requesting and processing reset/invite links
+4. Email templates for a professional user experience
+
+## Error Handling
+
+The system includes comprehensive error handling:
+
+- Failed email deliveries are logged
+- Invalid or expired tokens are rejected with appropriate error messages
+- Rate limiting on token generation prevents abuse
+
+## Testing Tools
+
 Two test scripts are available to verify email functionality:
 
-1. `server/test-invite.ts`: Tests invitation email generation and delivery
-2. `server/test-reset.ts`: Tests password reset email generation and delivery
+- `server/test-invite.ts`: Tests the invitation email process
+- `server/test-reset.ts`: Tests the password reset email process
 
-Run these scripts with:
-```bash
-npx tsx server/test-invite.ts
-npx tsx server/test-reset.ts
-```
+## Mobile Support
 
-## Troubleshooting
-
-If emails are not being delivered:
-
-1. Check that `SENDGRID_API_KEY` is set correctly
-2. Verify that `SENDGRID_VERIFIED_SENDER` contains an email that's verified in the SendGrid account
-3. Look for detailed error messages in the console logs
-4. Use the fallback links printed to the console for testing even when email delivery fails
+The email system is fully responsive and works seamlessly on mobile devices:
+- Password reset flows are mobile-optimized
+- Invitation acceptance works flawlessly on smaller screens 
+- Email templates are responsive for various device sizes

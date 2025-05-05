@@ -13,6 +13,7 @@ services:
       - PGPASSWORD=${PGPASSWORD:-postgres}
       - PGDATABASE=${PGDATABASE:-bookstudio}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY:-placeholder_key}
+      - SENDGRID_VERIFIED_SENDER=${SENDGRID_VERIFIED_SENDER:-alerts@obedtv.com}
       - SESSION_SECRET=${SESSION_SECRET:-$(openssl rand -hex 32)}
       - COOKIE_SECURE=${COOKIE_SECURE:-false}
       - COOKIE_SAME_SITE=${COOKIE_SAME_SITE:-lax}
@@ -47,6 +48,8 @@ services:
       - PGUSER=${PGUSER:-postgres}
       - PGPASSWORD=${PGPASSWORD:-postgres}
       - PGDATABASE=${PGDATABASE:-bookstudio}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-placeholder_key}
+      - SENDGRID_VERIFIED_SENDER=${SENDGRID_VERIFIED_SENDER:-alerts@obedtv.com}
       - SESSION_SECRET=${SESSION_SECRET:-$(openssl rand -hex 32)}
       - COOKIE_SECURE=${COOKIE_SECURE:-false}
       - COOKIE_SAME_SITE=${COOKIE_SAME_SITE:-lax}
