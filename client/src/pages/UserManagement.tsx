@@ -233,6 +233,9 @@ export default function UserManagement() {
 
   // Format role for display
   const formatRole = (role: string) => {
+    if (role === "site_manager") {
+      return "Site Manager";
+    }
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
