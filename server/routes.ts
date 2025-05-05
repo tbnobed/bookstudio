@@ -12,7 +12,7 @@ import {
 import { z } from "zod";
 import { ValidationError } from "zod-validation-error";
 import { ZodError } from "zod";
-import { setupAuth } from "./auth";
+import { setupAuth, hashPassword } from "./auth";
 import { 
   sendBookingConfirmation, 
   sendBookingUpdate, 
@@ -107,8 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Hash the password if it's being updated
       if (dataToUpdate.password) {
-        // Import hashPassword from auth.ts
-        const { hashPassword } = require('./auth');
+        // Use the imported hashPassword function
         dataToUpdate.password = await hashPassword(dataToUpdate.password);
       }
       
@@ -254,8 +253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Hash the new password
-      const { hashPassword } = require('./auth');
+      // Hash the new password using imported function
       const hashedPassword = await hashPassword(password);
       
       // Update user's password
