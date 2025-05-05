@@ -718,13 +718,13 @@ export default function BookingModal({
                         styles={{
                           caption: { marginBottom: '0.25rem' },
                           head: { fontSize: '0.7rem' },
-                          root: { fontSize: '0.8rem' },
+                          root: { fontSize: '0.8rem', marginBottom: '-0.5rem' },
                           table: { width: '100%', maxWidth: '220px', margin: '0 auto' },
                           day: { width: '24px', height: '24px', margin: '1px' },
                           nav: { fontSize: '0.8rem' }
                         }}
                       />
-                      <p className="text-xs text-muted-foreground mt-1 text-center px-1">
+                      <p className="text-xs text-muted-foreground mt-0 text-center px-1">
                         Creates a booking for each date.
                       </p>
                     </div>
@@ -1107,13 +1107,13 @@ export default function BookingModal({
                     styles={{
                       caption: { marginBottom: '0.25rem' },
                       head: { fontSize: '0.7rem' },
-                      root: { fontSize: '0.8rem' },
+                      root: { fontSize: '0.8rem', marginBottom: '-0.5rem' },
                       table: { width: '100%', maxWidth: '220px', margin: '0 auto' },
                       day: { width: '24px', height: '24px', margin: '1px' },
                       nav: { fontSize: '0.8rem' }
                     }}
                   />
-                  <p className="text-xs text-muted-foreground mt-1 text-center px-1">
+                  <p className="text-xs text-muted-foreground mt-0 text-center px-1">
                     Creates a booking for each date.
                   </p>
                 </div>
