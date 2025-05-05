@@ -21,7 +21,7 @@ export function useFileAttachments(bookingId?: number) {
 
   // Build query key based on whether bookingId is provided
   const queryKey = bookingId 
-    ? ['/api/file-attachments', bookingId]
+    ? ['/api/bookings', bookingId, 'attachments']
     : ['/api/file-attachments'];
     
   // Fetch attachments for the booking
@@ -47,7 +47,7 @@ export function useFileAttachments(bookingId?: number) {
       }
       
       // Upload file with multipart/form-data
-      const response = await fetch('/api/file-attachments', {
+      const response = await fetch(`/api/bookings/${bookingId}/attachments`, {
         method: 'POST',
         body: formData,
       });
@@ -71,7 +71,7 @@ export function useFileAttachments(bookingId?: number) {
   // Delete file mutation
   const deleteFileMutation = useMutation({
     mutationFn: async (fileId: number) => {
-      const response = await apiRequest('DELETE', `/api/file-attachments/${fileId}`);
+      const response = await apiRequest('DELETE', `/api/attachments/${fileId}`);
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to delete file');
