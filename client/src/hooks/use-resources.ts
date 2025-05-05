@@ -15,7 +15,7 @@ export function useResources() {
 
     return useQuery<Resource[]>({
       queryKey,
-      keepPreviousData: true,
+      staleTime: 10000, // 10 seconds
     });
   };
 

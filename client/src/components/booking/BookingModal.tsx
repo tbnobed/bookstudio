@@ -590,6 +590,10 @@ export default function BookingModal({
               </form>
             </TabsContent>
             
+            <TabsContent value="resources" className="py-4">
+              <BookingResourcesForm booking={booking} />
+            </TabsContent>
+            
             <TabsContent value="attachments" className="py-4">
               <FileAttachmentList bookingId={booking.id} readOnly={false} />
             </TabsContent>

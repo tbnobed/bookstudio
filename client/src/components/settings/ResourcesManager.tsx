@@ -132,7 +132,7 @@ export default function ResourcesManager() {
 
   // Handle add resource form submission
   const onAddSubmit = async (values: ResourceFormValues) => {
-    const data: InsertResource = {
+    const data = {
       name: values.name,
       description: values.description || '',
       category: values.category,
@@ -153,12 +153,13 @@ export default function ResourcesManager() {
   const onEditSubmit = async (values: ResourceFormValues) => {
     if (!editingResource) return;
 
-    const data: Partial<InsertResource> = {
+    const data = {
       name: values.name,
       description: values.description,
       category: values.category,
       quantity: values.quantity,
       isAvailable: values.isAvailable,
+      updatedAt: new Date(),
     };
 
     try {
