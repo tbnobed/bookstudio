@@ -117,6 +117,14 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   studioId: z.number().optional().nullable(),
   // Make pcrRoomId optional
   pcrRoomId: z.number().optional().nullable(),
+  // Add support for multiple dates (not stored in the bookings table but handled separately)
+  dates: z.array(
+    z.union([z.string(), z.date()]).transform(val => 
+      typeof val === 'string' ? new Date(val) : val
+    )
+  ).optional(),
+  // Add support for studioIds array for multi-studio selection
+  studioIds: z.array(z.number()).optional(),
 });
 
 // Notifications schema
