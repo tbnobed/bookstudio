@@ -23,45 +23,40 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
   const { data: bookingStudioLinks = [] } = useBookingStudioLinks();
   
   // Create a filtered list of bookings that contains:
-  // 1. Bookings with studioId directly set to this studio's ID (legacy way)
-  // 2. Bookings linked to this studio through the booking-studio junction table
+  // 1. Bookings linked to this studio through the booking-studio junction table (preferred)
+  // 2. Bookings with studioId directly set to this studio's ID (legacy way, only if not in junction table)
   const studioBookings = useMemo(() => {
-    // First get the bookings with direct studioId reference
-    const directBookings = bookings.filter(booking => booking.studioId === studio.id);
-    
     // Get booking IDs from the junction table that link to this studio
     const linkedBookingIds = bookingStudioLinks
       .filter(link => link.studioId === studio.id)
       .map(link => link.bookingId);
     
-    // Find bookings from the main bookings array that match the linked IDs
-    // Note: We no longer filter out bookings that also have a direct studioId to this studio
-    // This ensures bookings will appear in ALL linked studios
+    // Find bookings from the main bookings array that match the linked IDs in junction table
+    // This is our preferred source of truth for studio-booking relationships
     const linkedBookings = bookings.filter(booking => 
       linkedBookingIds.includes(booking.id)
     );
     
-    // Combine both lists and deduplicate by booking ID
-    // Use a Set to track IDs we've already added to avoid duplicates
-    const bookingIds = new Set<number>();
-    const combinedBookings = [];
+    // If no linked bookings are found, fall back to direct bookings
+    // This keeps backward compatibility with older bookings that might not have junction table entries
+    const directBookings = bookings.filter(booking => 
+      booking.studioId === studio.id && !linkedBookingIds.includes(booking.id)
+    );
     
-    // Add direct bookings first
-    for (const booking of directBookings) {
-      bookingIds.add(booking.id);
-      combinedBookings.push(booking);
-    }
+    // Combine both lists (prioritizing linked bookings)
+    const combinedBookings = [...linkedBookings, ...directBookings];
     
-    // Then add linked bookings, skipping any that are already included
-    for (const booking of linkedBookings) {
-      if (!bookingIds.has(booking.id)) {
-        bookingIds.add(booking.id);
-        combinedBookings.push(booking);
-      }
-    }
-    
+    // Log details for debugging
     if (linkedBookings.length > 0) {
-      console.log(`Studio ${studio.name} has ${linkedBookings.length} linked bookings through junction table (${combinedBookings.length} total unique bookings)`);
+      console.log(`Studio ${studio.name} has ${linkedBookings.length} linked bookings through junction table`);
+    }
+    
+    if (directBookings.length > 0) {
+      console.log(`Studio ${studio.name} has ${directBookings.length} direct bookings`);
+    }
+    
+    if (combinedBookings.length > 0) {
+      console.log(`Studio ${studio.name} has ${combinedBookings.length} total bookings`);
     }
     
     return combinedBookings;
