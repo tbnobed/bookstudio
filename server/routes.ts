@@ -1,6 +1,9 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
+import * as fs from 'fs';
+import * as path from 'path';
 import { storage } from "./storage";
+import { fileService, upload } from "./services/fileService";
 import { 
   insertUserSchema, 
   insertStudioSchema, 
@@ -30,9 +33,6 @@ import {
   verifyInviteToken,
   invalidateInviteToken
 } from "./email";
-import { upload, fileService } from "./services/fileService";
-import * as fs from 'fs';
-import * as path from 'path';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
