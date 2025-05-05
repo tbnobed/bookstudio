@@ -47,19 +47,17 @@ export default function BookingModal({
   const { toast } = useToast();
   const formInitializedRef = useRef(false);
   
-  // Format date for form - accounting for timezone issues
+  // Format date for form - without timezone adjustment
   const formatDateForForm = (date: Date): string => {
-    // Add one day to compensate for timezone issue
-    const adjustedDate = new Date(date);
-    adjustedDate.setDate(adjustedDate.getDate() + 1);
+    // DO NOT add one day as this causes the offset issue
     
-    // Format as YYYY-MM-DD
-    const year = adjustedDate.getFullYear();
-    const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
-    const day = String(adjustedDate.getDate()).padStart(2, '0');
+    // Format as YYYY-MM-DD directly using local components
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     
     const formattedDate = `${year}-${month}-${day}`;
-    console.log(`formatDateForForm: Input date: ${date.toISOString()}, adjusted date: ${adjustedDate.toISOString()}, formatted as: ${formattedDate}`);
+    console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${formattedDate}`);
     return formattedDate;
   };
 
@@ -410,8 +408,25 @@ export default function BookingModal({
         } else {
           // Create a separate booking for each date
           for (const dateStr of formData.dates) {
-            const currentStartDate = timeToDate(dateStr, formData.startTime);
-            const currentEndDate = timeToDate(dateStr, formData.endTime);
+            // The dateStr we get from the form is already in correct format (YYYY-MM-DD)
+            // But we need to create a new date using it directly WITHOUT adjusting for timezone
+            // to avoid the one day offset issue
+            console.log(`Creating booking for date string: ${dateStr}`);
+            
+            // Parse the date parts directly to avoid timezone issues
+            const [year, month, day] = dateStr.split('-').map(Number);
+            // Note: Month is 0-indexed in JS Date
+            const baseDate = new Date(year, month - 1, day);
+            
+            // Extract hours and minutes from the time strings
+            const [startHours, startMinutes] = formData.startTime.split(':').map(Number);
+            const [endHours, endMinutes] = formData.endTime.split(':').map(Number);
+            
+            // Create new dates with the correct times
+            const currentStartDate = new Date(year, month - 1, day, startHours, startMinutes);
+            const currentEndDate = new Date(year, month - 1, day, endHours, endMinutes);
+            
+            console.log(`Date string: ${dateStr}, created start date: ${currentStartDate.toISOString()}`);
             
             const currentBookingData = {
               ...bookingData,
