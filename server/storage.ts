@@ -604,11 +604,18 @@ export class DatabaseStorage implements IStorage {
       });
       
       // Load PCR rooms data
-      const allPcrRooms = await db.select().from(pcrRooms);
-      allPcrRooms.forEach(pcrRoom => {
-        this.pcrRooms.set(pcrRoom.id, pcrRoom);
-        this.pcrRoomIdCounter = Math.max(this.pcrRoomIdCounter, pcrRoom.id + 1);
-      });
+      try {
+        const allPcrRooms = await db.select().from(pcrRooms);
+        this.pcrRooms = new Map(); // Ensure pcrRooms is initialized
+        allPcrRooms.forEach(pcrRoom => {
+          this.pcrRooms.set(pcrRoom.id, pcrRoom);
+          this.pcrRoomIdCounter = Math.max(this.pcrRoomIdCounter, pcrRoom.id + 1);
+        });
+      } catch (error) {
+        console.log("PCR rooms table might not exist yet. Initializing empty map.");
+        this.pcrRooms = new Map();
+        this.pcrRoomIdCounter = 1;
+      }
       
       const allNotifications = await db.select().from(notifications);
       allNotifications.forEach(notification => {
