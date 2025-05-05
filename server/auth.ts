@@ -5,6 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
+import { verifyInviteToken, invalidateInviteToken } from "./email";
 import { User as SelectUser } from "@shared/schema";
 
 declare global {
@@ -88,21 +89,55 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/register", async (req, res, next) => {
+  // Direct registration is disabled - users must register via an invite link
+  app.post("/api/register", async (req, res) => {
+    return res.status(403).json({ 
+      message: "Direct registration is disabled. Please use an invitation link to register." 
+    });
+  });
+  
+  // Registration with an invite token
+  app.post("/api/register/invite/:token", async (req, res, next) => {
     try {
+      const { token } = req.params;
+      
+      // Verify the invite token
+      const inviteInfo = verifyInviteToken(token);
+      
+      if (!inviteInfo) {
+        return res.status(400).json({ 
+          message: "Invalid or expired invitation link. Please request a new invitation." 
+        });
+      }
+      
+      const { role, email } = inviteInfo;
+      
+      // Ensure the email in the form matches the invited email
+      if (req.body.email.toLowerCase() !== email.toLowerCase()) {
+        return res.status(400).json({ 
+          message: "The email address does not match the invitation. Please use the email address that was invited." 
+        });
+      }
+      
+      // Check if username already exists
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      // Hash the password before creating the user
-      const hashedUser = {
+      // Set the role from the invitation
+      const userData = {
         ...req.body,
+        role,
         password: await hashPassword(req.body.password)
       };
       
-      const user = await storage.createUser(hashedUser);
+      const user = await storage.createUser(userData);
+      
+      // Invalidate the used token
+      invalidateInviteToken(token);
 
+      // Log the user in
       req.login(user, (err) => {
         if (err) return next(err);
         res.status(201).json(user);

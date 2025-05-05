@@ -24,7 +24,9 @@ import {
   generatePasswordResetToken, 
   verifyPasswordResetToken, 
   invalidatePasswordResetToken, 
-  sendPasswordResetEmail 
+  sendPasswordResetEmail,
+  generateInviteToken,
+  sendInviteEmail
 } from "./email";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -64,6 +66,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(users);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+  
+  // Endpoint for admins to generate invite links
+  app.post("/api/invite", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const { email, role } = z.object({
+        email: z.string().email(),
+        role: z.enum(["admin", "producer", "engineer", "it", "viewer"])
+      }).parse(req.body);
+      
+      const admin = req.user as Express.User;
+      
+      // Generate invite token
+      const token = generateInviteToken(role, email, admin.id);
+      
+      // Generate invite path
+      const invitePath = `/invite/${token}`;
+      
+      // Send invite email
+      const origin = req.body.origin || null;
+      const emailSent = await sendInviteEmail(email, role, invitePath, admin.name, origin);
+      
+      if (!emailSent) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to send invitation email. Please try again later."
+        });
+      }
+      
+      res.json({ 
+        success: true,
+        message: `Invitation sent to ${email} with role: ${role}`,
+        inviteLink: invitePath
+      });
+    } catch (error) {
+      console.error("Failed to create invitation:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid data. Email and role are required.",
+          errors: error.errors
+        });
+      }
+      res.status(500).json({
+        success: false,
+        message: "Failed to create invitation."
+      });
     }
   });
 

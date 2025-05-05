@@ -69,6 +69,124 @@ export function invalidatePasswordResetToken(token: string): void {
 }
 
 /**
+ * Generate a user invitation token
+ * @param role The role for the invited user
+ * @param email The email address being invited
+ * @param createdBy The user ID of the admin creating the invitation
+ * @param expiresInDays How long the token is valid for (default: 7 days)
+ * @returns The generated token
+ */
+export function generateInviteToken(role: string, email: string, createdBy: number, expiresInDays = 7): string {
+  const token = randomBytes(32).toString('hex');
+  
+  // Calculate expiration date
+  const expires = new Date();
+  expires.setDate(expires.getDate() + expiresInDays);
+  
+  // Store the token
+  inviteTokens.set(token, { role, email, expires, createdBy });
+  
+  return token;
+}
+
+/**
+ * Verify and retrieve information from an invitation token
+ * @param token The token to verify
+ * @returns The invitation details if the token is valid, null otherwise
+ */
+export function verifyInviteToken(token: string): { role: string, email: string } | null {
+  const tokenData = inviteTokens.get(token);
+  
+  // Check if token exists and is not expired
+  if (!tokenData) {
+    return null;
+  }
+  
+  if (new Date() > tokenData.expires) {
+    // Token has expired, remove it
+    inviteTokens.delete(token);
+    return null;
+  }
+  
+  return { 
+    role: tokenData.role,
+    email: tokenData.email
+  };
+}
+
+/**
+ * Invalidate an invitation token after it's been used
+ * @param token The token to invalidate
+ */
+export function invalidateInviteToken(token: string): void {
+  inviteTokens.delete(token);
+}
+
+/**
+ * Send a user invitation email
+ * @param to The recipient's email address
+ * @param role The role assigned to the user
+ * @param invitePath The invitation path (e.g., /invite/token)
+ * @param adminName Name of the admin sending the invitation
+ * @param clientOrigin The origin provided by the client (optional)
+ * @returns A promise that resolves when the email is sent
+ */
+export async function sendInviteEmail(
+  to: string, 
+  role: string, 
+  invitePath: string, 
+  adminName: string,
+  clientOrigin?: string
+): Promise<boolean> {
+  // Get the appropriate origin (client-provided or fallback)
+  const origin = clientOrigin || (process.env.REPL_SLUG 
+    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
+    : 'http://localhost:5000');
+  
+  const fullInviteLink = `${origin}${invitePath}`;
+  
+  // Format role for display (capitalize first letter)
+  const displayRole = role.charAt(0).toUpperCase() + role.slice(1);
+  
+  // Always log the invite link for testing
+  console.log('====== USER INVITATION LINK ======');
+  console.log(`Email will be sent to: ${to}`);
+  console.log(`Role: ${displayRole}`);
+  console.log(`Using origin: ${origin}`);
+  console.log(`Invite link: ${fullInviteLink}`);
+  console.log(`Direct link to copy/paste: ${fullInviteLink}`);
+  console.log('==================================');
+  
+  try {
+    const msg = {
+      to,
+      from: 'alerts@obedtv.com',
+      subject: `You're invited to join BookStud.io as a ${displayRole}`,
+      text: `${adminName} has invited you to join BookStud.io as a ${displayRole}. Please click the following link to create your account (valid for 7 days): ${fullInviteLink}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">You're invited to join BookStud.io</h2>
+          <p>${adminName} has invited you to join BookStud.io as a <strong>${displayRole}</strong>.</p>
+          <p>BookStud.io is a comprehensive studio booking platform for broadcast facilities.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${fullInviteLink}" style="background-color: #4a7aff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Create Your Account</a>
+          </div>
+          <p>This invitation will expire in 7 days. If you believe this was sent in error, you can safely ignore this email.</p>
+          <hr style="border: 1px solid #eee; margin: 30px 0;" />
+          <p style="color: #777; font-size: 12px;">BookStud.io - Studio Management System</p>
+        </div>
+      `,
+    };
+    
+    await mailService.send(msg);
+    return true;
+  } catch (error) {
+    console.error('Error sending invitation email:', error);
+    return false;
+  }
+}
+
+/**
  * Send a password reset email
  * @param to The recipient's email address
  * @param resetPath The password reset path (e.g., /reset-password/token)
