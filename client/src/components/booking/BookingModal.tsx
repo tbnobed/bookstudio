@@ -572,10 +572,25 @@ export default function BookingModal({
                         selected={formData.dates.map(date => new Date(date))}
                         onSelect={(selectedDays) => {
                           if (selectedDays) {
+                            // Log the raw selected days for debugging
+                            console.log("Raw selected days:", Array.from(selectedDays).map(d => d.toISOString()));
+                            
                             // Convert the selected days to strings in the required format
-                            const formattedDates = Array.from(selectedDays).map(date => 
-                              formatDateForForm(date)
-                            );
+                            const formattedDates = Array.from(selectedDays).map(date => {
+                              // Create a new date to avoid mutation
+                              const adjustedDate = new Date(date);
+                              
+                              // Log each date before formatting
+                              console.log("Selected date before formatting:", adjustedDate.toISOString());
+                              
+                              // Format the date
+                              const formatted = formatDateForForm(adjustedDate);
+                              console.log("Formatted date:", formatted);
+                              
+                              return formatted;
+                            });
+                            
+                            console.log("All formatted dates:", formattedDates);
                             updateFormField('dates', formattedDates);
                             
                             // Also update the current date field for single date operations
