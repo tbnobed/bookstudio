@@ -25,6 +25,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./logs:/app/logs
+      - file_uploads:/app/uploads
     networks:
       - app-network
     # Start the application after database initialization
@@ -63,6 +64,8 @@ services:
         sleep 10 &&
         echo 'Creating database schema...' &&
         npx tsx scripts/migrate-db.ts &&
+        echo 'Migrating file attachments schema...' &&
+        npx tsx scripts/migrate-file-attachments.ts &&
         echo 'Initializing database data...' &&
         npx tsx scripts/init-db.ts &&
         echo 'Database initialization completed successfully' 
@@ -92,3 +95,4 @@ networks:
 
 volumes:
   postgres_data:
+  file_uploads:

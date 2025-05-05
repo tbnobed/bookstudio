@@ -9,8 +9,9 @@ ENV PORT=5000
 # Install build dependencies
 RUN apk add --no-cache python3 make g++ wget curl
 
-# Create logs directory
-RUN mkdir -p logs
+# Create logs and uploads directories
+RUN mkdir -p logs uploads
+RUN chmod 777 uploads
 
 # Install dependencies first (for better caching)
 COPY package*.json ./

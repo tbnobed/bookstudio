@@ -46,17 +46,10 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
   const [fileToDelete, setFileToDelete] = useState<FileAttachment | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   
-  // Log the attachments data for debugging - we'll remove this later
-  console.log(`[FileAttachmentList] bookingId: ${bookingId}, attachments count: ${attachments.length}`);
-  
   // Enrich the attachments with additional information if needed
   useEffect(() => {
-    if (attachments.length > 0) {
-      console.log(`[FileAttachmentList] We have ${attachments.length} valid attachments:`, attachments);
-    } else {
-      console.log(`[FileAttachmentList] No attachments found for booking ${bookingId}. Is loading: ${isLoading}. Error: ${isError ? error?.message : 'none'}`);
-    }
-  }, [attachments, bookingId, isLoading, isError, error]);
+    // This effect can be used for any side effects when attachments change
+  }, [attachments]);
 
   // Format file size for display
   const formatFileSize = (bytes: number) => {
