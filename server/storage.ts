@@ -432,8 +432,7 @@ export class MemStorage implements IStorage {
 }
 
 // Database storage implementation
-import connectPg from "connect-pg-simple";
-
+// Using connect-pg-simple already imported at the top of the file
 const PostgresSessionStore = connectPg(session);
 
 export class DatabaseStorage implements IStorage {

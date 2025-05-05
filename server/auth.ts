@@ -47,8 +47,9 @@ export function setupAuth(app: Express) {
     store: storage.sessionStore,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      secure: false, // Setting to false for Docker deployment regardless of environment
-      sameSite: 'lax'
+      secure: process.env.COOKIE_SECURE === 'true' ? true : false,
+      sameSite: (process.env.COOKIE_SAME_SITE as 'lax' | 'strict' | 'none') || 'lax',
+      httpOnly: true
     }
   };
 
