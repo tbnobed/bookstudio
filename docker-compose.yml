@@ -19,6 +19,8 @@ services:
       - COOKIE_SAME_SITE=${COOKIE_SAME_SITE:-lax}
       - RUNNING_IN_DOCKER=true
       - SUPPORT_SITE_MANAGER_ROLE=true
+      # Added UI version with calendar spacing optimizations
+      - UI_VERSION=1.5.1
     depends_on:
       db:
         condition: service_healthy
@@ -32,7 +34,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting application...' &&
+        echo 'Starting application with optimized calendar spacing UI...' &&
         npm start
       "
 

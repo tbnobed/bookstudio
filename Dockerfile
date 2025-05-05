@@ -20,6 +20,11 @@ RUN npm ci
 # Copy all source files
 COPY . .
 
+# Make sure we have the latest calendar spacing fixes in the UI
+# The UI has been updated to reduce extra space between calendar and text
+# by adding negative margin-bottom (-0.5rem) to the calendar root
+# and removing top margin from instruction text (mt-0 instead of mt-1)
+
 # Build the application
 RUN npm run build
 

@@ -29,4 +29,8 @@ npx tsx scripts/migrate-file-attachments.ts
 echo "Seeding initial data..."
 node scripts/init-db.js
 
+# Set the UI version environment variable
+echo "UI_VERSION=1.5.1" >> .env
+echo "Setting UI version to 1.5.1 with optimized calendar spacing"
+
 echo "Database setup complete!"
