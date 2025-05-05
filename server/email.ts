@@ -75,9 +75,15 @@ export async function sendPasswordResetEmail(to: string, resetLink: string): Pro
   // For testing purposes - we're logging the reset link directly in development
   // This is helpful when SendGrid isn't working or in development environments
   if (process.env.NODE_ENV === 'development') {
+    // Get the current origin for Replit
+    const origin = process.env.REPL_SLUG 
+      ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
+      : 'http://localhost:5000';
+    
     console.log('====== PASSWORD RESET LINK ======');
     console.log(`Email would be sent to: ${to}`);
-    console.log(`Reset link: ${resetLink}`);
+    console.log(`Reset link: ${origin}${resetLink}`);
+    console.log(`Direct link to copy/paste: ${origin}${resetLink}`);
     console.log('=================================');
     
     // In a real production environment, remove this return and use only SendGrid
@@ -86,19 +92,26 @@ export async function sendPasswordResetEmail(to: string, resetLink: string): Pro
   }
   
   try {
+    // Get the current origin for Replit (or use localhost for local dev)
+    const origin = process.env.REPL_SLUG 
+      ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
+      : 'http://localhost:5000';
+    
+    const fullResetLink = `${origin}${resetLink}`;
+    
     // In production, we would use SendGrid
     const msg = {
       to,
       from: 'alerts@obedtv.com', // This should be a verified sender in your SendGrid account
       subject: 'Reset your BookStud.io password',
-      text: `You requested a password reset for your BookStud.io account. Please click the following link to reset your password (valid for 30 minutes): ${resetLink}`,
+      text: `You requested a password reset for your BookStud.io account. Please click the following link to reset your password (valid for 30 minutes): ${fullResetLink}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">BookStud.io Password Reset</h2>
           <p>You requested a password reset for your BookStud.io account.</p>
           <p>Please click the button below to reset your password. This link is valid for 30 minutes.</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="background-color: #4a7aff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
+            <a href="${fullResetLink}" style="background-color: #4a7aff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
           </div>
           <p>If you didn't request this password reset, you can safely ignore this email.</p>
           <hr style="border: 1px solid #eee; margin: 30px 0;" />

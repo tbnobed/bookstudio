@@ -166,8 +166,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate password reset token
       const token = generatePasswordResetToken(user.id);
       
-      // Generate reset link
-      const resetLink = `${req.protocol}://${req.get('host')}/reset-password/${token}`;
+      // Generate reset link - for Replit we use the relative path
+      const resetLink = `/reset-password/${token}`;
       
       // Send password reset email
       const emailSent = await sendPasswordResetEmail(user.email, resetLink);
