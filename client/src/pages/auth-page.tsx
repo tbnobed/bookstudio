@@ -19,10 +19,18 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [_, navigate] = useLocation();
   const { toast } = useToast();
+  
+  // State for forgot password flow
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
 
   const loginSchema = z.object({
     username: z.string().min(1, "Username is required"),
     password: z.string().min(1, "Password is required"),
+  });
+  
+  const forgotPasswordSchema = z.object({
+    email: z.string().email("Please enter a valid email address"),
   });
 
   const registerSchema = insertUserSchema
@@ -125,6 +133,14 @@ export default function AuthPage() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label htmlFor="password">Password</Label>
+                        <Button 
+                          variant="link" 
+                          className="px-0 text-xs" 
+                          type="button"
+                          onClick={() => setActiveTab("forgot-password")}
+                        >
+                          Forgot password?
+                        </Button>
                       </div>
                       <Input
                         id="password"

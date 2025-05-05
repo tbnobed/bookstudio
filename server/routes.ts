@@ -20,6 +20,12 @@ import {
   sendMaintenanceAlert,
   sendFacilityAlert
 } from "./services/emailService";
+import { 
+  generatePasswordResetToken, 
+  verifyPasswordResetToken, 
+  invalidatePasswordResetToken, 
+  sendPasswordResetEmail 
+} from "./email";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
