@@ -15,6 +15,9 @@ if (!process.env.SENDGRID_API_KEY) {
 // In-memory store for password reset tokens (consider moving to the database in production)
 const passwordResetTokens = new Map<string, { userId: number, expires: Date }>();
 
+// In-memory store for user invitation tokens
+const inviteTokens = new Map<string, { role: string, email: string, expires: Date, createdBy: number }>();
+
 /**
  * Generate a password reset token
  * @param userId The user ID to associate with the token
