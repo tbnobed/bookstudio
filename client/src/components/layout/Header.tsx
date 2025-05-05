@@ -34,7 +34,9 @@ export function Header({
     queryKey: ["/api/studios"],
   });
 
-  const studiosToShow = showAllStudios ? studios : studios.slice(0, 5);
+  // Show all studios by default if we have 20 or fewer
+  // Only use pagination when we have more than 20 studios
+  const studiosToShow = showAllStudios || studios.length <= 20 ? studios : studios.slice(0, 20);
 
   // Navigate to today
   const goToToday = () => {
@@ -242,12 +244,12 @@ export function Header({
                 </button>
               ))}
               
-              {studios.length > 5 && (
+              {studios.length > 20 && (
                 <button 
                   className="px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded-md"
                   onClick={() => setShowAllStudios(!showAllStudios)}
                 >
-                  {showAllStudios ? "Show Less" : `+${studios.length - 5} more`}
+                  {showAllStudios ? "Show Less" : `+${studios.length - 20} more`}
                 </button>
               )}
             </div>
