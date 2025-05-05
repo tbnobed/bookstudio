@@ -66,6 +66,13 @@ export default function AuthPage() {
       email: "",
     },
   });
+  
+  const forgotPasswordForm = useForm<z.infer<typeof forgotPasswordSchema>>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
 
   // Use our Auth Context
   const { loginMutation, registerMutation, user } = useAuth();
@@ -93,6 +100,39 @@ export default function AuthPage() {
     
     // Use the mutation directly without additional callbacks
     registerMutation.mutate(userData);
+  };
+
+  const onForgotPasswordSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
+    try {
+      setForgotPasswordLoading(true);
+      
+      const response = await apiRequest("POST", "/api/forgot-password", data);
+      const result = await response.json();
+      
+      if (result.success) {
+        setForgotPasswordSuccess(true);
+        toast({
+          title: "Password reset email sent",
+          description: "If an account exists with that email, you will receive a password reset link.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || "An error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setForgotPasswordLoading(false);
+    }
   };
 
   return (
@@ -158,6 +198,78 @@ export default function AuthPage() {
                     </Button>
                   </div>
                 </form>
+              </TabsContent>
+              
+              <TabsContent value="forgot-password">
+                {forgotPasswordSuccess ? (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+                      <h3 className="text-lg font-semibold text-green-800 mb-2">Check your email</h3>
+                      <p className="text-green-700">
+                        If an account exists with that email address, we've sent instructions to reset your password.
+                      </p>
+                    </div>
+                    <div className="space-y-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          setActiveTab("login");
+                          setForgotPasswordSuccess(false);
+                          forgotPasswordForm.reset();
+                        }}
+                      >
+                        Return to Login
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)}>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Enter your email address and we'll send you a link to reset your password.
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-password-email">Email</Label>
+                        <Input
+                          id="forgot-password-email"
+                          type="email"
+                          placeholder="Enter your email address"
+                          {...forgotPasswordForm.register("email")}
+                        />
+                        {forgotPasswordForm.formState.errors.email && (
+                          <p className="text-sm text-red-500">{forgotPasswordForm.formState.errors.email.message}</p>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <Button 
+                          type="submit" 
+                          className="w-full" 
+                          disabled={forgotPasswordLoading}
+                        >
+                          {forgotPasswordLoading ? "Sending..." : "Send Reset Link"}
+                        </Button>
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => {
+                            setActiveTab("login");
+                            forgotPasswordForm.reset();
+                          }}
+                        >
+                          Back to Login
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                )}
               </TabsContent>
               
               <TabsContent value="register">

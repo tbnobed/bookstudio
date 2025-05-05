@@ -12,6 +12,7 @@ import Settings from "@/pages/Settings";
 import { useEffect, useState } from "react";
 import ToastNotification from "@/components/ui/toast-notification";
 import AuthPage from "@/pages/auth-page";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
@@ -23,6 +24,7 @@ function Router() {
     <Switch>
       <Route path="/auth" component={AuthPage} />
       <Route path="/login" component={AuthPage} />
+      <Route path="/reset-password/:token" component={ResetPasswordPage} />
       <Route path="/public-calendar" component={PublicCalendarPage} />
       <ProtectedRoute path="/" component={CalendarPage} />
       <ProtectedRoute path="/calendar" component={CalendarPage} />
@@ -41,7 +43,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   
   // Check if we're on an auth page or public page (no sidebar needed)
-  const isPublicPage = location === "/auth" || location === "/login" || location === "/public-calendar";
+  const isPublicPage = location === "/auth" || 
+                     location === "/login" || 
+                     location === "/public-calendar" || 
+                     location.startsWith("/reset-password/");
   
   return (
     <div className="flex h-screen overflow-hidden">
