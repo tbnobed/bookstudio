@@ -17,6 +17,24 @@ export default function MobileCalendarPage() {
     }
   }, [isDesktop, navigate]);
 
+  // Add touch overflow scrolling
+  useEffect(() => {
+    // Set body overflow to auto for better mobile scrolling
+    document.body.style.overflow = 'auto';
+    document.documentElement.style.overflow = 'auto';
+    
+    // Prevent elastic overscroll on Safari
+    document.body.style.overscrollBehavior = 'none';
+    document.documentElement.style.overscrollBehavior = 'none';
+    
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
+      document.documentElement.style.overscrollBehavior = '';
+    };
+  }, []);
+
   // Handle date change with enhanced debugging
   const handleDateChange = (date: Date) => {
     // Create a clean date object to avoid reference issues
@@ -34,9 +52,9 @@ export default function MobileCalendarPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       {/* Main content with padding to accommodate bottom navbar */}
-      <div className="flex-1 pb-16">
+      <div className="flex-1 overflow-hidden flex flex-col">
         <MobileDailyView
           currentDate={currentDate}
           onDateChange={handleDateChange}

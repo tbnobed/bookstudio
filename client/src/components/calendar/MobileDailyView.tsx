@@ -182,21 +182,21 @@ export default function MobileDailyView({
 
       {/* Main content - Studios and bookings */}
       <Tabs defaultValue="studios" className="flex-1 overflow-hidden flex flex-col">
-        <TabsList className="grid grid-cols-2 mx-4 mt-2">
+        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10">
           <TabsTrigger value="studios">Studios Status</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
         
         {/* Studios Status Tab */}
-        <TabsContent value="studios" className="flex-1 overflow-auto p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <TabsContent value="studios" className="flex-1 overflow-auto pb-20 -mx-1 px-1 overscroll-contain">
+          <div className="p-4 grid grid-cols-1 gap-4">
             {studiosWithStatus.map(studio => {
               const studioBookings = bookingsByStudio[studio.id] || [];
               const { statusInfo } = studio;
               
               return (
-                <div key={studio.id} className="bg-white rounded-lg border shadow-sm overflow-hidden">
-                  <div className="flex items-center p-4 border-b">
+                <div key={studio.id} className="bg-white rounded-lg border shadow-sm overflow-hidden touch-pan-y">
+                  <div className="flex items-center p-4 border-b sticky top-0 bg-white">
                     <div className={`w-3 h-3 rounded-full mr-2 ${statusInfo.color}`}></div>
                     <h3 className="font-medium flex-1">{studio.name}</h3>
                     <Badge 
@@ -227,7 +227,7 @@ export default function MobileDailyView({
                               key={booking.id}
                               onClick={() => handleBookingClick(booking)}
                               className={cn(
-                                "p-3 rounded-md border cursor-pointer transition-colors",
+                                "p-3 rounded-md border cursor-pointer transition-colors active:bg-gray-100",
                                 isActive ? "bg-red-50 border-red-200" : 
                                 isUpcoming ? "bg-amber-50 border-amber-200" : 
                                 "bg-gray-50 border-gray-200"
@@ -267,9 +267,9 @@ export default function MobileDailyView({
         </TabsContent>
         
         {/* Timeline Tab */}
-        <TabsContent value="timeline" className="flex-1 overflow-auto">
+        <TabsContent value="timeline" className="flex-1 overflow-auto pb-20 -mx-1 px-1 overscroll-contain">
           <div className="p-4 space-y-4">
-            <h2 className="text-lg font-semibold">Today's Schedule</h2>
+            <h2 className="text-lg font-semibold mb-4 sticky top-0 bg-white py-2 -mt-2 -mx-4 px-4 z-10 border-b">Today's Schedule</h2>
             
             {todayBookings.length > 0 ? (
               <div className="space-y-3">
@@ -291,7 +291,7 @@ export default function MobileDailyView({
                         key={booking.id}
                         onClick={() => handleBookingClick(booking)}
                         className={cn(
-                          "p-4 rounded-lg border shadow-sm cursor-pointer transition-colors",
+                          "p-4 rounded-lg border shadow-sm cursor-pointer transition-colors active:bg-gray-100",
                           isActive ? "bg-red-50 border-red-200" : 
                           isUpcoming ? "bg-amber-50 border-amber-200" : 
                           "bg-gray-50 border-gray-200"
