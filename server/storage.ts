@@ -56,6 +56,7 @@ export interface IStorage {
   
   // Booking-Studio links management
   getBookingStudioLinks(bookingId: number): Promise<BookingStudio[]>;
+  getAllBookingStudioLinks(): Promise<BookingStudio[]>;
   getStudiosForBooking(bookingId: number): Promise<Studio[]>;
   createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]>;
   deleteBookingStudioLinks(bookingId: number): Promise<boolean>;
@@ -442,6 +443,11 @@ export class MemStorage implements IStorage {
     });
     
     return links;
+  }
+  
+  async getAllBookingStudioLinks(): Promise<BookingStudio[]> {
+    // Return all links from the map
+    return Array.from(this.bookingStudios.values());
   }
   
   async getStudiosForBooking(bookingId: number): Promise<Studio[]> {
@@ -1630,6 +1636,26 @@ export class DatabaseStorage implements IStorage {
         });
       }
       return memoryLinks;
+    }
+  }
+  
+  async getAllBookingStudioLinks(): Promise<BookingStudio[]> {
+    try {
+      // Get all booking-studio links from database
+      const links = await db.select()
+        .from(bookingStudios);
+      
+      console.log(`Retrieved ${links.length} booking-studio links from database`);
+      return links;
+    } catch (error) {
+      console.error("Error getting all booking-studio links:", error);
+      // Fall back to memory cache if available
+      if (this.bookingStudios) {
+        const links = Array.from(this.bookingStudios.values());
+        console.log(`Retrieved ${links.length} booking-studio links from memory cache`);
+        return links;
+      }
+      return [];
     }
   }
   
