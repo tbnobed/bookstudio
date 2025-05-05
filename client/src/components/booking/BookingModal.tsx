@@ -921,10 +921,24 @@ export default function BookingModal({
                     selected={formData.dates.map(date => new Date(date))}
                     onSelect={(selectedDays) => {
                       if (selectedDays) {
-                        // Convert the selected days to strings in the required format
-                        const formattedDates = Array.from(selectedDays).map(date => 
+                        // Log the selected days to debug
+                        console.log('Selected days from calendar:', Array.from(selectedDays).map(d => d.toISOString()));
+                        
+                        // Fix timezone issues by forcing dates to noon UTC
+                        // This ensures the local date is the same as what the user selected
+                        const fixedDates = Array.from(selectedDays).map(date => {
+                          // Create a new date at noon UTC to avoid any timezone issues
+                          const fixedDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
+                          console.log(`Original: ${date.toISOString()}, Fixed: ${fixedDate.toISOString()}`);
+                          return fixedDate;
+                        });
+                        
+                        // Convert the fixed dates to strings in the required format
+                        const formattedDates = fixedDates.map(date => 
                           formatDateForForm(date)
                         );
+                        console.log('Formatted dates:', formattedDates);
+                        
                         updateFormField('dates', formattedDates);
                         
                         // Also update the current date field for single date operations
