@@ -674,17 +674,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get booking-studio links for a booking
+  // Get booking-studio links for a booking or all links
   app.get("/api/booking-studios", isAuthenticated, async (req, res) => {
     try {
       const bookingId = req.query.bookingId ? parseInt(req.query.bookingId as string) : null;
       
-      if (!bookingId) {
-        return res.status(400).json({ message: "Booking ID is required" });
+      if (bookingId) {
+        // Get links for a specific booking
+        const links = await storage.getBookingStudioLinks(bookingId);
+        return res.json(links);
+      } else {
+        // Get all booking-studio links for the calendar view
+        const links = await storage.getAllBookingStudioLinks();
+        return res.json(links);
       }
-      
-      const links = await storage.getBookingStudioLinks(bookingId);
-      return res.json(links);
     } catch (error) {
       console.error("Error getting booking-studio links:", error);
       return res.status(500).json({ message: "Failed to fetch booking-studio links" });
