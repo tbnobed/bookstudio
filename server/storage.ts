@@ -88,6 +88,7 @@ export class MemStorage implements IStorage {
   private bookings: Map<number, Booking>;
   private notifications: Map<number, Notification>;
   private notificationGroups: Map<number, NotificationGroup>;
+  private bookingStudios: Map<string, BookingStudio>; // Use bookingId-studioId as key
   
   private userIdCounter: number;
   private studioIdCounter: number;
@@ -95,6 +96,7 @@ export class MemStorage implements IStorage {
   private bookingIdCounter: number;
   private notificationIdCounter: number;
   private notificationGroupIdCounter: number;
+  private bookingStudioIdCounter: number;
   
   public sessionStore: session.Store;
 
@@ -105,6 +107,8 @@ export class MemStorage implements IStorage {
     this.bookings = new Map();
     this.notifications = new Map();
     this.notificationGroups = new Map();
+    this.bookingStudios = new Map();
+    this.pcrRooms = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
@@ -112,6 +116,8 @@ export class MemStorage implements IStorage {
     this.bookingIdCounter = 1;
     this.notificationIdCounter = 1;
     this.notificationGroupIdCounter = 1;
+    this.bookingStudioIdCounter = 1;
+    this.pcrRoomIdCounter = 1;
     
     // Create memory store for sessions
     this.sessionStore = new MemoryStore({
@@ -419,7 +425,84 @@ export class MemStorage implements IStorage {
   }
 
   async deleteBooking(id: number): Promise<boolean> {
+    // Also delete any associated booking-studio links
+    await this.deleteBookingStudioLinks(id);
     return this.bookings.delete(id);
+  }
+
+  // Booking-Studio junction table methods
+  async getBookingStudioLinks(bookingId: number): Promise<BookingStudio[]> {
+    const links: BookingStudio[] = [];
+    
+    // Find all links with matching bookingId
+    this.bookingStudios.forEach((link, key) => {
+      if (link.bookingId === bookingId) {
+        links.push(link);
+      }
+    });
+    
+    return links;
+  }
+  
+  async getStudiosForBooking(bookingId: number): Promise<Studio[]> {
+    // Get all links for this booking
+    const links = await this.getBookingStudioLinks(bookingId);
+    
+    if (links.length === 0) {
+      // If no links found, try to get the legacy studioId
+      const booking = await this.getBooking(bookingId);
+      if (booking && booking.studioId) {
+        const studio = await this.getStudio(booking.studioId);
+        return studio ? [studio] : [];
+      }
+      return [];
+    }
+    
+    // Get all studios from the links
+    const studios: Studio[] = [];
+    for (const link of links) {
+      const studio = await this.getStudio(link.studioId);
+      if (studio) {
+        studios.push(studio);
+      }
+    }
+    
+    return studios;
+  }
+  
+  async createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]> {
+    const createdLinks: BookingStudio[] = [];
+    
+    for (const studioId of studioIds) {
+      const id = this.bookingStudioIdCounter++;
+      const key = `${bookingId}-${studioId}`;
+      const link: BookingStudio = { id, bookingId, studioId };
+      
+      this.bookingStudios.set(key, link);
+      createdLinks.push(link);
+    }
+    
+    return createdLinks;
+  }
+  
+  async deleteBookingStudioLinks(bookingId: number): Promise<boolean> {
+    let deleted = false;
+    
+    // Find and delete all links for this booking
+    const keysToDelete: string[] = [];
+    this.bookingStudios.forEach((link, key) => {
+      if (link.bookingId === bookingId) {
+        keysToDelete.push(key);
+      }
+    });
+    
+    // Delete them
+    keysToDelete.forEach(key => {
+      this.bookingStudios.delete(key);
+      deleted = true;
+    });
+    
+    return deleted;
   }
 
   // Notification methods

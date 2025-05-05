@@ -673,6 +673,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch studio bookings" });
     }
   });
+  
+  // Get booking-studio links for a booking
+  app.get("/api/booking-studios", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = req.query.bookingId ? parseInt(req.query.bookingId as string) : null;
+      
+      if (!bookingId) {
+        return res.status(400).json({ message: "Booking ID is required" });
+      }
+      
+      const links = await storage.getBookingStudioLinks(bookingId);
+      return res.json(links);
+    } catch (error) {
+      console.error("Error getting booking-studio links:", error);
+      return res.status(500).json({ message: "Failed to fetch booking-studio links" });
+    }
+  });
+  
+  // Get all studios for a booking
+  app.get("/api/booking/:id/studios", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const studios = await storage.getStudiosForBooking(bookingId);
+      return res.json(studios);
+    } catch (error) {
+      console.error("Error getting studios for booking:", error);
+      return res.status(500).json({ message: "Failed to fetch studios for booking" });
+    }
+  });
 
   app.post("/api/bookings", isAuthenticated, async (req, res) => {
     try {
