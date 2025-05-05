@@ -47,17 +47,19 @@ export default function BookingModal({
   const { toast } = useToast();
   const formInitializedRef = useRef(false);
   
-  // Format date for form - without timezone adjustment
+  // Format date for form - accounting for timezone issues
   const formatDateForForm = (date: Date): string => {
-    // DO NOT add one day as this causes the offset issue
+    // Add one day to compensate for timezone issue
+    const adjustedDate = new Date(date);
+    adjustedDate.setDate(adjustedDate.getDate() + 1);
     
-    // Format as YYYY-MM-DD directly using local components
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    // Format as YYYY-MM-DD
+    const year = adjustedDate.getFullYear();
+    const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(adjustedDate.getDate()).padStart(2, '0');
     
     const formattedDate = `${year}-${month}-${day}`;
-    console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${formattedDate}`);
+    console.log(`formatDateForForm: Input date: ${date.toISOString()}, adjusted date: ${adjustedDate.toISOString()}, formatted as: ${formattedDate}`);
     return formattedDate;
   };
 
@@ -329,9 +331,9 @@ export default function BookingModal({
     };
     
     // Add dates array if multi-date selection is used
-    // Note: The dates array is already properly formatted strings (YYYY-MM-DD)
-    // and is only used for the multi-booking creation logic, not as part of the final booking object
-    const selectedDates = formData.dates.length > 0 ? formData.dates : [];
+    if (formData.dates.length > 0) {
+      bookingData.dates = formData.dates;
+    }
     
     // Set the primary studioId (for backward compatibility)
     // Use the first selected studio as the primary if available
@@ -385,10 +387,9 @@ export default function BookingModal({
         // Create new booking for each date if multi-date is used, otherwise create one booking
         console.log(`Creating new booking with studios:`, studioIds);
         
-        // Use the original date strings directly from the form
         const dates = formData.dates.length > 0 ? 
-          formData.dates : 
-          [formatDateForForm(startDate)];
+          formData.dates.map(date => timeToDate(date, formData.startTime).toISOString().split('T')[0]) : 
+          [startDate.toISOString().split('T')[0]];
           
         console.log(`Will create ${dates.length} bookings for dates:`, dates);
         
@@ -409,25 +410,8 @@ export default function BookingModal({
         } else {
           // Create a separate booking for each date
           for (const dateStr of formData.dates) {
-            // The dateStr we get from the form is already in correct format (YYYY-MM-DD)
-            // But we need to create a new date using it directly WITHOUT adjusting for timezone
-            // to avoid the one day offset issue
-            console.log(`Creating booking for date string: ${dateStr}`);
-            
-            // Parse the date parts directly to avoid timezone issues
-            const [year, month, day] = dateStr.split('-').map(Number);
-            // Note: Month is 0-indexed in JS Date
-            const baseDate = new Date(year, month - 1, day);
-            
-            // Extract hours and minutes from the time strings
-            const [startHours, startMinutes] = formData.startTime.split(':').map(Number);
-            const [endHours, endMinutes] = formData.endTime.split(':').map(Number);
-            
-            // Create new dates with the correct times
-            const currentStartDate = new Date(year, month - 1, day, startHours, startMinutes);
-            const currentEndDate = new Date(year, month - 1, day, endHours, endMinutes);
-            
-            console.log(`Date string: ${dateStr}, created start date: ${currentStartDate.toISOString()}`);
+            const currentStartDate = timeToDate(dateStr, formData.startTime);
+            const currentEndDate = timeToDate(dateStr, formData.endTime);
             
             const currentBookingData = {
               ...bookingData,
@@ -445,7 +429,7 @@ export default function BookingModal({
           
           toast({
             title: "Success", 
-            description: `${formData.dates.length} bookings created successfully`,
+            description: `${dates.length} bookings created successfully`,
             variant: "default"
           });
         }
@@ -588,20 +572,13 @@ export default function BookingModal({
                     <div className="border rounded-md p-2 mt-1">
                       <DayPicker
                         mode="multiple"
-                        selected={formData.dates.map(date => {
-                          // Create exact date objects from the ISO string without adjustments
-                          const [year, month, day] = date.split('-').map(Number);
-                          // Create date with local timezone (month is 0-indexed in JS Date)
-                          return new Date(year, month - 1, day);
-                        })}
+                        selected={formData.dates.map(date => new Date(date))}
                         onSelect={(selectedDays) => {
                           if (selectedDays) {
                             // Convert the selected days to strings in the required format
                             const formattedDates = Array.from(selectedDays).map(date => 
                               formatDateForForm(date)
                             );
-                            console.log("Selected days in DayPicker:", Array.from(selectedDays).map(d => d.toISOString()));
-                            console.log("Formatted dates:", formattedDates);
                             updateFormField('dates', formattedDates);
                             
                             // Also update the current date field for single date operations
