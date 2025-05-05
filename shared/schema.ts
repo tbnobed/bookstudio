@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // Notification Groups schema
 export const notificationGroups = pgTable("notification_groups", {
@@ -125,3 +126,63 @@ export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// Password Reset Tokens schema
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  token: text("token").notNull().unique(),
+  userId: integer("user_id").notNull(),
+  expires: timestamp("expires").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  used: boolean("used").default(false),
+});
+
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+// User Invitation Tokens schema
+export const inviteTokens = pgTable("invite_tokens", {
+  id: serial("id").primaryKey(),
+  token: text("token").notNull().unique(),
+  role: text("role").notNull(),
+  email: text("email").notNull(),
+  expires: timestamp("expires").notNull(),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  used: boolean("used").default(false),
+});
+
+export const insertInviteTokenSchema = createInsertSchema(inviteTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  passwordResetTokens: many(passwordResetTokens),
+  createdInviteTokens: many(inviteTokens, { relationName: "tokenCreator" }),
+}));
+
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResetTokens.userId],
+    references: [users.id],
+  }),
+}));
+
+export const inviteTokensRelations = relations(inviteTokens, ({ one }) => ({
+  creator: one(users, {
+    fields: [inviteTokens.createdBy],
+    references: [users.id],
+    relationName: "tokenCreator",
+  }),
+}));
+
+// Type exports for tokens
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+
+export type InviteToken = typeof inviteTokens.$inferSelect;
+export type InsertInviteToken = z.infer<typeof insertInviteTokenSchema>;
