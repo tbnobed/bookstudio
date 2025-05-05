@@ -43,6 +43,18 @@ export const insertStudioSchema = createInsertSchema(studios).omit({
   id: true,
 });
 
+// Production Control Rooms (PCR) schema
+export const pcrRooms = pgTable("pcr_rooms", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  status: text("status").notNull().default("available"), // available, maintenance, booked
+});
+
+export const insertPcrRoomSchema = createInsertSchema(pcrRooms).omit({
+  id: true,
+});
+
 // Booking templates schema
 export const templates = pgTable("templates", {
   id: serial("id").primaryKey(),
@@ -65,6 +77,7 @@ export const bookings = pgTable("bookings", {
   title: text("title").notNull(),
   description: text("description"),
   studioId: integer("studio_id"), // Can be null for facility-wide alerts/maintenance
+  pcrRoomId: integer("pcr_room_id"), // Production Control Room - optional
   userId: integer("user_id").notNull(),
   start: timestamp("start").notNull(),
   end: timestamp("end").notNull(),
@@ -88,6 +101,8 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   ),
   // Make studioId optional for maintenance and IT alerts
   studioId: z.number().optional().nullable(),
+  // Make pcrRoomId optional
+  pcrRoomId: z.number().optional().nullable(),
 });
 
 // Notifications schema
@@ -117,6 +132,9 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type Studio = typeof studios.$inferSelect;
 export type InsertStudio = z.infer<typeof insertStudioSchema>;
+
+export type PcrRoom = typeof pcrRooms.$inferSelect;
+export type InsertPcrRoom = z.infer<typeof insertPcrRoomSchema>;
 
 export type Template = typeof templates.$inferSelect;
 export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
@@ -213,8 +231,16 @@ export type FileAttachment = typeof fileAttachments.$inferSelect;
 export type InsertFileAttachment = z.infer<typeof insertFileAttachmentSchema>;
 
 // Add the relations
-export const bookingsRelations = relations(bookings, ({ many }) => ({
+export const bookingsRelations = relations(bookings, ({ many, one }) => ({
   fileAttachments: many(fileAttachments),
+  studio: one(studios, {
+    fields: [bookings.studioId],
+    references: [studios.id],
+  }),
+  pcrRoom: one(pcrRooms, {
+    fields: [bookings.pcrRoomId],
+    references: [pcrRooms.id],
+  }),
 }));
 
 export const fileAttachmentsRelations = relations(fileAttachments, ({ one }) => ({
@@ -226,4 +252,8 @@ export const fileAttachmentsRelations = relations(fileAttachments, ({ one }) => 
     fields: [fileAttachments.uploadedBy],
     references: [users.id],
   }),
+}));
+
+export const pcrRoomsRelations = relations(pcrRooms, ({ many }) => ({
+  bookings: many(bookings),
 }));
