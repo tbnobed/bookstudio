@@ -224,33 +224,6 @@ export function generateTimeOptions(): string[] {
   return timeOptions;
 }
 
-/**
- * Consistently formats a Date object to YYYY-MM-DD string format for form usage
- * This is critical for the booking form date selections
- * 
- * @param date The date object to format
- * @returns A string in YYYY-MM-DD format, with timezone handling
- */
-export function formatDateForForm(date: Date): string {
-  // We need to handle the date in the local timezone to prevent off-by-one errors
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
-  const day = date.getDate().toString().padStart(2, '0');
-  
-  const formatted = `${year}-${month}-${day}`;
-  console.log(`formatDateForForm: Input date: ${date.toString()}, formatted as: ${formatted}`);
-  
-  return formatted;
-}
-
-/**
- * Combines a date string (YYYY-MM-DD) and time string (1:30pm) into a Date object
- * Critical for booking start and end times
- * 
- * @param dateStr Date string in YYYY-MM-DD format
- * @param timeStr Time string in format like "1:30pm" or "12:00am"
- * @returns A Date object representing the combined date and time in the local timezone
- */
 export function timeToDate(dateStr: string, timeStr: string): Date {
   // Extract hours and minutes from timeStr (format: "1:30pm", "12:00am", etc.)
   const timeParts = timeStr.match(/^(\d+):(\d+)([ap]m)$/i);
@@ -271,13 +244,10 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   const [year, month, day] = dateStr.split('-').map(Number);
   
   // Create a date object with year, month, day in local time
-  // Using the constructor that takes individual components, ensuring local timezone
   const dateObj = new Date(year, month - 1, day, hourNum, minuteNum, 0, 0);
   
   // Log for debugging
-  console.log(`Combining date ${dateStr} and time ${timeStr} into: ${dateObj.toString()}`);
-  console.log(`  - ISO string: ${dateObj.toISOString()}`);
-  console.log(`  - Local string: ${dateObj.toLocaleString()}`);
+  console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()}`);
   
   return dateObj;
 }

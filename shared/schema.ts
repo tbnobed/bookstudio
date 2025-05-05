@@ -95,13 +95,6 @@ export const bookingStudios = pgTable("booking_studios", {
   studioId: integer("studio_id").notNull(),
 });
 
-// Booking Dates table for multi-date bookings
-export const bookingDates = pgTable("booking_dates", {
-  id: serial("id").primaryKey(),
-  bookingId: integer("booking_id").notNull(),
-  date: timestamp("date").notNull(),
-});
-
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   createdAt: true,
@@ -117,14 +110,6 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   studioId: z.number().optional().nullable(),
   // Make pcrRoomId optional
   pcrRoomId: z.number().optional().nullable(),
-  // Add support for multiple dates (not stored in the bookings table but handled separately)
-  dates: z.array(
-    z.union([z.string(), z.date()]).transform(val => 
-      typeof val === 'string' ? new Date(val) : val
-    )
-  ).optional(),
-  // Add support for studioIds array for multi-studio selection
-  studioIds: z.array(z.number()).optional(),
 });
 
 // Notifications schema
@@ -261,15 +246,6 @@ export const insertBookingStudiosSchema = createInsertSchema(bookingStudios).omi
 export type BookingStudio = typeof bookingStudios.$inferSelect;
 export type InsertBookingStudio = z.infer<typeof insertBookingStudiosSchema>;
 
-// Add schema for booking_dates
-export const insertBookingDatesSchema = createInsertSchema(bookingDates).omit({
-  id: true,
-});
-
-// Type exports for booking_dates
-export type BookingDate = typeof bookingDates.$inferSelect;
-export type InsertBookingDate = z.infer<typeof insertBookingDatesSchema>;
-
 // Add the relations
 export const bookingsRelations = relations(bookings, ({ many, one }) => ({
   fileAttachments: many(fileAttachments),
@@ -282,7 +258,6 @@ export const bookingsRelations = relations(bookings, ({ many, one }) => ({
     references: [pcrRooms.id],
   }),
   studios: many(bookingStudios),
-  dates: many(bookingDates), // Relation to booking dates
 }));
 
 export const fileAttachmentsRelations = relations(fileAttachments, ({ one }) => ({
@@ -298,11 +273,4 @@ export const fileAttachmentsRelations = relations(fileAttachments, ({ one }) => 
 
 export const pcrRoomsRelations = relations(pcrRooms, ({ many }) => ({
   bookings: many(bookings),
-}));
-
-export const bookingDatesRelations = relations(bookingDates, ({ one }) => ({
-  booking: one(bookings, {
-    fields: [bookingDates.bookingId],
-    references: [bookings.id],
-  }),
 }));

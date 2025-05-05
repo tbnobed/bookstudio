@@ -597,45 +597,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.query.start && req.query.end) {
         const start = new Date(req.query.start as string);
         const end = new Date(req.query.end as string);
-        
-        // Get regular bookings in the date range
-        const regularBookings = await storage.getBookingsByDateRange(start, end);
-        
-        // Get all bookings that might have additional dates in the range
-        const allBookings = await storage.getAllBookings();
-        const bookingsWithDates = [];
-        
-        // Process all bookings to find those with custom dates in the range
-        for (const booking of allBookings) {
-          // Skip bookings already included in regular bookings
-          if (regularBookings.some(rb => rb.id === booking.id)) {
-            continue;
-          }
-          
-          // Get custom dates for this booking
-          const bookingDates = await storage.getBookingDates(booking.id);
-          
-          // Check if any of the custom dates fall within the requested range
-          const inRange = bookingDates.some(bd => {
-            const dateObj = new Date(bd.date);
-            return dateObj >= start && dateObj <= end;
-          });
-          
-          if (inRange) {
-            bookingsWithDates.push(booking);
-          }
-        }
-        
-        // Combine regular bookings and those with custom dates in range
-        bookings = [...regularBookings, ...bookingsWithDates];
-        console.log(`Found ${regularBookings.length} regular bookings and ${bookingsWithDates.length} bookings with custom dates in range`);
+        bookings = await storage.getBookingsByDateRange(start, end);
       } else {
         bookings = await storage.getAllBookings();
       }
       
       res.json(bookings);
     } catch (error) {
-      console.error("Error fetching bookings:", error);
       res.status(500).json({ message: "Failed to fetch bookings" });
     }
   });
@@ -653,37 +621,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const end = new Date(req.query.end as string);
         console.log(`[Public Bookings] Date range: ${start.toISOString()} - ${end.toISOString()}`);
         
-        // Get regular bookings in the date range
-        const regularBookings = await storage.getBookingsByDateRange(start, end);
-        
-        // Get all bookings that might have additional dates in the range
-        const allBookings = await storage.getAllBookings();
-        const bookingsWithDates = [];
-        
-        // Process all bookings to find those with custom dates in the range
-        for (const booking of allBookings) {
-          // Skip bookings already included in regular bookings
-          if (regularBookings.some(rb => rb.id === booking.id)) {
-            continue;
-          }
-          
-          // Get custom dates for this booking
-          const bookingDates = await storage.getBookingDates(booking.id);
-          
-          // Check if any of the custom dates fall within the requested range
-          const inRange = bookingDates.some(bd => {
-            const dateObj = new Date(bd.date);
-            return dateObj >= start && dateObj <= end;
-          });
-          
-          if (inRange) {
-            bookingsWithDates.push(booking);
-          }
-        }
-        
-        // Combine regular bookings and those with custom dates in range
-        bookings = [...regularBookings, ...bookingsWithDates];
-        console.log(`[Public Bookings] Found ${regularBookings.length} regular bookings and ${bookingsWithDates.length} bookings with custom dates in range`);
+        bookings = await storage.getBookingsByDateRange(start, end);
+        console.log(`[Public Bookings] Found ${bookings.length} bookings in date range`);
       } else {
         console.log("[Public Bookings] No date range provided, fetching all bookings");
         bookings = await storage.getAllBookings();
@@ -788,38 +727,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Failed to fetch studios for booking" });
     }
   });
-  
-  // Booking-Dates API routes for multi-date bookings
-  app.get("/api/booking-dates/:bookingId", isAuthenticated, async (req, res) => {
-    try {
-      const bookingId = parseInt(req.params.bookingId);
-      if (isNaN(bookingId)) {
-        return res.status(400).json({ message: "Invalid booking ID" });
-      }
-      
-      const dates = await storage.getBookingDates(bookingId);
-      return res.json(dates);
-    } catch (error) {
-      console.error(`Error fetching dates for booking ${req.params.bookingId}:`, error);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
-  
-  // Public API route for booking dates - no authentication required
-  app.get("/api/public/booking-dates/:bookingId", async (req, res) => {
-    try {
-      const bookingId = parseInt(req.params.bookingId);
-      if (isNaN(bookingId)) {
-        return res.status(400).json({ message: "Invalid booking ID" });
-      }
-      
-      const dates = await storage.getBookingDates(bookingId);
-      return res.json(dates);
-    } catch (error) {
-      console.error(`Error fetching dates for booking ${req.params.bookingId}:`, error);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
 
   app.post("/api/bookings", isAuthenticated, async (req, res) => {
     try {
@@ -913,14 +820,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error creating studio links:", error);
           // Continue with the response even if junction table entries fail
         }
-      }
-      
-      // We no longer create booking_dates entries since we now create
-      // separate bookings for each date directly in the client
-      // This code is kept for backward compatibility with older clients
-      if (req.body.dates && Array.isArray(req.body.dates) && req.body.dates.length > 0) {
-        console.log(`Received dates array with ${req.body.dates.length} dates, but we now create individual bookings in the client`);
-        // No need to do anything with the dates array anymore
       }
       
       // Handle facility-wide maintenance alerts (for all users)
@@ -1141,14 +1040,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Updated studio links for booking ${id}: ${parsedStudioIds.join(', ')}`);
       }
       
-      // We no longer use booking_dates entries since we create
-      // separate bookings for each date directly in the client
-      // This code is kept for backward compatibility with older clients
-      if (req.body.dates && Array.isArray(req.body.dates)) {
-        console.log(`Received dates array in update with ${req.body.dates.length} dates for booking ${id}, but we now create individual bookings in the client`);
-        // No need to do anything with the dates array anymore
-      }
-      
       // Check if this is a facility-wide alert (null studioId and maintenance/IT related type)
       if (updatedBooking && updatedBooking.studioId === null && 
           (updatedBooking.type === "maintenance" || updatedBooking.type === "it_support" || 
@@ -1248,18 +1139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Delete the booking and its associated dates
       const success = await storage.deleteBooking(id);
-      
-      // Even if the booking is gone, try to clean up any booking dates
-      try {
-        // This might already be handled by database cascading deletes,
-        // but it's good to be explicit in our code
-        await storage.deleteBookingDates(id);
-      } catch (error) {
-        console.error(`Error deleting booking dates for booking ${id}:`, error);
-        // Continue with the response even if booking dates deletion fails
-      }
       
       if (success) {
         // Create notification for the booking owner if not the deleter

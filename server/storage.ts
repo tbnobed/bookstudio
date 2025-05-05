@@ -6,8 +6,7 @@ import {
   notifications, type Notification, type InsertNotification,
   notificationGroups, type NotificationGroup, type InsertNotificationGroup,
   pcrRooms, type PcrRoom, type InsertPcrRoom,
-  bookingStudios, type BookingStudio, type InsertBookingStudio,
-  bookingDates, type BookingDate, type InsertBookingDate
+  bookingStudios, type BookingStudio, type InsertBookingStudio
 } from "@shared/schema";
 
 import { db, pool } from "./db";
@@ -62,11 +61,6 @@ export interface IStorage {
   createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]>;
   deleteBookingStudioLinks(bookingId: number): Promise<boolean>;
   
-  // Booking-Dates management for multi-date bookings
-  getBookingDates(bookingId: number): Promise<BookingDate[]>;
-  createBookingDates(bookingId: number, dates: Date[]): Promise<BookingDate[]>;
-  deleteBookingDates(bookingId: number): Promise<boolean>;
-  
   // Notification group management
   getNotificationGroup(id: number): Promise<NotificationGroup | undefined>;
   getNotificationGroupByType(groupType: string): Promise<NotificationGroup | undefined>;
@@ -96,7 +90,6 @@ export class MemStorage implements IStorage {
   private notifications: Map<number, Notification>;
   private notificationGroups: Map<number, NotificationGroup>;
   private bookingStudios: Map<string, BookingStudio>; // Use bookingId-studioId as key
-  private bookingDates: Map<number, BookingDate>; // Map of id -> BookingDate
   
   private userIdCounter: number;
   private studioIdCounter: number;
@@ -105,7 +98,6 @@ export class MemStorage implements IStorage {
   private notificationIdCounter: number;
   private notificationGroupIdCounter: number;
   private bookingStudioIdCounter: number;
-  private bookingDateIdCounter: number;
   
   public sessionStore: session.Store;
 
@@ -118,7 +110,6 @@ export class MemStorage implements IStorage {
     this.notificationGroups = new Map();
     this.bookingStudios = new Map();
     this.pcrRooms = new Map();
-    this.bookingDates = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
@@ -128,7 +119,6 @@ export class MemStorage implements IStorage {
     this.notificationGroupIdCounter = 1;
     this.bookingStudioIdCounter = 1;
     this.pcrRoomIdCounter = 1;
-    this.bookingDateIdCounter = 1;
     
     // Create memory store for sessions
     this.sessionStore = new MemoryStore({
@@ -436,9 +426,8 @@ export class MemStorage implements IStorage {
   }
 
   async deleteBooking(id: number): Promise<boolean> {
-    // Delete any associated booking-studio links and booking dates
+    // Also delete any associated booking-studio links
     await this.deleteBookingStudioLinks(id);
-    await this.deleteBookingDates(id);
     return this.bookings.delete(id);
   }
 
@@ -587,58 +576,6 @@ export class MemStorage implements IStorage {
   async deleteNotificationGroup(id: number): Promise<boolean> {
     return this.notificationGroups.delete(id);
   }
-
-  // Booking-Dates methods for multi-date bookings
-  async getBookingDates(bookingId: number): Promise<BookingDate[]> {
-    const dates: BookingDate[] = [];
-    
-    // Find all booking dates with matching bookingId
-    this.bookingDates.forEach((date) => {
-      if (date.bookingId === bookingId) {
-        dates.push(date);
-      }
-    });
-    
-    return dates;
-  }
-  
-  async createBookingDates(bookingId: number, dates: Date[]): Promise<BookingDate[]> {
-    const createdDates: BookingDate[] = [];
-    
-    for (const date of dates) {
-      const id = this.bookingDateIdCounter++;
-      const bookingDate: BookingDate = { 
-        id, 
-        bookingId, 
-        date 
-      };
-      
-      this.bookingDates.set(id, bookingDate);
-      createdDates.push(bookingDate);
-    }
-    
-    return createdDates;
-  }
-  
-  async deleteBookingDates(bookingId: number): Promise<boolean> {
-    let deleted = false;
-    
-    // Find and delete all booking dates for this booking
-    const idsToDelete: number[] = [];
-    this.bookingDates.forEach((date, id) => {
-      if (date.bookingId === bookingId) {
-        idsToDelete.push(id);
-      }
-    });
-    
-    // Delete them
-    idsToDelete.forEach(id => {
-      this.bookingDates.delete(id);
-      deleted = true;
-    });
-    
-    return deleted;
-  }
 }
 
 // Database storage implementation
@@ -654,7 +591,6 @@ export class DatabaseStorage implements IStorage {
   private notificationGroups: Map<number, NotificationGroup>;
   private pcrRooms: Map<number, PcrRoom>;
   private bookingStudios: Map<string, BookingStudio>;
-  private bookingDates: Map<number, BookingDate>;
   
   private userIdCounter: number;
   private studioIdCounter: number;
@@ -664,7 +600,6 @@ export class DatabaseStorage implements IStorage {
   private notificationGroupIdCounter: number;
   private pcrRoomIdCounter: number;
   private bookingStudioIdCounter: number;
-  private bookingDateIdCounter: number;
   
   public sessionStore: session.Store;
   
@@ -677,7 +612,6 @@ export class DatabaseStorage implements IStorage {
     this.notificationGroups = new Map();
     this.pcrRooms = new Map();
     this.bookingStudios = new Map();
-    this.bookingDates = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
@@ -687,7 +621,6 @@ export class DatabaseStorage implements IStorage {
     this.notificationGroupIdCounter = 1;
     this.pcrRoomIdCounter = 1;
     this.bookingStudioIdCounter = 1;
-    this.bookingDateIdCounter = 1;
     
     this.sessionStore = new PostgresSessionStore({
       pool,
@@ -797,20 +730,6 @@ export class DatabaseStorage implements IStorage {
         console.log("PCR rooms table might not exist yet. Initializing empty map.");
         this.pcrRooms = new Map();
         this.pcrRoomIdCounter = 1;
-      }
-      
-      // Load booking dates data
-      try {
-        const allBookingDates = await db.select().from(bookingDates);
-        this.bookingDates = new Map(); // Ensure bookingDates is initialized
-        allBookingDates.forEach(bookingDate => {
-          this.bookingDates.set(bookingDate.id, bookingDate);
-          this.bookingDateIdCounter = Math.max(this.bookingDateIdCounter, bookingDate.id + 1);
-        });
-      } catch (error) {
-        console.log("Booking dates table might not exist yet. Initializing empty map.");
-        this.bookingDates = new Map();
-        this.bookingDateIdCounter = 1;
       }
       
       const allNotifications = await db.select().from(notifications);
@@ -1693,109 +1612,6 @@ export class DatabaseStorage implements IStorage {
   
   async deleteNotificationGroup(id: number): Promise<boolean> {
     return this.notificationGroups.delete(id);
-  }
-  
-  // Booking-Dates methods for multi-date bookings
-  async getBookingDates(bookingId: number): Promise<BookingDate[]> {
-    try {
-      // Try to load from cache first
-      const cachedDates = Array.from(this.bookingDates.values())
-        .filter(date => date.bookingId === bookingId);
-      
-      if (cachedDates.length > 0) {
-        return cachedDates;
-      }
-      
-      // If not in cache, fetch from database
-      const bookingDatesResult = await db.select()
-        .from(bookingDates)
-        .where(eq(bookingDates.bookingId, bookingId));
-      
-      // Update cache
-      bookingDatesResult.forEach(date => {
-        this.bookingDates.set(date.id, date);
-        this.bookingDateIdCounter = Math.max(this.bookingDateIdCounter, date.id + 1);
-      });
-      
-      return bookingDatesResult;
-    } catch (error) {
-      console.error(`Error getting booking dates for booking ID ${bookingId}:`, error);
-      return [];
-    }
-  }
-  
-  async createBookingDates(bookingId: number, dates: Date[]): Promise<BookingDate[]> {
-    try {
-      const createdDates: BookingDate[] = [];
-      
-      for (const date of dates) {
-        // Create insert data
-        const insertData: InsertBookingDate = {
-          bookingId,
-          date
-        };
-        
-        // Insert into database
-        const [newDate] = await db.insert(bookingDates)
-          .values(insertData)
-          .returning();
-        
-        // Update cache
-        this.bookingDates.set(newDate.id, newDate);
-        this.bookingDateIdCounter = Math.max(this.bookingDateIdCounter, newDate.id + 1);
-        
-        createdDates.push(newDate);
-      }
-      
-      return createdDates;
-    } catch (error) {
-      console.error(`Error creating booking dates for booking ID ${bookingId}:`, error);
-      throw error;
-    }
-  }
-  
-  async updateBookingDates(bookingId: number, dates: Date[]): Promise<BookingDate[]> {
-    try {
-      // First delete existing dates for this booking
-      await this.deleteBookingDates(bookingId);
-      
-      // Then create new dates
-      const newDates = await this.createBookingDates(bookingId, dates);
-      
-      return newDates;
-    } catch (error) {
-      console.error(`Error updating booking dates for booking ID ${bookingId}:`, error);
-      throw error;
-    }
-  }
-  
-  async deleteBookingDates(bookingId: number): Promise<boolean> {
-    try {
-      // Get the existing dates
-      const existingDates = await this.getBookingDates(bookingId);
-      
-      if (existingDates.length === 0) {
-        // No dates to delete
-        return false;
-      }
-      
-      // Delete from database
-      const result = await db.delete(bookingDates)
-        .where(eq(bookingDates.bookingId, bookingId));
-      
-      if (result.rowCount && result.rowCount > 0) {
-        // Remove from cache
-        existingDates.forEach(date => {
-          this.bookingDates.delete(date.id);
-        });
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error(`Error deleting booking dates for booking ID ${bookingId}:`, error);
-      return false;
-    }
   }
   
   // Booking-Studio junction table methods

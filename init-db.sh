@@ -25,10 +25,6 @@ npx tsx scripts/create-booking-studios-table.ts
 echo "Migrating file attachments schema..."
 npx tsx scripts/migrate-file-attachments.ts
 
-# Create booking dates table for multi-date bookings
-echo "Creating booking-dates table for multi-date bookings..."
-npx tsx scripts/create-booking-dates-table.ts
-
 # Seed initial data if needed
 echo "Seeding initial data..."
 node scripts/init-db.js
