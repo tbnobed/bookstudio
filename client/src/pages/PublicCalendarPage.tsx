@@ -11,6 +11,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import logoPath from '@assets/bookstuio.png';
 import { calculateStudioStatus, getStudioStatusColor } from '@/lib/studioUtils';
+import { usePublicBookingStudioLinks } from '@/hooks/useBookingStudioLinks';
 
 // Define our own DateRange type since it's not exported from date-fns
 interface DateRange {
@@ -120,6 +121,9 @@ function PublicCalendarPage() {
     enabled: !!(dateRange.start && dateRange.end),
     staleTime: 1 * 60 * 1000,
   });
+  
+  // Fetch booking-studio links from public endpoint
+  const { data: bookingStudioLinks = [] } = usePublicBookingStudioLinks();
 
   // Navigation functions
   const goToToday = () => {

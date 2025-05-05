@@ -695,6 +695,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Public endpoint for booking-studio links - no authentication required
+  app.get("/api/public/booking-studios", async (req, res) => {
+    try {
+      const bookingId = req.query.bookingId ? parseInt(req.query.bookingId as string) : null;
+      
+      if (bookingId) {
+        // Get links for a specific booking
+        const links = await storage.getBookingStudioLinks(bookingId);
+        return res.json(links);
+      } else {
+        // Get all booking-studio links for the calendar view
+        const links = await storage.getAllBookingStudioLinks();
+        console.log(`[Public API] Returning ${links.length} booking-studio links`);
+        return res.json(links);
+      }
+    } catch (error) {
+      console.error("Error getting public booking-studio links:", error);
+      return res.status(500).json({ message: "Failed to fetch booking-studio links" });
+    }
+  });
+  
   // Get all studios for a booking
   app.get("/api/bookings/:id/studios", isAuthenticated, async (req, res) => {
     try {
