@@ -47,19 +47,16 @@ export default function BookingModal({
   const { toast } = useToast();
   const formInitializedRef = useRef(false);
   
-  // Format date for form - accounting for timezone issues
+  // Format date for form
   const formatDateForForm = (date: Date): string => {
-    // Add one day to compensate for timezone issue
-    const adjustedDate = new Date(date);
-    adjustedDate.setDate(adjustedDate.getDate() + 1);
-    
-    // Format as YYYY-MM-DD
-    const year = adjustedDate.getFullYear();
-    const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
-    const day = String(adjustedDate.getDate()).padStart(2, '0');
+    // Format as YYYY-MM-DD without adjusting the date
+    // This fixes the date shift issue where dates were appearing one day later than selected
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     
     const formattedDate = `${year}-${month}-${day}`;
-    console.log(`formatDateForForm: Input date: ${date.toISOString()}, adjusted date: ${adjustedDate.toISOString()}, formatted as: ${formattedDate}`);
+    console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${formattedDate}`);
     return formattedDate;
   };
 
