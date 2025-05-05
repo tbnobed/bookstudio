@@ -246,7 +246,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                         )}
                         <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">
                           {booking.title}
-                          {booking.pcrRoomId ? ` (PCR ${booking.pcrRoomId})` : ''}
+                          {booking.pcrRoomId ? ` (${booking.pcrRoom?.name || `PCR ${booking.pcrRoomId}`})` : ''}
                         </span>
                       </div>
                       <div className="text-xs pl-3">
