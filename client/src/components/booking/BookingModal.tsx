@@ -916,28 +916,50 @@ export default function BookingModal({
               <div>
                 <Label htmlFor="date">Date Selection</Label>
                 <div className="border rounded-md p-2 mt-1">
+                  <div className="mb-2">
+                    <Label htmlFor="manualDate" className="text-sm mb-1">Select date manually:</Label>
+                    <Input 
+                      id="manualDate"
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => {
+                        const selectedDate = e.target.value;
+                        console.log('Manual date selection:', selectedDate);
+                        
+                        // Update the date field
+                        updateFormField('date', selectedDate);
+                        
+                        // Add it to dates array if not already there
+                        if (!formData.dates.includes(selectedDate)) {
+                          updateFormField('dates', [...formData.dates, selectedDate].sort());
+                        }
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                  
                   <DayPicker
                     mode="multiple"
-                    selected={formData.dates.map(date => new Date(date))}
+                    selected={formData.dates.map(date => {
+                      // Create date objects from YYYY-MM-DD string
+                      const [year, month, day] = date.split('-').map(Number);
+                      // Month is 0-indexed in JS Date
+                      return new Date(year, month - 1, day);
+                    })}
                     onSelect={(selectedDays) => {
                       if (selectedDays) {
-                        // Log the selected days to debug
-                        console.log('Selected days from calendar:', Array.from(selectedDays).map(d => d.toISOString()));
+                        console.log('Raw selected days from calendar:', selectedDays);
                         
-                        // Fix timezone issues by forcing dates to noon UTC
-                        // This ensures the local date is the same as what the user selected
-                        const fixedDates = Array.from(selectedDays).map(date => {
-                          // Create a new date at noon UTC to avoid any timezone issues
-                          const fixedDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
-                          console.log(`Original: ${date.toISOString()}, Fixed: ${fixedDate.toISOString()}`);
-                          return fixedDate;
+                        // Convert the selected days to strings in the required format (YYYY-MM-DD)
+                        const formattedDates = Array.from(selectedDays).map(date => {
+                          const year = date.getFullYear();
+                          // Month is 0-indexed in JS Date, so add 1
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const day = String(date.getDate()).padStart(2, '0');
+                          return `${year}-${month}-${day}`;
                         });
                         
-                        // Convert the fixed dates to strings in the required format
-                        const formattedDates = fixedDates.map(date => 
-                          formatDateForForm(date)
-                        );
-                        console.log('Formatted dates:', formattedDates);
+                        console.log('Formatted dates directly from selection:', formattedDates);
                         
                         updateFormField('dates', formattedDates);
                         
