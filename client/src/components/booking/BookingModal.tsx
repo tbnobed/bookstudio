@@ -12,6 +12,8 @@ import { Studio, Template, PcrRoom, InsertBooking } from "@shared/schema";
 import { z } from "zod";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { formatTime, generateTimeOptions, timeToDate } from "@/lib/dateUtils";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -75,11 +77,15 @@ export default function BookingModal({
     notifyList: [] as string[],
     saveAsTemplate: false,
     templateName: "",
-    severity: "medium" // low, medium, high, critical
+    severity: "medium", // low, medium, high, critical
+    useMultiDateSelection: false // Flag to enable multi-date selection
   };
   
   // State for form fields
   const [formData, setFormData] = useState({ ...defaultValues });
+  
+  // State for multiple date selection
+  const [selectedDates, setSelectedDates] = useState<Date[]>([selectedDate]);
   
   // Fetch studios
   const { data: studios = [] } = useQuery<Studio[]>({
