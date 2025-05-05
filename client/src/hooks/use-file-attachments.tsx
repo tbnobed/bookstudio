@@ -71,10 +71,23 @@ export function useFileAttachments(bookingId?: number) {
   // Delete file mutation
   const deleteFileMutation = useMutation({
     mutationFn: async (fileId: number) => {
-      const response = await apiRequest('DELETE', `/api/attachments/${fileId}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to delete file');
+      try {
+        const response = await fetch(`/api/attachments/${fileId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to delete file');
+        }
+        
+        return await response.json().catch(() => ({}));
+      } catch (error) {
+        console.error('Delete file error:', error);
+        throw error;
       }
     },
     onSuccess: () => {
