@@ -187,7 +187,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                             booking.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
                           }`}></span>
                         )}
-                        <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">{booking.title}</span>
+                        <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">
+                          {booking.title}
+                          {booking.pcrRoomId ? ` (PCR ${booking.pcrRoomId})` : ''}
+                        </span>
                       </div>
                       <div className="text-xs pl-3">
                         {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
