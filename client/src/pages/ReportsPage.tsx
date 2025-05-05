@@ -6,9 +6,11 @@ import { Booking, Studio } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate, formatTimeRange } from "@/lib/dateUtils";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ReportsPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const { user } = useAuth();
   
   // Get date range for this month
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
