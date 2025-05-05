@@ -1388,7 +1388,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bookings/:bookingId/resources", isAuthenticated, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.bookingId);
+      console.log(`[API] Fetching resources for booking ID: ${bookingId}`);
+      
       const bookingResources = await resourceService.getResourcesForBooking(bookingId);
+      console.log(`[API] Found ${bookingResources.length} resources for booking ID: ${bookingId}`);
+      console.log(`[API] Resource data:`, JSON.stringify(bookingResources.map(br => ({
+        id: br.id,
+        resourceId: br.resourceId,
+        resourceName: br.resource?.name || 'Missing name'
+      }))));
+      
       res.json(bookingResources);
     } catch (error) {
       console.error("Error fetching booking resources:", error);
