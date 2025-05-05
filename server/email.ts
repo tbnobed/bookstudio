@@ -49,8 +49,10 @@ export async function verifyPasswordResetToken(token: string): Promise<number | 
   // Find the token in the database
   const [tokenData] = await db.select()
     .from(passwordResetTokens)
-    .where(eq(passwordResetTokens.token, token))
-    .where(eq(passwordResetTokens.used, false));
+    .where(
+      eq(passwordResetTokens.token, token) && 
+      eq(passwordResetTokens.used, false)
+    );
   
   // Check if token exists
   if (!tokenData) {
@@ -116,8 +118,10 @@ export async function verifyInviteToken(token: string): Promise<{ role: string, 
   // Find the token in the database
   const [tokenData] = await db.select()
     .from(inviteTokens)
-    .where(eq(inviteTokens.token, token))
-    .where(eq(inviteTokens.used, false));
+    .where(
+      eq(inviteTokens.token, token) && 
+      eq(inviteTokens.used, false)
+    );
   
   // Check if token exists
   if (!tokenData) {

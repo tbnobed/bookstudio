@@ -112,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const admin = req.user as Express.User;
       
       // Generate invite token
-      const token = generateInviteToken(role, email, admin.id);
+      const token = await generateInviteToken(role, email, admin.id);
       
       // Generate invite path
       const invitePath = `/invite/${token}`;
@@ -250,7 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate password reset token
-      const token = generatePasswordResetToken(user.id);
+      const token = await generatePasswordResetToken(user.id);
       
       // Generate reset link path
       const resetPath = `/reset-password/${token}`;

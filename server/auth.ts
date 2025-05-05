@@ -102,7 +102,7 @@ export function setupAuth(app: Express) {
       const { token } = req.params;
       
       // Verify the invite token
-      const inviteInfo = verifyInviteToken(token);
+      const inviteInfo = await verifyInviteToken(token);
       
       if (!inviteInfo) {
         return res.status(400).json({ 
@@ -135,7 +135,7 @@ export function setupAuth(app: Express) {
       const user = await storage.createUser(userData);
       
       // Invalidate the used token
-      invalidateInviteToken(token);
+      await invalidateInviteToken(token);
 
       // Log the user in
       req.login(user, (err) => {
