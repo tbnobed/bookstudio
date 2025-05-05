@@ -20,9 +20,13 @@ export function useFileAttachments(bookingId?: number) {
   const [isDownloading, setIsDownloading] = useState(false);
 
   // Build query key based on whether bookingId is provided
+  // Ensure we use the correct endpoint path format
   const queryKey = bookingId 
-    ? ['/api/bookings', bookingId, 'attachments']
+    ? ['/api/bookings', bookingId.toString(), 'attachments']
     : ['/api/file-attachments'];
+    
+  console.log(`[useFileAttachments] Fetching attachments for booking ID: ${bookingId || 'none'}`);
+  console.log(`[useFileAttachments] Using query key:`, queryKey);
     
   // Fetch attachments for the booking
   const { 

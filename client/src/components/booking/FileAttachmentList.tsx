@@ -38,12 +38,18 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
     attachments, 
     isLoading,
     isError, 
+    error,
     downloadFile, 
     deleteFile 
   } = useFileAttachments(bookingId);
   
   const [fileToDelete, setFileToDelete] = useState<FileAttachment | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  
+  // DEBUG: Log the attachments data
+  console.log(`[FileAttachmentList] bookingId: ${bookingId}, attachments:`, attachments);
+  console.log(`[FileAttachmentList] isLoading: ${isLoading}, isError: ${isError}`);
+  if (error) console.log(`[FileAttachmentList] error:`, error);
   
   // Ensure attachments is always an array and filter out invalid entries
   const validAttachments = Array.isArray(attachments) 
@@ -53,6 +59,8 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
         typeof attachment.id === 'number'
       ) 
     : [];
+    
+  console.log(`[FileAttachmentList] validAttachments:`, validAttachments);
 
   // Format file size for display
   const formatFileSize = (bytes: number) => {
