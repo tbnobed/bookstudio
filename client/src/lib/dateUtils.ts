@@ -224,6 +224,14 @@ export function generateTimeOptions(): string[] {
   return timeOptions;
 }
 
+export function formatDateForForm(date: Date): string {
+  // Consistently format a date for form use in YYYY-MM-DD format
+  // Enforce UTC to avoid timezone issues
+  // Logs for tracking issues
+  console.log(`formatDateForForm: Input date: ${date}, formatted as: ${date.toISOString().split('T')[0]}`);
+  return date.toISOString().split('T')[0];
+}
+
 export function timeToDate(dateStr: string, timeStr: string): Date {
   // Extract hours and minutes from timeStr (format: "1:30pm", "12:00am", etc.)
   const timeParts = timeStr.match(/^(\d+):(\d+)([ap]m)$/i);

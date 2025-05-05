@@ -392,15 +392,13 @@ export default function BookingModal({
         // Create new booking for each date if multi-date is used, otherwise create one booking
         console.log(`Creating new booking with studios:`, studioIds);
         
-        // Apply the same +1 day adjustment for dates in the summary calculation
+        // Use the dates directly without adjustment since we fixed formatDateForForm
         const dates = formData.dates.length > 0 ? 
           formData.dates.map(date => {
-            // Add 1 day to match what users select visually
-            const adjustedDate = new Date(date);
-            adjustedDate.setDate(adjustedDate.getDate() + 1);
-            return timeToDate(adjustedDate.toISOString().split('T')[0], formData.startTime).toISOString().split('T')[0];
+            // Use the date string directly with our timeToDate function
+            return date;
           }) : 
-          [startDate.toISOString().split('T')[0]];
+          [formatDateForForm(startDate)];
           
         console.log(`Will create ${dates.length} bookings for dates:`, dates);
         
@@ -421,16 +419,11 @@ export default function BookingModal({
         } else {
           // Create a separate booking for each date
           for (const dateStr of formData.dates) {
-            // Apply a +1 day adjustment to fix the one-day offset issue
-            const adjustedDateStr = new Date(dateStr);
-            adjustedDateStr.setDate(adjustedDateStr.getDate() + 1);
-            console.log(`Adjusting individual booking date: ${dateStr} -> ${adjustedDateStr.toISOString()}`);
+            // Use the date directly without adjustments - we fixed the formatDateForForm function
+            console.log(`Processing individual booking for date: ${dateStr}`);
             
-            // Format as YYYY-MM-DD for timeToDate function
-            const formattedAdjustedDate = adjustedDateStr.toISOString().split('T')[0];
-            
-            const currentStartDate = timeToDate(formattedAdjustedDate, formData.startTime);
-            const currentEndDate = timeToDate(formattedAdjustedDate, formData.endTime);
+            const currentStartDate = timeToDate(dateStr, formData.startTime);
+            const currentEndDate = timeToDate(dateStr, formData.endTime);
             
             const currentBookingData = {
               ...bookingData,
@@ -597,8 +590,10 @@ export default function BookingModal({
                             // Log the raw selected days for debugging
                             console.log("Raw selected days:", Array.from(selectedDays).map(d => d.toString()));
                             
-                            // Convert the selected days to strings in the required format
+                            // Convert the selected days to strings in the required format 
+                            // using our consistent formatting function
                             const formattedDates = Array.from(selectedDays).map(date => {
+                              // Make sure we're using the clean formatDateForForm function from dateUtils.ts
                               const formatted = formatDateForForm(date);
                               console.log("Selected date formatting:", date.toString(), "formatted as:", formatted);
                               return formatted;
