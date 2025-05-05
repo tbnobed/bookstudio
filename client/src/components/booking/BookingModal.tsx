@@ -329,7 +329,8 @@ export default function BookingModal({
     
     // Add dates array if multi-date selection is used
     if (formData.dates.length > 0) {
-      bookingData.dates = formData.dates;
+      // Convert string dates to Date objects for the API
+      bookingData.dates = formData.dates.map(dateStr => new Date(dateStr));
     }
     
     // Set the primary studioId (for backward compatibility)
