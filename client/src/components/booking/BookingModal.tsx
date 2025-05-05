@@ -694,9 +694,9 @@ export default function BookingModal({
                   </div>
                   
                   {formData.useMultiDateSelection && (
-                    <div className="border rounded-md p-2 mb-2 bg-background">
-                      <div className="flex items-center justify-between mb-2">
-                        <Label className="text-sm font-medium">Select multiple dates</Label>
+                    <div className="border rounded-md p-1 mb-2 bg-background">
+                      <div className="flex items-center justify-between mb-1">
+                        <Label className="text-xs font-medium">Select multiple dates</Label>
                         <span className="text-xs text-muted-foreground">
                           {selectedDates.length} date(s) selected
                         </span>
@@ -708,7 +708,7 @@ export default function BookingModal({
                           // Ensure we always have at least one date selected
                           setSelectedDates(dates || []);
                         }}
-                        className="border-0 mx-auto p-1"
+                        className="border-0 mx-auto p-0"
                         modifiersClassNames={{
                           selected: 'bg-primary text-primary-foreground rounded-full',
                           today: 'text-primary font-bold'
@@ -716,9 +716,12 @@ export default function BookingModal({
                         showOutsideDays={false}
                         fixedWeeks
                         styles={{
-                          caption: { marginBottom: '0.5rem' },
-                          head: { fontSize: '0.75rem' },
-                          root: { fontSize: '0.9rem' }
+                          caption: { marginBottom: '0.25rem' },
+                          head: { fontSize: '0.7rem' },
+                          root: { fontSize: '0.8rem' },
+                          table: { width: '100%', maxWidth: '220px', margin: '0 auto' },
+                          day: { width: '24px', height: '24px', margin: '1px' },
+                          nav: { fontSize: '0.8rem' }
                         }}
                       />
                       <p className="text-xs text-muted-foreground mt-1 text-center">
@@ -1080,9 +1083,9 @@ export default function BookingModal({
               </div>
               
               {formData.useMultiDateSelection && (
-                <div className="border rounded-md p-2 mb-2 bg-background">
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-medium">Select multiple dates</Label>
+                <div className="border rounded-md p-1 mb-2 bg-background">
+                  <div className="flex items-center justify-between mb-1">
+                    <Label className="text-xs font-medium">Select multiple dates</Label>
                     <span className="text-xs text-muted-foreground">
                       {selectedDates.length} date(s) selected
                     </span>
@@ -1094,7 +1097,7 @@ export default function BookingModal({
                       // Ensure we always have at least one date selected
                       setSelectedDates(dates || []);
                     }}
-                    className="border-0 mx-auto p-1"
+                    className="border-0 mx-auto p-0"
                     modifiersClassNames={{
                       selected: 'bg-primary text-primary-foreground rounded-full',
                       today: 'text-primary font-bold'
@@ -1102,9 +1105,12 @@ export default function BookingModal({
                     showOutsideDays={false}
                     fixedWeeks
                     styles={{
-                      caption: { marginBottom: '0.5rem' },
-                      head: { fontSize: '0.75rem' },
-                      root: { fontSize: '0.9rem' }
+                      caption: { marginBottom: '0.25rem' },
+                      head: { fontSize: '0.7rem' },
+                      root: { fontSize: '0.8rem' },
+                      table: { width: '100%', maxWidth: '220px', margin: '0 auto' },
+                      day: { width: '24px', height: '24px', margin: '1px' },
+                      nav: { fontSize: '0.8rem' }
                     }}
                   />
                   <p className="text-xs text-muted-foreground mt-1 text-center">
