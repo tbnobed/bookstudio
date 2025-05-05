@@ -54,6 +54,12 @@ export interface IStorage {
   updateBooking(id: number, data: Partial<InsertBooking>): Promise<Booking | undefined>;
   deleteBooking(id: number): Promise<boolean>;
   
+  // Booking-Studio links management
+  getBookingStudioLinks(bookingId: number): Promise<BookingStudio[]>;
+  getStudiosForBooking(bookingId: number): Promise<Studio[]>;
+  createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]>;
+  deleteBookingStudioLinks(bookingId: number): Promise<boolean>;
+  
   // Notification group management
   getNotificationGroup(id: number): Promise<NotificationGroup | undefined>;
   getNotificationGroupByType(groupType: string): Promise<NotificationGroup | undefined>;
