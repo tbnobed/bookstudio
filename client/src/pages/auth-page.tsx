@@ -152,14 +152,12 @@ export default function AuthPage() {
             <div className="flex justify-center mb-4">
               <img src={logoPath} alt="BookStud.io logo" className="h-60 w-auto" />
             </div>
-            <CardDescription className="text-center">
-              Sign in to your account or create a new one
-            </CardDescription>
+            {/* No description text needed */}
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full mb-6">
-                <TabsTrigger value="login" className="w-full">Login</TabsTrigger>
+                <TabsTrigger value="login" className="w-full">Sign In</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
@@ -227,7 +225,7 @@ export default function AuthPage() {
                           forgotPasswordForm.reset();
                         }}
                       >
-                        Return to Login
+                        Return to Sign In
                       </Button>
                     </div>
                   </div>
@@ -271,7 +269,7 @@ export default function AuthPage() {
                             forgotPasswordForm.reset();
                           }}
                         >
-                          Back to Login
+                          Back to Sign In
                         </Button>
                       </div>
                     </div>
