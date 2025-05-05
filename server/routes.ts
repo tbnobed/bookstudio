@@ -77,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { token } = req.params;
       
       // Verify the invite token
-      const inviteInfo = verifyInviteToken(token);
+      const inviteInfo = await verifyInviteToken(token);
       
       if (!inviteInfo) {
         return res.status(400).json({ 
@@ -287,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { token } = req.params;
       
       // Verify token
-      const userId = verifyPasswordResetToken(token);
+      const userId = await verifyPasswordResetToken(token);
       
       if (!userId) {
         return res.json({ valid: false });
@@ -316,7 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password } = z.object({ password: z.string().min(6) }).parse(req.body);
       
       // Verify token
-      const userId = verifyPasswordResetToken(token);
+      const userId = await verifyPasswordResetToken(token);
       
       if (!userId) {
         return res.status(400).json({ 
@@ -349,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Invalidate token
-      invalidatePasswordResetToken(token);
+      await invalidatePasswordResetToken(token);
       
       res.json({ success: true });
     } catch (error) {

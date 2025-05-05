@@ -1,5 +1,8 @@
 import { MailService } from '@sendgrid/mail';
 import { randomBytes } from 'crypto';
+import { eq } from 'drizzle-orm';
+import { db } from './db';
+import { passwordResetTokens, inviteTokens } from '../shared/schema';
 
 // Initialize SendGrid
 const mailService = new MailService();
@@ -12,19 +15,13 @@ if (!process.env.SENDGRID_API_KEY) {
   console.log("SendGrid email service initialized");
 }
 
-// In-memory store for password reset tokens (consider moving to the database in production)
-const passwordResetTokens = new Map<string, { userId: number, expires: Date }>();
-
-// In-memory store for user invitation tokens
-const inviteTokens = new Map<string, { role: string, email: string, expires: Date, createdBy: number }>();
-
 /**
  * Generate a password reset token
  * @param userId The user ID to associate with the token
  * @param expiresInMinutes How long the token is valid for (default: 30 minutes)
  * @returns The generated token
  */
-export function generatePasswordResetToken(userId: number, expiresInMinutes = 30): string {
+export async function generatePasswordResetToken(userId: number, expiresInMinutes = 30): Promise<string> {
   // Generate a random token
   const token = randomBytes(32).toString('hex');
   
@@ -32,8 +29,13 @@ export function generatePasswordResetToken(userId: number, expiresInMinutes = 30
   const expires = new Date();
   expires.setMinutes(expires.getMinutes() + expiresInMinutes);
   
-  // Store the token
-  passwordResetTokens.set(token, { userId, expires });
+  // Store the token in the database
+  await db.insert(passwordResetTokens).values({
+    token,
+    userId,
+    expires,
+    used: false,
+  });
   
   return token;
 }
@@ -43,17 +45,24 @@ export function generatePasswordResetToken(userId: number, expiresInMinutes = 30
  * @param token The token to verify
  * @returns The user ID if the token is valid, null otherwise
  */
-export function verifyPasswordResetToken(token: string): number | null {
-  const tokenData = passwordResetTokens.get(token);
+export async function verifyPasswordResetToken(token: string): Promise<number | null> {
+  // Find the token in the database
+  const [tokenData] = await db.select()
+    .from(passwordResetTokens)
+    .where(eq(passwordResetTokens.token, token))
+    .where(eq(passwordResetTokens.used, false));
   
-  // Check if token exists and is not expired
+  // Check if token exists
   if (!tokenData) {
     return null;
   }
   
+  // Check if token is expired
   if (new Date() > tokenData.expires) {
-    // Token has expired, remove it
-    passwordResetTokens.delete(token);
+    // Mark the token as used (expired)
+    await db.update(passwordResetTokens)
+      .set({ used: true })
+      .where(eq(passwordResetTokens.token, token));
     return null;
   }
   
@@ -64,8 +73,10 @@ export function verifyPasswordResetToken(token: string): number | null {
  * Invalidate a password reset token after it's been used
  * @param token The token to invalidate
  */
-export function invalidatePasswordResetToken(token: string): void {
-  passwordResetTokens.delete(token);
+export async function invalidatePasswordResetToken(token: string): Promise<void> {
+  await db.update(passwordResetTokens)
+    .set({ used: true })
+    .where(eq(passwordResetTokens.token, token));
 }
 
 /**
@@ -76,15 +87,22 @@ export function invalidatePasswordResetToken(token: string): void {
  * @param expiresInDays How long the token is valid for (default: 7 days)
  * @returns The generated token
  */
-export function generateInviteToken(role: string, email: string, createdBy: number, expiresInDays = 7): string {
+export async function generateInviteToken(role: string, email: string, createdBy: number, expiresInDays = 7): Promise<string> {
   const token = randomBytes(32).toString('hex');
   
   // Calculate expiration date
   const expires = new Date();
   expires.setDate(expires.getDate() + expiresInDays);
   
-  // Store the token
-  inviteTokens.set(token, { role, email, expires, createdBy });
+  // Store the token in the database
+  await db.insert(inviteTokens).values({
+    token,
+    role,
+    email,
+    expires,
+    createdBy,
+    used: false,
+  });
   
   return token;
 }
@@ -94,17 +112,24 @@ export function generateInviteToken(role: string, email: string, createdBy: numb
  * @param token The token to verify
  * @returns The invitation details if the token is valid, null otherwise
  */
-export function verifyInviteToken(token: string): { role: string, email: string } | null {
-  const tokenData = inviteTokens.get(token);
+export async function verifyInviteToken(token: string): Promise<{ role: string, email: string } | null> {
+  // Find the token in the database
+  const [tokenData] = await db.select()
+    .from(inviteTokens)
+    .where(eq(inviteTokens.token, token))
+    .where(eq(inviteTokens.used, false));
   
-  // Check if token exists and is not expired
+  // Check if token exists
   if (!tokenData) {
     return null;
   }
   
+  // Check if token is expired
   if (new Date() > tokenData.expires) {
-    // Token has expired, remove it
-    inviteTokens.delete(token);
+    // Mark the token as used (expired)
+    await db.update(inviteTokens)
+      .set({ used: true })
+      .where(eq(inviteTokens.token, token));
     return null;
   }
   
@@ -118,8 +143,10 @@ export function verifyInviteToken(token: string): { role: string, email: string 
  * Invalidate an invitation token after it's been used
  * @param token The token to invalidate
  */
-export function invalidateInviteToken(token: string): void {
-  inviteTokens.delete(token);
+export async function invalidateInviteToken(token: string): Promise<void> {
+  await db.update(inviteTokens)
+    .set({ used: true })
+    .where(eq(inviteTokens.token, token));
 }
 
 /**
