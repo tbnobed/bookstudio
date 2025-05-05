@@ -7,7 +7,7 @@ A comprehensive web application for television studio management, providing inte
 - **Comprehensive Calendar Views**: Daily, weekly, and monthly views for studio bookings
 - **Real-time Status Indicators**: See which studios are available, booked, or in maintenance 
 - **Template System**: Save and reuse common production setups
-- **Role-based Authentication**: Different access levels for producers, engineers, and administrators
+- **Role-based Authentication**: Different access levels for producers, engineers, site managers, and administrators
 - **Facility-wide Alerts**: System for outages and maintenance notifications
 - **Email Notifications**: Automated emails for booking confirmations, updates, and cancellations
 - **Public Calendar Integration**: Embeddable public view of studio availability
@@ -290,7 +290,21 @@ docker compose ps
 The system comes with these default users for initial login:
 
 - **Admin**: username: `admin`, password: `admin123`
+- **Site Manager**: username: `sitemanager`, password: `sitemanager123`
 - **Producer**: username: `producer`, password: `producer123`
 - **Engineer**: username: `engineer`, password: `engineer123`
 
 *Important: Change these passwords immediately after first login for security.*
+
+## User Roles and Permissions
+
+BookStud.io implements a comprehensive role-based access control system:
+
+| Role | Permissions |
+|------|-------------|
+| **Admin** | Full access to all features including User Management, Reports, Studios, Bookings, Templates, Alerts, Settings |
+| **Site Manager** | Access to Reports, Studios, Bookings, Templates, Maintenance, Alerts, Settings, and Producer Management (can only invite/manage producers) |
+| **Engineer** | Access to Reports, Studios, Bookings, Templates, Maintenance, Alerts, Settings (no User Management) |
+| **Producer** | Limited to creating/managing bookings, using templates, viewing studio availability, and personal settings |
+
+This role hierarchy ensures that each user has appropriate access to system features based on their responsibilities in the organization.
