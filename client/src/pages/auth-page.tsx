@@ -155,54 +155,54 @@ export default function AuthPage() {
             {/* No description text needed */}
           </CardHeader>
           <CardContent>
-            <div className="w-full">
-              <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
-                    <Input
-                      id="username"
-                      placeholder="Enter your username"
-                      {...loginForm.register("username")}
-                    />
-                    {loginForm.formState.errors.username && (
-                      <p className="text-sm text-red-500">{loginForm.formState.errors.username.message}</p>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      {...loginForm.register("password")}
-                    />
-                    {loginForm.formState.errors.password && (
-                      <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
-                    )}
-                    <div className="flex justify-end">
-                      <Button 
-                        variant="link" 
-                        className="px-0 text-xs" 
-                        type="button"
-                        onClick={() => setActiveTab("forgot-password")}
-                      >
-                        Forgot password?
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-                    {loginMutation.isPending ? "Signing In..." : "Sign In"}
-                  </Button>
-                </div>
-              </form>
-            </div>
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full mb-6">
+                <TabsTrigger value="login" className="w-full">Sign In</TabsTrigger>
+              </TabsList>
+              
               <TabsContent value="login">
-                {/* Keeping this empty but hidden for structure */}
+                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Username</Label>
+                      <Input
+                        id="username"
+                        placeholder="Enter your username"
+                        {...loginForm.register("username")}
+                      />
+                      {loginForm.formState.errors.username && (
+                        <p className="text-sm text-red-500">{loginForm.formState.errors.username.message}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="Enter your password"
+                        {...loginForm.register("password")}
+                      />
+                      {loginForm.formState.errors.password && (
+                        <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
+                      )}
+                      <div className="flex justify-end">
+                        <Button 
+                          variant="link" 
+                          className="px-0 text-xs" 
+                          type="button"
+                          onClick={() => setActiveTab("forgot-password")}
+                        >
+                          Forgot password?
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+                      {loginMutation.isPending ? "Signing In..." : "Sign In"}
+                    </Button>
+                  </div>
+                </form>
               </TabsContent>
               
               <TabsContent value="forgot-password">
