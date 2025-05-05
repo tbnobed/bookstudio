@@ -68,6 +68,10 @@ services:
         npx tsx scripts/migrate-db.ts &&
         echo 'Migrating file attachments schema...' &&
         npx tsx scripts/migrate-file-attachments.ts &&
+        echo 'Migrating PCR rooms schema...' &&
+        npx tsx scripts/migrate-pcr-rooms.ts &&
+        echo 'Creating booking-studios junction table...' &&
+        npx tsx scripts/create-booking-studios-table.ts &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
         npx tsx scripts/init-db.ts &&
         echo 'Database initialization completed successfully' 
