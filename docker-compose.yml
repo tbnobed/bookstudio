@@ -68,8 +68,6 @@ services:
         npx tsx scripts/migrate-db.ts &&
         echo 'Migrating file attachments schema...' &&
         npx tsx scripts/migrate-file-attachments.ts &&
-        echo 'Migrating resources schema...' &&
-        npx tsx scripts/migrate-resources.ts &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
         npx tsx scripts/init-db.ts &&
         echo 'Database initialization completed successfully' 

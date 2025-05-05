@@ -16,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTimezone } from "@/contexts/TimezoneContext";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 import ProfilePanel from "@/components/settings/ProfilePanel";
-import ResourcesManager from "@/components/settings/ResourcesManager";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -170,7 +169,6 @@ export default function Settings() {
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="studios">Studios</TabsTrigger>
-            <TabsTrigger value="resources">Resources</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="backup">Backup & Restore</TabsTrigger>
           </TabsList>
@@ -311,10 +309,6 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="resources">
-            <ResourcesManager />
           </TabsContent>
           
           <TabsContent value="studios">

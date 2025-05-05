@@ -356,7 +356,7 @@ export default function BookingModal({
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="details">Booking Details</TabsTrigger>
-              <TabsTrigger value="attachments">Attachments</TabsTrigger>
+              <TabsTrigger value="attachments">File Attachments</TabsTrigger>
             </TabsList>
             
             <TabsContent value="details" className="pt-4">
@@ -586,10 +586,6 @@ export default function BookingModal({
                   </Button>
                 </DialogFooter>
               </form>
-            </TabsContent>
-            
-            <TabsContent value="resources" className="py-4">
-              <BookingResourcesForm booking={booking} />
             </TabsContent>
             
             <TabsContent value="attachments" className="py-4">
