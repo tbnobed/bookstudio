@@ -448,7 +448,7 @@ export default function BookingModal({
   // Render the modal
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>
             {booking 
@@ -608,95 +608,99 @@ export default function BookingModal({
                   </div>
                 </div>
                 
-                {/* Booking Type - below Studios */}
-                <div>
-                  <Label htmlFor="type">Booking Type</Label>
-                  <Select 
-                    value={formData.bookingType} 
-                    onValueChange={(value) => updateFormField('bookingType', value)} 
-                    required
-                  >
-                    <SelectTrigger id="type">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {alertsOnly ? (
-                        <>
-                          <SelectItem value="maintenance">Maintenance</SelectItem>
-                          <SelectItem value="it_support">IT Support</SelectItem>
-                        </>
-                      ) : (
-                        <>
-                          <SelectItem value="production">Production</SelectItem>
-                          <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* Show severity selector for alerts */}
-                {alertsOnly && (
+                {/* Three-column layout for booking options */}
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Column 1: Booking Type */}
                   <div>
-                    <Label htmlFor="severity">Severity</Label>
+                    <Label htmlFor="type">Booking Type</Label>
                     <Select 
-                      value={formData.severity} 
-                      onValueChange={(value) => updateFormField('severity', value)} 
+                      value={formData.bookingType} 
+                      onValueChange={(value) => updateFormField('bookingType', value)} 
                       required
                     >
-                      <SelectTrigger id="severity">
-                        <SelectValue placeholder="Select severity" />
+                      <SelectTrigger id="type">
+                        <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
+                        {alertsOnly ? (
+                          <>
+                            <SelectItem value="maintenance">Maintenance</SelectItem>
+                            <SelectItem value="it_support">IT Support</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="production">Production</SelectItem>
+                            <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
-                )}
-                
-                {/* Template Selection */}
-                <div>
-                  <Label htmlFor="template">Template (Optional)</Label>
-                  <Select 
-                    value={formData.templateId} 
-                    onValueChange={handleTemplateChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">None</SelectItem>
-                      {templates.map((template) => (
-                        <SelectItem key={template.id} value={template.id.toString()}>
-                          {template.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* PCR Room Selection */}
-                <div>
-                  <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
-                  <Select 
-                    value={formData.pcrRoomId} 
-                    onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">None</SelectItem>
-                      {pcrRooms.map((pcrRoom) => (
-                        <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                          {pcrRoom.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  
+                  {/* Column 2: Template Selection */}
+                  <div>
+                    <Label htmlFor="template">Template (Optional)</Label>
+                    <Select 
+                      value={formData.templateId} 
+                      onValueChange={handleTemplateChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="None" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">None</SelectItem>
+                        {templates.map((template) => (
+                          <SelectItem key={template.id} value={template.id.toString()}>
+                            {template.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Column 3: PCR Room Selection or Severity */}
+                  <div>
+                    {alertsOnly ? (
+                      <>
+                        <Label htmlFor="severity">Severity</Label>
+                        <Select 
+                          value={formData.severity} 
+                          onValueChange={(value) => updateFormField('severity', value)} 
+                          required
+                        >
+                          <SelectTrigger id="severity">
+                            <SelectValue placeholder="Select severity" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="critical">Critical</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </>
+                    ) : (
+                      <>
+                        <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                        <Select 
+                          value={formData.pcrRoomId} 
+                          onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">None</SelectItem>
+                            {pcrRooms.map((pcrRoom) => (
+                              <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                                {pcrRoom.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -985,98 +989,36 @@ export default function BookingModal({
               </div>
             </div>
             
-            {/* Booking Type - below Studios */}
-            <div>
-              <Label htmlFor="type">{alertsOnly ? "Alert Type" : "Booking Type"}</Label>
-              <Select 
-                value={formData.bookingType} 
-                onValueChange={(value) => updateFormField('bookingType', value)} 
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {!alertsOnly ? (
-                    <>
-                      <SelectItem value="production">Production</SelectItem>
-                      <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                    </>
-                  ) : (
-                    <>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="it_support">IT Support</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {!alertsOnly && (
+            {/* Three-column layout for booking options */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Column 1: Booking Type */}
               <div>
-                <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                <Label htmlFor="type">{alertsOnly ? "Alert Type" : "Booking Type"}</Label>
                 <Select 
-                  value={formData.pcrRoomId} 
-                  onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="None" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">None</SelectItem>
-                    {pcrRooms.map((pcrRoom) => (
-                      <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                        {pcrRoom.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            {/* Severity field - only shown for alerts */}
-            {alertsOnly && (
-              <div>
-                <Label htmlFor="severity">Severity</Label>
-                <Select 
-                  value={formData.severity} 
-                  onValueChange={(value) => updateFormField('severity', value)} 
+                  value={formData.bookingType} 
+                  onValueChange={(value) => updateFormField('bookingType', value)} 
                   required
                 >
-                  <SelectTrigger id="severity">
-                    <SelectValue placeholder="Select severity" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                        Low - Informational
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="medium">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
-                        Medium - Planned Maintenance
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="high">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-orange-500 mr-2"></div>
-                        High - Urgent Issue
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="critical">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                        Critical - Outage
-                      </div>
-                    </SelectItem>
+                    {!alertsOnly ? (
+                      <>
+                        <SelectItem value="production">Production</SelectItem>
+                        <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                        <SelectItem value="it_support">IT Support</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-4">              
+              
+              {/* Column 2: Template Selection */}
               <div>
                 <Label htmlFor="template">Template (Optional)</Label>
                 <Select 
@@ -1095,6 +1037,70 @@ export default function BookingModal({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              
+              {/* Column 3: PCR Room or Severity */}
+              <div>
+                {!alertsOnly ? (
+                  <>
+                    <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                    <Select 
+                      value={formData.pcrRoomId} 
+                      onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="None" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">None</SelectItem>
+                        {pcrRooms.map((pcrRoom) => (
+                          <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                            {pcrRoom.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                ) : (
+                  <>
+                    <Label htmlFor="severity">Severity</Label>
+                    <Select 
+                      value={formData.severity} 
+                      onValueChange={(value) => updateFormField('severity', value)} 
+                      required
+                    >
+                      <SelectTrigger id="severity">
+                        <SelectValue placeholder="Select severity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                            Low - Informational
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="medium">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                            Medium - Planned Maintenance
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="high">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-orange-500 mr-2"></div>
+                            High - Urgent Issue
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="critical">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                            Critical - Outage
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
               </div>
             </div>
             
