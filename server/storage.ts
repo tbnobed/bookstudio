@@ -5,13 +5,14 @@ import {
   bookings, type Booking, type InsertBooking,
   notifications, type Notification, type InsertNotification,
   notificationGroups, type NotificationGroup, type InsertNotificationGroup,
-  pcrRooms, type PcrRoom, type InsertPcrRoom
+  pcrRooms, type PcrRoom, type InsertPcrRoom,
+  bookingStudios, type BookingStudio, type InsertBookingStudio
 } from "@shared/schema";
 
 import { db, pool } from "./db";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { eq, and, or, isNull, not, desc, gte, lte } from "drizzle-orm";
+import { eq, and, or, isNull, not, desc, gte, lte, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User management
@@ -1109,21 +1110,62 @@ export class DatabaseStorage implements IStorage {
   
   async getBookingsByStudio(studioId: number | null): Promise<Booking[]> {
     try {
-      let studioBookings;
+      let studioBookings = [];
+      
       if (studioId === null) {
+        // Get facility-wide alerts (maintenance, IT support)
         studioBookings = await db.select().from(bookings).where(isNull(bookings.studioId));
       } else {
-        studioBookings = await db.select().from(bookings).where(eq(bookings.studioId, studioId));
+        // First get bookings directly linked to this studio (legacy studioId field)
+        const directBookings = await db.select()
+          .from(bookings)
+          .where(eq(bookings.studioId, studioId));
+          
+        studioBookings = [...directBookings];
+        
+        // Then get bookings from the junction table
+        const bookingLinks = await db.select({
+            bookingId: bookingStudios.bookingId
+          })
+          .from(bookingStudios)
+          .where(eq(bookingStudios.studioId, studioId));
+          
+        if (bookingLinks.length > 0) {
+          const bookingIds = bookingLinks.map(link => link.bookingId);
+          
+          const linkedBookings = await db.select()
+            .from(bookings)
+            .where(inArray(bookings.id, bookingIds));
+            
+          // Add to the results, avoiding duplicates
+          const existingIds = new Set(studioBookings.map(booking => booking.id));
+          
+          for (const booking of linkedBookings) {
+            if (!existingIds.has(booking.id)) {
+              studioBookings.push(booking);
+              existingIds.add(booking.id);
+            }
+          }
+        }
       }
+      
+      // Add to cache
       studioBookings.forEach(booking => {
         this.bookings.set(booking.id, booking);
       });
+      
       return studioBookings;
     } catch (error) {
       console.error(`Error getting bookings for studio ID ${studioId}:`, error);
-      return Array.from(this.bookings.values()).filter(booking => 
-        studioId === null ? booking.studioId === null : booking.studioId === studioId
-      );
+      // Fallback to memory cache
+      if (studioId === null) {
+        return Array.from(this.bookings.values()).filter(booking => booking.studioId === null);
+      } else {
+        // We should check both the studioId field and the booking_studios table
+        // But since we don't have the junction table in memory, we can only check studioId
+        // This is incomplete, but better than nothing
+        return Array.from(this.bookings.values()).filter(booking => booking.studioId === studioId);
+      }
     }
   }
   
@@ -1249,6 +1291,10 @@ export class DatabaseStorage implements IStorage {
   
   async deleteBooking(id: number): Promise<boolean> {
     try {
+      // First delete any studio links
+      await this.deleteBookingStudioLinks(id);
+      
+      // Then delete the actual booking
       const result = await db.delete(bookings).where(eq(bookings.id, id));
       if (result.rowCount > 0) {
         this.bookings.delete(id);
@@ -1257,6 +1303,87 @@ export class DatabaseStorage implements IStorage {
       return false;
     } catch (error) {
       console.error(`Error deleting booking with ID ${id}:`, error);
+      return false;
+    }
+  }
+  
+  // Booking studios junction table operations
+  async getBookingStudioLinks(bookingId: number): Promise<BookingStudio[]> {
+    try {
+      return db.select()
+        .from(bookingStudios)
+        .where(eq(bookingStudios.bookingId, bookingId));
+    } catch (error) {
+      console.error(`Error getting studio links for booking ID ${bookingId}:`, error);
+      return [];
+    }
+  }
+  
+  async getStudiosForBooking(bookingId: number): Promise<Studio[]> {
+    try {
+      // Get links from the junction table
+      const links = await this.getBookingStudioLinks(bookingId);
+      
+      if (links.length === 0) {
+        // If no links found, try to get the legacy studioId
+        const booking = await this.getBooking(bookingId);
+        if (booking && booking.studioId) {
+          const studio = await this.getStudio(booking.studioId);
+          return studio ? [studio] : [];
+        }
+        return [];
+      }
+      
+      // Get all studio IDs
+      const studioIds = links.map(link => link.studioId);
+      
+      // Fetch actual studios
+      const studios: Studio[] = [];
+      for (const studioId of studioIds) {
+        const studio = await this.getStudio(studioId);
+        if (studio) {
+          studios.push(studio);
+        }
+      }
+      
+      return studios;
+    } catch (error) {
+      console.error(`Error getting studios for booking ID ${bookingId}:`, error);
+      return [];
+    }
+  }
+  
+  async createBookingStudioLinks(
+    bookingId: number, 
+    studioIds: number[]
+  ): Promise<BookingStudio[]> {
+    try {
+      if (studioIds.length === 0) {
+        return [];
+      }
+      
+      const links = studioIds.map(studioId => ({
+        bookingId,
+        studioId
+      }));
+      
+      return db.insert(bookingStudios)
+        .values(links)
+        .returning();
+    } catch (error) {
+      console.error(`Error creating studio links for booking ID ${bookingId}:`, error);
+      throw error;
+    }
+  }
+  
+  async deleteBookingStudioLinks(bookingId: number): Promise<boolean> {
+    try {
+      const result = await db.delete(bookingStudios)
+        .where(eq(bookingStudios.bookingId, bookingId));
+      
+      return true; // Return true regardless of rowCount as it's okay if there were no links
+    } catch (error) {
+      console.error(`Error deleting studio links for booking ID ${bookingId}:`, error);
       return false;
     }
   }
