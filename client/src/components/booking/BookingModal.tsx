@@ -194,7 +194,8 @@ export default function BookingModal({
             notifyList: normalizedBooking.notifyList,
             saveAsTemplate: false,
             templateName: "",
-            severity: normalizedBooking.severity
+            severity: normalizedBooking.severity,
+            useMultiDateSelection: false
           });
         };
         
@@ -298,9 +299,20 @@ export default function BookingModal({
       return;
     }
     
-    // Convert times to dates
-    const startDate = timeToDate(formData.date, formData.startTime);
-    const endDate = timeToDate(formData.date, formData.endTime);
+    // Date validation for multi-date selection
+    if (formData.useMultiDateSelection && selectedDates.length === 0) {
+      toast({
+        title: "Error",
+        description: "At least one date must be selected when using multi-date selection",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Determine which dates to use
+    const datesToProcess = formData.useMultiDateSelection 
+      ? selectedDates 
+      : [new Date(formData.date)];
     
     // Check if all-day booking
     let finalBookingType = formData.bookingType;
@@ -308,48 +320,52 @@ export default function BookingModal({
       finalBookingType = `all-day:${formData.bookingType}`;
     }
     
-    // Prepare booking data
-    const bookingData: Partial<InsertBooking> = {
-      title: formData.title,
-      description: formData.description,
-      type: finalBookingType,
-      start: startDate,
-      end: endDate,
-      notifyList: formData.notifyList,
-    };
-    
-    // Set the primary studioId (for backward compatibility)
-    // Use the first selected studio as the primary if available
-    if (formData.studioIds.length > 0) {
-      bookingData.studioId = parseInt(formData.studioIds[0]);
-    } else if (alertsOnly && (formData.bookingType === "maintenance" || formData.bookingType === "it_support")) {
-      bookingData.studioId = null;
-    }
-    
-    // Add severity for alerts
-    if (alertsOnly) {
-      bookingData.severity = formData.severity;
-    }
-    
-    // Add templateId if selected
-    if (formData.templateId && formData.templateId !== "0") {
-      bookingData.templateId = parseInt(formData.templateId);
-    } else {
-      bookingData.templateId = null;
-    }
-    
-    // Add pcrRoomId if selected
-    if (formData.pcrRoomId && formData.pcrRoomId !== "0") {
-      bookingData.pcrRoomId = parseInt(formData.pcrRoomId);
-    } else {
-      bookingData.pcrRoomId = null;
-    }
-    
     // Convert studioIds from strings to numbers
     const studioIds = formData.studioIds.map(id => parseInt(id));
     
     try {
       if (booking) {
+        // For edit mode, just update the existing booking with the current date
+        // Convert times to dates for the current booking
+        const startDate = timeToDate(formData.date, formData.startTime);
+        const endDate = timeToDate(formData.date, formData.endTime);
+        
+        // Prepare booking data
+        const bookingData: Partial<InsertBooking> = {
+          title: formData.title,
+          description: formData.description,
+          type: finalBookingType,
+          start: startDate,
+          end: endDate,
+          notifyList: formData.notifyList,
+        };
+        
+        // Set the primary studioId (for backward compatibility)
+        if (formData.studioIds.length > 0) {
+          bookingData.studioId = parseInt(formData.studioIds[0]);
+        } else if (alertsOnly && (formData.bookingType === "maintenance" || formData.bookingType === "it_support")) {
+          bookingData.studioId = null;
+        }
+        
+        // Add severity for alerts
+        if (alertsOnly) {
+          bookingData.severity = formData.severity;
+        }
+        
+        // Add templateId if selected
+        if (formData.templateId && formData.templateId !== "0") {
+          bookingData.templateId = parseInt(formData.templateId);
+        } else {
+          bookingData.templateId = null;
+        }
+        
+        // Add pcrRoomId if selected
+        if (formData.pcrRoomId && formData.pcrRoomId !== "0") {
+          bookingData.pcrRoomId = parseInt(formData.pcrRoomId);
+        } else {
+          bookingData.pcrRoomId = null;
+        }
+        
         // Update existing booking
         console.log(`Updating booking ${booking.id} with studios:`, studioIds);
         
@@ -367,25 +383,98 @@ export default function BookingModal({
           variant: "default"
         });
       } else {
-        // Create new booking
-        console.log(`Creating new booking with studios:`, studioIds);
+        // Create mode - handle multiple dates if needed
+        let successCount = 0;
         
-        const newBooking = await createBooking.mutateAsync({
-          ...bookingData as InsertBooking,
-          studioIds: studioIds
-        });
+        // Create a booking for each selected date
+        for (const currentDate of datesToProcess) {
+          // Format the date string
+          const dateStr = formatDateForForm(currentDate);
+          
+          // Convert times to dates for this specific date
+          const startDate = timeToDate(dateStr, formData.startTime);
+          const endDate = timeToDate(dateStr, formData.endTime);
+          
+          // Prepare booking data
+          const bookingData: Partial<InsertBooking> = {
+            title: formData.title,
+            description: formData.description,
+            type: finalBookingType,
+            start: startDate,
+            end: endDate,
+            notifyList: formData.notifyList,
+          };
+          
+          // Set the primary studioId (for backward compatibility)
+          if (formData.studioIds.length > 0) {
+            bookingData.studioId = parseInt(formData.studioIds[0]);
+          } else if (alertsOnly && (formData.bookingType === "maintenance" || formData.bookingType === "it_support")) {
+            bookingData.studioId = null;
+          }
+          
+          // Add severity for alerts
+          if (alertsOnly) {
+            bookingData.severity = formData.severity;
+          }
+          
+          // Add templateId if selected
+          if (formData.templateId && formData.templateId !== "0") {
+            bookingData.templateId = parseInt(formData.templateId);
+          } else {
+            bookingData.templateId = null;
+          }
+          
+          // Add pcrRoomId if selected
+          if (formData.pcrRoomId && formData.pcrRoomId !== "0") {
+            bookingData.pcrRoomId = parseInt(formData.pcrRoomId);
+          } else {
+            bookingData.pcrRoomId = null;
+          }
+          
+          // Create new booking for this date
+          console.log(`Creating new booking for date ${dateStr} with studios:`, studioIds);
+          
+          try {
+            const newBooking = await createBooking.mutateAsync({
+              ...bookingData as InsertBooking,
+              studioIds: studioIds
+            });
+            successCount++;
+          } catch (error) {
+            console.error(`Failed to create booking for date ${dateStr}:`, error);
+            // Continue with other dates even if one fails
+          }
+        }
         
-        toast({
-          title: "Success", 
-          description: studioIds.length > 1 
-            ? `Booking created successfully across ${studioIds.length} studios` 
-            : "Booking created successfully",
-          variant: "default"
-        });
+        // Show success message based on the number of dates processed
+        if (successCount > 0) {
+          const multipleDatesMsg = datesToProcess.length > 1 
+            ? `Created ${successCount} bookings across ${datesToProcess.length} dates` 
+            : "Booking created successfully";
+            
+          const multipleStudiosMsg = studioIds.length > 1 
+            ? ` for ${studioIds.length} studios` 
+            : "";
+            
+          toast({
+            title: "Success", 
+            description: multipleDatesMsg + multipleStudiosMsg,
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Error", 
+            description: "Failed to create any bookings",
+            variant: "destructive"
+          });
+        }
         
         // Save as template if requested
         if (formData.saveAsTemplate && formData.templateName) {
-          // Calculate duration in minutes
+          // Calculate duration in minutes using the first date
+          const firstDateStr = formatDateForForm(datesToProcess[0]);
+          const startDate = timeToDate(firstDateStr, formData.startTime);
+          const endDate = timeToDate(firstDateStr, formData.endTime);
           const durationMs = endDate.getTime() - startDate.getTime();
           const durationMinutes = Math.floor(durationMs / 60000);
           
@@ -532,7 +621,7 @@ export default function BookingModal({
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 mb-2">
                   <div>
                     <Label htmlFor="date">Date</Label>
                     <Input
@@ -541,6 +630,7 @@ export default function BookingModal({
                       value={formData.date}
                       onChange={(e) => updateFormField('date', e.target.value)}
                       required
+                      disabled={formData.useMultiDateSelection}
                     />
                   </div>
                   
@@ -563,6 +653,45 @@ export default function BookingModal({
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                
+                <div className="mb-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Checkbox 
+                      id="use-multi-date"
+                      checked={formData.useMultiDateSelection}
+                      onCheckedChange={(checked) => {
+                        updateFormField('useMultiDateSelection', checked === true);
+                        // Initialize selected dates with the currently selected date if toggling on
+                        if (checked === true && selectedDates.length === 0) {
+                          setSelectedDates([new Date(formData.date)]);
+                        }
+                      }}
+                    />
+                    <Label htmlFor="use-multi-date">Use multi-date selection</Label>
+                  </div>
+                  
+                  {formData.useMultiDateSelection && (
+                    <div className="border rounded-md p-4 mb-2 bg-background">
+                      <Label className="mb-2 block">Select multiple dates</Label>
+                      <DayPicker
+                        mode="multiple"
+                        selected={selectedDates}
+                        onSelect={(dates) => {
+                          // Ensure we always have at least one date selected
+                          setSelectedDates(dates || []);
+                        }}
+                        className="border-0 mx-auto"
+                        modifiersClassNames={{
+                          selected: 'bg-primary text-primary-foreground rounded-full',
+                          today: 'text-primary font-bold'
+                        }}
+                      />
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Selected {selectedDates.length} date(s). A separate booking will be created for each date.
+                      </p>
+                    </div>
+                  )}
                 </div>
                 
                 <div>
