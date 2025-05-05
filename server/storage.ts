@@ -61,6 +61,11 @@ export interface IStorage {
   createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]>;
   deleteBookingStudioLinks(bookingId: number): Promise<boolean>;
   
+  // Booking-Dates management for multi-date bookings
+  getBookingDates(bookingId: number): Promise<BookingDate[]>;
+  createBookingDates(bookingId: number, dates: Date[]): Promise<BookingDate[]>;
+  deleteBookingDates(bookingId: number): Promise<boolean>;
+  
   // Notification group management
   getNotificationGroup(id: number): Promise<NotificationGroup | undefined>;
   getNotificationGroupByType(groupType: string): Promise<NotificationGroup | undefined>;
@@ -90,6 +95,7 @@ export class MemStorage implements IStorage {
   private notifications: Map<number, Notification>;
   private notificationGroups: Map<number, NotificationGroup>;
   private bookingStudios: Map<string, BookingStudio>; // Use bookingId-studioId as key
+  private bookingDates: Map<number, BookingDate>; // Map of id -> BookingDate
   
   private userIdCounter: number;
   private studioIdCounter: number;
@@ -98,6 +104,7 @@ export class MemStorage implements IStorage {
   private notificationIdCounter: number;
   private notificationGroupIdCounter: number;
   private bookingStudioIdCounter: number;
+  private bookingDateIdCounter: number;
   
   public sessionStore: session.Store;
 
@@ -110,6 +117,7 @@ export class MemStorage implements IStorage {
     this.notificationGroups = new Map();
     this.bookingStudios = new Map();
     this.pcrRooms = new Map();
+    this.bookingDates = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
@@ -119,6 +127,7 @@ export class MemStorage implements IStorage {
     this.notificationGroupIdCounter = 1;
     this.bookingStudioIdCounter = 1;
     this.pcrRoomIdCounter = 1;
+    this.bookingDateIdCounter = 1;
     
     // Create memory store for sessions
     this.sessionStore = new MemoryStore({
@@ -426,8 +435,9 @@ export class MemStorage implements IStorage {
   }
 
   async deleteBooking(id: number): Promise<boolean> {
-    // Also delete any associated booking-studio links
+    // Delete any associated booking-studio links and booking dates
     await this.deleteBookingStudioLinks(id);
+    await this.deleteBookingDates(id);
     return this.bookings.delete(id);
   }
 
