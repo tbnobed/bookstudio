@@ -57,11 +57,16 @@ export default function InvitePage() {
     const path = window.location.pathname;
     const pathParts = path.split('/');
     
+    console.log("InvitePage - Current path:", path);
+    console.log("InvitePage - Path parts:", pathParts);
+    
     if (pathParts.length >= 3 && pathParts[1] === 'invite') {
       const inviteToken = pathParts[2];
+      console.log("InvitePage - Found token:", inviteToken);
       setToken(inviteToken);
       validateToken(inviteToken);
     } else {
+      console.log("InvitePage - Invalid path format");
       setValidatingToken(false);
       setError("Invalid invitation link");
     }
