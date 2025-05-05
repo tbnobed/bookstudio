@@ -331,7 +331,7 @@ export default function BookingModal({
     
     // Add dates array if multi-date selection is used
     if (formData.dates.length > 0) {
-      bookingData.dates = formData.dates;
+      bookingData.dates = formData.dates.map(date => date.toString());
     }
     
     // Set the primary studioId (for backward compatibility)
@@ -998,22 +998,52 @@ export default function BookingModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="date">Date Selection</Label>
-                <div className="flex space-x-2 mb-2">
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => updateFormField('date', e.target.value)}
-                    required
+                <div className="border rounded-md p-2 mt-1">
+                  <DayPicker
+                    mode="multiple"
+                    selected={formData.dates.map(date => new Date(date))}
+                    onSelect={(selectedDays) => {
+                      if (selectedDays) {
+                        // Convert the selected days to strings in the required format
+                        const formattedDates = Array.from(selectedDays).map(date => 
+                          formatDateForForm(date)
+                        );
+                        updateFormField('dates', formattedDates);
+                        
+                        // Also update the current date field for single date operations
+                        if (formattedDates.length > 0) {
+                          updateFormField('date', formattedDates[formattedDates.length - 1]);
+                        }
+                      } else {
+                        updateFormField('dates', []);
+                      }
+                    }}
+                    className="border-none p-0"
+                    classNames={{
+                      caption: "flex justify-center py-2 mb-1 relative items-center",
+                      caption_label: "text-sm font-medium",
+                      nav: "flex items-center",
+                      nav_button: "h-6 w-6 bg-transparent p-0 opacity-75 hover:opacity-100",
+                      nav_button_previous: "absolute left-1",
+                      nav_button_next: "absolute right-1",
+                      table: "w-full border-collapse",
+                      head_row: "flex",
+                      head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
+                      row: "flex w-full mt-2",
+                      cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                      day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
+                      day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                      day_today: "bg-accent text-accent-foreground",
+                      day_outside: "text-muted-foreground opacity-50",
+                      day_disabled: "text-muted-foreground opacity-50",
+                      day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                      day_hidden: "invisible",
+                    }}
+                    styles={{
+                      caption: { margin: '0', padding: '0' },
+                      month: { width: '100%' },
+                    }}
                   />
-                  <Button 
-                    type="button"
-                    size="sm"
-                    onClick={handleAddDate}
-                    className="whitespace-nowrap"
-                  >
-                    Add Date
-                  </Button>
                 </div>
                 
                 {/* Show selected dates */}
