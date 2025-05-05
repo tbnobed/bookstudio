@@ -215,6 +215,7 @@ export type InsertFileAttachment = z.infer<typeof insertFileAttachmentSchema>;
 // Add the relations
 export const bookingsRelations = relations(bookings, ({ many }) => ({
   fileAttachments: many(fileAttachments),
+  bookingResources: many(bookingResources),
 }));
 
 export const fileAttachmentsRelations = relations(fileAttachments, ({ one }) => ({
@@ -225,5 +226,59 @@ export const fileAttachmentsRelations = relations(fileAttachments, ({ one }) => 
   uploader: one(users, {
     fields: [fileAttachments.uploadedBy],
     references: [users.id],
+  }),
+}));
+
+// Resources schema (equipment, cameras, personnel, etc.)
+export const resources = pgTable("resources", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  category: text("category").notNull(), // equipment, camera, personnel, etc.
+  quantity: integer("quantity").notNull().default(1),
+  isAvailable: boolean("is_available").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertResourceSchema = createInsertSchema(resources).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Booking Resources join table
+export const bookingResources = pgTable("booking_resources", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").notNull(),
+  resourceId: integer("resource_id").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  notes: text("notes"),
+});
+
+export const insertBookingResourceSchema = createInsertSchema(bookingResources).omit({
+  id: true,
+});
+
+// Type exports for resources
+export type Resource = typeof resources.$inferSelect;
+export type InsertResource = z.infer<typeof insertResourceSchema>;
+
+export type BookingResource = typeof bookingResources.$inferSelect;
+export type InsertBookingResource = z.infer<typeof insertBookingResourceSchema>;
+
+// Add relations for resources
+export const resourcesRelations = relations(resources, ({ many }) => ({
+  bookingResources: many(bookingResources),
+}));
+
+export const bookingResourcesRelations = relations(bookingResources, ({ one }) => ({
+  booking: one(bookings, {
+    fields: [bookingResources.bookingId],
+    references: [bookings.id],
+  }),
+  resource: one(resources, {
+    fields: [bookingResources.resourceId],
+    references: [resources.id],
   }),
 }));
