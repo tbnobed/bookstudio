@@ -919,12 +919,22 @@ export default function BookingModal({
                 <Label htmlFor="date">Date Selection</Label>
                 <div className="border rounded-md p-2 mt-1">
                   <DayPicker
-                    mode="single"
-                    selected={formData.date ? new Date(formData.date) : undefined}
-                    onSelect={(selectedDay) => {
-                      if (selectedDay) {
-                        const formattedDate = formatDateForForm(selectedDay);
-                        updateFormField('date', formattedDate);
+                    mode="multiple"
+                    selected={formData.dates.map(date => new Date(date))}
+                    onSelect={(selectedDays) => {
+                      if (selectedDays) {
+                        // Convert the selected days to strings in the required format
+                        const formattedDates = Array.from(selectedDays).map(date => 
+                          formatDateForForm(date)
+                        );
+                        updateFormField('dates', formattedDates);
+                        
+                        // Also update the current date field for single date operations
+                        if (formattedDates.length > 0) {
+                          updateFormField('date', formattedDates[formattedDates.length - 1]);
+                        }
+                      } else {
+                        updateFormField('dates', []);
                       }
                     }}
                     className="border-none p-0"
@@ -953,17 +963,6 @@ export default function BookingModal({
                       month: { width: '100%' },
                     }}
                   />
-                  
-                  <div className="flex items-center mt-2">
-                    <Button 
-                      type="button" 
-                      size="sm"
-                      onClick={handleAddDate}
-                      className="ml-auto"
-                    >
-                      Add to Selection
-                    </Button>
-                  </div>
                 </div>
                 
                 {/* Show selected dates */}
