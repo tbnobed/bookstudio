@@ -1297,7 +1297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get all resource categories
-  app.get("/api/resource-categories", isAuthenticated, async (req, res) => {
+  app.get("/api/resources/categories", isAuthenticated, async (req, res) => {
     try {
       const categories = await resourceService.getResourceCategories();
       res.json(categories);
@@ -1426,7 +1426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update a booking resource
-  app.patch("/api/booking-resources/:id", isAuthenticated, async (req, res) => {
+  app.patch("/api/bookings/:bookingId/resources/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updatedBookingResource = await resourceService.updateBookingResource(id, req.body);

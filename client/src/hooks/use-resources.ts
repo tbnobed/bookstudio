@@ -23,6 +23,10 @@ export function useResources() {
   const getResourceCategories = () => {
     return useQuery<string[]>({
       queryKey: ['/api/resources/categories'],
+      staleTime: 10000, // 10 seconds
+      // Return empty array as fallback data in case of errors
+      retry: false,
+      initialData: []
     });
   };
 
@@ -31,6 +35,9 @@ export function useResources() {
     return useQuery<(BookingResource & { resource: Resource })[]>({
       queryKey: ['/api/bookings', bookingId, 'resources'],
       enabled: !!bookingId,
+      staleTime: 10000, // 10 seconds
+      retry: false,
+      initialData: [] // Return empty array as fallback data
     });
   };
 

@@ -123,7 +123,8 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
     
     // Filter resources by category and exclude already assigned ones
     return allResources.filter(resource => {
-      const matchesCategory = activeCategory === 'all' || resource.category === activeCategory;
+      if (!resource) return false;
+      const matchesCategory = activeCategory === 'all' || (resource.category && resource.category === activeCategory);
       const isNotAssigned = !assignedResourceIds.includes(resource.id);
       return matchesCategory && isNotAssigned;
     });
