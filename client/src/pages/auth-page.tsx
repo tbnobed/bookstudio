@@ -142,27 +142,6 @@ export default function AuthPage() {
                     </Button>
                   </div>
                 </form>
-                
-                <div className="mt-4 text-sm text-gray-500">
-                  <p className="font-medium mb-2">Demo Accounts:</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 bg-gray-100 rounded">
-                      <div className="font-medium">Producer</div>
-                      <div>Username: producer</div>
-                      <div>Password: producer123</div>
-                    </div>
-                    <div className="p-2 bg-gray-100 rounded">
-                      <div className="font-medium">Engineer</div>
-                      <div>Username: engineer</div>
-                      <div>Password: engineer123</div>
-                    </div>
-                    <div className="p-2 bg-gray-100 rounded col-span-2">
-                      <div className="font-medium">Admin</div>
-                      <div>Username: admin</div>
-                      <div>Password: admin123</div>
-                    </div>
-                  </div>
-                </div>
               </TabsContent>
               
               <TabsContent value="register">
