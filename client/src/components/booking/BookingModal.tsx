@@ -47,16 +47,15 @@ export default function BookingModal({
   const { toast } = useToast();
   const formInitializedRef = useRef(false);
   
-  // Format date for form - fixing the date shift issue
+  // Format date for form - this function purposely does not adjust for timezone
+  // It takes a date and formats it as YYYY-MM-DD exactly as it appears in the browser
   const formatDateForForm = (date: Date): string => {
-    // Use UTC methods to avoid timezone issues
-    // This ensures dates are handled consistently regardless of the user's timezone
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     
     const formattedDate = `${year}-${month}-${day}`;
-    console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${formattedDate}`);
+    console.log(`formatDateForForm: Input date: ${date.toString()}, formatted as: ${formattedDate}`);
     return formattedDate;
   };
 
@@ -571,33 +570,20 @@ export default function BookingModal({
                       <DayPicker
                         mode="multiple"
                         selected={formData.dates.map(date => {
-                          // For display in the DayPicker, adjust the date to match what the user sees
-                          // This fixes the display issue where dates were shifted one day earlier
-                          const displayDate = new Date(date);
-                          displayDate.setDate(displayDate.getDate() + 1);
-                          console.log(`Adjusting display date: ${date} -> ${displayDate.toISOString()}`);
-                          return displayDate;
+                          // Convert the string dates to Date objects for display in the DayPicker
+                          // No need to adjust - just use the date as displayed in the browser
+                          return new Date(date);
                         })}
                         onSelect={(selectedDays) => {
                           if (selectedDays) {
                             // Log the raw selected days for debugging
-                            console.log("Raw selected days:", Array.from(selectedDays).map(d => d.toISOString()));
+                            console.log("Raw selected days:", Array.from(selectedDays).map(d => d.toString()));
                             
                             // Convert the selected days to strings in the required format
+                            // Don't adjust the date, just format what the user selected
                             const formattedDates = Array.from(selectedDays).map(date => {
-                              // Create a new date and CORRECT the day shift 
-                              // by subtracting 1 day from what the picker gives us
-                              // This ensures what the user clicks is what gets stored
-                              const adjustedDate = new Date(date);
-                              adjustedDate.setDate(adjustedDate.getDate() - 1);
-                              
-                              // Log each date before formatting
-                              console.log("Selected date before formatting:", date.toISOString(), "adjusted to:", adjustedDate.toISOString());
-                              
-                              // Format the date
-                              const formatted = formatDateForForm(adjustedDate);
-                              console.log("Formatted date:", formatted);
-                              
+                              const formatted = formatDateForForm(date);
+                              console.log("Selected date formatting:", date.toString(), "formatted as:", formatted);
                               return formatted;
                             });
                             
@@ -646,9 +632,8 @@ export default function BookingModal({
                         <p className="text-sm font-medium mb-1">Selected Dates:</p>
                         <div className="space-y-1">
                           {formData.dates.map(date => {
-                            // Add one day for display to match what users expect to see
+                            // Use the date as is - no adjustment needed
                             const displayDate = new Date(date);
-                            displayDate.setDate(displayDate.getDate() + 1);
                             
                             return (
                               <div key={date} className="flex items-center justify-between text-sm bg-muted p-1 px-2 rounded">
