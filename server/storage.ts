@@ -584,6 +584,7 @@ export class DatabaseStorage implements IStorage {
   private notifications: Map<number, Notification>;
   private notificationGroups: Map<number, NotificationGroup>;
   private pcrRooms: Map<number, PcrRoom>;
+  private bookingStudios: Map<string, BookingStudio>;
   
   private userIdCounter: number;
   private studioIdCounter: number;
@@ -592,6 +593,7 @@ export class DatabaseStorage implements IStorage {
   private notificationIdCounter: number;
   private notificationGroupIdCounter: number;
   private pcrRoomIdCounter: number;
+  private bookingStudioIdCounter: number;
   
   public sessionStore: session.Store;
   
@@ -602,6 +604,8 @@ export class DatabaseStorage implements IStorage {
     this.bookings = new Map();
     this.notifications = new Map();
     this.notificationGroups = new Map();
+    this.pcrRooms = new Map();
+    this.bookingStudios = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
@@ -609,6 +613,8 @@ export class DatabaseStorage implements IStorage {
     this.bookingIdCounter = 1;
     this.notificationIdCounter = 1;
     this.notificationGroupIdCounter = 1;
+    this.pcrRoomIdCounter = 1;
+    this.bookingStudioIdCounter = 1;
     
     this.sessionStore = new PostgresSessionStore({
       pool,
@@ -692,6 +698,19 @@ export class DatabaseStorage implements IStorage {
         this.bookings.set(booking.id, booking);
         this.bookingIdCounter = Math.max(this.bookingIdCounter, booking.id + 1);
       });
+      
+      // Load booking-studio links
+      try {
+        const allBookingStudioLinks = await db.select().from(bookingStudios);
+        allBookingStudioLinks.forEach(link => {
+          this.bookingStudios.set(`${link.bookingId}-${link.studioId}`, link);
+          this.bookingStudioIdCounter = Math.max(this.bookingStudioIdCounter, link.id + 1);
+        });
+      } catch (error) {
+        console.log("Booking-studio links table might not exist yet. Initializing empty map.");
+        this.bookingStudios = new Map();
+        this.bookingStudioIdCounter = 1;
+      }
       
       // Load PCR rooms data
       try {
@@ -1568,6 +1587,147 @@ export class DatabaseStorage implements IStorage {
   
   async deleteNotificationGroup(id: number): Promise<boolean> {
     return this.notificationGroups.delete(id);
+  }
+  
+  // Booking-Studio junction table methods
+  async getBookingStudioLinks(bookingId: number): Promise<BookingStudio[]> {
+    try {
+      // Get all links for this booking from database
+      const links = await db.select()
+        .from(bookingStudios)
+        .where(eq(bookingStudios.bookingId, bookingId));
+      
+      return links;
+    } catch (error) {
+      console.error(`Error getting booking-studio links for booking ID ${bookingId}:`, error);
+      // Fall back to memory cache or empty array
+      const memoryLinks: BookingStudio[] = [];
+      // If we have a memory cache of links, use it
+      if (this.bookingStudios) {
+        this.bookingStudios.forEach((link, key) => {
+          if (link.bookingId === bookingId) {
+            memoryLinks.push(link);
+          }
+        });
+      }
+      return memoryLinks;
+    }
+  }
+  
+  async getStudiosForBooking(bookingId: number): Promise<Studio[]> {
+    try {
+      // Get all studios for this booking using a join
+      const result = await db.select({
+        studio: studios
+      })
+      .from(bookingStudios)
+      .innerJoin(studios, eq(bookingStudios.studioId, studios.id))
+      .where(eq(bookingStudios.bookingId, bookingId));
+      
+      // If no results, check if there's a legacy studioId (before junction table implementation)
+      if (result.length === 0) {
+        const booking = await this.getBooking(bookingId);
+        if (booking && booking.studioId) {
+          const studio = await this.getStudio(booking.studioId);
+          return studio ? [studio] : [];
+        }
+        return [];
+      }
+      
+      // Extract studios from result
+      return result.map(row => row.studio);
+    } catch (error) {
+      console.error(`Error getting studios for booking ID ${bookingId}:`, error);
+      // Fall back to memory implementation
+      const links = await this.getBookingStudioLinks(bookingId);
+      if (links.length === 0) {
+        // If no links found, try to get the legacy studioId
+        const booking = await this.getBooking(bookingId);
+        if (booking && booking.studioId) {
+          const studio = await this.getStudio(booking.studioId);
+          return studio ? [studio] : [];
+        }
+        return [];
+      }
+      
+      // Get all studios from the links
+      const studios: Studio[] = [];
+      for (const link of links) {
+        const studio = await this.getStudio(link.studioId);
+        if (studio) {
+          studios.push(studio);
+        }
+      }
+      
+      return studios;
+    }
+  }
+  
+  async createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]> {
+    try {
+      if (studioIds.length === 0) {
+        return [];
+      }
+      
+      console.log(`Creating booking-studio links for booking ID ${bookingId} with studios:`, studioIds);
+      
+      // Create the links in the database
+      const linksToInsert = studioIds.map(studioId => ({
+        bookingId,
+        studioId
+      }));
+      
+      const createdLinks = await db.insert(bookingStudios)
+        .values(linksToInsert)
+        .returning();
+      
+      console.log(`Created ${createdLinks.length} booking-studio links`);
+      
+      // Cache the links in memory
+      if (this.bookingStudios) {
+        createdLinks.forEach(link => {
+          this.bookingStudios.set(`${link.bookingId}-${link.studioId}`, link);
+        });
+      }
+      
+      return createdLinks;
+    } catch (error) {
+      console.error(`Error creating booking-studio links for booking ID ${bookingId}:`, error);
+      return [];
+    }
+  }
+  
+  async deleteBookingStudioLinks(bookingId: number): Promise<boolean> {
+    try {
+      console.log(`Deleting booking-studio links for booking ID ${bookingId}`);
+      
+      // Delete the links from the database
+      const result = await db.delete(bookingStudios)
+        .where(eq(bookingStudios.bookingId, bookingId))
+        .returning();
+      
+      const deletedCount = result.length;
+      console.log(`Deleted ${deletedCount} booking-studio links`);
+      
+      // Remove from memory cache if it exists
+      if (this.bookingStudios) {
+        const keysToDelete: string[] = [];
+        this.bookingStudios.forEach((link, key) => {
+          if (link.bookingId === bookingId) {
+            keysToDelete.push(key);
+          }
+        });
+        
+        keysToDelete.forEach(key => {
+          this.bookingStudios.delete(key);
+        });
+      }
+      
+      return deletedCount > 0;
+    } catch (error) {
+      console.error(`Error deleting booking-studio links for booking ID ${bookingId}:`, error);
+      return false;
+    }
   }
 }
 
