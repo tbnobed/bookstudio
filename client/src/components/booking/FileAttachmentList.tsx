@@ -60,7 +60,11 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
   };
 
   // Get icon for file type
-  const getFileIcon = (mimeType: string) => {
+  const getFileIcon = (mimeType: string | null | undefined) => {
+    if (!mimeType) {
+      return <FileText className="h-5 w-5 text-gray-500" />;
+    }
+    
     if (mimeType.startsWith("image/")) {
       return <FileIcon className="h-5 w-5 text-blue-500" />;
     } else if (mimeType.startsWith("application/pdf")) {
