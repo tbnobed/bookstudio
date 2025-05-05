@@ -10,7 +10,7 @@ type SidebarProps = {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [location, navigate] = useLocation();
-  const { logoutMutation } = useAuth();
+  const { user, logoutMutation } = useAuth();
   
   const handleLogout = async () => {
     try {
@@ -159,11 +159,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="p-4 border-t">
           <div className="flex items-center">
             <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-              U
+              {user?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700">User</p>
-              <p className="text-xs text-gray-500 capitalize">Admin</p>
+              <p className="text-sm font-medium text-gray-700">{user?.name || user?.username || 'User'}</p>
+              <p className="text-xs text-gray-500 capitalize">{user?.role || 'User'}</p>
             </div>
             <button 
               onClick={handleLogout}
