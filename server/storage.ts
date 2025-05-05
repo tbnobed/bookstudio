@@ -950,6 +950,10 @@ export class DatabaseStorage implements IStorage {
   
   // PCR Room methods
   async getPcrRoom(id: number): Promise<PcrRoom | undefined> {
+    if (!this.pcrRooms) {
+      this.pcrRooms = new Map();
+    }
+    
     if (this.pcrRooms.has(id)) {
       return this.pcrRooms.get(id);
     }

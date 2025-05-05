@@ -462,6 +462,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PCR Room routes
+  app.get("/api/pcr-rooms", async (req, res) => {
+    try {
+      const pcrRooms = await storage.getAllPcrRooms();
+      res.json(pcrRooms);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch PCR rooms" });
+    }
+  });
+
+  app.post("/api/pcr-rooms", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const pcrRoomData = insertPcrRoomSchema.parse(req.body);
+      const pcrRoom = await storage.createPcrRoom(pcrRoomData);
+      res.status(201).json(pcrRoom);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid PCR room data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create PCR room" });
+    }
+  });
+
+  app.patch("/api/pcr-rooms/:id/status", isAuthenticated, hasRole(["admin", "engineer", "it"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = z.object({ status: z.string() }).parse(req.body);
+      
+      const updatedPcrRoom = await storage.updatePcrRoomStatus(id, status);
+      if (!updatedPcrRoom) {
+        return res.status(404).json({ message: "PCR room not found" });
+      }
+      
+      res.json(updatedPcrRoom);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid status data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update PCR room status" });
+    }
+  });
+  
+  app.delete("/api/pcr-rooms/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // The deletePcrRoom method already checks for active bookings
+      const success = await storage.deletePcrRoom(id);
+      
+      if (success) {
+        return res.json({ message: "PCR room deleted successfully" });
+      } else {
+        return res.status(400).json({ 
+          message: "Cannot delete PCR room. It may have active bookings or might not exist."
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete PCR room" });
+    }
+  });
+
   // Template routes
   app.get("/api/templates", isAuthenticated, async (req, res) => {
     try {
