@@ -393,7 +393,8 @@ export class MemStorage implements IStorage {
     const startTime = start.getTime();
     const endTime = end.getTime();
     
-    return Array.from(this.bookings.values()).filter((booking) => {
+    // Filter bookings by date range
+    const filteredBookings = Array.from(this.bookings.values()).filter((booking) => {
       const bookingStart = new Date(booking.start).getTime();
       const bookingEnd = new Date(booking.end).getTime();
       
@@ -403,6 +404,27 @@ export class MemStorage implements IStorage {
         (bookingStart <= startTime && bookingEnd >= endTime) // spans the entire range
       );
     });
+    
+    console.log(`[Storage] Found ${filteredBookings.length} bookings in date range ${start.toISOString()} to ${end.toISOString()}`);
+    
+    // For each booking with a PCR room, enrich it with the PCR room data
+    for (const booking of filteredBookings) {
+      if (booking.pcrRoomId) {
+        // Get the PCR room data
+        const pcrRoom = await this.getPcrRoom(booking.pcrRoomId);
+        if (pcrRoom) {
+          // Add the PCR room data to the booking
+          (booking as any).pcrRoom = pcrRoom;
+          console.log(`  - ID: ${booking.id}, Title: ${booking.title}, Start: ${booking.start}, End: ${booking.end}, PCR Room: ${pcrRoom.name} (ID: ${pcrRoom.id})`);
+        } else {
+          console.log(`  - ID: ${booking.id}, Title: ${booking.title}, Start: ${booking.start}, End: ${booking.end}, PCR Room ID: ${booking.pcrRoomId} - NOT FOUND`);
+        }
+      } else {
+        console.log(`  - ID: ${booking.id}, Title: ${booking.title}, Start: ${booking.start}, End: ${booking.end}`);
+      }
+    }
+    
+    return filteredBookings;
   }
 
   async createBooking(booking: InsertBooking): Promise<Booking> {
