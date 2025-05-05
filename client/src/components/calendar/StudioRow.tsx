@@ -133,9 +133,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       
       {weekDates.map((date, index) => {
         // Filter bookings for this date and this specific studio using the combined studioBookings
-        const dayBookings = studioBookings.filter(booking => 
-          isSameDay(new Date(booking.start), date)
-        );
+        const dayBookings = studioBookings
+          .filter(booking => isSameDay(new Date(booking.start), date))
+          // Sort bookings chronologically by start time for proper display order
+          .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
         
         // Calculate dynamic height for cells - same logic as row header
         const baseHeight = 42; // Minimum height for a row with no bookings
