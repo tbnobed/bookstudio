@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, X, FileUp } from "lucide-react";
+import { FileUp, Loader2, X } from "lucide-react";
 import { useFileAttachments } from "@/hooks/use-file-attachments";
-import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileUploadFormProps {
   bookingId: number;
@@ -12,167 +13,188 @@ interface FileUploadFormProps {
 }
 
 export function FileUploadForm({ bookingId, onUploadComplete }: FileUploadFormProps) {
+  const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [description, setDescription] = useState("");
-  const [dragActive, setDragActive] = useState(false);
-  const inputFileRef = useRef<HTMLInputElement>(null);
-
+  const [description, setDescription] = useState('');
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const { uploadFile, isUploading } = useFileAttachments(bookingId);
-
-  // Format file size for display
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
+  
   // Handle file selection
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      setFile(event.target.files[0]);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      validateAndSetFile(selectedFile);
     }
   };
-
-  // Handle file upload
-  const handleUpload = async () => {
-    if (!file) return;
-
-    uploadFile(
-      { bookingId, file, description },
-      {
-        onSuccess: () => {
-          // Reset form
-          setFile(null);
-          setDescription("");
-          if (onUploadComplete) {
-            onUploadComplete();
-          }
-        },
-      }
-    );
-  };
-
-  // Clear selected file
-  const clearFile = () => {
-    setFile(null);
-    if (inputFileRef.current) {
-      inputFileRef.current.value = "";
+  
+  // Validate file size and type
+  const validateAndSetFile = (selectedFile: File) => {
+    // 100MB limit
+    const maxSize = 100 * 1024 * 1024;
+    
+    if (selectedFile.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Maximum file size is 100MB",
+        variant: "destructive"
+      });
+      return;
     }
+    
+    setFile(selectedFile);
   };
-
+  
   // Handle drag events
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    setIsDragging(true);
   };
-
-  // Handle drop event
+  
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+  
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setFile(e.dataTransfer.files[0]);
+    setIsDragging(false);
+    
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      validateAndSetFile(droppedFile);
     }
   };
-
+  
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!file) {
+      toast({
+        title: "No file selected",
+        description: "Please select a file to upload",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      await uploadFile({ 
+        bookingId,
+        file,
+        description: description.trim() || undefined
+      });
+      
+      toast({
+        title: "Success",
+        description: "File uploaded successfully",
+        variant: "default"
+      });
+      
+      // Reset form
+      setFile(null);
+      setDescription('');
+      
+      // Call callback if provided
+      if (onUploadComplete) {
+        onUploadComplete();
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload file. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const clearFileSelection = () => {
+    setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
   return (
-    <div className="space-y-4">
-      <div
-        className={cn(
-          "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-          dragActive
-            ? "border-primary bg-primary/5"
-            : "border-gray-300 hover:border-primary/50",
-          file ? "bg-green-50 border-green-200" : ""
-        )}
-        onClick={() => inputFileRef.current?.click()}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        <input
-          type="file"
-          ref={inputFileRef}
-          onChange={handleFileChange}
-          className="hidden"
-          accept="*/*" // Accept all file types
-        />
-
-        {file ? (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-full">
-                <FileUp className="h-5 w-5 text-green-600" />
+    <div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer ${
+            isDragging ? 'border-primary bg-primary/5' : 'border-gray-300'
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          
+          {file ? (
+            <div className="flex items-center justify-between">
+              <div className="truncate">
+                <p className="font-medium text-sm truncate">{file.name}</p>
+                <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
               </div>
-              <div className="text-left">
-                <p className="font-medium text-sm truncate" title={file.name}>
-                  {file.name}
-                </p>
-                <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
-              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearFileSelection();
+                }}
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Remove file</span>
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 rounded-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                clearFile();
-              }}
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Remove file</span>
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <Upload className="h-6 w-6 text-primary" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium">Drag and drop a file or click to browse</p>
-              <p className="text-xs text-gray-500">
+          ) : (
+            <>
+              <FileUp className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-2 text-sm font-medium">
+                Drag and drop a file here, or click to browse
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
                 Maximum file size: 100MB
               </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {file && (
-        <>
-          <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium">
-              Description (optional)
-            </label>
-            <Textarea
-              id="description"
-              placeholder="Add a description for this file..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="resize-none"
-              rows={2}
-            />
-          </div>
-
-          <Button 
-            onClick={handleUpload}
-            disabled={isUploading}
-            className="w-full"
-          >
-            {isUploading ? "Uploading..." : "Upload File"}
+            </>
+          )}
+        </div>
+        
+        <div>
+          <Label htmlFor="description">Description (Optional)</Label>
+          <Textarea
+            id="description"
+            placeholder="Add a description for this file"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="resize-none"
+            rows={3}
+          />
+        </div>
+        
+        <div className="flex justify-end">
+          <Button type="submit" disabled={!file || isUploading}>
+            {isUploading ? (
+              <span className="flex items-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </span>
+            ) : (
+              'Upload File'
+            )}
           </Button>
-        </>
-      )}
+        </div>
+      </form>
     </div>
   );
 }

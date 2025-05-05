@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
+import { formatDistance } from "date-fns";
 import { FileUploadForm } from "./FileUploadForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 

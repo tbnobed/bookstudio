@@ -1,7 +1,7 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileAttachment } from "@shared/schema";
-import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { useState } from "react";
 
 export type FileUploadParams = {
   bookingId: number;
@@ -9,108 +9,136 @@ export type FileUploadParams = {
   description?: string;
 };
 
+/**
+ * Hook for managing file attachments for a booking
+ * 
+ * @param bookingId Optional booking ID to filter attachments by
+ * @returns Object with file attachments, loading state, and mutation functions
+ */
 export function useFileAttachments(bookingId?: number) {
-  const { toast } = useToast();
-  
-  // Get all attachments for a booking
-  const {
-    data: attachments = [],
-    isLoading,
-    error,
+  const queryClient = useQueryClient();
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  // Build query key based on whether bookingId is provided
+  const queryKey = bookingId 
+    ? ['/api/file-attachments', bookingId]
+    : ['/api/file-attachments'];
+    
+  // Fetch attachments for the booking
+  const { 
+    data: attachments = [], 
+    isLoading, 
+    error 
   } = useQuery<FileAttachment[]>({
-    queryKey: ["/api/bookings", bookingId, "attachments"],
-    queryFn: async () => {
-      if (!bookingId) return [];
-      const response = await fetch(`/api/bookings/${bookingId}/attachments`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch attachments");
-      }
-      return response.json();
-    },
-    enabled: !!bookingId,
+    queryKey,
+    staleTime: 1000 * 60, // 1 minute
   });
 
-  // Upload a file to a booking
+  // Upload file mutation
   const uploadFileMutation = useMutation({
     mutationFn: async ({ bookingId, file, description }: FileUploadParams) => {
+      // Create form data
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append('file', file);
+      formData.append('bookingId', bookingId.toString());
+      
       if (description) {
-        formData.append("description", description);
+        formData.append('description', description);
       }
-
-      const response = await fetch(`/api/bookings/${bookingId}/attachments`, {
-        method: "POST",
+      
+      // Upload file with multipart/form-data
+      const response = await fetch('/api/file-attachments', {
+        method: 'POST',
         body: formData,
-        // Don't set Content-Type header - browser will set it with boundary for multipart/form-data
       });
-
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to upload file");
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to upload file');
       }
-
-      return response.json();
+      
+      return await response.json();
     },
     onSuccess: () => {
-      // Invalidate the attachments query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings", bookingId, "attachments"] });
-      toast({
-        title: "File uploaded",
-        description: "The file was uploaded successfully.",
-      });
+      // Invalidate the attachments query to trigger a refetch
+      queryClient.invalidateQueries({ queryKey });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Upload failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error('File upload error:', error);
     },
   });
 
-  // Delete a file attachment
+  // Delete file mutation
   const deleteFileMutation = useMutation({
     mutationFn: async (fileId: number) => {
-      const response = await apiRequest("DELETE", `/api/attachments/${fileId}`);
-      return response.json();
+      const response = await apiRequest('DELETE', `/api/file-attachments/${fileId}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete file');
+      }
     },
     onSuccess: () => {
-      // Invalidate the attachments query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings", bookingId, "attachments"] });
-      toast({
-        title: "File deleted",
-        description: "The file was deleted successfully.",
-      });
+      // Invalidate the attachments query to trigger a refetch
+      queryClient.invalidateQueries({ queryKey });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Delete failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error('File deletion error:', error);
     },
   });
 
-  // Download a file
-  const downloadFile = (fileId: number, fileName: string) => {
-    // Create a link and trigger download
-    const downloadLink = document.createElement("a");
-    downloadLink.href = `/api/attachments/${fileId}`;
-    downloadLink.download = fileName;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+  /**
+   * Download a file attachment
+   * 
+   * @param fileId ID of the file to download
+   * @param fileName Name to use for the downloaded file
+   */
+  const downloadFile = async (fileId: number, fileName: string) => {
+    try {
+      setIsDownloading(true);
+      
+      // Fetch the file
+      const response = await fetch(`/api/file-attachments/${fileId}/download`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+      
+      // Convert response to blob
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = fileName;
+      
+      // Add to document, click, and remove
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download error:', error);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return {
+    // Data
     attachments,
     isLoading,
     error,
-    uploadFile: uploadFileMutation.mutate,
+    
+    // Mutations
+    uploadFile: uploadFileMutation.mutateAsync,
     isUploading: uploadFileMutation.isPending,
-    deleteFile: deleteFileMutation.mutate,
+    deleteFile: deleteFileMutation.mutateAsync,
     isDeleting: deleteFileMutation.isPending,
+    
+    // Actions
     downloadFile,
+    isDownloading,
   };
 }
