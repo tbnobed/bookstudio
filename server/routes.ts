@@ -1412,7 +1412,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes
       });
       
-      res.status(201).json(newBookingResource);
+      // Get the resource data to include with the response
+      const resource = await resourceService.getResourceById(resourceId);
+      
+      // Return the booking resource with the resource data
+      res.status(201).json({
+        ...newBookingResource,
+        resource
+      });
     } catch (error) {
       console.error("Error adding resource to booking:", error);
       if (error instanceof ZodError) {
@@ -1435,7 +1442,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Booking resource not found" });
       }
       
-      res.json(updatedBookingResource);
+      // Get the resource data to include with the response
+      const resource = await resourceService.getResourceById(updatedBookingResource.resourceId);
+      
+      // Return the booking resource with the resource data
+      res.json({
+        ...updatedBookingResource,
+        resource
+      });
     } catch (error) {
       console.error("Error updating booking resource:", error);
       if (error instanceof ZodError) {

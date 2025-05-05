@@ -133,10 +133,22 @@ export function useResources() {
       });
       return await response.json();
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/bookings', variables.bookingId, 'resources'] 
-      });
+    onSuccess: (data, variables) => {
+      // Update the query cache directly with the returned data
+      const queryKey = ['/api/bookings', variables.bookingId, 'resources'];
+      
+      // Get current data from cache
+      const currentData = queryClient.getQueryData<(BookingResource & { resource: Resource })[]>(queryKey) || [];
+      
+      // Add the new resource (which includes the resource data)
+      const updatedData = [...currentData, data];
+      
+      // Update the cache directly
+      queryClient.setQueryData(queryKey, updatedData);
+      
+      // Also invalidate to ensure we fetch fresh data on next query
+      queryClient.invalidateQueries({ queryKey });
+      
       toast({
         title: 'Resource added',
         description: 'The resource has been added to the booking successfully.',
@@ -165,10 +177,24 @@ export function useResources() {
       const response = await apiRequest('PATCH', `/api/bookings/${bookingId}/resources/${id}`, data);
       return await response.json();
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/bookings', variables.bookingId, 'resources'] 
-      });
+    onSuccess: (data, variables) => {
+      // Update the query cache directly with the returned data
+      const queryKey = ['/api/bookings', variables.bookingId, 'resources'];
+      
+      // Get current data from cache
+      const currentData = queryClient.getQueryData<(BookingResource & { resource: Resource })[]>(queryKey) || [];
+      
+      // Replace the updated resource
+      const updatedData = currentData.map(item => 
+        item.id === variables.id ? data : item
+      );
+      
+      // Update the cache directly
+      queryClient.setQueryData(queryKey, updatedData);
+      
+      // Also invalidate to ensure we fetch fresh data on next query
+      queryClient.invalidateQueries({ queryKey });
+      
       toast({
         title: 'Resource updated',
         description: 'The booking resource has been updated successfully.',
@@ -187,11 +213,23 @@ export function useResources() {
   const removeBookingResourceMutation = useMutation({
     mutationFn: async ({ id, bookingId }: { id: number; bookingId: number }) => {
       await apiRequest('DELETE', `/api/bookings/${bookingId}/resources/${id}`);
+      return id; // Return the ID for use in onSuccess
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/bookings', variables.bookingId, 'resources'] 
-      });
+    onSuccess: (deletedId, variables) => {
+      const queryKey = ['/api/bookings', variables.bookingId, 'resources'];
+      
+      // Get current data from cache
+      const currentData = queryClient.getQueryData<(BookingResource & { resource: Resource })[]>(queryKey) || [];
+      
+      // Filter out the deleted resource
+      const updatedData = currentData.filter(item => item.id !== deletedId);
+      
+      // Update the cache directly
+      queryClient.setQueryData(queryKey, updatedData);
+      
+      // Also invalidate to ensure we fetch fresh data on next query
+      queryClient.invalidateQueries({ queryKey });
+      
       toast({
         title: 'Resource removed',
         description: 'The resource has been removed from the booking successfully.',
@@ -210,11 +248,17 @@ export function useResources() {
   const removeAllBookingResourcesMutation = useMutation({
     mutationFn: async (bookingId: number) => {
       await apiRequest('DELETE', `/api/bookings/${bookingId}/resources`);
+      return bookingId;
     },
-    onSuccess: (_, bookingId) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/bookings', bookingId, 'resources'] 
-      });
+    onSuccess: (bookingId) => {
+      const queryKey = ['/api/bookings', bookingId, 'resources'];
+      
+      // Set the cache to an empty array since all resources are removed
+      queryClient.setQueryData(queryKey, []);
+      
+      // Also invalidate to ensure we fetch fresh data on next query
+      queryClient.invalidateQueries({ queryKey });
+      
       toast({
         title: 'Resources removed',
         description: 'All resources have been removed from the booking successfully.',
