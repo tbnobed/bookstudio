@@ -871,57 +871,59 @@ export default function BookingModal({
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="studio" className="flex items-center">
-                  Studios <span className="text-red-500 ml-1">*</span>
-                </Label>
-                <div className="border rounded-md p-2 mt-1 space-y-2 max-h-40 overflow-y-auto">
-                  {studios.map((studio) => (
-                    <div key={studio.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`studio-${studio.id}`} 
-                        checked={formData.studioIds.includes(studio.id.toString())}
-                        onCheckedChange={(checked) => {
-                          const studioId = studio.id.toString();
-                          let newStudioIds = [...formData.studioIds];
-                          
-                          if (checked) {
-                            // Add studio to the list if not already included
-                            if (!newStudioIds.includes(studioId)) {
-                              newStudioIds.push(studioId);
-                            }
-                            // Also update main studioId for backward compatibility
-                            updateFormField('studioId', studioId);
-                          } else {
-                            // Remove studio from the list
-                            newStudioIds = newStudioIds.filter(id => id !== studioId);
-                            
-                            // Update main studioId if it was the one removed
-                            if (formData.studioId === studioId) {
-                              // Set to first selected studio or empty
-                              const newMainStudio = newStudioIds.length > 0 ? newStudioIds[0] : "";
-                              updateFormField('studioId', newMainStudio);
-                            }
+            {/* Studios section in its own full-width row */}
+            <div className="mb-4">
+              <Label htmlFor="studio" className="flex items-center">
+                Studios <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <div className="border rounded-md p-2 mt-1 space-y-2 max-h-40 overflow-y-auto">
+                {studios.map((studio) => (
+                  <div key={studio.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`studio-${studio.id}`} 
+                      checked={formData.studioIds.includes(studio.id.toString())}
+                      onCheckedChange={(checked) => {
+                        const studioId = studio.id.toString();
+                        let newStudioIds = [...formData.studioIds];
+                        
+                        if (checked) {
+                          // Add studio to the list if not already included
+                          if (!newStudioIds.includes(studioId)) {
+                            newStudioIds.push(studioId);
                           }
+                          // Also update main studioId for backward compatibility
+                          updateFormField('studioId', studioId);
+                        } else {
+                          // Remove studio from the list
+                          newStudioIds = newStudioIds.filter(id => id !== studioId);
                           
-                          updateFormField('studioIds', newStudioIds);
-                        }}
-                      />
-                      <Label 
-                        htmlFor={`studio-${studio.id}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {studio.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-                {formData.studioIds.length === 0 && (
-                  <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
-                )}
+                          // Update main studioId if it was the one removed
+                          if (formData.studioId === studioId) {
+                            // Set to first selected studio or empty
+                            const newMainStudio = newStudioIds.length > 0 ? newStudioIds[0] : "";
+                            updateFormField('studioId', newMainStudio);
+                          }
+                        }
+                        
+                        updateFormField('studioIds', newStudioIds);
+                      }}
+                    />
+                    <Label 
+                      htmlFor={`studio-${studio.id}`}
+                      className="text-sm cursor-pointer"
+                    >
+                      {studio.name}
+                    </Label>
+                  </div>
+                ))}
               </div>
-              
+              {formData.studioIds.length === 0 && (
+                <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
+              )}
+            </div>
+            
+            {/* Booking Type and PCR Room on the same row */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <Label htmlFor="type">{alertsOnly ? "Alert Type" : "Booking Type"}</Label>
                 <Select 
@@ -947,29 +949,29 @@ export default function BookingModal({
                   </SelectContent>
                 </Select>
               </div>
+              
+              {!alertsOnly && (
+                <div>
+                  <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                  <Select 
+                    value={formData.pcrRoomId} 
+                    onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">None</SelectItem>
+                      {pcrRooms.map((pcrRoom) => (
+                        <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                          {pcrRoom.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
-            
-            {!alertsOnly && (
-              <div>
-                <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
-                <Select 
-                  value={formData.pcrRoomId} 
-                  onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="None" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">None</SelectItem>
-                    {pcrRooms.map((pcrRoom) => (
-                      <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                        {pcrRoom.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
             
             {/* Severity field - only shown for alerts */}
             {alertsOnly && (
@@ -1064,8 +1066,13 @@ export default function BookingModal({
               </div>
               
               {formData.useMultiDateSelection && (
-                <div className="border rounded-md p-4 mb-2 bg-background">
-                  <Label className="mb-2 block">Select multiple dates</Label>
+                <div className="border rounded-md p-2 mb-2 bg-background">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium">Select multiple dates</Label>
+                    <span className="text-xs text-muted-foreground">
+                      {selectedDates.length} date(s) selected
+                    </span>
+                  </div>
                   <DayPicker
                     mode="multiple"
                     selected={selectedDates}
@@ -1073,14 +1080,21 @@ export default function BookingModal({
                       // Ensure we always have at least one date selected
                       setSelectedDates(dates || []);
                     }}
-                    className="border-0 mx-auto"
+                    className="border-0 mx-auto p-1"
                     modifiersClassNames={{
                       selected: 'bg-primary text-primary-foreground rounded-full',
                       today: 'text-primary font-bold'
                     }}
+                    showOutsideDays={false}
+                    fixedWeeks
+                    styles={{
+                      caption: { marginBottom: '0.5rem' },
+                      head: { fontSize: '0.75rem' },
+                      root: { fontSize: '0.9rem' }
+                    }}
                   />
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Selected {selectedDates.length} date(s). A separate booking will be created for each date.
+                  <p className="text-xs text-muted-foreground mt-1 text-center">
+                    A separate booking will be created for each selected date.
                   </p>
                 </div>
               )}
