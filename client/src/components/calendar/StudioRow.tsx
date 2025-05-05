@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio } from "@shared/schema";
 import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
+import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
 
 interface StudioRowProps {
   studio: Studio;
@@ -17,6 +18,37 @@ interface StudioRowProps {
 export default function StudioRow({ studio, weekDates, bookings, onBookingClick, readOnly = false }: StudioRowProps) {
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  
+  // Fetch all booking-studio links to determine which bookings are associated with this studio via junction table
+  const { data: bookingStudioLinks = [] } = useBookingStudioLinks();
+  
+  // Create a filtered list of bookings that contains:
+  // 1. Bookings with studioId directly set to this studio's ID (legacy way)
+  // 2. Bookings linked to this studio through the booking-studio junction table
+  const studioBookings = useMemo(() => {
+    // First get the bookings with direct studioId reference
+    const directBookings = bookings.filter(booking => booking.studioId === studio.id);
+    
+    // Get booking IDs from the junction table that link to this studio
+    const linkedBookingIds = bookingStudioLinks
+      .filter(link => link.studioId === studio.id)
+      .map(link => link.bookingId);
+    
+    // Find bookings from the main bookings array that match the linked IDs
+    const linkedBookings = bookings.filter(booking => 
+      linkedBookingIds.includes(booking.id) && 
+      booking.studioId !== studio.id // Avoid duplicates with direct bookings
+    );
+    
+    // Combine both lists
+    const combinedBookings = [...directBookings, ...linkedBookings];
+    
+    if (linkedBookings.length > 0) {
+      console.log(`Studio ${studio.name} has ${linkedBookings.length} linked bookings through junction table`);
+    }
+    
+    return combinedBookings;
+  }, [studio.id, bookings, bookingStudioLinks]);
 
   // Handle cell click to create a new booking - only if not in read-only mode
   const handleCellClick = (date: Date) => {
@@ -33,10 +65,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
     <>
       {/* Calculate row height dynamically based on the maximum number of bookings for this studio on any day */}
       {(() => {
-        // Count max bookings for this studio in any day, adding debug output
+        // Count max bookings for this studio in any day using the combined bookings list
         const maxBookingsPerDay = weekDates.map(date => {
-          const count = bookings.filter(
-            booking => isSameDay(new Date(booking.start), date) && booking.studioId === studio.id
+          const count = studioBookings.filter(
+            booking => isSameDay(new Date(booking.start), date)
           ).length;
           
           return { date: date.toDateString(), count };
@@ -70,10 +102,9 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       })()}
       
       {weekDates.map((date, index) => {
-        // Filter bookings for this date and this specific studio
-        const dayBookings = bookings.filter(booking => 
-          isSameDay(new Date(booking.start), date) && 
-          booking.studioId === studio.id
+        // Filter bookings for this date and this specific studio using the combined studioBookings
+        const dayBookings = studioBookings.filter(booking => 
+          isSameDay(new Date(booking.start), date)
         );
         
         // Calculate dynamic height for cells - same logic as row header
@@ -84,18 +115,14 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         // Find max bookings across the entire row to keep consistent height
         // Use the same calculation as in the header to ensure cells match the row height
         const maxBookingsPerDay = weekDates.map(date => {
-          const count = bookings.filter(
-            booking => isSameDay(new Date(booking.start), date) && booking.studioId === studio.id
+          const count = studioBookings.filter(
+            booking => isSameDay(new Date(booking.start), date)
           ).length;
           return { date: date.toDateString(), count };
         });
         
         // Get the actual max number
-        const maxBookingsForStudio = Math.max(...weekDates.map(date => 
-          bookings.filter(
-            booking => isSameDay(new Date(booking.start), date) && booking.studioId === studio.id
-          ).length
-        ), 0);
+        const maxBookingsForStudio = Math.max(...maxBookingsPerDay.map(day => day.count), 0);
         
         console.log(`Cell for ${studio.name} - ${date.toDateString()} has ${dayBookings.length} bookings`);
         
