@@ -171,17 +171,7 @@ export default function AuthPage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="password">Password</Label>
-                        <Button 
-                          variant="link" 
-                          className="px-0 text-xs" 
-                          type="button"
-                          onClick={() => setActiveTab("forgot-password")}
-                        >
-                          Forgot password?
-                        </Button>
-                      </div>
+                      <Label htmlFor="password">Password</Label>
                       <Input
                         id="password"
                         type="password"
@@ -191,6 +181,16 @@ export default function AuthPage() {
                       {loginForm.formState.errors.password && (
                         <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
                       )}
+                      <div className="flex justify-end">
+                        <Button 
+                          variant="link" 
+                          className="px-0 text-xs" 
+                          type="button"
+                          onClick={() => setActiveTab("forgot-password")}
+                        >
+                          Forgot password?
+                        </Button>
+                      </div>
                     </div>
                     
                     <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
