@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { storage } from "./storage";
 import { fileService, upload } from "./services/fileService";
+import { resourceService } from "./services/resourceService";
 import { 
   insertUserSchema, 
   insertStudioSchema, 
@@ -1270,6 +1271,210 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting file:", error);
       res.status(500).json({ message: "Failed to delete file" });
+    }
+  });
+
+  // ===== RESOURCE MANAGEMENT ROUTES =====
+  
+  // Get all resources
+  app.get("/api/resources", isAuthenticated, async (req, res) => {
+    try {
+      // Filter by category if provided
+      const { category } = req.query;
+      
+      let resources;
+      if (category && typeof category === 'string') {
+        resources = await resourceService.getResourcesByCategory(category);
+      } else {
+        resources = await resourceService.getAllResources();
+      }
+      
+      res.json(resources);
+    } catch (error) {
+      console.error("Error fetching resources:", error);
+      res.status(500).json({ message: "Failed to fetch resources" });
+    }
+  });
+  
+  // Get all resource categories
+  app.get("/api/resource-categories", isAuthenticated, async (req, res) => {
+    try {
+      const categories = await resourceService.getResourceCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching resource categories:", error);
+      res.status(500).json({ message: "Failed to fetch resource categories" });
+    }
+  });
+  
+  // Get a specific resource
+  app.get("/api/resources/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const resource = await resourceService.getResourceById(id);
+      
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      res.json(resource);
+    } catch (error) {
+      console.error("Error fetching resource:", error);
+      res.status(500).json({ message: "Failed to fetch resource" });
+    }
+  });
+  
+  // Create a new resource (admin and engineers only)
+  app.post("/api/resources", isAuthenticated, hasRole(["admin", "engineer", "it"]), async (req, res) => {
+    try {
+      const resourceData = insertResourceSchema.parse(req.body);
+      const newResource = await resourceService.createResource(resourceData);
+      res.status(201).json(newResource);
+    } catch (error) {
+      console.error("Error creating resource:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid resource data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to create resource" });
+    }
+  });
+  
+  // Update a resource (admin and engineers only)
+  app.patch("/api/resources/:id", isAuthenticated, hasRole(["admin", "engineer", "it"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedResource = await resourceService.updateResource(id, req.body);
+      
+      if (!updatedResource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      res.json(updatedResource);
+    } catch (error) {
+      console.error("Error updating resource:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid resource data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to update resource" });
+    }
+  });
+  
+  // Delete a resource (admin only)
+  app.delete("/api/resources/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await resourceService.deleteResource(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Resource not found or could not be deleted" });
+      }
+      
+      res.json({ message: "Resource deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting resource:", error);
+      res.status(500).json({ message: "Failed to delete resource" });
+    }
+  });
+  
+  // ===== BOOKING RESOURCES ROUTES =====
+  
+  // Get resources for a booking
+  app.get("/api/bookings/:bookingId/resources", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const bookingResources = await resourceService.getResourcesForBooking(bookingId);
+      res.json(bookingResources);
+    } catch (error) {
+      console.error("Error fetching booking resources:", error);
+      res.status(500).json({ message: "Failed to fetch booking resources" });
+    }
+  });
+  
+  // Add a resource to a booking
+  app.post("/api/bookings/:bookingId/resources", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const { resourceId, quantity, notes } = insertBookingResourceSchema.parse({
+        ...req.body,
+        bookingId
+      });
+      
+      const newBookingResource = await resourceService.addResourceToBooking({
+        bookingId,
+        resourceId,
+        quantity,
+        notes
+      });
+      
+      res.status(201).json(newBookingResource);
+    } catch (error) {
+      console.error("Error adding resource to booking:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid booking resource data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to add resource to booking" });
+    }
+  });
+  
+  // Update a booking resource
+  app.patch("/api/booking-resources/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedBookingResource = await resourceService.updateBookingResource(id, req.body);
+      
+      if (!updatedBookingResource) {
+        return res.status(404).json({ message: "Booking resource not found" });
+      }
+      
+      res.json(updatedBookingResource);
+    } catch (error) {
+      console.error("Error updating booking resource:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid booking resource data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to update booking resource" });
+    }
+  });
+  
+  // Remove a resource from a booking
+  app.delete("/api/booking-resources/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await resourceService.removeResourceFromBooking(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Booking resource not found or could not be deleted" });
+      }
+      
+      res.json({ message: "Resource removed from booking successfully" });
+    } catch (error) {
+      console.error("Error removing resource from booking:", error);
+      res.status(500).json({ message: "Failed to remove resource from booking" });
+    }
+  });
+  
+  // Remove all resources from a booking
+  app.delete("/api/bookings/:bookingId/resources", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const deleted = await resourceService.removeAllResourcesFromBooking(bookingId);
+      
+      res.json({ message: "All resources removed from booking successfully" });
+    } catch (error) {
+      console.error("Error removing all resources from booking:", error);
+      res.status(500).json({ message: "Failed to remove resources from booking" });
     }
   });
 
