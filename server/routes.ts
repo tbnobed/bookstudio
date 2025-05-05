@@ -73,6 +73,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create user" });
     }
   });
+  
+  app.patch("/api/users/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Prevent modification of the password field through this endpoint for security
+      // Password changes should go through a dedicated password reset flow
+      const { password, ...userData } = req.body;
+      
+      const updatedUser = await storage.updateUser(id, userData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+  
+  app.delete("/api/users/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Prevent self-deletion
+      if (req.user && req.user.id === id) {
+        return res.status(400).json({ message: "You cannot delete your own account" });
+      }
+      
+      const deleted = await storage.deleteUser(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "User not found or could not be deleted" });
+      }
+      
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
 
   // Studio routes
   app.get("/api/studios", async (req, res) => {

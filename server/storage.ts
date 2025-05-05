@@ -18,6 +18,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
   getAllUsers(): Promise<User[]>;
   
   // Studio management
@@ -231,6 +232,10 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
 
+  async deleteUser(id: number): Promise<boolean> {
+    return this.users.delete(id);
+  }
+  
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values());
   }
@@ -706,6 +711,30 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error(`Error updating user with ID ${id}:`, error);
       return undefined;
+    }
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      // First check if user exists
+      const user = await this.getUser(id);
+      if (!user) {
+        return false;
+      }
+      
+      // Delete the user
+      const [deletedUser] = await db.delete(users).where(eq(users.id, id)).returning();
+      
+      if (deletedUser) {
+        // Remove from cache
+        this.users.delete(id);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error(`Error deleting user with ID ${id}:`, error);
+      return false;
     }
   }
   
