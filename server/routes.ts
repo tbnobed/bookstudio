@@ -26,7 +26,9 @@ import {
   invalidatePasswordResetToken, 
   sendPasswordResetEmail,
   generateInviteToken,
-  sendInviteEmail
+  sendInviteEmail,
+  verifyInviteToken,
+  invalidateInviteToken
 } from "./email";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -619,7 +621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for booking conflicts (only for studio-specific bookings)
       let conflict = false;
       
-      if (bookingData.studioId !== null) {
+      if (bookingData.studioId !== null && bookingData.studioId !== undefined) {
         const existingBookings = await storage.getBookingsByStudio(bookingData.studioId);
         const start = new Date(bookingData.start);
         const end = new Date(bookingData.end);
