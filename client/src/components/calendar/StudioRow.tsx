@@ -20,7 +20,8 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   // Fetch all booking-studio links to determine which bookings are associated with this studio via junction table
-  const { data: bookingStudioLinks = [] } = useBookingStudioLinks();
+  // Use public endpoint if in readOnly mode (public calendar view)
+  const { data: bookingStudioLinks = [] } = useBookingStudioLinks(undefined, readOnly);
   
   // Create a filtered list of bookings that contains:
   // 1. Bookings linked to this studio through the booking-studio junction table
