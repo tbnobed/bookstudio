@@ -74,15 +74,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.patch("/api/users/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  app.patch("/api/users/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const currentUser = req.user as any;
       
-      // Prevent modification of the password field through this endpoint for security
-      // Password changes should go through a dedicated password reset flow
-      const { password, ...userData } = req.body;
+      // Check if the user is updating their own profile or has admin rights
+      if (currentUser.id !== id && currentUser.role !== "admin") {
+        return res.status(403).json({ message: "Forbidden: You can only update your own profile unless you're an admin" });
+      }
       
-      const updatedUser = await storage.updateUser(id, userData);
+      // If user is updating password, include it in the update
+      let dataToUpdate = req.body;
+      
+      // Admin can update any field, but regular users can only update certain fields
+      if (currentUser.role !== "admin" && currentUser.id === id) {
+        // Regular users can only update their own name, email and password
+        const { name, email, password } = req.body;
+        dataToUpdate = { name, email };
+        
+        // Only include password if it's being changed
+        if (password) {
+          dataToUpdate.password = password;
+        }
+      }
+      
+      const updatedUser = await storage.updateUser(id, dataToUpdate);
       
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });

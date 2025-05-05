@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTimezone } from "@/contexts/TimezoneContext";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
+import ProfilePanel from "@/components/settings/ProfilePanel";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -169,13 +170,20 @@ export default function Settings() {
           <p className="text-gray-500">Configure application preferences and manage studio availability</p>
         </div>
 
-        <Tabs defaultValue="general" className="w-full">
+        <Tabs defaultValue="profile" className="w-full">
           <TabsList className="mb-6">
+            <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="studios">Studios</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="backup">Backup & Restore</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="profile">
+            <div className="max-w-2xl mx-auto">
+              <ProfilePanel />
+            </div>
+          </TabsContent>
           
           <TabsContent value="general">
             <div className="grid gap-6 md:grid-cols-2">
