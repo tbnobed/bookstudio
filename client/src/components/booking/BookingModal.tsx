@@ -570,7 +570,14 @@ export default function BookingModal({
                     <div className="border rounded-md p-2 mt-1">
                       <DayPicker
                         mode="multiple"
-                        selected={formData.dates.map(date => new Date(date))}
+                        selected={formData.dates.map(date => {
+                          // For display in the DayPicker, adjust the date to match what the user sees
+                          // This fixes the display issue where dates were shifted one day earlier
+                          const displayDate = new Date(date);
+                          displayDate.setDate(displayDate.getDate() + 1);
+                          console.log(`Adjusting display date: ${date} -> ${displayDate.toISOString()}`);
+                          return displayDate;
+                        })}
                         onSelect={(selectedDays) => {
                           if (selectedDays) {
                             // Log the raw selected days for debugging
@@ -578,11 +585,14 @@ export default function BookingModal({
                             
                             // Convert the selected days to strings in the required format
                             const formattedDates = Array.from(selectedDays).map(date => {
-                              // Create a new date to avoid mutation
+                              // Create a new date and CORRECT the day shift 
+                              // by subtracting 1 day from what the picker gives us
+                              // This ensures what the user clicks is what gets stored
                               const adjustedDate = new Date(date);
+                              adjustedDate.setDate(adjustedDate.getDate() - 1);
                               
                               // Log each date before formatting
-                              console.log("Selected date before formatting:", adjustedDate.toISOString());
+                              console.log("Selected date before formatting:", date.toISOString(), "adjusted to:", adjustedDate.toISOString());
                               
                               // Format the date
                               const formatted = formatDateForForm(adjustedDate);
@@ -635,20 +645,26 @@ export default function BookingModal({
                       <div className="mt-2 border rounded-md p-2 max-h-32 overflow-y-auto">
                         <p className="text-sm font-medium mb-1">Selected Dates:</p>
                         <div className="space-y-1">
-                          {formData.dates.map(date => (
-                            <div key={date} className="flex items-center justify-between text-sm bg-muted p-1 px-2 rounded">
-                              <span>{new Date(date).toLocaleDateString()}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveDate(date)}
-                                className="h-6 w-6 p-0"
-                              >
-                                &times;
-                              </Button>
-                            </div>
-                          ))}
+                          {formData.dates.map(date => {
+                            // Add one day for display to match what users expect to see
+                            const displayDate = new Date(date);
+                            displayDate.setDate(displayDate.getDate() + 1);
+                            
+                            return (
+                              <div key={date} className="flex items-center justify-between text-sm bg-muted p-1 px-2 rounded">
+                                <span>{displayDate.toLocaleDateString()}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveDate(date)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  &times;
+                                </Button>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
