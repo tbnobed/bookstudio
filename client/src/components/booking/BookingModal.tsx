@@ -85,7 +85,7 @@ export default function BookingModal({
   const [formData, setFormData] = useState({ ...defaultValues });
   
   // State for multiple date selection
-  const [selectedDates, setSelectedDates] = useState<Date[]>([selectedDate]);
+  const [selectedDates, setSelectedDates] = useState<Date[]>(selectedDate ? [selectedDate] : []);
   
   // Fetch studios
   const { data: studios = [] } = useQuery<Studio[]>({
