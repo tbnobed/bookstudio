@@ -59,7 +59,7 @@ export default function BookingModal({
     title: "",
     description: "",
     studioId: selectedStudio?.toString() || "",
-    pcrRoomId: "",
+    pcrRoomId: "0",
     bookingType: alertsOnly ? "maintenance" : "production",
     date: formatDateForForm(selectedDate),
     startTime: "9:00am",
@@ -284,6 +284,13 @@ export default function BookingModal({
       bookingData.templateId = null;
     }
     
+    // Add pcrRoomId if selected
+    if (formData.pcrRoomId && formData.pcrRoomId !== "0") {
+      bookingData.pcrRoomId = parseInt(formData.pcrRoomId);
+    } else {
+      bookingData.pcrRoomId = null;
+    }
+    
     try {
       if (booking) {
         // Update existing booking
@@ -426,26 +433,6 @@ export default function BookingModal({
                   </div>
                 </div>
                 
-                <div>
-                  <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
-                  <Select 
-                    value={formData.pcrRoomId} 
-                    onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {pcrRooms.map((pcrRoom) => (
-                        <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                          {pcrRoom.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="date">Date</Label>
@@ -489,7 +476,7 @@ export default function BookingModal({
                       <SelectValue placeholder="None" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="0">None</SelectItem>
                       {pcrRooms.map((pcrRoom) => (
                         <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
                           {pcrRoom.name}
@@ -708,6 +695,28 @@ export default function BookingModal({
                 </Select>
               </div>
             </div>
+            
+            {!alertsOnly && (
+              <div>
+                <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                <Select 
+                  value={formData.pcrRoomId} 
+                  onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">None</SelectItem>
+                    {pcrRooms.map((pcrRoom) => (
+                      <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                        {pcrRoom.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             {/* Severity field - only shown for alerts */}
             {alertsOnly && (
