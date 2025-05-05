@@ -4,12 +4,13 @@ import { Booking, Studio } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { format, isToday, isPast, isAfter, isBefore, formatDistance } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, CalendarDays, Plus, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, CalendarDays, Plus, AlertTriangle, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
+import { useStudioStatus } from "@/hooks/use-studio-status";
 
 interface MobileDailyViewProps {
   currentDate: Date;
@@ -27,11 +28,14 @@ export default function MobileDailyView({
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  // Fetch all studios
-  const { data: studios = [] } = useQuery<Studio[]>({
-    queryKey: ["/api/studios"],
-  });
+  
+  // Use our studio status hook to get real-time status
+  const { 
+    getAllStudiosWithStatus, 
+    getStudioStatus,
+    studios,
+    now 
+  } = useStudioStatus();
 
   // Prepare date range for the day (midnight to midnight)
   const dayStart = new Date(currentDate);
@@ -41,21 +45,18 @@ export default function MobileDailyView({
   dayEnd.setHours(23, 59, 59, 999);
 
   // Fetch bookings for the selected day
-  const { data: bookings = [] } = useQuery<Booking[]>({
+  const { data: todayBookings = [] } = useQuery<Booking[]>({
     queryKey: [`/api/bookings?start=${dayStart.toISOString()}&end=${dayEnd.toISOString()}`],
   });
 
-  // Get current time
-  const now = new Date();
-
   // Group bookings by studio
   const bookingsByStudio = studios.reduce((acc, studio) => {
-    acc[studio.id] = bookings.filter(booking => booking.studioId === studio.id);
+    acc[studio.id] = todayBookings.filter(booking => booking.studioId === studio.id);
     return acc;
   }, {} as Record<number, Booking[]>);
 
   // Get facility-wide alerts (bookings with studioId === null)
-  const facilityAlerts = bookings.filter(booking => 
+  const facilityAlerts = todayBookings.filter(booking => 
     booking.studioId === null && 
     (booking.type === "maintenance" || booking.type === "it_support")
   );
@@ -84,36 +85,8 @@ export default function MobileDailyView({
     setIsEditModalOpen(true);
   };
 
-  // Check if a studio is currently in use
-  const isStudioInUse = (studioId: number): boolean => {
-    return bookings.some(booking => {
-      if (booking.studioId !== studioId) return false;
-      const bookingStart = new Date(booking.start);
-      const bookingEnd = new Date(booking.end);
-      return bookingStart <= now && bookingEnd > now;
-    });
-  };
-
-  // Get status color for studio
-  const getStudioStatusColor = (studioId: number): string => {
-    // Check if there's an active booking right now
-    if (isStudioInUse(studioId)) {
-      return "bg-red-500"; // In use
-    }
-    
-    // Check if there's a booking later today
-    const hasUpcomingBooking = bookings.some(booking => {
-      if (booking.studioId !== studioId) return false;
-      const bookingStart = new Date(booking.start);
-      return isToday(bookingStart) && isAfter(bookingStart, now);
-    });
-    
-    if (hasUpcomingBooking) {
-      return "bg-amber-500"; // Booked later today
-    }
-    
-    return "bg-green-500"; // Available
-  };
+  // Get all studios with their current status
+  const studiosWithStatus = getAllStudiosWithStatus();
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
@@ -130,7 +103,7 @@ export default function MobileDailyView({
             {format(currentDate, isToday(currentDate) ? "'Today'" : "EEE, MMM d")}
           </h1>
           <span className="text-sm text-gray-500">
-            {isToday(currentDate) ? format(currentDate, "MMMM d, yyyy") : ""}
+            {isToday(currentDate) ? format(currentDate, "MMMM d, yyyy") : format(currentDate, "MMMM d, yyyy")}
           </span>
         </div>
         
@@ -153,6 +126,35 @@ export default function MobileDailyView({
           <span>Switch to Weekly View</span>
         </Button>
       </div>
+
+      {/* Real-time Studio Status Banner */}
+      {isToday(currentDate) && (
+        <div className="px-4 py-2 bg-blue-50 border-y border-blue-100">
+          <h2 className="text-sm font-semibold text-blue-800 mb-1 flex items-center gap-2">
+            <Activity size={16} />
+            Real-Time Studio Status
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {studiosWithStatus.map(studio => {
+              const { statusInfo } = studio;
+              return (
+                <Badge 
+                  key={studio.id}
+                  variant={
+                    statusInfo.status === 'in-use' ? 'destructive' : 
+                    statusInfo.status === 'maintenance' ? 'outline' :
+                    statusInfo.status === 'upcoming' ? 'secondary' : 'default'
+                  }
+                  className="flex items-center gap-1"
+                >
+                  <div className={`w-2 h-2 rounded-full ${statusInfo.color}`}></div>
+                  <span>{studio.name}</span>
+                </Badge>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Alerts section - facility-wide alerts */}
       {facilityAlerts.length > 0 && (
@@ -188,18 +190,25 @@ export default function MobileDailyView({
         {/* Studios Status Tab */}
         <TabsContent value="studios" className="flex-1 overflow-auto p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {studios.map(studio => {
+            {studiosWithStatus.map(studio => {
               const studioBookings = bookingsByStudio[studio.id] || [];
-              const statusColor = getStudioStatusColor(studio.id);
-              const inUse = isStudioInUse(studio.id);
+              const { statusInfo } = studio;
               
               return (
                 <div key={studio.id} className="bg-white rounded-lg border shadow-sm overflow-hidden">
                   <div className="flex items-center p-4 border-b">
-                    <div className={`w-3 h-3 rounded-full mr-2 ${statusColor}`}></div>
+                    <div className={`w-3 h-3 rounded-full mr-2 ${statusInfo.color}`}></div>
                     <h3 className="font-medium flex-1">{studio.name}</h3>
-                    <Badge variant={inUse ? "destructive" : "outline"}>
-                      {inUse ? "In Use" : "Available"}
+                    <Badge 
+                      variant={
+                        statusInfo.status === 'in-use' ? 'destructive' : 
+                        statusInfo.status === 'maintenance' ? 'outline' :
+                        statusInfo.status === 'upcoming' ? 'secondary' : 'default'
+                      }
+                    >
+                      {statusInfo.status === 'in-use' ? 'In Use' :
+                       statusInfo.status === 'maintenance' ? 'Maintenance' :
+                       statusInfo.status === 'upcoming' ? 'Booked Soon' : 'Available'}
                     </Badge>
                   </div>
                   
@@ -262,9 +271,9 @@ export default function MobileDailyView({
           <div className="p-4 space-y-4">
             <h2 className="text-lg font-semibold">Today's Schedule</h2>
             
-            {bookings.length > 0 ? (
+            {todayBookings.length > 0 ? (
               <div className="space-y-3">
-                {bookings
+                {todayBookings
                   .filter(booking => booking.studioId !== null) // Filter out facility alerts
                   .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
                   .map(booking => {
@@ -333,25 +342,6 @@ export default function MobileDailyView({
           </div>
         </TabsContent>
       </Tabs>
-
-      {/* Fixed action buttons */}
-      <div className="sticky bottom-0 p-4 bg-white border-t flex gap-2 justify-end">
-        <Button
-          variant="outline"
-          className="gap-2"
-          onClick={() => setIsNewAlertModalOpen(true)}
-        >
-          <AlertTriangle size={16} />
-          <span>Add Alert</span>
-        </Button>
-        <Button
-          className="gap-2"
-          onClick={() => setIsNewBookingModalOpen(true)}
-        >
-          <Plus size={16} />
-          <span>Add Booking</span>
-        </Button>
-      </div>
 
       {/* Modals */}
       {/* Edit Booking Modal */}

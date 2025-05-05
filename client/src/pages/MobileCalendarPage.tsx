@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDevice } from "@/hooks/use-mobile";
 import MobileDailyView from "@/components/calendar/MobileDailyView";
+import MobileNavbar from "@/components/layout/MobileNavbar";
 import { useLocation } from "wouter";
 
 export default function MobileCalendarPage() {
@@ -34,11 +35,17 @@ export default function MobileCalendarPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <MobileDailyView
-        currentDate={currentDate}
-        onDateChange={handleDateChange}
-        onViewChange={handleViewChange}
-      />
+      {/* Main content with padding to accommodate bottom navbar */}
+      <div className="flex-1 pb-16">
+        <MobileDailyView
+          currentDate={currentDate}
+          onDateChange={handleDateChange}
+          onViewChange={handleViewChange}
+        />
+      </div>
+      
+      {/* Mobile navigation bar fixed at bottom */}
+      <MobileNavbar />
     </div>
   );
 }

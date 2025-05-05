@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { Sidebar } from "@/components/layout/Sidebar";
 import CalendarPage from "@/pages/CalendarPage";
+import MobileCalendarPage from "@/pages/MobileCalendarPage";
 import MyBookingsPage from "@/pages/MyBookingsPage";
 import TemplatesPage from "@/pages/TemplatesPage";
 import ReportsPage from "@/pages/ReportsPage";
@@ -17,9 +18,14 @@ import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import InvitePage from "@/pages/InvitePage";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
+import { useDevice } from "@/hooks/use-mobile";
 
 function Router() {
   const [location, setLocation] = useLocation();
+  const { isSmallScreen } = useDevice();
+  
+  // Choose the appropriate calendar component based on screen size
+  const CalendarComponent = isSmallScreen ? MobileCalendarPage : CalendarPage;
   
   return (
     <Switch>
@@ -28,8 +34,9 @@ function Router() {
       <Route path="/invite/:token" component={InvitePage} />
       <Route path="/reset-password/:token" component={ResetPasswordPage} />
       <Route path="/public-calendar" component={PublicCalendarPage} />
-      <ProtectedRoute path="/" component={CalendarPage} />
-      <ProtectedRoute path="/calendar" component={CalendarPage} />
+      <ProtectedRoute path="/" component={CalendarComponent} />
+      <ProtectedRoute path="/calendar" component={CalendarComponent} />
+      <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
       <ProtectedRoute path="/my-bookings" component={MyBookingsPage} />
       <ProtectedRoute path="/templates" component={TemplatesPage} />
       <ProtectedRoute path="/reports" component={ReportsPage} />
@@ -43,6 +50,7 @@ function Router() {
 function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [location] = useLocation();
+  const { isSmallScreen } = useDevice();
   
   // Check if we're on an auth page or public page (no sidebar needed)
   const isPublicPage = location === "/auth" || 
@@ -51,10 +59,17 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                      location.startsWith("/reset-password/") ||
                      location.startsWith("/invite/");
   
+  // Check if we're on the mobile-specific page (no sidebar needed)
+  const isMobilePage = location === "/mobile" || 
+                    (isSmallScreen && (location === "/" || location === "/calendar"));
+  
+  // Only show the sidebar when not on public pages or mobile pages
+  const showSidebar = !isPublicPage && !isMobilePage;
+  
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Only show sidebar and menu button when not on public pages */}
-      {!isPublicPage && (
+      {/* Only show sidebar and menu button when appropriate */}
+      {showSidebar && (
         <>
           {/* Mobile menu button */}
           <div className="lg:hidden absolute top-4 left-4 z-50">
@@ -74,7 +89,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       )}
       
       {/* Main Content - adjust margin based on whether sidebar is showing */}
-      <div className={`flex-1 ${!isPublicPage ? 'lg:ml-64' : ''} p-0`}>
+      <div className={`flex-1 ${showSidebar ? 'lg:ml-64' : ''} p-0`}>
         {children}
       </div>
     </div>
