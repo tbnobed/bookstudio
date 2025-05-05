@@ -479,108 +479,60 @@ export default function BookingModal({
                   />
                 </div>
                 
+                {/* Studios + Calendar section - Grid layout */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="studio" className="flex items-center">
-                        Studios <span className="text-red-500 ml-1">*</span>
-                      </Label>
-                      <div className="border rounded-md p-2 mt-1 space-y-2 max-h-40 overflow-y-auto">
-                        {studios.map((studio) => (
-                          <div key={studio.id} className="flex items-center space-x-2">
-                            <Checkbox 
-                              id={`studio-${studio.id}`} 
-                              checked={formData.studioIds.includes(studio.id.toString())}
-                              onCheckedChange={(checked) => {
-                                const studioId = studio.id.toString();
-                                let newStudioIds = [...formData.studioIds];
-                                
-                                if (checked) {
-                                  // Add studio to the list if not already included
-                                  if (!newStudioIds.includes(studioId)) {
-                                    newStudioIds.push(studioId);
-                                  }
-                                  // Also update main studioId for backward compatibility
-                                  updateFormField('studioId', studioId);
-                                } else {
-                                  // Remove studio from the list
-                                  newStudioIds = newStudioIds.filter(id => id !== studioId);
-                                  
-                                  // Update main studioId if it was the one removed
-                                  if (formData.studioId === studioId) {
-                                    // Set to first selected studio or empty
-                                    const newMainStudio = newStudioIds.length > 0 ? newStudioIds[0] : "";
-                                    updateFormField('studioId', newMainStudio);
-                                  }
+                  {/* Left column: Studios selection */}
+                  <div>
+                    <Label htmlFor="studio" className="flex items-center">
+                      Studios <span className="text-red-500 ml-1">*</span>
+                    </Label>
+                    <div className="border rounded-md p-2 mt-1 space-y-2 max-h-40 overflow-y-auto">
+                      {studios.map((studio) => (
+                        <div key={studio.id} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`studio-${studio.id}`} 
+                            checked={formData.studioIds.includes(studio.id.toString())}
+                            onCheckedChange={(checked) => {
+                              const studioId = studio.id.toString();
+                              let newStudioIds = [...formData.studioIds];
+                              
+                              if (checked) {
+                                // Add studio to the list if not already included
+                                if (!newStudioIds.includes(studioId)) {
+                                  newStudioIds.push(studioId);
                                 }
+                                // Also update main studioId for backward compatibility
+                                updateFormField('studioId', studioId);
+                              } else {
+                                // Remove studio from the list
+                                newStudioIds = newStudioIds.filter(id => id !== studioId);
                                 
-                                updateFormField('studioIds', newStudioIds);
-                              }}
-                            />
-                            <Label 
-                              htmlFor={`studio-${studio.id}`}
-                              className="text-sm cursor-pointer"
-                            >
-                              {studio.name}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                      {formData.studioIds.length === 0 && (
-                        <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="type">Booking Type</Label>
-                        <Select 
-                          value={formData.bookingType} 
-                          onValueChange={(value) => updateFormField('bookingType', value)} 
-                          required
-                        >
-                          <SelectTrigger id="type">
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {alertsOnly ? (
-                              <>
-                                <SelectItem value="maintenance">Maintenance</SelectItem>
-                                <SelectItem value="it_support">IT Support</SelectItem>
-                              </>
-                            ) : (
-                              <>
-                                <SelectItem value="production">Production</SelectItem>
-                                <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                              </>
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      {alertsOnly && (
-                        <div>
-                          <Label htmlFor="severity">Severity</Label>
-                          <Select 
-                            value={formData.severity} 
-                            onValueChange={(value) => updateFormField('severity', value)} 
-                            required
+                                // Update main studioId if it was the one removed
+                                if (formData.studioId === studioId) {
+                                  // Set to first selected studio or empty
+                                  const newMainStudio = newStudioIds.length > 0 ? newStudioIds[0] : "";
+                                  updateFormField('studioId', newMainStudio);
+                                }
+                              }
+                              
+                              updateFormField('studioIds', newStudioIds);
+                            }}
+                          />
+                          <Label 
+                            htmlFor={`studio-${studio.id}`}
+                            className="text-sm cursor-pointer"
                           >
-                            <SelectTrigger id="severity">
-                              <SelectValue placeholder="Select severity" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="low">Low</SelectItem>
-                              <SelectItem value="medium">Medium</SelectItem>
-                              <SelectItem value="high">High</SelectItem>
-                              <SelectItem value="critical">Critical</SelectItem>
-                            </SelectContent>
-                          </Select>
+                            {studio.name}
+                          </Label>
                         </div>
-                      )}
+                      ))}
                     </div>
+                    {formData.studioIds.length === 0 && (
+                      <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
+                    )}
                   </div>
                   
+                  {/* Right column: Date selection */}
                   <div>
                     <Label htmlFor="date">Date Selection</Label>
                     <div className="border rounded-md p-2 mt-1">
@@ -654,28 +606,79 @@ export default function BookingModal({
                       </div>
                     )}
                   </div>
-                  
+                </div>
+                
+                {/* Booking Type - below Studios */}
+                <div>
+                  <Label htmlFor="type">Booking Type</Label>
+                  <Select 
+                    value={formData.bookingType} 
+                    onValueChange={(value) => updateFormField('bookingType', value)} 
+                    required
+                  >
+                    <SelectTrigger id="type">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {alertsOnly ? (
+                        <>
+                          <SelectItem value="maintenance">Maintenance</SelectItem>
+                          <SelectItem value="it_support">IT Support</SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem value="production">Production</SelectItem>
+                          <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Show severity selector for alerts */}
+                {alertsOnly && (
                   <div>
-                    <Label htmlFor="template">Template (Optional)</Label>
+                    <Label htmlFor="severity">Severity</Label>
                     <Select 
-                      value={formData.templateId} 
-                      onValueChange={handleTemplateChange}
+                      value={formData.severity} 
+                      onValueChange={(value) => updateFormField('severity', value)} 
+                      required
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="None" />
+                      <SelectTrigger id="severity">
+                        <SelectValue placeholder="Select severity" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="0">None</SelectItem>
-                        {templates.map((template) => (
-                          <SelectItem key={template.id} value={template.id.toString()}>
-                            {template.name}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="critical">Critical</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                )}
+                
+                {/* Template Selection */}
+                <div>
+                  <Label htmlFor="template">Template (Optional)</Label>
+                  <Select 
+                    value={formData.templateId} 
+                    onValueChange={handleTemplateChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">None</SelectItem>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id.toString()}>
+                          {template.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
+                {/* PCR Room Selection */}
                 <div>
                   <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
                   <Select 
