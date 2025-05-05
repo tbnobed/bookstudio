@@ -426,6 +426,26 @@ export default function BookingModal({
                   </div>
                 </div>
                 
+                <div>
+                  <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                  <Select 
+                    value={formData.pcrRoomId} 
+                    onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {pcrRooms.map((pcrRoom) => (
+                        <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                          {pcrRoom.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="date">Date</Label>
@@ -457,6 +477,26 @@ export default function BookingModal({
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                  <Select 
+                    value={formData.pcrRoomId} 
+                    onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {pcrRooms.map((pcrRoom) => (
+                        <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                          {pcrRoom.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
