@@ -50,6 +50,32 @@ async function initDb() {
   });
 
   console.log('Engineer user created successfully!');
+
+  // Add a site manager user
+  const siteManagerPassword = await hashPassword('sitemanager123');
+  
+  await db.insert(users).values({
+    username: 'sitemanager',
+    password: siteManagerPassword,
+    email: 'sitemanager@example.com',
+    name: 'Site Manager User',
+    role: 'site_manager'
+  });
+
+  console.log('Site Manager user created successfully!');
+
+  // Add a producer user for testing
+  const producerPassword = await hashPassword('producer123');
+  
+  await db.insert(users).values({
+    username: 'producer',
+    password: producerPassword,
+    email: 'producer@example.com',
+    name: 'Producer User',
+    role: 'producer'
+  });
+
+  console.log('Producer user created successfully!');
   
   // Check if notification groups already exist
   const existingGroups = await db.select().from(notificationGroups).limit(1);
