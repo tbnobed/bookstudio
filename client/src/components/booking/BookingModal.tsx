@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { Studio, Template, InsertBooking } from "@shared/schema";
+import { Studio, Template, PcrRoom, InsertBooking } from "@shared/schema";
 import { z } from "zod";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { formatTime, generateTimeOptions, timeToDate } from "@/lib/dateUtils";
@@ -59,6 +59,7 @@ export default function BookingModal({
     title: "",
     description: "",
     studioId: selectedStudio?.toString() || "",
+    pcrRoomId: "",
     bookingType: alertsOnly ? "maintenance" : "production",
     date: formatDateForForm(selectedDate),
     startTime: "9:00am",
@@ -76,6 +77,11 @@ export default function BookingModal({
   // Fetch studios
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
+  });
+  
+  // Fetch PCR rooms
+  const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
+    queryKey: ["/api/pcr-rooms"],
   });
 
   // Get booking and template mutations
@@ -102,6 +108,9 @@ export default function BookingModal({
           studioId: (booking.studioId !== undefined 
             ? booking.studioId 
             : booking.studio_id) || null,
+          pcrRoomId: (booking.pcrRoomId !== undefined 
+            ? booking.pcrRoomId 
+            : booking.pcr_room_id) || null,
           type: booking.type || "",
           start: booking.start,
           end: booking.end,
@@ -128,6 +137,7 @@ export default function BookingModal({
           title: normalizedBooking.title,
           description: normalizedBooking.description,
           studioId: normalizedBooking.studioId ? normalizedBooking.studioId.toString() : "",
+          pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "",
           bookingType,
           date: dateStr,
           startTime: startTimeStr,
