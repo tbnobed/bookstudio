@@ -193,9 +193,13 @@ export async function sendInviteEmail(
   console.log('==================================');
   
   try {
+    // Use a default verified SendGrid sender email if none is specified
+    const senderEmail = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
+    console.log(`Using sender email: ${senderEmail}`);
+    
     const msg = {
       to,
-      from: 'alerts@obedtv.com',
+      from: senderEmail,
       subject: `You're invited to join BookStud.io as a ${displayRole}`,
       text: `${adminName} has invited you to join BookStud.io as a ${displayRole}. Please click the following link to create your account (valid for 7 days): ${fullInviteLink}`,
       html: `
@@ -213,10 +217,31 @@ export async function sendInviteEmail(
       `,
     };
     
-    await mailService.send(msg);
-    return true;
+    try {
+      await mailService.send(msg);
+      console.log('Invitation email sent successfully');
+      return true;
+    } catch (sendGridError: any) {
+      console.error('SendGrid error sending invitation email:', sendGridError);
+      
+      // Log the detailed error information
+      if (sendGridError.response) {
+        console.error('SendGrid API error details:');
+        console.error('Status code:', sendGridError.response.statusCode);
+        console.error('Body:', sendGridError.response.body);
+        console.error('Headers:', sendGridError.response.headers);
+      }
+      
+      // Fallback to console for development, ensuring the link information is preserved
+      console.log('\n===== FALLBACK EMAIL DELIVERY (EMAIL SERVICE ERROR) =====');
+      console.log('Since email delivery failed, you can manually copy the invitation link:');
+      console.log(`INVITATION LINK: ${fullInviteLink}`);
+      console.log('==========================================================\n');
+      
+      return false;
+    }
   } catch (error) {
-    console.error('Error sending invitation email:', error);
+    console.error('Error in sendInviteEmail function:', error);
     return false;
   }
 }
@@ -246,11 +271,13 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
   console.log('=================================');
   
   try {
+    // Use a default verified SendGrid sender email if none is specified
+    const senderEmail = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
+    console.log(`Using sender email for password reset: ${senderEmail}`);
     
-    // In production, we would use SendGrid
     const msg = {
       to,
-      from: 'alerts@obedtv.com', // This should be a verified sender in your SendGrid account
+      from: senderEmail,
       subject: 'Reset your BookStud.io password',
       text: `You requested a password reset for your BookStud.io account. Please click the following link to reset your password (valid for 30 minutes): ${fullResetLink}`,
       html: `
@@ -268,10 +295,31 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
       `,
     };
     
-    await mailService.send(msg);
-    return true;
+    try {
+      await mailService.send(msg);
+      console.log('Password reset email sent successfully');
+      return true;
+    } catch (sendGridError: any) {
+      console.error('SendGrid error sending password reset email:', sendGridError);
+      
+      // Log the detailed error information
+      if (sendGridError.response) {
+        console.error('SendGrid API error details:');
+        console.error('Status code:', sendGridError.response.statusCode);
+        console.error('Body:', sendGridError.response.body);
+        console.error('Headers:', sendGridError.response.headers);
+      }
+      
+      // Fallback to console for development, ensuring the link information is preserved
+      console.log('\n===== FALLBACK EMAIL DELIVERY (EMAIL SERVICE ERROR) =====');
+      console.log('Since email delivery failed, you can manually copy the reset link:');
+      console.log(`RESET LINK: ${fullResetLink}`);
+      console.log('==========================================================\n');
+      
+      return false;
+    }
   } catch (error) {
-    console.error('Error sending password reset email:', error);
+    console.error('Error in sendPasswordResetEmail function:', error);
     return false;
   }
 }
