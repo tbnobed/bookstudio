@@ -7,6 +7,7 @@ import { fileService, upload } from "./services/fileService";
 import { 
   insertUserSchema, 
   insertStudioSchema, 
+  insertPcrRoomSchema,
   insertTemplateSchema, 
   insertBookingSchema, 
   insertNotificationSchema,
