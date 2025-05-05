@@ -1013,7 +1013,7 @@ export default function BookingModal({
               </div>
             )}
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 mb-2">
               <div>
                 <Label htmlFor="date">Date</Label>
                 <Input
@@ -1022,6 +1022,7 @@ export default function BookingModal({
                   value={formData.date}
                   onChange={(e) => updateFormField('date', e.target.value)}
                   required
+                  disabled={formData.useMultiDateSelection}
                 />
               </div>
               
@@ -1044,6 +1045,45 @@ export default function BookingModal({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            
+            <div className="mb-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Checkbox 
+                  id="use-multi-date-new"
+                  checked={formData.useMultiDateSelection}
+                  onCheckedChange={(checked) => {
+                    updateFormField('useMultiDateSelection', checked === true);
+                    // Initialize selected dates with the currently selected date if toggling on
+                    if (checked === true && selectedDates.length === 0) {
+                      setSelectedDates([new Date(formData.date)]);
+                    }
+                  }}
+                />
+                <Label htmlFor="use-multi-date-new">Use multi-date selection</Label>
+              </div>
+              
+              {formData.useMultiDateSelection && (
+                <div className="border rounded-md p-4 mb-2 bg-background">
+                  <Label className="mb-2 block">Select multiple dates</Label>
+                  <DayPicker
+                    mode="multiple"
+                    selected={selectedDates}
+                    onSelect={(dates) => {
+                      // Ensure we always have at least one date selected
+                      setSelectedDates(dates || []);
+                    }}
+                    className="border-0 mx-auto"
+                    modifiersClassNames={{
+                      selected: 'bg-primary text-primary-foreground rounded-full',
+                      today: 'text-primary font-bold'
+                    }}
+                  />
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Selected {selectedDates.length} date(s). A separate booking will be created for each date.
+                  </p>
+                </div>
+              )}
             </div>
             
             <div className="grid grid-cols-2 gap-4">
