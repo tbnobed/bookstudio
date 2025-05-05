@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileAttachment } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 export type FileUploadParams = {
   bookingId: number;
@@ -28,18 +28,41 @@ export function useFileAttachments(bookingId?: number) {
   console.log(`[useFileAttachments] Fetching attachments for booking ID: ${bookingId || 'none'}`);
   console.log(`[useFileAttachments] Using query key:`, queryKey);
     
+  // Custom data validator to ensure we're only working with valid file attachments
+  const validateAttachments = (data: any): FileAttachment[] => {
+    if (!Array.isArray(data)) {
+      console.error('[useFileAttachments] Response is not an array:', data);
+      return [];
+    }
+    
+    // Filter to only include data that matches the FileAttachment shape
+    return data.filter(item => 
+      item && 
+      typeof item === 'object' && 
+      typeof item.id === 'number' &&
+      typeof item.fileName === 'string' &&
+      typeof item.fileSize === 'number' &&
+      item.mimeType !== undefined
+    );
+  };
+  
   // Fetch attachments for the booking
   const { 
-    data: attachments = [], 
+    data: rawAttachments = [], 
     isLoading, 
     error,
     isError
-  } = useQuery<FileAttachment[]>({
+  } = useQuery<any[], Error>({
     queryKey,
     staleTime: 1000 * 60, // 1 minute
     retry: false, // Don't retry if we get an error (like 401)
     enabled: !!bookingId, // Only run query if bookingId is provided
   });
+  
+  // Process and validate the attachments
+  const attachments = useMemo(() => {
+    return validateAttachments(rawAttachments);
+  }, [rawAttachments]);
 
   // Upload file mutation
   const uploadFileMutation = useMutation({

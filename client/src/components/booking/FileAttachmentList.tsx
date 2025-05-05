@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFileAttachments } from "@/hooks/use-file-attachments";
 import { Button } from "@/components/ui/button";
 import { 
@@ -46,21 +46,15 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
   const [fileToDelete, setFileToDelete] = useState<FileAttachment | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   
-  // DEBUG: Log the attachments data
-  console.log(`[FileAttachmentList] bookingId: ${bookingId}, attachments:`, attachments);
-  console.log(`[FileAttachmentList] isLoading: ${isLoading}, isError: ${isError}`);
-  if (error) console.log(`[FileAttachmentList] error:`, error);
+  // Log the attachments data for debugging - we'll remove this later
+  console.log(`[FileAttachmentList] bookingId: ${bookingId}, attachments count: ${attachments.length}`);
   
-  // Ensure attachments is always an array and filter out invalid entries
-  const validAttachments = Array.isArray(attachments) 
-    ? attachments.filter(attachment => 
-        attachment && 
-        typeof attachment === 'object' && 
-        typeof attachment.id === 'number'
-      ) 
-    : [];
-    
-  console.log(`[FileAttachmentList] validAttachments:`, validAttachments);
+  // Enrich the attachments with additional information if needed
+  useEffect(() => {
+    if (attachments.length > 0) {
+      console.log(`[FileAttachmentList] We have ${attachments.length} valid attachments`);
+    }
+  }, [attachments]);
 
   // Format file size for display
   const formatFileSize = (bytes: number) => {
@@ -100,7 +94,7 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">
-          Attachments {validAttachments.length > 0 && `(${validAttachments.length})`}
+          Attachments {attachments.length > 0 && `(${attachments.length})`}
         </h3>
         
         {!readOnly && (
@@ -138,7 +132,7 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
             Please try again later or contact support if the issue persists.
           </p>
         </div>
-      ) : validAttachments.length === 0 ? (
+      ) : attachments.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-center text-gray-500 border rounded-lg border-dashed">
           <FilePlus className="h-12 w-12 mb-2 text-gray-400" />
           <h3 className="text-sm font-medium">No attachments yet</h3>
@@ -163,7 +157,7 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
       ) : (
         <ScrollArea className="h-[300px] rounded-md border p-2">
           <div className="space-y-2">
-            {validAttachments.map((file) => (
+            {attachments.map((file: FileAttachment) => (
               <div
                 key={file.id}
                 className="flex items-center justify-between p-3 rounded-md border hover:bg-gray-50"

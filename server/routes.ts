@@ -1156,14 +1156,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bookings/:bookingId/attachments", isAuthenticated, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.bookingId);
+      console.log(`[API] Fetching attachments for booking ID: ${bookingId}`);
 
       // Check if booking exists
       const booking = await storage.getBooking(bookingId);
       if (!booking) {
+        console.log(`[API] Booking not found with ID: ${bookingId}`);
         return res.status(404).json({ message: "Booking not found" });
       }
 
+      // Get attachments from fileService
       const attachments = await fileService.getFileAttachments(bookingId);
+      console.log(`[API] Found ${attachments.length} attachments for booking ID: ${bookingId}`);
+      
+      // Return only the attachments
       res.json(attachments);
     } catch (error) {
       console.error("Error fetching attachments:", error);
