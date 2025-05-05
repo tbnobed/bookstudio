@@ -128,6 +128,31 @@ export class ResourceService {
       
       if (existingResource.length === 0) {
         console.log(`[ResourceService] No booking resource found with ID: ${id}`);
+        
+        // Try a direct SQL query to check if the resource exists, bypassing ORM layer
+        try {
+          const checkResult = await db.execute(
+            sql`SELECT COUNT(*) AS count FROM booking_resources WHERE id = ${id}`
+          );
+          
+          const rawCount = checkResult?.rows?.[0]?.count;
+          console.log(`[ResourceService] Raw SQL check for ID ${id} result:`, rawCount);
+          
+          if (rawCount && Number(rawCount) > 0) {
+            // Resource exists but ORM couldn't find it, try direct deletion
+            console.log(`[ResourceService] Found booking resource with ID: ${id} using raw SQL, attempting direct deletion`);
+            
+            const deleteResult = await db.execute(
+              sql`DELETE FROM booking_resources WHERE id = ${id}`
+            );
+            
+            console.log(`[ResourceService] Raw SQL deletion result:`, deleteResult);
+            return true;
+          }
+        } catch (sqlError) {
+          console.error(`[ResourceService] Error in raw SQL check/delete for resource ${id}:`, sqlError);
+        }
+        
         return false;
       }
       
@@ -141,10 +166,44 @@ export class ResourceService {
       const success = result.length > 0;
       console.log(`[ResourceService] Deletion ${success ? 'successful' : 'failed'} for booking resource ID: ${id}`);
       
+      // Double check deletion even if ORM says it succeeded
+      if (success) {
+        const checkAfterDeletion = await db.select()
+          .from(bookingResources)
+          .where(eq(bookingResources.id, id))
+          .limit(1);
+        
+        if (checkAfterDeletion.length > 0) {
+          console.log(`[ResourceService] WARNING: Resource ${id} still exists after deletion was reported as successful`);
+          
+          // Try direct SQL deletion as a final attempt
+          try {
+            await db.execute(
+              sql`DELETE FROM booking_resources WHERE id = ${id}`
+            );
+            console.log(`[ResourceService] Attempted final direct SQL deletion for resource ${id}`);
+          } catch (finalError) {
+            console.error(`[ResourceService] Error in final direct SQL deletion for resource ${id}:`, finalError);
+          }
+        }
+      }
+      
       return success;
     } catch (error) {
       console.error(`[ResourceService] Error removing booking resource ${id}:`, error);
-      return false;
+      
+      // Try one last approach directly with SQL
+      try {
+        console.log(`[ResourceService] Attempting direct SQL deletion as fallback for resource ${id}`);
+        await db.execute(
+          sql`DELETE FROM booking_resources WHERE id = ${id}`
+        );
+        console.log(`[ResourceService] Direct SQL deletion fallback attempted for resource ${id}`);
+        return true;
+      } catch (fallbackError) {
+        console.error(`[ResourceService] Error in fallback direct SQL deletion for resource ${id}:`, fallbackError);
+        return false;
+      }
     }
   }
   
@@ -167,15 +226,56 @@ export class ResourceService {
         return true;
       }
       
-      // Delete the resources
-      const result = await db.delete(bookingResources)
-        .where(eq(bookingResources.bookingId, bookingId))
-        .returning();
+      // Get the IDs of resources we're about to delete (for logging purposes)
+      const resourcesBeingRemoved = await db.select({ id: bookingResources.id, resourceId: bookingResources.resourceId })
+        .from(bookingResources)
+        .where(eq(bookingResources.bookingId, bookingId));
       
-      const success = result.length > 0;
-      console.log(`[ResourceService] Deletion of all resources ${success ? 'successful' : 'failed'} for booking ID: ${bookingId}, removed ${result.length} resources`);
+      console.log(`[ResourceService] Removing the following booking resources for booking ID ${bookingId}:`, 
+        resourcesBeingRemoved.map(r => `BR ID: ${r.id}, Resource ID: ${r.resourceId}`).join(', '));
       
-      return success;
+      // Delete the resources - use a try/catch here to ensure we delete as much as possible
+      try {
+        // Try to delete using a direct SQL query instead of the ORM to bypass any potential ORM issues
+        const deleteResult = await db.execute(
+          sql`DELETE FROM booking_resources WHERE booking_id = ${bookingId}`
+        );
+        
+        console.log(`[ResourceService] Raw SQL deletion result:`, deleteResult);
+        
+        // Double-check the deletion was successful
+        const remainingResources = await db.select({ count: sql`count(*)` })
+          .from(bookingResources)
+          .where(eq(bookingResources.bookingId, bookingId));
+        
+        const remainingCount = Number(remainingResources[0]?.count || 0);
+        const success = remainingCount === 0;
+        
+        console.log(`[ResourceService] Delete all operation ${success ? 'successful' : 'failed'} for booking ID: ${bookingId}. ${count - remainingCount} resources removed, ${remainingCount} remaining.`);
+        
+        return success;
+      } catch (deleteError) {
+        console.error(`[ResourceService] Error during SQL delete operation:`, deleteError);
+        
+        // Fallback approach: try to delete resources one by one
+        console.log(`[ResourceService] Attempting fallback: deleting resources one by one`);
+        let deletedCount = 0;
+        
+        for (const resource of resourcesBeingRemoved) {
+          try {
+            await db.delete(bookingResources)
+              .where(eq(bookingResources.id, resource.id));
+            
+            deletedCount++;
+            console.log(`[ResourceService] Successfully deleted booking resource ID ${resource.id}`);
+          } catch (individualError) {
+            console.error(`[ResourceService] Failed to delete booking resource ID ${resource.id}:`, individualError);
+          }
+        }
+        
+        console.log(`[ResourceService] Fallback deletion complete. Deleted ${deletedCount}/${resourcesBeingRemoved.length} resources`);
+        return deletedCount > 0;
+      }
     } catch (error) {
       console.error(`[ResourceService] Error removing all resources for booking ${bookingId}:`, error);
       return false;

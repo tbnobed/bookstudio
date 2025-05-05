@@ -256,6 +256,11 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
                   <AlertDialogTitle>Remove All Resources</AlertDialogTitle>
                   <AlertDialogDescription>
                     Are you sure you want to remove all resources from this booking? This action cannot be undone.
+                    {bookingResources.some(br => !br.resource || !br.resource.name) && (
+                      <p className="mt-2 text-amber-500">
+                        Some resources appear to be invalid or corrupted. Using "Remove All" is recommended to clean up all resources.
+                      </p>
+                    )}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -291,28 +296,32 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
                   <div className="font-medium">
                     {bookingResource.resource && bookingResource.resource.name 
                       ? bookingResource.resource.name 
-                      : `Resource ID: ${bookingResource.resourceId}`}
+                      : bookingResource.resourceId 
+                        ? `Resource ID: ${bookingResource.resourceId}` 
+                        : "Invalid Resource"}
                   </div>
                   {bookingResource.notes && (
                     <div className="text-sm text-muted-foreground mt-1">{bookingResource.notes}</div>
                   )}
                   {(!bookingResource.resource || !bookingResource.resource.name) && (
                     <div className="text-sm text-amber-500 font-medium mt-1">
-                      Resource data missing - please refresh
+                      Resource data missing or corrupt. Please remove and re-add this resource.
                     </div>
                   )}
                 </div>
                 <div className="px-3 py-1 bg-secondary rounded-md text-center">
-                  {bookingResource.quantity}
+                  {bookingResource.quantity || 0}
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEditDialog(bookingResource)}
-                  >
-                    <FileEdit className="h-4 w-4" />
-                  </Button>
+                  {bookingResource.resource && bookingResource.resource.name && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(bookingResource)}
+                    >
+                      <FileEdit className="h-4 w-4" />
+                    </Button>
+                  )}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" size="sm">
@@ -323,7 +332,14 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
                       <AlertDialogHeader>
                         <AlertDialogTitle>Remove Resource</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to remove "{bookingResource.resource && bookingResource.resource.name ? bookingResource.resource.name : 'this resource'}" from this booking?
+                          {bookingResource.resource && bookingResource.resource.name 
+                            ? `Are you sure you want to remove "${bookingResource.resource.name}" from this booking?`
+                            : "Are you sure you want to remove this resource from the booking?"}
+                          {(!bookingResource.resource || !bookingResource.resource.name) && (
+                            <p className="mt-2 text-amber-500">
+                              This resource appears to be invalid or corrupted. Removing it is recommended.
+                            </p>
+                          )}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
