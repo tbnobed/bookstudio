@@ -281,10 +281,17 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
                 </Badge>
                 <div>
                   <div className="font-medium">
-                    {bookingResource.resource && bookingResource.resource.name ? bookingResource.resource.name : "Unknown Resource"}
+                    {bookingResource.resource && bookingResource.resource.name 
+                      ? bookingResource.resource.name 
+                      : `Resource ID: ${bookingResource.resourceId}`}
                   </div>
                   {bookingResource.notes && (
                     <div className="text-sm text-muted-foreground mt-1">{bookingResource.notes}</div>
+                  )}
+                  {(!bookingResource.resource || !bookingResource.resource.name) && (
+                    <div className="text-sm text-amber-500 font-medium mt-1">
+                      Resource data missing - please refresh
+                    </div>
                   )}
                 </div>
                 <div className="px-3 py-1 bg-secondary rounded-md text-center">

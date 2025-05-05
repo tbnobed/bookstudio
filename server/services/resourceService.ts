@@ -52,28 +52,51 @@ export class ResourceService {
   
   // Get resources for a booking
   async getResourcesForBooking(bookingId: number): Promise<(BookingResource & { resource: Resource })[]> {
-    const results = await db.select()
-      .from(bookingResources)
-      .innerJoin(resources, eq(bookingResources.resourceId, resources.id))
-      .where(eq(bookingResources.bookingId, bookingId));
+    console.log(`[ResourceService] Getting resources for booking: ${bookingId}`);
     
-    return results.map(row => ({
-      id: row.booking_resources.id,
-      bookingId: row.booking_resources.bookingId,
-      resourceId: row.booking_resources.resourceId,
-      quantity: row.booking_resources.quantity,
-      notes: row.booking_resources.notes,
-      resource: {
-        id: row.resources.id,
-        name: row.resources.name,
-        description: row.resources.description,
-        category: row.resources.category,
-        quantity: row.resources.quantity,
-        isAvailable: row.resources.isAvailable,
-        createdAt: row.resources.createdAt,
-        updatedAt: row.resources.updatedAt
-      }
-    }));
+    try {
+      const results = await db.select()
+        .from(bookingResources)
+        .innerJoin(resources, eq(bookingResources.resourceId, resources.id))
+        .where(eq(bookingResources.bookingId, bookingId));
+      
+      console.log(`[ResourceService] Found ${results.length} resources for booking ${bookingId}`);
+      
+      // Transform the results with explicit field names to avoid missing data
+      const transformedResults = results.map(row => {
+        const bookingResource = {
+          id: row.booking_resources.id,
+          bookingId: row.booking_resources.bookingId,
+          resourceId: row.booking_resources.resourceId,
+          quantity: row.booking_resources.quantity,
+          notes: row.booking_resources.notes,
+          resource: {
+            id: row.resources.id,
+            name: row.resources.name,
+            description: row.resources.description,
+            category: row.resources.category,
+            quantity: row.resources.quantity,
+            isAvailable: row.resources.isAvailable,
+            createdAt: row.resources.createdAt,
+            updatedAt: row.resources.updatedAt
+          }
+        };
+        
+        console.log(`[ResourceService] Resource mapping: ${JSON.stringify({
+          brId: bookingResource.id,
+          resourceId: bookingResource.resourceId,
+          resourceName: bookingResource.resource.name,
+          resourceCategory: bookingResource.resource.category
+        })}`);
+        
+        return bookingResource;
+      });
+      
+      return transformedResults;
+    } catch (error) {
+      console.error(`[ResourceService] Error getting resources for booking ${bookingId}:`, error);
+      return []; // Return empty array on error
+    }
   }
   
   // Add resource to booking

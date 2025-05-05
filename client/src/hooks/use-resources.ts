@@ -37,9 +37,11 @@ export function useResources() {
       queryKey: ['/api/bookings', bookingId, 'resources'],
       enabled: !!bookingId,
       staleTime: 1000, // 1 second - shorter stale time for more frequent refetches
-      retry: 1, // Allow one retry
+      retry: 2, // Allow two retries
+      retryDelay: 1000, // Retry after 1 second
       initialData: [], // Return empty array as fallback data
-      refetchOnMount: 'always' // Always refetch when component mounts
+      refetchOnMount: 'always', // Always refetch when component mounts
+      refetchOnWindowFocus: true // Also refetch when window gains focus
     });
     
     // If any resource is missing its resource data, force a refetch
@@ -48,16 +50,42 @@ export function useResources() {
         const hasMissingResource = data.some(item => !item.resource || !item.resource.name);
         if (hasMissingResource) {
           console.log('Detected resource with missing data, forcing refetch');
-          // Force immediate refetch
-          queryClient.invalidateQueries({ 
-            queryKey: ['/api/bookings', bookingId, 'resources'],
-            refetchType: 'active'
-          });
+          
+          // Add a small delay before refetching to allow server time to process
+          const timeoutId = setTimeout(() => {
+            queryClient.invalidateQueries({ 
+              queryKey: ['/api/bookings', bookingId, 'resources'],
+              refetchType: 'active'
+            });
+          }, 1500);
+          
+          return () => clearTimeout(timeoutId);
         }
       }
-    }, [data, bookingId]);
+    }, [data, bookingId, queryClient]);
     
-    return { data, ...rest };
+    // Process the data to ensure there are no missing resources
+    const processedData = data?.map(bookingResource => {
+      // If resource data is missing, create a placeholder with the ID
+      if (!bookingResource.resource) {
+        return {
+          ...bookingResource,
+          resource: {
+            id: bookingResource.resourceId,
+            name: `Resource ID: ${bookingResource.resourceId}`,
+            description: 'Resource data unavailable',
+            category: 'unknown',
+            quantity: 0,
+            isAvailable: false,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        };
+      }
+      return bookingResource;
+    });
+    
+    return { data: processedData, ...rest };
   };
 
   // Create resource mutation
