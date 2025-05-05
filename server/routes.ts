@@ -597,13 +597,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.query.start && req.query.end) {
         const start = new Date(req.query.start as string);
         const end = new Date(req.query.end as string);
-        bookings = await storage.getBookingsByDateRange(start, end);
+        
+        // Get regular bookings in the date range
+        const regularBookings = await storage.getBookingsByDateRange(start, end);
+        
+        // Get all bookings that might have additional dates in the range
+        const allBookings = await storage.getAllBookings();
+        const bookingsWithDates = [];
+        
+        // Process all bookings to find those with custom dates in the range
+        for (const booking of allBookings) {
+          // Skip bookings already included in regular bookings
+          if (regularBookings.some(rb => rb.id === booking.id)) {
+            continue;
+          }
+          
+          // Get custom dates for this booking
+          const bookingDates = await storage.getBookingDates(booking.id);
+          
+          // Check if any of the custom dates fall within the requested range
+          const inRange = bookingDates.some(bd => {
+            const dateObj = new Date(bd.date);
+            return dateObj >= start && dateObj <= end;
+          });
+          
+          if (inRange) {
+            bookingsWithDates.push(booking);
+          }
+        }
+        
+        // Combine regular bookings and those with custom dates in range
+        bookings = [...regularBookings, ...bookingsWithDates];
+        console.log(`Found ${regularBookings.length} regular bookings and ${bookingsWithDates.length} bookings with custom dates in range`);
       } else {
         bookings = await storage.getAllBookings();
       }
       
       res.json(bookings);
     } catch (error) {
+      console.error("Error fetching bookings:", error);
       res.status(500).json({ message: "Failed to fetch bookings" });
     }
   });
@@ -621,8 +653,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const end = new Date(req.query.end as string);
         console.log(`[Public Bookings] Date range: ${start.toISOString()} - ${end.toISOString()}`);
         
-        bookings = await storage.getBookingsByDateRange(start, end);
-        console.log(`[Public Bookings] Found ${bookings.length} bookings in date range`);
+        // Get regular bookings in the date range
+        const regularBookings = await storage.getBookingsByDateRange(start, end);
+        
+        // Get all bookings that might have additional dates in the range
+        const allBookings = await storage.getAllBookings();
+        const bookingsWithDates = [];
+        
+        // Process all bookings to find those with custom dates in the range
+        for (const booking of allBookings) {
+          // Skip bookings already included in regular bookings
+          if (regularBookings.some(rb => rb.id === booking.id)) {
+            continue;
+          }
+          
+          // Get custom dates for this booking
+          const bookingDates = await storage.getBookingDates(booking.id);
+          
+          // Check if any of the custom dates fall within the requested range
+          const inRange = bookingDates.some(bd => {
+            const dateObj = new Date(bd.date);
+            return dateObj >= start && dateObj <= end;
+          });
+          
+          if (inRange) {
+            bookingsWithDates.push(booking);
+          }
+        }
+        
+        // Combine regular bookings and those with custom dates in range
+        bookings = [...regularBookings, ...bookingsWithDates];
+        console.log(`[Public Bookings] Found ${regularBookings.length} regular bookings and ${bookingsWithDates.length} bookings with custom dates in range`);
       } else {
         console.log("[Public Bookings] No date range provided, fetching all bookings");
         bookings = await storage.getAllBookings();
