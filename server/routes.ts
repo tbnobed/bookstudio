@@ -1494,13 +1494,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bookingId = parseInt(req.params.bookingId);
       console.log(`[API] Attempting to remove all resources from booking ID: ${bookingId}`);
       
-      // First check if the booking exists
-      const booking = await db.select()
-        .from(bookings)
-        .where(eq(bookings.id, bookingId))
-        .limit(1);
-        
-      if (booking.length === 0) {
+      // Check if the booking exists in storage
+      const booking = await storage.getBooking(bookingId);
+      
+      if (!booking) {
         console.log(`[API] Cannot delete resources: Booking ID ${bookingId} not found`);
         return res.status(404).json({ message: "Booking not found" });
       }

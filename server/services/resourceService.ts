@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { resources, bookingResources, Resource, InsertResource, BookingResource, InsertBookingResource } from '@shared/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 
 export class ResourceService {
   // Get all resources

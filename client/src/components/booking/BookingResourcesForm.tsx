@@ -177,27 +177,35 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
   // Handle removing a resource from the booking
   const handleRemoveResource = async (id: number) => {
     try {
+      console.log(`Attempting to remove booking resource ID: ${id} from booking ID: ${booking.id}`);
       await removeBookingResourceMutation.mutateAsync({
         id,
         bookingId: booking.id,
       });
       
       // Manually refetch the booking resources to ensure we have the latest data
+      console.log('Resource removed, now refetching booking resources');
       await refetchBookingResources();
     } catch (error) {
       console.error('Failed to remove resource from booking:', error);
+      // The error will be handled by the mutation's onError callback,
+      // which will display a toast notification
     }
   };
 
   // Handle removing all resources from the booking
   const handleRemoveAllResources = async () => {
     try {
+      console.log(`Attempting to remove all resources from booking ID: ${booking.id}`);
       await removeAllBookingResourcesMutation.mutateAsync(booking.id);
       
       // Manually refetch the booking resources to ensure we have the latest data
+      console.log('All resources removed, now refetching booking resources');
       await refetchBookingResources();
     } catch (error) {
       console.error('Failed to remove all resources from booking:', error);
+      // The error will be handled by the mutation's onError callback,
+      // which will display a toast notification
     }
   };
 
