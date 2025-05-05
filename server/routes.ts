@@ -1492,8 +1492,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/bookings/:bookingId/resources", isAuthenticated, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.bookingId);
+      console.log(`[API] Attempting to remove all resources from booking ID: ${bookingId}`);
+      
+      // First check if the booking exists
+      const booking = await db.select()
+        .from(bookings)
+        .where(eq(bookings.id, bookingId))
+        .limit(1);
+        
+      if (booking.length === 0) {
+        console.log(`[API] Cannot delete resources: Booking ID ${bookingId} not found`);
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
       const deleted = await resourceService.removeAllResourcesFromBooking(bookingId);
       
+      if (!deleted) {
+        // This will now be rare due to our improved service implementation
+        return res.status(500).json({ 
+          message: "Failed to remove all resources from booking, please check server logs" 
+        });
+      }
+      
+      console.log(`[API] Successfully removed all resources from booking ID: ${bookingId}`);
       res.json({ message: "All resources removed from booking successfully" });
     } catch (error) {
       console.error("Error removing all resources from booking:", error);

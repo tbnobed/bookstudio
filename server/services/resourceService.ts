@@ -117,17 +117,69 @@ export class ResourceService {
   
   // Remove resource from booking
   async removeResourceFromBooking(id: number): Promise<boolean> {
-    const result = await db.delete(bookingResources).where(eq(bookingResources.id, id)).returning();
-    return result.length > 0;
+    console.log(`[ResourceService] Attempting to remove booking resource with ID: ${id}`);
+    
+    try {
+      // First check if the resource exists
+      const existingResource = await db.select()
+        .from(bookingResources)
+        .where(eq(bookingResources.id, id))
+        .limit(1);
+      
+      if (existingResource.length === 0) {
+        console.log(`[ResourceService] No booking resource found with ID: ${id}`);
+        return false;
+      }
+      
+      console.log(`[ResourceService] Found booking resource with ID: ${id}, proceeding with deletion`);
+      
+      // Delete the resource
+      const result = await db.delete(bookingResources)
+        .where(eq(bookingResources.id, id))
+        .returning();
+      
+      const success = result.length > 0;
+      console.log(`[ResourceService] Deletion ${success ? 'successful' : 'failed'} for booking resource ID: ${id}`);
+      
+      return success;
+    } catch (error) {
+      console.error(`[ResourceService] Error removing booking resource ${id}:`, error);
+      return false;
+    }
   }
   
   // Remove all resources from a booking
   async removeAllResourcesFromBooking(bookingId: number): Promise<boolean> {
-    const result = await db.delete(bookingResources)
-      .where(eq(bookingResources.bookingId, bookingId))
-      .returning();
+    console.log(`[ResourceService] Attempting to remove all resources from booking ID: ${bookingId}`);
     
-    return result.length > 0;
+    try {
+      // First check if there are any resources to delete
+      const resources = await db.select({ count: sql`count(*)` })
+        .from(bookingResources)
+        .where(eq(bookingResources.bookingId, bookingId));
+      
+      const count = Number(resources[0]?.count || 0);
+      console.log(`[ResourceService] Found ${count} resources to delete for booking ID: ${bookingId}`);
+      
+      if (count === 0) {
+        // No resources found, consider this a successful operation
+        console.log(`[ResourceService] No resources found for booking ID: ${bookingId}, no deletion needed`);
+        return true;
+      }
+      
+      // Delete the resources
+      const result = await db.delete(bookingResources)
+        .where(eq(bookingResources.bookingId, bookingId))
+        .returning();
+      
+      const success = result.length > 0;
+      console.log(`[ResourceService] Deletion of all resources ${success ? 'successful' : 'failed'} for booking ID: ${bookingId}, removed ${result.length} resources`);
+      
+      return success;
+    } catch (error) {
+      console.error(`[ResourceService] Error removing all resources for booking ${bookingId}:`, error);
+      return false;
+    }
   }
 }
 

@@ -259,8 +259,20 @@ export function useResources() {
   // Remove resource from booking mutation
   const removeBookingResourceMutation = useMutation({
     mutationFn: async ({ id, bookingId }: { id: number; bookingId: number }) => {
-      await apiRequest('DELETE', `/api/bookings/${bookingId}/resources/${id}`);
-      return id; // Return the ID for use in onSuccess
+      try {
+        const response = await apiRequest('DELETE', `/api/bookings/${bookingId}/resources/${id}`);
+        
+        // Check if the response is not ok (4xx or 5xx status code)
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to remove resource');
+        }
+        
+        return id; // Return the ID for use in onSuccess
+      } catch (error) {
+        console.error('Error removing booking resource:', error);
+        throw error;
+      }
     },
     onSuccess: (deletedId, variables) => {
       const queryKey = ['/api/bookings', variables.bookingId, 'resources'];
@@ -283,9 +295,10 @@ export function useResources() {
       });
     },
     onError: (error: Error) => {
+      console.error('Resource removal mutation error:', error);
       toast({
         title: 'Failed to remove resource',
-        description: error.message,
+        description: error.message || 'There was an error removing the resource. Please try again.',
         variant: 'destructive',
       });
     },
@@ -294,8 +307,20 @@ export function useResources() {
   // Remove all resources from booking mutation
   const removeAllBookingResourcesMutation = useMutation({
     mutationFn: async (bookingId: number) => {
-      await apiRequest('DELETE', `/api/bookings/${bookingId}/resources`);
-      return bookingId;
+      try {
+        const response = await apiRequest('DELETE', `/api/bookings/${bookingId}/resources`);
+        
+        // Check if the response is not ok (4xx or 5xx status code)
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to remove all resources');
+        }
+        
+        return bookingId;
+      } catch (error) {
+        console.error('Error removing all booking resources:', error);
+        throw error;
+      }
     },
     onSuccess: (bookingId) => {
       const queryKey = ['/api/bookings', bookingId, 'resources'];
@@ -312,9 +337,10 @@ export function useResources() {
       });
     },
     onError: (error: Error) => {
+      console.error('All resources removal mutation error:', error);
       toast({
         title: 'Failed to remove resources',
-        description: error.message,
+        description: error.message || 'There was an error removing the resources. Please try again.',
         variant: 'destructive',
       });
     },
