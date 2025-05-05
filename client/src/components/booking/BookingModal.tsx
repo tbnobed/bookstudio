@@ -329,7 +329,15 @@ export default function BookingModal({
     // Add dates array if multi-date selection is used
     if (formData.dates.length > 0) {
       // Convert string dates to Date objects for the API
-      bookingData.dates = formData.dates.map(dateStr => new Date(dateStr));
+      // Apply a 1-day offset to fix the date-shift issue when storing in the database
+      // IMPORTANT: This fixes the issue where the backend gets dates 1 day earlier than what user selects
+      bookingData.dates = formData.dates.map(dateStr => {
+        const dateObj = new Date(dateStr);
+        // Add 1 day to compensate for the off-by-one issue
+        dateObj.setDate(dateObj.getDate() + 1);
+        console.log(`API booking date: adjusting ${dateStr} to ${dateObj.toISOString()}`);
+        return dateObj;
+      });
     }
     
     // Set the primary studioId (for backward compatibility)
@@ -384,8 +392,14 @@ export default function BookingModal({
         // Create new booking for each date if multi-date is used, otherwise create one booking
         console.log(`Creating new booking with studios:`, studioIds);
         
+        // Apply the same +1 day adjustment for dates in the summary calculation
         const dates = formData.dates.length > 0 ? 
-          formData.dates.map(date => timeToDate(date, formData.startTime).toISOString().split('T')[0]) : 
+          formData.dates.map(date => {
+            // Add 1 day to match what users select visually
+            const adjustedDate = new Date(date);
+            adjustedDate.setDate(adjustedDate.getDate() + 1);
+            return timeToDate(adjustedDate.toISOString().split('T')[0], formData.startTime).toISOString().split('T')[0];
+          }) : 
           [startDate.toISOString().split('T')[0]];
           
         console.log(`Will create ${dates.length} bookings for dates:`, dates);
@@ -407,8 +421,16 @@ export default function BookingModal({
         } else {
           // Create a separate booking for each date
           for (const dateStr of formData.dates) {
-            const currentStartDate = timeToDate(dateStr, formData.startTime);
-            const currentEndDate = timeToDate(dateStr, formData.endTime);
+            // Apply a +1 day adjustment to fix the one-day offset issue
+            const adjustedDateStr = new Date(dateStr);
+            adjustedDateStr.setDate(adjustedDateStr.getDate() + 1);
+            console.log(`Adjusting individual booking date: ${dateStr} -> ${adjustedDateStr.toISOString()}`);
+            
+            // Format as YYYY-MM-DD for timeToDate function
+            const formattedAdjustedDate = adjustedDateStr.toISOString().split('T')[0];
+            
+            const currentStartDate = timeToDate(formattedAdjustedDate, formData.startTime);
+            const currentEndDate = timeToDate(formattedAdjustedDate, formData.endTime);
             
             const currentBookingData = {
               ...bookingData,
@@ -569,18 +591,13 @@ export default function BookingModal({
                     <div className="border rounded-md p-2 mt-1">
                       <DayPicker
                         mode="multiple"
-                        selected={formData.dates.map(date => {
-                          // Convert the string dates to Date objects for display in the DayPicker
-                          // No need to adjust - just use the date as displayed in the browser
-                          return new Date(date);
-                        })}
+                        selected={formData.dates.map(date => new Date(date))}
                         onSelect={(selectedDays) => {
                           if (selectedDays) {
                             // Log the raw selected days for debugging
                             console.log("Raw selected days:", Array.from(selectedDays).map(d => d.toString()));
                             
                             // Convert the selected days to strings in the required format
-                            // Don't adjust the date, just format what the user selected
                             const formattedDates = Array.from(selectedDays).map(date => {
                               const formatted = formatDateForForm(date);
                               console.log("Selected date formatting:", date.toString(), "formatted as:", formatted);
@@ -632,12 +649,18 @@ export default function BookingModal({
                         <p className="text-sm font-medium mb-1">Selected Dates:</p>
                         <div className="space-y-1">
                           {formData.dates.map(date => {
-                            // Use the date as is - no adjustment needed
+                            // Use the date directly, but format it nicely for display
                             const displayDate = new Date(date);
+                            const options: Intl.DateTimeFormatOptions = { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            };
                             
                             return (
                               <div key={date} className="flex items-center justify-between text-sm bg-muted p-1 px-2 rounded">
-                                <span>{displayDate.toLocaleDateString()}</span>
+                                <span>{displayDate.toLocaleDateString(undefined, options)}</span>
                                 <Button
                                   type="button"
                                   variant="ghost"
