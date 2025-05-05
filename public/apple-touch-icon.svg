@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <rect width="180" height="180" rx="40" fill="url(#gradientBg)"/>
+  
+  <!-- Studio Camera Element -->
+  <circle cx="90" cy="90" r="55" fill="url(#lensGradient)" stroke="white" stroke-width="4"/>
+  <circle cx="90" cy="90" r="35" fill="#172554" stroke="white" stroke-opacity="0.5" stroke-width="2"/>
+  <circle cx="90" cy="90" r="10" fill="#0c4a6e"/>
+  
+  <!-- Record Light -->
+  <circle cx="135" cy="45" r="15" fill="#ef4444"/>
+  <circle cx="135" cy="45" r="10" fill="#ff6464"/>
+  
+  <!-- Text: BookStud.io -->
+  <path d="M40 125V85H60C63.3333 85 66.1667 85.6667 68.5 87C70.8333 88.3333 72.6667 90.1667 74 92.5C75.3333 94.8333 76 97.5 76 100.5C76 103.5 75.3333 106.167 74 108.5C72.6667 110.833 70.8333 112.667 68.5 114C66.1667 115.333 63.3333 116 60 116H48V125H40ZM48 109H59.5C62.5 109 64.8333 108.167 66.5 106.5C68.1667 104.833 69 102.833 69 100.5C69 98.1667 68.1667 96.1667 66.5 94.5C64.8333 92.8333 62.5 92 59.5 92H48V109Z" fill="white"/>
+  <path d="M82 125V85H89V98H110V85H117V125H110V104H89V125H82Z" fill="white"/>
+  <path d="M134.5 125.5C130.5 125.5 127 124.667 124 123C121 121.333 118.667 119 117 116C115.333 113 114.5 109.667 114.5 106C114.5 102.333 115.333 99 117 96C118.667 93 121 90.6667 124 89C127 87.3333 130.5 86.5 134.5 86.5C138.5 86.5 142 87.3333 145 89C148 90.6667 150.333 93 152 96C153.667 99 154.5 102.333 154.5 106C154.5 109.667 153.667 113 152 116C150.333 119 148 121.333 145 123C142 124.667 138.5 125.5 134.5 125.5ZM134.5 118.5C137.167 118.5 139.5 117.917 141.5 116.75C143.5 115.583 145 113.917 146 111.75C147 109.583 147.5 107 147.5 104C147.5 101 147 98.4167 146 96.25C145 94.0833 143.5 92.4167 141.5 91.25C139.5 90.0833 137.167 89.5 134.5 89.5C131.833 89.5 129.5 90.0833 127.5 91.25C125.5 92.4167 124 94.0833 123 96.25C122 98.4167 121.5 101 121.5 104C121.5 107 122 109.583 123 111.75C124 113.917 125.5 115.583 127.5 116.75C129.5 117.917 131.833 118.5 134.5 118.5Z" fill="white"/>
+  
+  <!-- Defs for gradients -->
+  <defs>
+    <linearGradient id="gradientBg" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0c4a6e"/>
+      <stop offset="1" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="lensGradient" x1="45" y1="45" x2="135" y2="135" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#075985"/>
+    </linearGradient>
+  </defs>
+</svg>

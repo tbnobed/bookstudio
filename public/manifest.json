@@ -1,0 +1,21 @@
+{
+  "name": "BookStud.io",
+  "short_name": "BookStud.io",
+  "description": "Television studio management and booking system",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0369a1",
+  "theme_color": "#0369a1",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "48x48",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    }
+  ]
+}

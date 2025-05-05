@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="24" cy="24" r="22" fill="url(#gradientBg)"/>
+  
+  <!-- Camera Lens/Studio Element -->
+  <circle cx="24" cy="24" r="14" fill="url(#lensGradient)" stroke="white" stroke-width="1.5"/>
+  <circle cx="24" cy="24" r="8" fill="#172554" stroke="white" stroke-opacity="0.4" stroke-width="1"/>
+  
+  <!-- Record Indicator -->
+  <circle cx="36" cy="12" r="4" fill="#ef4444"/>
+  
+  <!-- Letter B for BookStud.io -->
+  <path d="M21.5 30V18H26C26.8333 18 27.5417 18.1667 28.125 18.5C28.7083 18.8333 29.1458 19.2917 29.4375 19.875C29.7292 20.4583 29.875 21.125 29.875 21.875C29.875 22.625 29.7292 23.2917 29.4375 23.875C29.1458 24.4583 28.7083 24.9167 28.125 25.25C27.5417 25.5833 26.8333 25.75 26 25.75H23.5V30H21.5ZM23.5 24H25.75C26.5 24 27.0833 23.8125 27.5 23.4375C27.9167 23.0625 28.125 22.5417 28.125 21.875C28.125 21.2083 27.9167 20.6875 27.5 20.3125C27.0833 19.9375 26.5 19.75 25.75 19.75H23.5V24Z" fill="white"/>
+  
+  <!-- Defs for gradients -->
+  <defs>
+    <linearGradient id="gradientBg" x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0c4a6e"/>
+      <stop offset="1" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="lensGradient" x1="16" y1="16" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0284c7"/>
+      <stop offset="1" stop-color="#0c4a6e"/>
+    </linearGradient>
+  </defs>
+</svg>
