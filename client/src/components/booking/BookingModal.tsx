@@ -25,8 +25,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { FileAttachmentList } from "./FileAttachmentList";
-import Flatpickr from "react-flatpickr";
-import "flatpickr/dist/themes/light.css";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -917,38 +915,25 @@ export default function BookingModal({
                 <Label htmlFor="date">Date Selection</Label>
                 <div className="border rounded-md p-2 mt-1">
                   <div className="mb-2">
-                    <Label htmlFor="datePicker" className="text-sm mb-1">Select dates:</Label>
-                    <Flatpickr
-                      options={{
-                        mode: "multiple",
-                        dateFormat: "Y-m-d",
-                        defaultDate: formData.dates.length > 0 ? formData.dates.map(date => new Date(date)) : undefined,
-                        onChange: (selectedDates, dateStr, instance) => {
-                          console.log('Flatpickr selected dates:', selectedDates);
-                          console.log('Flatpickr dateStr:', dateStr);
-                          
-                          // Convert the selected dates to strings in the YYYY-MM-DD format
-                          const formattedDates = selectedDates.map(date => {
-                            const year = date.getFullYear();
-                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                            const day = String(date.getDate()).padStart(2, '0');
-                            return `${year}-${month}-${day}`;
-                          });
-                          
-                          console.log('Formatted dates from Flatpickr:', formattedDates);
-                          
-                          // Update the form data
-                          updateFormField('dates', formattedDates);
-                          
-                          // Also update the current date field for single date operations
-                          if (formattedDates.length > 0) {
-                            updateFormField('date', formattedDates[formattedDates.length - 1]);
-                          }
-                        }
-                      }}
-                      className="w-full border p-2 rounded-md"
-                      placeholder="Select dates"
+                    <Label htmlFor="singleDate" className="text-sm mb-1">Single Date:</Label>
+                    <Input
+                      id="singleDate"
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => updateFormField('date', e.target.value)}
+                      className="w-full"
                     />
+                  </div>
+                  
+                  <div className="flex items-center mt-2">
+                    <Button 
+                      type="button" 
+                      size="sm"
+                      onClick={handleAddDate}
+                      className="ml-auto"
+                    >
+                      Add to Selection
+                    </Button>
                   </div>
                 </div>
                 
