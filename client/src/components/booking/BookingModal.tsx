@@ -312,9 +312,10 @@ export default function BookingModal({
       notifyList: formData.notifyList,
     };
     
-    // Add studioId if provided
-    if (formData.studioId) {
-      bookingData.studioId = parseInt(formData.studioId);
+    // Set the primary studioId (for backward compatibility)
+    // Use the first selected studio as the primary if available
+    if (formData.studioIds.length > 0) {
+      bookingData.studioId = parseInt(formData.studioIds[0]);
     } else if (alertsOnly && (formData.bookingType === "maintenance" || formData.bookingType === "it_support")) {
       bookingData.studioId = null;
     }
@@ -338,29 +339,41 @@ export default function BookingModal({
       bookingData.pcrRoomId = null;
     }
     
+    // Convert studioIds from strings to numbers
+    const studioIds = formData.studioIds.map(id => parseInt(id));
+    
     try {
       if (booking) {
         // Update existing booking
+        console.log(`Updating booking ${booking.id} with studios:`, studioIds);
+        
         await updateBooking.mutateAsync({ 
           id: booking.id, 
           data: bookingData,
-          studioIds: formData.studioIds.map(id => parseInt(id)) // Include studioIds for the junction table
+          studioIds: studioIds
         });
+        
         toast({
           title: "Success",
-          description: "Booking updated successfully",
+          description: studioIds.length > 1 
+            ? `Booking updated successfully across ${studioIds.length} studios` 
+            : "Booking updated successfully",
           variant: "default"
         });
       } else {
         // Create new booking
+        console.log(`Creating new booking with studios:`, studioIds);
+        
         const newBooking = await createBooking.mutateAsync({
           ...bookingData as InsertBooking,
-          studioIds: formData.studioIds.map(id => parseInt(id)) // Include studioIds for the junction table
+          studioIds: studioIds
         });
         
         toast({
           title: "Success", 
-          description: "Booking created successfully",
+          description: studioIds.length > 1 
+            ? `Booking created successfully across ${studioIds.length} studios` 
+            : "Booking created successfully",
           variant: "default"
         });
         
