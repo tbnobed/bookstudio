@@ -77,6 +77,38 @@ export default function ReportsPage() {
     }
   };
 
+  // Check if user is a producer - they should not have access to reports
+  if (user?.role === "producer") {
+    return (
+      <div className="flex flex-col h-screen">
+        <Header
+          currentDate={currentDate}
+          onDateChange={setCurrentDate}
+          view="month"
+          onViewChange={() => {}}
+          title="Reports"
+        />
+        <div className="container mx-auto p-4 flex items-center justify-center h-full">
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6">
+              <div className="flex mb-4 gap-2 justify-center text-amber-500">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <h1 className="text-2xl font-bold">Access Denied</h1>
+              </div>
+              <p className="text-center text-gray-600">
+                You don't have permission to access the Reports page. Only administrators, engineers, and IT staff can view reports.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen">
       <Header

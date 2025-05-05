@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Calendar, BookOpen, ListTodo, Settings, Menu, X, PlusCircle, Bell } from "lucide-react";
+import { Calendar, BookOpen, ListTodo, Settings, Menu, X, PlusCircle, Bell, BarChart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -129,6 +129,18 @@ export default function MobileNavbar() {
                   <span>Templates</span>
                 </button>
                 
+                {/* Reports - only shown to non-producers */}
+                {user?.role !== "producer" && (
+                  <button 
+                    onClick={navigateTo("/reports")}
+                    className="flex items-center p-2 rounded-md hover:bg-gray-100 w-full text-left"
+                  >
+                    <BarChart className="mr-2 h-5 w-5" />
+                    <span>Reports</span>
+                  </button>
+                )}
+                
+                {/* Users - only shown to admins */}
                 {user?.role === "admin" && (
                   <button 
                     onClick={navigateTo("/users")}
