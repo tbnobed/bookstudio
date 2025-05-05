@@ -384,22 +384,55 @@ export default function BookingModal({
           variant: "default"
         });
       } else {
-        // Create new booking
+        // Create new booking for each date if multi-date is used, otherwise create one booking
         console.log(`Creating new booking with studios:`, studioIds);
         
-        const newBooking = await createBooking.mutateAsync({
-          ...bookingData as InsertBooking,
-          studioIds: studioIds
-        });
+        const dates = formData.dates.length > 0 ? 
+          formData.dates.map(date => timeToDate(date, formData.startTime).toISOString().split('T')[0]) : 
+          [startDate.toISOString().split('T')[0]];
+          
+        console.log(`Will create ${dates.length} bookings for dates:`, dates);
         
-        toast({
-          title: "Success", 
-          description: studioIds.length > 1 
-            ? `Booking created successfully across ${studioIds.length} studios` 
-            : "Booking created successfully",
-          variant: "default"
-        });
-        
+        if (dates.length === 1) {
+          // Single date booking
+          const newBooking = await createBooking.mutateAsync({
+            ...bookingData as InsertBooking,
+            studioIds: studioIds
+          });
+          
+          toast({
+            title: "Success", 
+            description: studioIds.length > 1 
+              ? `Booking created successfully across ${studioIds.length} studios` 
+              : "Booking created successfully",
+            variant: "default"
+          });
+        } else {
+          // Create a separate booking for each date
+          for (const dateStr of formData.dates) {
+            const currentStartDate = timeToDate(dateStr, formData.startTime);
+            const currentEndDate = timeToDate(dateStr, formData.endTime);
+            
+            const currentBookingData = {
+              ...bookingData,
+              start: currentStartDate,
+              end: currentEndDate,
+              // We do not include the dates array for individual bookings
+              dates: undefined
+            };
+            
+            await createBooking.mutateAsync({
+              ...currentBookingData as InsertBooking,
+              studioIds: studioIds
+            });
+          }
+          
+          toast({
+            title: "Success", 
+            description: `${dates.length} bookings created successfully`,
+            variant: "default"
+          });
+        }
         // Save as template if requested
         if (formData.saveAsTemplate && formData.templateName) {
           // Calculate duration in minutes

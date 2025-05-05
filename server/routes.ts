@@ -915,21 +915,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Handle multiple dates if provided
+      // We no longer create booking_dates entries since we now create
+      // separate bookings for each date directly in the client
+      // This code is kept for backward compatibility with older clients
       if (req.body.dates && Array.isArray(req.body.dates) && req.body.dates.length > 0) {
-        try {
-          // Convert all date strings to Date objects
-          const parsedDates = req.body.dates.map(date => 
-            typeof date === 'string' ? new Date(date) : date
-          );
-          
-          // Create the booking dates entries
-          const bookingDates = await storage.createBookingDates(booking.id, parsedDates);
-          console.log(`Created ${bookingDates.length} booking dates for booking ${booking.id}`);
-        } catch (error) {
-          console.error("Error creating booking dates:", error);
-          // Continue with the response even if booking dates creation fails
-        }
+        console.log(`Received dates array with ${req.body.dates.length} dates, but we now create individual bookings in the client`);
+        // No need to do anything with the dates array anymore
       }
       
       // Handle facility-wide maintenance alerts (for all users)
@@ -1150,21 +1141,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Updated studio links for booking ${id}: ${parsedStudioIds.join(', ')}`);
       }
       
-      // Handle multiple dates if provided
+      // We no longer use booking_dates entries since we create
+      // separate bookings for each date directly in the client
+      // This code is kept for backward compatibility with older clients
       if (req.body.dates && Array.isArray(req.body.dates)) {
-        try {
-          // Convert all date strings to Date objects
-          const parsedDates = req.body.dates.map(date => 
-            typeof date === 'string' ? new Date(date) : date
-          );
-          
-          // Update the booking dates entries - this should replace any existing ones
-          const bookingDates = await storage.updateBookingDates(id, parsedDates);
-          console.log(`Updated booking dates for booking ${id}: ${bookingDates.length} dates`);
-        } catch (error) {
-          console.error("Error updating booking dates:", error);
-          // Continue with the response even if booking dates update fails
-        }
+        console.log(`Received dates array in update with ${req.body.dates.length} dates for booking ${id}, but we now create individual bookings in the client`);
+        // No need to do anything with the dates array anymore
       }
       
       // Check if this is a facility-wide alert (null studioId and maintenance/IT related type)
