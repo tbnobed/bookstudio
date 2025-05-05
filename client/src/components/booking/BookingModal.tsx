@@ -25,8 +25,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { FileAttachmentList } from "./FileAttachmentList";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/light.css";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -917,86 +917,39 @@ export default function BookingModal({
                 <Label htmlFor="date">Date Selection</Label>
                 <div className="border rounded-md p-2 mt-1">
                   <div className="mb-2">
-                    <Label htmlFor="manualDate" className="text-sm mb-1">Select date manually:</Label>
-                    <Input 
-                      id="manualDate"
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => {
-                        const selectedDate = e.target.value;
-                        console.log('Manual date selection:', selectedDate);
-                        
-                        // Update the date field
-                        updateFormField('date', selectedDate);
-                        
-                        // Add it to dates array if not already there
-                        if (!formData.dates.includes(selectedDate)) {
-                          updateFormField('dates', [...formData.dates, selectedDate].sort());
+                    <Label htmlFor="datePicker" className="text-sm mb-1">Select dates:</Label>
+                    <Flatpickr
+                      options={{
+                        mode: "multiple",
+                        dateFormat: "Y-m-d",
+                        defaultDate: formData.dates.length > 0 ? formData.dates.map(date => new Date(date)) : undefined,
+                        onChange: (selectedDates, dateStr, instance) => {
+                          console.log('Flatpickr selected dates:', selectedDates);
+                          console.log('Flatpickr dateStr:', dateStr);
+                          
+                          // Convert the selected dates to strings in the YYYY-MM-DD format
+                          const formattedDates = selectedDates.map(date => {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            return `${year}-${month}-${day}`;
+                          });
+                          
+                          console.log('Formatted dates from Flatpickr:', formattedDates);
+                          
+                          // Update the form data
+                          updateFormField('dates', formattedDates);
+                          
+                          // Also update the current date field for single date operations
+                          if (formattedDates.length > 0) {
+                            updateFormField('date', formattedDates[formattedDates.length - 1]);
+                          }
                         }
                       }}
-                      className="w-full"
+                      className="w-full border p-2 rounded-md"
+                      placeholder="Select dates"
                     />
                   </div>
-                  
-                  <DayPicker
-                    mode="multiple"
-                    selected={formData.dates.map(date => {
-                      // Create date objects from YYYY-MM-DD string
-                      const [year, month, day] = date.split('-').map(Number);
-                      // Month is 0-indexed in JS Date
-                      return new Date(year, month - 1, day);
-                    })}
-                    onSelect={(selectedDays) => {
-                      if (selectedDays) {
-                        console.log('Raw selected days from calendar:', selectedDays);
-                        
-                        // Convert the selected days to strings in the required format (YYYY-MM-DD)
-                        const formattedDates = Array.from(selectedDays).map(date => {
-                          const year = date.getFullYear();
-                          // Month is 0-indexed in JS Date, so add 1
-                          const month = String(date.getMonth() + 1).padStart(2, '0');
-                          const day = String(date.getDate()).padStart(2, '0');
-                          return `${year}-${month}-${day}`;
-                        });
-                        
-                        console.log('Formatted dates directly from selection:', formattedDates);
-                        
-                        updateFormField('dates', formattedDates);
-                        
-                        // Also update the current date field for single date operations
-                        if (formattedDates.length > 0) {
-                          updateFormField('date', formattedDates[formattedDates.length - 1]);
-                        }
-                      } else {
-                        updateFormField('dates', []);
-                      }
-                    }}
-                    className="border-none p-0"
-                    classNames={{
-                      caption: "flex justify-center py-2 mb-1 relative items-center",
-                      caption_label: "text-sm font-medium",
-                      nav: "flex items-center",
-                      nav_button: "h-6 w-6 bg-transparent p-0 opacity-75 hover:opacity-100",
-                      nav_button_previous: "absolute left-1",
-                      nav_button_next: "absolute right-1",
-                      table: "w-full border-collapse",
-                      head_row: "flex",
-                      head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
-                      row: "flex w-full mt-2",
-                      cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                      day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
-                      day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                      day_today: "bg-accent text-accent-foreground",
-                      day_outside: "text-muted-foreground opacity-50",
-                      day_disabled: "text-muted-foreground opacity-50",
-                      day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                      day_hidden: "invisible",
-                    }}
-                    styles={{
-                      caption: { margin: '0', padding: '0' },
-                      month: { width: '100%' },
-                    }}
-                  />
                 </div>
                 
                 {/* Show selected dates */}
