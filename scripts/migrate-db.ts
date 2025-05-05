@@ -101,6 +101,36 @@ async function migrateDb() {
       );
     `);
     console.log('Notifications table created successfully!');
+
+    // Create password_reset_tokens table
+    console.log('Creating password_reset_tokens table...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id SERIAL PRIMARY KEY,
+        token TEXT NOT NULL UNIQUE,
+        user_id INTEGER REFERENCES users(id) NOT NULL,
+        expires TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        used BOOLEAN DEFAULT FALSE
+      );
+    `);
+    console.log('Password reset tokens table created successfully!');
+
+    // Create invite_tokens table
+    console.log('Creating invite_tokens table...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS invite_tokens (
+        id SERIAL PRIMARY KEY,
+        token TEXT NOT NULL UNIQUE,
+        role TEXT NOT NULL,
+        email TEXT NOT NULL,
+        expires TIMESTAMP NOT NULL,
+        created_by INTEGER REFERENCES users(id) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        used BOOLEAN DEFAULT FALSE
+      );
+    `);
+    console.log('Invite tokens table created successfully!');
     
     console.log('All database tables created successfully!');
   } catch (error) {

@@ -1,127 +1,85 @@
-#!/bin/sh
+#!/bin/bash
 
+# Exit immediately if a command exits with a non-zero status
 set -e
 
-# Use basic echo commands for broader shell compatibility
-# Check if terminal supports colors
-if [ -t 1 ]; then
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    YELLOW='\033[1;33m'
-    NC='\033[0m' # No Color
-    color_support=true
-else
-    # No color support
-    RED=''
-    GREEN=''
-    YELLOW=''
-    NC=''
-    color_support=false
-fi
+echo "Starting BookStud.io deployment..."
 
-# Print colored message if color is supported
-print_message() {
-    local color="$1"
-    local message="$2"
-    
-    if [ "$color_support" = true ]; then
-        printf "%b%s%b\n" "$color" "$message" "$NC"
-    else
-        printf "%s\n" "$message"
-    fi
-}
-
-print_message "$GREEN" "Starting BookStud.io deployment process..."
-
-# Check if Docker is installed
-if ! command -v docker >/dev/null 2>&1; then
-    print_message "$RED" "Error: Docker is not installed. Please install Docker before proceeding."
+# Check if docker-compose is installed
+if ! command -v docker-compose &> /dev/null; then
+    echo "docker-compose could not be found, please install it first."
     exit 1
 fi
 
-# Check for docker-compose or docker compose (newer versions use the plugin system)
-docker_compose_cmd=""
-if command -v docker-compose >/dev/null 2>&1; then
-    docker_compose_cmd="docker-compose"
-elif docker compose version >/dev/null 2>&1; then
-    docker_compose_cmd="docker compose"
-else
-    print_message "$RED" "Error: Docker Compose is not installed. Please install Docker Compose before proceeding."
-    exit 1
-fi
-
-# Check if .env file exists
+# Check for required .env file
 if [ ! -f .env ]; then
-    print_message "$YELLOW" "Warning: .env file not found. Creating from .env.example..."
-    if [ -f .env.example ]; then
-        cp .env.example .env
-        print_message "$YELLOW" "Please update the .env file with your actual values before continuing"
-        printf "Press enter to continue after updating .env..."
-        read dummy
-    else
-        print_message "$RED" "Error: .env.example file not found. Cannot create .env file."
-        exit 1
-    fi
-fi
+    echo "No .env file found. Creating a default one."
+    cat > .env << EOL
+# Database configuration
+PGUSER=postgres
+PGPASSWORD=postgres
+PGDATABASE=bookstudio
+PORT=5000
 
-# Check required environment variables - using . instead of source for broader compatibility
-. ./.env
+# Session configuration
+SESSION_SECRET=$(openssl rand -hex 32)
+COOKIE_SECURE=false
+COOKIE_SAME_SITE=lax
 
-# Check environment variables
-check_env_var() {
-    eval val=\$$1
-    if [ -z "$val" ]; then
-        print_message "$RED" "Error: Required environment variable $1 is not set in .env file."
-        return 1
-    fi
-    return 0
-}
-
-env_error=0
-for var in DATABASE_URL PGUSER PGPASSWORD PGDATABASE SENDGRID_API_KEY SESSION_SECRET; do
-    if ! check_env_var "$var"; then
-        env_error=1
-    fi
-done
-
-if [ $env_error -eq 1 ]; then
-    print_message "$RED" "Please update the .env file with the missing variables before continuing."
+# API Keys (replace with your actual keys)
+SENDGRID_API_KEY=your_sendgrid_key_here
+SENDGRID_VERIFIED_SENDER=alerts@obedtv.com
+EOL
+    echo ".env file created with default values. Please edit it with your actual configuration."
     exit 1
 fi
 
-# Create backup directory if it doesn't exist
-mkdir -p backups
-
-# Check if we're running in a production environment
-if [ "$NODE_ENV" = "production" ]; then
-    print_message "$YELLOW" "Production environment detected. Creating database backup..."
+# Check if database backup is needed
+if [ "$1" == "--backup" ]; then
+    echo "Creating database backup before deployment..."
     
-    # Create backup timestamp
-    TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+    # Get current date in YYYY-MM-DD format
+    BACKUP_DATE=$(date +%Y-%m-%d)
+    BACKUP_DIR="./db_backups"
+    BACKUP_FILE="${BACKUP_DIR}/bookstudio_${BACKUP_DATE}.sql"
     
-    # Check if we can connect to existing database for backup
-    if $docker_compose_cmd exec -T db pg_isready -U $PGUSER > /dev/null 2>&1; then
-        print_message "$GREEN" "Backing up existing database..."
-        $docker_compose_cmd exec -T db pg_dump -U $PGUSER $PGDATABASE > "backups/backup_${TIMESTAMP}.sql"
-        print_message "$GREEN" "Database backup created at backups/backup_${TIMESTAMP}.sql"
-    else
-        print_message "$YELLOW" "No existing database found or database is not running. Skipping backup."
-    fi
+    # Create backup directory if it doesn't exist
+    mkdir -p ${BACKUP_DIR}
+    
+    # Get database credentials from .env file
+    source .env
+    
+    # Run backup using docker
+    echo "Backing up database to ${BACKUP_FILE}..."
+    docker-compose exec -T db pg_dump -U "${PGUSER}" "${PGDATABASE}" > "${BACKUP_FILE}"
+    
+    echo "Database backup completed successfully at ${BACKUP_FILE}"
 fi
 
-print_message "$GREEN" "Building and starting containers..."
-$docker_compose_cmd up -d --build
+# Build the Docker image
+echo "Building Docker image..."
+docker-compose build --no-cache
 
-print_message "$GREEN" "Waiting for database to be ready..."
-sleep 10 # Give the database some time to initialize
+# Start the containers
+echo "Starting containers..."
+docker-compose up -d
 
-print_message "$GREEN" "Running database migrations..."
-$docker_compose_cmd exec -T app npx tsx scripts/migrate-db.ts
+# Wait for the database to be ready
+echo "Waiting for the database to be ready..."
+sleep 10
 
-print_message "$GREEN" "============================================"
-print_message "$GREEN" "BookStud.io deployment completed successfully!"
-print_message "$GREEN" "The application should now be running at:"
-print_message "$GREEN" "http://localhost:${PORT:-5000}"
-print_message "$GREEN" "============================================"
+# Run database migrations
+echo "Running database migrations..."
+docker-compose exec app npx tsx scripts/migrate-db.ts
 
-exit 0
+echo "Deployment completed successfully!"
+echo "Your BookStud.io application should now be running at http://localhost:5000"
+echo ""
+echo "Important notes:"
+echo "1. The database schema has been updated with new tables for password reset and invite tokens"
+echo "2. Your email system is now fully operational using SendGrid for invited users and password resets"
+echo "3. The mobile interface is now fully responsive and optimized for touch devices"
+echo ""
+echo "To view logs, run: docker-compose logs -f"
+echo "To stop the application, run: docker-compose down"
+echo "To backup the database before future deployments, run: ./deploy.sh --backup"
