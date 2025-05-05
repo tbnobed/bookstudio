@@ -32,13 +32,31 @@ export function useResources() {
 
   // Fetch resources for a booking
   const getBookingResources = (bookingId: number) => {
-    return useQuery<(BookingResource & { resource: Resource })[]>({
+    const { data, ...rest } = useQuery<(BookingResource & { resource: Resource })[]>({
       queryKey: ['/api/bookings', bookingId, 'resources'],
       enabled: !!bookingId,
-      staleTime: 10000, // 10 seconds
-      retry: false,
-      initialData: [] // Return empty array as fallback data
+      staleTime: 1000, // 1 second - shorter stale time for more frequent refetches
+      retry: 1, // Allow one retry
+      initialData: [], // Return empty array as fallback data
+      refetchOnMount: 'always' // Always refetch when component mounts
     });
+    
+    // If any resource is missing its resource data, force a refetch
+    useEffect(() => {
+      if (data && data.length > 0) {
+        const hasMissingResource = data.some(item => !item.resource || !item.resource.name);
+        if (hasMissingResource) {
+          console.log('Detected resource with missing data, forcing refetch');
+          // Force immediate refetch
+          queryClient.invalidateQueries({ 
+            queryKey: ['/api/bookings', bookingId, 'resources'],
+            refetchType: 'active'
+          });
+        }
+      }
+    }, [data, bookingId]);
+    
+    return { data, ...rest };
   };
 
   // Create resource mutation
