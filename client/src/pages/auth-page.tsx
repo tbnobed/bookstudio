@@ -156,9 +156,7 @@ export default function AuthPage() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full mb-6">
-                <TabsTrigger value="login" className="w-full">Sign In</TabsTrigger>
-              </TabsList>
+              {/* No tab needed */}
               
               <TabsContent value="login">
                 <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
