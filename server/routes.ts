@@ -30,6 +30,14 @@ import {
   verifyInviteToken,
   invalidateInviteToken
 } from "./email";
+import multer from "multer";
+import {
+  saveFile,
+  getFileById,
+  getFilePath,
+  getAttachmentsByBookingId,
+  deleteFile
+} from "./services/fileService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1099,6 +1107,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       res.status(500).json({ message: "Failed to delete notification group" });
+    }
+  });
+
+  // Configure multer for file uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 104857600, // 100MB file size limit
+    },
+  });
+
+  // File attachment routes
+  app.post(
+    "/api/bookings/:bookingId/attachments",
+    isAuthenticated,
+    upload.single("file"),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        const bookingId = parseInt(req.params.bookingId);
+        const user = req.user as Express.User;
+        const description = req.body.description;
+
+        // Check if booking exists and user has permission
+        const booking = await storage.getBooking(bookingId);
+        if (!booking) {
+          return res.status(404).json({ message: "Booking not found" });
+        }
+
+        // Only booking owner, admin, engineer, or IT can add attachments
+        if (
+          booking.userId !== user.id &&
+          !["admin", "engineer", "it"].includes(user.role)
+        ) {
+          return res.status(403).json({
+            message: "You don't have permission to add attachments to this booking",
+          });
+        }
+
+        // Save the file
+        const savedFile = await saveFile(req.file, bookingId, user.id, description);
+
+        res.status(201).json(savedFile);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        if (error.message === "File too large") {
+          return res.status(413).json({ message: "File exceeds the 100MB size limit" });
+        }
+        res.status(500).json({ message: "Failed to upload file" });
+      }
+    }
+  );
+
+  // Get all attachments for a booking
+  app.get("/api/bookings/:bookingId/attachments", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+
+      // Check if booking exists
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      const attachments = await getAttachmentsByBookingId(bookingId);
+      res.json(attachments);
+    } catch (error) {
+      console.error("Error fetching attachments:", error);
+      res.status(500).json({ message: "Failed to fetch attachments" });
+    }
+  });
+
+  // Download a file attachment
+  app.get("/api/attachments/:fileId", isAuthenticated, async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      const file = await getFileById(fileId);
+
+      if (!file) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      const filePath = getFilePath(file.path);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found on server" });
+      }
+
+      // Set appropriate headers
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(file.fileName)}"`);
+      res.setHeader('Content-Type', file.mimeType);
+      
+      // Stream the file to the client
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      res.status(500).json({ message: "Failed to download file" });
+    }
+  });
+
+  // Delete a file attachment
+  app.delete("/api/attachments/:fileId", isAuthenticated, async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      const user = req.user as Express.User;
+
+      // Get file details first
+      const file = await getFileById(fileId);
+      if (!file) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // Get booking info to check permissions
+      const booking = await storage.getBooking(file.bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Associated booking not found" });
+      }
+
+      // Check if user has permission to delete the file
+      // Only allow if user is the one who uploaded the file, or is admin, or owns the booking
+      if (
+        file.uploadedBy !== user.id &&
+        booking.userId !== user.id &&
+        user.role !== "admin"
+      ) {
+        return res.status(403).json({
+          message: "You don't have permission to delete this file",
+        });
+      }
+
+      // Delete the file
+      await deleteFile(fileId);
+
+      res.json({ message: "File deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      res.status(500).json({ message: "Failed to delete file" });
     }
   });
 

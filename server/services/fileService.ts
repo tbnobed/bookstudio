@@ -4,6 +4,20 @@ import { fileURLToPath } from 'url';
 import { db } from '../db';
 import { fileAttachments, type InsertFileAttachment } from '../../shared/schema';
 import { createId } from '@paralleldrive/cuid2';
+import { eq } from 'drizzle-orm';
+import multer from 'multer';
+
+export interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  destination?: string;
+  filename?: string;
+  path?: string;
+  buffer?: Buffer;
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,7 +42,7 @@ function getUniqueFilename(originalFilename: string): string {
  * Save an uploaded file to the filesystem and database
  */
 export async function saveFile(
-  file: Express.Multer.File,
+  file: MulterFile,
   bookingId: number,
   userId: number,
   description?: string
@@ -38,7 +52,17 @@ export async function saveFile(
   const filePath = path.join(UPLOADS_DIR, uniqueFilename);
   
   // Save the file to the filesystem
-  await fs.promises.writeFile(filePath, file.buffer);
+  if (file.buffer) {
+    await fs.promises.writeFile(filePath, file.buffer);
+  } else if (file.path) {
+    // If the file was already saved by multer, just copy it to our destination
+    const tempPath = file.path;
+    await fs.promises.copyFile(tempPath, filePath);
+    // Remove the temporary file
+    await fs.promises.unlink(tempPath);
+  } else {
+    throw new Error('No file data available');
+  }
   
   // Insert file record into database
   const fileData: InsertFileAttachment = {
@@ -59,7 +83,7 @@ export async function saveFile(
  * Retrieve a file by its ID
  */
 export async function getFileById(fileId: number) {
-  const [file] = await db.select().from(fileAttachments).where(fileAttachments.id === fileId);
+  const [file] = await db.select().from(fileAttachments).where(eq(fileAttachments.id, fileId));
   if (!file) {
     return null;
   }
@@ -80,7 +104,7 @@ export async function getAttachmentsByBookingId(bookingId: number) {
   return await db
     .select()
     .from(fileAttachments)
-    .where(fileAttachments.bookingId === bookingId)
+    .where(eq(fileAttachments.bookingId, bookingId))
     .orderBy(fileAttachments.uploadedAt);
 }
 
@@ -92,7 +116,7 @@ export async function deleteFile(fileId: number) {
   const [file] = await db
     .select()
     .from(fileAttachments)
-    .where(fileAttachments.id === fileId);
+    .where(eq(fileAttachments.id, fileId));
   
   if (!file) {
     throw new Error('File not found');
@@ -107,7 +131,7 @@ export async function deleteFile(fileId: number) {
   // Delete from database
   await db
     .delete(fileAttachments)
-    .where(fileAttachments.id === fileId);
+    .where(eq(fileAttachments.id, fileId));
     
   return true;
 }
