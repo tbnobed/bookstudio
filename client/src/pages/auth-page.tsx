@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../assets/logo.png";
@@ -71,16 +71,8 @@ export default function AuthPage() {
 
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
     console.log("Login form submitted with data:", data);
-    loginMutation.mutate(data, {
-      onSuccess: (response) => {
-        console.log("Login successful, received response:", response);
-        // Force a direct window.location change rather than using the router
-        window.location.href = "/";
-      },
-      onError: (error) => {
-        console.error("Login failed with error:", error);
-      }
-    });
+    // Use the mutation directly without additional callbacks
+    loginMutation.mutate(data);
   };
 
   const onRegisterSubmit = (data: z.infer<typeof registerSchema>) => {
@@ -91,16 +83,8 @@ export default function AuthPage() {
     
     console.log("Register form submitted with data:", userData);
     
-    registerMutation.mutate(userData, {
-      onSuccess: (response) => {
-        console.log("Registration successful, received response:", response);
-        // Force a direct window.location change rather than using the router
-        window.location.href = "/";
-      },
-      onError: (error) => {
-        console.error("Registration failed with error:", error);
-      }
-    });
+    // Use the mutation directly without additional callbacks
+    registerMutation.mutate(userData);
   };
 
   return (
