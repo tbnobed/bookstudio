@@ -25,7 +25,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { formatDistance } from "date-fns";
 import { FileUploadForm } from "./FileUploadForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -149,8 +148,8 @@ export function FileAttachmentList({ bookingId, readOnly = false }: FileAttachme
                     </p>
                     <div className="flex flex-wrap gap-x-3 text-xs text-gray-500">
                       <span title={formatFileSize(file.fileSize)}>{formatFileSize(file.fileSize)}</span>
-                      <span title={format(new Date(file.uploadedAt), "PPP")}>
-                        {format(new Date(file.uploadedAt), "MMM d, yyyy")}
+                      <span>
+                        {file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : ''}
                       </span>
                     </div>
                     {file.description && (

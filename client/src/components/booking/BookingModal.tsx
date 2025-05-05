@@ -250,8 +250,8 @@ export default function BookingModal({
       title: formData.title,
       description: formData.description,
       type: finalBookingType,
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
+      start: startDate,
+      end: endDate,
       notifyList: formData.notifyList,
     };
     
