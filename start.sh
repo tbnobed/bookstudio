@@ -138,6 +138,25 @@ fi
 # Set production environment
 export NODE_ENV=production
 
+# Run any additional migration scripts for new features
+print_message "$BLUE" "Running database migrations for new features..."
+
+# Run the PCR rooms migration
+if [ -f "scripts/migrate-pcr-rooms.ts" ]; then
+    print_message "$BLUE" "Migrating PCR rooms schema..."
+    npx tsx scripts/migrate-pcr-rooms.ts
+else
+    print_message "$YELLOW" "Warning: PCR rooms migration script not found"
+fi
+
+# Run the booking-studios junction table migration
+if [ -f "scripts/create-booking-studios-table.ts" ]; then
+    print_message "$BLUE" "Creating booking-studios junction table..."
+    npx tsx scripts/create-booking-studios-table.ts
+else
+    print_message "$YELLOW" "Warning: Booking-studios junction table migration script not found"
+fi
+
 # Check if the PORT variable is set in .env, if not use default 5000
 if [ -z "$PORT" ]; then
     export PORT=5000

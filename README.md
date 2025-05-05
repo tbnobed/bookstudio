@@ -6,11 +6,13 @@ A comprehensive web application for television studio management, providing inte
 
 - **Comprehensive Calendar Views**: Daily, weekly, and monthly views for studio bookings
 - **Real-time Status Indicators**: See which studios are available, booked, or in maintenance 
+- **Multi-Studio Bookings**: Link multiple studios to a single booking for complex productions
+- **PCR Integration**: Assign Production Control Rooms to bookings with clear visibility
 - **Template System**: Save and reuse common production setups
 - **Role-based Authentication**: Different access levels for producers, engineers, site managers, and administrators
 - **Facility-wide Alerts**: System for outages and maintenance notifications
 - **Email Notifications**: Automated emails for booking confirmations, updates, and cancellations
-- **Public Calendar Integration**: Embeddable public view of studio availability
+- **Public Calendar Integration**: Embeddable public view of studio availability with multi-studio booking display
 - **Mobile-friendly UI**: Fully responsive design works on all devices
 
 ## Technology Stack
@@ -57,7 +59,7 @@ BookStud.io uses a Docker-only deployment approach for maximum consistency and r
 
 That's it! The system automatically:
 - Sets up the PostgreSQL database
-- Runs all necessary migrations
+- Runs all necessary migrations (including PCR rooms and multi-studio booking support)
 - Initializes default data
 - Starts the web server
 
@@ -69,6 +71,7 @@ The Docker deployment follows this sequence:
 1. The PostgreSQL database container (`db`) starts first
 2. Once the database is healthy (responds to connection attempts), the database initialization container (`db-init`) runs:
    - Creates all necessary database tables
+   - Runs migrations for PCR rooms and the booking-studios junction table
    - Seeds initial data including default users and notification groups
    - Exits when complete
 3. After successful database initialization, the main application container (`app`) starts
@@ -308,3 +311,25 @@ BookStud.io implements a comprehensive role-based access control system:
 | **Producer** | Limited to creating/managing bookings, using templates, viewing studio availability, and personal settings |
 
 This role hierarchy ensures that each user has appropriate access to system features based on their responsibilities in the organization.
+
+## Production Control Room (PCR) Integration
+
+BookStud.io includes support for Production Control Rooms (PCRs) - critical infrastructure that connects to one or more studios for complex productions:
+
+- PCR assignments are linked to bookings and displayed in the calendar view
+- When a booking has a PCR assigned, it shows as "Title (PCR X)" in the calendar
+- PCR information is included in booking confirmation emails and notifications
+- PCR status can be tracked and managed (available, maintenance, reserved)
+- PCR information is visible in both standard and public calendar views
+
+## Multi-Studio Booking
+
+The system supports linking multiple studios to a single booking, essential for complex productions:
+
+- Bookings can be scheduled across multiple studios simultaneously
+- The booking-studio junction table maintains these relationships in the database
+- When creating a booking, users can select multiple studios via checkboxes
+- Each studio selected appears in the calendar with the same booking information
+- The public calendar correctly displays multi-studio bookings
+- Conflicts are automatically detected across all selected studios
+- Email notifications include the complete list of studios booked

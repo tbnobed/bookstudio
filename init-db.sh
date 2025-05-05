@@ -14,6 +14,17 @@ echo "PostgreSQL started"
 echo "Running database migrations..."
 npm run db:push
 
+# Run additional migration scripts for new features
+echo "Migrating PCR rooms schema..."
+npx tsx scripts/migrate-pcr-rooms.ts
+
+echo "Creating booking-studios junction table..."
+npx tsx scripts/create-booking-studios-table.ts
+
+# Migrate file attachments
+echo "Migrating file attachments schema..."
+npx tsx scripts/migrate-file-attachments.ts
+
 # Seed initial data if needed
 echo "Seeding initial data..."
 node scripts/init-db.js
