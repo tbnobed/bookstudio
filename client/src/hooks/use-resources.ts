@@ -1,273 +1,237 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { Resource, InsertResource, BookingResource } from '@shared/schema';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Resource, BookingResource } from '@shared/schema';
+import { useToast } from './use-toast';
 
-// Hook for managing resources
 export function useResources() {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
-  
-  // Get all resources or resources by category
+
+  // Fetch all resources
   const getAllResources = (category?: string) => {
-    const queryString = category ? `?category=${encodeURIComponent(category)}` : '';
-    return useQuery<Resource[], Error>({
-      queryKey: ['/api/resources', category].filter(Boolean), // Remove undefined values
-      queryFn: async () => {
-        const response = await fetch(`/api/resources${queryString}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch resources');
-        }
-        return response.json();
-      }
+    const queryKey = category 
+      ? ['/api/resources', { category }] 
+      : ['/api/resources'];
+
+    return useQuery<Resource[]>({
+      queryKey,
+      keepPreviousData: true,
     });
   };
-  
-  // Get resource categories
+
+  // Fetch categories
   const getResourceCategories = () => {
-    return useQuery<string[], Error>({
-      queryKey: ['/api/resource-categories'],
-      queryFn: async () => {
-        const response = await fetch('/api/resource-categories');
-        if (!response.ok) {
-          throw new Error('Failed to fetch resource categories');
-        }
-        return response.json();
-      }
+    return useQuery<string[]>({
+      queryKey: ['/api/resources/categories'],
     });
   };
-  
-  // Get a specific resource by ID
-  const getResourceById = (id: number) => {
-    return useQuery<Resource, Error>({
-      queryKey: ['/api/resources', id],
-      queryFn: async () => {
-        const response = await fetch(`/api/resources/${id}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch resource');
-        }
-        return response.json();
-      },
-      enabled: !!id // Only run if ID is provided
+
+  // Fetch resources for a booking
+  const getBookingResources = (bookingId: number) => {
+    return useQuery<(BookingResource & { resource: Resource })[]>({
+      queryKey: ['/api/bookings', bookingId, 'resources'],
+      enabled: !!bookingId,
     });
   };
-  
-  // Create a new resource
-  const createResourceMutation = useMutation<Resource, Error, InsertResource>({
-    mutationFn: async (data) => {
+
+  // Create resource mutation
+  const createResourceMutation = useMutation({
+    mutationFn: async (data: Omit<Resource, 'id'>) => {
       const response = await apiRequest('POST', '/api/resources', data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create resource');
-      }
-      return response.json();
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/resource-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/resources/categories'] });
       toast({
         title: 'Resource created',
         description: 'The resource has been created successfully.',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Failed to create resource',
         description: error.message,
         variant: 'destructive',
       });
-    }
+    },
   });
-  
-  // Update a resource
-  const updateResourceMutation = useMutation<Resource, Error, { id: number, data: Partial<InsertResource> }>({
-    mutationFn: async ({ id, data }) => {
+
+  // Update resource mutation
+  const updateResourceMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Resource> }) => {
       const response = await apiRequest('PATCH', `/api/resources/${id}`, data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update resource');
-      }
-      return response.json();
+      return await response.json();
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/resources', variables.id] });
+      
+      // If the category changed, invalidate categories
+      if (variables.data.category) {
+        queryClient.invalidateQueries({ queryKey: ['/api/resources/categories'] });
+      }
+      
       toast({
         title: 'Resource updated',
         description: 'The resource has been updated successfully.',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Failed to update resource',
         description: error.message,
         variant: 'destructive',
       });
-    }
+    },
   });
-  
-  // Delete a resource
-  const deleteResourceMutation = useMutation<void, Error, number>({
-    mutationFn: async (id) => {
-      const response = await apiRequest('DELETE', `/api/resources/${id}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete resource');
-      }
+
+  // Delete resource mutation
+  const deleteResourceMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest('DELETE', `/api/resources/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/resource-categories'] });
       toast({
         title: 'Resource deleted',
         description: 'The resource has been deleted successfully.',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Failed to delete resource',
         description: error.message,
         variant: 'destructive',
       });
-    }
+    },
   });
-  
-  // Get resources for a booking
-  const getBookingResources = (bookingId: number) => {
-    return useQuery<(BookingResource & { resource: Resource })[], Error>({
-      queryKey: ['/api/bookings', bookingId, 'resources'],
-      queryFn: async () => {
-        const response = await fetch(`/api/bookings/${bookingId}/resources`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch booking resources');
-        }
-        return response.json();
-      },
-      enabled: !!bookingId
-    });
-  };
-  
-  // Add a resource to a booking
-  const addBookingResourceMutation = useMutation<
-    BookingResource, 
-    Error, 
-    { bookingId: number, resourceId: number, quantity: number, notes?: string }
-  >({
-    mutationFn: async (data) => {
-      const { bookingId, ...rest } = data;
-      const response = await apiRequest('POST', `/api/bookings/${bookingId}/resources`, rest);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add resource to booking');
-      }
-      return response.json();
+
+  // Add resource to booking mutation
+  const addBookingResourceMutation = useMutation({
+    mutationFn: async ({
+      bookingId,
+      resourceId,
+      quantity,
+      notes,
+    }: {
+      bookingId: number;
+      resourceId: number;
+      quantity: number;
+      notes?: string;
+    }) => {
+      const response = await apiRequest('POST', `/api/bookings/${bookingId}/resources`, {
+        resourceId,
+        quantity,
+        notes,
+      });
+      return await response.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bookings', variables.bookingId, 'resources'] });
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/bookings', variables.bookingId, 'resources'] 
+      });
       toast({
         title: 'Resource added',
         description: 'The resource has been added to the booking successfully.',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Failed to add resource',
         description: error.message,
         variant: 'destructive',
       });
-    }
+    },
   });
-  
-  // Update a booking resource
-  const updateBookingResourceMutation = useMutation<
-    BookingResource, 
-    Error, 
-    { id: number, data: Partial<{ quantity: number, notes?: string }>, bookingId: number }
-  >({
-    mutationFn: async ({ id, data }) => {
-      const response = await apiRequest('PATCH', `/api/booking-resources/${id}`, data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update booking resource');
-      }
-      return response.json();
+
+  // Update booking resource mutation
+  const updateBookingResourceMutation = useMutation({
+    mutationFn: async ({
+      id,
+      bookingId,
+      data,
+    }: {
+      id: number;
+      bookingId: number;
+      data: { quantity: number; notes?: string };
+    }) => {
+      const response = await apiRequest('PATCH', `/api/bookings/${bookingId}/resources/${id}`, data);
+      return await response.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bookings', variables.bookingId, 'resources'] });
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/bookings', variables.bookingId, 'resources'] 
+      });
       toast({
         title: 'Resource updated',
         description: 'The booking resource has been updated successfully.',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Failed to update resource',
         description: error.message,
         variant: 'destructive',
       });
-    }
+    },
   });
-  
-  // Remove a resource from a booking
-  const removeBookingResourceMutation = useMutation<void, Error, { id: number, bookingId: number }>({
-    mutationFn: async ({ id }) => {
-      const response = await apiRequest('DELETE', `/api/booking-resources/${id}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to remove resource from booking');
-      }
+
+  // Remove resource from booking mutation
+  const removeBookingResourceMutation = useMutation({
+    mutationFn: async ({ id, bookingId }: { id: number; bookingId: number }) => {
+      await apiRequest('DELETE', `/api/bookings/${bookingId}/resources/${id}`);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bookings', variables.bookingId, 'resources'] });
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/bookings', variables.bookingId, 'resources'] 
+      });
       toast({
         title: 'Resource removed',
         description: 'The resource has been removed from the booking successfully.',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Failed to remove resource',
         description: error.message,
         variant: 'destructive',
       });
-    }
+    },
   });
-  
-  // Remove all resources from a booking
-  const removeAllBookingResourcesMutation = useMutation<void, Error, number>({
-    mutationFn: async (bookingId) => {
-      const response = await apiRequest('DELETE', `/api/bookings/${bookingId}/resources`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to remove all resources from booking');
-      }
+
+  // Remove all resources from booking mutation
+  const removeAllBookingResourcesMutation = useMutation({
+    mutationFn: async (bookingId: number) => {
+      await apiRequest('DELETE', `/api/bookings/${bookingId}/resources`);
     },
     onSuccess: (_, bookingId) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bookings', bookingId, 'resources'] });
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/bookings', bookingId, 'resources'] 
+      });
       toast({
         title: 'Resources removed',
         description: 'All resources have been removed from the booking successfully.',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Failed to remove resources',
         description: error.message,
         variant: 'destructive',
       });
-    }
+    },
   });
-  
+
   return {
     getAllResources,
     getResourceCategories,
-    getResourceById,
+    getBookingResources,
     createResourceMutation,
     updateResourceMutation,
     deleteResourceMutation,
-    getBookingResources,
     addBookingResourceMutation,
     updateBookingResourceMutation,
     removeBookingResourceMutation,
-    removeAllBookingResourcesMutation
+    removeAllBookingResourcesMutation,
   };
 }

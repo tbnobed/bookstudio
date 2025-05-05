@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { FileAttachmentList } from "./FileAttachmentList";
+import BookingResourcesForm from "./BookingResourcesForm";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -354,9 +355,10 @@ export default function BookingModal({
         {booking && !alertsOnly ? (
           // Tabbed interface for existing bookings
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="details">Booking Details</TabsTrigger>
-              <TabsTrigger value="attachments">File Attachments</TabsTrigger>
+              <TabsTrigger value="resources">Resources</TabsTrigger>
+              <TabsTrigger value="attachments">Attachments</TabsTrigger>
             </TabsList>
             
             <TabsContent value="details" className="pt-4">

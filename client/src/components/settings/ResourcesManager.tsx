@@ -273,7 +273,7 @@ export default function ResourcesManager() {
                         <TableCell>{resource.quantity}</TableCell>
                         <TableCell>
                           <Badge
-                            variant={resource.isAvailable ? 'success' : 'destructive'}
+                            variant={resource.isAvailable ? 'default' : 'destructive'}
                             className="capitalize"
                           >
                             {resource.isAvailable ? 'Available' : 'Unavailable'}
