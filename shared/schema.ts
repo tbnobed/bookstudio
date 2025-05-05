@@ -76,7 +76,7 @@ export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
-  studioId: integer("studio_id"), // Can be null for facility-wide alerts/maintenance
+  studioId: integer("studio_id"), // Main studio (kept for backwards compatibility)
   pcrRoomId: integer("pcr_room_id"), // Production Control Room - optional
   userId: integer("user_id").notNull(),
   start: timestamp("start").notNull(),
@@ -86,6 +86,13 @@ export const bookings = pgTable("bookings", {
   templateId: integer("template_id"), // optional, if using a template
   notifyList: json("notify_list").default([]), // array of user/group IDs to notify
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Junction table for bookings to studios (many-to-many)
+export const bookingStudios = pgTable("booking_studios", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").notNull(),
+  studioId: integer("studio_id").notNull(),
 });
 
 export const insertBookingSchema = createInsertSchema(bookings).omit({
@@ -230,6 +237,15 @@ export const insertFileAttachmentSchema = createInsertSchema(fileAttachments).om
 export type FileAttachment = typeof fileAttachments.$inferSelect;
 export type InsertFileAttachment = z.infer<typeof insertFileAttachmentSchema>;
 
+// Add schema for booking_studios
+export const insertBookingStudiosSchema = createInsertSchema(bookingStudios).omit({
+  id: true,
+});
+
+// Type exports for booking_studios
+export type BookingStudio = typeof bookingStudios.$inferSelect;
+export type InsertBookingStudio = z.infer<typeof insertBookingStudiosSchema>;
+
 // Add the relations
 export const bookingsRelations = relations(bookings, ({ many, one }) => ({
   fileAttachments: many(fileAttachments),
@@ -241,6 +257,7 @@ export const bookingsRelations = relations(bookings, ({ many, one }) => ({
     fields: [bookings.pcrRoomId],
     references: [pcrRooms.id],
   }),
+  studios: many(bookingStudios),
 }));
 
 export const fileAttachmentsRelations = relations(fileAttachments, ({ one }) => ({
