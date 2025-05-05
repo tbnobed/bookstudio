@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -46,8 +47,12 @@ export default function UserManagement() {
     username: "",
     email: "",
     name: "",
-    role: ""
+    role: "",
+    password: ""
   });
+  
+  // Toggle for showing password field in edit form
+  const [showPasswordField, setShowPasswordField] = useState(false);
 
   // Fetch users
   const { data: users = [], isLoading } = useQuery<User[]>({
@@ -90,7 +95,14 @@ export default function UserManagement() {
   
   // Update user mutation
   const updateUser = useMutation({
-    mutationFn: async ({ id, userData }: { id: number, userData: Partial<Omit<InsertUser, 'password'>> }) => {
+    mutationFn: async ({ id, userData }: { id: number, userData: Partial<InsertUser> }) => {
+      // If password field is empty, remove it from the payload
+      if (userData.password === "") {
+        const { password, ...dataWithoutPassword } = userData;
+        const res = await apiRequest("PATCH", `/api/users/${id}`, dataWithoutPassword);
+        return res.json();
+      }
+      
       const res = await apiRequest("PATCH", `/api/users/${id}`, userData);
       return res.json();
     },
@@ -198,8 +210,10 @@ export default function UserManagement() {
       username: user.username,
       email: user.email,
       name: user.name,
-      role: user.role
+      role: user.role,
+      password: ""
     });
+    setShowPasswordField(false);
     setIsEditUserOpen(true);
   };
   
@@ -500,6 +514,35 @@ export default function UserManagement() {
                   <SelectItem value="admin">Administrator</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="change-password">Change Password</Label>
+                <Switch 
+                  id="change-password" 
+                  checked={showPasswordField}
+                  onCheckedChange={setShowPasswordField}
+                />
+              </div>
+              
+              {showPasswordField && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-password">New Password</Label>
+                  <Input
+                    id="edit-password"
+                    name="password"
+                    type="password"
+                    value={editUser.password}
+                    onChange={handleEditInputChange}
+                    required={showPasswordField}
+                    placeholder="Enter new password"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Leave empty to keep the current password
+                  </p>
+                </div>
+              )}
             </div>
             
             <DialogFooter className="pt-4">
