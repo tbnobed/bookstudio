@@ -203,10 +203,31 @@ export class ResourceService {
    */
   async addResourceToBooking(data: InsertBookingResource): Promise<BookingResource> {
     try {
+      // Ensure IDs are valid numbers
+      const bookingId = typeof data.bookingId === 'string' ? parseInt(data.bookingId, 10) : data.bookingId;
+      const resourceId = typeof data.resourceId === 'string' ? parseInt(data.resourceId, 10) : data.resourceId;
+      
+      // Check if the bookingId is valid
+      if (isNaN(bookingId)) {
+        throw new Error(`Invalid booking ID: ${data.bookingId}`);
+      }
+      
+      // Check if the resourceId is valid
+      if (isNaN(resourceId)) {
+        throw new Error(`Invalid resource ID: ${data.resourceId}`);
+      }
+      
+      // Use the verified IDs for further operations
+      const verifiedData = {
+        ...data,
+        bookingId,
+        resourceId
+      };
+      
       // Validate the resource exists
-      const resourceExists = await this.validateResourceExists(data.resourceId);
+      const resourceExists = await this.validateResourceExists(resourceId);
       if (!resourceExists) {
-        throw new Error(`Cannot add non-existent resource (ID: ${data.resourceId}) to booking`);
+        throw new Error(`Cannot add non-existent resource (ID: ${resourceId}) to booking`);
       }
       
       // Check if this resource is already assigned to this booking
@@ -214,21 +235,34 @@ export class ResourceService {
         .from(bookingResources)
         .where(
           and(
-            eq(bookingResources.bookingId, data.bookingId),
-            eq(bookingResources.resourceId, data.resourceId)
+            eq(bookingResources.bookingId, bookingId),
+            eq(bookingResources.resourceId, resourceId)
           )
         )
         .limit(1);
       
       if (existingAssignment.length > 0) {
-        throw new Error(`Resource (ID: ${data.resourceId}) is already assigned to this booking`);
+        throw new Error(`Resource (ID: ${resourceId}) is already assigned to this booking`);
       }
       
+      // Ensure quantity is a valid number
+      const quantity = typeof verifiedData.quantity === 'string' 
+        ? parseInt(verifiedData.quantity, 10) 
+        : verifiedData.quantity;
+      
+      if (isNaN(quantity) || quantity < 1) {
+        throw new Error('Quantity must be a valid positive number');
+      }
+      
+      // Insert with verified data
       const [newBookingResource] = await db.insert(bookingResources)
-        .values(data)
+        .values({
+          ...verifiedData,
+          quantity
+        })
         .returning();
       
-      console.log(`[ResourceService] Added resource (ID: ${data.resourceId}) to booking (ID: ${data.bookingId})`);
+      console.log(`[ResourceService] Added resource (ID: ${resourceId}) to booking (ID: ${bookingId})`);
       return newBookingResource;
     } catch (error) {
       console.error('[ResourceService] Error adding resource to booking:', error);
