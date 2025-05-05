@@ -157,9 +157,36 @@ export default function AuthPage() {
           <CardContent>
             <div className="w-full">
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
-                <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-                  {loginMutation.isPending ? "Signing In..." : "Sign In"}
-                </Button>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      placeholder="Enter your username"
+                      {...loginForm.register("username")}
+                    />
+                    {loginForm.formState.errors.username && (
+                      <p className="text-sm text-red-500">{loginForm.formState.errors.username.message}</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Enter your password"
+                      {...loginForm.register("password")}
+                    />
+                    {loginForm.formState.errors.password && (
+                      <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
+                    )}
+                  </div>
+                  
+                  <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+                    {loginMutation.isPending ? "Signing In..." : "Sign In"}
+                  </Button>
+                </div>
               </form>
             </div>
 
