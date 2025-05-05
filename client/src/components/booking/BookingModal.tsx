@@ -329,9 +329,9 @@ export default function BookingModal({
     };
     
     // Add dates array if multi-date selection is used
-    if (formData.dates.length > 0) {
-      bookingData.dates = formData.dates;
-    }
+    // Note: The dates array is already properly formatted strings (YYYY-MM-DD)
+    // and is only used for the multi-booking creation logic, not as part of the final booking object
+    const selectedDates = formData.dates.length > 0 ? formData.dates : [];
     
     // Set the primary studioId (for backward compatibility)
     // Use the first selected studio as the primary if available
@@ -385,9 +385,10 @@ export default function BookingModal({
         // Create new booking for each date if multi-date is used, otherwise create one booking
         console.log(`Creating new booking with studios:`, studioIds);
         
+        // Use the original date strings directly from the form
         const dates = formData.dates.length > 0 ? 
-          formData.dates.map(date => timeToDate(date, formData.startTime).toISOString().split('T')[0]) : 
-          [startDate.toISOString().split('T')[0]];
+          formData.dates : 
+          [formatDateForForm(startDate)];
           
         console.log(`Will create ${dates.length} bookings for dates:`, dates);
         
@@ -444,7 +445,7 @@ export default function BookingModal({
           
           toast({
             title: "Success", 
-            description: `${dates.length} bookings created successfully`,
+            description: `${formData.dates.length} bookings created successfully`,
             variant: "default"
           });
         }
@@ -587,13 +588,20 @@ export default function BookingModal({
                     <div className="border rounded-md p-2 mt-1">
                       <DayPicker
                         mode="multiple"
-                        selected={formData.dates.map(date => new Date(date))}
+                        selected={formData.dates.map(date => {
+                          // Create exact date objects from the ISO string without adjustments
+                          const [year, month, day] = date.split('-').map(Number);
+                          // Create date with local timezone (month is 0-indexed in JS Date)
+                          return new Date(year, month - 1, day);
+                        })}
                         onSelect={(selectedDays) => {
                           if (selectedDays) {
                             // Convert the selected days to strings in the required format
                             const formattedDates = Array.from(selectedDays).map(date => 
                               formatDateForForm(date)
                             );
+                            console.log("Selected days in DayPicker:", Array.from(selectedDays).map(d => d.toISOString()));
+                            console.log("Formatted dates:", formattedDates);
                             updateFormField('dates', formattedDates);
                             
                             // Also update the current date field for single date operations
