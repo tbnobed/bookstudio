@@ -181,6 +181,16 @@ export default function AuthPage() {
                     {loginForm.formState.errors.password && (
                       <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
                     )}
+                    <div className="flex justify-end">
+                      <Button 
+                        variant="link" 
+                        className="px-0 text-xs" 
+                        type="button"
+                        onClick={() => setActiveTab("forgot-password")}
+                      >
+                        Forgot password?
+                      </Button>
+                    </div>
                   </div>
                   
                   <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
