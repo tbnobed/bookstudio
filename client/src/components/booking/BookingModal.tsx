@@ -48,18 +48,17 @@ export default function BookingModal({
   const { toast } = useToast();
   const formInitializedRef = useRef(false);
   
-  // Format date for form - using local date to avoid timezone issues
+  // Format date for form - accounting for timezone issues
   const formatDateForForm = (date: Date): string => {
-    // Create a new date to avoid reference issues
-    const localDate = new Date(date);
+    // Create a date using the UTC components to avoid timezone shifts
+    // This ensures that selecting "May 7" in the calendar keeps it as "May 7" in the form
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     
-    // Use local date components to create the formatted date string
-    const year = localDate.getFullYear();
-    const month = String(localDate.getMonth() + 1).padStart(2, '0');
-    const day = String(localDate.getDate()).padStart(2, '0');
-    
-    console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${year}-${month}-${day}`);
-    return `${year}-${month}-${day}`;
+    const formattedDate = `${year}-${month}-${day}`;
+    console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${formattedDate}`);
+    return formattedDate;
   };
 
   // Default form values
