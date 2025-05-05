@@ -20,10 +20,10 @@ RUN npm ci
 # Copy all source files
 COPY . .
 
-# Make sure we have the latest calendar spacing fixes in the UI
-# The UI has been updated to reduce extra space between calendar and text
-# by adding negative margin-bottom (-0.5rem) to the calendar root
-# and removing top margin from instruction text (mt-0 instead of mt-1)
+# Make sure we have the latest bug fixes in the UI
+# 1. PCR room display fix: Properly loads PCR room data for each booking
+# 2. Calendar chronological sort: Bookings now appear in time order
+# 3. Calendar spacing optimizations: Reduced space between elements
 
 # Build the application
 RUN npm run build
