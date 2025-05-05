@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invite Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            background: #4b70e2;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .debug {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>Invite Test Page</h1>
+    
+    <p>This page helps test the invitation link functionality.</p>
+    
+    <div>
+        <h2>Test Invite Link:</h2>
+        <a href="/invite/f0755a5c1035b5845891dcf781f3d98e29b498f8941c1a34e7c77f0670645782" class="btn">Test Invite Link</a>
+    </div>
+    
+    <div class="debug">
+        <h3>Debug Information:</h3>
+        <div id="path-info"></div>
+        <div id="token-info"></div>
+    </div>
+
+    <script>
+        // Extract and display the current path
+        document.getElementById('path-info').innerHTML = `
+            <p><strong>Current Path:</strong> ${window.location.pathname}</p>
+            <p><strong>Full URL:</strong> ${window.location.href}</p>
+        `;
+        
+        // Extract token from URL if available
+        const pathParts = window.location.pathname.split('/');
+        let token = "";
+        
+        if (pathParts.length >= 3 && pathParts[1] === 'invite') {
+            token = pathParts[2];
+            document.getElementById('token-info').innerHTML = `
+                <p><strong>Token found:</strong> ${token}</p>
+                <pre>${JSON.stringify(pathParts, null, 2)}</pre>
+            `;
+        } else {
+            document.getElementById('token-info').innerHTML = `
+                <p><strong>No token found in URL</strong></p>
+                <pre>${JSON.stringify(pathParts, null, 2)}</pre>
+            `;
+        }
+    </script>
+</body>
+</html>

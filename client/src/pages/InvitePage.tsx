@@ -74,23 +74,31 @@ export default function InvitePage() {
   
   // Validate the token
   const validateToken = async (token: string) => {
+    console.log("InvitePage - validateToken called with token:", token);
     try {
+      console.log("InvitePage - Making API request to validate token");
       const response = await apiRequest("GET", `/api/invite/${token}`);
+      console.log("InvitePage - API response received:", response.status);
+      
       const data = await response.json();
+      console.log("InvitePage - API response data:", data);
       
       if (response.ok && data.valid) {
+        console.log("InvitePage - Token is valid, setting invite data");
         setTokenValid(true);
         setInviteData({
           email: data.email,
           role: data.role
         });
       } else {
+        console.log("InvitePage - Token validation failed:", data.message || "Invalid or expired invitation");
         setError(data.message || "Invalid or expired invitation");
       }
     } catch (error) {
-      console.error("Error validating invite token:", error);
+      console.error("InvitePage - Error validating invite token:", error);
       setError("Error validating invitation");
     } finally {
+      console.log("InvitePage - Token validation complete");
       setValidatingToken(false);
     }
   };
