@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Resource, BookingResource } from '@shared/schema';
 import { useToast } from './use-toast';
+import { useEffect } from 'react';
 
 export function useResources() {
   const queryClient = useQueryClient();
