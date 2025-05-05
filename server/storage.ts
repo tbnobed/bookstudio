@@ -6,7 +6,8 @@ import {
   notifications, type Notification, type InsertNotification,
   notificationGroups, type NotificationGroup, type InsertNotificationGroup,
   pcrRooms, type PcrRoom, type InsertPcrRoom,
-  bookingStudios, type BookingStudio, type InsertBookingStudio
+  bookingStudios, type BookingStudio, type InsertBookingStudio,
+  bookingDates, type BookingDate, type InsertBookingDate
 } from "@shared/schema";
 
 import { db, pool } from "./db";
