@@ -46,11 +46,17 @@ export default function BookingModal({
   const { toast } = useToast();
   const formInitializedRef = useRef(false);
   
-  // Format date for form
+  // Format date for form - using local date to avoid timezone issues
   const formatDateForForm = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    // Create a new date to avoid reference issues
+    const localDate = new Date(date);
+    
+    // Use local date components to create the formatted date string
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getDate()).padStart(2, '0');
+    
+    console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${year}-${month}-${day}`);
     return `${year}-${month}-${day}`;
   };
 
@@ -126,11 +132,13 @@ export default function BookingModal({
         // Clean all-day prefix from type
         const bookingType = normalizedBooking.type.replace("all-day:", "");
         
-        // Format date and times
+        // Format date and times - use local formatting to avoid timezone issues
         const bookingDate = new Date(normalizedBooking.start);
-        const dateStr = bookingDate.toISOString().split("T")[0];
+        const dateStr = formatDateForForm(bookingDate);
         const startTimeStr = formatTime(normalizedBooking.start).toLowerCase().replace(" ", "");
         const endTimeStr = formatTime(normalizedBooking.end).toLowerCase().replace(" ", "");
+        
+        console.log(`Booking ${normalizedBooking.id}: Original date ${normalizedBooking.start}, converted to form date ${dateStr}`);
         
         // Set form data
         setFormData({
