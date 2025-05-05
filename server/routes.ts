@@ -85,7 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // If user is updating password, include it in the update
-      let dataToUpdate = req.body;
+      let dataToUpdate = {...req.body};
       
       // Admin can update any field, but regular users can only update certain fields
       if (currentUser.role !== "admin" && currentUser.id === id) {
@@ -97,6 +97,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (password) {
           dataToUpdate.password = password;
         }
+      }
+      
+      // Hash the password if it's being updated
+      if (dataToUpdate.password) {
+        // Import hashPassword from auth.ts
+        const { hashPassword } = require('./auth');
+        dataToUpdate.password = await hashPassword(dataToUpdate.password);
       }
       
       const updatedUser = await storage.updateUser(id, dataToUpdate);
