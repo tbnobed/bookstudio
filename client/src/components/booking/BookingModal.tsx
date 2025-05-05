@@ -64,7 +64,8 @@ export default function BookingModal({
   const defaultValues = {
     title: "",
     description: "",
-    studioId: selectedStudio?.toString() || "",
+    studioId: selectedStudio?.toString() || "", // Keep for backward compatibility
+    studioIds: selectedStudio ? [selectedStudio.toString()] : [] as string[], // Array for multiple studios
     pcrRoomId: "0",
     bookingType: alertsOnly ? "maintenance" : "production",
     date: formatDateForForm(selectedDate),
@@ -145,6 +146,7 @@ export default function BookingModal({
           title: normalizedBooking.title,
           description: normalizedBooking.description,
           studioId: normalizedBooking.studioId ? normalizedBooking.studioId.toString() : "",
+          studioIds: normalizedBooking.studioId ? [normalizedBooking.studioId.toString()] : [], // Initialize with main studioId for now
           pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "",
           bookingType,
           date: dateStr,
@@ -170,9 +172,11 @@ export default function BookingModal({
         // Set selected studio if provided
         if (selectedStudio) {
           newFormData.studioId = selectedStudio.toString();
+          newFormData.studioIds = [selectedStudio.toString()];
         } else if (studios.length > 0) {
           // Set first studio as default if none selected
           newFormData.studioId = studios[0].id.toString();
+          newFormData.studioIds = [studios[0].id.toString()];
         }
         
         setFormData(newFormData);
@@ -244,10 +248,10 @@ export default function BookingModal({
     e.preventDefault();
     
     // Studio validation
-    if (!formData.studioId && (!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support"))) {
+    if (formData.studioIds.length === 0 && (!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support"))) {
       toast({
         title: "Error",
-        description: "Studio selection is required for this booking type",
+        description: "At least one studio must be selected for this booking type",
         variant: "destructive"
       });
       return;
@@ -302,7 +306,11 @@ export default function BookingModal({
     try {
       if (booking) {
         // Update existing booking
-        await updateBooking.mutateAsync({ id: booking.id, data: bookingData });
+        await updateBooking.mutateAsync({ 
+          id: booking.id, 
+          data: bookingData,
+          studioIds: formData.studioIds.map(id => parseInt(id)) // Include studioIds for the junction table
+        });
         toast({
           title: "Success",
           description: "Booking updated successfully",
@@ -310,7 +318,11 @@ export default function BookingModal({
         });
       } else {
         // Create new booking
-        const newBooking = await createBooking.mutateAsync(bookingData as InsertBooking);
+        const newBooking = await createBooking.mutateAsync({
+          ...bookingData as InsertBooking,
+          studioIds: formData.studioIds.map(id => parseInt(id)) // Include studioIds for the junction table
+        });
+        
         toast({
           title: "Success", 
           description: "Booking created successfully",
@@ -400,26 +412,51 @@ export default function BookingModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="studio" className="flex items-center">
-                      Studio <span className="text-red-500 ml-1">*</span>
+                      Studios <span className="text-red-500 ml-1">*</span>
                     </Label>
-                    <Select 
-                      value={formData.studioId} 
-                      onValueChange={(value) => updateFormField('studioId', value)} 
-                      required
-                    >
-                      <SelectTrigger className={!formData.studioId ? "border-red-500" : ""}>
-                        <SelectValue placeholder="Select studio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {studios.map((studio) => (
-                          <SelectItem key={studio.id} value={studio.id.toString()}>
+                    <div className="border rounded-md p-2 mt-1 space-y-2 max-h-40 overflow-y-auto">
+                      {studios.map((studio) => (
+                        <div key={studio.id} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`studio-${studio.id}`} 
+                            checked={formData.studioIds.includes(studio.id.toString())}
+                            onCheckedChange={(checked) => {
+                              const studioId = studio.id.toString();
+                              let newStudioIds = [...formData.studioIds];
+                              
+                              if (checked) {
+                                // Add studio to the list if not already included
+                                if (!newStudioIds.includes(studioId)) {
+                                  newStudioIds.push(studioId);
+                                }
+                                // Also update main studioId for backward compatibility
+                                updateFormField('studioId', studioId);
+                              } else {
+                                // Remove studio from the list
+                                newStudioIds = newStudioIds.filter(id => id !== studioId);
+                                
+                                // Update main studioId if it was the one removed
+                                if (formData.studioId === studioId) {
+                                  // Set to first selected studio or empty
+                                  const newMainStudio = newStudioIds.length > 0 ? newStudioIds[0] : "";
+                                  updateFormField('studioId', newMainStudio);
+                                }
+                              }
+                              
+                              updateFormField('studioIds', newStudioIds);
+                            }}
+                          />
+                          <Label 
+                            htmlFor={`studio-${studio.id}`}
+                            className="text-sm cursor-pointer"
+                          >
                             {studio.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {!formData.studioId && (
-                      <p className="text-sm text-red-500 mt-1">Studio selection is required</p>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                    {formData.studioIds.length === 0 && (
+                      <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
                     )}
                   </div>
                   
