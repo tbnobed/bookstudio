@@ -727,6 +727,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Failed to fetch studios for booking" });
     }
   });
+  
+  // Booking-Dates API routes for multi-date bookings
+  app.get("/api/booking-dates/:bookingId", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      if (isNaN(bookingId)) {
+        return res.status(400).json({ message: "Invalid booking ID" });
+      }
+      
+      const dates = await storage.getBookingDates(bookingId);
+      return res.json(dates);
+    } catch (error) {
+      console.error(`Error fetching dates for booking ${req.params.bookingId}:`, error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Public API route for booking dates - no authentication required
+  app.get("/api/public/booking-dates/:bookingId", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      if (isNaN(bookingId)) {
+        return res.status(400).json({ message: "Invalid booking ID" });
+      }
+      
+      const dates = await storage.getBookingDates(bookingId);
+      return res.json(dates);
+    } catch (error) {
+      console.error(`Error fetching dates for booking ${req.params.bookingId}:`, error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   app.post("/api/bookings", isAuthenticated, async (req, res) => {
     try {
@@ -819,6 +851,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           console.error("Error creating studio links:", error);
           // Continue with the response even if junction table entries fail
+        }
+      }
+      
+      // Handle multiple dates if provided
+      if (req.body.dates && Array.isArray(req.body.dates) && req.body.dates.length > 0) {
+        try {
+          // Convert all date strings to Date objects
+          const parsedDates = req.body.dates.map(date => 
+            typeof date === 'string' ? new Date(date) : date
+          );
+          
+          // Create the booking dates entries
+          const bookingDates = await storage.createBookingDates(booking.id, parsedDates);
+          console.log(`Created ${bookingDates.length} booking dates for booking ${booking.id}`);
+        } catch (error) {
+          console.error("Error creating booking dates:", error);
+          // Continue with the response even if booking dates creation fails
         }
       }
       
@@ -1040,6 +1089,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Updated studio links for booking ${id}: ${parsedStudioIds.join(', ')}`);
       }
       
+      // Handle multiple dates if provided
+      if (req.body.dates && Array.isArray(req.body.dates)) {
+        try {
+          // Convert all date strings to Date objects
+          const parsedDates = req.body.dates.map(date => 
+            typeof date === 'string' ? new Date(date) : date
+          );
+          
+          // Update the booking dates entries - this should replace any existing ones
+          const bookingDates = await storage.updateBookingDates(id, parsedDates);
+          console.log(`Updated booking dates for booking ${id}: ${bookingDates.length} dates`);
+        } catch (error) {
+          console.error("Error updating booking dates:", error);
+          // Continue with the response even if booking dates update fails
+        }
+      }
+      
       // Check if this is a facility-wide alert (null studioId and maintenance/IT related type)
       if (updatedBooking && updatedBooking.studioId === null && 
           (updatedBooking.type === "maintenance" || updatedBooking.type === "it_support" || 
@@ -1139,7 +1205,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Delete the booking and its associated dates
       const success = await storage.deleteBooking(id);
+      
+      // Even if the booking is gone, try to clean up any booking dates
+      try {
+        // This might already be handled by database cascading deletes,
+        // but it's good to be explicit in our code
+        await storage.deleteBookingDates(id);
+      } catch (error) {
+        console.error(`Error deleting booking dates for booking ${id}:`, error);
+        // Continue with the response even if booking dates deletion fails
+      }
       
       if (success) {
         // Create notification for the booking owner if not the deleter
