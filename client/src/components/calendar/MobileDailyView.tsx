@@ -58,8 +58,16 @@ export default function MobileDailyView({
   // Get facility-wide alerts (bookings with studioId === null)
   const facilityAlerts = todayBookings.filter(booking => 
     booking.studioId === null && 
-    (booking.type === "maintenance" || booking.type === "it_support")
+    (booking.type === "maintenance" || 
+     booking.type === "it_support" || 
+     booking.type === "facility_alert" || 
+     booking.type === "alert" ||
+     booking.severity !== null) // Include any booking with a severity set
   );
+  
+  // Debug alerts
+  console.log("Mobile view - All bookings:", todayBookings);
+  console.log("Mobile view - Facility alerts:", facilityAlerts);
 
   // Navigate to previous/next day
   const goToPreviousDay = () => {
