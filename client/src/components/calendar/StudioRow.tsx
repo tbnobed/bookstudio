@@ -35,16 +35,33 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       .map(link => link.bookingId);
     
     // Find bookings from the main bookings array that match the linked IDs
+    // Note: We no longer filter out bookings that also have a direct studioId to this studio
+    // This ensures bookings will appear in ALL linked studios
     const linkedBookings = bookings.filter(booking => 
-      linkedBookingIds.includes(booking.id) && 
-      booking.studioId !== studio.id // Avoid duplicates with direct bookings
+      linkedBookingIds.includes(booking.id)
     );
     
-    // Combine both lists
-    const combinedBookings = [...directBookings, ...linkedBookings];
+    // Combine both lists and deduplicate by booking ID
+    // Use a Set to track IDs we've already added to avoid duplicates
+    const bookingIds = new Set<number>();
+    const combinedBookings = [];
+    
+    // Add direct bookings first
+    for (const booking of directBookings) {
+      bookingIds.add(booking.id);
+      combinedBookings.push(booking);
+    }
+    
+    // Then add linked bookings, skipping any that are already included
+    for (const booking of linkedBookings) {
+      if (!bookingIds.has(booking.id)) {
+        bookingIds.add(booking.id);
+        combinedBookings.push(booking);
+      }
+    }
     
     if (linkedBookings.length > 0) {
-      console.log(`Studio ${studio.name} has ${linkedBookings.length} linked bookings through junction table`);
+      console.log(`Studio ${studio.name} has ${linkedBookings.length} linked bookings through junction table (${combinedBookings.length} total unique bookings)`);
     }
     
     return combinedBookings;
