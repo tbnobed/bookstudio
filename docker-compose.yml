@@ -47,6 +47,10 @@ services:
       - PGUSER=${PGUSER:-postgres}
       - PGPASSWORD=${PGPASSWORD:-postgres}
       - PGDATABASE=${PGDATABASE:-bookstudio}
+      - SESSION_SECRET=${SESSION_SECRET:-$(openssl rand -hex 32)}
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
+      - COOKIE_SAME_SITE=${COOKIE_SAME_SITE:-lax}
+      - RUNNING_IN_DOCKER=true
     networks:
       - app-network
     # Run database migrations and initialization

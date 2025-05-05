@@ -76,6 +76,20 @@ The Docker deployment follows this sequence:
 
 This process ensures that the database is fully configured before the application attempts to use it.
 
+### Session Persistence in Docker
+
+BookStud.io uses PostgreSQL for session storage, ensuring user sessions persist even when containers restart. This provides several benefits:
+
+1. **Consistent User Experience**: Users remain logged in even if the application container restarts
+2. **Container Resilience**: Application updates or container restarts don't interrupt active user sessions
+3. **Horizontal Scalability**: Multiple application containers can share session data
+
+This session persistence is automatically configured when using Docker deployment. The following environment variables control session behavior:
+
+- `SESSION_SECRET`: Secret key for session encryption
+- `COOKIE_SECURE`: Set to `true` in production with HTTPS
+- `COOKIE_SAME_SITE`: Cookie security policy (`lax`, `strict`, or `none`)
+
 ### Troubleshooting Docker Deployment
 
 If you encounter issues during deployment, here are some common solutions:
@@ -139,6 +153,30 @@ If you encounter issues during deployment, here are some common solutions:
    ping db
    ```
 
+#### Authentication and Session Issues
+
+1. **Users get logged out after container restart**:
+   - Check that PostgreSQL session store is working properly
+   - Ensure `DATABASE_URL` is correctly set
+   - Verify that the PostgreSQL tables are properly created
+   - Try setting explicit cookie settings:
+     ```
+     COOKIE_SECURE=false
+     COOKIE_SAME_SITE=lax
+     ```
+
+2. **401 Unauthorized errors in logs**:
+   - Check session configuration in `.env` file
+   - Ensure the same `SESSION_SECRET` is used across restarts
+   - Reset the session table if needed:
+     ```bash
+     docker compose exec db psql -U postgres bookstudio -c "DROP TABLE IF EXISTS session;"
+     ```
+   - Restart the application to recreate the session table:
+     ```bash
+     docker compose restart
+     ```
+
 #### SendGrid Email Issues
 
 1. **Verify your SendGrid API key** is correctly set in the `.env` file
@@ -157,6 +195,8 @@ These can be configured in your `.env` file:
 |----------|-------------|---------|
 | PORT | Application port | 5000 |
 | SESSION_SECRET | Secret for session encryption | Auto-generated |
+| COOKIE_SECURE | Whether to use secure cookies | false |
+| COOKIE_SAME_SITE | SameSite cookie attribute | lax |
 | SENDGRID_API_KEY | API key for SendGrid email notifications | Required for emails |
 
 ### Database Configuration
