@@ -97,7 +97,7 @@ export function useFileAttachments(bookingId?: number) {
       setIsDownloading(true);
       
       // Fetch the file
-      const response = await fetch(`/api/file-attachments/${fileId}/download`);
+      const response = await fetch(`/api/attachments/${fileId}`);
       
       if (!response.ok) {
         throw new Error('Failed to download file');
