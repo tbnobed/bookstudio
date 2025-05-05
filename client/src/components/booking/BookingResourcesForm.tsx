@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useResources } from '@/hooks/use-resources';
 import { Booking, Resource, BookingResource } from '@shared/schema';
 import { useForm } from 'react-hook-form';
@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, PlusCircle, Trash2, FileEdit } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, FileEdit, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -257,8 +257,9 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
                   <AlertDialogDescription>
                     Are you sure you want to remove all resources from this booking? This action cannot be undone.
                     {bookingResources.some(br => !br.resource || !br.resource.name) && (
-                      <p className="mt-2 text-amber-500">
-                        Some resources appear to be invalid or corrupted. Using "Remove All" is recommended to clean up all resources.
+                      <p className="mt-2 text-amber-500 flex items-center">
+                        <AlertTriangle className="h-4 w-4 mr-1 flex-shrink-0" />
+                        <span>Some resources appear to be invalid or corrupted. Using "Remove All" is recommended to clean up all resources.</span>
                       </p>
                     )}
                   </AlertDialogDescription>
@@ -304,7 +305,8 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
                     <div className="text-sm text-muted-foreground mt-1">{bookingResource.notes}</div>
                   )}
                   {(!bookingResource.resource || !bookingResource.resource.name) && (
-                    <div className="text-sm text-amber-500 font-medium mt-1">
+                    <div className="flex items-center text-sm text-amber-500 font-medium mt-1">
+                      <AlertTriangle className="h-4 w-4 mr-1" />
                       Resource data missing or corrupt. Please remove and re-add this resource.
                     </div>
                   )}
@@ -336,8 +338,9 @@ export default function BookingResourcesForm({ booking }: BookingResourcesFormPr
                             ? `Are you sure you want to remove "${bookingResource.resource.name}" from this booking?`
                             : "Are you sure you want to remove this resource from the booking?"}
                           {(!bookingResource.resource || !bookingResource.resource.name) && (
-                            <p className="mt-2 text-amber-500">
-                              This resource appears to be invalid or corrupted. Removing it is recommended.
+                            <p className="mt-2 text-amber-500 flex items-center">
+                              <AlertTriangle className="h-4 w-4 mr-1 flex-shrink-0" />
+                              <span>This resource appears to be invalid or corrupted. Removing it is recommended.</span>
                             </p>
                           )}
                         </AlertDialogDescription>
