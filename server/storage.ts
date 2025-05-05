@@ -1754,6 +1754,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async updateBookingDates(bookingId: number, dates: Date[]): Promise<BookingDate[]> {
+    try {
+      // First delete existing dates for this booking
+      await this.deleteBookingDates(bookingId);
+      
+      // Then create new dates
+      const newDates = await this.createBookingDates(bookingId, dates);
+      
+      return newDates;
+    } catch (error) {
+      console.error(`Error updating booking dates for booking ID ${bookingId}:`, error);
+      throw error;
+    }
+  }
+  
   async deleteBookingDates(bookingId: number): Promise<boolean> {
     try {
       // Get the existing dates

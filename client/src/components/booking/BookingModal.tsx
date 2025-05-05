@@ -183,6 +183,7 @@ export default function BookingModal({
             pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "",
             bookingType,
             date: dateStr,
+            dates: [], // Initialize with empty array for existing bookings
             startTime: startTimeStr,
             endTime: endTimeStr,
             templateId: normalizedBooking.templateId ? normalizedBooking.templateId.toString() : "",
@@ -325,6 +326,11 @@ export default function BookingModal({
       end: endDate,
       notifyList: formData.notifyList,
     };
+    
+    // Add dates array if multi-date selection is used
+    if (formData.dates.length > 0) {
+      bookingData.dates = formData.dates;
+    }
     
     // Set the primary studioId (for backward compatibility)
     // Use the first selected studio as the primary if available
@@ -927,14 +933,47 @@ export default function BookingModal({
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => updateFormField('date', e.target.value)}
-                  required
-                />
+                <Label htmlFor="date">Date Selection</Label>
+                <div className="flex space-x-2 mb-2">
+                  <Input
+                    id="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => updateFormField('date', e.target.value)}
+                    required
+                  />
+                  <Button 
+                    type="button"
+                    size="sm"
+                    onClick={handleAddDate}
+                    className="whitespace-nowrap"
+                  >
+                    Add Date
+                  </Button>
+                </div>
+                
+                {/* Show selected dates */}
+                {formData.dates.length > 0 && (
+                  <div className="mt-2 border rounded-md p-2 max-h-32 overflow-y-auto">
+                    <p className="text-sm font-medium mb-1">Selected Dates:</p>
+                    <div className="space-y-1">
+                      {formData.dates.map(date => (
+                        <div key={date} className="flex items-center justify-between text-sm bg-muted p-1 px-2 rounded">
+                          <span>{new Date(date).toLocaleDateString()}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveDate(date)}
+                            className="h-6 w-6 p-0"
+                          >
+                            &times;
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div>
