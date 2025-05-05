@@ -9,6 +9,7 @@ import MyBookingsPage from "@/pages/MyBookingsPage";
 import TemplatesPage from "@/pages/TemplatesPage";
 import ReportsPage from "@/pages/ReportsPage";
 import UserManagement from "@/pages/UserManagement";
+import SiteManagerUserPage from "@/pages/SiteManagerUserPage";
 import Settings from "@/pages/Settings";
 import { useEffect, useState } from "react";
 import ToastNotification from "@/components/ui/toast-notification";

@@ -73,6 +73,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch users" });
     }
   });
+      
+  // Route for site managers to get only producers
+  app.get("/api/users/producers", isAuthenticated, hasRole(["site_manager"]), async (req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const producers = allUsers.filter(user => user.role === "producer");
+      res.json(producers);
+    } catch (error) {
+      console.error("Error fetching producers:", error);
+      res.status(500).json({ message: "Error fetching producers" });
+    }
+  });
   
   // Validate invite token
   app.get("/api/invite/:token", async (req, res) => {
@@ -104,13 +116,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint for admins to generate invite links
-  app.post("/api/invite", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  // Endpoint for admins and site managers to generate invite links
+  app.post("/api/invite", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
-      const { email, role } = z.object({
-        email: z.string().email(),
-        role: z.enum(["admin", "producer", "engineer", "it", "viewer"])
-      }).parse(req.body);
+      const user = req.user as Express.User;
+      let parsedData;
+      
+      // Site managers can only invite producers
+      if (user.role === "site_manager") {
+        parsedData = z.object({
+          email: z.string().email(),
+          role: z.literal("producer")
+        }).parse(req.body);
+      } else {
+        // Admins can invite any role
+        parsedData = z.object({
+          email: z.string().email(),
+          role: z.enum(["admin", "producer", "engineer", "it", "site_manager", "viewer"])
+        }).parse(req.body);
+      }
+      
+      const { email, role } = parsedData;
       
       const admin = req.user as Express.User;
       
