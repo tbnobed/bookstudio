@@ -392,12 +392,11 @@ export default function BookingModal({
         // Create new booking for each date if multi-date is used, otherwise create one booking
         console.log(`Creating new booking with studios:`, studioIds);
         
-        // Use the dates directly without adjustment since we fixed formatDateForForm
+        // Use the selected dates directly - they're already properly formatted with formatDateForForm
         const dates = formData.dates.length > 0 ? 
-          formData.dates.map(date => {
-            // Use the date string directly with our timeToDate function
-            return date;
-          }) : 
+          // Use as-is - these are already in YYYY-MM-DD format from our improved formatDateForForm
+          formData.dates : 
+          // For single date operations, ensure we're using consistent formatting
           [formatDateForForm(startDate)];
           
         console.log(`Will create ${dates.length} bookings for dates:`, dates);
@@ -590,10 +589,10 @@ export default function BookingModal({
                             // Log the raw selected days for debugging
                             console.log("Raw selected days:", Array.from(selectedDays).map(d => d.toString()));
                             
-                            // Convert the selected days to strings in the required format 
-                            // using our consistent formatting function
+                            // Convert the selected days to strings using our consistent formatDateForForm function
+                            // This handles timezone properly by using local date components
                             const formattedDates = Array.from(selectedDays).map(date => {
-                              // Make sure we're using the clean formatDateForForm function from dateUtils.ts
+                              // Use the new formatDateForForm that handles local timezone
                               const formatted = formatDateForForm(date);
                               console.log("Selected date formatting:", date.toString(), "formatted as:", formatted);
                               return formatted;
