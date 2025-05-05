@@ -52,17 +52,28 @@ export class ResourceService {
   
   // Get resources for a booking
   async getResourcesForBooking(bookingId: number): Promise<(BookingResource & { resource: Resource })[]> {
-    return db.select({
-      id: bookingResources.id,
-      bookingId: bookingResources.bookingId,
-      resourceId: bookingResources.resourceId,
-      quantity: bookingResources.quantity,
-      notes: bookingResources.notes,
-      resource: resources
-    })
-    .from(bookingResources)
-    .innerJoin(resources, eq(bookingResources.resourceId, resources.id))
-    .where(eq(bookingResources.bookingId, bookingId));
+    const results = await db.select()
+      .from(bookingResources)
+      .innerJoin(resources, eq(bookingResources.resourceId, resources.id))
+      .where(eq(bookingResources.bookingId, bookingId));
+    
+    return results.map(row => ({
+      id: row.booking_resources.id,
+      bookingId: row.booking_resources.bookingId,
+      resourceId: row.booking_resources.resourceId,
+      quantity: row.booking_resources.quantity,
+      notes: row.booking_resources.notes,
+      resource: {
+        id: row.resources.id,
+        name: row.resources.name,
+        description: row.resources.description,
+        category: row.resources.category,
+        quantity: row.resources.quantity,
+        isAvailable: row.resources.isAvailable,
+        createdAt: row.resources.createdAt,
+        updatedAt: row.resources.updatedAt
+      }
+    }));
   }
   
   // Add resource to booking
