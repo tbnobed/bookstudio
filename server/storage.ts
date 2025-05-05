@@ -4,7 +4,8 @@ import {
   templates, type Template, type InsertTemplate,
   bookings, type Booking, type InsertBooking,
   notifications, type Notification, type InsertNotification,
-  notificationGroups, type NotificationGroup, type InsertNotificationGroup
+  notificationGroups, type NotificationGroup, type InsertNotificationGroup,
+  pcrRooms, type PcrRoom, type InsertPcrRoom
 } from "@shared/schema";
 
 import { db, pool } from "./db";
@@ -492,6 +493,7 @@ export class DatabaseStorage implements IStorage {
   private bookings: Map<number, Booking>;
   private notifications: Map<number, Notification>;
   private notificationGroups: Map<number, NotificationGroup>;
+  private pcrRooms: Map<number, PcrRoom>;
   
   private userIdCounter: number;
   private studioIdCounter: number;
@@ -499,6 +501,7 @@ export class DatabaseStorage implements IStorage {
   private bookingIdCounter: number;
   private notificationIdCounter: number;
   private notificationGroupIdCounter: number;
+  private pcrRoomIdCounter: number;
   
   public sessionStore: session.Store;
   
@@ -598,6 +601,13 @@ export class DatabaseStorage implements IStorage {
       allBookings.forEach(booking => {
         this.bookings.set(booking.id, booking);
         this.bookingIdCounter = Math.max(this.bookingIdCounter, booking.id + 1);
+      });
+      
+      // Load PCR rooms data
+      const allPcrRooms = await db.select().from(pcrRooms);
+      allPcrRooms.forEach(pcrRoom => {
+        this.pcrRooms.set(pcrRoom.id, pcrRoom);
+        this.pcrRoomIdCounter = Math.max(this.pcrRoomIdCounter, pcrRoom.id + 1);
       });
       
       const allNotifications = await db.select().from(notifications);
@@ -928,6 +938,104 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error(`Error getting templates for user ID ${userId}:`, error);
       return Array.from(this.templates.values()).filter(template => template.createdBy === userId);
+    }
+  }
+  
+  // PCR Room methods
+  async getPcrRoom(id: number): Promise<PcrRoom | undefined> {
+    if (this.pcrRooms.has(id)) {
+      return this.pcrRooms.get(id);
+    }
+    
+    try {
+      const [pcrRoom] = await db.select().from(pcrRooms).where(eq(pcrRooms.id, id));
+      if (pcrRoom) {
+        this.pcrRooms.set(id, pcrRoom);
+      }
+      return pcrRoom;
+    } catch (error) {
+      console.error(`Error getting PCR room with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async getAllPcrRooms(): Promise<PcrRoom[]> {
+    try {
+      const allPcrRooms = await db.select().from(pcrRooms);
+      allPcrRooms.forEach(room => {
+        this.pcrRooms.set(room.id, room);
+      });
+      // Sort PCR rooms alphabetically by name
+      return allPcrRooms.sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+      console.error("Error getting all PCR rooms:", error);
+      // Also sort the fallback array
+      return Array.from(this.pcrRooms.values())
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+  }
+  
+  async createPcrRoom(pcrRoom: InsertPcrRoom): Promise<PcrRoom> {
+    try {
+      const [newPcrRoom] = await db.insert(pcrRooms).values(pcrRoom).returning();
+      this.pcrRooms.set(newPcrRoom.id, newPcrRoom);
+      this.pcrRoomIdCounter = Math.max(this.pcrRoomIdCounter, newPcrRoom.id + 1);
+      return newPcrRoom;
+    } catch (error) {
+      console.error("Error creating PCR room:", error);
+      throw error;
+    }
+  }
+  
+  async updatePcrRoomStatus(id: number, status: string): Promise<PcrRoom | undefined> {
+    try {
+      const [updatedPcrRoom] = await db.update(pcrRooms)
+        .set({ status })
+        .where(eq(pcrRooms.id, id))
+        .returning();
+      
+      if (updatedPcrRoom) {
+        this.pcrRooms.set(id, updatedPcrRoom);
+      }
+      return updatedPcrRoom;
+    } catch (error) {
+      console.error(`Error updating PCR room status with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async deletePcrRoom(id: number): Promise<boolean> {
+    try {
+      // First check if PCR room exists
+      const pcrRoom = await this.getPcrRoom(id);
+      if (!pcrRoom) {
+        return false;
+      }
+      
+      // Check for active bookings with this PCR room
+      const bookingsWithPcrRoom = await db.select().from(bookings)
+        .where(eq(bookings.pcrRoomId, id));
+      
+      if (bookingsWithPcrRoom.length > 0) {
+        console.error(`Cannot delete PCR room with ID ${id} as it has active bookings`);
+        return false;
+      }
+      
+      // Delete the PCR room
+      const [deletedPcrRoom] = await db.delete(pcrRooms)
+        .where(eq(pcrRooms.id, id))
+        .returning();
+      
+      if (deletedPcrRoom) {
+        // Remove from cache
+        this.pcrRooms.delete(id);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error(`Error deleting PCR room with ID ${id}:`, error);
+      return false;
     }
   }
   
