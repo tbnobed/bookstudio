@@ -1365,10 +1365,14 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async updateBooking(id: number, data: Partial<InsertBooking>): Promise<Booking | undefined> {
+  async updateBooking(id: number, data: Partial<InsertBooking>, studioIds?: number[]): Promise<Booking | undefined> {
     try {
       // Process dates to ensure they're in the correct format
       const processedData = { ...data };
+      
+      // Extract studio IDs if they are present in the data
+      // We don't want to store studioIds in the bookings table itself
+      // They will be stored in the booking_studios junction table
       
       // Convert string dates to Date objects
       if (processedData.start && typeof processedData.start === 'string') {
@@ -1388,8 +1392,23 @@ export class DatabaseStorage implements IStorage {
         .returning();
         
       if (updatedBooking) {
+        // Update the cache
         this.bookings.set(id, updatedBooking);
+        
+        // If studioIds are provided, update the booking-studio links
+        if (studioIds && Array.isArray(studioIds)) {
+          console.log(`Updating studio links for booking ${id} with studios:`, studioIds);
+          
+          // First delete any existing links
+          await this.deleteBookingStudioLinks(id);
+          
+          // Then create new links
+          if (studioIds.length > 0) {
+            await this.createBookingStudioLinks(id, studioIds);
+          }
+        }
       }
+      
       return updatedBooking;
     } catch (error) {
       console.error(`Error updating booking with ID ${id}:`, error);

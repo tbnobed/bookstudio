@@ -1003,22 +1003,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const updatedBooking = await storage.updateBooking(id, updateData);
+      // Parse studioIds to ensure they're all numbers
+      const parsedStudioIds = studioIds && studioIds.length > 0 
+        ? studioIds.map(id => typeof id === 'string' ? parseInt(id) : id)
+        : undefined;
+        
+      // Use the updated version of updateBooking that handles studio links
+      const updatedBooking = await storage.updateBooking(id, updateData, parsedStudioIds);
       
-      // Update the studio links if studio IDs were provided
-      if (studioIds && studioIds.length > 0) {
-        try {
-          const parsedStudioIds = studioIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          
-          // Delete existing studio links and create new ones
-          await storage.deleteBookingStudioLinks(id);
-          await storage.createBookingStudioLinks(id, parsedStudioIds);
-          
-          console.log(`Updated studio links for booking ${id}: ${parsedStudioIds.join(', ')}`);
-        } catch (error) {
-          console.error("Error updating studio links:", error);
-          // Continue with the response even if junction table entries fail
-        }
+      if (parsedStudioIds && parsedStudioIds.length > 0) {
+        console.log(`Updated studio links for booking ${id}: ${parsedStudioIds.join(', ')}`);
       }
       
       // Check if this is a facility-wide alert (null studioId and maintenance/IT related type)
