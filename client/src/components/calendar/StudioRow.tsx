@@ -26,16 +26,42 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
   // 1. Bookings linked to this studio through the booking-studio junction table (preferred)
   // 2. Bookings with studioId directly set to this studio's ID (legacy way, only if not in junction table)
   const studioBookings = useMemo(() => {
+    console.log(`[DEBUG] Processing studio: ${studio.name} (ID: ${studio.id})`);
+    console.log(`[DEBUG] Total bookings available: ${bookings.length}`);
+    console.log(`[DEBUG] Total booking-studio links available: ${bookingStudioLinks.length}`);
+    
+    // Log all bookings for debugging
+    const relevantBookings = bookings.filter(b => 
+      b.studioId === studio.id || 
+      bookingStudioLinks.some(link => link.bookingId === b.id && link.studioId === studio.id)
+    );
+    
+    console.log(`[DEBUG] Bookings potentially relevant to Studio ${studio.name}:`, 
+      relevantBookings.map(b => ({id: b.id, title: b.title, studioId: b.studioId}))
+    );
+    
     // Get booking IDs from the junction table that link to this studio
     const linkedBookingIds = bookingStudioLinks
       .filter(link => link.studioId === studio.id)
       .map(link => link.bookingId);
+    
+    console.log(`[DEBUG] booking-studio links for Studio ${studio.name}:`, 
+      bookingStudioLinks.filter(link => link.studioId === studio.id)
+    );
+    
+    console.log(`[DEBUG] Linked booking IDs for Studio ${studio.name}: ${linkedBookingIds.join(', ')}`);
     
     // Find bookings from the main bookings array that match the linked IDs in junction table
     // This is our preferred source of truth for studio-booking relationships
     const linkedBookings = bookings.filter(booking => 
       linkedBookingIds.includes(booking.id)
     );
+    
+    // For each linked booking ID, check if we found a booking
+    linkedBookingIds.forEach(id => {
+      const found = bookings.find(b => b.id === id);
+      console.log(`[DEBUG] Linked booking ID ${id}: ${found ? 'Found in bookings' : 'NOT FOUND in bookings'}`);
+    });
     
     // If no linked bookings are found, fall back to direct bookings
     // This keeps backward compatibility with older bookings that might not have junction table entries
@@ -49,14 +75,17 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
     // Log details for debugging
     if (linkedBookings.length > 0) {
       console.log(`Studio ${studio.name} has ${linkedBookings.length} linked bookings through junction table`);
+      console.log(`[DEBUG] Linked bookings:`, linkedBookings.map(b => ({id: b.id, title: b.title})));
     }
     
     if (directBookings.length > 0) {
       console.log(`Studio ${studio.name} has ${directBookings.length} direct bookings`);
+      console.log(`[DEBUG] Direct bookings:`, directBookings.map(b => ({id: b.id, title: b.title})));
     }
     
     if (combinedBookings.length > 0) {
       console.log(`Studio ${studio.name} has ${combinedBookings.length} total bookings`);
+      console.log(`[DEBUG] Combined bookings:`, combinedBookings.map(b => ({id: b.id, title: b.title})));
     }
     
     return combinedBookings;
