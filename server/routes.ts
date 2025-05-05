@@ -69,6 +69,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Validate invite token
+  app.get("/api/invite/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      // Verify the invite token
+      const inviteInfo = verifyInviteToken(token);
+      
+      if (!inviteInfo) {
+        return res.status(400).json({ 
+          valid: false,
+          message: "Invalid or expired invitation link"
+        });
+      }
+      
+      // Return the invite info (excluding sensitive data)
+      res.json({
+        valid: true,
+        email: inviteInfo.email,
+        role: inviteInfo.role
+      });
+    } catch (error) {
+      console.error("Error validating invite token:", error);
+      res.status(500).json({ 
+        valid: false,
+        message: "Error validating invitation"
+      });
+    }
+  });
+
   // Endpoint for admins to generate invite links
   app.post("/api/invite", isAuthenticated, hasRole(["admin"]), async (req, res) => {
     try {

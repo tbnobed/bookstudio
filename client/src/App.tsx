@@ -14,6 +14,7 @@ import ToastNotification from "@/components/ui/toast-notification";
 import AuthPage from "@/pages/auth-page";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import PublicCalendarPage from "@/pages/PublicCalendarPage";
+import InvitePage from "@/pages/InvitePage";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 
@@ -24,6 +25,7 @@ function Router() {
     <Switch>
       <Route path="/auth" component={AuthPage} />
       <Route path="/login" component={AuthPage} />
+      <Route path="/invite/:token" component={InvitePage} />
       <Route path="/reset-password/:token" component={ResetPasswordPage} />
       <Route path="/public-calendar" component={PublicCalendarPage} />
       <ProtectedRoute path="/" component={CalendarPage} />
@@ -46,7 +48,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const isPublicPage = location === "/auth" || 
                      location === "/login" || 
                      location === "/public-calendar" || 
-                     location.startsWith("/reset-password/");
+                     location.startsWith("/reset-password/") ||
+                     location.startsWith("/invite/");
   
   return (
     <div className="flex h-screen overflow-hidden">

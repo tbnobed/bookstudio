@@ -13,7 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, UserPlus } from "lucide-react";
+import InviteUserForm from "@/components/user/InviteUserForm";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -295,13 +296,16 @@ export default function UserManagement() {
       <div className="container mx-auto p-4 pb-16 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">User Management</h1>
-          <Button onClick={() => setIsCreateUserOpen(true)}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Create User
-          </Button>
+          <div className="flex space-x-3">
+            <InviteUserForm />
+            <Button onClick={() => setIsCreateUserOpen(true)}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Create User
+            </Button>
+          </div>
         </div>
 
         <Card>
