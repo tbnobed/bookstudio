@@ -28,6 +28,13 @@ export interface IStorage {
   updateStudioStatus(id: number, status: string): Promise<Studio | undefined>;
   deleteStudio(id: number): Promise<boolean>;
   
+  // PCR Room management
+  getPcrRoom(id: number): Promise<PcrRoom | undefined>;
+  getAllPcrRooms(): Promise<PcrRoom[]>;
+  createPcrRoom(pcrRoom: InsertPcrRoom): Promise<PcrRoom>;
+  updatePcrRoomStatus(id: number, status: string): Promise<PcrRoom | undefined>;
+  deletePcrRoom(id: number): Promise<boolean>;
+  
   // Template management
   getTemplate(id: number): Promise<Template | undefined>;
   getAllTemplates(): Promise<Template[]>;
@@ -273,6 +280,44 @@ export class MemStorage implements IStorage {
     
     // Delete the studio
     return this.studios.delete(id);
+  }
+  
+  // PCR Room methods
+  private pcrRooms: Map<number, PcrRoom> = new Map();
+  private pcrRoomIdCounter: number = 1;
+  
+  async getPcrRoom(id: number): Promise<PcrRoom | undefined> {
+    return this.pcrRooms.get(id);
+  }
+
+  async getAllPcrRooms(): Promise<PcrRoom[]> {
+    // Return all PCR rooms sorted alphabetically by name
+    return Array.from(this.pcrRooms.values())
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async createPcrRoom(pcrRoom: InsertPcrRoom): Promise<PcrRoom> {
+    const id = this.pcrRoomIdCounter++;
+    const newPcrRoom: PcrRoom = { ...pcrRoom, id };
+    this.pcrRooms.set(id, newPcrRoom);
+    return newPcrRoom;
+  }
+
+  async updatePcrRoomStatus(id: number, status: string): Promise<PcrRoom | undefined> {
+    const pcrRoom = await this.getPcrRoom(id);
+    if (!pcrRoom) return undefined;
+    
+    const updatedPcrRoom: PcrRoom = { ...pcrRoom, status };
+    this.pcrRooms.set(id, updatedPcrRoom);
+    return updatedPcrRoom;
+  }
+  
+  async deletePcrRoom(id: number): Promise<boolean> {
+    // Check if the PCR room exists
+    const pcrRoomExists = this.pcrRooms.has(id);
+    
+    // Delete the PCR room
+    return this.pcrRooms.delete(id);
   }
 
   // Template methods
