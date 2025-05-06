@@ -39,6 +39,9 @@ ENV PORT=5000
 ENV NODE_ENV=production
 ENV TZ=America/Chicago
 
+# Accept build arguments for customizing the build
+ARG VITE_PATCHING=false
+
 # Install production-only dependencies
 RUN apk add --no-cache curl wget tzdata
 
@@ -72,14 +75,17 @@ COPY public ./public
 COPY attached_assets ./attached_assets
 COPY tsconfig.json .
 
-# Copy Vite production replacement file
+# Copy Vite production replacement file and vite-stub
 COPY server/vite.prod.ts ./dist/server/vite.js
+COPY vite-stub.js ./dist/vite-stub.js
 
-# Fix import paths in production build - replace Vite plugin imports with empty exports
-RUN sed -i 's/from.*@vitejs\/plugin-react.*/from "\/app\/dist\/vite-plugins-stub.js";/g' ./dist/index.js \
-    && sed -i 's/from.*@replit\/vite-plugin-cartographer.*/from "\/app\/dist\/vite-plugins-stub.js";/g' ./dist/index.js \
-    && sed -i 's/from.*@replit\/vite-plugin-runtime-error-modal.*/from "\/app\/dist\/vite-plugins-stub.js";/g' ./dist/index.js \
-    && echo 'export default {}; export const defineConfig = () => ({}); export function createHotContext() { return { accept: () => {} }; }' > ./dist/vite-plugins-stub.js
+# Fix import paths in production build - replace Vite plugin imports with our stub file
+RUN sed -i 's/from.*@vitejs\/plugin-react.*/from "\/app\/dist\/vite-stub.js";/g' ./dist/index.js \
+    && sed -i 's/from.*@replit\/vite-plugin-cartographer.*/from "\/app\/dist\/vite-stub.js";/g' ./dist/index.js \
+    && sed -i 's/from.*@replit\/vite-plugin-runtime-error-modal.*/from "\/app\/dist\/vite-stub.js";/g' ./dist/index.js
+
+# Directly patch any remaining react() function calls
+RUN grep -n "react()" ./dist/index.js | cut -d':' -f1 | xargs -I{} sed -i "{}s/react()/({ name: 'mock-react-plugin', transform: () => null })/" ./dist/index.js
 
 # Change ownership to the unprivileged user
 RUN chown -R appuser:appgroup /app

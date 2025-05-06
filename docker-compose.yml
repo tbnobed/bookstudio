@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - VITE_PATCHING=true
     image: bookstudio:${VERSION:-latest}
     restart: always
     ports:
@@ -57,6 +59,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - VITE_PATCHING=true
     image: bookstudio:${VERSION:-latest}
     depends_on:
       db:
