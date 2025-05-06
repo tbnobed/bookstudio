@@ -17,6 +17,7 @@ COPY server/ ./server/
 COPY shared/ ./shared/
 COPY scripts/ ./scripts/
 COPY public/ ./public/
+COPY attached_assets/ ./attached_assets/
 COPY *.ts ./
 COPY *.js ./
 COPY *.json ./
