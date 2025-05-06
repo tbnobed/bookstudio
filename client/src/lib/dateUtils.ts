@@ -214,16 +214,29 @@ export function getMonthDays(year: number, month: number): Date[] {
   return days;
 }
 
+/**
+ * Checks if two dates represent the same day in the facility timezone
+ * This is critical for ensuring bookings appear on the correct day in all timezones
+ * 
+ * @param date1 First date to compare
+ * @param date2 Second date to compare
+ * @returns True if the dates represent the same day in facility timezone
+ */
 export function isSameDay(date1: Date | string, date2: Date | string): boolean {
   const d1 = typeof date1 === "string" ? new Date(date1) : date1;
   const d2 = typeof date2 === "string" ? new Date(date2) : date2;
   
-  // Create local dates to compare only year, month, day components
-  const d1Local = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
-  const d2Local = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+  // Use Intl.DateTimeFormat to get the date components in the facility timezone
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: FACILITY_TIMEZONE,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  });
   
-  // Compare dates in local time to avoid timezone offset issues
-  return d1Local.getTime() === d2Local.getTime();
+  // Compare the formatted dates to determine if they're the same day
+  // in the facility timezone (America/Chicago - Dallas)
+  return formatter.format(d1) === formatter.format(d2);
 }
 
 export function formatWeekRangeText(currentDate: Date | null | undefined): string {
@@ -388,5 +401,33 @@ export function testTimezoneHandling(): void {
   console.log(`\nVerification that time remains 8:00 AM in any timezone:`);
   console.log(`Raw time in user timezone: ${new Date(parsedDate).toLocaleTimeString()}`);
   console.log(`Formatted time in facility timezone: ${formatTime(parsedDate)}`);
+  
+  // Test the isSameDay function with dates that cross midnight in different timezones
+  console.log(`\nTesting isSameDay function with cross-timezone dates:`);
+  
+  // Create two dates - one at 11:30 PM in Dallas and one at 12:30 AM the next day in Dallas
+  const latePMDate = createFacilityDate(2025, 4, 15, 23, 30, 0); // May 15, 2025 11:30 PM in Dallas
+  const earlyAMDate = createFacilityDate(2025, 4, 16, 0, 30, 0);  // May 16, 2025 12:30 AM in Dallas
+  
+  console.log(`Late PM date (Dallas time): ${formatDateTimeRange(latePMDate, latePMDate)}`);
+  console.log(`Early AM date (Dallas time): ${formatDateTimeRange(earlyAMDate, earlyAMDate)}`);
+  console.log(`These dates should be on DIFFERENT days: ${isSameDay(latePMDate, earlyAMDate) ? 'FAILED' : 'PASSED'}`);
+  
+  // Create two dates on the same day but at different times
+  const morningDate = createFacilityDate(2025, 4, 15, 8, 0, 0);   // May 15, 2025 8:00 AM in Dallas
+  const eveningDate = createFacilityDate(2025, 4, 15, 20, 0, 0);  // May 15, 2025 8:00 PM in Dallas
+  
+  console.log(`Morning date (Dallas time): ${formatDateTimeRange(morningDate, morningDate)}`);
+  console.log(`Evening date (Dallas time): ${formatDateTimeRange(eveningDate, eveningDate)}`);
+  console.log(`These dates should be on SAME day: ${isSameDay(morningDate, eveningDate) ? 'PASSED' : 'FAILED'}`);
+  
+  // Test a date that would be on different days in different timezones
+  // E.g., May 15 11:30 PM in Dallas would be May 16 in London but still May 15 in LA
+  console.log(`\nCross timezone boundary test (11:30 PM Dallas time):`);
+  console.log(`Late PM date ISO: ${latePMDate.toISOString()}`);
+  console.log(`This date in Dallas: ${formatDateInFacilityTimezone(latePMDate)}`);
+  console.log(`This date in user local time: ${latePMDate.toLocaleDateString()}`);
+  console.log(`Day comparison with next day (should be different): ${isSameDay(latePMDate, addDays(latePMDate, 1)) ? 'FAILED' : 'PASSED'}`);
+  
   console.log("=== END TEST ===");
 }
