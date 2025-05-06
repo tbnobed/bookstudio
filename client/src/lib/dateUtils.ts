@@ -5,19 +5,58 @@ export const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December"
 ];
 
+// The facility timezone is America/Chicago (Dallas, TX)
+export const FACILITY_TIMEZONE = 'America/Chicago';
+
+/**
+ * Format a date as a time string in the facility timezone
+ * 
+ * @param date The date to format
+ * @returns Formatted time string (e.g. "8:00 AM")
+ */
+export function formatTimeInFacilityTimezone(date: Date): string {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: FACILITY_TIMEZONE
+  });
+}
+
+/**
+ * Format a date in the facility timezone
+ * 
+ * @param date The date to format
+ * @returns Formatted date string (e.g. "May 5, 2025")
+ */
+export function formatDateInFacilityTimezone(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: FACILITY_TIMEZONE
+  });
+}
+
 export function formatTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  // Use facility timezone for all time formatting
+  return formatTimeInFacilityTimezone(d);
 }
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  // Use facility timezone for all date formatting
+  return formatDateInFacilityTimezone(d);
 }
 
 export function formatDateShort(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", { month: "numeric", day: "numeric" });
+  return d.toLocaleDateString("en-US", { 
+    month: "numeric", 
+    day: "numeric",
+    timeZone: FACILITY_TIMEZONE 
+  });
 }
 
 export function formatTimeRange(start: Date | string, end: Date | string): string {
@@ -243,11 +282,12 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // Create a date object with year, month, day in local time
-  const dateObj = new Date(year, month - 1, day, hourNum, minuteNum, 0, 0);
+  // Use our helper function to create a date in the facility timezone
+  // this ensures the date is understood in the Dallas timezone context
+  const dateObj = new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hourNum).padStart(2, '0')}:${String(minuteNum).padStart(2, '0')}:00-05:00`);
   
   // Log for debugging
-  console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()}`);
+  console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()} (Dallas time)`);
   
   return dateObj;
 }
