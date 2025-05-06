@@ -155,6 +155,54 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
       });
     },
   });
+  
+  // Copy a booking to multiple dates
+  const copyBooking = useMutation({
+    mutationFn: async ({
+      bookingId,
+      dates,
+      titleSuffix
+    }: {
+      bookingId: number;
+      dates: string[];
+      titleSuffix?: string;
+    }) => {
+      const res = await apiRequest("POST", "/api/bookings/copy", {
+        bookingId,
+        dates,
+        titleSuffix
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      const { success, message, results } = data;
+      
+      if (success) {
+        toast({
+          title: "Success!",
+          description: message || "Your booking has been copied successfully.",
+          variant: "default",
+        });
+      } else {
+        // Some copies might have failed
+        toast({
+          title: "Partial Success",
+          description: message || "Some booking copies could not be created due to conflicts.",
+          variant: "default",
+        });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings/user"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to copy booking",
+        variant: "destructive",
+      });
+    },
+  });
 
   return {
     bookings: bookingsQuery.data || [],
@@ -166,5 +214,6 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
     createTemplate,
     updateBooking,
     deleteBooking,
+    copyBooking,
   };
 }

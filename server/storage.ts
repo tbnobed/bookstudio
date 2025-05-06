@@ -51,15 +51,18 @@ export interface IStorage {
   getBookingsByUser(userId: number): Promise<Booking[]>;
   getBookingsByDateRange(start: Date, end: Date): Promise<Booking[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
-  updateBooking(id: number, data: Partial<InsertBooking>): Promise<Booking | undefined>;
+  updateBooking(id: number, data: Partial<InsertBooking>, studioIds?: number[]): Promise<Booking | undefined>;
   deleteBooking(id: number): Promise<boolean>;
+  checkBookingConflicts(studioId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]>;
   
   // Booking-Studio links management
   getBookingStudioLinks(bookingId: number): Promise<BookingStudio[]>;
   getAllBookingStudioLinks(): Promise<BookingStudio[]>;
   getStudiosForBooking(bookingId: number): Promise<Studio[]>;
+  getBookingStudios(bookingId: number): Promise<Studio[]>;
   createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]>;
   deleteBookingStudioLinks(bookingId: number): Promise<boolean>;
+  linkBookingToStudio(bookingId: number, studioId: number): Promise<BookingStudio>;
   
   // Notification group management
   getNotificationGroup(id: number): Promise<NotificationGroup | undefined>;
