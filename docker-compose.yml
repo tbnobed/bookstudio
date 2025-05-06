@@ -19,8 +19,6 @@ services:
       - COOKIE_SAME_SITE=${COOKIE_SAME_SITE:-lax}
       - RUNNING_IN_DOCKER=true
       - SUPPORT_SITE_MANAGER_ROLE=true
-      # Updated UI version with PCR room display fix and chronological booking order
-      - UI_VERSION=1.5.2
     depends_on:
       db:
         condition: service_healthy
@@ -34,7 +32,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting application with PCR room display fix and chronological booking order (v1.5.2)...' &&
+        echo 'Starting application...' &&
         npm start
       "
 

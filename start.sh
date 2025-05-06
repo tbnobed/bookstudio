@@ -163,14 +163,5 @@ if [ -z "$PORT" ]; then
     print_message "$YELLOW" "PORT not set in .env, using default port 5000"
 fi
 
-# Set UI version if not already present, or update if outdated
-if ! grep -q "UI_VERSION" .env; then
-    echo "UI_VERSION=1.5.2" >> .env
-    print_message "$BLUE" "Added UI_VERSION=1.5.2 to .env with PCR room display fix and chronological booking order"
-elif grep -q "UI_VERSION=1.5.1" .env; then
-    sed -i 's/UI_VERSION=1.5.1/UI_VERSION=1.5.2/g' .env
-    print_message "$BLUE" "Updated UI_VERSION to 1.5.2 with PCR room display fix and chronological booking order"
-fi
-
 print_message "$GREEN" "Starting BookStud.io application on port $PORT..."
 node dist/index.js

@@ -18,7 +18,7 @@ import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import InvitePage from "@/pages/InvitePage";
 import { ProtectedRoute } from "@/lib/protected-route";
-
+import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { useDevice } from "@/hooks/use-mobile";
 
 function Router() {
@@ -100,13 +100,15 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <TooltipProvider>
-      <AppLayout>
-        <Router />
-      </AppLayout>
-      <Toaster />
-      <ToastNotification />
-    </TooltipProvider>
+    <TimezoneProvider>
+      <TooltipProvider>
+        <AppLayout>
+          <Router />
+        </AppLayout>
+        <Toaster />
+        <ToastNotification />
+      </TooltipProvider>
+    </TimezoneProvider>
   );
 }
 

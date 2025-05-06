@@ -393,8 +393,7 @@ export class MemStorage implements IStorage {
     const startTime = start.getTime();
     const endTime = end.getTime();
     
-    // Filter bookings by date range
-    const filteredBookings = Array.from(this.bookings.values()).filter((booking) => {
+    return Array.from(this.bookings.values()).filter((booking) => {
       const bookingStart = new Date(booking.start).getTime();
       const bookingEnd = new Date(booking.end).getTime();
       
@@ -404,27 +403,6 @@ export class MemStorage implements IStorage {
         (bookingStart <= startTime && bookingEnd >= endTime) // spans the entire range
       );
     });
-    
-    console.log(`[Storage] Found ${filteredBookings.length} bookings in date range ${start.toISOString()} to ${end.toISOString()}`);
-    
-    // For each booking with a PCR room, enrich it with the PCR room data
-    for (const booking of filteredBookings) {
-      if (booking.pcrRoomId) {
-        // Get the PCR room data
-        const pcrRoom = await this.getPcrRoom(booking.pcrRoomId);
-        if (pcrRoom) {
-          // Add the PCR room data to the booking
-          (booking as any).pcrRoom = pcrRoom;
-          console.log(`  - ID: ${booking.id}, Title: ${booking.title}, Start: ${booking.start}, End: ${booking.end}, PCR Room: ${pcrRoom.name} (ID: ${pcrRoom.id})`);
-        } else {
-          console.log(`  - ID: ${booking.id}, Title: ${booking.title}, Start: ${booking.start}, End: ${booking.end}, PCR Room ID: ${booking.pcrRoomId} - NOT FOUND`);
-        }
-      } else {
-        console.log(`  - ID: ${booking.id}, Title: ${booking.title}, Start: ${booking.start}, End: ${booking.end}`);
-      }
-    }
-    
-    return filteredBookings;
   }
 
   async createBooking(booking: InsertBooking): Promise<Booking> {
@@ -499,35 +477,18 @@ export class MemStorage implements IStorage {
   }
   
   async createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]> {
-    try {
-      const createdLinks: BookingStudio[] = [];
+    const createdLinks: BookingStudio[] = [];
+    
+    for (const studioId of studioIds) {
+      const id = this.bookingStudioIdCounter++;
+      const key = `${bookingId}-${studioId}`;
+      const link: BookingStudio = { id, bookingId, studioId };
       
-      // Validate the booking ID exists before attempting to create links
-      const booking = await this.getBooking(bookingId);
-      if (!booking) {
-        throw new Error(`Cannot create links: Booking with ID ${bookingId} does not exist`);
-      }
-      
-      // Validate that all studio IDs exist
-      for (const studioId of studioIds) {
-        const studio = await this.getStudio(studioId);
-        if (!studio) {
-          throw new Error(`Cannot create link: Studio with ID ${studioId} does not exist`);
-        }
-        
-        const id = this.bookingStudioIdCounter++;
-        const key = `${bookingId}-${studioId}`;
-        const link: BookingStudio = { id, bookingId, studioId };
-        
-        this.bookingStudios.set(key, link);
-        createdLinks.push(link);
-      }
-      
-      return createdLinks;
-    } catch (error) {
-      console.error("Error creating booking studio links:", error);
-      throw error; // Properly propagate the error for better error handling
+      this.bookingStudios.set(key, link);
+      createdLinks.push(link);
     }
+    
+    return createdLinks;
   }
   
   async deleteBookingStudioLinks(bookingId: number): Promise<boolean> {
@@ -1250,12 +1211,7 @@ export class DatabaseStorage implements IStorage {
   
   async getAllBookings(): Promise<Booking[]> {
     try {
-      // Include the PCR room relation to get the PCR room name
-      const allBookings = await db.query.bookings.findMany({
-        with: {
-          pcrRoom: true
-        }
-      });
+      const allBookings = await db.select().from(bookings);
       allBookings.forEach(booking => {
         this.bookings.set(booking.id, booking);
       });
@@ -1348,12 +1304,9 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`[Storage] Fetching bookings between ${adjustedStart.toISOString()} and ${end.toISOString()}`);
       
-      // Query with PCR room relation included
-      const allBookings = await db.query.bookings.findMany({
-        with: {
-          pcrRoom: true
-        }
-      });
+      // Fallback to in-memory approach to avoid PostgreSQL reserved keyword issues
+      // Get all bookings and filter them
+      const allBookings = await this.getAllBookings();
       
       // Now filter the bookings to those in the date range
       const dateRangeBookings = allBookings.filter(booking => {
@@ -1542,31 +1495,14 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      // Validate the booking ID exists before attempting to create links
-      const booking = await this.getBooking(bookingId);
-      if (!booking) {
-        throw new Error(`Cannot create links: Booking with ID ${bookingId} does not exist`);
-      }
-      
-      // Validate that all studio IDs exist
-      for (const studioId of studioIds) {
-        const studio = await this.getStudio(studioId);
-        if (!studio) {
-          throw new Error(`Cannot create link: Studio with ID ${studioId} does not exist`);
-        }
-      }
-      
       const links = studioIds.map(studioId => ({
         bookingId,
         studioId
       }));
       
-      const createdLinks = await db.insert(bookingStudios)
+      return db.insert(bookingStudios)
         .values(links)
         .returning();
-      
-      console.log(`Created ${createdLinks.length} booking-studio links in database`);
-      return createdLinks;
     } catch (error) {
       console.error(`Error creating studio links for booking ID ${bookingId}:`, error);
       throw error;
@@ -1778,20 +1714,6 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      // Validate the booking ID exists before attempting to create links
-      const booking = await this.getBooking(bookingId);
-      if (!booking) {
-        throw new Error(`Cannot create links: Booking with ID ${bookingId} does not exist`);
-      }
-      
-      // Validate that all studio IDs exist
-      for (const studioId of studioIds) {
-        const studio = await this.getStudio(studioId);
-        if (!studio) {
-          throw new Error(`Cannot create link: Studio with ID ${studioId} does not exist`);
-        }
-      }
-      
       console.log(`Creating booking-studio links for booking ID ${bookingId} with studios:`, studioIds);
       
       // Create the links in the database
@@ -1816,7 +1738,7 @@ export class DatabaseStorage implements IStorage {
       return createdLinks;
     } catch (error) {
       console.error(`Error creating booking-studio links for booking ID ${bookingId}:`, error);
-      throw error; // Properly propagate the error
+      return [];
     }
   }
   

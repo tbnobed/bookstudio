@@ -7,38 +7,17 @@ export const MONTH_NAMES = [
 
 export function formatTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  
-  // FIXED APPROACH: Always use UTC to display the time exactly as stored in the database
-  // This ensures that times are displayed consistently across all timezones
-  return d.toLocaleTimeString("en-US", { 
-    hour: "numeric", 
-    minute: "2-digit", 
-    hour12: true,
-    timeZone: "UTC" // Always use UTC to prevent any timezone shifts
-  });
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  
-  // FIXED APPROACH: Always use UTC to display the date exactly as stored in the database
-  return d.toLocaleDateString("en-US", { 
-    month: "short", 
-    day: "numeric", 
-    year: "numeric",
-    timeZone: "UTC" // Always use UTC to prevent any timezone shifts
-  });
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 export function formatDateShort(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  
-  // FIXED APPROACH: Always use UTC to display the date exactly as stored in the database
-  return d.toLocaleDateString("en-US", { 
-    month: "numeric", 
-    day: "numeric",
-    timeZone: "UTC" // Always use UTC to prevent any timezone shifts
-  });
+  return d.toLocaleDateString("en-US", { month: "numeric", day: "numeric" });
 }
 
 export function formatTimeRange(start: Date | string, end: Date | string): string {
@@ -264,34 +243,11 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // MOST DIRECT APPROACH: Use the ISO string format directly
-  // This avoids any internal date manipulation or timezone conversion
-  // Format: YYYY-MM-DDTHH:mm:ss.sssZ
-  const isoString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hourNum.toString().padStart(2, '0')}:${minuteNum.toString().padStart(2, '0')}:00.000Z`;
-  
-  // Create date directly from ISO string
-  const finalDate = new Date(isoString);
+  // Create a date object with year, month, day in local time
+  const dateObj = new Date(year, month - 1, day, hourNum, minuteNum, 0, 0);
   
   // Log for debugging
-  console.log(`timeToDate: NO CONVERSIONS - Raw string created: ${isoString}, date: ${finalDate.toISOString()}`);
+  console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()}`);
   
-  return finalDate;
-}
-
-// Helper function to format a date for use in the form YYYY-MM-DD
-export function formatDateForForm(date: Date): string {
-  // FIXED APPROACH: Always use UTC to maintain a consistent date representation
-  // This ensures the date shown in the form is exactly as stored in the database
-  
-  // Get the year, month, and day components from the date in UTC
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  
-  // Format the date as YYYY-MM-DD
-  const formattedDate = `${year}-${month}-${day}`;
-  
-  console.log(`formatDateForForm: FIXED - Input: ${date.toISOString()}, Result: ${formattedDate}`);
-  
-  return formattedDate;
+  return dateObj;
 }

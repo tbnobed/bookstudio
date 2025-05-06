@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import StudioManagementModal from "@/components/studio/StudioManagementModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTimezone } from "@/contexts/TimezoneContext";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 import ProfilePanel from "@/components/settings/ProfilePanel";
 import PcrRoomsPanel from "@/components/settings/PcrRoomsPanel";
@@ -21,11 +22,13 @@ export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { timezone, setTimezone } = useTimezone();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [selectedStudio, setSelectedStudio] = useState<Studio | undefined>(undefined);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [studioToDelete, setStudioToDelete] = useState<Studio | null>(null);
+  const [timezones, setTimezones] = useState<string[]>([]);
   
   // Fetch studios for studio settings
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -103,6 +106,23 @@ export default function Settings() {
   const timeOptions = ["12-hour (AM/PM)", "24-hour"];
   const dateOptions = ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"];
   const firstDayOptions = ["Sunday", "Monday"];
+  
+  // Initialize timezone data
+  useEffect(() => {
+    // Common timezone options
+    const commonTimezones = [
+      "UTC",
+      "America/Los_Angeles", // Pacific Time (US & Canada)
+      "America/Denver",      // Mountain Time (US & Canada)
+      "America/Chicago",     // Central Time (US & Canada)
+      "America/New_York",    // Eastern Time (US & Canada)
+      "Europe/London",       // GMT/UTC
+      "Europe/Paris",        // Central European Time
+      "Asia/Tokyo",          // Japan
+      "Australia/Sydney",    // Australia Eastern Time
+    ];
+    setTimezones(commonTimezones);
+  }, []);
 
   // For non-admin users, only show the Profile tab
   if (user?.role !== "admin") {
@@ -229,16 +249,33 @@ export default function Settings() {
                         ))}
                       </div>
                     </div>
+                    
+                    <div>
+                      <Label htmlFor="timezone-select">Timezone</Label>
+                      <div className="mt-2">
+                        <Select
+                          value={timezone}
+                          onValueChange={(value) => setTimezone(value)}
+                        >
+                          <SelectTrigger id="timezone-select" className="w-full">
+                            <SelectValue placeholder="Select a timezone" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timezones.map((tz) => (
+                              <SelectItem key={tz} value={tz}>
+                                {tz.replace("_", " ").replace(/\//g, " / ")}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Current timezone: {timezone || "UTC"} ({new Date().toLocaleString('en-US', { timeZone: timezone })}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                   
-                  <Button onClick={() => {
-                    toast({
-                      title: "Settings saved",
-                      description: "Date and time settings have been updated",
-                    });
-                  }}>
-                    Save Changes
-                  </Button>
+                  <Button>Save Changes</Button>
                 </CardContent>
               </Card>
               
@@ -351,79 +388,166 @@ export default function Settings() {
                       setIsStudioModalOpen(true);
                     }}
                   >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
                     Add Studio
                   </Button>
+                  
+                  {/* Studio Management Modal */}
+                  <StudioManagementModal
+                    isOpen={isStudioModalOpen}
+                    onClose={() => setIsStudioModalOpen(false)}
+                    studio={selectedStudio}
+                  />
+                  
+                  {/* Delete Studio Confirmation Dialog */}
+                  <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the studio
+                          <strong>{studioToDelete ? ` "${studioToDelete.name}"` : ""}</strong> from the system.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleteStudioMutation.isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={confirmDeleteStudio} 
+                          disabled={deleteStudioMutation.isPending}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          {deleteStudioMutation.isPending ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>
-            
-            {isStudioModalOpen && (
-              <StudioManagementModal
-                isOpen={isStudioModalOpen}
-                onClose={() => setIsStudioModalOpen(false)}
-                studio={selectedStudio}
-              />
-            )}
-            
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete the studio "{studioToDelete?.name}". This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={confirmDeleteStudio} className="bg-red-600 hover:bg-red-700">
-                    Delete Studio
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
           </TabsContent>
-          
+
           <TabsContent value="pcr">
             <PcrRoomsPanel />
           </TabsContent>
           
           <TabsContent value="notifications">
-            <NotificationGroupsPanel />
+            <div className="grid gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notification Settings</CardTitle>
+                  <CardDescription>Configure email notifications and alerts</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="email-notifications">Email Notifications</Label>
+                      <Switch id="email-notifications" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="sms-notifications">SMS Notifications</Label>
+                      <Switch id="sms-notifications" />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="browser-notifications">Browser Notifications</Label>
+                      <Switch id="browser-notifications" defaultChecked />
+                    </div>
+                    
+                    <div className="pt-4 pb-2">
+                      <h3 className="text-sm font-medium">Notification Events</h3>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="notify-new-booking">New Bookings</Label>
+                      <Switch id="notify-new-booking" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="notify-updates">Booking Updates</Label>
+                      <Switch id="notify-updates" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="notify-cancellations">Cancellations</Label>
+                      <Switch id="notify-cancellations" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="notify-reminders">Booking Reminders (24h before)</Label>
+                      <Switch id="notify-reminders" defaultChecked />
+                    </div>
+                  </div>
+                  
+                  <Button>Save Notification Settings</Button>
+                </CardContent>
+              </Card>
+              
+              {/* Notification Groups Panel */}
+              <NotificationGroupsPanel />
+            </div>
           </TabsContent>
           
           <TabsContent value="backup">
             <Card>
               <CardHeader>
                 <CardTitle>Backup & Restore</CardTitle>
-                <CardDescription>Manage your data</CardDescription>
+                <CardDescription>Manage system data</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-medium">Export Data</h3>
-                    <p className="text-sm text-gray-500 mt-1">Download a backup of your current data</p>
-                    <div className="mt-4 space-x-2">
-                      <Button variant="outline">Export Studio Settings</Button>
-                      <Button variant="outline">Export Bookings</Button>
-                      <Button variant="outline">Export Everything</Button>
+                    <h3 className="text-sm font-medium mb-2">Backup Data</h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Create a backup of all system data including bookings, templates, and user information.
+                    </p>
+                    <Button>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                      Create Backup
+                    </Button>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <h3 className="text-sm font-medium mb-2">Restore Data</h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Restore system data from a previous backup file.
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="17 8 12 3 7 8"></polyline>
+                          <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Select Backup File
+                      </Button>
+                      <Button variant="secondary" disabled>
+                        Restore
+                      </Button>
                     </div>
                   </div>
                   
-                  <div className="border-t pt-4">
-                    <h3 className="text-lg font-medium">Import Data</h3>
-                    <p className="text-sm text-gray-500 mt-1">Restore from a previous backup</p>
-                    <div className="mt-4">
-                      <Button variant="outline">Select Backup File</Button>
-                    </div>
-                  </div>
-                  
-                  <div className="border-t pt-4">
-                    <h3 className="text-lg font-medium text-red-600">Danger Zone</h3>
-                    <p className="text-sm text-gray-500 mt-1">These actions cannot be undone</p>
-                    <div className="mt-4 space-x-2">
-                      <Button variant="destructive">Reset All Settings</Button>
-                      <Button variant="destructive">Clear All Bookings</Button>
-                    </div>
+                  <div className="pt-4">
+                    <h3 className="text-sm font-medium mb-2 text-red-600">Danger Zone</h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Permanently delete all system data. This action cannot be undone.
+                    </p>
+                    <Button variant="destructive">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                      </svg>
+                      Reset System Data
+                    </Button>
                   </div>
                 </div>
               </CardContent>

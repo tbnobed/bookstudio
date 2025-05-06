@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio } from "@shared/schema";
 import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
-import { formatTimeWithTimezone } from "@/lib/timezoneUtils";
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
@@ -134,10 +133,9 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       
       {weekDates.map((date, index) => {
         // Filter bookings for this date and this specific studio using the combined studioBookings
-        const dayBookings = studioBookings
-          .filter(booking => isSameDay(new Date(booking.start), date))
-          // Sort bookings chronologically by start time for proper display order
-          .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+        const dayBookings = studioBookings.filter(booking => 
+          isSameDay(new Date(booking.start), date)
+        );
         
         // Calculate dynamic height for cells - same logic as row header
         const baseHeight = 42; // Minimum height for a row with no bookings
@@ -248,7 +246,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                         )}
                         <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">
                           {booking.title}
-                          {booking.pcrRoomId ? ` (${booking.pcrRoom?.name || `PCR ${booking.pcrRoomId}`})` : ''}
+                          {booking.pcrRoomId ? ` (PCR ${booking.pcrRoomId})` : ''}
                         </span>
                       </div>
                       <div className="text-xs pl-3">

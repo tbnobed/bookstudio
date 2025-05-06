@@ -29,8 +29,4 @@ npx tsx scripts/migrate-file-attachments.ts
 echo "Seeding initial data..."
 node scripts/init-db.js
 
-# Set the UI version environment variable
-echo "UI_VERSION=1.5.2" >> .env
-echo "Setting UI version to 1.5.2 with PCR room display fix and chronological booking order"
-
 echo "Database setup complete!"

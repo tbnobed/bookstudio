@@ -20,11 +20,6 @@ RUN npm ci
 # Copy all source files
 COPY . .
 
-# Make sure we have the latest bug fixes in the UI
-# 1. PCR room display fix: Properly loads PCR room data for each booking
-# 2. Calendar chronological sort: Bookings now appear in time order
-# 3. Calendar spacing optimizations: Reduced space between elements
-
 # Build the application
 RUN npm run build
 
