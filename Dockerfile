@@ -57,9 +57,11 @@ RUN chmod 755 uploads
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies AND development dependencies needed for Vite
-# We need to keep vite and its plugins since they're referenced in the production code
-RUN npm ci
+# Install ALL dependencies including development ones
+# This is necessary because Vite and its plugins are referenced in the production code
+RUN npm ci --include=dev
+# Explicitly install Vite and its plugins to ensure they're available in production
+RUN npm install --no-save vite @vitejs/plugin-react @replit/vite-plugin-cartographer @replit/vite-plugin-runtime-error-modal
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
