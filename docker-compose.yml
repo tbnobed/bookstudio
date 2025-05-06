@@ -49,12 +49,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    # Start the application after database initialization
-    command: >
-      sh -c "
-        echo 'Starting application...' &&
-        npm start
-      "
+    # Start the production application
+    command: npm start
 
   # Database initialization container
   db-init:
@@ -76,8 +72,6 @@ services:
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
       - SENDGRID_VERIFIED_SENDER=${SENDGRID_VERIFIED_SENDER:-support@bookstud.io}
       - SESSION_SECRET=${SESSION_SECRET:-$(openssl rand -hex 32)}
-      - COOKIE_SECURE=${COOKIE_SECURE:-true}
-      - COOKIE_SAME_SITE=${COOKIE_SAME_SITE:-lax}
       - RUNNING_IN_DOCKER=true
       - SUPPORT_SITE_MANAGER_ROLE=true
       - TZ=America/Chicago
@@ -87,24 +81,28 @@ services:
     # Run database migrations and initialization
     command: >
       sh -c "
-        echo 'Waiting for database to be fully ready...' &&
-        sleep 10 &&
-        echo 'Setting up TypeScript paths...' &&
-        echo '{\"extends\": \"./tsconfig.json\", \"compilerOptions\": {\"paths\": {\"@shared/*\": [\"shared/*\"]}}}' > /app/tsconfig.db-init.json &&
-        # We don't need any extra setup here
+        echo 'Waiting for database to be ready...' &&
+        sleep 5 &&
+        
         echo 'Creating database schema...' &&
-        npx tsx --tsconfig /app/tsconfig.db-init.json scripts/migrate-db.ts &&
+        NODE_ENV=production npx tsx scripts/migrate-db.ts &&
+        
         echo 'Migrating file attachments schema...' &&
-        npx tsx --tsconfig /app/tsconfig.db-init.json scripts/migrate-file-attachments.ts &&
+        NODE_ENV=production npx tsx scripts/migrate-file-attachments.ts &&
+        
         echo 'Migrating PCR rooms schema...' &&
-        npx tsx --tsconfig /app/tsconfig.db-init.json scripts/migrate-pcr-rooms.ts &&
+        NODE_ENV=production npx tsx scripts/migrate-pcr-rooms.ts &&
+        
         echo 'Creating booking-studios junction table...' &&
-        npx tsx --tsconfig /app/tsconfig.db-init.json scripts/create-booking-studios-table.ts &&
+        NODE_ENV=production npx tsx scripts/create-booking-studios-table.ts &&
+        
         echo 'Applying booking copy functionality...' &&
-        npx tsx --tsconfig /app/tsconfig.db-init.json scripts/apply-booking-copy.ts &&
-        echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
-        npx tsx --tsconfig /app/tsconfig.db-init.json scripts/init-db.ts &&
-        echo 'Database initialization completed successfully' 
+        NODE_ENV=production npx tsx scripts/apply-booking-copy.ts &&
+        
+        echo 'Initializing database with default accounts...' &&
+        NODE_ENV=production npx tsx scripts/init-db.ts &&
+        
+        echo 'Database initialization completed successfully'
       "
 
   # PostgreSQL database
