@@ -261,11 +261,15 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   // Get the current timezone offset in hours - this varies based on daylight saving time
   const currentTimezoneOffsetHours = new Date().getTimezoneOffset() / 60;
   
-  // Add day adjustment based on timezone
-  const dayOffset = currentTimezoneOffsetHours > 0 ? 1 : 0;
+  // For multi-day bookings, we want to maintain the exact date selected
+  // without timezone adjustment to avoid shifting days incorrectly
+  const useTimezoneAdjustment = false; // Disable timezone adjustment
+  
+  // Add day adjustment based on timezone only when necessary
+  const dayOffset = useTimezoneAdjustment && currentTimezoneOffsetHours > 0 ? 1 : 0;
   const adjustedDay = day + dayOffset;
   
-  // Create the date object with timezone adjusted day and hour
+  // Create the date object with UTC to ensure consistent timezone handling
   const dateObj = new Date(Date.UTC(year, month - 1, adjustedDay, hourNum, minuteNum, 0, 0));
   
   // Log for debugging
