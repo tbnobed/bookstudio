@@ -255,47 +255,46 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
     hourNum = 0;
   }
   
-  // UNIVERSAL FIX FOR TIMEZONE ISSUE
-  // We've discovered that dates seem to shift backward by one day in the UI
-  // To fix this, we'll add one day to all dates when creating bookings
+  // ROOT CAUSE FIX:
+  // The issue is that we're using UTC date construction but not accounting 
+  // for the fact that it treats the input as if it's in UTC time,
+  // which causes date shifting when we're in other timezones
   
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // Create a new date object based on the parsed components
-  const dateObj = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+  // Instead of using UTC directly, create a date object that preserves
+  // the date as chosen by user regardless of timezone
+  // We'll use the local date constructor and then force the date parts
+  // to be what the user actually selected
+  const dateObj = new Date();
+  dateObj.setFullYear(year, month - 1, day);
+  dateObj.setHours(hourNum, minuteNum, 0, 0);
   
-  // Add one day to fix the timezone shift
-  dateObj.setUTCDate(dateObj.getUTCDate() + 1);
-  
-  // Now set the time components
-  dateObj.setUTCHours(hourNum, minuteNum, 0, 0);
+  // Now convert to ISO string for consistent server storage
+  const finalDate = new Date(dateObj.toISOString());
   
   // Log for debugging
-  console.log(`timeToDate: TIMEZONE FIX - Original: ${dateStr}, time: ${timeStr}, result: ${dateObj.toISOString()}`);
+  console.log(`timeToDate: ROOT FIX - Date: ${dateStr}, time: ${timeStr}, result: ${finalDate.toISOString()}`);
   
-  return dateObj;
+  return finalDate;
 }
 
 // Helper function to format a date for use in the form YYYY-MM-DD
 export function formatDateForForm(date: Date): string {
-  // UNIVERSAL FIX FOR TIMEZONE ISSUE
-  // We're seeing a consistent problem where the date shifts backward by one day
-  // This is due to UTC timezone differences
+  // ROOT CAUSE FIX:
+  // Instead of worrying about timezone adjustments, we'll use the local date
+  // functions to ensure we're working with the date as displayed to the user
   
-  // Create a new date by adding one day to the input date
-  // This ensures the date shown in the form matches the date shown in the UI
-  const adjustedDate = new Date(date);
-  adjustedDate.setDate(adjustedDate.getDate() + 1);
+  // Get the year, month, and day components from the date in the local timezone
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+  const day = String(date.getDate()).padStart(2, '0');
   
-  // Format the adjusted date as YYYY-MM-DD
-  const year = adjustedDate.getFullYear();
-  const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
-  const day = String(adjustedDate.getDate()).padStart(2, '0');
-  
+  // Format the date as YYYY-MM-DD
   const formattedDate = `${year}-${month}-${day}`;
   
-  console.log(`formatDateForForm: TIMEZONE FIX - Input: ${date.toISOString()}, Adjusted: ${adjustedDate.toISOString()}, Result: ${formattedDate}`);
+  console.log(`formatDateForForm: ROOT FIX - Input: ${date.toISOString()}, Result: ${formattedDate}`);
   
   return formattedDate;
 }
