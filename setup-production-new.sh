@@ -44,16 +44,16 @@ fi
 
 # Build and run the new Docker setup
 echo "Building and starting BookStud.io with the new Docker configuration..."
-docker-compose -f docker-compose.new.yml down || true
-docker-compose -f docker-compose.new.yml build --no-cache
-docker-compose -f docker-compose.new.yml up -d
+docker-compose down || true
+docker-compose build --no-cache
+docker-compose up -d
 
 echo
 echo "Waiting for the application to start..."
 sleep 10
 
 # Check if the application is running
-if docker-compose -f docker-compose.new.yml ps | grep -q "bookstudio-app.*Up"; then
+if docker-compose ps | grep -q "bookstudio-app.*Up"; then
     echo "BookStud.io is now running!"
     echo "You can access it at: http://localhost:5000"
     echo

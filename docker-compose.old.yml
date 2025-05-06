@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  # Application server
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_PATCHING=true
+    image: bookstudio:${VERSION:-latest}
+    restart: always
+    ports:
+      - "${PORT:-5000}:5000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@db:5432/${PGDATABASE:-bookstudio}
+      - PGHOST=db
+      - PGPORT=5432
+      - PGUSER=${PGUSER:-postgres}
+      - PGPASSWORD=${PGPASSWORD:-postgres}
+      - PGDATABASE=${PGDATABASE:-bookstudio}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - SENDGRID_VERIFIED_SENDER=${SENDGRID_VERIFIED_SENDER:-support@bookstud.io}
+      - SESSION_SECRET=${SESSION_SECRET:-$(openssl rand -hex 32)}
+      - COOKIE_SECURE=${COOKIE_SECURE:-true}
+      - COOKIE_SAME_SITE=${COOKIE_SAME_SITE:-lax}
+      - RUNNING_IN_DOCKER=true
+      - SUPPORT_SITE_MANAGER_ROLE=true
+      - TZ=America/Chicago
+      - FACILITY_TIMEZONE=America/Chicago
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./logs:/app/logs
+      - file_uploads:/app/uploads
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Healthcheck to verify application is running properly
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    # Start the production application
+    command: npm start
+
+  # Database initialization container
+  db-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_PATCHING=true
+    image: bookstudio:${VERSION:-latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@db:5432/${PGDATABASE:-bookstudio}
+      - PGHOST=db
+      - PGPORT=5432
+      - PGUSER=${PGUSER:-postgres}
+      - PGPASSWORD=${PGPASSWORD:-postgres}
+      - PGDATABASE=${PGDATABASE:-bookstudio}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - SENDGRID_VERIFIED_SENDER=${SENDGRID_VERIFIED_SENDER:-support@bookstud.io}
+      - SESSION_SECRET=${SESSION_SECRET:-$(openssl rand -hex 32)}
+      - RUNNING_IN_DOCKER=true
+      - SUPPORT_SITE_MANAGER_ROLE=true
+      - TZ=America/Chicago
+      - FACILITY_TIMEZONE=America/Chicago
+    networks:
+      - app-network
+    # Run database migrations and initialization
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        sleep 5 &&
+        
+        # Set up environment variables for all scripts
+        export NODE_ENV=production
+        export ADMIN_PASSWORD=\${ADMIN_PASSWORD:-admin}
+        export SITE_MANAGER_PASSWORD=\${SITE_MANAGER_PASSWORD:-manager}
+        export PRODUCER_PASSWORD=\${PRODUCER_PASSWORD:-producer}
+        export ENGINEER_PASSWORD=\${ENGINEER_PASSWORD:-engineer}
+        
+        echo 'Creating database schema...' &&
+        npx tsx scripts/migrate-db.ts &&
+        
+        echo 'Migrating file attachments schema...' &&
+        npx tsx scripts/migrate-file-attachments.ts &&
+        
+        echo 'Migrating PCR rooms schema...' &&
+        npx tsx scripts/migrate-pcr-rooms.ts &&
+        
+        echo 'Creating booking-studios junction table...' &&
+        npx tsx scripts/create-booking-studios-table.ts &&
+        
+        echo 'Applying booking copy functionality...' &&
+        npx tsx scripts/apply-booking-copy.ts &&
+        
+        echo 'Initializing database with default accounts...' &&
+        npx tsx scripts/init-db.ts &&
+        
+        echo 'Database initialization completed successfully'
+      "
+
+  # PostgreSQL database
+  db:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=${PGUSER:-postgres}
+      - POSTGRES_PASSWORD=${PGPASSWORD:-postgres}
+      - POSTGRES_DB=${PGDATABASE:-bookstudio}
+      - TZ=America/Chicago
+      - PGTZ=America/Chicago
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    # Enable this in production for database security
+    # command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    # configs:
+    #   - source: postgres_config
+    #     target: /etc/postgresql/postgresql.conf
+
+  # Nginx for production (enable in production)
+  # web:
+  #   image: nginx:alpine
+  #   restart: always
+  #   depends_on:
+  #     app:
+  #       condition: service_healthy
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf
+  #     - ./ssl:/etc/nginx/ssl
+  #     - file_uploads:/app/uploads
+  #   networks:
+  #     - app-network
+
+# Network configuration
+networks:
+  app-network:
+    driver: bridge
+
+# Persistent volumes
+volumes:
+  postgres_data:
+  file_uploads:
+
+# Uncomment for production use
+# configs:
+#   postgres_config:
+#     file: ./postgresql.conf
