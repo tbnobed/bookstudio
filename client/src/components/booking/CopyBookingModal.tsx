@@ -44,7 +44,7 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
       setIsCreating(false);
       
       const { success, message, results } = data;
-      const successCount = results?.filter(r => r.success)?.length || 0;
+      const successCount = results?.filter((r: { success: boolean }) => r.success)?.length || 0;
       
       if (success) {
         toast({

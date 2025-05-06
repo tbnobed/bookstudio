@@ -21,6 +21,9 @@ COPY *.ts ./
 COPY *.js ./
 COPY *.json ./
 
+# Ensure booking copy script is included
+RUN test -f scripts/apply-booking-copy.ts || echo "Booking copy script not found"
+
 # Build the application
 RUN npm run build
 

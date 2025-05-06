@@ -97,6 +97,8 @@ services:
         npx tsx scripts/migrate-pcr-rooms.ts &&
         echo 'Creating booking-studios junction table...' &&
         npx tsx scripts/create-booking-studios-table.ts &&
+        echo 'Applying booking copy functionality...' &&
+        npx tsx scripts/apply-booking-copy.ts &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
         npx tsx scripts/init-db.ts &&
         echo 'Database initialization completed successfully' 
