@@ -8,6 +8,19 @@ import fs from "fs";
 import path from "path";
 import { type Server } from "http";
 
+// Add mock Vite React plugin and related functions
+export default {};
+export const defineConfig = () => ({});
+export function createHotContext() { return { accept: () => {} }; }
+
+// Mock react plugin - to handle "@vitejs/plugin-react" import
+export function react() {
+  return {
+    name: 'mock-react-plugin',
+    transform: () => null
+  };
+}
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
