@@ -13,8 +13,9 @@ RUN npm ci
 # Copy source files
 COPY . .
 
-# Build the application
+# Build the application and shared schema files
 RUN npm run build
+RUN npx tsc --declaration shared/schema.ts --outDir shared/ --esModuleInterop --module CommonJS
 
 # Stage 2: Production stage
 FROM node:20.18.1-alpine3.19
@@ -50,10 +51,14 @@ RUN npm ci --only=production
 COPY --from=builder /app/dist ./dist 
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/server/vite.prod.ts ./dist/server/vite.js
-COPY --from=builder /app/shared ./shared
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/attached_assets ./attached_assets
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
+
+# Ensure the shared directory exists with compiled schema
+RUN mkdir -p shared
+COPY --from=builder /app/shared/schema.js ./shared/
+COPY --from=builder /app/shared/schema.d.ts ./shared/
 
 # Copy production-specific file to handle server-side routes
 RUN echo '// Production export stubs for Vite plugins\nexport function react() { return { name: "react-stub", transform: () => null } }\nexport function cartographer() { return { name: "cartographer-stub" } }\nexport function runtimeErrorModal() { return { name: "error-modal-stub" } }\nexport default { name: "default-stub" };\nexport const defineConfig = (config) => config;\n' > ./dist/vite-plugins-stub.js
