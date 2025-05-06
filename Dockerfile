@@ -57,11 +57,9 @@ RUN chmod 755 uploads
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies including development ones
-# This is necessary because Vite and its plugins are referenced in the production code
-RUN npm ci --include=dev
-# Explicitly install Vite and its plugins to ensure they're available in production
-RUN npm install --no-save vite @vitejs/plugin-react @replit/vite-plugin-cartographer @replit/vite-plugin-runtime-error-modal
+# Install production dependencies only - we don't need Vite plugins in production
+# since we've patched the imports in the build step
+RUN npm ci --only=production
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
@@ -76,6 +74,12 @@ COPY tsconfig.json .
 
 # Copy Vite production replacement file
 COPY server/vite.prod.ts ./dist/server/vite.js
+
+# Fix import paths in production build - replace Vite plugin imports with empty exports
+RUN sed -i 's/from.*@vitejs\/plugin-react.*/from "\/app\/dist\/vite-plugins-stub.js";/g' ./dist/index.js \
+    && sed -i 's/from.*@replit\/vite-plugin-cartographer.*/from "\/app\/dist\/vite-plugins-stub.js";/g' ./dist/index.js \
+    && sed -i 's/from.*@replit\/vite-plugin-runtime-error-modal.*/from "\/app\/dist\/vite-plugins-stub.js";/g' ./dist/index.js \
+    && echo 'export default {}; export const defineConfig = () => ({}); export function createHotContext() { return { accept: () => {} }; }' > ./dist/vite-plugins-stub.js
 
 # Change ownership to the unprivileged user
 RUN chown -R appuser:appgroup /app

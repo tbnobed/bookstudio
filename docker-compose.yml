@@ -84,23 +84,30 @@ services:
         echo 'Waiting for database to be ready...' &&
         sleep 5 &&
         
+        # Set up environment variables for all scripts
+        export NODE_ENV=production
+        export ADMIN_PASSWORD=\${ADMIN_PASSWORD:-admin}
+        export SITE_MANAGER_PASSWORD=\${SITE_MANAGER_PASSWORD:-manager}
+        export PRODUCER_PASSWORD=\${PRODUCER_PASSWORD:-producer}
+        export ENGINEER_PASSWORD=\${ENGINEER_PASSWORD:-engineer}
+        
         echo 'Creating database schema...' &&
-        NODE_ENV=production npx tsx scripts/migrate-db.ts &&
+        npx tsx scripts/migrate-db.ts &&
         
         echo 'Migrating file attachments schema...' &&
-        NODE_ENV=production npx tsx scripts/migrate-file-attachments.ts &&
+        npx tsx scripts/migrate-file-attachments.ts &&
         
         echo 'Migrating PCR rooms schema...' &&
-        NODE_ENV=production npx tsx scripts/migrate-pcr-rooms.ts &&
+        npx tsx scripts/migrate-pcr-rooms.ts &&
         
         echo 'Creating booking-studios junction table...' &&
-        NODE_ENV=production npx tsx scripts/create-booking-studios-table.ts &&
+        npx tsx scripts/create-booking-studios-table.ts &&
         
         echo 'Applying booking copy functionality...' &&
-        NODE_ENV=production npx tsx scripts/apply-booking-copy.ts &&
+        npx tsx scripts/apply-booking-copy.ts &&
         
         echo 'Initializing database with default accounts...' &&
-        NODE_ENV=production npx tsx scripts/init-db.ts &&
+        npx tsx scripts/init-db.ts &&
         
         echo 'Database initialization completed successfully'
       "
