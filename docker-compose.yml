@@ -53,8 +53,7 @@ services:
     command: >
       sh -c "
         echo 'Starting application...' &&
-        chmod +x /app/setup-production.sh &&
-        /app/setup-production.sh npm start
+        npm start
       "
 
   # Database initialization container
@@ -92,9 +91,7 @@ services:
         sleep 10 &&
         echo 'Setting up TypeScript paths...' &&
         echo '{\"extends\": \"./tsconfig.json\", \"compilerOptions\": {\"paths\": {\"@shared/*\": [\"shared/*\"]}}}' > /app/tsconfig.db-init.json &&
-        # Make sure we have Vite dependencies
-        chmod +x /app/setup-production.sh &&
-        /app/setup-production.sh true &&
+        # We don't need any extra setup here
         echo 'Creating database schema...' &&
         npx tsx --tsconfig /app/tsconfig.db-init.json scripts/migrate-db.ts &&
         echo 'Migrating file attachments schema...' &&

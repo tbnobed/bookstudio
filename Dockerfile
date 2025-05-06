@@ -73,7 +73,9 @@ COPY --from=builder /app/shared ./shared
 COPY public ./public
 COPY attached_assets ./attached_assets
 COPY tsconfig.json .
-COPY setup-production.sh .
+
+# Copy Vite production replacement file
+COPY server/vite.prod.ts ./dist/server/vite.js
 
 # Change ownership to the unprivileged user
 RUN chown -R appuser:appgroup /app
