@@ -937,130 +937,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You don't have permission to copy this booking" });
       }
       
-      // Get linked studios for the original booking
-      const linkedStudios = await storage.getBookingStudios(bookingId);
-      const studioIds = linkedStudios.map(studio => studio.id);
+      console.log(`Copying booking ${bookingId} to ${dates.length} dates`);
       
-      console.log(`Copying booking ${bookingId} to ${dates.length} dates with studios:`, studioIds);
+      // Convert date strings to Date objects
+      const datesToCopy = dates.map(dateStr => new Date(dateStr));
       
-      // Create a new booking for each date
-      const results = await Promise.all(dates.map(async (dateStr) => {
-        // Parse the date and adjust the start and end times
-        const originalStart = new Date(originalBooking.start);
-        const originalEnd = new Date(originalBooking.end);
-        const targetDate = new Date(dateStr);
-        
-        // Extract hours, minutes, seconds from original times
-        const startTime = {
-          hours: originalStart.getHours(),
-          minutes: originalStart.getMinutes(),
-          seconds: originalStart.getSeconds()
-        };
-        
-        const endTime = {
-          hours: originalEnd.getHours(),
-          minutes: originalEnd.getMinutes(),
-          seconds: originalEnd.getSeconds()
-        };
-        
-        // Apply original times to new date
-        const newStart = new Date(targetDate);
-        newStart.setHours(startTime.hours, startTime.minutes, startTime.seconds);
-        
-        const newEnd = new Date(targetDate);
-        newEnd.setHours(endTime.hours, endTime.minutes, endTime.seconds);
-        
-        // Prepare the new booking data
-        const newBookingData = {
-          title: titleSuffix ? `${originalBooking.title} - ${titleSuffix}` : originalBooking.title,
-          description: originalBooking.description,
-          type: originalBooking.type,
-          start: newStart,
-          end: newEnd,
-          userId: user.id,
-          studioId: originalBooking.studioId,
-          pcrRoomId: originalBooking.pcrRoomId,
-          templateId: originalBooking.templateId,
-          notifyList: originalBooking.notifyList,
-          severity: originalBooking.severity
-        };
-        
-        // Check for booking conflicts first 
-        let hasConflict = false;
-        
-        // Check for conflicts with each studio
-        if (studioIds.length > 0) {
-          for (const studioId of studioIds) {
-            const conflicts = await storage.checkBookingConflicts(
-              studioId, 
-              newStart, 
-              newEnd, 
-              null // No booking ID to exclude for new bookings
-            );
-            
-            if (conflicts.length > 0) {
-              hasConflict = true;
-              break;
-            }
-          }
-        } else if (newBookingData.studioId) {
-          // Check just the main studio if no linked studios
-          const conflicts = await storage.checkBookingConflicts(
-            newBookingData.studioId, 
-            newStart, 
-            newEnd, 
-            null
+      // Use the storage method to copy the booking
+      const newBookings = await storage.copyBookingToMultipleDates(bookingId, datesToCopy);
+      
+      // Apply title suffix if provided
+      if (titleSuffix && newBookings.length > 0) {
+        for (const newBooking of newBookings) {
+          await storage.updateBooking(
+            newBooking.id, 
+            { title: `${newBooking.title} - ${titleSuffix}` }
           );
-          
-          hasConflict = conflicts.length > 0;
         }
-        
-        if (hasConflict) {
-          return { 
-            date: dateStr,
-            success: false, 
-            error: "Booking conflict" 
-          };
-        }
-        
-        // Create new booking if no conflicts
-        try {
-          // Create the booking
-          const newBooking = await storage.createBooking(newBookingData);
-          
-          // Link studios
-          if (studioIds.length > 0) {
-            await Promise.all(
-              studioIds.map(async (studioId) => {
-                await storage.linkBookingToStudio(newBooking.id, studioId);
-              })
-            );
-          } else if (newBookingData.studioId) {
-            await storage.linkBookingToStudio(newBooking.id, newBookingData.studioId);
-          }
-          
-          return { 
-            date: dateStr,
-            success: true, 
-            booking: newBooking 
-          };
-        } catch (error) {
-          console.error(`Error copying booking to date ${dateStr}:`, error);
-          return { 
-            date: dateStr,
-            success: false, 
-            error: "Failed to create booking copy" 
-          };
-        }
+      }
+      
+      // Format results in the expected format for the client
+      const results = newBookings.map(booking => ({
+        date: booking.start.toISOString().split('T')[0],
+        success: true,
+        booking
       }));
       
-      const successCount = results.filter(r => r.success).length;
-      const failCount = results.filter(r => !r.success).length;
+      // Add failed entries for dates that weren't processed
+      // (This would happen if a date was the same as the original booking)
+      const processedDates = new Set(newBookings.map(b => new Date(b.start).toDateString()));
+      const failedResults = datesToCopy
+        .filter(d => !processedDates.has(d.toDateString()))
+        .map(d => ({
+          date: d.toISOString().split('T')[0],
+          success: false,
+          error: "Date is the same as original booking or had a conflict"
+        }));
+      
+      const allResults = [...results, ...failedResults];
+      const successCount = results.length;
+      const failCount = failedResults.length;
       
       res.status(201).json({ 
         success: successCount > 0,
         message: `Copied booking to ${successCount} dates${failCount > 0 ? ` (${failCount} failed)` : ''}`,
-        results
+        results: allResults
       });
     } catch (error) {
       console.error("Error copying booking:", error);
