@@ -264,13 +264,16 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // FIXED APPROACH: Always use UTC for date creation
-  // Create a UTC date directly to avoid any timezone conversions
-  // This ensures the date and time are exactly as entered by the user
-  const finalDate = new Date(Date.UTC(year, month - 1, day, hourNum, minuteNum, 0, 0));
+  // MOST DIRECT APPROACH: Use the ISO string format directly
+  // This avoids any internal date manipulation or timezone conversion
+  // Format: YYYY-MM-DDTHH:mm:ss.sssZ
+  const isoString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hourNum.toString().padStart(2, '0')}:${minuteNum.toString().padStart(2, '0')}:00.000Z`;
+  
+  // Create date directly from ISO string
+  const finalDate = new Date(isoString);
   
   // Log for debugging
-  console.log(`timeToDate: FIXED - Date: ${dateStr}, time: ${timeStr}, result: ${finalDate.toISOString()}`);
+  console.log(`timeToDate: NO CONVERSIONS - Raw string created: ${isoString}, date: ${finalDate.toISOString()}`);
   
   return finalDate;
 }
