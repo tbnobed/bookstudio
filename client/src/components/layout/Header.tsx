@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { subtractDays, addDays, formatWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths } from "@/lib/dateUtils";
+import { subtractDays, addDays, formatWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking } from "@shared/schema";
@@ -28,6 +28,22 @@ export function Header({
 }: HeaderProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showAllStudios, setShowAllStudios] = useState(false);
+  
+  // Display a message about the timezone testing feature when the component mounts
+  useEffect(() => {
+    console.log(
+      "%c📆 BookStud.io Timezone Testing %c\n" +
+      "To verify that times and dates are displayed correctly in the facility timezone, " +
+      "you can run a test by executing this command in the browser console:\n\n" +
+      "%ctestTimezoneHandling()%c\n\n" +
+      "This will show how times are consistently displayed in the America/Chicago (Dallas) timezone " +
+      "regardless of your local timezone.",
+      "background: #4338ca; color: white; font-weight: bold; padding: 4px 8px; border-radius: 4px;",
+      "color: #333; font-size: 14px;",
+      "background: #f3f4f6; color: #4338ca; padding: 2px 4px; border-radius: 2px; font-family: monospace;",
+      "color: #333; font-size: 14px;"
+    );
+  }, []);
 
   // Fetch all studios
   const { data: studios = [] } = useQuery<Studio[]>({

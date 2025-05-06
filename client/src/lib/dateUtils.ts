@@ -1,3 +1,12 @@
+/**
+ * Date utilities for BookStud.io
+ * 
+ * This file provides all date and time formatting functions for the application.
+ * A key requirement is that ALL date/time displays must be shown in the facility timezone
+ * (America/Chicago - Dallas, TX) regardless of the user's local timezone. This ensures
+ * that a booking for 8am-10am appears as 8am-10am for everyone using the application.
+ */
+
 export const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export const SHORT_DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export const MONTH_NAMES = [
@@ -7,6 +16,59 @@ export const MONTH_NAMES = [
 
 // The facility timezone is America/Chicago (Dallas, TX)
 export const FACILITY_TIMEZONE = 'America/Chicago';
+
+/**
+ * Creates a Date object for a specific date/time in the facility timezone
+ * This is used for creating Date objects that represent a specific local time
+ * in the facility timezone, regardless of the user's local timezone.
+ * 
+ * @param year Year
+ * @param month Month (0-11)
+ * @param day Day of month
+ * @param hour Hour (0-23)
+ * @param minute Minute
+ * @param second Second
+ * @returns Date object representing the specified time in facility timezone
+ */
+export function createFacilityDate(
+  year: number,
+  month: number,
+  day: number,
+  hour = 0,
+  minute = 0,
+  second = 0
+): Date {
+  // Create a date string in ISO format with the Chicago timezone
+  const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+  
+  // Use the date constructor with explicit timezone (-05:00 is Central Time/America/Chicago)
+  return new Date(`${dateString}-05:00`);
+}
+
+/**
+ * Format a date for form inputs in the facility timezone
+ * 
+ * @param date The date to format
+ * @returns Date string in YYYY-MM-DD format in facility timezone
+ */
+export function formatDateForForm(date: Date): string {
+  // Get the date components in the facility timezone
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: FACILITY_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  
+  const parts = formatter.formatToParts(date);
+  const month = parts.find(part => part.type === 'month')?.value || '01';
+  const day = parts.find(part => part.type === 'day')?.value || '01';
+  const year = parts.find(part => part.type === 'year')?.value || '2025';
+  
+  console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${year}-${month}-${day}`);
+  
+  return `${year}-${month}-${day}`;
+}
 
 /**
  * Format a date as a time string in the facility timezone
@@ -263,6 +325,13 @@ export function generateTimeOptions(): string[] {
   return timeOptions;
 }
 
+/**
+ * Convert a date string and time string to a Date object in the facility timezone
+ * 
+ * @param dateStr Date string in format "YYYY-MM-DD"
+ * @param timeStr Time string in format "h:mmam" or "h:mmpm" (e.g., "1:30pm", "12:00am")
+ * @returns Date object representing the date and time in the facility timezone
+ */
 export function timeToDate(dateStr: string, timeStr: string): Date {
   // Extract hours and minutes from timeStr (format: "1:30pm", "12:00am", etc.)
   const timeParts = timeStr.match(/^(\d+):(\d+)([ap]m)$/i);
@@ -282,12 +351,42 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // Use our helper function to create a date in the facility timezone
-  // this ensures the date is understood in the Dallas timezone context
-  const dateObj = new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hourNum).padStart(2, '0')}:${String(minuteNum).padStart(2, '0')}:00-05:00`);
+  // Use our createFacilityDate function with the year, month, day, hour, minute
+  // This ensures the date is explicitly created in the facility's timezone
+  // Note: month in createFacilityDate is 0-based, but the parsed month from dateStr is 1-based
+  const dateObj = createFacilityDate(year, month - 1, day, hourNum, minuteNum);
   
   // Log for debugging
   console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()} (Dallas time)`);
   
   return dateObj;
+}
+
+/**
+ * Run a quick test of timezone handling to verify our implementation
+ * This can be called from the browser console to test the timezone handling
+ */
+export function testTimezoneHandling(): void {
+  console.log("=== TIMEZONE HANDLING TEST ===");
+  console.log(`User's local timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
+  console.log(`Facility timezone: ${FACILITY_TIMEZONE}`);
+  
+  // Create a test date for Dallas at 8:00 AM
+  const testDate = createFacilityDate(2025, 4, 15, 8, 0, 0); // May 15, 2025 8:00 AM in Dallas
+  
+  console.log(`\nTest date (8:00 AM in Dallas): ${testDate.toISOString()}`);
+  console.log(`Formatted with formatTime: ${formatTime(testDate)}`);
+  console.log(`Formatted with formatDate: ${formatDate(testDate)}`);
+  console.log(`Formatted with formatDateTimeRange: ${formatDateTimeRange(testDate, new Date(testDate.getTime() + 3600000))}`);
+  
+  // Test date/time parsing from string
+  const parsedDate = timeToDate("2025-05-15", "8:00am");
+  console.log(`\nParsed date (8:00 AM): ${parsedDate.toISOString()}`);
+  console.log(`Formatted back with formatTime: ${formatTime(parsedDate)}`);
+  
+  // Verify that the time remains 8:00 AM regardless of the user's timezone
+  console.log(`\nVerification that time remains 8:00 AM in any timezone:`);
+  console.log(`Raw time in user timezone: ${new Date(parsedDate).toLocaleTimeString()}`);
+  console.log(`Formatted time in facility timezone: ${formatTime(parsedDate)}`);
+  console.log("=== END TEST ===");
 }
