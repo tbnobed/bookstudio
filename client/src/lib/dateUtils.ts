@@ -5,33 +5,45 @@ export const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December"
 ];
 
+// Import the TimezoneContext to get the current timezone
+import { getTimezone } from './timezoneUtils';
+
 export function formatTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  // Use ISO string to keep the UTC time, then adjust in the UI
+  // Use the timezone from the TimezoneContext
+  const timezone = getTimezone();
+  
+  // Use the selected timezone for formatting
   return d.toLocaleTimeString("en-US", { 
     hour: "numeric", 
     minute: "2-digit", 
     hour12: true,
-    timeZone: "UTC" // Use UTC to prevent double timezone conversion
+    timeZone: timezone
   });
 }
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
+  // Use the timezone from the TimezoneContext
+  const timezone = getTimezone();
+  
   return d.toLocaleDateString("en-US", { 
     month: "short", 
     day: "numeric", 
     year: "numeric",
-    timeZone: "UTC" // Use UTC to prevent double timezone conversion
+    timeZone: timezone
   });
 }
 
 export function formatDateShort(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
+  // Use the timezone from the TimezoneContext
+  const timezone = getTimezone();
+  
   return d.toLocaleDateString("en-US", { 
     month: "numeric", 
     day: "numeric",
-    timeZone: "UTC" // Use UTC to prevent double timezone conversion
+    timeZone: timezone
   });
 }
 
