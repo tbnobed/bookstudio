@@ -388,12 +388,15 @@ export default function BookingModal({
         
         // Create a booking for each selected date
         for (const currentDate of datesToProcess) {
-          // Format the date string
+          // Format the date string in YYYY-MM-DD format
           const dateStr = formatDateForForm(currentDate);
           
-          // Convert times to dates for this specific date
+          // Convert times to dates for this specific date using UTC for consistent timezone handling
           const startDate = timeToDate(dateStr, formData.startTime);
           const endDate = timeToDate(dateStr, formData.endTime);
+          
+          console.log(`Creating booking - Date: ${dateStr}, Start time: ${formData.startTime}, End time: ${formData.endTime}`);
+          console.log(`Converted to - Start: ${startDate.toISOString()}, End: ${endDate.toISOString()}`);
           
           // Prepare booking data
           const bookingData: Partial<InsertBooking> = {

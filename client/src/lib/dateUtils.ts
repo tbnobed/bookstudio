@@ -257,10 +257,10 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
 
 // Helper function to format a date for use in the form YYYY-MM-DD
 export function formatDateForForm(date: Date): string {
-  // Create directly in YYYY-MM-DD format
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  // Use UTC date components to ensure consistency with the server
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
   
   const formattedDate = `${year}-${month}-${day}`;
   console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${formattedDate}`);
