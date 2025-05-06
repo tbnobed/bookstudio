@@ -52,21 +52,22 @@ export function createFacilityDate(
  * @returns Date string in YYYY-MM-DD format in facility timezone
  */
 export function formatDateForForm(date: Date): string {
-  // Create a date string in ISO format with the timezone offset for America/Chicago (-05:00)
-  // This is the most reliable way to ensure we're working with the correct day
+  // Get the date components in the facility timezone
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: FACILITY_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
   
-  // First get a date string in the facility timezone (forced UTC)
-  const dateInFacilityTZ = new Date(date.toLocaleString('en-US', { timeZone: FACILITY_TIMEZONE }));
+  const parts = formatter.formatToParts(date);
+  const month = parts.find(part => part.type === 'month')?.value || '01';
+  const day = parts.find(part => part.type === 'day')?.value || '01';
+  const year = parts.find(part => part.type === 'year')?.value || '2025';
   
-  // Format using fixed method that doesn't depend on browser timezone
-  const year = dateInFacilityTZ.getFullYear();
-  const month = String(dateInFacilityTZ.getMonth() + 1).padStart(2, '0'); 
-  const day = String(dateInFacilityTZ.getDate()).padStart(2, '0');
+  console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${year}-${month}-${day}`);
   
-  const result = `${year}-${month}-${day}`;
-  console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${result}`);
-  
-  return result;
+  return `${year}-${month}-${day}`;
 }
 
 /**
