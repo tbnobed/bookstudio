@@ -15,7 +15,7 @@ import { Booking } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { facilityTimezone } from "@/lib/dateUtils";
+import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
 
 interface CopyBookingModalProps {
   isOpen: boolean;
@@ -125,7 +125,7 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
     const start = new Date(booking.start);
     const end = new Date(booking.end);
     
-    return `${format(start, "h:mm a")} - ${format(end, "h:mm a")} (${facilityTimezone})`;
+    return `${format(start, "h:mm a")} - ${format(end, "h:mm a")} (${FACILITY_TIMEZONE})`;
   };
   
   // Calculate the duration in hours and minutes
@@ -202,7 +202,7 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
               <Calendar
                 mode="multiple"
                 selected={selectedDates}
-                onSelect={setSelectedDates}
+                onSelect={(dates) => dates && setSelectedDates(dates)}
                 disabled={isPastDate}
                 initialFocus
                 className="w-full"
