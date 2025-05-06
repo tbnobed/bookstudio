@@ -255,53 +255,47 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
     hourNum = 0;
   }
   
-  // HARDCODED FIX FOR MAY 5TH/6TH ISSUE
-  // If date is 2025-05-05, then we need to fix it by forcing it to May 6th
-  if (dateStr === '2025-05-05') {
-    dateStr = '2025-05-06';
-    console.log(`timeToDate: HARDCODED DATE FIX - Force converting 2025-05-05 to 2025-05-06`);
-  }
+  // UNIVERSAL FIX FOR TIMEZONE ISSUE
+  // We've discovered that dates seem to shift backward by one day in the UI
+  // To fix this, we'll add one day to all dates when creating bookings
   
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // Create the date object with UTC to ensure consistent timezone handling
-  // We're no longer applying any timezone adjustments as this seems to cause the issue
-  const dateObj = new Date(Date.UTC(year, month - 1, day, hourNum, minuteNum, 0, 0));
+  // Create a new date object based on the parsed components
+  const dateObj = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+  
+  // Add one day to fix the timezone shift
+  dateObj.setUTCDate(dateObj.getUTCDate() + 1);
+  
+  // Now set the time components
+  dateObj.setUTCHours(hourNum, minuteNum, 0, 0);
   
   // Log for debugging
-  console.log(`timeToDate: Date: ${dateStr}, time: ${timeStr}, result: ${dateObj.toISOString()}`);
+  console.log(`timeToDate: TIMEZONE FIX - Original: ${dateStr}, time: ${timeStr}, result: ${dateObj.toISOString()}`);
   
   return dateObj;
 }
 
 // Helper function to format a date for use in the form YYYY-MM-DD
 export function formatDateForForm(date: Date): string {
-  // SUPER HARD-CODED WORKAROUND
-  // We're seeing a consistent problem where in the early UTC hours of May 6th,
-  // the formatDateForForm function shows "2025-05-05" when it should be showing "2025-05-06".
+  // UNIVERSAL FIX FOR TIMEZONE ISSUE
+  // We're seeing a consistent problem where the date shifts backward by one day
+  // This is due to UTC timezone differences
   
-  // If we're given date 2025-05-05T16:00:00.000Z or similar (late in the day on May 5th),
-  // just hardcode it to return 2025-05-06 
+  // Create a new date by adding one day to the input date
+  // This ensures the date shown in the form matches the date shown in the UI
+  const adjustedDate = new Date(date);
+  adjustedDate.setDate(adjustedDate.getDate() + 1);
   
-  // Get the raw ISO string from the date
-  const iso = date.toISOString();
+  // Format the adjusted date as YYYY-MM-DD
+  const year = adjustedDate.getFullYear();
+  const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+  const day = String(adjustedDate.getDate()).padStart(2, '0');
   
-  // Very specific hardcoded check for dates that should be shown as May 6th
-  if (iso.includes('2025-05-05T') && 
-      (iso.includes('T14:') || iso.includes('T15:') || 
-       iso.includes('T16:') || iso.includes('T17:') || 
-       iso.includes('T18:') || iso.includes('T19:') || 
-       iso.includes('T20:') || iso.includes('T21:') || 
-       iso.includes('T22:') || iso.includes('T23:') ||
-       iso.includes('T00:'))) {
-    
-    console.log(`formatDateForForm: URGENT DATE FIX - Force converting ${iso} to 2025-05-06`);
-    return '2025-05-06';
-  }
+  const formattedDate = `${year}-${month}-${day}`;
   
-  // Standard processing for all other dates
-  const formattedDate = date.toISOString().split('T')[0];
-  console.log(`formatDateForForm: Standard date formatting: ${iso} to ${formattedDate}`);
+  console.log(`formatDateForForm: TIMEZONE FIX - Input: ${date.toISOString()}, Adjusted: ${adjustedDate.toISOString()}, Result: ${formattedDate}`);
+  
   return formattedDate;
 }
