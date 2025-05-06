@@ -63,9 +63,12 @@ RUN npm ci --only=production
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/server ./server
+COPY --from=builder /app/shared ./shared
 
 # Copy other necessary files
 COPY public ./public
+COPY attached_assets ./attached_assets
 
 # Change ownership to the unprivileged user
 RUN chown -R appuser:appgroup /app
