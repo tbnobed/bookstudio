@@ -18,6 +18,7 @@ docker compose up -d
 
 - The version attribute in docker-compose.yml has been removed as it's considered obsolete in newer Docker Compose versions.
 - ES modules are used in Node.js scripts (particularly init-db-prod.js) to align with the project's module system.
+  - Note: Module imports in init-db-prod.js should NOT include the `.js` extension (e.g., use `import * as schema from '../shared/schema'` NOT `../shared/schema.js`) to ensure compatibility with the build system.
 
 ## PostgreSQL Version Compatibility
 

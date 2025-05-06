@@ -13,7 +13,7 @@ import { promisify } from 'util';
 import WebSocket from 'ws';
 
 // Import schema
-import * as schema from '../shared/schema.js';
+import * as schema from '../shared/schema';
 
 // Promisify scrypt
 const scryptAsync = promisify(scrypt);
