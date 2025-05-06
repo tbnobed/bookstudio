@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import StudioManagementModal from "@/components/studio/StudioManagementModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTimezone, COMMON_TIMEZONES, DEFAULT_TIMEZONE } from "@/contexts/TimezoneContext";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 import ProfilePanel from "@/components/settings/ProfilePanel";
 import PcrRoomsPanel from "@/components/settings/PcrRoomsPanel";
@@ -22,7 +21,6 @@ export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { timezone, setTimezone } = useTimezone();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [selectedStudio, setSelectedStudio] = useState<Studio | undefined>(undefined);
@@ -105,12 +103,6 @@ export default function Settings() {
   const timeOptions = ["12-hour (AM/PM)", "24-hour"];
   const dateOptions = ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"];
   const firstDayOptions = ["Sunday", "Monday"];
-  
-  // When the component loads, log the current timezone
-  useEffect(() => {
-    console.log("TimezoneContext in Settings - Current timezone:", timezone);
-    console.log("TimezoneContext in Settings - Available timezones:", COMMON_TIMEZONES);
-  }, [timezone]);
 
   // For non-admin users, only show the Profile tab
   if (user?.role !== "admin") {
@@ -237,36 +229,12 @@ export default function Settings() {
                         ))}
                       </div>
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="timezone-select">Timezone</Label>
-                      <div className="mt-2">
-                        <Select
-                          value={timezone}
-                          onValueChange={(value) => setTimezone(value)}
-                        >
-                          <SelectTrigger id="timezone-select" className="w-full">
-                            <SelectValue placeholder="Select a timezone" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {COMMON_TIMEZONES.map((tz) => (
-                              <SelectItem key={tz} value={tz}>
-                                {tz.replace("_", " ").replace(/\//g, " / ")}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Current timezone: {timezone || DEFAULT_TIMEZONE} ({new Date().toLocaleString('en-US', { timeZone: timezone })})
-                        </p>
-                      </div>
-                    </div>
                   </div>
                   
                   <Button onClick={() => {
                     toast({
-                      title: "Timezone saved",
-                      description: `Application will now use ${timezone} for all date and time operations`,
+                      title: "Settings saved",
+                      description: "Date and time settings have been updated",
                     });
                   }}>
                     Save Changes
