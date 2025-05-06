@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { subtractDays, addDays, formatWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
+import TimezoneTestModal from "@/components/TimezoneTestModal";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking } from "@shared/schema";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function Header({
 }: HeaderProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showAllStudios, setShowAllStudios] = useState(false);
+  const [isTimezoneModalOpen, setIsTimezoneModalOpen] = useState(false);
   
   // Display a message about the timezone testing feature when the component mounts
   useEffect(() => {
@@ -273,7 +275,7 @@ export function Header({
             <div className="ml-auto flex items-center space-x-2 text-sm">
               <div className="hidden md:flex items-center">
                 <button 
-                  onClick={() => testTimezoneHandling()}
+                  onClick={() => setIsTimezoneModalOpen(true)}
                   className="px-2 py-1 text-xs font-medium text-blue-700 border border-blue-200 bg-blue-50 rounded-md hover:bg-blue-100"
                   title="Run a test to verify timezone handling is working correctly"
                 >
@@ -308,6 +310,12 @@ export function Header({
         isOpen={isBookingModalOpen} 
         onClose={() => setIsBookingModalOpen(false)}
         selectedDate={currentDate}
+      />
+
+      {/* Timezone Test Modal */}
+      <TimezoneTestModal
+        isOpen={isTimezoneModalOpen}
+        onClose={() => setIsTimezoneModalOpen(false)}
       />
     </header>
   );
