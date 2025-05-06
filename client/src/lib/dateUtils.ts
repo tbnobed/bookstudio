@@ -243,14 +243,16 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // Create a date object in local time zone
-  // Note: Using Date UTC constructor to create a date that won't have timezone issues
-  // when sent to the server. This ensures the date/time selected by the user is the 
-  // exact date/time stored in the database.
-  const dateObj = new Date(Date.UTC(year, month - 1, day, hourNum, minuteNum, 0, 0));
+  // Explicitly add one day to counteract the UTC timezone shift
+  // This ensures that when the date is displayed in the local timezone,
+  // it will show the correct day as selected by the user
+  const adjustedDay = parseInt(day) + 1;
+  
+  // Create the date object with adjusted day
+  const dateObj = new Date(Date.UTC(year, month - 1, adjustedDay, hourNum, minuteNum, 0, 0));
   
   // Log for debugging
-  console.log(`timeToDate: Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()}`);
+  console.log(`timeToDate: Date selected: ${dateStr} (day ${day}), adjusted to day ${adjustedDay}, time: ${timeStr}, parsed as: ${dateObj.toISOString()}`);
   
   return dateObj;
 }
