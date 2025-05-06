@@ -21,12 +21,16 @@ COPY attached_assets/ ./attached_assets/
 COPY *.ts ./
 COPY *.js ./
 COPY *.json ./
+COPY vite-stub.js ./
 
 # Ensure booking copy script is included
 RUN test -f scripts/apply-booking-copy.ts || echo "Booking copy script not found"
 
 # Build the application (standard build with Vite)
 RUN npm run build
+
+# Make a backup of the build files for debugging if needed
+RUN cp ./dist/index.js ./dist/index.js.original || true
 
 # Stage 2: Production stage
 FROM node:20.18.1-alpine3.19
@@ -80,12 +84,39 @@ COPY server/vite.prod.ts ./dist/server/vite.js
 COPY vite-stub.js ./dist/vite-stub.js
 
 # Fix import paths in production build - replace Vite plugin imports with our stub file
-RUN sed -i 's/from.*@vitejs\/plugin-react.*/from "\/app\/dist\/vite-stub.js";/g' ./dist/index.js \
+RUN echo "Applying Vite plugin patches" \
+    && sed -i 's/from.*@vitejs\/plugin-react.*/from "\/app\/dist\/vite-stub.js";/g' ./dist/index.js \
+    && sed -i 's/from.*vite.*/from "\/app\/dist\/vite-stub.js";/g' ./dist/index.js \
+    && sed -i 's/cartographer.*/cartographer;/g' ./dist/index.js | true \
+    && sed -i 's/runtimeErrorModal.*/runtimeErrorModal;/g' ./dist/index.js | true \
     && sed -i 's/from.*@replit\/vite-plugin-cartographer.*/from "\/app\/dist\/vite-stub.js";/g' ./dist/index.js \
     && sed -i 's/from.*@replit\/vite-plugin-runtime-error-modal.*/from "\/app\/dist\/vite-stub.js";/g' ./dist/index.js
 
-# Directly patch any remaining react() function calls
-RUN grep -n "react()" ./dist/index.js | cut -d':' -f1 | xargs -I{} sed -i "{}s/react()/({ name: 'mock-react-plugin', transform: () => null })/" ./dist/index.js
+# Use a more robust approach to patch function calls
+RUN echo "Patching function calls" \
+    && if grep -q "react()" ./dist/index.js; then \
+        # Find all line numbers with react() calls
+        echo "Found react() calls, patching..." \
+        && LINE_NUMS=$(grep -n "react()" ./dist/index.js | cut -d':' -f1) \
+        && for LINE in $LINE_NUMS; do \
+            # Replace each individual occurrence with a valid plugin object
+            sed -i "${LINE}s/react()/({ name: 'mock-react-plugin', transform: () => null })/" ./dist/index.js; \
+        done; \
+    fi \
+    && if grep -q "cartographer()" ./dist/index.js; then \
+        echo "Found cartographer() calls, patching..." \
+        && LINE_NUMS=$(grep -n "cartographer()" ./dist/index.js | cut -d':' -f1) \
+        && for LINE in $LINE_NUMS; do \
+            sed -i "${LINE}s/cartographer()/({ name: 'mock-cartographer', transform: () => null })/" ./dist/index.js; \
+        done; \
+    fi \
+    && if grep -q "runtimeErrorModal()" ./dist/index.js; then \
+        echo "Found runtimeErrorModal() calls, patching..." \
+        && LINE_NUMS=$(grep -n "runtimeErrorModal()" ./dist/index.js | cut -d':' -f1) \
+        && for LINE in $LINE_NUMS; do \
+            sed -i "${LINE}s/runtimeErrorModal()/({ name: 'mock-error-modal', transform: () => null })/" ./dist/index.js; \
+        done; \
+    fi
 
 # Change ownership to the unprivileged user
 RUN chown -R appuser:appgroup /app
