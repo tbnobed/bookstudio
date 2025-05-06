@@ -9,148 +9,164 @@ async function applyBookingCopy() {
   console.log("Applying booking copy functionality to the database...");
 
   try {
-    // Check if the `copyBookingToMultipleDates` function exists in the database
-    const funcExists = await db.execute<{ exists: number }>(sql`
-      SELECT 1 as exists FROM pg_proc 
-      WHERE proname = 'copy_booking_to_multiple_dates'
-    `);
-
-    if (!funcExists.rows || funcExists.rows.length === 0) {
-      console.log("Creating copy_booking_to_multiple_dates stored procedure...");
-      
-      // Much simpler stored procedure with minimal nesting
-      const simpleStoredProcedure = `
-        CREATE OR REPLACE FUNCTION copy_booking_to_multiple_dates(
-          p_booking_id INTEGER,
-          p_dates DATE[]
-        )
-        RETURNS SETOF bookings
-        LANGUAGE plpgsql
-        AS $$
-        DECLARE
-          v_original bookings;
-          v_new_booking bookings;
-          v_date DATE;
-          v_start TIMESTAMP;
-          v_end TIMESTAMP;
-          v_time_diff INTERVAL;
-          v_studio_id INTEGER;
-          v_studio_ids INTEGER[];
-          v_conflict BOOLEAN;
-        BEGIN
-          -- Get the original booking
-          SELECT * INTO v_original FROM bookings WHERE id = p_booking_id;
-          
-          IF NOT FOUND THEN
-            RAISE EXCEPTION 'Booking with ID % not found', p_booking_id;
+    // Check if we need to drop the existing function first
+    const dropFuncIfExists = `
+      DROP FUNCTION IF EXISTS copy_booking_to_multiple_dates(integer, date[]);
+    `;
+    
+    await db.execute(sql.raw(dropFuncIfExists));
+    console.log("Dropped any existing stored procedure to avoid conflicts");
+    
+    // Create an extremely simplified stored procedure that doesn't use record types
+    const extremelySimpleFunc = `
+      CREATE FUNCTION copy_booking_to_multiple_dates(
+        booking_id INTEGER,
+        dates DATE[]
+      ) 
+      RETURNS TABLE(id INTEGER) 
+      AS $$
+      DECLARE
+        orig_title TEXT;
+        orig_description TEXT;
+        orig_type TEXT;
+        orig_user_id INTEGER;
+        orig_studio_id INTEGER;
+        orig_pcr_room_id INTEGER;
+        orig_severity TEXT;
+        orig_template_id INTEGER;
+        orig_notify_list JSONB;
+        orig_start TIMESTAMP;
+        orig_end TIMESTAMP;
+        time_diff INTERVAL;
+        new_start TIMESTAMP;
+        new_end TIMESTAMP;
+        new_id INTEGER;
+        target_date DATE;
+        studio_id_item INTEGER;
+        studio_ids INTEGER[];
+        has_conflict BOOLEAN;
+      BEGIN
+        -- Get original booking data as separate variables
+        SELECT 
+          title, description, type, user_id, studio_id, pcr_room_id, 
+          severity, template_id, notify_list, start, "end"
+        INTO 
+          orig_title, orig_description, orig_type, orig_user_id, orig_studio_id, 
+          orig_pcr_room_id, orig_severity, orig_template_id, orig_notify_list, 
+          orig_start, orig_end
+        FROM bookings 
+        WHERE id = booking_id;
+        
+        IF NOT FOUND THEN
+          RAISE EXCEPTION 'Booking with ID % not found', booking_id;
+          RETURN;
+        END IF;
+        
+        -- Get associated studios
+        SELECT array_agg(studio_id) INTO studio_ids
+        FROM booking_studios
+        WHERE booking_id = booking_id;
+        
+        -- Calculate time difference
+        time_diff := orig_end - orig_start;
+        
+        -- Process each date
+        FOREACH target_date IN ARRAY dates LOOP
+          -- Skip if same date as original
+          IF DATE(orig_start) = target_date THEN
+            CONTINUE;
           END IF;
           
-          -- Get associated studios from booking_studios table
-          SELECT array_agg(studio_id) INTO v_studio_ids
-          FROM booking_studios
-          WHERE booking_id = p_booking_id;
+          -- Create new times
+          new_start := target_date + (orig_start::time);
+          new_end := new_start + time_diff;
           
-          -- Calculate time difference between start and end
-          v_time_diff := v_original.end - v_original.start;
+          -- Check for conflicts
+          has_conflict := FALSE;
           
-          -- Process each target date
-          FOREACH v_date IN ARRAY p_dates
-          LOOP
-            -- Skip if the target date is the same as the original booking date
-            IF DATE(v_original.start) = v_date THEN
-              CONTINUE;
-            END IF;
-            
-            -- Create the new start and end times on the target date
-            v_start := v_date + TIME(v_original.start);
-            v_end := v_start + v_time_diff;
-            
-            -- Default no conflict
-            v_conflict := FALSE;
-            
-            -- Simple conflict check with studio(s)
-            IF v_studio_ids IS NOT NULL AND array_length(v_studio_ids, 1) > 0 THEN
-              -- Check if any studios are already booked
-              PERFORM 1 
-              FROM bookings b
+          -- Only check for conflicts if we have studios to check against
+          IF studio_ids IS NOT NULL AND array_length(studio_ids, 1) > 0 THEN
+            -- Use EXISTS for efficiency
+            IF EXISTS (
+              SELECT 1 
+              FROM bookings b 
               JOIN booking_studios bs ON b.id = bs.booking_id
-              WHERE bs.studio_id = ANY(v_studio_ids)
-              AND ((v_start >= b.start AND v_start < b.end) OR
-                   (v_end > b.start AND v_end <= b.end) OR
-                   (v_start <= b.start AND v_end >= b.end));
-                   
-              IF FOUND THEN
-                v_conflict := TRUE;
-              END IF;
-            ELSIF v_original.studio_id IS NOT NULL THEN
-              -- Check if the single studio is already booked
-              PERFORM 1
-              FROM bookings b
+              WHERE 
+                bs.studio_id = ANY(studio_ids) AND
+                ((new_start >= b.start AND new_start < b."end") OR
+                 (new_end > b.start AND new_end <= b."end") OR
+                 (new_start <= b.start AND new_end >= b."end"))
+            ) THEN
+              has_conflict := TRUE;
+            END IF;
+          ELSIF orig_studio_id IS NOT NULL THEN
+            -- Check single studio
+            IF EXISTS (
+              SELECT 1 
+              FROM bookings b 
               JOIN booking_studios bs ON b.id = bs.booking_id
-              WHERE bs.studio_id = v_original.studio_id
-              AND ((v_start >= b.start AND v_start < b.end) OR
-                   (v_end > b.start AND v_end <= b.end) OR
-                   (v_start <= b.start AND v_end >= b.end));
-                   
-              IF FOUND THEN
-                v_conflict := TRUE;
-              END IF;
+              WHERE 
+                bs.studio_id = orig_studio_id AND
+                ((new_start >= b.start AND new_start < b."end") OR
+                 (new_end > b.start AND new_end <= b."end") OR
+                 (new_start <= b.start AND new_end >= b."end"))
+            ) THEN
+              has_conflict := TRUE;
             END IF;
-            
-            -- Skip this date if there's a conflict
-            IF v_conflict THEN
-              CONTINUE;
-            END IF;
-            
-            -- Insert new booking
-            INSERT INTO bookings (
-              title, description, type, start, end, 
-              user_id, studio_id, pcr_room_id, severity, 
-              template_id, notify_list, created_at
-            )
-            VALUES (
-              v_original.title, 
-              v_original.description, 
-              v_original.type,
-              v_start, 
-              v_end, 
-              v_original.user_id,
-              v_original.studio_id, 
-              v_original.pcr_room_id, 
-              v_original.severity,
-              v_original.template_id, 
-              v_original.notify_list, 
-              CURRENT_TIMESTAMP
-            )
-            RETURNING * INTO v_new_booking;
-            
-            -- Link studios for the new booking
-            IF v_studio_ids IS NOT NULL AND array_length(v_studio_ids, 1) > 0 THEN
-              FOREACH v_studio_id IN ARRAY v_studio_ids
-              LOOP
-                INSERT INTO booking_studios (booking_id, studio_id)
-                VALUES (v_new_booking.id, v_studio_id);
-              END LOOP;
-            ELSIF v_original.studio_id IS NOT NULL THEN
+          END IF;
+          
+          -- Skip if conflict
+          IF has_conflict THEN
+            CONTINUE;
+          END IF;
+          
+          -- Insert new booking and get ID
+          INSERT INTO bookings (
+            title, description, type, start, "end", 
+            user_id, studio_id, pcr_room_id, severity, 
+            template_id, notify_list, created_at
+          )
+          VALUES (
+            orig_title, 
+            orig_description,
+            orig_type, 
+            new_start, 
+            new_end, 
+            orig_user_id,
+            orig_studio_id, 
+            orig_pcr_room_id, 
+            orig_severity,
+            orig_template_id, 
+            orig_notify_list, 
+            CURRENT_TIMESTAMP
+          )
+          RETURNING id INTO new_id;
+          
+          -- Link studios
+          IF studio_ids IS NOT NULL AND array_length(studio_ids, 1) > 0 THEN
+            FOREACH studio_id_item IN ARRAY studio_ids LOOP
               INSERT INTO booking_studios (booking_id, studio_id)
-              VALUES (v_new_booking.id, v_original.studio_id);
-            END IF;
-            
-            RETURN NEXT v_new_booking;
-          END LOOP;
+              VALUES (new_id, studio_id_item);
+            END LOOP;
+          ELSIF orig_studio_id IS NOT NULL THEN
+            INSERT INTO booking_studios (booking_id, studio_id)
+            VALUES (new_id, orig_studio_id);
+          END IF;
           
-          RETURN;
-        END;
-        $$;
-      `;
-      
-      // Execute the simplified function
-      await db.execute(sql.raw(simpleStoredProcedure));
-      
-      console.log("Stored procedure created successfully");
-    } else {
-      console.log("Booking copy stored procedure already exists, skipping creation");
-    }
+          -- Return the new booking ID
+          id := new_id;
+          RETURN NEXT;
+        END LOOP;
+        
+        RETURN;
+      END;
+      $$ LANGUAGE plpgsql;
+    `;
+    
+    // Execute the extremely simplified function
+    await db.execute(sql.raw(extremelySimpleFunc));
+    
+    console.log("Stored procedure created successfully");
 
     console.log("Booking copy feature applied successfully");
   } catch (error) {
