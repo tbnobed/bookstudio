@@ -64,6 +64,6 @@ if docker-compose ps | grep -q "bookstudio-app.*Up"; then
     echo "IMPORTANT: Please change the admin password after first login."
 else
     echo "Something went wrong. The application is not running."
-    echo "Check the logs with: docker-compose -f docker-compose.new.yml logs"
+    echo "Check the logs with: docker-compose logs"
     exit 1
 fi
