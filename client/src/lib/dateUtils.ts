@@ -5,45 +5,39 @@ export const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-// Import the TimezoneContext to get the current timezone
-import { getTimezone } from './timezoneUtils';
-
 export function formatTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  // Use the timezone from the TimezoneContext
-  const timezone = getTimezone();
   
-  // Use the selected timezone for formatting
+  // FIXED APPROACH: Always use UTC to display the time exactly as stored in the database
+  // This ensures that times are displayed consistently across all timezones
   return d.toLocaleTimeString("en-US", { 
     hour: "numeric", 
     minute: "2-digit", 
     hour12: true,
-    timeZone: timezone
+    timeZone: "UTC" // Always use UTC to prevent any timezone shifts
   });
 }
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  // Use the timezone from the TimezoneContext
-  const timezone = getTimezone();
   
+  // FIXED APPROACH: Always use UTC to display the date exactly as stored in the database
   return d.toLocaleDateString("en-US", { 
     month: "short", 
     day: "numeric", 
     year: "numeric",
-    timeZone: timezone
+    timeZone: "UTC" // Always use UTC to prevent any timezone shifts
   });
 }
 
 export function formatDateShort(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  // Use the timezone from the TimezoneContext
-  const timezone = getTimezone();
   
+  // FIXED APPROACH: Always use UTC to display the date exactly as stored in the database
   return d.toLocaleDateString("en-US", { 
     month: "numeric", 
     day: "numeric",
-    timeZone: timezone
+    timeZone: "UTC" // Always use UTC to prevent any timezone shifts
   });
 }
 
@@ -267,46 +261,34 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
     hourNum = 0;
   }
   
-  // ROOT CAUSE FIX:
-  // The issue is that we're using UTC date construction but not accounting 
-  // for the fact that it treats the input as if it's in UTC time,
-  // which causes date shifting when we're in other timezones
-  
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // Instead of using UTC directly, create a date object that preserves
-  // the date as chosen by user regardless of timezone
-  // We'll use the local date constructor and then force the date parts
-  // to be what the user actually selected
-  const dateObj = new Date();
-  dateObj.setFullYear(year, month - 1, day);
-  dateObj.setHours(hourNum, minuteNum, 0, 0);
-  
-  // Now convert to ISO string for consistent server storage
-  const finalDate = new Date(dateObj.toISOString());
+  // FIXED APPROACH: Always use UTC for date creation
+  // Create a UTC date directly to avoid any timezone conversions
+  // This ensures the date and time are exactly as entered by the user
+  const finalDate = new Date(Date.UTC(year, month - 1, day, hourNum, minuteNum, 0, 0));
   
   // Log for debugging
-  console.log(`timeToDate: ROOT FIX - Date: ${dateStr}, time: ${timeStr}, result: ${finalDate.toISOString()}`);
+  console.log(`timeToDate: FIXED - Date: ${dateStr}, time: ${timeStr}, result: ${finalDate.toISOString()}`);
   
   return finalDate;
 }
 
 // Helper function to format a date for use in the form YYYY-MM-DD
 export function formatDateForForm(date: Date): string {
-  // ROOT CAUSE FIX:
-  // Instead of worrying about timezone adjustments, we'll use the local date
-  // functions to ensure we're working with the date as displayed to the user
+  // FIXED APPROACH: Always use UTC to maintain a consistent date representation
+  // This ensures the date shown in the form is exactly as stored in the database
   
-  // Get the year, month, and day components from the date in the local timezone
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-  const day = String(date.getDate()).padStart(2, '0');
+  // Get the year, month, and day components from the date in UTC
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+  const day = String(date.getUTCDate()).padStart(2, '0');
   
   // Format the date as YYYY-MM-DD
   const formattedDate = `${year}-${month}-${day}`;
   
-  console.log(`formatDateForForm: ROOT FIX - Input: ${date.toISOString()}, Result: ${formattedDate}`);
+  console.log(`formatDateForForm: FIXED - Input: ${date.toISOString()}, Result: ${formattedDate}`);
   
   return formattedDate;
 }
