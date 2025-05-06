@@ -69,6 +69,7 @@ COPY --from=builder /app/shared ./shared
 # Copy other necessary files
 COPY public ./public
 COPY attached_assets ./attached_assets
+COPY tsconfig.json .
 
 # Change ownership to the unprivileged user
 RUN chown -R appuser:appgroup /app

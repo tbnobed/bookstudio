@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import * as schema from "@shared/schema";
+// Use relative import as fallback if path alias doesn't work
+import * as schema from "../shared/schema";
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
