@@ -17,8 +17,11 @@ docker compose up -d
 ## Docker Compose Configuration Notes
 
 - The version attribute in docker-compose.yml has been removed as it's considered obsolete in newer Docker Compose versions.
-- ES modules are used in Node.js scripts (particularly init-db-prod.js) to align with the project's module system.
-  - Note: Module imports in init-db-prod.js should NOT include the `.js` extension (e.g., use `import * as schema from '../shared/schema'` NOT `../shared/schema.js`) to ensure compatibility with the build system.
+- For maximum compatibility, init-db-prod.js has been converted to use CommonJS format (require() statements) instead of ES modules.
+  - This eliminates issues with ES module resolution in Docker containers where TypeScript files may not be properly compiled or path resolution differs.
+- Network configuration has been added to the docker-compose.yml to isolate the application's network traffic.
+- Environment variables in docker-compose.yml have been updated to use the more modern YAML format with key: value pairs instead of arrays.
+- Healthcheck has been added to the app service to ensure it's properly monitored.
 
 ## PostgreSQL Version Compatibility
 
@@ -92,6 +95,22 @@ docker compose logs postgres
 # View database initialization logs
 docker compose logs db-init
 ```
+
+### ES Module Import Issues
+
+If you encounter ES module import errors like:
+
+```
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/shared/schema.js' imported from /app/scripts/init-db-prod.js
+```
+
+These issues are related to Node.js ES module resolution, which requires explicit file extensions and can be problematic in Docker environments. This has been fixed by:
+
+1. Converting init-db-prod.js to use CommonJS (require() statements) instead of ES modules
+2. Ensuring the shared directory exists in the Dockerfile with a `mkdir -p shared` command
+3. Maintaining the proper path resolution for schema.js files in the container
+
+If you modify these scripts, maintain the CommonJS format to ensure compatibility with Docker deployments.
 
 ### Database Backup Before Changes
 

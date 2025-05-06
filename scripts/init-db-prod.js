@@ -3,26 +3,27 @@
  * This script runs only once when the container starts in Docker
  */
 
-import { Pool } from 'pg';
-import { createClient } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { drizzle as drizzlePg } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
-import { scrypt, randomBytes } from 'crypto';
-import { promisify } from 'util';
-import WebSocket from 'ws';
+// Convert the script to use CommonJS for more consistent behavior in containers
+const pg = require('pg');
+const { createClient } = require('@neondatabase/serverless');
+const { drizzle: drizzleNeon } = require('drizzle-orm/neon-serverless');
+const { drizzle: drizzlePg } = require('drizzle-orm/pg-core');
+const { sql } = require('drizzle-orm');
+const crypto = require('crypto');
+const { promisify } = require('util');
+const WebSocket = require('ws');
 
-// Import schema
-import * as schema from '../shared/schema';
+// Import schema - use require() for CommonJS
+const schema = require('../shared/schema');
 
 // Promisify scrypt
-const scryptAsync = promisify(scrypt);
+const scryptAsync = promisify(crypto.scrypt);
 
 /**
  * Hash a password for storage
  */
 async function hashPassword(password) {
-  const salt = randomBytes(16).toString('hex');
+  const salt = crypto.randomBytes(16).toString('hex');
   const buf = await scryptAsync(password, salt, 64);
   return `${buf.toString('hex')}.${salt}`;
 }
@@ -47,11 +48,11 @@ async function initDb() {
     if (process.env.DATABASE_URL.includes('pooled')) {
       // Neon PostgreSQL with pooling support
       const neon = createClient({ connectionString: process.env.DATABASE_URL });
-      db = drizzle(neon, { schema });
+      db = drizzleNeon(neon, { schema });
       client = neon;
     } else {
       // Standard PostgreSQL
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
       client = pool;
       db = drizzlePg(pool, { schema });
     }
