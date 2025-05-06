@@ -7,17 +7,32 @@ export const MONTH_NAMES = [
 
 export function formatTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  // Use ISO string to keep the UTC time, then adjust in the UI
+  return d.toLocaleTimeString("en-US", { 
+    hour: "numeric", 
+    minute: "2-digit", 
+    hour12: true,
+    timeZone: "UTC" // Use UTC to prevent double timezone conversion
+  });
 }
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return d.toLocaleDateString("en-US", { 
+    month: "short", 
+    day: "numeric", 
+    year: "numeric",
+    timeZone: "UTC" // Use UTC to prevent double timezone conversion
+  });
 }
 
 export function formatDateShort(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", { month: "numeric", day: "numeric" });
+  return d.toLocaleDateString("en-US", { 
+    month: "numeric", 
+    day: "numeric",
+    timeZone: "UTC" // Use UTC to prevent double timezone conversion
+  });
 }
 
 export function formatTimeRange(start: Date | string, end: Date | string): string {
