@@ -426,7 +426,6 @@ export default function BookingModal({
     }
   };
 
-  // Render the modal
   // Open copy booking modal
   const handleOpenCopyModal = () => {
     setIsCopyModalOpen(true);
@@ -438,7 +437,7 @@ export default function BookingModal({
   };
   
   return (
-    <>
+    <div>
       {booking && !alertsOnly && (
         <CopyBookingModal 
           isOpen={isCopyModalOpen} 
@@ -458,27 +457,354 @@ export default function BookingModal({
             </DialogTitle>
           </DialogHeader>
         
-        {booking && !alertsOnly ? (
-          // Tabbed interface for existing bookings
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="details">Booking Details</TabsTrigger>
-              <TabsTrigger value="attachments">File Attachments</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="details" className="pt-4">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => updateFormField('title', e.target.value)}
-                    placeholder="Enter booking title"
-                    required
-                  />
+          {booking && !alertsOnly ? (
+            // Tabbed interface for existing bookings
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="details">Booking Details</TabsTrigger>
+                <TabsTrigger value="attachments">File Attachments</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="details" className="pt-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => updateFormField('title', e.target.value)}
+                      placeholder="Enter booking title"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="studio" className="flex items-center">
+                        Studios <span className="text-red-500 ml-1">*</span>
+                      </Label>
+                      <div className="border rounded-md p-2 mt-1 space-y-2 max-h-40 overflow-y-auto">
+                        {studios.map((studio) => (
+                          <div key={studio.id} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`studio-${studio.id}`} 
+                              checked={formData.studioIds.includes(studio.id.toString())}
+                              onCheckedChange={(checked) => {
+                                const studioId = studio.id.toString();
+                                let newStudioIds = [...formData.studioIds];
+                                
+                                if (checked) {
+                                  // Add studio to the list if not already included
+                                  if (!newStudioIds.includes(studioId)) {
+                                    newStudioIds.push(studioId);
+                                  }
+                                  // Also update main studioId for backward compatibility
+                                  updateFormField('studioId', studioId);
+                                } else {
+                                  // Remove studio from the list
+                                  newStudioIds = newStudioIds.filter(id => id !== studioId);
+                                  
+                                  // Update main studioId if it was the one removed
+                                  if (formData.studioId === studioId) {
+                                    // Set to first selected studio or empty
+                                    const newMainStudio = newStudioIds.length > 0 ? newStudioIds[0] : "";
+                                    updateFormField('studioId', newMainStudio);
+                                  }
+                                }
+                                
+                                updateFormField('studioIds', newStudioIds);
+                              }}
+                            />
+                            <Label 
+                              htmlFor={`studio-${studio.id}`}
+                              className="text-sm cursor-pointer"
+                            >
+                              {studio.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                      {formData.studioIds.length === 0 && (
+                        <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="type">Booking Type</Label>
+                      <Select 
+                        value={formData.bookingType} 
+                        onValueChange={(value) => updateFormField('bookingType', value)} 
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="production">Production</SelectItem>
+                          <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="date">Date</Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) => updateFormField('date', e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="template">Template (Optional)</Label>
+                      <Select 
+                        value={formData.templateId} 
+                        onValueChange={handleTemplateChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="None" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">None</SelectItem>
+                          {templates.map((template) => (
+                            <SelectItem key={template.id} value={template.id.toString()}>
+                              {template.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                    <Select 
+                      value={formData.pcrRoomId} 
+                      onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="None" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">None</SelectItem>
+                        {pcrRooms.map((pcrRoom) => (
+                          <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                            {pcrRoom.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="start-time">Start Time</Label>
+                      <Select 
+                        value={formData.startTime} 
+                        onValueChange={(value) => updateFormField('startTime', value)} 
+                        required
+                      >
+                        <SelectTrigger id="start-time">
+                          <SelectValue placeholder="Select start time" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {generateTimeOptions().map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="end-time">End Time</Label>
+                      <Select 
+                        value={formData.endTime} 
+                        onValueChange={(value) => updateFormField('endTime', value)} 
+                        required
+                      >
+                        <SelectTrigger id="end-time">
+                          <SelectValue placeholder="Select end time" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {generateTimeOptions().map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => updateFormField('description', e.target.value)}
+                      placeholder="Add details about this booking"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Notify Crew</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors", "Engineering"].map((crew) => (
+                        <div key={crew} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`crew-${crew}`}
+                            checked={formData.notifyList.includes(crew)}
+                            onCheckedChange={() => handleCrewToggle(crew)}
+                          />
+                          <Label
+                            htmlFor={`crew-${crew}`}
+                            className="text-sm font-normal"
+                          >
+                            {crew}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <DialogFooter className="flex items-center justify-between pt-4">
+                    <div className="flex items-center">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button type="button" variant="destructive" className="mr-2">
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the booking and remove it from the calendar.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={async () => {
+                                try {
+                                  await deleteBooking.mutateAsync(booking.id);
+                                  onClose();
+                                } catch (error) {
+                                  console.error('Failed to delete booking:', error);
+                                }
+                              }}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              {deleteBooking.isPending ? (
+                                <span>Deleting...</span>
+                              ) : (
+                                <span>Delete</span>
+                              )}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={handleOpenCopyModal}
+                        className="flex items-center"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy
+                      </Button>
+                    </div>
+                    
+                    <div className="space-x-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={onClose}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit"
+                        disabled={updateBooking.isPending}
+                      >
+                        {updateBooking.isPending ? (
+                          <span>Saving...</span>
+                        ) : (
+                          <span>Save Changes</span>
+                        )}
+                      </Button>
+                    </div>
+                  </DialogFooter>
+                </form>
+              </TabsContent>
+              
+              <TabsContent value="attachments" className="pt-4">
+                <FileAttachmentList bookingId={booking.id} />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            // Regular form for new bookings or alerts
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => updateFormField('title', e.target.value)}
+                  placeholder={alertsOnly ? "Enter alert title" : "Enter booking title"}
+                  required
+                />
+              </div>
+              
+              {alertsOnly ? (
+                // Alert-specific fields
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="type">Alert Type</Label>
+                    <Select 
+                      value={formData.bookingType} 
+                      onValueChange={(value) => updateFormField('bookingType', value)} 
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="maintenance">Facility Maintenance</SelectItem>
+                        <SelectItem value="it_support">IT Support</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="severity">Severity</Label>
+                    <Select 
+                      value={formData.severity} 
+                      onValueChange={(value) => updateFormField('severity', value)} 
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select severity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="critical">Critical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                
+              ) : (
+                // Regular booking fields
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="studio" className="flex items-center">
@@ -547,19 +873,21 @@ export default function BookingModal({
                     </Select>
                   </div>
                 </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => updateFormField('date', e.target.value)}
+                    required
+                  />
+                </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="date">Date</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => updateFormField('date', e.target.value)}
-                      required
-                    />
-                  </div>
-                  
+                {!alertsOnly && (
                   <div>
                     <Label htmlFor="template">Template (Optional)</Label>
                     <Select 
@@ -579,8 +907,10 @@ export default function BookingModal({
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-                
+                )}
+              </div>
+              
+              {!alertsOnly && (
                 <div>
                   <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
                   <Select 
@@ -600,64 +930,67 @@ export default function BookingModal({
                     </SelectContent>
                   </Select>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="start-time">Start Time</Label>
-                    <Select 
-                      value={formData.startTime} 
-                      onValueChange={(value) => updateFormField('startTime', value)} 
-                      required
-                    >
-                      <SelectTrigger id="start-time">
-                        <SelectValue placeholder="Select start time" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {generateTimeOptions().map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="end-time">End Time</Label>
-                    <Select 
-                      value={formData.endTime} 
-                      onValueChange={(value) => updateFormField('endTime', value)} 
-                      required
-                    >
-                      <SelectTrigger id="end-time">
-                        <SelectValue placeholder="Select end time" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {generateTimeOptions().map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="start-time">Start Time</Label>
+                  <Select 
+                    value={formData.startTime} 
+                    onValueChange={(value) => updateFormField('startTime', value)} 
+                    required
+                  >
+                    <SelectTrigger id="start-time">
+                      <SelectValue placeholder="Select start time" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {generateTimeOptions().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => updateFormField('description', e.target.value)}
-                    placeholder="Add details about this booking"
-                    rows={3}
-                  />
+                  <Label htmlFor="end-time">End Time</Label>
+                  <Select 
+                    value={formData.endTime} 
+                    onValueChange={(value) => updateFormField('endTime', value)} 
+                    required
+                  >
+                    <SelectTrigger id="end-time">
+                      <SelectValue placeholder="Select end time" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {generateTimeOptions().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                
-                <div>
-                  <Label>Notify Crew</Label>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    {["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors", "Engineering"].map((crew) => (
+              </div>
+              
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => updateFormField('description', e.target.value)}
+                  placeholder={alertsOnly ? "Add details about this alert" : "Add details about this booking"}
+                  rows={3}
+                />
+              </div>
+              
+              <div>
+                <Label>Notify</Label>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {alertsOnly ? (
+                    // Alert notification options
+                    ["Engineering", "Producers", "IT Support"].map((crew) => (
                       <div key={crew} className="flex items-center space-x-2">
                         <Checkbox
                           id={`crew-${crew}`}
@@ -671,455 +1004,80 @@ export default function BookingModal({
                           {crew}
                         </Label>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  ) : (
+                    // Booking notification options
+                    ["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors", "Engineering"].map((crew) => (
+                      <div key={crew} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`crew-${crew}`}
+                          checked={formData.notifyList.includes(crew)}
+                          onCheckedChange={() => handleCrewToggle(crew)}
+                        />
+                        <Label
+                          htmlFor={`crew-${crew}`}
+                          className="text-sm font-normal"
+                        >
+                          {crew}
+                        </Label>
+                      </div>
+                    ))
+                  )}
                 </div>
-                
-                <DialogFooter className="flex items-center justify-between pt-4">
-                  <div className="flex items-center">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button type="button" variant="destructive" className="mr-2">
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the booking and remove it from the calendar.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={async () => {
-                              try {
-                                await deleteBooking.mutateAsync(booking.id);
-                                onClose();
-                              } catch (error) {
-                                console.error('Failed to delete booking:', error);
-                              }
-                            }}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            {deleteBooking.isPending ? (
-                              <span className="flex items-center">
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Deleting...
-                              </span>
-                            ) : (
-                              'Delete'
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                    <Button type="button" variant="outline" onClick={onClose}>
-                      Cancel
-                    </Button>
-                  </div>
-                  <Button 
-                    type="submit" 
-                    disabled={createBooking.isPending || updateBooking.isPending}
-                  >
-                    {(createBooking.isPending || updateBooking.isPending) ? (
-                      <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Saving...
-                      </span>
-                    ) : 'Update'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="attachments" className="py-4">
-              <FileAttachmentList bookingId={booking.id} readOnly={false} />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          // Regular form for new bookings or alerts
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => updateFormField('title', e.target.value)}
-                placeholder="Enter booking title"
-                required
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="studio" className="flex items-center">
-                  Studios <span className="text-red-500 ml-1">*</span>
-                </Label>
-                <div className="border rounded-md p-2 mt-1 space-y-2 max-h-40 overflow-y-auto">
-                  {studios.map((studio) => (
-                    <div key={studio.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`studio-${studio.id}`} 
-                        checked={formData.studioIds.includes(studio.id.toString())}
-                        onCheckedChange={(checked) => {
-                          const studioId = studio.id.toString();
-                          let newStudioIds = [...formData.studioIds];
-                          
-                          if (checked) {
-                            // Add studio to the list if not already included
-                            if (!newStudioIds.includes(studioId)) {
-                              newStudioIds.push(studioId);
-                            }
-                            // Also update main studioId for backward compatibility
-                            updateFormField('studioId', studioId);
-                          } else {
-                            // Remove studio from the list
-                            newStudioIds = newStudioIds.filter(id => id !== studioId);
-                            
-                            // Update main studioId if it was the one removed
-                            if (formData.studioId === studioId) {
-                              // Set to first selected studio or empty
-                              const newMainStudio = newStudioIds.length > 0 ? newStudioIds[0] : "";
-                              updateFormField('studioId', newMainStudio);
-                            }
-                          }
-                          
-                          updateFormField('studioIds', newStudioIds);
-                        }}
-                      />
-                      <Label 
-                        htmlFor={`studio-${studio.id}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {studio.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-                {formData.studioIds.length === 0 && (
-                  <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
-                )}
               </div>
               
-              <div>
-                <Label htmlFor="type">{alertsOnly ? "Alert Type" : "Booking Type"}</Label>
-                <Select 
-                  value={formData.bookingType} 
-                  onValueChange={(value) => updateFormField('bookingType', value)} 
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {!alertsOnly ? (
-                      <>
-                        <SelectItem value="production">Production</SelectItem>
-                        <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                      </>
-                    ) : (
-                      <>
-                        <SelectItem value="maintenance">Maintenance</SelectItem>
-                        <SelectItem value="it_support">IT Support</SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            {!alertsOnly && (
-              <div>
-                <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
-                <Select 
-                  value={formData.pcrRoomId} 
-                  onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="None" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">None</SelectItem>
-                    {pcrRooms.map((pcrRoom) => (
-                      <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                        {pcrRoom.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            {/* Severity field - only shown for alerts */}
-            {alertsOnly && (
-              <div>
-                <Label htmlFor="severity">Severity</Label>
-                <Select 
-                  value={formData.severity} 
-                  onValueChange={(value) => updateFormField('severity', value)} 
-                  required
-                >
-                  <SelectTrigger id="severity">
-                    <SelectValue placeholder="Select severity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                        Low - Informational
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="medium">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
-                        Medium - Planned Maintenance
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="high">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-orange-500 mr-2"></div>
-                        High - Urgent Issue
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="critical">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                        Critical - Outage
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => updateFormField('date', e.target.value)}
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="template">Template (Optional)</Label>
-                <Select 
-                  value={formData.templateId} 
-                  onValueChange={handleTemplateChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="None" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">None</SelectItem>
-                    {templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id.toString()}>
-                        {template.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="start-time">Start Time</Label>
-                <Select 
-                  value={formData.startTime} 
-                  onValueChange={(value) => updateFormField('startTime', value)} 
-                  required
-                >
-                  <SelectTrigger id="start-time">
-                    <SelectValue placeholder="Select start time" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {generateTimeOptions().map((time) => (
-                      <SelectItem key={time} value={time}>
-                        {time}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="end-time">End Time</Label>
-                <Select 
-                  value={formData.endTime} 
-                  onValueChange={(value) => updateFormField('endTime', value)} 
-                  required
-                >
-                  <SelectTrigger id="end-time">
-                    <SelectValue placeholder="Select end time" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {generateTimeOptions().map((time) => (
-                      <SelectItem key={time} value={time}>
-                        {time}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => updateFormField('description', e.target.value)}
-                placeholder="Add details about this booking"
-                rows={3}
-              />
-            </div>
-            
-            <div>
-              <Label>Notify Crew</Label>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors", "Engineering"].map((crew) => (
-                  <div key={crew} className="flex items-center space-x-2">
+              {!alertsOnly && !booking && (
+                <div className="space-y-2 border-t pt-4 mt-6">
+                  <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={`crew-${crew}`}
-                      checked={formData.notifyList.includes(crew)}
-                      onCheckedChange={() => handleCrewToggle(crew)}
+                      id="save-template"
+                      checked={formData.saveAsTemplate}
+                      onCheckedChange={(checked) => updateFormField('saveAsTemplate', checked)}
                     />
                     <Label
-                      htmlFor={`crew-${crew}`}
-                      className="text-sm font-normal"
+                      htmlFor="save-template"
+                      className="font-medium"
                     >
-                      {crew}
+                      Save as Template
                     </Label>
                   </div>
-                ))}
-              </div>
-            </div>
-            
-            {!booking && (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="save-template"
-                    checked={formData.saveAsTemplate}
-                    onCheckedChange={(checked) => updateFormField('saveAsTemplate', checked === true)}
-                  />
-                  <Label
-                    htmlFor="save-template"
-                    className="text-sm font-normal"
-                  >
-                    Save as template
-                  </Label>
+                  
+                  {formData.saveAsTemplate && (
+                    <div>
+                      <Label htmlFor="template-name">Template Name</Label>
+                      <Input
+                        id="template-name"
+                        value={formData.templateName}
+                        onChange={(e) => updateFormField('templateName', e.target.value)}
+                        placeholder="Enter a name for this template"
+                        required={formData.saveAsTemplate}
+                      />
+                    </div>
+                  )}
                 </div>
-                
-                {formData.saveAsTemplate && (
-                  <div>
-                    <Label htmlFor="template-name">Template Name</Label>
-                    <Input
-                      id="template-name"
-                      value={formData.templateName}
-                      onChange={(e) => updateFormField('templateName', e.target.value)}
-                      placeholder="Enter template name"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-            
-            <DialogFooter className="flex items-center justify-between">
-              <div className="flex items-center">
-                {booking && (
-                  <>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button type="button" variant="destructive" className="mr-2">
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the 
-                            {alertsOnly ? " alert" : " booking"} and remove it from the calendar.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={async () => {
-                              try {
-                                await deleteBooking.mutateAsync(booking.id);
-                                onClose();
-                              } catch (error) {
-                                console.error('Failed to delete booking:', error);
-                              }
-                            }}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            {deleteBooking.isPending ? (
-                              <span className="flex items-center">
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Deleting...
-                              </span>
-                            ) : (
-                              'Delete'
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-
-                    {!alertsOnly && (
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={handleOpenCopyModal}
-                        className="mr-2"
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy to Dates
-                      </Button>
+              )}
+              
+              <DialogFooter className="pt-4">
+                <div className="space-x-2">
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={createBooking.isPending}
+                  >
+                    {createBooking.isPending ? (
+                      <span>Creating...</span>
+                    ) : (
+                      <span>{alertsOnly ? "Create Alert" : "Create Booking"}</span>
                     )}
-                  </>
-                )}
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-              </div>
-              <Button 
-                type="submit" 
-                disabled={createBooking.isPending || updateBooking.isPending}
-              >
-                {(createBooking.isPending || updateBooking.isPending) ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving...
-                  </span>
-                ) : booking ? 'Update' : 'Create'}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
-      </DialogContent>
-    </Dialog>
-    </>
+                  </Button>
+                </div>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
