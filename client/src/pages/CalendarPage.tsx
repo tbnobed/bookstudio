@@ -120,7 +120,7 @@ export default function CalendarPage() {
       {view === "day" && (
         <DailyCalendar
           key={currentDate.toISOString()} // Add key to force complete re-render on date change
-          currentDate={currentDate}
+          date={currentDate}
           selectedStudioIds={selectedStudioIds}
         />
       )}
@@ -128,7 +128,7 @@ export default function CalendarPage() {
       {view === "week" && (
         <WeeklyCalendar
           key={currentDate.toISOString()} // Add key to force complete re-render on date change
-          currentDate={currentDate}
+          startDate={currentDate}
           selectedStudioIds={selectedStudioIds}
         />
       )}
@@ -136,7 +136,9 @@ export default function CalendarPage() {
       {view === "month" && (
         <MonthlyCalendar
           key={currentDate.toISOString()} // Add key to force complete re-render on date change
-          currentDate={currentDate}
+          date={currentDate}
+          studios={[]}
+          bookings={[]}
         />
       )}
     </div>
