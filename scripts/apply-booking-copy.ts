@@ -18,15 +18,15 @@ async function applyBookingCopy() {
     if (!funcExists.rows || funcExists.rows.length === 0) {
       console.log("Creating copy_booking_to_multiple_dates stored procedure...");
       
-      // Create the stored procedure definition - broken into smaller parts for easier debugging
-      const functionHeader = `
+      // Much simpler stored procedure with minimal nesting
+      const simpleStoredProcedure = `
         CREATE OR REPLACE FUNCTION copy_booking_to_multiple_dates(
           p_booking_id INTEGER,
           p_dates DATE[]
         )
         RETURNS SETOF bookings
         LANGUAGE plpgsql
-        AS $function$
+        AS $$
         DECLARE
           v_original bookings;
           v_new_booking bookings;
@@ -36,12 +36,8 @@ async function applyBookingCopy() {
           v_time_diff INTERVAL;
           v_studio_id INTEGER;
           v_studio_ids INTEGER[];
-          v_has_conflict BOOLEAN;
-          v_studio INTEGER;
+          v_conflict BOOLEAN;
         BEGIN
-      `;
-      
-      const functionBody1 = `
           -- Get the original booking
           SELECT * INTO v_original FROM bookings WHERE id = p_booking_id;
           
@@ -56,9 +52,7 @@ async function applyBookingCopy() {
           
           -- Calculate time difference between start and end
           v_time_diff := v_original.end - v_original.start;
-      `;
-      
-      const functionBody2 = `
+          
           -- Process each target date
           FOREACH v_date IN ARRAY p_dates
           LOOP
@@ -71,50 +65,43 @@ async function applyBookingCopy() {
             v_start := v_date + TIME(v_original.start);
             v_end := v_start + v_time_diff;
             
-            -- Check for conflicts with each studio
-            v_has_conflict := FALSE;
+            -- Default no conflict
+            v_conflict := FALSE;
             
+            -- Simple conflict check with studio(s)
             IF v_studio_ids IS NOT NULL AND array_length(v_studio_ids, 1) > 0 THEN
-              -- Handle multiple studio bookings
-              FOREACH v_studio IN ARRAY v_studio_ids
-              LOOP
-                IF EXISTS (
-                  SELECT 1 FROM bookings b
-                  JOIN booking_studios bs ON b.id = bs.booking_id
-                  WHERE bs.studio_id = v_studio
-                  AND (
-                    (v_start >= b.start AND v_start < b.end) OR
-                    (v_end > b.start AND v_end <= b.end) OR
-                    (v_start <= b.start AND v_end >= b.end)
-                  )
-                ) THEN
-                  v_has_conflict := TRUE;
-                  EXIT;  -- Exit the loop on first conflict
-                END IF;
-              END LOOP;
-              
-              -- Skip this date if there's a conflict
-              IF v_has_conflict THEN
-                CONTINUE;
+              -- Check if any studios are already booked
+              PERFORM 1 
+              FROM bookings b
+              JOIN booking_studios bs ON b.id = bs.booking_id
+              WHERE bs.studio_id = ANY(v_studio_ids)
+              AND ((v_start >= b.start AND v_start < b.end) OR
+                   (v_end > b.start AND v_end <= b.end) OR
+                   (v_start <= b.start AND v_end >= b.end));
+                   
+              IF FOUND THEN
+                v_conflict := TRUE;
               END IF;
             ELSIF v_original.studio_id IS NOT NULL THEN
-              -- Handle single studio booking
-              IF EXISTS (
-                SELECT 1 FROM bookings b
-                JOIN booking_studios bs ON b.id = bs.booking_id
-                WHERE bs.studio_id = v_original.studio_id
-                AND (
-                  (v_start >= b.start AND v_start < b.end) OR
-                  (v_end > b.start AND v_end <= b.end) OR
-                  (v_start <= b.start AND v_end >= b.end)
-                )
-              ) THEN
-                CONTINUE;  -- Skip on conflict
+              -- Check if the single studio is already booked
+              PERFORM 1
+              FROM bookings b
+              JOIN booking_studios bs ON b.id = bs.booking_id
+              WHERE bs.studio_id = v_original.studio_id
+              AND ((v_start >= b.start AND v_start < b.end) OR
+                   (v_end > b.start AND v_end <= b.end) OR
+                   (v_start <= b.start AND v_end >= b.end));
+                   
+              IF FOUND THEN
+                v_conflict := TRUE;
               END IF;
             END IF;
-      `;
-      
-      const functionBody3 = `
+            
+            -- Skip this date if there's a conflict
+            IF v_conflict THEN
+              CONTINUE;
+            END IF;
+            
             -- Insert new booking
             INSERT INTO bookings (
               title, description, type, start, end, 
@@ -154,14 +141,11 @@ async function applyBookingCopy() {
           
           RETURN;
         END;
-        $function$;
+        $$;
       `;
-
-      // Combine all parts into a complete function
-      const completeFunction = functionHeader + functionBody1 + functionBody2 + functionBody3;
       
-      // Execute the complete function
-      await db.execute(sql.raw(completeFunction));
+      // Execute the simplified function
+      await db.execute(sql.raw(simpleStoredProcedure));
       
       console.log("Stored procedure created successfully");
     } else {

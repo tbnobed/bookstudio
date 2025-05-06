@@ -1,0 +1,397 @@
+db-1       |              -- Calculate time difference between start and end
+db-1       |              v_time_diff := v_original.end - v_original.start;
+db-1       |
+db-1       |              -- Process each target date
+db-init-1  |   table: undefined,
+db-init-1  |   column: undefined,
+db-init-1  |   dataType: undefined,
+db-init-1  |   constraint: undefined,
+db-init-1  |   file: 'scan.l',
+db-1       |              FOREACH v_date IN ARRAY p_dates
+db-1       |              LOOP
+db-1       |                -- Skip if the target date is the same as the original booking date
+db-1       |                IF DATE(v_original.start) = v_date THEN
+db-1       |                  CONTINUE;
+db-1       |                END IF;
+db-1       |
+db-init-1  |   line: '1176',
+db-init-1  |   routine: 'scanner_yyerror'
+db-init-1  | }
+db-init-1  | Failed to apply booking copy functionality: error: syntax error at or near "v_original"
+db-init-1  |     at /app/node_modules/pg-pool/index.js:45:11
+db-init-1  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+db-init-1  |     at async applyBookingCopy (/app/scripts/apply-booking-copy.ts:164:7) {
+db-1       |                -- Create the new start and end times on the target date
+db-1       |                v_start := v_date + TIME(v_original.start);
+db-1       |                v_end := v_start + v_time_diff;
+db-1       |
+db-1       |                -- Check for conflicts with each studio
+db-init-1  |   length: 101,
+db-init-1  |   severity: 'ERROR',
+db-init-1  |   code: '42601',
+db-init-1  |   detail: undefined,
+db-init-1  |   hint: undefined,
+db-1       |                v_has_conflict := FALSE;
+db-1       |
+db-1       |                IF v_studio_ids IS NOT NULL AND array_length(v_studio_ids, 1) > 0 THEN
+db-1       |                  -- Handle multiple studio bookings
+db-1       |                  FOREACH v_studio IN ARRAY v_studio_ids
+db-init-1  |   position: '1529',
+db-init-1  |   internalPosition: undefined,
+db-1       |                  LOOP
+db-init-1  |   internalQuery: undefined,
+db-init-1  |   where: undefined,
+db-1       |                    IF EXISTS (
+db-1       |                      SELECT 1 FROM bookings b
+db-1       |                      JOIN booking_studios bs ON b.id = bs.booking_id
+db-1       |                      WHERE bs.studio_id = v_studio
+db-1       |                      AND (
+db-1       |                        (v_start >= b.start AND v_start < b.end) OR
+db-1       |                        (v_end > b.start AND v_end <= b.end) OR
+db-1       |                        (v_start <= b.start AND v_end >= b.end)
+db-1       |                      )
+db-init-1  |   schema: undefined,
+db-init-1  |   table: undefined,
+db-init-1  |   column: undefined,
+db-init-1  |   dataType: undefined,
+db-1       |                    ) THEN
+db-1       |                      v_has_conflict := TRUE;
+db-1       |                      EXIT;  -- Exit the loop on first conflict
+db-1       |                    END IF;
+db-1       |                  END LOOP;
+db-1       |
+db-1       |                  -- Skip this date if there's a conflict
+db-1       |                  IF v_has_conflict THEN
+db-1       |                    CONTINUE;
+db-1       |                  END IF;
+db-1       |                ELSIF v_original.studio_id IS NOT NULL THEN
+db-1       |                  -- Handle single studio booking
+db-1       |                  IF EXISTS (
+db-init-1  |   constraint: undefined,
+db-init-1  |   file: 'scan.l',
+db-init-1  |   line: '1176',
+db-init-1  |   routine: 'scanner_yyerror'
+db-init-1  | }
+db-1       |                    SELECT 1 FROM bookings b
+db-1       |                    JOIN booking_studios bs ON b.id = bs.booking_id
+db-1       |                    WHERE bs.studio_id = v_original.studio_id
+db-1       |                    AND (
+db-1       |                      (v_start >= b.start AND v_start < b.end) OR
+db-1       |                      (v_end > b.start AND v_end <= b.end) OR
+db-1       |                      (v_start <= b.start AND v_end >= b.end)
+db-1       |                    )
+db-1       |                  ) THEN
+db-1       |                    CONTINUE;  -- Skip on conflict
+db-1       |                  END IF;
+db-1       |                END IF;
+db-1       |
+db-1       |                -- Insert new booking
+db-1       |                INSERT INTO bookings (
+db-1       |                  title, description, type, start, end,
+db-1       |                  user_id, studio_id, pcr_room_id, severity,
+db-1       |                  template_id, notify_list, created_at
+db-1       |                )
+db-1       |                VALUES (
+db-1       |                  v_original.title,
+db-1       |                  v_original.description,
+db-1       |                  v_original.type,
+db-1       |                  v_start,
+db-1       |                  v_end,
+db-1       |                  v_original.user_id,
+db-1       |                  v_original.studio_id,
+db-1       |                  v_original.pcr_room_id,
+db-1       |                  v_original.severity,
+db-1       |                  v_original.template_id,
+db-1       |                  v_original.notify_list,
+db-1       |                  CURRENT_TIMESTAMP
+db-1       |                )
+db-1       |                RETURNING * INTO v_new_booking;
+db-1       |
+db-1       |                -- Link studios for the new booking
+db-1       |                IF v_studio_ids IS NOT NULL AND array_length(v_studio_ids, 1) > 0 THEN
+db-1       |                  FOREACH v_studio_id IN ARRAY v_studio_ids
+db-1       |                  LOOP
+db-1       |                    INSERT INTO booking_studios (booking_id, studio_id)
+db-1       |                    VALUES (v_new_booking.id, v_studio_id);
+db-1       |                  END LOOP;
+db-1       |                ELSIF v_original.studio_id IS NOT NULL THEN
+db-1       |                  INSERT INTO booking_studios (booking_id, studio_id)
+db-1       |                  VALUES (v_new_booking.id, v_original.studio_id);
+db-1       |                END IF;
+db-1       |
+db-1       |                RETURN NEXT v_new_booking;
+db-1       |              END LOOP;
+db-1       |
+db-1       |              RETURN;
+db-1       |            END;
+db-1       |            $function$;
+db-1       |
+^[[A^C
+obtv-admin@dev-bookstudio:~/bookstudio$
+obtv-admin@dev-bookstudio:~/bookstudio$ docker compose logs -f
+WARN[0000] /home/obtv-admin/bookstudio/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+db-init-1  | Waiting for database to be fully ready...
+db-init-1  | Setting up TypeScript paths...
+db-init-1  | Creating database schema...
+db-1       |
+db-init-1  | npm warn exec The following package was not found and will be installed: tsx@4.19.4
+db-1       | PostgreSQL Database directory appears to contain a database; Skipping initialization
+db-1       |
+db-1       | 2025-05-06 03:15:30.803 CDT [1] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+db-1       | 2025-05-06 03:15:30.804 CDT [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+db-1       | 2025-05-06 03:15:30.804 CDT [1] LOG:  listening on IPv6 address "::", port 5432
+db-init-1  | Creating database tables...
+db-1       | 2025-05-06 03:15:30.809 CDT [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+db-1       | 2025-05-06 03:15:30.824 CDT [27] LOG:  database system was shut down at 2025-05-06 03:10:49 CDT
+db-1       | 2025-05-06 03:15:30.843 CDT [1] LOG:  database system is ready to accept connections
+db-1       | 2025-05-06 03:16:04.206 CDT [84] ERROR:  constraint "fk_booking_id" for relation "booking_studios" already exists
+db-1       | 2025-05-06 03:16:04.206 CDT [84] STATEMENT:
+db-1       |          ALTER TABLE booking_studios
+db-1       |          ADD CONSTRAINT fk_booking_id
+db-1       |          FOREIGN KEY (booking_id)
+db-1       |          REFERENCES bookings(id)
+db-1       |          ON DELETE CASCADE;
+db-1       |
+db-1       | 2025-05-06 03:16:08.405 CDT [93] ERROR:  syntax error at or near "v_original" at character 1529
+db-1       | 2025-05-06 03:16:08.405 CDT [93] STATEMENT:
+db-1       |            CREATE OR REPLACE FUNCTION copy_booking_to_multiple_dates(
+db-1       |              p_booking_id INTEGER,
+db-init-1  | Creating users table...
+db-init-1  | Database connection established successfully
+db-init-1  | Users table created successfully!
+db-1       |              p_dates DATE[]
+db-init-1  | Creating studios table...
+db-init-1  | Studios table created successfully!
+db-1       |            )
+db-1       |            RETURNS SETOF bookings
+db-1       |            LANGUAGE plpgsql
+db-1       |            AS $function$
+db-1       |            DECLARE
+db-1       |              v_original bookings;
+db-1       |              v_new_booking bookings;
+db-init-1  | Creating templates table...
+db-init-1  | Templates table created successfully!
+db-init-1  | Creating bookings table...
+db-init-1  | Bookings table created successfully!
+db-init-1  | Creating notification_groups table...
+db-init-1  | Notification_groups table created successfully!
+db-init-1  | Creating notifications table...
+db-init-1  | Notifications table created successfully!
+db-init-1  | Creating password_reset_tokens table...
+db-1       |              v_date DATE;
+db-1       |              v_start TIMESTAMP;
+db-1       |              v_end TIMESTAMP;
+db-1       |              v_time_diff INTERVAL;
+db-1       |              v_studio_id INTEGER;
+db-init-1  | Password reset tokens table created successfully!
+db-init-1  | Creating invite_tokens table...
+db-init-1  | Invite tokens table created successfully!
+db-1       |              v_studio_ids INTEGER[];
+db-1       |              v_has_conflict BOOLEAN;
+db-1       |              v_studio INTEGER;
+db-init-1  | All database tables created successfully!
+db-init-1  | Database migration completed successfully
+db-init-1  | npm notice
+db-init-1  | npm notice New major version of npm available! 10.8.2 -> 11.3.0
+db-init-1  | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.3.0
+db-init-1  | npm notice To update run: npm install -g npm@11.3.0
+db-init-1  | npm notice
+db-init-1  | Migrating file attachments schema...
+db-1       |            BEGIN
+db-1       |
+db-1       |              -- Get the original booking
+db-1       |              SELECT * INTO v_original FROM bookings WHERE id = p_booking_id;
+db-1       |
+db-1       |              IF NOT FOUND THEN
+db-1       |                RAISE EXCEPTION 'Booking with ID % not found', p_booking_id;
+db-1       |              END IF;
+db-1       |
+db-1       |              -- Get associated studios from booking_studios table
+db-init-1  | Starting file attachments schema migration...
+db-init-1  | Creating file_attachments table...
+db-init-1  | Database connection established successfully
+db-init-1  | File attachments migration completed successfully!
+db-init-1  | Migrating PCR rooms schema...
+db-init-1  | Starting PCR rooms migration...
+db-init-1  | Database connection established successfully
+db-1       |              SELECT array_agg(studio_id) INTO v_studio_ids
+db-1       |              FROM booking_studios
+db-1       |              WHERE booking_id = p_booking_id;
+db-init-1  | Created PCR rooms table
+db-1       |
+db-init-1  | Added pcrRoomId column to bookings table
+db-init-1  | Added initial PCR rooms data
+db-init-1  | PCR rooms migration completed successfully!
+db-init-1  | Creating booking-studios junction table...
+db-init-1  | Creating booking_studios junction table...
+db-init-1  | Database connection established successfully
+db-init-1  | Booking-studios junction table created successfully
+db-1       |              -- Calculate time difference between start and end
+db-1       |              v_time_diff := v_original.end - v_original.start;
+db-1       |
+db-1       |              -- Process each target date
+db-1       |              FOREACH v_date IN ARRAY p_dates
+db-1       |              LOOP
+db-1       |                -- Skip if the target date is the same as the original booking date
+db-1       |                IF DATE(v_original.start) = v_date THEN
+db-1       |                  CONTINUE;
+db-1       |                END IF;
+db-1       |
+db-1       |                -- Create the new start and end times on the target date
+db-1       |                v_start := v_date + TIME(v_original.start);
+db-1       |                v_end := v_start + v_time_diff;
+db-1       |
+db-1       |                -- Check for conflicts with each studio
+db-1       |                v_has_conflict := FALSE;
+db-1       |
+db-1       |                IF v_studio_ids IS NOT NULL AND array_length(v_studio_ids, 1) > 0 THEN
+db-init-1  | Adding foreign key constraints...
+db-init-1  | Error in database migration: error: constraint "fk_booking_id" for relation "booking_studios" already exists
+db-init-1  |     at /app/node_modules/pg-pool/index.js:45:11
+db-init-1  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+db-init-1  |     at async main (/app/scripts/create-booking-studios-table.ts:22:5) {
+db-1       |                  -- Handle multiple studio bookings
+db-1       |                  FOREACH v_studio IN ARRAY v_studio_ids
+db-1       |                  LOOP
+db-1       |                    IF EXISTS (
+db-1       |                      SELECT 1 FROM bookings b
+db-1       |                      JOIN booking_studios bs ON b.id = bs.booking_id
+db-init-1  |   length: 140,
+db-init-1  |   severity: 'ERROR',
+db-init-1  |   code: '42710',
+db-1       |                      WHERE bs.studio_id = v_studio
+db-1       |                      AND (
+db-1       |                        (v_start >= b.start AND v_start < b.end) OR
+db-1       |                        (v_end > b.start AND v_end <= b.end) OR
+db-1       |                        (v_start <= b.start AND v_end >= b.end)
+db-init-1  |   detail: undefined,
+db-init-1  |   hint: undefined,
+db-init-1  |   position: undefined,
+db-init-1  |   internalPosition: undefined,
+db-init-1  |   internalQuery: undefined,
+db-init-1  |   where: undefined,
+db-1       |                      )
+db-1       |                    ) THEN
+db-1       |                      v_has_conflict := TRUE;
+db-1       |                      EXIT;  -- Exit the loop on first conflict
+db-1       |                    END IF;
+db-1       |                  END LOOP;
+db-1       |
+db-init-1  |   schema: undefined,
+db-init-1  |   table: undefined,
+db-init-1  |   column: undefined,
+db-init-1  |   dataType: undefined,
+db-init-1  |   constraint: undefined,
+db-init-1  |   file: 'tablecmds.c',
+db-init-1  |   line: '8767',
+db-init-1  |   routine: 'ATExecAddConstraint'
+db-init-1  | }
+db-init-1  | Applying booking copy functionality...
+db-init-1  | Applying booking copy functionality to the database...
+db-init-1  | Database connection established successfully
+db-init-1  | Creating copy_booking_to_multiple_dates stored procedure...
+db-init-1  | Error applying booking copy: error: syntax error at or near "v_original"
+db-init-1  |     at /app/node_modules/pg-pool/index.js:45:11
+db-init-1  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+db-init-1  |     at async applyBookingCopy (/app/scripts/apply-booking-copy.ts:164:7) {
+db-init-1  |   length: 101,
+db-init-1  |   severity: 'ERROR',
+db-init-1  |   code: '42601',
+db-init-1  |   detail: undefined,
+db-init-1  |   hint: undefined,
+db-init-1  |   position: '1529',
+db-1       |                  -- Skip this date if there's a conflict
+db-1       |                  IF v_has_conflict THEN
+db-1       |                    CONTINUE;
+db-1       |                  END IF;
+db-1       |                ELSIF v_original.studio_id IS NOT NULL THEN
+db-1       |                  -- Handle single studio booking
+db-init-1  |   internalPosition: undefined,
+db-init-1  |   internalQuery: undefined,
+db-init-1  |   where: undefined,
+db-init-1  |   schema: undefined,
+db-init-1  |   table: undefined,
+db-1       |                  IF EXISTS (
+db-1       |                    SELECT 1 FROM bookings b
+db-1       |                    JOIN booking_studios bs ON b.id = bs.booking_id
+db-1       |                    WHERE bs.studio_id = v_original.studio_id
+db-1       |                    AND (
+db-1       |                      (v_start >= b.start AND v_start < b.end) OR
+db-1       |                      (v_end > b.start AND v_end <= b.end) OR
+db-1       |                      (v_start <= b.start AND v_end >= b.end)
+db-init-1  |   column: undefined,
+db-init-1  |   dataType: undefined,
+db-init-1  |   constraint: undefined,
+db-init-1  |   file: 'scan.l',
+db-init-1  |   line: '1176',
+db-1       |                    )
+db-1       |                  ) THEN
+db-1       |                    CONTINUE;  -- Skip on conflict
+db-1       |                  END IF;
+db-1       |                END IF;
+db-init-1  |   routine: 'scanner_yyerror'
+db-init-1  | }
+db-init-1  | Failed to apply booking copy functionality: error: syntax error at or near "v_original"
+db-init-1  |     at /app/node_modules/pg-pool/index.js:45:11
+db-1       |
+db-1       |                -- Insert new booking
+db-1       |                INSERT INTO bookings (
+db-1       |                  title, description, type, start, end,
+db-1       |                  user_id, studio_id, pcr_room_id, severity,
+db-1       |                  template_id, notify_list, created_at
+db-1       |                )
+db-init-1  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+db-init-1  |     at async applyBookingCopy (/app/scripts/apply-booking-copy.ts:164:7) {
+db-1       |                VALUES (
+db-1       |                  v_original.title,
+db-1       |                  v_original.description,
+db-init-1  |   length: 101,
+db-init-1  |   severity: 'ERROR',
+db-init-1  |   code: '42601',
+db-init-1  |   detail: undefined,
+db-init-1  |   hint: undefined,
+db-init-1  |   position: '1529',
+db-1       |                  v_original.type,
+db-1       |                  v_start,
+db-1       |                  v_end,
+db-1       |                  v_original.user_id,
+db-init-1  |   internalPosition: undefined,
+db-init-1  |   internalQuery: undefined,
+db-init-1  |   where: undefined,
+db-init-1  |   schema: undefined,
+db-init-1  |   table: undefined,
+db-1       |                  v_original.studio_id,
+db-1       |                  v_original.pcr_room_id,
+db-1       |                  v_original.severity,
+db-1       |                  v_original.template_id,
+db-1       |                  v_original.notify_list,
+db-1       |                  CURRENT_TIMESTAMP
+db-1       |                )
+db-1       |                RETURNING * INTO v_new_booking;
+db-1       |
+db-1       |                -- Link studios for the new booking
+db-1       |                IF v_studio_ids IS NOT NULL AND array_length(v_studio_ids, 1) > 0 THEN
+db-1       |                  FOREACH v_studio_id IN ARRAY v_studio_ids
+db-1       |                  LOOP
+db-1       |                    INSERT INTO booking_studios (booking_id, studio_id)
+db-1       |                    VALUES (v_new_booking.id, v_studio_id);
+db-init-1  |   column: undefined,
+db-init-1  |   dataType: undefined,
+db-init-1  |   constraint: undefined,
+db-init-1  |   file: 'scan.l',
+db-init-1  |   line: '1176',
+db-init-1  |   routine: 'scanner_yyerror'
+db-init-1  | }
+db-1       |                  END LOOP;
+db-1       |                ELSIF v_original.studio_id IS NOT NULL THEN
+db-1       |                  INSERT INTO booking_studios (booking_id, studio_id)
+db-1       |                  VALUES (v_new_booking.id, v_original.studio_id);
+db-1       |                END IF;
+db-1       |
+db-1       |                RETURN NEXT v_new_booking;
+db-1       |              END LOOP;
+db-1       |
+db-1       |              RETURN;
+db-1       |            END;
+db-1       |            $function$;
+db-1       |
