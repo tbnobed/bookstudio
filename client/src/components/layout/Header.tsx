@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
+import { useAuth } from "@/hooks/use-auth";
 
 type HeaderProps = {
   currentDate: Date;
@@ -273,21 +274,24 @@ export function Header({
             </div>
             
             <div className="ml-auto flex items-center space-x-2 text-sm">
-              <div className="hidden md:flex items-center">
-                <button 
-                  onClick={() => setIsTimezoneModalOpen(true)}
-                  className="px-2 py-1 text-xs font-medium text-blue-700 border border-blue-200 bg-blue-50 rounded-md hover:bg-blue-100"
-                  title="Run a test to verify timezone handling is working correctly"
-                >
-                  <span className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    Test Timezone
-                  </span>
-                </button>
-              </div>
+              {/* Timezone Test Button - Only for Admin */}
+              {useAuth().user?.role === "admin" && (
+                <div className="hidden md:flex items-center">
+                  <button 
+                    onClick={() => setIsTimezoneModalOpen(true)}
+                    className="px-2 py-1 text-xs font-medium text-blue-700 border border-blue-200 bg-blue-50 rounded-md hover:bg-blue-100"
+                    title="Run a test to verify timezone handling is working correctly"
+                  >
+                    <span className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                      Test Timezone
+                    </span>
+                  </button>
+                </div>
+              )}
               <div className="flex items-center">
                 <span className="h-3 w-3 rounded-full bg-green-500 mr-1"></span>
                 <span className="text-xs">Available</span>
