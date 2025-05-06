@@ -1,27 +1,73 @@
-FROM node:20.18.1-alpine3.19
+# Multi-stage build for reduced image size and better security
+# Stage 1: Build stage
+FROM node:20.18.1-alpine3.19 AS builder
 
 WORKDIR /app
 
-# Set environment variable to indicate we're in a Docker container
-ENV RUNNING_IN_DOCKER=true
-ENV PORT=5000
-
 # Install build dependencies
-RUN apk add --no-cache python3 make g++ wget curl
-
-# Create logs and uploads directories
-RUN mkdir -p logs uploads
-RUN chmod 777 uploads
+RUN apk add --no-cache python3 make g++ 
 
 # Install dependencies first (for better caching)
 COPY package*.json ./
 RUN npm ci
 
-# Copy all source files
-COPY . .
+# Copy source files needed for build
+COPY client/ ./client/
+COPY server/ ./server/
+COPY shared/ ./shared/
+COPY scripts/ ./scripts/
+COPY public/ ./public/
+COPY *.ts ./
+COPY *.js ./
+COPY *.json ./
 
 # Build the application
 RUN npm run build
+
+# Stage 2: Production stage
+FROM node:20.18.1-alpine3.19
+
+WORKDIR /app
+
+# Set environment variables
+ENV RUNNING_IN_DOCKER=true
+ENV PORT=5000
+ENV NODE_ENV=production
+ENV TZ=America/Chicago
+
+# Install production-only dependencies
+RUN apk add --no-cache curl wget tzdata
+
+# Set timezone
+RUN cp /usr/share/zoneinfo/America/Chicago /etc/localtime && \
+    echo "America/Chicago" > /etc/timezone
+
+# Create unprivileged user for running the application
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Create necessary directories
+RUN mkdir -p logs uploads
+RUN chown -R appuser:appgroup logs uploads
+RUN chmod 755 uploads
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/scripts ./scripts
+
+# Copy other necessary files
+COPY public ./public
+
+# Change ownership to the unprivileged user
+RUN chown -R appuser:appgroup /app
+
+# Switch to unprivileged user
+USER appuser
 
 # Expose application port
 EXPOSE 5000

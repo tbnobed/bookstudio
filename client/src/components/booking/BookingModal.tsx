@@ -12,6 +12,7 @@ import { Studio, Template, PcrRoom, InsertBooking } from "@shared/schema";
 import { z } from "zod";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { formatTime, generateTimeOptions, timeToDate } from "@/lib/dateUtils";
+import { Copy } from "lucide-react";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { FileAttachmentList } from "./FileAttachmentList";
+import CopyBookingModal from "./CopyBookingModal";
 
 interface BookingModalProps {
   isOpen: boolean;
