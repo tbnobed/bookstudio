@@ -50,7 +50,7 @@ export default function DailyCalendar({
 
   // Fetch bookings only if not provided via props
   const { data: fetchedBookings = [] } = useQuery<Booking[]>({
-    queryKey: [`/api/bookings?start=${dayStart.toISOString()}&end=${dayEnd.toISOString()}`],
+    queryKey: ['/api/bookings', { start: dayStart.toISOString(), end: dayEnd.toISOString() }],
     enabled: propBookings.length === 0,
   });
 

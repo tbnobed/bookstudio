@@ -26,12 +26,9 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
     return queryString ? `?${queryString}` : "";
   };
 
-  // Create a stable key that changes when dates change
-  const dateRangeKey = `${formatDateParam(startDate)}-${formatDateParam(endDate)}`;
-  
-  // Fetch all bookings
+  // Fetch all bookings with proper query key structure
   const bookingsQuery = useQuery<Booking[]>({
-    queryKey: ["/api/bookings", dateRangeKey],
+    queryKey: ['/api/bookings', { start: formatDateParam(startDate), end: formatDateParam(endDate) }],
     queryFn: async () => {
       const queryString = getQueryString();
       console.log(`useStudioBookings - Executing fetch with query string: ${queryString}`);
