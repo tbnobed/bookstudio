@@ -14,21 +14,78 @@ docker compose build
 docker compose up -d
 ```
 
-## Docker Compose Configuration Notes
+## Docker Compose Configuration
 
-- The version attribute in docker-compose.yml has been removed as it's considered obsolete in newer Docker Compose versions.
-- For maximum compatibility, init-db-prod.js has been converted to use CommonJS format (require() statements) instead of ES modules.
-  - This eliminates issues with ES module resolution in Docker containers where TypeScript files may not be properly compiled or path resolution differs.
-- Network configuration has been added to the docker-compose.yml to isolate the application's network traffic.
-- Environment variables in docker-compose.yml have been updated to use the more modern YAML format with key: value pairs instead of arrays.
-- Healthcheck has been added to the app service to ensure it's properly monitored.
+The docker-compose.yml file sets up three main services:
+
+1. **app** - The main application server running on port 5000
+2. **db-init** - A one-time initialization container for database setup
+3. **db** - PostgreSQL 14 database server
+
+Key features of the configuration:
+
+- Database service name is `db` (not `postgres`)
+- Uses explicit service dependencies with healthchecks
+- The initialization process uses TypeScript scripts with `tsx` to set up schema properly:
+  - `migrate-db.ts` - Core schema setup
+  - `migrate-file-attachments.ts` - Attachments support
+  - `migrate-pcr-rooms.ts` - Production Control Room schema
+  - `create-booking-studios-table.ts` - Junction table for multi-studio bookings
+  - `apply-booking-copy.ts` - Functionality to copy bookings
+  - `init-db.ts` - Default data creation
+
+## Environment Variables
+
+Several environment variables can be used to configure the deployment:
+
+```
+# PostgreSQL Configuration
+PGUSER=postgres              # Database username
+PGPASSWORD=postgres          # Database password
+PGDATABASE=bookstudio        # Database name
+PGHOST=db                    # Database hostname (must match service name)
+PGPORT=5432                  # Database port
+
+# Application Configuration
+PORT=5000                    # Web application port
+NODE_ENV=production          # Environment
+RUNNING_IN_DOCKER=true       # Docker environment flag
+TZ=America/Chicago           # Container timezone
+FACILITY_TIMEZONE=America/Chicago  # Location timezone for the facility
+
+# Security
+SESSION_SECRET=random-string  # Session cookie encryption key
+COOKIE_SECURE=true            # Use secure cookies
+COOKIE_SAME_SITE=lax          # SameSite cookie policy
+
+# SendGrid Email Integration
+SENDGRID_API_KEY=your-api-key        # SendGrid API
+SENDGRID_VERIFIED_SENDER=email@domain.com  # Verified sender address
+```
+
+## Multi-Stage Docker Build
+
+The Dockerfile uses a multi-stage build process:
+
+1. **Builder Stage**: Compiles TypeScript and builds the frontend
+   - Uses Node.js with build dependencies
+   - Copies only necessary source files
+   - Builds the application with Vite
+
+2. **Production Stage**: Creates a minimal production image
+   - Uses Alpine Linux for a small footprint
+   - Only installs production dependencies
+   - Sets correct file permissions
+   - Runs as an unprivileged user
+   - Includes a health check
+   - Uses patching to properly handle module imports
 
 ## PostgreSQL Version Compatibility
 
 BookStud.io uses PostgreSQL 14 for database storage. The docker-compose.yml explicitly specifies:
 
 ```yaml
-postgres:
+db:
   image: postgres:14-alpine
 ```
 
@@ -52,7 +109,7 @@ This happens because:
 Ensure docker-compose.yml uses PostgreSQL 14:
 
 ```yaml
-postgres:
+db:
   image: postgres:14-alpine
 ```
 
@@ -73,9 +130,6 @@ docker compose down -v
 # Remove any lingering volumes
 docker volume rm bookstudio_postgres_data 2>/dev/null || true
 
-# Remove any other potentially conflicting volumes
-docker volume ls | grep 'bookstudio_' | xargs docker volume rm 2>/dev/null || true
-
 # Rebuild and restart
 docker compose build
 docker compose up -d
@@ -90,60 +144,42 @@ docker compose up -d
 docker compose logs
 
 # View database logs only
-docker compose logs postgres
+docker compose logs db
 
 # View database initialization logs
 docker compose logs db-init
 ```
 
-### ES Module Import Issues
-
-If you encounter ES module import errors like:
-
-```
-Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/shared/schema.js' imported from /app/scripts/init-db-prod.js
-```
-
-These issues are related to Node.js ES module resolution, which requires explicit file extensions and can be problematic in Docker environments. This has been fixed by:
-
-1. Converting init-db-prod.js to use CommonJS (require() statements) instead of ES modules
-2. Ensuring the shared directory exists in the Dockerfile with a `mkdir -p shared` command
-3. Maintaining the proper path resolution for schema.js files in the container
-
-If you modify these scripts, maintain the CommonJS format to ensure compatibility with Docker deployments.
-
 ### Database Backup Before Changes
 
 ```bash
 # Backup the current database 
-docker compose exec postgres pg_dump -U postgres bookstudio > backup_$(date +%Y%m%d_%H%M%S).sql
+docker compose exec db pg_dump -U postgres bookstudio > backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
 ### Database Recovery After Failed Upgrade
 
-If you attempted to use PostgreSQL 16 with existing PostgreSQL 14 data and need to recover:
+If you need to restore from a backup:
 
-1. Restore the docker-compose.yml to use postgres:14-alpine
-2. If you have a backup, restore it:
-   ```bash
-   # Stop the containers
-   docker compose down
+```bash
+# Stop the containers
+docker compose down
    
-   # Clear the corrupted volume
-   docker volume rm bookstudio_postgres_data
+# Clear the corrupted volume
+docker volume rm bookstudio_postgres_data
    
-   # Start only the database
-   docker compose up -d postgres
+# Start only the database
+docker compose up -d db
    
-   # Wait for it to be ready
-   sleep 5
+# Wait for it to be ready
+sleep 5
    
-   # Restore the backup
-   cat your_backup_file.sql | docker compose exec -T postgres psql -U postgres bookstudio
+# Restore the backup
+cat your_backup_file.sql | docker compose exec -T db psql -U postgres bookstudio
    
-   # Start the rest of the system
-   docker compose up -d
-   ```
+# Start the rest of the system
+docker compose up -d
+```
 
 ## Keeping PostgreSQL Versions Consistent
 
