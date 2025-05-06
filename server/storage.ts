@@ -419,12 +419,22 @@ export class MemStorage implements IStorage {
     return newBooking;
   }
 
-  async updateBooking(id: number, data: Partial<InsertBooking>): Promise<Booking | undefined> {
+  async updateBooking(id: number, data: Partial<InsertBooking>, studioIds?: number[]): Promise<Booking | undefined> {
     const booking = await this.getBooking(id);
     if (!booking) return undefined;
     
     const updatedBooking: Booking = { ...booking, ...data };
     this.bookings.set(id, updatedBooking);
+    
+    // If studioIds are provided, update the booking-studio links
+    if (studioIds && studioIds.length > 0) {
+      // First, remove all existing links
+      await this.deleteBookingStudioLinks(id);
+      
+      // Then, create new links for each studioId
+      await this.createBookingStudioLinks(id, studioIds);
+    }
+    
     return updatedBooking;
   }
 
@@ -477,6 +487,74 @@ export class MemStorage implements IStorage {
     }
     
     return studios;
+  }
+  
+  // Alias for getStudiosForBooking with the same implementation
+  async getBookingStudios(bookingId: number): Promise<Studio[]> {
+    return this.getStudiosForBooking(bookingId);
+  }
+  
+  // Link a single booking to a studio
+  async linkBookingToStudio(bookingId: number, studioId: number): Promise<BookingStudio> {
+    // Check if link already exists
+    const existingLinks = await this.getBookingStudioLinks(bookingId);
+    const existingLink = existingLinks.find(link => link.studioId === studioId);
+    if (existingLink) {
+      return existingLink;
+    }
+    
+    // Create new link
+    const id = this.bookingStudioIdCounter++;
+    const link: BookingStudio = { id, bookingId, studioId };
+    const key = `${bookingId}-${studioId}`;
+    this.bookingStudios.set(key, link);
+    
+    return link;
+  }
+  
+  // Check for booking conflicts with a specific studio
+  async checkBookingConflicts(studioId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]> {
+    // Get all bookings linked to this studio
+    const allBookings = Array.from(this.bookings.values());
+    const studioBookings: Booking[] = [];
+    
+    // Check direct studio assignments (legacy)
+    for (const booking of allBookings) {
+      if (booking.studioId === studioId) {
+        studioBookings.push(booking);
+      }
+    }
+    
+    // Check booking-studio links
+    const allLinks = Array.from(this.bookingStudios.values());
+    for (const link of allLinks) {
+      if (link.studioId === studioId) {
+        const booking = await this.getBooking(link.bookingId);
+        if (booking && !studioBookings.some(b => b.id === booking.id)) {
+          studioBookings.push(booking);
+        }
+      }
+    }
+    
+    // Filter out the booking being updated if excludeBookingId is provided
+    const otherBookings = excludeBookingId 
+      ? studioBookings.filter(booking => booking.id !== excludeBookingId) 
+      : studioBookings;
+    
+    // Find conflicts
+    const startTime = start.getTime();
+    const endTime = end.getTime();
+    
+    return otherBookings.filter(booking => {
+      const bookingStart = new Date(booking.start).getTime();
+      const bookingEnd = new Date(booking.end).getTime();
+      
+      return (
+        (startTime >= bookingStart && startTime < bookingEnd) || // new booking starts during existing booking
+        (endTime > bookingStart && endTime <= bookingEnd) ||    // new booking ends during existing booking
+        (startTime <= bookingStart && endTime >= bookingEnd)    // new booking spans existing booking
+      );
+    });
   }
   
   async createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]> {
