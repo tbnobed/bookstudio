@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Booking, Studio } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { format, isToday, isPast, isAfter, isBefore, formatDistance } from "date-fns";
+import { isToday, isPast, isAfter, isBefore, formatDistance, format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, CalendarDays, Plus, AlertTriangle, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import AlertModal from "@/components/alerts/AlertModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import { useStudioStatus } from "@/hooks/use-studio-status";
+import { formatTime, formatDate, isSameDay, formatTimeRange } from "@/lib/dateUtils";
 
 interface MobileDailyViewProps {
   currentDate: Date;
@@ -108,10 +109,10 @@ export default function MobileDailyView({
         
         <div className="flex flex-col items-center">
           <h1 className="text-lg font-bold">
-            {format(currentDate, isToday(currentDate) ? "'Today'" : "EEE, MMM d")}
+            {isToday(currentDate) ? "Today" : formatDate(currentDate)}
           </h1>
           <span className="text-sm text-gray-500">
-            {isToday(currentDate) ? format(currentDate, "MMMM d, yyyy") : format(currentDate, "MMMM d, yyyy")}
+            {formatDate(currentDate)}
           </span>
         </div>
         
@@ -180,7 +181,7 @@ export default function MobileDailyView({
               >
                 <div className="font-medium text-red-700">{alert.title}</div>
                 <div className="text-xs text-gray-500">
-                  {format(new Date(alert.start), "h:mm a")} - {format(new Date(alert.end), "h:mm a")}
+                  {formatTimeRange(new Date(alert.start), new Date(alert.end))}
                 </div>
               </div>
             ))}
@@ -244,7 +245,7 @@ export default function MobileDailyView({
                               <div className="font-medium text-sm">{booking.title}</div>
                               <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                                 <Clock size={12} />
-                                {format(bookingStart, "h:mm a")} - {format(bookingEnd, "h:mm a")}
+                                {formatTimeRange(bookingStart, bookingEnd)}
                               </div>
                               
                               {isUpcoming && (
@@ -320,7 +321,7 @@ export default function MobileDailyView({
                         
                         <div className="text-sm text-gray-500 flex items-center gap-1 mt-2">
                           <Clock size={14} />
-                          {format(bookingStart, "h:mm a")} - {format(bookingEnd, "h:mm a")}
+                          {formatTimeRange(bookingStart, bookingEnd)}
                         </div>
                         
                         {isFacilityAlert && booking.severity && (
