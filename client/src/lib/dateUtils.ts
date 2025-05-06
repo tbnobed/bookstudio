@@ -243,11 +243,27 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
   // Parse the date string (format: "YYYY-MM-DD")
   const [year, month, day] = dateStr.split('-').map(Number);
   
-  // Create a date object with year, month, day in local time
-  const dateObj = new Date(year, month - 1, day, hourNum, minuteNum, 0, 0);
+  // Create a date object in local time zone
+  // Note: Using Date UTC constructor to create a date that won't have timezone issues
+  // when sent to the server. This ensures the date/time selected by the user is the 
+  // exact date/time stored in the database.
+  const dateObj = new Date(Date.UTC(year, month - 1, day, hourNum, minuteNum, 0, 0));
   
   // Log for debugging
-  console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()}`);
+  console.log(`timeToDate: Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()}`);
   
   return dateObj;
+}
+
+// Helper function to format a date for use in the form YYYY-MM-DD
+export function formatDateForForm(date: Date): string {
+  // Create directly in YYYY-MM-DD format
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  
+  const formattedDate = `${year}-${month}-${day}`;
+  console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${formattedDate}`);
+  
+  return formattedDate;
 }
