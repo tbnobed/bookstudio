@@ -3,17 +3,17 @@
  * This script runs only once when the container starts in Docker
  */
 
-const { Pool } = require('pg');
-const { createClient } = require('@neondatabase/serverless');
-const { drizzle } = require('drizzle-orm/neon-serverless');
-const { drizzle: drizzlePg } = require('drizzle-orm/pg-core');
-const { sql } = require('drizzle-orm');
-const { scrypt, randomBytes } = require('crypto');
-const { promisify } = require('util');
-const WebSocket = require('ws');
+import { Pool } from 'pg';
+import { createClient } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { drizzle as drizzlePg } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { scrypt, randomBytes } from 'crypto';
+import { promisify } from 'util';
+import WebSocket from 'ws';
 
-// Import schema - this uses CommonJS require since we're in a Node.js script
-const schema = require('../shared/schema');
+// Import schema
+import * as schema from '../shared/schema.js';
 
 // Promisify scrypt
 const scryptAsync = promisify(scrypt);

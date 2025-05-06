@@ -14,6 +14,11 @@ docker compose build
 docker compose up -d
 ```
 
+## Docker Compose Configuration Notes
+
+- The version attribute in docker-compose.yml has been removed as it's considered obsolete in newer Docker Compose versions.
+- ES modules are used in Node.js scripts (particularly init-db-prod.js) to align with the project's module system.
+
 ## PostgreSQL Version Compatibility
 
 BookStud.io uses PostgreSQL 14 for database storage. The docker-compose.yml explicitly specifies:
