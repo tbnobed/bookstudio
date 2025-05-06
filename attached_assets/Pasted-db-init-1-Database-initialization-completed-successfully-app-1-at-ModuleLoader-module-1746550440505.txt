@@ -1,0 +1,39 @@
+db-init-1  | Database initialization completed successfully
+app-1      |     at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:168:18)
+app-1      |     at callTranslator (node:internal/modules/esm/loader:428:14)
+app-1      |     at ModuleLoader.moduleProvider (node:internal/modules/esm/loader:434:30)
+app-1      |     at async link (node:internal/modules/esm/module_job:87:21)
+app-1      |
+app-1      | Node.js v20.18.1
+app-1      |
+app-1      | > rest-express@1.0.0 start
+app-1      | > NODE_ENV=production node dist/index.js
+app-1      |
+app-1      | file:///app/dist/index.js:1441
+app-1      |   const [tokenData] = await db.select().from "/app/dist/vite-stub.js";
+app-1      |                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+app-1      |
+app-1      | SyntaxError: Unexpected string
+app-1      |     at compileSourceTextModule (node:internal/modules/esm/utils:339:16)
+app-1      |     at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:168:18)
+app-1      |     at callTranslator (node:internal/modules/esm/loader:428:14)
+app-1      |     at ModuleLoader.moduleProvider (node:internal/modules/esm/loader:434:30)
+app-1      |     at async link (node:internal/modules/esm/module_job:87:21)
+app-1      |
+app-1      | Node.js v20.18.1
+app-1      |
+app-1      | > rest-express@1.0.0 start
+app-1      | > NODE_ENV=production node dist/index.js
+app-1      |
+app-1      | file:///app/dist/index.js:1441
+app-1      |   const [tokenData] = await db.select().from "/app/dist/vite-stub.js";
+app-1      |                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+app-1      |
+app-1      | SyntaxError: Unexpected string
+app-1      |     at compileSourceTextModule (node:internal/modules/esm/utils:339:16)
+app-1      |     at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:168:18)
+app-1      |     at callTranslator (node:internal/modules/esm/loader:428:14)
+app-1      |     at ModuleLoader.moduleProvider (node:internal/modules/esm/loader:434:30)
+app-1      |     at async link (node:internal/modules/esm/module_job:87:21)
+app-1      |
+app-1      | Node.js v20.18.1
