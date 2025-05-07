@@ -80,11 +80,12 @@ export default function WeeklyCalendar({
     if (weekDates.length >= 7) {
       // Use the first day (Sunday) as the start date
       const newWeekStart = new Date(weekDates[0]);
-      // Make sure to set hours to 00:00:00 to include all bookings on first day
-      newWeekStart.setHours(0, 0, 0, 0);
+      // Make sure to set hours to 00:00:00 in UTC to include all bookings on first day
+      // We need to set to midnight in UTC to ensure no timezone issues with dates
+      newWeekStart.setUTCHours(0, 0, 0, 0);
       
       const newWeekEnd = new Date(weekDates[6]);
-      newWeekEnd.setHours(23, 59, 59, 999);
+      newWeekEnd.setUTCHours(23, 59, 59, 999);
       
       console.log(`Setting new date range: ${newWeekStart.toISOString()} to ${newWeekEnd.toISOString()}`);
       
