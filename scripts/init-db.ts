@@ -1,4 +1,16 @@
-import { db } from '../server/db';
+// Support both Docker and local development environments
+let db;
+try {
+  // Try Docker path first (absolute path)
+  const dockerDb = require('/app/server/db');
+  db = dockerDb.db;
+  console.log('Using Docker database connection');
+} catch (error) {
+  // Fall back to local development path (relative path)
+  const localDb = require('../server/db');
+  db = localDb.db;
+  console.log('Using local development database connection');
+}
 import { users, notificationGroups } from '../shared/schema';
 import { scrypt, randomBytes } from 'crypto';
 import { promisify } from 'util';
