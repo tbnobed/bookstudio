@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Booking } from "@shared/schema";
+import { Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
