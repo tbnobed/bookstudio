@@ -16,6 +16,53 @@ interface StudioRowProps {
   readOnly?: boolean;
 }
 
+// Helper function to calculate studio status
+function getStudioStatus(studio: Studio, bookings: Booking[], bookingStudioLinks: BookingStudio[] = []): string {
+  // Default colors based on studio status
+  const colorClasses = {
+    available: "bg-green-500",
+    maintenance: "bg-orange-500",
+    "in-use": "bg-red-500",
+    booked: "bg-red-500", // backward compatibility
+    default: "bg-gray-500"
+  };
+
+  // If studio is explicitly set to maintenance, respect that setting
+  if (studio.status === "maintenance") {
+    return colorClasses.maintenance;
+  }
+  
+  // Get the current time 
+  const now = new Date();
+  
+  // Check if there are any active bookings for this studio right now
+  const hasActiveBooking = bookings.some(booking => {
+    // First, check traditional studioId (kept for backwards compatibility)
+    const directMatch = booking.studioId === studio.id;
+    
+    // Then, check junction table links for multi-studio bookings
+    const linkedMatch = bookingStudioLinks.some(link => 
+      link.bookingId === booking.id && link.studioId === studio.id
+    );
+    
+    // Skip if not for this studio through either direct or linked relationship
+    if (!directMatch && !linkedMatch) return false;
+    
+    // Get booking dates
+    const bookingStart = new Date(booking.start);
+    const bookingEnd = new Date(booking.end);
+    
+    // Only show as in-use if we're currently within the booking time window
+    return now >= bookingStart && now <= bookingEnd;
+  });
+  
+  // Return "in-use" status if there are active bookings now, otherwise use the studio's configured status
+  const status = hasActiveBooking ? "in-use" : studio.status;
+  
+  // Return the color class based on the status
+  return colorClasses[status as keyof typeof colorClasses] || colorClasses.default;
+}
+
 export default function StudioRow({ studio, weekDates, bookings, onBookingClick, readOnly = false }: StudioRowProps) {
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -28,7 +75,6 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
     queryKey: ["/api/pcr-rooms"],
   });
-  
   // Function to get PCR room name from ID
   const getPcrRoomName = (pcrRoomId: number): string => {
     const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
@@ -138,10 +184,36 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
             className="border-b flex items-center px-2 sticky left-0 z-10 bg-white" 
             style={{ height: `${rowHeight}px` }}
           >
-            {/* Studio status indicator using the enhanced calculateStudioStatus that includes booking-studio links */}
-            <div className={`w-2 h-2 rounded-full mr-2 ${
-              getStudioStatusColor(calculateStudioStatus(studio, bookings, new Date(), bookingStudioLinks))
-            }`}></div>
+            {/* Studio status indicator */}
+            {(() => {
+              // Determine if studio is currently in use by checking both direct assignments and junction table
+              const now = new Date();
+              const hasActiveBooking = bookings.some(booking => {
+                // Check if linked directly or through junction table
+                const directMatch = booking.studioId === studio.id;
+                const linkedMatch = bookingStudioLinks.some(link => 
+                  link.bookingId === booking.id && link.studioId === studio.id
+                );
+                
+                // Skip if not for this studio
+                if (!directMatch && !linkedMatch) return false;
+                
+                // Check if currently active (time-wise)
+                const start = new Date(booking.start);
+                const end = new Date(booking.end);
+                return now >= start && now <= end;
+              });
+              
+              // Return the right color based on status
+              let statusClass = "bg-green-500"; // available
+              if (studio.status === "maintenance") {
+                statusClass = "bg-orange-500";
+              } else if (hasActiveBooking) {
+                statusClass = "bg-red-500"; // in-use
+              }
+              
+              return <div className={`w-2 h-2 rounded-full mr-2 ${statusClass}`}></div>;
+            })()}
             <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
           </div>
         );
