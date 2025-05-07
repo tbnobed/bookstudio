@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { subtractDays, addDays, formatWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
 import TimezoneTestModal from "@/components/TimezoneTestModal";
+import TimezoneDisplay from "@/components/TimezoneDisplay";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking } from "@shared/schema";
 import { cn } from "@/lib/utils";
