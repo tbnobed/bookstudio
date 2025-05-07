@@ -273,7 +273,7 @@ export default function WeeklyCalendar({
 
   return (
     <>
-      <div className="overflow-auto h-[calc(100vh-8rem)]">
+      <div className="overflow-auto h-[calc(100vh-8rem)] calendar-container">
         <div className="min-w-[800px]">
           {/* Calendar Days Header - Using default height */}
           <div className="grid grid-cols-[80px_repeat(7,1fr)] sticky top-0 z-10">

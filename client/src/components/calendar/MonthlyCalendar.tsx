@@ -88,7 +88,7 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
 
   return (
     <>
-      <div className="overflow-auto h-[calc(100vh-8rem)]">
+      <div className="overflow-auto h-[calc(100vh-8rem)] calendar-container">
         <div className="container mx-auto p-4">
           {/* Month Header */}
           <h2 className="text-xl font-semibold mb-4">
