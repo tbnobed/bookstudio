@@ -307,6 +307,7 @@ export default function WeeklyCalendar({
                   bookings={bookings} // Pass ALL bookings and let StudioRow filter by both direct ID and junction table
                   onBookingClick={handleBookingClick}
                   readOnly={readOnly}
+                  getPcrRoomName={getPcrRoomName}
                 />
               ))}
             </div>
