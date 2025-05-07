@@ -983,7 +983,7 @@ export default function BookingModal({
                           </SelectContent>
                         </Select>
                       </div>
-                      
+                    
                       <div>
                         <Label htmlFor="template">Template (Optional)</Label>
                         <Select 
@@ -1003,7 +1003,6 @@ export default function BookingModal({
                           </SelectContent>
                         </Select>
                       </div>
-                    </div>
                   </div>
                 </div>
               )}
