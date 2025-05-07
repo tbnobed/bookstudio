@@ -1,8 +1,13 @@
-import type { Studio, Booking } from "@shared/schema";
+import type { Studio, Booking, BookingStudio } from "@shared/schema";
 import { isSameDay } from "./dateUtils";
 
-// Calculate the effective studio status based on bookings
-export function calculateStudioStatus(studio: Studio, bookings: Booking[], currentDate: Date = new Date()): string {
+// Calculate the effective studio status based on bookings and booking-studio links
+export function calculateStudioStatus(
+  studio: Studio, 
+  bookings: Booking[], 
+  currentDate: Date = new Date(), 
+  bookingStudioLinks: BookingStudio[] = []
+): string {
   // If studio is explicitly set to maintenance, respect that setting
   if (studio.status === "maintenance") {
     return "maintenance";
@@ -13,23 +18,27 @@ export function calculateStudioStatus(studio: Studio, bookings: Booking[], curre
   
   // Check if there are any active bookings for this studio right now
   const hasActiveBooking = bookings.some(booking => {
-    // Get studioId regardless of property naming
-    const studioId = booking.studioId;
+    // First, check traditional studioId (kept for backwards compatibility)
+    const directMatch = booking.studioId === studio.id;
     
-    // Skip if not for this studio
-    if (studioId !== studio.id) return false;
+    // Then, check junction table links for multi-studio bookings
+    const linkedMatch = bookingStudioLinks.some(link => 
+      link.bookingId === booking.id && link.studioId === studio.id
+    );
+    
+    // Skip if not for this studio through either direct or linked relationship
+    if (!directMatch && !linkedMatch) return false;
     
     // Get booking dates
     const bookingStart = new Date(booking.start);
     const bookingEnd = new Date(booking.end);
     
-    // Only show as booked if we're currently within the booking time window
-    // No longer requiring it to be the same day as currentDate
+    // Only show as in-use if we're currently within the booking time window
     return now >= bookingStart && now <= bookingEnd;
   });
   
-  // Return booked if there are active bookings now, otherwise use the studio's configured status
-  return hasActiveBooking ? "booked" : studio.status;
+  // Return "in-use" status if there are active bookings now, otherwise use the studio's configured status
+  return hasActiveBooking ? "in-use" : studio.status;
 }
 
 // Get the appropriate color class for a studio's status
@@ -39,7 +48,8 @@ export function getStudioStatusColor(status: string): string {
       return "bg-green-500";
     case "maintenance":
       return "bg-orange-500";
-    case "booked":
+    case "booked": // backward compatibility
+    case "in-use":
       return "bg-red-500";
     default:
       return "bg-gray-500";
