@@ -20,6 +20,17 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  
+  // Fetch PCR rooms to display names instead of IDs
+  const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
+    queryKey: ["/api/pcr-rooms"],
+  });
+  
+  // Function to get PCR room name from ID
+  const getPcrRoomName = (pcrRoomId: number): string => {
+    const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
+    return pcrRoom ? pcrRoom.name : `PCR #${pcrRoomId}`;
+  };
 
   // Calculate month days whenever current date changes
   useEffect(() => {
@@ -134,7 +145,10 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                             )}
                             onClick={(e) => handleBookingClick(e, booking)}
                           >
-                            <span className="font-medium">{booking.title}</span>
+                            <span className="font-medium">
+                              {booking.title}
+                              {booking.pcrRoomId ? ` (${getPcrRoomName(booking.pcrRoomId)})` : ''}
+                            </span>
                             <div>{formatTime(booking.start)}</div>
                           </div>
                         </HoverCardTrigger>
