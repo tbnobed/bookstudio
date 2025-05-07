@@ -19,11 +19,14 @@ import { sql } from "drizzle-orm";
  * Resets PCR room IDs to start from 1
  * This script:
  * 1. Creates a temporary table
- * 2. Copies data with new IDs
- * 3. Updates any related bookings
- * 4. Drops the original table
+ * 2. Copies data with new IDs (preserving all PCR room information)
+ * 3. Updates any related bookings to use the new PCR room IDs
+ * 4. Safely drops the original table
  * 5. Renames the new table
- * 6. Resets the sequence
+ * 6. Resets the sequence to the next available ID
+ * 
+ * This script fixes the issue where PCR room IDs are much higher than they should be,
+ * such as creating PCR room #6 but getting ID 70 in the database.
  */
 async function resetPcrRoomIds() {
   try {
@@ -35,6 +38,20 @@ async function resetPcrRoomIds() {
     `);
     
     const hasPcrBookings = parseInt(bookingsWithPcrRooms.rows[0].count) > 0;
+    
+    // Log detailed information about any bookings with PCR rooms
+    if (hasPcrBookings) {
+      const bookingsWithPcrDetails = await db.execute(sql`
+        SELECT id, title, pcr_room_id FROM bookings 
+        WHERE pcr_room_id IS NOT NULL
+        ORDER BY id
+      `);
+      
+      console.log("Bookings with PCR rooms assigned:");
+      for (const booking of bookingsWithPcrDetails.rows) {
+        console.log(`  - Booking ID: ${booking.id}, Title: ${booking.title}, PCR Room ID: ${booking.pcr_room_id}`);
+      }
+    }
     
     if (hasPcrBookings) {
       console.log("There are bookings with PCR rooms assigned. Creating mapping table...");
@@ -97,6 +114,22 @@ async function resetPcrRoomIds() {
       console.log("Updated all bookings with new PCR room IDs");
     }
 
+    // Fix - check if pcr_room_id is a foreign key
+    // If so, drop the constraint before dropping the table
+    const constraintExists = await db.execute(sql`
+      SELECT 1 FROM pg_constraint
+      WHERE conname = 'bookings_pcr_room_id_fkey'
+      LIMIT 1
+    `);
+    
+    if (constraintExists.rows.length > 0) {
+      console.log("Dropping foreign key constraint temporarily...");
+      await db.execute(sql`
+        ALTER TABLE bookings 
+        DROP CONSTRAINT bookings_pcr_room_id_fkey
+      `);
+    }
+    
     // Drop the original table and rename the new one
     await db.execute(sql`DROP TABLE pcr_rooms`);
     await db.execute(sql`ALTER TABLE pcr_rooms_new RENAME TO pcr_rooms`);
@@ -111,6 +144,7 @@ async function resetPcrRoomIds() {
     `);
     
     // Add foreign key constraint back
+    console.log("Re-adding foreign key constraint...");
     await db.execute(sql`
       ALTER TABLE bookings 
       ADD CONSTRAINT bookings_pcr_room_id_fkey 
