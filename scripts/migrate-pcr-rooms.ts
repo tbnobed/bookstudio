@@ -51,6 +51,17 @@ async function migratePcrRooms() {
       ON CONFLICT ("name") DO NOTHING;
     `);
     console.log("Added initial PCR rooms data");
+    
+    // Reset the sequence to the correct value based on existing data
+    // This ensures PCR room IDs will increment correctly
+    await db.execute(sql`
+      SELECT setval(
+        pg_get_serial_sequence('pcr_rooms', 'id'), 
+        (SELECT COALESCE(MAX(id), 0) + 1 FROM pcr_rooms), 
+        false
+      );
+    `);
+    console.log("Reset PCR rooms sequence to correct value");
 
     console.log("PCR rooms migration completed successfully!");
   } catch (error) {

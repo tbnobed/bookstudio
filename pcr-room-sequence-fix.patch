@@ -1,0 +1,49 @@
+diff --git a/scripts/migrate-pcr-rooms.ts b/scripts/migrate-pcr-rooms.ts
+index 90e9534..0e49519 100644
+--- a/scripts/migrate-pcr-rooms.ts
++++ b/scripts/migrate-pcr-rooms.ts
+@@ -51,6 +51,17 @@ async function migratePcrRooms() {
+       ON CONFLICT ("name") DO NOTHING;
+     `);
+     console.log("Added initial PCR rooms data");
++    
++    // Reset the sequence to the correct value based on existing data
++    // This ensures PCR room IDs will increment correctly
++    await db.execute(sql`
++      SELECT setval(
++        pg_get_serial_sequence('pcr_rooms', 'id'), 
++        (SELECT COALESCE(MAX(id), 0) + 1 FROM pcr_rooms), 
++        false
++      );
++    `);
++    console.log("Reset PCR rooms sequence to correct value");
+ 
+     console.log("PCR rooms migration completed successfully!");
+   } catch (error) {
+diff --git a/server/storage.ts b/server/storage.ts
+index 6ad94e4..6b3f319 100644
+--- a/server/storage.ts
++++ b/server/storage.ts
+@@ -1277,9 +1277,21 @@ export class DatabaseStorage implements IStorage {
+   
+   async createPcrRoom(pcrRoom: InsertPcrRoom): Promise<PcrRoom> {
+     try {
++      // Insert new PCR room
+       const [newPcrRoom] = await db.insert(pcrRooms).values(pcrRoom).returning();
++      
++      // Add to cache
+       this.pcrRooms.set(newPcrRoom.id, newPcrRoom);
+-      this.pcrRoomIdCounter = Math.max(this.pcrRoomIdCounter, newPcrRoom.id + 1);
++      
++      // Get the current max ID from the database to ensure we're in sync
++      const maxResult = await db.select({ maxId: sql`MAX(id)` }).from(pcrRooms);
++      const maxId = maxResult[0]?.maxId || 0;
++      
++      // Update the counter
++      this.pcrRoomIdCounter = maxId + 1;
++      
++      console.log(`Created PCR room with ID ${newPcrRoom.id}, current max ID: ${maxId}, next ID: ${this.pcrRoomIdCounter}`);
++      
+       return newPcrRoom;
+     } catch (error) {
+       console.error("Error creating PCR room:", error);

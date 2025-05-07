@@ -1277,9 +1277,21 @@ export class DatabaseStorage implements IStorage {
   
   async createPcrRoom(pcrRoom: InsertPcrRoom): Promise<PcrRoom> {
     try {
+      // Insert new PCR room
       const [newPcrRoom] = await db.insert(pcrRooms).values(pcrRoom).returning();
+      
+      // Add to cache
       this.pcrRooms.set(newPcrRoom.id, newPcrRoom);
-      this.pcrRoomIdCounter = Math.max(this.pcrRoomIdCounter, newPcrRoom.id + 1);
+      
+      // Get the current max ID from the database to ensure we're in sync
+      const maxResult = await db.select({ maxId: sql`MAX(id)` }).from(pcrRooms);
+      const maxId = maxResult[0]?.maxId || 0;
+      
+      // Update the counter
+      this.pcrRoomIdCounter = maxId + 1;
+      
+      console.log(`Created PCR room with ID ${newPcrRoom.id}, current max ID: ${maxId}, next ID: ${this.pcrRoomIdCounter}`);
+      
       return newPcrRoom;
     } catch (error) {
       console.error("Error creating PCR room:", error);
