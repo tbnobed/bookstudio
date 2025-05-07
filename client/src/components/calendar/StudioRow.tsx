@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Booking, Studio, PcrRoom } from "@shared/schema";
+import { Booking, Studio, PcrRoom, BookingStudio } from "@shared/schema";
 import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -138,6 +138,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
             className="border-b flex items-center px-2 sticky left-0 z-10 bg-white" 
             style={{ height: `${rowHeight}px` }}
           >
+            {/* Studio status indicator using the enhanced calculateStudioStatus that includes booking-studio links */}
+            <div className={`w-2 h-2 rounded-full mr-2 ${
+              getStudioStatusColor(calculateStudioStatus(studio, bookings, new Date(), bookingStudioLinks))
+            }`}></div>
             <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
           </div>
         );
