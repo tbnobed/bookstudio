@@ -441,8 +441,7 @@ export default function BookingModal({
   };
   
   return (
-    <div className="booking-modal-wrapper">
-      {/* Copy Modal */}
+    <div>
       {booking && !alertsOnly && (
         <CopyBookingModal 
           isOpen={isCopyModalOpen} 
@@ -451,18 +450,8 @@ export default function BookingModal({
         />
       )}
       
-      {/* Main Booking Modal */}
-      <Dialog 
-        open={isOpen} 
-        onOpenChange={onClose} 
-        modal={true}
-      >
-        <DialogContent 
-          className="fixed-dialog sm:max-w-3xl max-h-[90vh] overflow-y-auto"
-          onInteractOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
-          style={{ pointerEvents: "auto" }}
-        >
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {booking 

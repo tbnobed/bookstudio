@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { getWeekDates, formatDateShort, SHORT_DAY_NAMES, isWeekend } from "@/lib/dateUtils";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, PcrRoom } from "@shared/schema";
@@ -8,24 +8,6 @@ import AlertsRow from "./AlertsRow";
 import BookingModal from "../booking/BookingModal";
 import AlertModal from "../alerts/AlertModal";
 import { useStudioBookings } from "../../hooks/useStudioBookings";
-
-// Define an interface to match the API response format with snake_case
-interface ApiBooking {
-  id: number;
-  title: string;
-  description: string | null;
-  studio_id: number | null;
-  pcr_room_id: number | null;
-  user_id: number;
-  start: string | Date;
-  end: string | Date;
-  type: string;
-  template_id: number | null;
-  notify_list: any;
-  created_at: string | Date | null;
-  severity: string | null;
-  color?: string | null;
-}
 
 interface WeeklyCalendarProps {
   currentDate?: Date;
@@ -273,7 +255,7 @@ export default function WeeklyCalendar({
 
   return (
     <>
-      <div className="overflow-auto h-[calc(100vh-8rem)] calendar-container">
+      <div className="overflow-auto h-[calc(100vh-8rem)]">
         <div className="min-w-[800px]">
           {/* Calendar Days Header - Using default height */}
           <div className="grid grid-cols-[80px_repeat(7,1fr)] sticky top-0 z-10">
@@ -300,41 +282,31 @@ export default function WeeklyCalendar({
 
           {/* Calendar Time Grid */}
           <div className="relative">
-            {/* Calendar Grid - Using table layout for more stable rendering */}
-            <div className="grid grid-cols-[80px_repeat(7,1fr)] table-fixed w-full" style={{ tableLayout: 'fixed' }}>
-              {/* Alerts Row - First row of the grid - using useMemo for stability */}
-              {useMemo(() => (
-                <div className="contents">
-                  <AlertsRow
-                    weekDates={weekDates}
-                    alerts={alerts}
-                    onAlertClick={handleBookingClick}
-                    readOnly={readOnly}
-                  />
-                </div>
-              ), [weekDates, alerts, handleBookingClick, readOnly])}
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-[80px_repeat(7,1fr)]">
+              {/* Alerts Row - First row of the grid */}
+              <div className="contents">
+                <AlertsRow
+                  weekDates={weekDates}
+                  alerts={alerts}
+                  onAlertClick={handleBookingClick}
+                />
+              </div>
               
-              {/* Visual separator - static, does not need memo */}
+              {/* Visual separator */}
               <div className="col-span-8 h-2 bg-gray-200 border-b border-gray-300"></div>
               
-              {/* Studio Rows - Use useMemo to stabilize the component tree */}
-              {useMemo(() => {
-                console.log("Rebuilding studio rows in WeeklyCalendar - this should be infrequent");
-                return (
-                  <div className="contents">
-                    {filteredStudios.map((studio) => (
-                      <StudioRow
-                        key={studio.id}
-                        studio={studio}
-                        weekDates={weekDates}
-                        bookings={bookings} 
-                        onBookingClick={handleBookingClick}
-                        readOnly={readOnly}
-                      />
-                    ))}
-                  </div>
-                );
-              }, [filteredStudios, weekDates, bookings, handleBookingClick, readOnly])}
+              {/* Studio Rows */}
+              {filteredStudios.map((studio) => (
+                <StudioRow
+                  key={studio.id}
+                  studio={studio}
+                  weekDates={weekDates}
+                  bookings={bookings} // Pass ALL bookings and let StudioRow filter by both direct ID and junction table
+                  onBookingClick={handleBookingClick}
+                  readOnly={readOnly}
+                />
+              ))}
             </div>
           </div>
         </div>

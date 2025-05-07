@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Booking } from "@shared/schema";
 import { formatTime, isWeekend, isSameDay, formatDate } from "@/lib/dateUtils";
@@ -9,21 +9,12 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { CalendarClock, Clock, FileText, AlertCircle, Bell } from "lucide-react";
 
 // Define an interface to match the API response format with snake_case
-interface ApiBooking {
-  id: number;
-  title: string;
-  description: string | null;
+interface ApiBooking extends Omit<Booking, 'studioId' | 'userId' | 'templateId' | 'createdAt' | 'notifyList'> {
   studio_id: number | null;
-  pcr_room_id: number | null;
   user_id: number;
-  start: string | Date;
-  end: string | Date;
-  type: string;
   template_id: number | null;
-  notify_list: any;
   created_at: string | Date | null;
-  severity: string | null;
-  color?: string | null;
+  notify_list: any;
 }
 
 interface AlertsRowProps {
@@ -97,8 +88,15 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
   const [editAlert, setEditAlert] = useState<ApiBooking | null>(null);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   
-  // We don't need an auto-refresh here since the parent component already handles fetching
-  // This was causing unnecessary re-renders
+  // Set up auto-refresh of alerts data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Invalidate the bookings queries to force a refetch
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+    }, 2000); // Check every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
   
   // Debug the alerts collection
   console.log("All alerts in AlertsRow: ", JSON.stringify(alerts));
@@ -128,34 +126,30 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
     }
   };
 
-  // Calculate max alerts for any day in this week for consistent row heights (memoized)
-  const maxAlertsForWeek = useMemo(() => {
-    return weekDates.reduce((max, date) => {
-      const count = alerts.filter(alert => {
-        const alertStart = new Date(alert.start);
-        const alertEnd = new Date(alert.end);
-        
-        // Check if alert spans this date
-        const dateStart = new Date(date);
-        dateStart.setHours(0, 0, 0, 0);
-        
-        const dateEnd = new Date(date);
-        dateEnd.setHours(23, 59, 59, 999);
-        
-        return (alertStart <= dateEnd) && (alertEnd >= dateStart);
-      }).length;
-      return Math.max(max, count);
-    }, 0);
-  }, [weekDates, alerts]);
+  // Calculate max alerts for any day in this week for consistent row heights
+  const maxAlertsForWeek = weekDates.reduce((max, date) => {
+    const count = alerts.filter(alert => {
+      const alertStart = new Date(alert.start);
+      const alertEnd = new Date(alert.end);
+      
+      // Check if alert spans this date
+      const dateStart = new Date(date);
+      dateStart.setHours(0, 0, 0, 0);
+      
+      const dateEnd = new Date(date);
+      dateEnd.setHours(23, 59, 59, 999);
+      
+      return (alertStart <= dateEnd) && (alertEnd >= dateStart);
+    }).length;
+    return Math.max(max, count);
+  }, 0);
   
-  // Calculate dynamic height - base height plus additional space for each alert (memoized)
-  const rowHeight = useMemo(() => {
-    const baseHeight = 60; // Minimum height for a row with no alerts
-    const heightPerAlert = 32; // Additional height per alert
-    const maxAdditionalHeight = 200; // Maximum additional height
-    const additionalHeight = Math.min(maxAlertsForWeek * heightPerAlert, maxAdditionalHeight);
-    return baseHeight + additionalHeight;
-  }, [maxAlertsForWeek]);
+  // Calculate dynamic height - base height plus additional space for each alert
+  const baseHeight = 60; // Minimum height for a row with no alerts
+  const heightPerAlert = 32; // Additional height per alert
+  const maxAdditionalHeight = 200; // Maximum additional height
+  const additionalHeight = Math.min(maxAlertsForWeek * heightPerAlert, maxAdditionalHeight);
+  const rowHeight = baseHeight + additionalHeight;
 
   return (
     <>

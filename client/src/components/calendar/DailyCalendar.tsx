@@ -148,7 +148,7 @@ export default function DailyCalendar({
 
   return (
     <>
-      <div className="overflow-auto h-[calc(100vh-8rem)] calendar-container">
+      <div className="overflow-auto h-[calc(100vh-8rem)]">
         <div className="min-w-[800px]">
           {/* Time Column Header */}
           <div className="grid grid-cols-[100px_repeat(auto-fill,1fr)] sticky top-0 z-10">
