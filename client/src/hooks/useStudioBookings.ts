@@ -15,6 +15,10 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
     // Make a defensive copy of the date to avoid modifying the original
     const dateCopy = new Date(date.getTime());
     
+    // Log the date we're sending for debugging timezone issues
+    console.log(`useStudioBookings formatDateParam - Input date: ${date.toISOString()}`);
+    console.log(`useStudioBookings formatDateParam - Sending to API: ${dateCopy.toISOString()}`);
+    
     // Ensure the date is in ISO format with the correct timezone handling
     return dateCopy.toISOString();
   };

@@ -133,11 +133,18 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       
       {weekDates.map((date, index) => {
         // Filter bookings for this date and this specific studio using the combined studioBookings
-        // Create a defensive copy of the booking.start date to avoid timezone issues
+        // Create a defensive copy of the booking.start date and ensure timezones are respected
         const dayBookings = studioBookings.filter(booking => {
-          const bookingStartDate = new Date(booking.start);
-          return isSameDay(bookingStartDate, date);
+          // Log both dates for debugging to trace the timezone comparison issue
+          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${new Date(booking.start).toISOString()})`);
+          return isSameDay(new Date(booking.start), date);
         });
+        
+        // Log how many bookings were found for this cell
+        console.log(`Cell for ${studio.name} - ${date.toDateString()} has ${dayBookings.length} bookings`);
+        if (dayBookings.length > 0) {
+          console.log(`FOUND BOOKINGS for ${studio.name} on ${date.toDateString()}:`, dayBookings.map(b => ({id: b.id, title: b.title, start: new Date(b.start).toISOString()})));
+        }
         
         // Calculate dynamic height for cells - same logic as row header
         const baseHeight = 42; // Minimum height for a row with no bookings
