@@ -983,26 +983,25 @@ export default function BookingModal({
                           </SelectContent>
                         </Select>
                       </div>
-                      
+                    
                       <div>
-                        <Label htmlFor="template">Template (Optional)</Label>
-                        <Select 
-                          value={formData.templateId} 
-                          onValueChange={handleTemplateChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="None" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">None</SelectItem>
-                            {templates.map((template) => (
-                              <SelectItem key={template.id} value={template.id.toString()}>
-                                {template.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      <Label htmlFor="template">Template (Optional)</Label>
+                      <Select 
+                        value={formData.templateId} 
+                        onValueChange={handleTemplateChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="None" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">None</SelectItem>
+                          {templates.map((template) => (
+                            <SelectItem key={template.id} value={template.id.toString()}>
+                              {template.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
