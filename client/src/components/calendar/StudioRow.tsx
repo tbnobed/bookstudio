@@ -299,6 +299,16 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                 colorClass = "bg-red-100 border-red-300 text-red-800";
               }
               
+              // Use custom color if specified
+              if (booking.color) {
+                // Extract the color but make it lighter for the background
+                const color = booking.color;
+                const textColor = booking.color;
+                
+                // Instead of using CSS classes, we'll use inline styles for custom colors
+                colorClass = ""; // Clear the predefined class
+              }
+              
               // Calculate position based on booking index with larger spacing
               // Use a base spacing of 40px between bookings (increased from 28px)
               let topPosition = 4 + (bookingIndex * 40); 

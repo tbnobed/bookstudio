@@ -77,7 +77,8 @@ export default function BookingModal({
     notifyList: [] as string[],
     saveAsTemplate: false,
     templateName: "",
-    severity: "medium" // low, medium, high, critical
+    severity: "medium", // low, medium, high, critical
+    color: "#4B83E2" // Default color for bookings (blue)
   };
   
   // State for form fields
@@ -191,7 +192,8 @@ export default function BookingModal({
             notifyList: normalizedBooking.notifyList,
             saveAsTemplate: false,
             templateName: "",
-            severity: normalizedBooking.severity
+            severity: normalizedBooking.severity,
+            color: booking.color || defaultValues.color // Use booking color or default
           });
         };
         
@@ -313,6 +315,7 @@ export default function BookingModal({
       start: startDate,
       end: endDate,
       notifyList: formData.notifyList,
+      color: formData.color,
     };
     
     // Set the primary studioId (for backward compatibility)
@@ -578,6 +581,29 @@ export default function BookingModal({
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="color">Booking Color</Label>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <input
+                        type="color"
+                        id="color"
+                        value={formData.color}
+                        onChange={(e) => updateFormField('color', e.target.value)}
+                        className="w-12 h-8 rounded cursor-pointer"
+                      />
+                      <div className="flex-1">
+                        <Input
+                          value={formData.color}
+                          onChange={(e) => updateFormField('color', e.target.value)}
+                          className="font-mono"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Choose a color to help identify this booking in the calendar
+                    </p>
                   </div>
                   
                   <div>
@@ -911,25 +937,50 @@ export default function BookingModal({
               </div>
               
               {!alertsOnly && (
-                <div>
-                  <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
-                  <Select 
-                    value={formData.pcrRoomId} 
-                    onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">None</SelectItem>
-                      {pcrRooms.map((pcrRoom) => (
-                        <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                          {pcrRoom.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <>
+                  <div>
+                    <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                    <Select 
+                      value={formData.pcrRoomId} 
+                      onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="None" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">None</SelectItem>
+                        {pcrRooms.map((pcrRoom) => (
+                          <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                            {pcrRoom.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="color">Booking Color</Label>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <input
+                        type="color"
+                        id="color"
+                        value={formData.color}
+                        onChange={(e) => updateFormField('color', e.target.value)}
+                        className="w-12 h-8 rounded cursor-pointer"
+                      />
+                      <div className="flex-1">
+                        <Input
+                          value={formData.color}
+                          onChange={(e) => updateFormField('color', e.target.value)}
+                          className="font-mono"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Choose a color to help identify this booking in the calendar
+                    </p>
+                  </div>
+                </>
               )}
               
               <div className="grid grid-cols-2 gap-4">
