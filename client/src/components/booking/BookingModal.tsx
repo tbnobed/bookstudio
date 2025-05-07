@@ -461,6 +461,7 @@ export default function BookingModal({
           className="fixed-dialog sm:max-w-3xl max-h-[90vh] overflow-y-auto"
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
+          style={{ pointerEvents: "auto" }}
         >
           <DialogHeader>
             <DialogTitle>

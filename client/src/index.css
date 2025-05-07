@@ -19,6 +19,9 @@
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  z-index: 100 !important;
 }
 
 /* Ensure the main calendar content doesn't shift when a dialog is open */
@@ -28,6 +31,11 @@ body:has([role="dialog"][data-state="open"]) .calendar-container {
   width: 100% !important;
   position: relative !important;
   overflow: hidden !important;
+}
+
+/* Ensure the dialog content is interactive */
+[role="dialog"][data-state="open"] * {
+  pointer-events: auto !important;
 }
 
 /* Extend the dialog's background to cover the entire screen */
@@ -46,6 +54,7 @@ body:has([role="dialog"][data-state="open"]) .calendar-container {
 [role="dialog"][data-state="open"] {
   position: fixed !important;
   z-index: 50 !important;
+  pointer-events: auto !important;
 }
 
 /* Special class for booking modals to prevent scrollbar shifts */
@@ -59,7 +68,6 @@ body:has([role="dialog"][data-state="open"]) .calendar-container {
   max-height: 100vh !important;
   margin: 0 !important;
   padding: 0 !important;
-  pointer-events: none !important;
 }
 
 .booking-modal-container > [role="dialog"] {
@@ -68,6 +76,17 @@ body:has([role="dialog"][data-state="open"]) .calendar-container {
   max-width: 600px !important;
   background-color: white !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Ensure all dialog form inputs are interactive */
+[role="dialog"][data-state="open"] button,
+[role="dialog"][data-state="open"] input,
+[role="dialog"][data-state="open"] select,
+[role="dialog"][data-state="open"] textarea,
+[role="dialog"][data-state="open"] [role="combobox"],
+[role="dialog"][data-state="open"] [role="checkbox"] {
+  pointer-events: auto !important;
+  opacity: 1 !important;
 }
 
 /* New wrapper class for the BookingModal component */
