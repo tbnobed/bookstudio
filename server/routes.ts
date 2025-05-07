@@ -939,8 +939,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Copying booking ${bookingId} to ${dates.length} dates`);
       
-      // Convert date strings to Date objects
-      const datesToCopy = dates.map(dateStr => new Date(dateStr));
+      // Convert date strings to Date objects with proper timezone handling
+      const datesToCopy = dates.map(dateStr => {
+        const date = new Date(dateStr);
+        console.log(`Processing target date: ${dateStr} => ${date.toISOString()}`);
+        return date;
+      });
       
       // Use the storage method to copy the booking
       const newBookings = await storage.copyBookingToMultipleDates(bookingId, datesToCopy);

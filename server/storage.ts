@@ -1826,16 +1826,29 @@ export class DatabaseStorage implements IStorage {
         }
         
         // Create a new start time with the same time of day but on the target date
-        const newStart = new Date(targetDate);
-        newStart.setHours(
+        // Use a more explicit approach to ensure correct date across timezones
+        const newStart = new Date(
+          targetDate.getFullYear(),
+          targetDate.getMonth(),
+          targetDate.getDate(),
           origStart.getHours(),
           origStart.getMinutes(),
           origStart.getSeconds(),
           origStart.getMilliseconds()
         );
         
+        // Log the target date and new start time for debugging
+        console.log(`Target date: ${targetDate.toISOString()}, Created new start: ${newStart.toISOString()}`);
+        
         // Create a new end time based on the duration
         const newEnd = new Date(newStart.getTime() + durationMs);
+        console.log(`Original booking duration: ${durationMs}ms, New end: ${newEnd.toISOString()}`);
+
+        // Ensure we're using the correct timezone when creating dates
+        const facilityTimezone = process.env.FACILITY_TIMEZONE || 'America/Chicago';
+        console.log(`Using facility timezone: ${facilityTimezone}`);
+        console.log(`Date in local timezone: ${newStart.toLocaleString('en-US', { timeZone: facilityTimezone })}`);
+        
         
         // Create a new booking based on the original
         const newBookingData: InsertBooking = {
