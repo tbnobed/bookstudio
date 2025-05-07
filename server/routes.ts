@@ -941,8 +941,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Convert date strings to Date objects with proper timezone handling
       const datesToCopy = dates.map(dateStr => {
-        const date = new Date(dateStr);
+        // Ensure we're working with just the date portion (YYYY-MM-DD)
+        // Some browsers/frameworks might send dates with time components
+        const datePart = dateStr.split('T')[0];
+        
+        // Create date at midnight UTC for the specified date
+        // This ensures we pass a clean date to the storage function
+        const [year, month, day] = datePart.split('-').map(num => parseInt(num));
+        const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+        
         console.log(`Processing target date: ${dateStr} => ${date.toISOString()}`);
+        console.log(`Target date parsed as: Year=${year}, Month=${month}, Day=${day}`);
         return date;
       });
       

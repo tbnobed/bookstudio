@@ -1,0 +1,36 @@
+bookstudio-app-1      |   - ID: 26, Title: 5/5 6am to 7pm, Start: 2025-05-05T11:00:00.000Z, End: 2025-05-06T00:00:00.000Z
+bookstudio-app-1      | [Storage] Fetching bookings between 2025-05-03T05:00:00.000Z and 2025-05-10T23:59:59.999Z
+bookstudio-app-1      | [Storage] Found 1 bookings in date range 2025-05-03T05:00:00.000Z to 2025-05-10T23:59:59.999Z
+bookstudio-app-1      |   - ID: 26, Title: 5/5 6am to 7pm, Start: 2025-05-05T11:00:00.000Z, End: 2025-05-06T00:00:00.000Z
+bookstudio-app-1      | Retrieved 2 booking-studio links from database
+bookstudio-app-1      | Copying booking 26 to 2 dates
+bookstudio-app-1      | Processing target date: 2025-05-08 => 2025-05-08T00:00:00.000Z
+bookstudio-app-1      | Processing target date: 2025-05-09 => 2025-05-09T00:00:00.000Z
+bookstudio-app-1      | Copying booking 26 (5/5 6am to 7pm) to 2 dates
+bookstudio-app-1      | Target date: 2025-05-08T00:00:00.000Z, Created new start: 2025-05-07T11:00:00.000Z
+bookstudio-app-1      | Original booking duration: 46800000ms, New end: 2025-05-08T00:00:00.000Z
+bookstudio-app-1      | Using facility timezone: America/Chicago
+bookstudio-app-1      | Date in local timezone: 5/7/2025, 6:00:00 AM
+bookstudio-app-1      | Creating booking-studio links for booking ID 27 with studios: [ 9, 12 ]
+bookstudio-app-1      | Created 2 booking-studio links
+bookstudio-app-1      | Created new booking with ID 27 for date 2025-05-08T00:00:00.000Z
+bookstudio-app-1      | Target date: 2025-05-09T00:00:00.000Z, Created new start: 2025-05-08T11:00:00.000Z
+bookstudio-app-1      | Original booking duration: 46800000ms, New end: 2025-05-09T00:00:00.000Z
+bookstudio-app-1      | Using facility timezone: America/Chicago
+bookstudio-app-1      | Date in local timezone: 5/8/2025, 6:00:00 AM
+bookstudio-app-1      | Creating booking-studio links for booking ID 28 with studios: [ 9, 12 ]
+bookstudio-app-1      | Created 2 booking-studio links
+bookstudio-app-1      | Created new booking with ID 28 for date 2025-05-09T00:00:00.000Z
+bookstudio-app-1      | Updating booking 27 with data: { title: '5/5 6am to 7pm - copy to 5/8, 5/9' }
+bookstudio-app-1      | Updating booking 28 with data: { title: '5/5 6am to 7pm - copy to 5/8, 5/9' }
+bookstudio-app-1      | [Storage] Fetching bookings between 2025-05-03T05:00:00.000Z and 2025-05-10T23:59:59.999Z
+bookstudio-app-1      | [Storage] Found 3 bookings in date range 2025-05-03T05:00:00.000Z to 2025-05-10T23:59:59.999Z
+bookstudio-app-1      |   - ID: 26, Title: 5/5 6am to 7pm, Start: 2025-05-05T11:00:00.000Z, End: 2025-05-06T00:00:00.000Z
+bookstudio-app-1      |   - ID: 27, Title: 5/5 6am to 7pm - copy to 5/8, 5/9, Start: 2025-05-07T11:00:00.000Z, End: 2025-05-08T00:00:00.000Z
+bookstudio-app-1      |   - ID: 28, Title: 5/5 6am to 7pm - copy to 5/8, 5/9, Start: 2025-05-08T11:00:00.000Z, End: 2025-05-09T00:00:00.000Z
+bookstudio-app-1      | Retrieved 6 booking-studio links from database
+bookstudio-app-1      | [Storage] Fetching bookings between 2025-05-03T05:00:00.000Z and 2025-05-10T23:59:59.999Z
+bookstudio-app-1      | [Storage] Found 3 bookings in date range 2025-05-03T05:00:00.000Z to 2025-05-10T23:59:59.999Z
+bookstudio-app-1      |   - ID: 26, Title: 5/5 6am to 7pm, Start: 2025-05-05T11:00:00.000Z, End: 2025-05-06T00:00:00.000Z
+bookstudio-app-1      |   - ID: 27, Title: 5/5 6am to 7pm - copy to 5/8, 5/9, Start: 2025-05-07T11:00:00.000Z, End: 2025-05-08T00:00:00.000Z
+bookstudio-app-1      |   - ID: 28, Title: 5/5 6am to 7pm - copy to 5/8, 5/9, Start: 2025-05-08T11:00:00.000Z, End: 2025-05-09T00:00:00.000

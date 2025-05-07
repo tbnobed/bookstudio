@@ -1825,19 +1825,28 @@ export class DatabaseStorage implements IStorage {
           continue;
         }
         
-        // Create a new start time with the same time of day but on the target date
-        // Use a more explicit approach to ensure correct date across timezones
-        const newStart = new Date(
-          targetDate.getFullYear(),
-          targetDate.getMonth(),
-          targetDate.getDate(),
-          origStart.getHours(),
-          origStart.getMinutes(),
-          origStart.getSeconds(),
-          origStart.getMilliseconds()
-        );
+        // CRITICAL FIX: Target date comes in as midnight, but we need to preserve original hour
+        // Extract just the date part from targetDate (year, month, day)
+        // Do NOT create a new Date directly from targetDate, as this preserves the midnight time
         
-        // Log the target date and new start time for debugging
+        // Split the string ISO date to get year, month, day
+        const targetDateStr = targetDate.toISOString().split('T')[0]; // e.g., "2025-05-08"
+        const [targetYear, targetMonth, targetDay] = targetDateStr.split('-').map(num => parseInt(num));
+        
+        // Create a date with target date but original booking's time
+        const newStart = new Date(Date.UTC(
+          targetYear,
+          targetMonth - 1, // JavaScript months are 0-indexed
+          targetDay,
+          origStart.getUTCHours(),
+          origStart.getUTCMinutes(),
+          origStart.getUTCSeconds(),
+          origStart.getUTCMilliseconds()
+        ));
+        
+        // Log everything for debugging
+        console.log(`Target date string: ${targetDateStr}, Year: ${targetYear}, Month: ${targetMonth}, Day: ${targetDay}`);
+        console.log(`Original start: ${origStart.toISOString()}, UTC hours: ${origStart.getUTCHours()}`);
         console.log(`Target date: ${targetDate.toISOString()}, Created new start: ${newStart.toISOString()}`);
         
         // Create a new end time based on the duration

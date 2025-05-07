@@ -98,8 +98,17 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
     
     setIsCreating(true);
     
-    // Format dates for API
-    const formattedDates = selectedDates.map(date => format(date, "yyyy-MM-dd"));
+    // Format dates for API - Use exact YYYY-MM-DD format to avoid timezone issues
+    const formattedDates = selectedDates.map(date => {
+      // Get the components and create a string in YYYY-MM-DD format
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
+      console.log(`Copy booking - Processing date: Original=${date.toISOString()}, Formatted=${dateStr}`);
+      return dateStr;
+    });
     
     await copyBookingMutation.mutate({
       bookingId: booking.id,
