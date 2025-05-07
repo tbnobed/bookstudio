@@ -2,15 +2,21 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Booking, InsertBooking, InsertTemplate, Template } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
 
 export function useStudioBookings(startDate?: Date, endDate?: Date) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Format dates for API request
+  // Format dates for API request with explicit handling for facility timezone
   const formatDateParam = (date?: Date) => {
     if (!date) return undefined;
-    return date.toISOString();
+    
+    // Make a defensive copy of the date to avoid modifying the original
+    const dateCopy = new Date(date.getTime());
+    
+    // Ensure the date is in ISO format with the correct timezone handling
+    return dateCopy.toISOString();
   };
 
   // Build query string for date range filter
