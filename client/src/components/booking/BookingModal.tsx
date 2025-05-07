@@ -471,6 +471,7 @@ export default function BookingModal({
               
               <TabsContent value="details" className="pt-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Title - Full width */}
                   <div>
                     <Label htmlFor="title">Title</Label>
                     <Input
@@ -482,7 +483,9 @@ export default function BookingModal({
                     />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Main 3-column layout */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Left column - Studios selection */}
                     <div>
                       <Label htmlFor="studio" className="flex items-center">
                         Studios <span className="text-red-500 ml-1">*</span>
@@ -533,142 +536,171 @@ export default function BookingModal({
                       )}
                     </div>
                     
-                    <div>
-                      <Label htmlFor="type">Booking Type</Label>
-                      <Select 
-                        value={formData.bookingType} 
-                        onValueChange={(value) => updateFormField('bookingType', value)} 
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="production">Production</SelectItem>
-                          <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="date">Date</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => updateFormField('date', e.target.value)}
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="template">Template (Optional)</Label>
-                      <Select 
-                        value={formData.templateId} 
-                        onValueChange={handleTemplateChange}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="None" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="0">None</SelectItem>
-                          {templates.map((template) => (
-                            <SelectItem key={template.id} value={template.id.toString()}>
-                              {template.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="color">Booking Color</Label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <input
-                        type="color"
-                        id="color"
-                        value={formData.color}
-                        onChange={(e) => updateFormField('color', e.target.value)}
-                        className="w-12 h-8 rounded cursor-pointer"
-                      />
-                      <div className="flex-1">
+                    {/* Middle column - Date and time */}
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="date">Date</Label>
                         <Input
-                          value={formData.color}
-                          onChange={(e) => updateFormField('color', e.target.value)}
-                          className="font-mono"
+                          id="date"
+                          type="date"
+                          value={formData.date}
+                          onChange={(e) => updateFormField('date', e.target.value)}
+                          required
                         />
                       </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Choose a color to help identify this booking in the calendar
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
-                    <Select 
-                      value={formData.pcrRoomId} 
-                      onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="None" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">None</SelectItem>
-                        {pcrRooms.map((pcrRoom) => (
-                          <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                            {pcrRoom.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="start-time">Start Time</Label>
-                      <Select 
-                        value={formData.startTime} 
-                        onValueChange={(value) => updateFormField('startTime', value)} 
-                        required
-                      >
-                        <SelectTrigger id="start-time">
-                          <SelectValue placeholder="Select start time" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[200px]">
-                          {generateTimeOptions().map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      
+                      <div>
+                        <Label htmlFor="start-time">Start Time</Label>
+                        <Select 
+                          value={formData.startTime} 
+                          onValueChange={(value) => updateFormField('startTime', value)} 
+                          required
+                        >
+                          <SelectTrigger id="start-time">
+                            <SelectValue placeholder="Select start time" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            {generateTimeOptions().map((time) => (
+                              <SelectItem key={time} value={time}>
+                                {time}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="end-time">End Time</Label>
+                        <Select 
+                          value={formData.endTime} 
+                          onValueChange={(value) => updateFormField('endTime', value)} 
+                          required
+                        >
+                          <SelectTrigger id="end-time">
+                            <SelectValue placeholder="Select end time" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            {generateTimeOptions().map((time) => (
+                              <SelectItem key={time} value={time}>
+                                {time}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     
-                    <div>
-                      <Label htmlFor="end-time">End Time</Label>
-                      <Select 
-                        value={formData.endTime} 
-                        onValueChange={(value) => updateFormField('endTime', value)} 
-                        required
-                      >
-                        <SelectTrigger id="end-time">
-                          <SelectValue placeholder="Select end time" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[200px]">
-                          {generateTimeOptions().map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    {/* Right column - Booking configuration */}
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="type">Booking Type</Label>
+                        <Select 
+                          value={formData.bookingType} 
+                          onValueChange={(value) => updateFormField('bookingType', value)} 
+                          required
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="production">Production</SelectItem>
+                            <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                        <Select 
+                          value={formData.pcrRoomId} 
+                          onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">None</SelectItem>
+                            {pcrRooms.map((pcrRoom) => (
+                              <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                                {pcrRoom.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="template">Template (Optional)</Label>
+                        <Select 
+                          value={formData.templateId} 
+                          onValueChange={handleTemplateChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">None</SelectItem>
+                            {templates.map((template) => (
+                              <SelectItem key={template.id} value={template.id.toString()}>
+                                {template.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                   
+                  {/* 2-column layout for color and crew notifications */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Left column - Color picker */}
+                    <div>
+                      <Label htmlFor="color">Booking Color</Label>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <input
+                          type="color"
+                          id="color"
+                          value={formData.color}
+                          onChange={(e) => updateFormField('color', e.target.value)}
+                          className="w-12 h-8 rounded cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <Input
+                            value={formData.color}
+                            onChange={(e) => updateFormField('color', e.target.value)}
+                            className="font-mono"
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Choose a color to help identify this booking in the calendar
+                      </p>
+                    </div>
+                    
+                    {/* Right column - Crew notifications */}
+                    <div>
+                      <Label>Notify Crew</Label>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        {["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors", "Engineering"].map((crew) => (
+                          <div key={crew} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`crew-${crew}`}
+                              checked={formData.notifyList.includes(crew)}
+                              onCheckedChange={() => handleCrewToggle(crew)}
+                            />
+                            <Label
+                              htmlFor={`crew-${crew}`}
+                              className="text-sm font-normal"
+                            >
+                              {crew}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Full width - Description */}
                   <div>
                     <Label htmlFor="description">Description</Label>
                     <Textarea
@@ -678,27 +710,6 @@ export default function BookingModal({
                       placeholder="Add details about this booking"
                       rows={3}
                     />
-                  </div>
-                  
-                  <div>
-                    <Label>Notify Crew</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors", "Engineering"].map((crew) => (
-                        <div key={crew} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`crew-${crew}`}
-                            checked={formData.notifyList.includes(crew)}
-                            onCheckedChange={() => handleCrewToggle(crew)}
-                          />
-                          <Label
-                            htmlFor={`crew-${crew}`}
-                            className="text-sm font-normal"
-                          >
-                            {crew}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                   
                   <DialogFooter className="flex items-center justify-between pt-4">
