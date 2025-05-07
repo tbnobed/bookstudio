@@ -1,7 +1,14 @@
 import type { Studio, Booking, BookingStudio } from "@shared/schema";
 import { isSameDay } from "./dateUtils";
 
-// Calculate the effective studio status based on bookings and booking-studio links
+/**
+ * Calculate the effective studio status based on bookings and booking-studio links
+ * @param studio The studio to check
+ * @param bookings All bookings in the system 
+ * @param currentDate The date to check against (defaults to current time)
+ * @param bookingStudioLinks The booking-studio junction table links
+ * @returns Status string: "available", "maintenance", or "in-use"
+ */
 export function calculateStudioStatus(
   studio: Studio, 
   bookings: Booking[], 
@@ -13,8 +20,8 @@ export function calculateStudioStatus(
     return "maintenance";
   }
   
-  // Get the current time 
-  const now = new Date();
+  // Use provided date or current time
+  const now = currentDate;
   
   // Check if there are any active bookings for this studio right now
   const hasActiveBooking = bookings.some(booking => {
@@ -37,11 +44,20 @@ export function calculateStudioStatus(
     return now >= bookingStart && now <= bookingEnd;
   });
   
+  // Convert legacy "booked" status to "in-use" for consistency
+  if (studio.status === "booked") {
+    return "in-use";
+  }
+  
   // Return "in-use" status if there are active bookings now, otherwise use the studio's configured status
   return hasActiveBooking ? "in-use" : studio.status;
 }
 
-// Get the appropriate color class for a studio's status
+/**
+ * Get the appropriate color class for a studio's status
+ * @param status The studio status: "available", "maintenance", "in-use", or legacy "booked"
+ * @returns CSS color class to use for the status indicator
+ */
 export function getStudioStatusColor(status: string): string {
   switch (status) {
     case "available":

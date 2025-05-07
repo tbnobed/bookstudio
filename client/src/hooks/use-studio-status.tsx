@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Booking, Studio } from '@shared/schema';
+import { Booking, Studio, BookingStudio } from '@shared/schema';
 
 type StudioStatus = 'available' | 'in-use' | 'maintenance' | 'upcoming';
 
@@ -26,6 +26,11 @@ export function useStudioStatus() {
     queryKey: ['/api/bookings'],
   });
   
+  // Fetch booking-studio links
+  const { data: bookingStudioLinks = [] } = useQuery<BookingStudio[]>({
+    queryKey: ['/api/booking-studios'],
+  });
+  
   // State to hold current time (will update every minute)
   const [now, setNow] = useState(new Date());
   
@@ -44,8 +49,43 @@ export function useStudioStatus() {
    * @returns Status information for the studio
    */
   const getStudioStatus = (studioId: number): StudioStatusInfo => {
-    // Get bookings for this studio
-    const studioBookings = bookings.filter(booking => booking.studioId === studioId);
+    // Find the studio
+    const studio = studios.find(s => s.id === studioId);
+    if (!studio) {
+      return { 
+        status: 'available',
+        color: 'bg-green-500'
+      };
+    }
+    
+    // If studio is explicitly set to maintenance, respect that setting
+    if (studio.status === 'maintenance') {
+      return {
+        status: 'maintenance',
+        color: 'bg-orange-500'
+      };
+    }
+    
+    // Handle legacy 'booked' status as 'in-use'
+    if (studio.status === 'booked') {
+      return {
+        status: 'in-use',
+        color: 'bg-red-500'
+      };
+    }
+    
+    // Get bookings for this studio (both direct and via junction table)
+    const studioBookings = bookings.filter(booking => {
+      // Check direct assignment (legacy support)
+      const directMatch = booking.studioId === studioId;
+      
+      // Check junction table links for multi-studio bookings
+      const linkedMatch = bookingStudioLinks.some(link => 
+        link.bookingId === booking.id && link.studioId === studioId
+      );
+      
+      return directMatch || linkedMatch;
+    });
     
     // Check if there's a current booking (studio in use)
     const currentBooking = studioBookings.find(booking => {
@@ -59,7 +99,7 @@ export function useStudioStatus() {
       if (currentBooking.type === 'maintenance' || currentBooking.type === 'it_support') {
         return {
           status: 'maintenance',
-          color: 'bg-amber-500',
+          color: 'bg-orange-500',
           currentBooking
         };
       }
@@ -125,6 +165,7 @@ export function useStudioStatus() {
     getAllStudiosWithStatus,
     studios,
     bookings,
+    bookingStudioLinks,
     now
   };
 }
