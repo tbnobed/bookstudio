@@ -1,6 +1,40 @@
-// Import using ES module syntax
-import { db } from '../server/db';
-import { sql } from 'drizzle-orm';
+/**
+ * Database migration script optimized for Docker environments
+ * This is a CommonJS version of the migrate-db.ts script
+ */
+const { Pool } = require('pg');
+const { drizzle } = require('drizzle-orm/node-postgres');
+
+// Ensure we have environment variables
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL environment variable must be set");
+}
+
+// Create database connection
+const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
+// Connect and log
+pool.connect()
+  .then(client => {
+    client.release();
+    console.log('Database connection established successfully');
+  })
+  .catch(err => {
+    console.error('Initial database connection failed:', err);
+  });
+
+// Register error handler
+pool.on('error', (err) => {
+  console.error('Unexpected database connection error:', err);
+});
+
+// Initialize DB (without schema which we don't need to reference)
+const db = drizzle(pool);
 
 async function migrateDb() {
   console.log('Creating database tables...');
@@ -8,7 +42,7 @@ async function migrateDb() {
   try {
     // Create users table
     console.log('Creating users table...');
-    await db.execute(sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username TEXT NOT NULL UNIQUE,
@@ -22,7 +56,7 @@ async function migrateDb() {
     
     // Create studios table
     console.log('Creating studios table...');
-    await db.execute(sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS studios (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL UNIQUE,
@@ -37,7 +71,7 @@ async function migrateDb() {
     
     // Create templates table
     console.log('Creating templates table...');
-    await db.execute(sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS templates (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
@@ -55,7 +89,7 @@ async function migrateDb() {
     
     // Create bookings table
     console.log('Creating bookings table...');
-    await db.execute(sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS bookings (
         id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
@@ -75,7 +109,7 @@ async function migrateDb() {
     
     // Create notification_groups table
     console.log('Creating notification_groups table...');
-    await db.execute(sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS notification_groups (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL UNIQUE,
@@ -89,7 +123,7 @@ async function migrateDb() {
     
     // Create notifications table
     console.log('Creating notifications table...');
-    await db.execute(sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS notifications (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) NOT NULL,
@@ -105,7 +139,7 @@ async function migrateDb() {
 
     // Create password_reset_tokens table
     console.log('Creating password_reset_tokens table...');
-    await db.execute(sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS password_reset_tokens (
         id SERIAL PRIMARY KEY,
         token TEXT NOT NULL UNIQUE,
@@ -119,7 +153,7 @@ async function migrateDb() {
 
     // Create invite_tokens table
     console.log('Creating invite_tokens table...');
-    await db.execute(sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS invite_tokens (
         id SERIAL PRIMARY KEY,
         token TEXT NOT NULL UNIQUE,
