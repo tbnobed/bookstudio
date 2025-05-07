@@ -126,6 +126,19 @@ function PublicCalendarPage() {
   
   // Fetch booking-studio links from public endpoint
   const { data: bookingStudioLinks = [] } = usePublicBookingStudioLinks();
+  
+  // Fetch PCR rooms
+  const { data: pcrRooms = [] } = useQuery({
+    queryKey: ['/api/pcr-rooms'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Helper function to get PCR room name
+  const getPcrRoomName = (pcrRoomId: number | null) => {
+    if (!pcrRoomId) return null;
+    const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
+    return pcrRoom ? pcrRoom.name : null;
+  };
 
   // Navigation functions
   const goToToday = () => {
@@ -333,6 +346,7 @@ function PublicCalendarPage() {
                 studios={filteredStudios}
                 bookings={filteredBookings}
                 readOnly={true}
+                getPcrRoomName={getPcrRoomName}
               />
             )}
             {viewType === 'weekly' && (
@@ -341,6 +355,7 @@ function PublicCalendarPage() {
                 studios={filteredStudios}
                 bookings={filteredBookings}
                 readOnly={true}
+                getPcrRoomName={getPcrRoomName}
               />
             )}
             {viewType === 'monthly' && (
@@ -349,6 +364,7 @@ function PublicCalendarPage() {
                 studios={filteredStudios}
                 bookings={filteredBookings}
                 readOnly={true}
+                getPcrRoomName={getPcrRoomName}
               />
             )}
           </div>
