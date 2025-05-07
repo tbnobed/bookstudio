@@ -215,7 +215,7 @@ export default function MobileDailyView({
                         statusInfo.status === 'upcoming' ? 'secondary' : 'default'
                       }
                     >
-                      {statusInfo.status === 'in-use' ? 'In Use' :
+                      {statusInfo.status === 'in-use' ? 'In-Use' :
                        statusInfo.status === 'maintenance' ? 'Maintenance' :
                        statusInfo.status === 'upcoming' ? 'Booked Soon' : 'Available'}
                     </Badge>

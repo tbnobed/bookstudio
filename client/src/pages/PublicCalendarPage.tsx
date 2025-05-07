@@ -295,7 +295,7 @@ function PublicCalendarPage() {
                 </div>
                 <div className="flex items-center">
                   <span className="h-3 w-3 rounded-full bg-red-500 mr-1"></span>
-                  <span className="text-xs">Booked</span>
+                  <span className="text-xs">In-Use</span>
                 </div>
               </div>
             </div>
