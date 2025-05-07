@@ -1,4 +1,18 @@
-import { pool, db } from '../server/db';
+// Support both Docker and local development environments
+let db, pool;
+try {
+  // Try Docker path first (absolute path)
+  const dockerDb = require('/app/server/db');
+  db = dockerDb.db;
+  pool = dockerDb.pool;
+  console.log('Using Docker database connection');
+} catch (error) {
+  // Fall back to local development path (relative path)
+  const localDb = require('../server/db');
+  db = localDb.db;
+  pool = localDb.pool;
+  console.log('Using local development database connection');
+}
 import { inviteTokens, passwordResetTokens } from '../shared/schema';
 
 async function applyTokenSchema() {

@@ -1,6 +1,21 @@
-import { db, pool } from "../server/db";
+// Support both Docker and local development environments
+let db, pool, ensureConnection;
+try {
+  // Try Docker path first (absolute path)
+  const dockerDb = require('/app/server/db');
+  db = dockerDb.db;
+  pool = dockerDb.pool;
+  ensureConnection = dockerDb.ensureConnection;
+  console.log('Using Docker database connection');
+} catch (error) {
+  // Fall back to local development path (relative path)
+  const localDb = require('../server/db');
+  db = localDb.db;
+  pool = localDb.pool;
+  ensureConnection = localDb.ensureConnection;
+  console.log('Using local development database connection');
+}
 import { fileAttachments } from "../shared/schema";
-import { ensureConnection } from "../server/db";
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
