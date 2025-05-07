@@ -164,6 +164,12 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                                 <Clock className="mr-1 h-3 w-3" />
                                 <span>{formatTime(booking.start)} - {formatTime(booking.end)}</span>
                               </div>
+                              {booking.pcrRoomId && (
+                                <div className="flex items-center text-xs text-muted-foreground">
+                                  <div className="mr-1 h-3 w-3 flex items-center justify-center">PCR</div>
+                                  <span>{getPcrRoomName(booking.pcrRoomId)}</span>
+                                </div>
+                              )}
                               <div className="flex items-center text-xs text-muted-foreground">
                                 <Tag className="mr-1 h-3 w-3" />
                                 <span className="capitalize">{booking.type.replace('_', ' ')}</span>
