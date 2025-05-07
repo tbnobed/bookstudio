@@ -656,7 +656,7 @@ export default function BookingModal({
                     {/* Left column - Color picker */}
                     <div>
                       <Label htmlFor="color">Booking Color</Label>
-                      <div className="flex items-center space-x-2 mt-1">
+                      <div className="flex items-center mt-1">
                         <input
                           type="color"
                           id="color"
@@ -664,13 +664,6 @@ export default function BookingModal({
                           onChange={(e) => updateFormField('color', e.target.value)}
                           className="w-12 h-8 rounded cursor-pointer"
                         />
-                        <div className="flex-1">
-                          <Input
-                            value={formData.color}
-                            onChange={(e) => updateFormField('color', e.target.value)}
-                            className="font-mono"
-                          />
-                        </div>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Choose a color to help identify this booking in the calendar
