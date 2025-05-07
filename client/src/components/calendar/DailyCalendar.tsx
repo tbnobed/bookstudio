@@ -101,17 +101,22 @@ export default function DailyCalendar({
     
     // Find a booking that overlaps with this slot
     return bookings.find(booking => {
+      // Create defensive copies of booking dates to avoid timezone issues
       const bookingStart = new Date(booking.start);
       const bookingEnd = new Date(booking.end);
+      
+      // Also create defensive copies of slot dates
+      const slotStartCopy = new Date(slotDateTime.getTime());
+      const slotEndCopy = new Date(slotEndDateTime.getTime());
       
       // Check if this booking is for this studio
       if (booking.studioId !== studioId) return false;
       
       // Check if the booking overlaps with the slot time
       return (
-        (bookingStart <= slotDateTime && bookingEnd > slotDateTime) ||
-        (bookingStart < slotEndDateTime && bookingEnd >= slotEndDateTime) ||
-        (bookingStart >= slotDateTime && bookingEnd <= slotEndDateTime)
+        (bookingStart <= slotStartCopy && bookingEnd > slotStartCopy) ||
+        (bookingStart < slotEndCopy && bookingEnd >= slotEndCopy) ||
+        (bookingStart >= slotStartCopy && bookingEnd <= slotEndCopy)
       );
     });
   };

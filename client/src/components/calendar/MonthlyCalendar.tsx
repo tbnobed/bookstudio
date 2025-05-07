@@ -54,7 +54,12 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
 
   // Get bookings for a specific day
   const getBookingsForDay = (date: Date) => {
-    return bookings.filter(booking => isSameDay(new Date(booking.start), date));
+    return bookings.filter(booking => {
+      // Create defensive copies of dates to avoid timezone issues
+      const bookingStartDate = new Date(booking.start);
+      const targetDate = new Date(date.getTime());
+      return isSameDay(bookingStartDate, targetDate);
+    });
   };
 
   // Get classes for a day cell
