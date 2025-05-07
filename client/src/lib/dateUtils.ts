@@ -234,9 +234,24 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
     day: 'numeric'
   });
   
+  // Log both dates in facility timezone and their comparison result for debug
+  const d1Formatted = formatter.format(d1);
+  const d2Formatted = formatter.format(d2);
+  const result = d1Formatted === d2Formatted;
+  
+  // Only log comparison for debugging if the dates are within a few days of May 7-9, 2025
+  // (the dates we're having issues with)
+  const mayDate = new Date(2025, 4, 8); // May 8, 2025
+  const diffD1 = Math.abs((d1.getTime() - mayDate.getTime()) / (1000 * 60 * 60 * 24));
+  const diffD2 = Math.abs((d2.getTime() - mayDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (diffD1 < 5 || diffD2 < 5) {
+    console.log(`isSameDay: Comparing "${d1.toISOString()}" (${d1Formatted}) with "${d2.toISOString()}" (${d2Formatted}) => ${result}`);
+  }
+  
   // Compare the formatted dates to determine if they're the same day
   // in the facility timezone (America/Chicago - Dallas)
-  return formatter.format(d1) === formatter.format(d2);
+  return result;
 }
 
 export function formatWeekRangeText(currentDate: Date | null | undefined): string {
