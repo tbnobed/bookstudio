@@ -311,6 +311,14 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                           <Tag className="mr-1 h-3 w-3" />
                           <span className="capitalize">{booking.type.replace('_', ' ')}</span>
                         </div>
+                        {booking.pcrRoomId && (
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 h-3 w-3">
+                              <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"></path>
+                            </svg>
+                            <span>{getPcrRoomName(booking.pcrRoomId)}</span>
+                          </div>
+                        )}
                         {booking.description && (
                           <div className="flex items-start mt-2 text-xs text-muted-foreground">
                             <FileText className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
