@@ -1,67 +1,29 @@
---- client/src/components/booking/CopyBookingModal.tsx	2025-05-07
-+++ client/src/components/booking/CopyBookingModal.tsx	2025-05-07
-@@ -37,45 +37,51 @@
-     mutationFn: async (data: { bookingId: number; dates: string[]; titleSuffix?: string }) => {
-       const res = await apiRequest("POST", "/api/bookings/copy", data);
-       return res.json();
-     },
--    onSuccess: () => {
--      toast({
--        title: "Success!",
--        description: `Booking copied to ${selectedDates.length} date${selectedDates.length > 1 ? 's' : ''}.`,
--        variant: "default",
--      });
--      
--      // Invalidate relevant queries to refresh the UI
--      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
--      queryClient.invalidateQueries({ queryKey: ["/api/bookings/user"] });
--      queryClient.invalidateQueries({ queryKey: ["/api/booking-studios"] });
--      
--      // Reset state and close the modal
--      setSelectedDates([]);
--      setTitleSuffix("");
--      onClose();
-+    onSuccess: (data) => {
-+      // Always reset the loading state 
-+      setIsCreating(false);
-+      
-+      const { success, message, results } = data;
-+      const successCount = results?.filter(r => r.success)?.length || 0;
-+      
-+      if (success) {
-+        toast({
-+          title: "Success!",
-+          description: message || `Booking copied to ${successCount} date${successCount !== 1 ? 's' : ''}.`,
-+          variant: "default",
-+        });
+diff --git a/server/storage.ts b/server/storage.ts
+index 1234567..abcdefg 100644
+--- a/server/storage.ts
++++ b/server/storage.ts
+@@ -1828,15 +1828,17 @@ export class DatabaseStorage implements IStorage {
+       for (const targetDate of dates) {
+-        // Skip if the target date is the same as the original booking's date
+-        const origStartDay = new Date(origStart);
+-        origStartDay.setHours(0, 0, 0, 0);
++        // Compare original booking date and target date to avoid duplication
++        // Fix: Use UTC and ISO strings for more reliable date comparison
++        const origStartDateStr = origStart.toISOString().split('T')[0];
++        const targetDateStr = targetDate.toISOString().split('T')[0];
+         
+-        const targetDay = new Date(targetDate);
+-        targetDay.setHours(0, 0, 0, 0);
+-        
+-        if (origStartDay.getTime() === targetDay.getTime()) {
+-          console.log(`Skipping date ${targetDate.toISOString()} as it's the same as the original booking's date`);
++        if (origStartDateStr === targetDateStr) {
++          console.log(`Skipping date ${targetDateStr} as it's the same as the original booking's date (${origStartDateStr})`);
+           continue;
+         }
 +        
-+        // Invalidate relevant queries to refresh the UI
-+        queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-+        queryClient.invalidateQueries({ queryKey: ["/api/bookings/user"] });
-+        queryClient.invalidateQueries({ queryKey: ["/api/booking-studios"] });
-+        
-+        // Reset state and close the modal
-+        setSelectedDates([]);
-+        setTitleSuffix("");
-+        onClose();
-+      } else {
-+        // Some copies might have failed
-+        toast({
-+          title: "Partial Success",
-+          description: message || "Some booking copies could not be created due to conflicts.",
-+          variant: "default",
-+        });
-+      }
-     },
-     onError: (error: any) => {
-+      // Always reset the loading state
-+      setIsCreating(false);
-+      
-       toast({
-         title: "Error",
-         description: error.message || "Failed to copy booking",
-         variant: "destructive",
-       });
--      setIsCreating(false);
-     },
-   });
++        // Additional logging to debug date comparisons
++        console.log(`Comparing dates - Original: ${origStartDateStr}, Target: ${targetDateStr}`);
+ 
+         // CRITICAL FIX: Target date comes in as midnight, but we need to preserve original hour
+         // Extract just the date part from targetDate (year, month, day)

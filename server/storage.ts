@@ -1825,24 +1825,22 @@ export class DatabaseStorage implements IStorage {
       const newBookings: Booking[] = [];
       
       for (const targetDate of dates) {
-        // Skip if the target date is the same as the original booking's date
-        const origStartDay = new Date(origStart);
-        origStartDay.setHours(0, 0, 0, 0);
+        // Compare original booking date and target date to avoid duplication
+        // Fix: Use UTC and ISO strings for more reliable date comparison
+        const origStartDateStr = origStart.toISOString().split('T')[0];
+        const targetDateStr = targetDate.toISOString().split('T')[0];
         
-        const targetDay = new Date(targetDate);
-        targetDay.setHours(0, 0, 0, 0);
-        
-        if (origStartDay.getTime() === targetDay.getTime()) {
-          console.log(`Skipping date ${targetDate.toISOString()} as it's the same as the original booking's date`);
+        if (origStartDateStr === targetDateStr) {
+          console.log(`Skipping date ${targetDateStr} as it's the same as the original booking's date (${origStartDateStr})`);
           continue;
         }
+        
+        // Additional logging to debug date comparisons
+        console.log(`Comparing dates - Original: ${origStartDateStr}, Target: ${targetDateStr}`);
         
         // CRITICAL FIX: Target date comes in as midnight, but we need to preserve original hour
         // Extract just the date part from targetDate (year, month, day)
         // Do NOT create a new Date directly from targetDate, as this preserves the midnight time
-        
-        // Split the string ISO date to get year, month, day
-        const targetDateStr = targetDate.toISOString().split('T')[0]; // e.g., "2025-05-08"
         const [targetYear, targetMonth, targetDateDay] = targetDateStr.split('-').map(num => parseInt(num));
         
         // Create a date with target date but original booking's time
