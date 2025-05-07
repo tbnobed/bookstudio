@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Booking, Studio } from "@shared/schema";
+import { Booking, Studio, PcrRoom } from "@shared/schema";
 import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
+import { useQuery } from "@tanstack/react-query";
 
 interface StudioRowProps {
   studio: Studio;
@@ -22,6 +23,11 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
   // Fetch all booking-studio links to determine which bookings are associated with this studio via junction table
   // Use public endpoint if in readOnly mode (public calendar view)
   const { data: bookingStudioLinks = [] } = useBookingStudioLinks(undefined, readOnly);
+  
+  // Fetch PCR rooms to display names instead of IDs
+  const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
+    queryKey: ["/api/pcr-rooms"],
+  });
   
   // Create a filtered list of bookings that contains:
   // 1. Bookings linked to this studio through the booking-studio junction table
@@ -256,7 +262,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                         )}
                         <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">
                           {booking.title}
-                          {booking.pcrRoomId ? ` (PCR ${booking.pcrRoomId})` : ''}
+                          {booking.pcrRoomId ? ` (${getPcrRoomName(booking.pcrRoomId)})` : ''}
                         </span>
                       </div>
                       <div className="text-xs pl-3">
