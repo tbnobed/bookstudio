@@ -184,37 +184,39 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
             className="border-b flex items-center px-2 sticky left-0 z-10 bg-white" 
             style={{ height: `${rowHeight}px` }}
           >
-            {/* Studio status indicator */}
-            {(() => {
-              // Determine if studio is currently in use by checking both direct assignments and junction table
-              const now = new Date();
-              const hasActiveBooking = bookings.some(booking => {
-                // Check if linked directly or through junction table
-                const directMatch = booking.studioId === studio.id;
-                const linkedMatch = bookingStudioLinks.some(link => 
-                  link.bookingId === booking.id && link.studioId === studio.id
-                );
+            {/* Studio status indicator - Fixed alignment with flex layout */}
+            <div className="flex items-center">
+              {(() => {
+                // Determine if studio is currently in use by checking both direct assignments and junction table
+                const now = new Date();
+                const hasActiveBooking = bookings.some(booking => {
+                  // Check if linked directly or through junction table
+                  const directMatch = booking.studioId === studio.id;
+                  const linkedMatch = bookingStudioLinks.some(link => 
+                    link.bookingId === booking.id && link.studioId === studio.id
+                  );
+                  
+                  // Skip if not for this studio
+                  if (!directMatch && !linkedMatch) return false;
+                  
+                  // Check if currently active (time-wise)
+                  const start = new Date(booking.start);
+                  const end = new Date(booking.end);
+                  return now >= start && now <= end;
+                });
                 
-                // Skip if not for this studio
-                if (!directMatch && !linkedMatch) return false;
+                // Return the right color based on status
+                let statusClass = "bg-green-500"; // available
+                if (studio.status === "maintenance") {
+                  statusClass = "bg-orange-500";
+                } else if (hasActiveBooking) {
+                  statusClass = "bg-red-500"; // in-use
+                }
                 
-                // Check if currently active (time-wise)
-                const start = new Date(booking.start);
-                const end = new Date(booking.end);
-                return now >= start && now <= end;
-              });
-              
-              // Return the right color based on status
-              let statusClass = "bg-green-500"; // available
-              if (studio.status === "maintenance") {
-                statusClass = "bg-orange-500";
-              } else if (hasActiveBooking) {
-                statusClass = "bg-red-500"; // in-use
-              }
-              
-              return <div className={`w-2 h-2 rounded-full mr-2 ${statusClass}`}></div>;
-            })()}
-            <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
+                return <div className={`w-2 h-2 rounded-full mr-2 ${statusClass}`}></div>;
+              })()}
+              <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
+            </div>
           </div>
         );
       })()}
