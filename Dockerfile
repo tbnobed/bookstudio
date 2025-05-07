@@ -21,8 +21,9 @@ COPY *.ts ./
 COPY *.js ./
 COPY *.json ./
 
-# Build the application
-RUN npm run build
+# Build the application using our production-specific script
+RUN chmod +x scripts/build-for-docker.sh
+RUN ./scripts/build-for-docker.sh
 
 # Stage 2: Production stage
 FROM node:20.18.1-alpine3.19
