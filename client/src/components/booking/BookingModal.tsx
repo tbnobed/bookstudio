@@ -1004,9 +1004,10 @@ export default function BookingModal({
                 </div>
               )}
               
-              {/* Color picker for bookings */}
+              {/* 2-column layout for color and crew notifications */}
               {!alertsOnly && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Left column - Color picker */}
                   <div>
                     <Label htmlFor="color">Booking Color</Label>
                     <div className="flex items-center mt-1">
@@ -1022,9 +1023,56 @@ export default function BookingModal({
                       Choose a color to help identify this booking in the calendar
                     </p>
                   </div>
+                  
+                  {/* Right column - Crew notifications */}
+                  <div>
+                    <Label>Notify Crew</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors", "Engineering"].map((crew) => (
+                        <div key={crew} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`crew-${crew}`}
+                            checked={formData.notifyList.includes(crew)}
+                            onCheckedChange={() => handleCrewToggle(crew)}
+                          />
+                          <Label
+                            htmlFor={`crew-${crew}`}
+                            className="text-sm font-normal"
+                          >
+                            {crew}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
               
+              {/* Alert notifications (if alertsOnly is true) */}
+              {alertsOnly && (
+                <div>
+                  <Label>Notify</Label>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {["Engineering", "Producers", "IT Support"].map((crew) => (
+                      <div key={crew} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`crew-${crew}`}
+                          checked={formData.notifyList.includes(crew)}
+                          onCheckedChange={() => handleCrewToggle(crew)}
+                        />
+                        <Label
+                          htmlFor={`crew-${crew}`}
+                          className="text-sm font-normal"
+                        >
+                          {crew}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Full width - Description */}
               <div>
                 <Label htmlFor="description">Description</Label>
                 <Textarea
@@ -1034,47 +1082,6 @@ export default function BookingModal({
                   placeholder={alertsOnly ? "Add details about this alert" : "Add details about this booking"}
                   rows={3}
                 />
-              </div>
-              
-              <div>
-                <Label>Notify</Label>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {alertsOnly ? (
-                    // Alert notification options
-                    ["Engineering", "Producers", "IT Support"].map((crew) => (
-                      <div key={crew} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`crew-${crew}`}
-                          checked={formData.notifyList.includes(crew)}
-                          onCheckedChange={() => handleCrewToggle(crew)}
-                        />
-                        <Label
-                          htmlFor={`crew-${crew}`}
-                          className="text-sm font-normal"
-                        >
-                          {crew}
-                        </Label>
-                      </div>
-                    ))
-                  ) : (
-                    // Booking notification options
-                    ["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors", "Engineering"].map((crew) => (
-                      <div key={crew} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`crew-${crew}`}
-                          checked={formData.notifyList.includes(crew)}
-                          onCheckedChange={() => handleCrewToggle(crew)}
-                        />
-                        <Label
-                          htmlFor={`crew-${crew}`}
-                          className="text-sm font-normal"
-                        >
-                          {crew}
-                        </Label>
-                      </div>
-                    ))
-                  )}
-                </div>
               </div>
               
               {!alertsOnly && !booking && (
@@ -1108,7 +1115,10 @@ export default function BookingModal({
                 </div>
               )}
               
-              <DialogFooter className="pt-4">
+              <DialogFooter className="flex items-center justify-between pt-4">
+                <div className="flex items-center">
+                  {/* New bookings don't need a delete button */}
+                </div>
                 <div className="space-x-2">
                   <Button type="button" variant="outline" onClick={onClose}>
                     Cancel
