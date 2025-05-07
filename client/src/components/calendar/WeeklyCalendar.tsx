@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getWeekDates, formatDateShort, SHORT_DAY_NAMES, isWeekend } from "@/lib/dateUtils";
 import { useQuery } from "@tanstack/react-query";
-import { Studio, Booking } from "@shared/schema";
+import { Studio, Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import StudioRow from "./StudioRow";
 import AlertsRow from "./AlertsRow";
@@ -142,6 +142,7 @@ export default function WeeklyCalendar({
           title: booking.title,
           description: booking.description,
           studioId: booking.studio_id,
+          pcrRoomId: booking.pcr_room_id,
           userId: booking.user_id,
           start: booking.start,
           end: booking.end,
@@ -222,6 +223,7 @@ export default function WeeklyCalendar({
       title: booking.title,
       description: booking.description,
       studio_id: booking.studio_id, // Already null for facility-wide alerts
+      pcr_room_id: booking.pcr_room_id,
       user_id: booking.user_id,
       start: booking.start,
       end: booking.end,
@@ -236,6 +238,7 @@ export default function WeeklyCalendar({
       title: booking.title,
       description: booking.description,
       studio_id: booking.studioId, // This is explicitly null for facility-wide alerts
+      pcr_room_id: booking.pcrRoomId,
       user_id: booking.userId,
       start: booking.start,
       end: booking.end,
