@@ -9,12 +9,21 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { CalendarClock, Clock, FileText, AlertCircle, Bell } from "lucide-react";
 
 // Define an interface to match the API response format with snake_case
-interface ApiBooking extends Omit<Booking, 'studioId' | 'userId' | 'templateId' | 'createdAt' | 'notifyList'> {
+interface ApiBooking {
+  id: number;
+  title: string;
+  description: string | null;
   studio_id: number | null;
+  pcr_room_id: number | null;
   user_id: number;
+  start: string | Date;
+  end: string | Date;
+  type: string;
   template_id: number | null;
-  created_at: string | Date | null;
   notify_list: any;
+  created_at: string | Date | null;
+  severity: string | null;
+  color?: string | null;
 }
 
 interface AlertsRowProps {
