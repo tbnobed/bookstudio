@@ -1,0 +1,52 @@
+From https://github.com/tbnobed/bookstudio
+ * branch            main       -> FETCH_HEAD
+Updating d980fc7..4830ee3
+Fast-forward
+ Dockerfile                                                                              |   5 +-
+ ...E-ENV-production-node-dist-index-js-app-1-app-1-node-internal-modu-1746598813125.txt | 199 +++++++++++++++++++++++++++++++++++++++++++
+ scripts/build-for-docker.sh                                                             |  16 ++++
+ server/index.prod.ts                                                                    |  64 ++++++++++++++
+ server/vite.prod.ts                                                                     |  51 +++++++++++
+ 5 files changed, 333 insertions(+), 2 deletions(-)
+ create mode 100644 attached_assets/Pasted-app-1-NODE-ENV-production-node-dist-index-js-app-1-app-1-node-internal-modu-1746598813125.txt
+ create mode 100644 scripts/build-for-docker.sh
+ create mode 100644 server/index.prod.ts
+ create mode 100644 server/vite.prod.ts
+🔨 Rebuilding Docker images without cache...
+WARN[0000] /home/obtv-admin/bookstudio/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+Compose can now delegate builds to bake for better performance.
+ To do so, set COMPOSE_BAKE=true.
+[+] Building 32.1s (27/36)                                                                                                  docker:default
+ => [db-init internal] load build definition from Dockerfile                                                                          0.0s
+ => => transferring dockerfile: 2.33kB                                                                                                0.0s
+ => [db-init internal] load metadata for docker.io/library/node:20.18.1-alpine3.19                                                    0.6s
+ => [db-init internal] load .dockerignore                                                                                             0.0s
+ => => transferring context: 552B                                                                                                     0.0s
+ => [db-init internal] load build context                                                                                             0.7s
+ => => transferring context: 13.63kB                                                                                                  0.7s
+ => [db-init builder  1/15] FROM docker.io/library/node:20.18.1-alpine3.19@sha256:1cc9088b0fbcb2009a8fc2cb57916cd129cd5e32b3c75fb12b  0.0s
+ => CACHED [db-init builder  2/15] WORKDIR /app                                                                                       0.0s
+ => [db-init builder  3/15] RUN apk add --no-cache python3 make g++                                                                   6.1s
+ => [db-init stage-1  3/19] RUN apk add --no-cache curl wget tzdata                                                                   2.8s
+ => [db-init stage-1  4/19] RUN cp /usr/share/zoneinfo/America/Chicago /etc/localtime &&     echo "America/Chicago" > /etc/timezone   0.3s
+ => [db-init stage-1  5/19] RUN addgroup -S appgroup && adduser -S appuser -G appgroup                                                0.4s
+ => [db-init stage-1  6/19] RUN mkdir -p logs uploads                                                                                 0.3s
+ => [db-init stage-1  7/19] RUN chown -R appuser:appgroup logs uploads                                                                0.4s
+ => [db-init stage-1  8/19] RUN chmod 755 uploads                                                                                     0.4s
+ => [db-init stage-1  9/19] COPY package*.json ./                                                                                     0.0s
+ => [db-init stage-1 10/19] RUN npm ci                                                                                               21.1s
+ => [db-init builder  4/15] COPY package*.json ./                                                                                     0.1s
+ => [db-init builder  5/15] RUN npm ci                                                                                               23.3s
+ => [db-init builder  6/15] COPY client/ ./client/                                                                                    0.1s
+ => [db-init builder  7/15] COPY server/ ./server/                                                                                    0.1s
+ => [db-init builder  8/15] COPY shared/ ./shared/                                                                                    0.0s
+ => [db-init builder  9/15] COPY scripts/ ./scripts/                                                                                  0.1s
+ => [db-init builder 10/15] COPY public/ ./public/                                                                                    0.1s
+ => [db-init builder 11/15] COPY *.ts ./                                                                                              0.1s
+ => [db-init builder 12/15] COPY *.js ./                                                                                              0.0s
+ => [db-init builder 13/15] COPY *.json ./                                                                                            0.1s
+ => [db-init builder 14/15] RUN chmod +x scripts/build-for-docker.sh                                                                  0.4s
+ => ERROR [db-init builder 15/15] RUN ./scripts/build-for-docker.sh                                                                   0.8s
+------
+ > [db-init builder 15/15] RUN ./scripts/build-for-docker.sh:
+0.673 /bin/sh: ./scripts/build-for-docker.sh: not found

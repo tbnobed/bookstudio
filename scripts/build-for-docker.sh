@@ -1,6 +1,9 @@
 #!/bin/bash
 # Script to build the application for Docker production environment
 
+# Ensure we're in the app directory
+cd /app
+
 echo "Building client application..."
 npx vite build
 
@@ -12,5 +15,8 @@ if [ ! -d "dist/public" ]; then
   mkdir -p dist/public
   cp -r public/* dist/public/
 fi
+
+echo "Making build outputs accessible..."
+chmod -R 755 dist
 
 echo "Build completed successfully!"
