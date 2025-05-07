@@ -53,8 +53,8 @@ RUN chmod 755 uploads
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install all dependencies (including Vite and other build tools)
+RUN npm ci
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
