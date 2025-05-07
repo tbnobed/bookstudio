@@ -85,6 +85,7 @@ export const bookings = pgTable("bookings", {
   severity: text("severity").default("medium"), // low, medium, high, critical (for alerts)
   templateId: integer("template_id"), // optional, if using a template
   notifyList: json("notify_list").default([]), // array of user/group IDs to notify
+  color: text("color"), // Custom color for booking (CSS color value)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -110,6 +111,10 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   studioId: z.number().optional().nullable(),
   // Make pcrRoomId optional
   pcrRoomId: z.number().optional().nullable(),
+  // Make color optional, but validate if provided
+  color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional().nullable()
+    .or(z.literal('')) // Allow empty string
+    .describe("HEX color value (e.g., #FF5733)"),
 });
 
 // Notifications schema
