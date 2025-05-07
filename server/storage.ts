@@ -582,28 +582,43 @@ export class MemStorage implements IStorage {
     
     for (const targetDate of dates) {
       // Skip if the target date is the same as the original booking's date
-      const origStartDay = new Date(origStart);
-      origStartDay.setHours(0, 0, 0, 0);
+      const compareOrigStartDay = new Date(origStart);
+      compareOrigStartDay.setHours(0, 0, 0, 0);
       
-      const targetDay = new Date(targetDate);
-      targetDay.setHours(0, 0, 0, 0);
+      const compareTargetDay = new Date(targetDate);
+      compareTargetDay.setHours(0, 0, 0, 0);
       
-      if (origStartDay.getTime() === targetDay.getTime()) {
+      if (compareOrigStartDay.getTime() === compareTargetDay.getTime()) {
         console.log(`Skipping date ${targetDate.toISOString()} as it's the same as the original booking's date`);
         continue;
       }
       
       // Create a new start time with the same time of day but on the target date
-      const newStart = new Date(targetDate);
-      newStart.setHours(
-        origStart.getHours(),
-        origStart.getMinutes(),
-        origStart.getSeconds(),
-        origStart.getMilliseconds()
-      );
+      // First create a clean date object from the target date to ensure it's in the right timezone
+      console.log(`Original start: ${origStart.toISOString()}, Target date: ${targetDate.toISOString()}`);
+      
+      // Extract the date parts from the target date
+      const targetYear = targetDate.getFullYear();
+      const targetMonth = targetDate.getMonth();
+      const targetDay = targetDate.getDate();
+      
+      // Create a new date by cloning the original start but with the target date's year, month, and day
+      // This preserves the time values and properly handles timezone boundaries
+      const newStart = new Date(origStart);
+      newStart.setFullYear(targetYear);
+      newStart.setMonth(targetMonth);
+      newStart.setDate(targetDay);
+      
+      console.log(`New start time: ${newStart.toISOString()} (using timezone-aware approach)`);
       
       // Create a new end time based on the duration
       const newEnd = new Date(newStart.getTime() + durationMs);
+      console.log(`New end time: ${newEnd.toISOString()}`);
+      
+      // Add debugging to confirm correct date (using toISOString instead of format)
+      console.log(`Original date: ${origStart.toISOString().split('T')[0]}`);
+      console.log(`Target date: ${targetDate.toISOString().split('T')[0]}`);
+      console.log(`New date: ${newStart.toISOString().split('T')[0]}`);
       
       // Create a new booking based on the original
       const newBookingData: InsertBooking = {
