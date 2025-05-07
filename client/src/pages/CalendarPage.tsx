@@ -7,6 +7,26 @@ import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 
+// Separate component to properly handle hooks for the monthly calendar
+function MonthlyCalendarWrapper({ currentDate, studios }: { currentDate: Date, studios: Studio[] }) {
+  // Calculate month start and end dates for data fetching
+  const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
+  
+  // Fetch bookings for the entire month
+  const { bookings, isLoading } = useStudioBookings(monthStart, monthEnd);
+  
+  return (
+    <MonthlyCalendar
+      key={currentDate.toISOString()} // Add key to force complete re-render on date change
+      date={currentDate}
+      studios={studios}
+      bookings={bookings}
+      readOnly={false}
+    />
+  );
+}
+
 export default function CalendarPage() {
   // Persist current date and view in localStorage
   const [currentDate, setCurrentDate] = useState(() => {
@@ -134,24 +154,13 @@ export default function CalendarPage() {
         />
       )}
       
-      {view === "month" && (() => {
-        // Calculate month start and end dates for data fetching
-        const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
-        
-        // Fetch bookings for the entire month
-        const { bookings, isLoading } = useStudioBookings(monthStart, monthEnd);
-        
-        return (
-          <MonthlyCalendar
-            key={currentDate.toISOString()} // Add key to force complete re-render on date change
-            date={currentDate}
-            studios={studios}
-            bookings={bookings}
-            readOnly={false}
-          />
-        );
-      })()}
+      {/* For monthly view, use the wrapper component */}
+      {view === "month" && (
+        <MonthlyCalendarWrapper
+          currentDate={currentDate}
+          studios={studios}
+        />
+      )}
     </div>
   );
 }
