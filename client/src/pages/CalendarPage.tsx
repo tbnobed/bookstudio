@@ -5,6 +5,7 @@ import DailyCalendar from "@/components/calendar/DailyCalendar";
 import MonthlyCalendar from "@/components/calendar/MonthlyCalendar";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
+import { useStudioBookings } from "@/hooks/useStudioBookings";
 
 export default function CalendarPage() {
   // Persist current date and view in localStorage
@@ -133,14 +134,24 @@ export default function CalendarPage() {
         />
       )}
       
-      {view === "month" && (
-        <MonthlyCalendar
-          key={currentDate.toISOString()} // Add key to force complete re-render on date change
-          date={currentDate}
-          studios={[]}
-          bookings={[]}
-        />
-      )}
+      {view === "month" && (() => {
+        // Calculate month start and end dates for data fetching
+        const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
+        
+        // Fetch bookings for the entire month
+        const { bookings, isLoading } = useStudioBookings(monthStart, monthEnd);
+        
+        return (
+          <MonthlyCalendar
+            key={currentDate.toISOString()} // Add key to force complete re-render on date change
+            date={currentDate}
+            studios={studios}
+            bookings={bookings}
+            readOnly={false}
+          />
+        );
+      })()}
     </div>
   );
 }
