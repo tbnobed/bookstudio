@@ -12,8 +12,7 @@ import { Studio } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import StudioManagementModal from "@/components/studio/StudioManagementModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTimezone } from "@/contexts/TimezoneContext";
+import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 import ProfilePanel from "@/components/settings/ProfilePanel";
 import PcrRoomsPanel from "@/components/settings/PcrRoomsPanel";
@@ -22,13 +21,11 @@ export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { timezone, setTimezone } = useTimezone();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [selectedStudio, setSelectedStudio] = useState<Studio | undefined>(undefined);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [studioToDelete, setStudioToDelete] = useState<Studio | null>(null);
-  const [timezones, setTimezones] = useState<string[]>([]);
   
   // Fetch studios for studio settings
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -107,22 +104,7 @@ export default function Settings() {
   const dateOptions = ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"];
   const firstDayOptions = ["Sunday", "Monday"];
   
-  // Initialize timezone data
-  useEffect(() => {
-    // Common timezone options
-    const commonTimezones = [
-      "UTC",
-      "America/Los_Angeles", // Pacific Time (US & Canada)
-      "America/Denver",      // Mountain Time (US & Canada)
-      "America/Chicago",     // Central Time (US & Canada)
-      "America/New_York",    // Eastern Time (US & Canada)
-      "Europe/London",       // GMT/UTC
-      "Europe/Paris",        // Central European Time
-      "Asia/Tokyo",          // Japan
-      "Australia/Sydney",    // Australia Eastern Time
-    ];
-    setTimezones(commonTimezones);
-  }, []);
+  // No need to initialize timezone data - now using fixed facility timezone
 
   // For non-admin users, only show the Profile tab
   if (user?.role !== "admin") {
@@ -251,25 +233,13 @@ export default function Settings() {
                     </div>
                     
                     <div>
-                      <Label htmlFor="timezone-select">Timezone</Label>
+                      <Label>System Timezone</Label>
                       <div className="mt-2">
-                        <Select
-                          value={timezone}
-                          onValueChange={(value) => setTimezone(value)}
-                        >
-                          <SelectTrigger id="timezone-select" className="w-full">
-                            <SelectValue placeholder="Select a timezone" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {timezones.map((tz) => (
-                              <SelectItem key={tz} value={tz}>
-                                {tz.replace("_", " ").replace(/\//g, " / ")}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <p className="text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                          <strong>America/Chicago</strong> (Dallas, TX - Central Time)
+                        </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Current timezone: {timezone || "UTC"} ({new Date().toLocaleString('en-US', { timeZone: timezone })}
+                          The system uses Chicago time for all bookings to ensure consistent scheduling
                         </p>
                       </div>
                     </div>

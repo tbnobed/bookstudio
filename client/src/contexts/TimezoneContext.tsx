@@ -1,29 +1,29 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
 // Define the context interface
+import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
+
 interface TimezoneContextType {
   timezone: string;
+  // We keep the method signature for compatibility, but it's now a no-op
   setTimezone: (timezone: string) => void;
 }
 
-// Create context with default values
+// Create context with default values - always using facility timezone
 export const TimezoneContext = createContext<TimezoneContextType>({
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  setTimezone: () => {},
+  timezone: FACILITY_TIMEZONE,
+  setTimezone: () => {}, // No-op function
 });
 
 // Provider component
 export function TimezoneProvider({ children }: { children: ReactNode }) {
-  // Initialize timezone from localStorage if available, otherwise use browser default
-  const [timezone, setTimezoneState] = useState<string>(() => {
-    const savedTimezone = localStorage.getItem('bookstudio-timezone');
-    return savedTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-  });
+  // Always use facility timezone
+  const timezone = FACILITY_TIMEZONE;
 
-  // Update localStorage when timezone changes
+  // No-op function for backwards compatibility
   const setTimezone = (newTimezone: string) => {
-    setTimezoneState(newTimezone);
-    localStorage.setItem('bookstudio-timezone', newTimezone);
+    console.warn("Timezone changes are disabled. BookStud.io always uses the facility timezone (America/Chicago).");
+    // We don't update any state - always using facility timezone
   };
 
   // Make context value
