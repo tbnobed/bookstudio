@@ -149,77 +149,79 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
     setIsNewBookingModalOpen(true);
   };
 
+  // Calculate row height once for consistent usage
+  const rowHeight = useMemo(() => {
+    // Count max bookings for this studio in any day using the combined bookings list
+    const maxBookingsPerDay = weekDates.map(date => {
+      const count = studioBookings.filter(
+        booking => isSameDay(new Date(booking.start), date)
+      ).length;
+      
+      return { date: date.toDateString(), count };
+    });
+    
+    // Log max bookings info for this studio
+    console.log(`Studio ${studio.name} - max bookings per day:`, maxBookingsPerDay);
+    
+    // Get the actual max number
+    const maxBookingsForStudio = Math.max(...maxBookingsPerDay.map(day => day.count), 0);
+    console.log(`Studio ${studio.name} - max booking count: ${maxBookingsForStudio}`);
+    
+    // Calculate dynamic height - base height plus additional space for each booking
+    // Min height is 42px, and each booking adds 32px up to a reasonable maximum
+    const baseHeight = 42; // Minimum height for a row with no bookings
+    const heightPerBooking = 32; // Additional height per booking (increased from 24px)
+    const maxAdditionalHeight = 320; // Maximum additional height (increased from 160px)
+    const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
+    return baseHeight + additionalHeight;
+  }, [studio.name, weekDates, studioBookings]);
+
+  console.log(`Studio ${studio.name} - calculated row height: ${rowHeight}px`);
+
+  // Pre-calculate studio status indicator to avoid recalculation
+  const studioStatusIndicator = useMemo(() => {
+    // Determine if studio is currently in use by checking both direct assignments and junction table
+    const now = new Date();
+    const hasActiveBooking = bookings.some(booking => {
+      // Check if linked directly or through junction table
+      const directMatch = booking.studioId === studio.id;
+      const linkedMatch = bookingStudioLinks.some(link => 
+        link.bookingId === booking.id && link.studioId === studio.id
+      );
+      
+      // Skip if not for this studio
+      if (!directMatch && !linkedMatch) return false;
+      
+      // Check if currently active (time-wise)
+      const start = new Date(booking.start);
+      const end = new Date(booking.end);
+      return now >= start && now <= end;
+    });
+    
+    // Return the right color based on status
+    let statusClass = "bg-green-500"; // available
+    if (studio.status === "maintenance") {
+      statusClass = "bg-orange-500";
+    } else if (hasActiveBooking) {
+      statusClass = "bg-red-500"; // in-use
+    }
+    
+    return <div className={`w-2 h-2 rounded-full mr-2 ${statusClass}`}></div>;
+  }, [studio.id, studio.status, bookings, bookingStudioLinks]);
+
   return (
     <>
-      {/* Calculate row height dynamically based on the maximum number of bookings for this studio on any day */}
-      {(() => {
-        // Count max bookings for this studio in any day using the combined bookings list
-        const maxBookingsPerDay = weekDates.map(date => {
-          const count = studioBookings.filter(
-            booking => isSameDay(new Date(booking.start), date)
-          ).length;
-          
-          return { date: date.toDateString(), count };
-        });
-        
-        // Log max bookings info for this studio
-        console.log(`Studio ${studio.name} - max bookings per day:`, maxBookingsPerDay);
-        
-        // Get the actual max number
-        const maxBookingsForStudio = Math.max(...maxBookingsPerDay.map(day => day.count), 0);
-        console.log(`Studio ${studio.name} - max booking count: ${maxBookingsForStudio}`);
-        
-        // Calculate dynamic height - base height plus additional space for each booking
-        // Min height is 42px, and each booking adds 32px up to a reasonable maximum
-        const baseHeight = 42; // Minimum height for a row with no bookings
-        const heightPerBooking = 32; // Additional height per booking (increased from 24px)
-        const maxAdditionalHeight = 320; // Maximum additional height (increased from 160px)
-        const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
-        const rowHeight = baseHeight + additionalHeight;
-        
-        console.log(`Studio ${studio.name} - calculated row height: ${rowHeight}px`);
-        
-        return (
-          <div 
-            className="border-b flex items-center px-2 sticky left-0 z-10 bg-white" 
-            style={{ height: `${rowHeight}px` }}
-          >
-            {/* Studio status indicator - Fixed alignment with flex layout */}
-            <div className="flex items-center">
-              {(() => {
-                // Determine if studio is currently in use by checking both direct assignments and junction table
-                const now = new Date();
-                const hasActiveBooking = bookings.some(booking => {
-                  // Check if linked directly or through junction table
-                  const directMatch = booking.studioId === studio.id;
-                  const linkedMatch = bookingStudioLinks.some(link => 
-                    link.bookingId === booking.id && link.studioId === studio.id
-                  );
-                  
-                  // Skip if not for this studio
-                  if (!directMatch && !linkedMatch) return false;
-                  
-                  // Check if currently active (time-wise)
-                  const start = new Date(booking.start);
-                  const end = new Date(booking.end);
-                  return now >= start && now <= end;
-                });
-                
-                // Return the right color based on status
-                let statusClass = "bg-green-500"; // available
-                if (studio.status === "maintenance") {
-                  statusClass = "bg-orange-500";
-                } else if (hasActiveBooking) {
-                  statusClass = "bg-red-500"; // in-use
-                }
-                
-                return <div className={`w-2 h-2 rounded-full mr-2 ${statusClass}`}></div>;
-              })()}
-              <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
-            </div>
-          </div>
-        );
-      })()}
+      {/* Studio row header with fixed height */}
+      <div 
+        className="border-b flex items-center px-2 sticky left-0 z-10 bg-white" 
+        style={{ height: `${rowHeight}px` }}
+      >
+        {/* Studio status indicator with consistent flex layout */}
+        <div className="flex items-center w-full">
+          {studioStatusIndicator}
+          <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
+        </div>
+      </div>
       
       {weekDates.map((date, index) => {
         // Filter bookings for this date and this specific studio using the combined studioBookings
@@ -236,28 +238,11 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
           console.log(`FOUND BOOKINGS for ${studio.name} on ${date.toDateString()}:`, dayBookings.map(b => ({id: b.id, title: b.title, start: new Date(b.start).toISOString()})));
         }
         
-        // Calculate dynamic height for cells - same logic as row header
-        const baseHeight = 42; // Minimum height for a row with no bookings
-        const heightPerBooking = 32; // Additional height per booking (same as header)
-        const maxAdditionalHeight = 320; // Maximum additional height (same as header)
+        // Use the same pre-calculated rowHeight for consistency across all cells
+        const cellHeight = rowHeight;
         
-        // Find max bookings across the entire row to keep consistent height
-        // Use the same calculation as in the header to ensure cells match the row height
-        const maxBookingsPerDay = weekDates.map(date => {
-          const count = studioBookings.filter(booking => {
-            const bookingStartDate = new Date(booking.start);
-            return isSameDay(bookingStartDate, date);
-          }).length;
-          return { date: date.toDateString(), count };
-        });
-        
-        // Get the actual max number
-        const maxBookingsForStudio = Math.max(...maxBookingsPerDay.map(day => day.count), 0);
-        
+        // Log cell details
         console.log(`Cell for ${studio.name} - ${date.toDateString()} has ${dayBookings.length} bookings`);
-        
-        const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
-        const cellHeight = baseHeight + additionalHeight;
         
         return (
           <div 
