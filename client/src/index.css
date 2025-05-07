@@ -13,11 +13,18 @@
   transform: translateY(-2px);
 }
 
-/* Booking modal container to prevent layout shifting */
-.booking-modal-container {
-  position: relative;
-  height: 0;
-  overflow: visible;
+/* Fix for shadcn Dialog positioning to prevent layout shifting */
+[data-state="open"] .fixed-dialog {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Ensure the main calendar content doesn't shift when a dialog is open */
+body:has([role="dialog"][data-state="open"]) .calendar-container {
+  margin-right: 0 !important; 
+  padding-right: 0 !important;
 }
 
 :root {
