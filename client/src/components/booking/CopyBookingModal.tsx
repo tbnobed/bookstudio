@@ -177,7 +177,7 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Copy className="h-5 w-5 mr-2" />
