@@ -16,6 +16,7 @@ interface WeeklyCalendarProps {
   bookings?: any[];
   readOnly?: boolean;
   selectedStudioIds?: number[];
+  getPcrRoomName?: (pcrRoomId: number | null) => string | null;
 }
 
 export default function WeeklyCalendar({ 
@@ -24,7 +25,8 @@ export default function WeeklyCalendar({
   studios: externalStudios, 
   bookings: externalBookings,
   readOnly = false,
-  selectedStudioIds = [] 
+  selectedStudioIds = [],
+  getPcrRoomName
 }: WeeklyCalendarProps) {
   // Use startDate if provided (for public calendar), fall back to currentDate
   const [effectiveDate, setEffectiveDate] = useState(startDate || currentDate || new Date());
