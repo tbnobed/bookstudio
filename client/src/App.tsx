@@ -20,6 +20,7 @@ import InvitePage from "@/pages/InvitePage";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { useDevice } from "@/hooks/use-mobile";
+import MobileLayout from "@/components/layout/MobileLayout";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -92,7 +93,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       
       {/* Main Content - adjust margin based on whether sidebar is showing */}
       <div className={`flex-1 ${showSidebar ? 'lg:ml-64' : ''} p-0`}>
-        {children}
+        {/* For mobile screens, wrap in MobileLayout to add the navbar at the bottom */}
+        {isSmallScreen ? (
+          <MobileLayout>
+            {children}
+          </MobileLayout>
+        ) : (
+          children
+        )}
       </div>
     </div>
   );

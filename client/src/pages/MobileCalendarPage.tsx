@@ -53,7 +53,7 @@ export default function MobileCalendarPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      {/* Main content with padding to accommodate bottom navbar */}
+      {/* Main content - MobileNavbar is now added by MobileLayout component */}
       <div className="flex-1 overflow-hidden flex flex-col">
         <MobileDailyView
           currentDate={currentDate}
@@ -61,9 +61,6 @@ export default function MobileCalendarPage() {
           onViewChange={handleViewChange}
         />
       </div>
-      
-      {/* Mobile navigation bar fixed at bottom */}
-      <MobileNavbar />
     </div>
   );
 }
