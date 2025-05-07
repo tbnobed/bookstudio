@@ -135,8 +135,15 @@ if [ ! -d dist ] || [ ! -f dist/index.js ]; then
     npm run build
 fi
 
-# Set production environment
+# Set production environment and timezone
 export NODE_ENV=production
+export TZ=America/Chicago
+export FACILITY_TIMEZONE=America/Chicago
+
+# Verify timezone settings
+print_message "$BLUE" "Setting timezone to America/Chicago for consistent facility time handling"
+date
+print_message "$BLUE" "Current timezone: $(date +%Z)"
 
 # Run any additional migration scripts for new features
 print_message "$BLUE" "Running database migrations for new features..."

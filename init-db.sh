@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e
 
+# Set timezone for consistent date/time handling across environments
+export TZ=America/Chicago
+export FACILITY_TIMEZONE=America/Chicago
+
+# Log timezone information for debugging
+echo "Setting timezone to America/Chicago for consistent facility time handling"
+date
+echo "Current timezone: $(date +%Z)"
+
 # Wait for PostgreSQL to start
 echo "Waiting for PostgreSQL to start..."
 until PGPASSWORD=$POSTGRES_PASSWORD psql -h db -U $POSTGRES_USER -d $POSTGRES_DB -c '\q'; do
