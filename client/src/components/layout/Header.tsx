@@ -5,7 +5,7 @@ import BookingModal from "@/components/booking/BookingModal";
 import TimezoneTestModal from "@/components/TimezoneTestModal";
 import TimezoneDisplay from "@/components/TimezoneDisplay";
 import { useQuery } from "@tanstack/react-query";
-import { Studio, Booking } from "@shared/schema";
+import { Studio, Booking, BookingStudio } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
@@ -152,6 +152,12 @@ export function Header({
     refetchInterval: 60000, 
     // Don't add any query params so we get all bookings across all date ranges
   });
+  
+  // Fetch booking-studio links for multi-studio booking support
+  const { data: bookingStudioLinks = [] } = useQuery<BookingStudio[]>({
+    queryKey: ["/api/booking-studios"],
+    refetchInterval: 60000,
+  });
 
   return (
     <header className="bg-white shadow-sm">
@@ -266,7 +272,7 @@ export function Header({
                   )}
                   onClick={() => toggleStudioFilter(studio.id)}
                 >
-                  <span className={cn("h-2 w-2 inline-block rounded-full mr-1", getStudioStatusColor(calculateStudioStatus(studio, bookings, currentDate)))}></span>
+                  <span className={cn("h-2 w-2 inline-block rounded-full mr-1", getStudioStatusColor(calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks)))}></span>
                   {studio.name}
                 </button>
               ))}
