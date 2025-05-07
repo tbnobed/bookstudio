@@ -93,7 +93,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       }
     }
     
-    return <div className={`w-2 h-2 rounded-full mr-2 ${statusClass}`}></div>;
+    return <div className={`w-3 h-3 rounded-full ${statusClass}`}></div>;
   }, [studio.status, studioBookings]);
   
   // Handle cell click for new booking
@@ -109,12 +109,12 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
     <>
       {/* Studio name header (left column) */}
       <div 
-        className="border-b flex items-center px-2 sticky left-0 z-10 bg-white" 
+        className="border-b flex items-center px-3 sticky left-0 z-10 bg-white" 
         style={{ height: `${rowHeight}px` }}
       >
-        <div className="flex items-center w-full">
+        <div className="flex items-center w-full gap-2.5">
           {studioStatusIndicator}
-          <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
+          <span className="text-sm font-medium text-gray-700 truncate">{studio.name}</span>
         </div>
       </div>
       
