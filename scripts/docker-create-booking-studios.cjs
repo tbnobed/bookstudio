@@ -34,22 +34,43 @@ async function main() {
     console.log("Booking-studios junction table created successfully");
     console.log("Adding foreign key constraints...");
     
-    // Add foreign key constraints
-    await pool.query(`
-      ALTER TABLE booking_studios 
-      ADD CONSTRAINT IF NOT EXISTS fk_booking_id 
-      FOREIGN KEY (booking_id) 
-      REFERENCES bookings(id) 
-      ON DELETE CASCADE;
+    // Check if constraint already exists
+    const bookingConstraintExists = await pool.query(`
+      SELECT 1 FROM pg_constraint WHERE conname = 'fk_booking_id' LIMIT 1;
     `);
     
-    await pool.query(`
-      ALTER TABLE booking_studios 
-      ADD CONSTRAINT IF NOT EXISTS fk_studio_id 
-      FOREIGN KEY (studio_id) 
-      REFERENCES studios(id) 
-      ON DELETE CASCADE;
+    // Add booking ID foreign key constraint if it doesn't exist
+    if (bookingConstraintExists.rows.length === 0) {
+      await pool.query(`
+        ALTER TABLE booking_studios 
+        ADD CONSTRAINT fk_booking_id 
+        FOREIGN KEY (booking_id) 
+        REFERENCES bookings(id) 
+        ON DELETE CASCADE;
+      `);
+      console.log("Added booking_id foreign key constraint");
+    } else {
+      console.log("booking_id foreign key constraint already exists");
+    }
+    
+    // Check if studio constraint already exists
+    const studioConstraintExists = await pool.query(`
+      SELECT 1 FROM pg_constraint WHERE conname = 'fk_studio_id' LIMIT 1;
     `);
+    
+    // Add studio ID foreign key constraint if it doesn't exist
+    if (studioConstraintExists.rows.length === 0) {
+      await pool.query(`
+        ALTER TABLE booking_studios 
+        ADD CONSTRAINT fk_studio_id 
+        FOREIGN KEY (studio_id) 
+        REFERENCES studios(id) 
+        ON DELETE CASCADE;
+      `);
+      console.log("Added studio_id foreign key constraint");
+    } else {
+      console.log("studio_id foreign key constraint already exists");
+    }
     
     console.log("Foreign key constraints added successfully");
     
