@@ -302,33 +302,39 @@ export default function WeeklyCalendar({
           <div className="relative">
             {/* Calendar Grid - Using table layout for more stable rendering */}
             <div className="grid grid-cols-[80px_repeat(7,1fr)] table-fixed w-full" style={{ tableLayout: 'fixed' }}>
-              {/* Alerts Row - First row of the grid */}
-              <div className="contents">
-                <AlertsRow
-                  weekDates={weekDates}
-                  alerts={alerts}
-                  onAlertClick={handleBookingClick}
-                />
-              </div>
+              {/* Alerts Row - First row of the grid - using useMemo for stability */}
+              {useMemo(() => (
+                <div className="contents">
+                  <AlertsRow
+                    weekDates={weekDates}
+                    alerts={alerts}
+                    onAlertClick={handleBookingClick}
+                    readOnly={readOnly}
+                  />
+                </div>
+              ), [weekDates, alerts, handleBookingClick, readOnly])}
               
-              {/* Visual separator */}
+              {/* Visual separator - static, does not need memo */}
               <div className="col-span-8 h-2 bg-gray-200 border-b border-gray-300"></div>
               
               {/* Studio Rows - Use useMemo to stabilize the component tree */}
-              {useMemo(() => (
-                <>
-                  {filteredStudios.map((studio) => (
-                    <StudioRow
-                      key={studio.id}
-                      studio={studio}
-                      weekDates={weekDates}
-                      bookings={bookings} // Pass ALL bookings and let StudioRow filter by both direct ID and junction table
-                      onBookingClick={handleBookingClick}
-                      readOnly={readOnly}
-                    />
-                  ))}
-                </>
-              ), [filteredStudios, weekDates, bookings, handleBookingClick, readOnly])}
+              {useMemo(() => {
+                console.log("Rebuilding studio rows in WeeklyCalendar - this should be infrequent");
+                return (
+                  <div className="contents">
+                    {filteredStudios.map((studio) => (
+                      <StudioRow
+                        key={studio.id}
+                        studio={studio}
+                        weekDates={weekDates}
+                        bookings={bookings} 
+                        onBookingClick={handleBookingClick}
+                        readOnly={readOnly}
+                      />
+                    ))}
+                  </div>
+                );
+              }, [filteredStudios, weekDates, bookings, handleBookingClick, readOnly])}
             </div>
           </div>
         </div>

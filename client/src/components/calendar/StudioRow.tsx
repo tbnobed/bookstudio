@@ -16,20 +16,21 @@ interface StudioRowProps {
   readOnly?: boolean;
 }
 
+// A simplified StudioRow component with more stability
 export default function StudioRow({ studio, weekDates, bookings, onBookingClick, readOnly = false }: StudioRowProps) {
   // State for new booking modal
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
-  // Fetch booking-studio links
+  // Get booking-studio links
   const { data: bookingStudioLinks = [] } = useBookingStudioLinks(undefined, readOnly);
   
-  // Fetch PCR rooms
+  // Get PCR rooms
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
     queryKey: ["/api/pcr-rooms"],
   });
   
-  // Helper function to get PCR room name
+  // Helper to get PCR room name
   const getPcrRoomName = (pcrRoomId: number): string => {
     const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
     return pcrRoom ? pcrRoom.name : `PCR #${pcrRoomId}`;
@@ -37,41 +38,44 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
   
   // Filter bookings for this studio (memoized)
   const studioBookings = useMemo(() => {
-    return bookings.filter(booking => {
-      // Check direct assignment
-      const directMatch = booking.studioId === studio.id;
-      
-      // Check junction table for multi-studio bookings
-      const linkedMatch = bookingStudioLinks.some(
-        link => link.bookingId === booking.id && link.studioId === studio.id
-      );
-      
-      return directMatch || linkedMatch;
-    });
-  }, [studio.id, bookings, bookingStudioLinks]);
-  
-  // Calculate row height based on bookings (memoized)
-  const rowHeight = useMemo(() => {
-    // Get maximum bookings for any day
-    const counts = weekDates.map(date => 
-      studioBookings.filter(booking => isSameDay(new Date(booking.start), date)).length
+    // Get bookings with direct assignment to this studio
+    const directBookings = bookings.filter(booking => booking.studioId === studio.id);
+    
+    // Get bookings linked through junction table
+    const linkedBookingIds = bookingStudioLinks
+      .filter(link => link.studioId === studio.id)
+      .map(link => link.bookingId);
+    
+    // Find linked bookings not already in direct bookings
+    const linkedBookings = bookings.filter(
+      booking => linkedBookingIds.includes(booking.id) && !directBookings.includes(booking)
     );
     
-    const maxBookings = Math.max(...counts, 0);
+    // Return combined list
+    return [...directBookings, ...linkedBookings];
+  }, [studio.id, bookings, bookingStudioLinks]);
+  
+  // Calculate row height
+  const rowHeight = useMemo(() => {
+    // Find maximum bookings per day
+    const maxBookings = weekDates.reduce((max, date) => {
+      const count = studioBookings.filter(booking => 
+        isSameDay(new Date(booking.start), date)
+      ).length;
+      return Math.max(max, count);
+    }, 0);
     
-    // Calculate height with base + space for bookings
+    // Base height + space for bookings
     const baseHeight = 42;
     const heightPerBooking = 32;
-    const maxAdditionalHeight = 320;
-    const additionalHeight = Math.min(maxBookings * heightPerBooking, maxAdditionalHeight);
-    
-    return baseHeight + additionalHeight;
+    const maxHeight = 320;
+    return baseHeight + Math.min(maxBookings * heightPerBooking, maxHeight);
   }, [weekDates, studioBookings]);
   
-  // Create studio status indicator dot (memoized)
+  // Create studio status indicator
   const studioStatusIndicator = useMemo(() => {
-    // Determine status color
-    let statusClass = "bg-green-500"; // Default: available
+    // Default status color
+    let statusClass = "bg-green-500"; // available
     
     if (studio.status === "maintenance") {
       statusClass = "bg-orange-500";
@@ -85,14 +89,14 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       });
       
       if (hasActiveBooking) {
-        statusClass = "bg-red-500"; // In-use
+        statusClass = "bg-red-500"; // in-use
       }
     }
     
     return <div className={`w-2 h-2 rounded-full mr-2 ${statusClass}`}></div>;
   }, [studio.status, studioBookings]);
   
-  // Handle cell click to create a new booking
+  // Handle cell click for new booking
   const handleCellClick = (date: Date) => {
     if (readOnly) return;
     
@@ -100,7 +104,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
     setIsNewBookingModalOpen(true);
   };
   
-  // Render the row
+  // Return the studio row component
   return (
     <>
       {/* Studio name header (left column) */}
@@ -116,7 +120,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       
       {/* Day cells */}
       {weekDates.map((date, index) => {
-        // Get bookings for this day
+        // Get bookings for this day and studio
         const dayBookings = studioBookings.filter(booking => 
           isSameDay(new Date(booking.start), date)
         );
@@ -137,7 +141,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
             }}
             onClick={() => handleCellClick(date)}
           >
-            {/* Booking count badge */}
+            {/* Booking count badge for many bookings */}
             {dayBookings.length > 5 && (
               <div className="absolute top-0 right-0 z-20 px-1 text-xs font-semibold bg-gray-700 text-white rounded-bl-md">
                 {dayBookings.length}
@@ -146,7 +150,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
             
             {/* Booking cards */}
             {dayBookings.map((booking, bookingIndex) => {
-              // Determine color based on booking type
+              // Determine color based on booking type and severity
               let colorClass = "bg-blue-100 border-blue-300 text-blue-800";
               
               if (booking.type === "maintenance" || booking.type === "it_support") {
@@ -170,17 +174,17 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                 colorClass = "border"; // Keep only border class
               }
               
-              // Calculate position
+              // Calculate position based on number of bookings
               let topPosition = 4 + (bookingIndex * 40);
               
-              // Adjust spacing for densely packed days
+              // Adjust spacing for dense days
               if (dayBookings.length > 10) {
                 topPosition = 4 + (bookingIndex * 30);
               } else if (dayBookings.length > 5) {
                 topPosition = 4 + (bookingIndex * 35);
               }
               
-              // Card height
+              // Height for booking card
               const height = dayBookings.length > 10 ? 28 : dayBookings.length > 5 ? 32 : 38;
               
               return (
@@ -208,6 +212,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                       }}
                     >
                       <div className="flex items-center w-full">
+                        {/* Alert indicator dot */}
                         {(booking.type === "maintenance" || booking.type === "it_support") && (
                           <span className={`w-2 h-2 rounded-full mr-1 flex-shrink-0 ${
                             booking.severity === "critical" ? "bg-red-500" : 
@@ -215,11 +220,13 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                             booking.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
                           }`}></span>
                         )}
+                        {/* Booking title */}
                         <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">
                           {booking.title}
                           {booking.pcrRoomId ? ` (${getPcrRoomName(booking.pcrRoomId)})` : ''}
                         </span>
                       </div>
+                      {/* Time display */}
                       <div className="text-xs pl-3">
                         {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
                       </div>
@@ -227,6 +234,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                   </HoverCardTrigger>
                   <HoverCardContent className="w-80 p-4">
                     <div className="space-y-3">
+                      {/* Hover card header */}
                       <div className="flex justify-between items-start">
                         <h4 className="text-sm font-semibold">{booking.title}</h4>
                         {!readOnly && (
@@ -247,19 +255,24 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                           </div>
                         )}
                       </div>
+                      {/* Booking details */}
                       <div className="space-y-1">
+                        {/* Date */}
                         <div className="flex items-center text-xs text-muted-foreground">
                           <CalendarClock className="mr-1 h-3 w-3" />
                           <span>{formatDate(booking.start)}</span>
                         </div>
+                        {/* Time */}
                         <div className="flex items-center text-xs text-muted-foreground">
                           <Clock className="mr-1 h-3 w-3" />
                           <span>{formatTime(booking.start)} - {formatTime(booking.end)}</span>
                         </div>
+                        {/* Booking type */}
                         <div className="flex items-center text-xs text-muted-foreground">
                           <Tag className="mr-1 h-3 w-3" />
                           <span className="capitalize">{booking.type.replace('_', ' ')}</span>
                         </div>
+                        {/* PCR room if assigned */}
                         {booking.pcrRoomId && (
                           <div className="flex items-center text-xs text-muted-foreground">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 h-3 w-3">
@@ -268,12 +281,14 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                             <span>{getPcrRoomName(booking.pcrRoomId)}</span>
                           </div>
                         )}
+                        {/* Description if available */}
                         {booking.description && (
                           <div className="flex items-start mt-2 text-xs text-muted-foreground">
                             <FileText className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
                             <span>{booking.description}</span>
                           </div>
                         )}
+                        {/* Notification list if available */}
                         {Array.isArray(booking.notifyList) && booking.notifyList.length > 0 && (
                           <div className="mt-2">
                             <div className="text-xs font-medium mb-1">Notifying:</div>

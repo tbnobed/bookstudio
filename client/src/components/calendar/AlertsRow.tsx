@@ -97,15 +97,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
   const [editAlert, setEditAlert] = useState<ApiBooking | null>(null);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   
-  // Set up auto-refresh of alerts data
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Invalidate the bookings queries to force a refetch
-      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
-    }, 2000); // Check every 2 seconds
-    
-    return () => clearInterval(interval);
-  }, []);
+  // We don't need an auto-refresh here since the parent component already handles fetching
+  // This was causing unnecessary re-renders
   
   // Debug the alerts collection
   console.log("All alerts in AlertsRow: ", JSON.stringify(alerts));
@@ -135,30 +128,34 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
     }
   };
 
-  // Calculate max alerts for any day in this week for consistent row heights
-  const maxAlertsForWeek = weekDates.reduce((max, date) => {
-    const count = alerts.filter(alert => {
-      const alertStart = new Date(alert.start);
-      const alertEnd = new Date(alert.end);
-      
-      // Check if alert spans this date
-      const dateStart = new Date(date);
-      dateStart.setHours(0, 0, 0, 0);
-      
-      const dateEnd = new Date(date);
-      dateEnd.setHours(23, 59, 59, 999);
-      
-      return (alertStart <= dateEnd) && (alertEnd >= dateStart);
-    }).length;
-    return Math.max(max, count);
-  }, 0);
+  // Calculate max alerts for any day in this week for consistent row heights (memoized)
+  const maxAlertsForWeek = useMemo(() => {
+    return weekDates.reduce((max, date) => {
+      const count = alerts.filter(alert => {
+        const alertStart = new Date(alert.start);
+        const alertEnd = new Date(alert.end);
+        
+        // Check if alert spans this date
+        const dateStart = new Date(date);
+        dateStart.setHours(0, 0, 0, 0);
+        
+        const dateEnd = new Date(date);
+        dateEnd.setHours(23, 59, 59, 999);
+        
+        return (alertStart <= dateEnd) && (alertEnd >= dateStart);
+      }).length;
+      return Math.max(max, count);
+    }, 0);
+  }, [weekDates, alerts]);
   
-  // Calculate dynamic height - base height plus additional space for each alert
-  const baseHeight = 60; // Minimum height for a row with no alerts
-  const heightPerAlert = 32; // Additional height per alert
-  const maxAdditionalHeight = 200; // Maximum additional height
-  const additionalHeight = Math.min(maxAlertsForWeek * heightPerAlert, maxAdditionalHeight);
-  const rowHeight = baseHeight + additionalHeight;
+  // Calculate dynamic height - base height plus additional space for each alert (memoized)
+  const rowHeight = useMemo(() => {
+    const baseHeight = 60; // Minimum height for a row with no alerts
+    const heightPerAlert = 32; // Additional height per alert
+    const maxAdditionalHeight = 200; // Maximum additional height
+    const additionalHeight = Math.min(maxAlertsForWeek * heightPerAlert, maxAdditionalHeight);
+    return baseHeight + additionalHeight;
+  }, [maxAlertsForWeek]);
 
   return (
     <>
