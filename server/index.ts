@@ -1,8 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import path from "path";
-
-// Import directly from vite.ts - Dockerfile will replace with vite.prod.ts in production
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
