@@ -29,6 +29,12 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
     queryKey: ["/api/pcr-rooms"],
   });
   
+  // Function to get PCR room name from ID
+  const getPcrRoomName = (pcrRoomId: number): string => {
+    const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
+    return pcrRoom ? pcrRoom.name : `PCR #${pcrRoomId}`;
+  };
+  
   // Create a filtered list of bookings that contains:
   // 1. Bookings linked to this studio through the booking-studio junction table
   // 2. Bookings with studioId directly set to this studio's ID
