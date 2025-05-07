@@ -149,7 +149,8 @@ export default function BookingModal({
           notifyList: (booking.notifyList !== undefined 
             ? booking.notifyList 
             : booking.notify_list) || [],
-          severity: booking.severity || "medium"
+          severity: booking.severity || "medium",
+          color: booking.color || "#4B83E2" // Use booking color or default blue
         };
         
         // Clean all-day prefix from type
@@ -193,7 +194,7 @@ export default function BookingModal({
             saveAsTemplate: false,
             templateName: "",
             severity: normalizedBooking.severity,
-            color: booking.color || defaultValues.color // Use booking color or default
+            color: normalizedBooking.color || defaultValues.color // Use normalized booking color or default
           });
         };
         

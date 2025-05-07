@@ -134,15 +134,24 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                       colorClass = "bg-green-100 text-green-800";
                     }
                     
+                    // Style object for custom colors
+                    const customStyle = booking.color ? {
+                      backgroundColor: `${booking.color}20`,
+                      color: booking.color,
+                      borderColor: booking.color,
+                      border: '1px solid'
+                    } : {};
+                    
                     return (
                       <HoverCard key={booking.id}>
                         <HoverCardTrigger asChild>
                           <div 
                             className={cn(
                               "p-1 rounded truncate", 
-                              colorClass, 
+                              booking.color ? "" : colorClass, 
                               readOnly ? "cursor-default" : "cursor-pointer"
                             )}
+                            style={booking.color ? customStyle : {}}
                             onClick={(e) => handleBookingClick(e, booking)}
                           >
                             <span className="font-medium">

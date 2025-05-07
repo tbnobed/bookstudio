@@ -301,12 +301,8 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
               
               // Use custom color if specified
               if (booking.color) {
-                // Extract the color but make it lighter for the background
-                const color = booking.color;
-                const textColor = booking.color;
-                
                 // Instead of using CSS classes, we'll use inline styles for custom colors
-                colorClass = ""; // Clear the predefined class
+                colorClass = "border"; // Keep only the border class, we'll style it with inline styles
               }
               
               // Calculate position based on booking index with larger spacing
@@ -336,6 +332,11 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                       style={{
                         top: `${topPosition}px`,
                         minHeight: `${height}px`,
+                        ...(booking.color ? {
+                          backgroundColor: `${booking.color}20`, // 20 is hex for 12% opacity
+                          borderColor: booking.color,
+                          color: booking.color
+                        } : {})
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -411,11 +412,11 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                             <span>{booking.description}</span>
                           </div>
                         )}
-                        {booking.notifyList && booking.notifyList.length > 0 && (
+                        {Array.isArray(booking.notifyList) && booking.notifyList.length > 0 && (
                           <div className="mt-2">
                             <div className="text-xs font-medium mb-1">Notifying:</div>
                             <div className="flex flex-wrap gap-1">
-                              {Array.isArray(booking.notifyList) && booking.notifyList.map((crew: string, i: number) => (
+                              {booking.notifyList.map((crew: string, i: number) => (
                                 <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
                                   <User className="mr-1 h-3 w-3" />
                                   {crew}
