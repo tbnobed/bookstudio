@@ -9,7 +9,8 @@ import MonthlyCalendar from '@/components/calendar/MonthlyCalendar';
 import { Studio, Booking } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
-import logoPath from '@assets/bookstuio.png';
+// Import logo directly from public directory which is included in Docker build
+const logoPath = '/bookstuio.png';
 import { calculateStudioStatus, getStudioStatusColor } from '@/lib/studioUtils';
 import { usePublicBookingStudioLinks } from '@/hooks/useBookingStudioLinks';
 
