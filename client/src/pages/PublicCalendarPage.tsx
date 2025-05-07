@@ -301,8 +301,13 @@ function PublicCalendarPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               {studios.map((studio) => {
-                // Calculate real-time status using ALL bookings instead of just current view
-                const studioStatus = calculateStudioStatus(studio, allBookings as Booking[], new Date());
+                // Calculate real-time status using ALL bookings and booking-studio links
+                const studioStatus = calculateStudioStatus(
+                  studio, 
+                  allBookings as Booking[], 
+                  new Date(),
+                  bookingStudioLinks
+                );
                 const statusColor = getStudioStatusColor(studioStatus);
                 
                 return (
