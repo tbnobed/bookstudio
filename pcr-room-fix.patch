@@ -1,0 +1,20 @@
+diff --git a/server/storage.ts b/server/storage.ts
+index abcdefg..abcdefg 100644
+--- a/server/storage.ts
++++ b/server/storage.ts
+@@ -12,7 +12,7 @@ import { 
+ import { db, pool } from "./db";
+ import session from "express-session";
+ import connectPg from "connect-pg-simple";
+-import { eq, and, or, isNull, not, desc, gte, lte, inArray } from "drizzle-orm";
++import { eq, and, or, isNull, not, desc, gte, lte, inArray, sql } from "drizzle-orm";
+ 
+ @@ -1284,7 +1284,7 @@ export class DatabaseStorage implements IStorage {
+       this.pcrRooms.set(newPcrRoom.id, newPcrRoom);
+       
+       // Get the current max ID from the database to ensure we're in sync
+-      const maxResult = await db.select({ maxId: sql`MAX(id)` }).from(pcrRooms);
++      const maxResult = await db.select({ maxId: sql`MAX(id)` }).from(pcrRooms);
+       const maxId = maxResult[0]?.maxId || 0;
+       
+       // Update the counter

@@ -12,7 +12,7 @@ import {
 import { db, pool } from "./db";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { eq, and, or, isNull, not, desc, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, or, isNull, not, desc, gte, lte, inArray, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User management
