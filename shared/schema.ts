@@ -36,7 +36,7 @@ export const studios = pgTable("studios", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
   description: text("description"),
-  status: text("status").notNull().default("available"), // available, maintenance, booked
+  status: text("status").notNull().default("available"), // available, maintenance, in-use, booked (legacy)
 });
 
 export const insertStudioSchema = createInsertSchema(studios).omit({
@@ -48,7 +48,7 @@ export const pcrRooms = pgTable("pcr_rooms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
   description: text("description"),
-  status: text("status").notNull().default("available"), // available, maintenance, booked
+  status: text("status").notNull().default("available"), // available, maintenance, in-use, booked (legacy)
 });
 
 export const insertPcrRoomSchema = createInsertSchema(pcrRooms).omit({
