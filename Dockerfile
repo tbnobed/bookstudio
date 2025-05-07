@@ -21,10 +21,37 @@ COPY *.ts ./
 COPY *.js ./
 COPY *.json ./
 
-# Build the application using our production-specific script
-COPY scripts/build-for-docker.sh ./
-RUN chmod +x ./build-for-docker.sh
-RUN ./build-for-docker.sh
+# Build the application directly in the Dockerfile
+# Client build
+RUN npm run build
+# Create a production-ready server file
+RUN echo "import express from 'express';" > server-prod.js && \
+    echo "import { registerRoutes } from './server/routes.js';" >> server-prod.js && \
+    echo "import fs from 'fs';" >> server-prod.js && \
+    echo "import path from 'path';" >> server-prod.js && \
+    echo "const app = express();" >> server-prod.js && \
+    echo "app.use(express.json());" >> server-prod.js && \
+    echo "app.use(express.urlencoded({ extended: false }));" >> server-prod.js && \
+    echo "(async () => {" >> server-prod.js && \
+    echo "  const server = await registerRoutes(app);" >> server-prod.js && \
+    echo "  const distPath = path.resolve(process.cwd(), 'dist/public');" >> server-prod.js && \
+    echo "  app.use(express.static(distPath));" >> server-prod.js && \
+    echo "  app.use('*', (req, res) => {" >> server-prod.js && \
+    echo "    res.sendFile(path.resolve(distPath, 'index.html'));" >> server-prod.js && \
+    echo "  });" >> server-prod.js && \
+    echo "  const port = 5000;" >> server-prod.js && \
+    echo "  server.listen({" >> server-prod.js && \
+    echo "    port," >> server-prod.js && \
+    echo "    host: '0.0.0.0'," >> server-prod.js && \
+    echo "  }, () => {" >> server-prod.js && \
+    echo "    console.log('Server running on port ' + port);" >> server-prod.js && \
+    echo "  });" >> server-prod.js && \
+    echo "})();" >> server-prod.js && \
+    npx esbuild server-prod.js --platform=node --packages=external --bundle --format=esm --outdir=dist --outfile=dist/index.js
+# Ensure static files are properly copied
+RUN mkdir -p dist/public && cp -r public/* dist/public/
+# Make files accessible
+RUN chmod -R 755 dist
 
 # Stage 2: Production stage
 FROM node:20.18.1-alpine3.19
