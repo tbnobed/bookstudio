@@ -90,15 +90,89 @@ services:
         echo 'Waiting for database to be fully ready...' &&
         sleep 10 &&
         echo 'Creating database schema...' &&
-        npx tsx scripts/migrate-db.ts &&
-        echo 'Migrating file attachments schema...' &&
-        npx tsx scripts/migrate-file-attachments.ts &&
-        echo 'Migrating PCR rooms schema...' &&
-        npx tsx scripts/migrate-pcr-rooms.ts &&
+        node scripts/docker-migrate-db.cjs &&
+        echo 'Creating PCR rooms schema...' &&
+        node -e 'console.log(\"Creating PCR rooms table...\"); 
+        const { Pool } = require(\"pg\"); 
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+        pool.query(`
+          CREATE TABLE IF NOT EXISTS "pcr_rooms" (
+            "id" SERIAL PRIMARY KEY,
+            "name" TEXT NOT NULL UNIQUE,
+            "description" TEXT,
+            "status" TEXT NOT NULL DEFAULT '\''available'\''
+          );
+          ALTER TABLE "bookings"
+          ADD COLUMN IF NOT EXISTS "pcr_room_id" INTEGER
+          REFERENCES "pcr_rooms"("id") ON DELETE SET NULL;
+          INSERT INTO "pcr_rooms" ("name", "description", "status")
+          VALUES 
+            ('\''PCR 1'\'', '\''Main Production Control Room'\'', '\''available'\''),
+            ('\''PCR 2'\'', '\''Secondary Production Control Room'\'', '\''available'\''),
+            ('\''PCR 3'\'', '\''Tertiary Production Control Room'\'', '\''available'\'')
+          ON CONFLICT ("name") DO NOTHING;
+        `, (err, res) => { 
+          if (err) { console.error(err); process.exit(1); } 
+          console.log(\"PCR rooms schema created successfully\"); 
+          pool.end();
+        });' &&
         echo 'Creating booking-studios junction table...' &&
-        npx tsx scripts/create-booking-studios-table.ts &&
+        node -e 'console.log(\"Creating booking-studios junction table...\"); 
+        const { Pool } = require(\"pg\"); 
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+        pool.query(`
+          CREATE TABLE IF NOT EXISTS booking_studios (
+            id SERIAL PRIMARY KEY,
+            booking_id INTEGER NOT NULL,
+            studio_id INTEGER NOT NULL,
+            UNIQUE(booking_id, studio_id)
+          );
+          ALTER TABLE booking_studios 
+          ADD CONSTRAINT IF NOT EXISTS fk_booking_id 
+          FOREIGN KEY (booking_id) 
+          REFERENCES bookings(id) 
+          ON DELETE CASCADE;
+          ALTER TABLE booking_studios 
+          ADD CONSTRAINT IF NOT EXISTS fk_studio_id 
+          FOREIGN KEY (studio_id) 
+          REFERENCES studios(id) 
+          ON DELETE CASCADE;
+        `, (err, res) => { 
+          if (err) { console.error(err); process.exit(1); } 
+          console.log(\"Booking-studios junction table created successfully\"); 
+          pool.end();
+        });' &&
+        echo 'Creating file attachments schema...' &&
+        node -e 'console.log(\"Creating file_attachments table...\"); 
+        const { Pool } = require(\"pg\"); 
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+        const fs = require(\"fs\");
+        const path = require(\"path\");
+        pool.query(`
+          CREATE TABLE IF NOT EXISTS file_attachments (
+            id SERIAL PRIMARY KEY,
+            booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+            file_name TEXT NOT NULL,
+            file_size BIGINT NOT NULL,
+            mime_type TEXT NOT NULL,
+            path TEXT NOT NULL,
+            uploaded_by INTEGER NOT NULL REFERENCES users(id),
+            uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            description TEXT
+          );
+        `, (err, res) => { 
+          if (err) { console.error(err); process.exit(1); } 
+          console.log(\"File attachments table created successfully\");
+          // Create directory for file uploads if it doesn't exist
+          const uploadDir = path.resolve(\"/app/uploads\");
+          if (!fs.existsSync(uploadDir)){
+            console.log(\"Creating uploads directory...\");
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          pool.end();
+        });' &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
-        npx tsx scripts/init-db.ts &&
+        node scripts/docker-init-db.cjs &&
         echo 'Database initialization completed successfully' 
       "
 

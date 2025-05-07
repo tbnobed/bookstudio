@@ -60,6 +60,10 @@ RUN npm ci --only=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/scripts ./scripts
 
+# Copy Docker-specific migration scripts
+COPY scripts/docker-migrate-db.cjs ./scripts/
+COPY scripts/docker-init-db.cjs ./scripts/
+
 # Copy other necessary files
 COPY public ./public
 
