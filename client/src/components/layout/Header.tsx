@@ -9,6 +9,7 @@ import { Studio, Booking } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
+import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
 
 type HeaderProps = {
   currentDate: Date;
@@ -156,8 +157,9 @@ export function Header({
     <header className="bg-white shadow-sm">
       <div className="flex justify-between items-center px-4 py-3 lg:px-6">
         <div className="flex items-center space-x-2">
-          <div className="hidden lg:block">
+          <div className="hidden lg:flex items-center">
             <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
+            <TimezoneDisplay />
           </div>
         </div>
         
@@ -240,6 +242,11 @@ export function Header({
             </Button>
           </div>
         </div>
+      </div>
+      
+      {/* Mobile Timezone Display - shown on smaller screens */}
+      <div className="lg:hidden flex justify-center px-4 py-1 bg-gray-50 border-t">
+        <TimezoneDisplay />
       </div>
       
       {/* Studios Filter */}
