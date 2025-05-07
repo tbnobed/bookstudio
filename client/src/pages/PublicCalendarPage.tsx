@@ -25,6 +25,7 @@ export interface ApiBooking {
   title: string;
   description: string | null;
   studioId: number | null;
+  pcrRoomId: number | null;
   start: Date;
   end: Date;
   type: string;
