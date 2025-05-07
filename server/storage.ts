@@ -1831,13 +1831,13 @@ export class DatabaseStorage implements IStorage {
         
         // Split the string ISO date to get year, month, day
         const targetDateStr = targetDate.toISOString().split('T')[0]; // e.g., "2025-05-08"
-        const [targetYear, targetMonth, targetDay] = targetDateStr.split('-').map(num => parseInt(num));
+        const [targetYear, targetMonth, targetDateDay] = targetDateStr.split('-').map(num => parseInt(num));
         
         // Create a date with target date but original booking's time
         const newStart = new Date(Date.UTC(
           targetYear,
           targetMonth - 1, // JavaScript months are 0-indexed
-          targetDay,
+          targetDateDay, // Use the renamed variable
           origStart.getUTCHours(),
           origStart.getUTCMinutes(),
           origStart.getUTCSeconds(),
@@ -1845,7 +1845,7 @@ export class DatabaseStorage implements IStorage {
         ));
         
         // Log everything for debugging
-        console.log(`Target date string: ${targetDateStr}, Year: ${targetYear}, Month: ${targetMonth}, Day: ${targetDay}`);
+        console.log(`Target date string: ${targetDateStr}, Year: ${targetYear}, Month: ${targetMonth}, Day: ${targetDateDay}`);
         console.log(`Original start: ${origStart.toISOString()}, UTC hours: ${origStart.getUTCHours()}`);
         console.log(`Target date: ${targetDate.toISOString()}, Created new start: ${newStart.toISOString()}`);
         
