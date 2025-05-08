@@ -237,12 +237,27 @@ export default function MobileDailyView({
                               onClick={() => handleBookingClick(booking)}
                               className={cn(
                                 "p-3 rounded-md border cursor-pointer transition-colors active:bg-gray-100",
-                                isActive ? "bg-red-50 border-red-200" : 
-                                isUpcoming ? "bg-amber-50 border-amber-200" : 
-                                "bg-gray-50 border-gray-200"
+                                booking.status === "tentative" ? "border-dashed" : "",
+                                booking.color 
+                                  ? { 
+                                      "bg-opacity-15 border-opacity-30": true,
+                                      "border-current": true
+                                    }
+                                  : isActive 
+                                    ? "bg-red-50 border-red-200" 
+                                    : isUpcoming 
+                                      ? "bg-amber-50 border-amber-200" 
+                                      : "bg-gray-50 border-gray-200"
                               )}
+                              style={booking.color ? { 
+                                backgroundColor: `${booking.color}20`, /* 12.5% opacity */
+                                borderColor: booking.color,
+                                color: booking.color
+                              } : {}}
                             >
-                              <div className="font-medium text-sm">{booking.title}</div>
+                              <div className="font-medium text-sm" style={booking.color ? { color: booking.color } : {}}>
+                                {booking.title}
+                              </div>
                               <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                                 <Clock size={12} />
                                 {formatTimeRange(bookingStart, bookingEnd)}
@@ -304,11 +319,24 @@ export default function MobileDailyView({
                         onClick={() => handleBookingClick(booking)}
                         className={cn(
                           "p-4 rounded-lg border shadow-sm cursor-pointer transition-colors active:bg-gray-100",
-                          isFacilityAlert ? "bg-rose-50 border-rose-300" :
-                          isActive ? "bg-red-50 border-red-200" : 
-                          isUpcoming ? "bg-amber-50 border-amber-200" : 
-                          "bg-gray-50 border-gray-200"
+                          booking.status === "tentative" ? "border-dashed" : "",
+                          isFacilityAlert 
+                            ? "bg-rose-50 border-rose-300" 
+                            : booking.color 
+                              ? {
+                                  "bg-opacity-15 border-opacity-30": true,
+                                  "border-current": true
+                                }
+                              : isActive 
+                                ? "bg-red-50 border-red-200" 
+                                : isUpcoming 
+                                  ? "bg-amber-50 border-amber-200" 
+                                  : "bg-gray-50 border-gray-200"
                         )}
+                        style={!isFacilityAlert && booking.color ? { 
+                          backgroundColor: `${booking.color}20`, /* 12.5% opacity */
+                          borderColor: booking.color
+                        } : {}}
                       >
                         <div className="flex justify-between items-start">
                           <h3 className="font-medium">{booking.title}</h3>
