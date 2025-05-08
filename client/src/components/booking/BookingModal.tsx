@@ -480,7 +480,7 @@ export default function BookingModal({
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {booking 
+              {booking && booking.id > 0
                 ? (alertsOnly ? "Edit Alert" : "Edit Booking") 
                 : (alertsOnly ? "New Alert" : "New Booking")
               }
