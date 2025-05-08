@@ -632,7 +632,8 @@ export class MemStorage implements IStorage {
         pcrRoomId: originalBooking.pcrRoomId,
         templateId: originalBooking.templateId,
         notifyList: originalBooking.notifyList,
-        severity: originalBooking.severity
+        severity: originalBooking.severity,
+        color: originalBooking.color // Copy the original booking's color
       };
       
       // Create the new booking
@@ -1911,7 +1912,8 @@ export class DatabaseStorage implements IStorage {
           pcrRoomId: originalBooking.pcrRoomId,
           templateId: originalBooking.templateId,
           notifyList: originalBooking.notifyList,
-          severity: originalBooking.severity
+          severity: originalBooking.severity,
+          color: originalBooking.color // Copy the original booking's color
         };
         
         // Create the new booking
