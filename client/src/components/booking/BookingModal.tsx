@@ -605,17 +605,15 @@ export default function BookingModal({
     // Convert notification group IDs from strings to numbers for the template
     const notifyListAsNumbers = formData.notifyList.map(id => parseInt(id));
     
+    // Prepare template data according to the insertTemplateSchema
     const templateData = {
       name: formData.templateName,
-      description: formData.description,
+      description: formData.description || null,
       type: formData.bookingType,
       duration: durationMinutes,
       crewRequired: notifyListAsNumbers,
-      createdBy: 1, // Using 1 as admin for now
-      color: formData.color,
-      status: formData.status,
-      studioIds: formData.studioIds.map(id => parseInt(id)),
-      pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "0" ? parseInt(formData.pcrRoomId) : null
+      equipment: [], // Empty equipment array as it's not used in the booking form
+      // The createdBy field will be set on the server from the authenticated user
     };
     
     try {
