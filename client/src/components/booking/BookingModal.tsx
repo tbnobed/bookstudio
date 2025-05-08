@@ -449,9 +449,19 @@ export default function BookingModal({
       onClose();
     } catch (error) {
       console.error("Error submitting booking:", error);
+      
+      // Try to get more detailed error message
+      let errorMsg = "Failed to save booking";
+      if (error instanceof Error) {
+        errorMsg = error.message;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMsg = String(error.message);
+      }
+      
+      // Display the detailed error message
       toast({
         title: "Error",
-        description: "Failed to save booking",
+        description: errorMsg,
         variant: "destructive"
       });
     }
