@@ -1049,6 +1049,56 @@ export default function BookingModal({
                         )}
                       </div>
                     )}
+                    
+                    {/* Notification Groups section - moved to left column */}
+                    <div className="mt-4">
+                      <div className="flex items-center mb-1">
+                        <BellRing className="h-4 w-4 mr-1 text-primary" />
+                        <Label>Notification Groups</Label>
+                      </div>
+                      
+                      {notificationGroups.length === 0 ? (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          No notification groups available
+                        </p>
+                      ) : (
+                        <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                          {notificationGroups.map((group: NotificationGroup) => (
+                            <div key={group.id} className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
+                                {group.groupType === 'lighting' && <Tag className="h-3.5 w-3.5 mr-1 text-yellow-500" />}
+                                {group.groupType === 'sound' && <Tag className="h-3.5 w-3.5 mr-1 text-green-500" />}
+                                {group.groupType === 'directors' && <Tag className="h-3.5 w-3.5 mr-1 text-purple-500" />}
+                                {group.groupType === 'production' && <Tag className="h-3.5 w-3.5 mr-1 text-red-500" />}
+                                {group.groupType === 'engineering' && <Tag className="h-3.5 w-3.5 mr-1 text-orange-500" />}
+                                <span className="text-xs">{group.name}</span>
+                              </div>
+                              <Checkbox
+                                id={`notify-group-${group.id}`}
+                                checked={formData.notifyList.includes(group.id.toString())}
+                                onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
+                                className="h-4 w-4"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {formData.notifyList.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {formData.notifyList.map((groupId) => {
+                            const group = notificationGroups.find((g: NotificationGroup) => g.id.toString() === groupId);
+                            if (!group) return null;
+                            return (
+                              <Badge key={groupId} variant="outline" className="flex items-center gap-1 text-xs py-0">
+                                <span>{group.name}</span>
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
@@ -1201,56 +1251,6 @@ export default function BookingModal({
                         </div>
                       </div>
                     )}
-                    
-                    {/* Notification Groups section */}
-                    <div>
-                      <div className="flex items-center mb-1">
-                        <BellRing className="h-4 w-4 mr-1 text-primary" />
-                        <Label>Notification Groups</Label>
-                      </div>
-                      
-                      {notificationGroups.length === 0 ? (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          No notification groups available
-                        </p>
-                      ) : (
-                        <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
-                          {notificationGroups.map((group: NotificationGroup) => (
-                            <div key={group.id} className="flex items-center justify-between">
-                              <div className="flex items-center">
-                                {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
-                                {group.groupType === 'lighting' && <Tag className="h-3.5 w-3.5 mr-1 text-yellow-500" />}
-                                {group.groupType === 'sound' && <Tag className="h-3.5 w-3.5 mr-1 text-green-500" />}
-                                {group.groupType === 'directors' && <Tag className="h-3.5 w-3.5 mr-1 text-purple-500" />}
-                                {group.groupType === 'production' && <Tag className="h-3.5 w-3.5 mr-1 text-red-500" />}
-                                {group.groupType === 'engineering' && <Tag className="h-3.5 w-3.5 mr-1 text-orange-500" />}
-                                <span className="text-xs">{group.name}</span>
-                              </div>
-                              <Checkbox
-                                id={`notify-group-${group.id}`}
-                                checked={formData.notifyList.includes(group.id.toString())}
-                                onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
-                                className="h-4 w-4"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {formData.notifyList.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1.5">
-                          {formData.notifyList.map((groupId) => {
-                            const group = notificationGroups.find((g: NotificationGroup) => g.id.toString() === groupId);
-                            if (!group) return null;
-                            return (
-                              <Badge key={groupId} variant="outline" className="flex items-center gap-1 text-xs py-0">
-                                <span>{group.name}</span>
-                              </Badge>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
                     
                     {alertsOnly && (
                       <div>
