@@ -233,20 +233,48 @@ export default function Settings() {
           
           <TabsContent value="general">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card className="h-fit">
-                <CardHeader>
-                  <CardTitle>Site Settings</CardTitle>
-                  <CardDescription>Configure basic site information</CardDescription>
-                </CardHeader>
-                <CardContent className="pb-8">
-                  <SiteNameForm />
-                  <div className="mt-8 space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      This name appears throughout the application and in browser window titles.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="md:col-span-1 flex flex-col gap-6">
+                <Card className="h-fit">
+                  <CardHeader>
+                    <CardTitle>Site Settings</CardTitle>
+                    <CardDescription>Configure basic site information</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-8">
+                    <SiteNameForm />
+                    <div className="mt-8 space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        This name appears throughout the application and in browser window titles.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Display Settings</CardTitle>
+                    <CardDescription>Customize the application appearance</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="show-weekends">Show Weekends in Calendar</Label>
+                        <Switch id="show-weekends" defaultChecked />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="auto-refresh">Auto-refresh Calendar (every 5 minutes)</Label>
+                        <Switch id="auto-refresh" defaultChecked />
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 text-sm text-muted-foreground">
+                      <p>Additional customization options will be available in future updates.</p>
+                    </div>
+                    
+                    <Button>Save Changes</Button>
+                  </CardContent>
+                </Card>
+              </div>
               
               <Card>
                 <CardHeader>
@@ -326,32 +354,6 @@ export default function Settings() {
                         </p>
                       </div>
                     </div>
-                  </div>
-                  
-                  <Button>Save Changes</Button>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Display Settings</CardTitle>
-                  <CardDescription>Customize the application appearance</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="show-weekends">Show Weekends in Calendar</Label>
-                      <Switch id="show-weekends" defaultChecked />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="auto-refresh">Auto-refresh Calendar (every 5 minutes)</Label>
-                      <Switch id="auto-refresh" defaultChecked />
-                    </div>
-                  </div>
-                  
-                  <div className="pt-2 text-sm text-muted-foreground">
-                    <p>Additional customization options will be available in future updates.</p>
                   </div>
                   
                   <Button>Save Changes</Button>
