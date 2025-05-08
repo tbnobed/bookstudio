@@ -357,6 +357,14 @@ export default function WeeklyCalendar({
           alert={editBooking}
         />
       )}
+
+      {/* New Booking Modal - for creating a booking from a cell click */}
+      <BookingModal
+        isOpen={isNewBookingModalOpen}
+        onClose={() => setIsNewBookingModalOpen(false)}
+        selectedStudio={newBookingStudio !== null ? newBookingStudio : undefined}
+        selectedDate={newBookingDate !== null ? newBookingDate : undefined}
+      />
     </>
   );
 }
