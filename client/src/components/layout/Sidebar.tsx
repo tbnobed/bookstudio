@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPath from "../../assets/logo.png";
 
 type SidebarProps = {
