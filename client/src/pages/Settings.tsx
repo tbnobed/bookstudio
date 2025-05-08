@@ -58,12 +58,12 @@ function SiteNameForm() {
   
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
           name="siteName"
           render={({ field }) => (
-            <FormItem className="space-y-1">
+            <FormItem>
               <FormLabel>Site Name</FormLabel>
               <div className="flex items-center gap-2">
                 <FormControl>
@@ -73,7 +73,7 @@ function SiteNameForm() {
                   {isUpdating ? "Updating..." : "Save"}
                 </Button>
               </div>
-              <FormDescription className="text-xs">
+              <FormDescription className="text-xs mt-1">
                 Displayed in the sidebar and browser title
               </FormDescription>
               <FormMessage />
