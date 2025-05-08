@@ -27,30 +27,57 @@ export default function StudioUsageChart({
     
     switch (selectedTimeframe) {
       case "week":
-        start = subtractDays(now, 7);
-        end = now;
+        // Get start of week (Sunday)
+        start = new Date(now);
+        start.setDate(now.getDate() - now.getDay() - 7); // Go back to the previous week's Sunday
+        start.setHours(0, 0, 0, 0);
+        
+        // Get end of week (Saturday)
+        end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        end.setHours(23, 59, 59, 999);
         break;
       case "month":
-        start = subtractMonths(now, 1);
-        end = now;
+        // Last 30 days
+        start = subtractDays(now, 30);
+        start.setHours(0, 0, 0, 0);
+        end = new Date(now);
+        end.setHours(23, 59, 59, 999);
         break;
       case "year":
-        start = new Date(now.getFullYear(), 0, 1); // Start of current year
-        end = now;
+        // Start of year
+        start = new Date(now.getFullYear(), 0, 1); // January 1st
+        start.setHours(0, 0, 0, 0);
+        end = new Date(now);
+        end.setHours(23, 59, 59, 999);
         break;
       default:
-        start = subtractMonths(now, 1);
-        end = now;
+        // Last 30 days by default
+        start = subtractDays(now, 30);
+        start.setHours(0, 0, 0, 0);
+        end = new Date(now);
+        end.setHours(23, 59, 59, 999);
     }
     
+    console.log(`StudioUsageChart - Date range: ${start.toISOString()} to ${end.toISOString()}`);
     return { start, end };
   };
 
   // Fetch bookings data
   const { start, end } = getDateRange();
   
+  // Ensure typesafe onSuccess handling
   const { data: bookings = [] } = useQuery<Booking[]>({
-    queryKey: [`/api/bookings?start=${start.toISOString()}&end=${end.toISOString()}`],
+    queryKey: ["/api/bookings", start.toISOString(), end.toISOString()],
+    queryFn: async () => {
+      const response = await fetch(`/api/bookings?start=${start.toISOString()}&end=${end.toISOString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch bookings');
+      }
+      const data = await response.json();
+      console.log(`StudioUsageChart - Fetched ${data.length} bookings from ${start.toISOString()} to ${end.toISOString()}`);
+      return data;
+    }
   });
 
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -59,6 +86,15 @@ export default function StudioUsageChart({
   
   const { data: bookingStudios = [] } = useQuery<BookingStudio[]>({
     queryKey: ["/api/booking-studios"],
+    queryFn: async () => {
+      const response = await fetch('/api/booking-studios');
+      if (!response.ok) {
+        throw new Error('Failed to fetch booking-studio links');
+      }
+      const data = await response.json();
+      console.log(`StudioUsageChart - Fetched ${data.length} booking-studio links`);
+      return data;
+    }
   });
   
   // Process booking-studio relationships
@@ -79,19 +115,34 @@ export default function StudioUsageChart({
 
   // Process data for charts
   useEffect(() => {
-    if (!bookings.length || !studios.length) return;
+    console.log("StudioUsageChart - Processing data for charts", {
+      bookingsCount: bookings.length,
+      studiosCount: studios.length,
+      bookingStudiosCount: Object.keys(bookingStudioMap).length,
+      selectedView,
+      selectedTimeframe,
+      startDate: start.toISOString(),
+      endDate: end.toISOString()
+    });
+    
+    if (!bookings.length || !studios.length) {
+      console.log("StudioUsageChart - No bookings or studios available");
+      return;
+    }
     
     if (selectedView === "bar" || selectedView === "line") {
       // For bar chart, count bookings per studio
       const studioUsage = studios.map(studio => {
         // Count legacy single studio bookings
         const directBookings = bookings.filter(booking => booking.studioId === studio.id);
+        console.log(`StudioUsageChart - Direct bookings for studio ${studio.name}:`, directBookings.length);
         
         // Count bookings from the junction table
         const junctionBookings = bookings.filter(booking => {
           const studioIds = bookingStudioMap[booking.id] || [];
           return studioIds.includes(studio.id);
         });
+        console.log(`StudioUsageChart - Junction bookings for studio ${studio.name}:`, junctionBookings.length);
         
         // Combine both types to get all bookings for this studio
         const allStudioBookings = [...directBookings];
@@ -119,7 +170,15 @@ export default function StudioUsageChart({
       // Sort by usage
       studioUsage.sort((a, b) => b.bookings - a.bookings);
       
-      setChartData(studioUsage);
+      console.log("StudioUsageChart - Final chart data:", studioUsage);
+      
+      // Create at least one dummy data point if no real data is available
+      if (studioUsage.every(item => item.bookings === 0 && item.hours === 0)) {
+        console.log("StudioUsageChart - No actual booking data, clearing chart");
+        setChartData([]);
+      } else {
+        setChartData(studioUsage);
+      }
     } else if (selectedView === "pie") {
       // For pie chart, group by booking type
       const typeCount: Record<string, number> = {};
@@ -137,9 +196,15 @@ export default function StudioUsageChart({
         value,
       }));
       
+      console.log("StudioUsageChart - Pie chart data:", pieData);
+      
+      if (pieData.length === 0) {
+        console.log("StudioUsageChart - No data for pie chart");
+      }
+      
       setChartData(pieData);
     }
-  }, [bookings, studios, bookingStudioMap, selectedView, selectedTimeframe]);
+  }, [bookings, studios, bookingStudioMap, selectedView, selectedTimeframe, start, end]);
 
   // Colors for the pie chart
   const COLORS = ['#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#EF4444'];
@@ -175,12 +240,21 @@ export default function StudioUsageChart({
     return null;
   };
 
+  // Type-safe select handlers
+  const handleTimeframeChange = (value: string) => {
+    setSelectedTimeframe(value as "week" | "month" | "year");
+  };
+
+  const handleViewChange = (value: string) => {
+    setSelectedView(value as "bar" | "pie" | "line");
+  };
+
   return (
     <Card className="w-full h-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-md font-medium">Studio Usage - {getTimeframeTitle()}</CardTitle>
         <div className="flex gap-2">
-          <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+          <Select value={selectedTimeframe} onValueChange={handleTimeframeChange}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
@@ -191,7 +265,7 @@ export default function StudioUsageChart({
             </SelectContent>
           </Select>
           
-          <Select value={selectedView} onValueChange={setSelectedView}>
+          <Select value={selectedView} onValueChange={handleViewChange}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Chart Type" />
             </SelectTrigger>
