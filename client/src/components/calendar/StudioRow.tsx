@@ -305,16 +305,26 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                 colorClass = "border"; // Keep only the border class, we'll style it with inline styles
               }
               
-              // Set a consistent fixed position for the first booking regardless of count
-              // This ensures bookings always appear in the same position when the count changes
-              let topPosition = 4 + (bookingIndex * 44); 
+              // Create a stable position mapping using booking IDs to ensure consistent positions
+              // This is key to prevent layout shifts when opening/closing modals
+              const bookingPositions = useMemo(() => {
+                // Create a mapping of booking IDs to fixed positions
+                // This ensures that a booking always appears at the same position
+                const positions = new Map();
+                
+                // Sort bookings by ID to ensure consistent order
+                const sortedBookings = [...dayBookings].sort((a, b) => a.id - b.id);
+                
+                // Assign positions to each booking
+                sortedBookings.forEach((b, idx) => {
+                  positions.set(b.id, 4 + (idx * 44));
+                });
+                
+                return positions;
+              }, [dayBookings.map(b => b.id).join(',')]);
               
-              // If we have more than 10 bookings, adjust the spacing to be more compact
-              if (dayBookings.length > 10) {
-                topPosition = 4 + (bookingIndex * 34); // Spacing for dense days
-              } else if (dayBookings.length > 5) {
-                topPosition = 4 + (bookingIndex * 38); // Spacing for medium density days
-              }
+              // Get the stable position for this booking
+              let topPosition = bookingPositions.get(booking.id) || 4;
               
               console.log(`Booking ${booking.title} in ${studio.name} on ${date.toDateString()} - position: ${topPosition}px`);
               
