@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import StudioUsageChart from "@/components/reports/StudioUsageChart";
 import { useQuery } from "@tanstack/react-query";
-import { Booking, Studio } from "@shared/schema";
+import { Booking, Studio, BookingStudio } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate, formatTimeRange } from "@/lib/dateUtils";
@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 export default function ReportsPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const { user } = useAuth();
+  const [bookingStudioMap, setBookingStudioMap] = useState<Record<number, number[]>>({});
   
   // Get date range for this month
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -25,6 +26,26 @@ export default function ReportsPage() {
     queryKey: ["/api/studios"],
   });
 
+  const { data: bookingStudios = [] } = useQuery<BookingStudio[]>({
+    queryKey: ["/api/booking-studios"],
+  });
+
+  // Process booking-studio relationships
+  useEffect(() => {
+    if (bookingStudios.length > 0) {
+      const studioMap: Record<number, number[]> = {};
+      
+      bookingStudios.forEach(bs => {
+        if (!studioMap[bs.bookingId]) {
+          studioMap[bs.bookingId] = [];
+        }
+        studioMap[bs.bookingId].push(bs.studioId);
+      });
+      
+      setBookingStudioMap(studioMap);
+    }
+  }, [bookingStudios]);
+
   // Calculate key metrics
   const totalBookings = bookings.length;
   
@@ -32,7 +53,9 @@ export default function ReportsPage() {
     const start = new Date(booking.start);
     const end = new Date(booking.end);
     const durationInHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    return total + durationInHours;
+    // Multiply by the number of studios if it's a multi-studio booking
+    const studioCount = bookingStudioMap[booking.id]?.length || 1;
+    return total + (durationInHours * studioCount);
   }, 0);
   
   const bookingsByType = bookings.reduce((acc, booking) => {
@@ -40,12 +63,27 @@ export default function ReportsPage() {
     return acc;
   }, {} as Record<string, number>);
   
-  const mostBookedStudio = studios.length > 0 ? 
-    studios.map(studio => ({
+  // Calculate most booked studio
+  const studioBookingCounts = studios.map(studio => {
+    // Count direct bookings (legacy)
+    let directBookings = bookings.filter(b => b.studioId === studio.id).length;
+    
+    // Count bookings via junction table
+    let junctionBookings = 0;
+    Object.entries(bookingStudioMap).forEach(([bookingId, studioIds]) => {
+      if (studioIds.includes(studio.id)) {
+        junctionBookings++;
+      }
+    });
+    
+    return {
       studio,
-      bookings: bookings.filter(b => b.studioId === studio.id).length
-    }))
-    .sort((a, b) => b.bookings - a.bookings)[0]?.studio
+      bookings: directBookings + junctionBookings
+    };
+  });
+  
+  const mostBookedStudio = studioBookingCounts.length > 0 ? 
+    studioBookingCounts.sort((a, b) => b.bookings - a.bookings)[0]?.studio
     : null;
 
   // Format booking type for display
@@ -55,10 +93,26 @@ export default function ReportsPage() {
     ).join(" ");
   };
 
-  // Get studio name by ID
-  const getStudioName = (studioId: number) => {
-    const studio = studios.find(s => s.id === studioId);
-    return studio ? studio.name : `Studio ${studioId}`;
+  // Get studio name by ID - supports multi-studio bookings
+  const getStudioName = (bookingId: number) => {
+    // If using multi-studio bookings
+    if (bookingStudioMap[bookingId] && bookingStudioMap[bookingId].length > 0) {
+      const studioNames = bookingStudioMap[bookingId].map(studioId => {
+        const studio = studios.find(s => s.id === studioId);
+        return studio ? studio.name : `Studio ${studioId}`;
+      });
+      
+      return studioNames.join(", ");
+    }
+    
+    // Legacy single studio booking
+    const booking = bookings.find(b => b.id === bookingId);
+    if (booking && booking.studioId) {
+      const studio = studios.find(s => s.id === booking.studioId);
+      return studio ? studio.name : `Studio ${booking.studioId}`;
+    }
+    
+    return "No Studio";
   };
 
   // Get color for booking type
@@ -202,7 +256,7 @@ export default function ReportsPage() {
                                 {formatBookingType(booking.type)}
                               </span>
                             </td>
-                            <td className="py-3 px-4">{getStudioName(booking.studioId)}</td>
+                            <td className="py-3 px-4">{getStudioName(booking.id)}</td>
                             <td className="py-3 px-4">{formatDate(booking.start)}</td>
                             <td className="py-3 px-4">{formatTimeRange(booking.start, booking.end)}</td>
                           </tr>
@@ -242,7 +296,7 @@ export default function ReportsPage() {
                           .map(booking => (
                             <tr key={booking.id} className="border-b hover:bg-gray-50">
                               <td className="py-3 px-4">{booking.title}</td>
-                              <td className="py-3 px-4">{getStudioName(booking.studioId)}</td>
+                              <td className="py-3 px-4">{getStudioName(booking.id)}</td>
                               <td className="py-3 px-4">{formatDate(booking.start)}</td>
                               <td className="py-3 px-4">{formatTimeRange(booking.start, booking.end)}</td>
                             </tr>
@@ -283,7 +337,7 @@ export default function ReportsPage() {
                           .map(booking => (
                             <tr key={booking.id} className="border-b hover:bg-gray-50">
                               <td className="py-3 px-4">{booking.title}</td>
-                              <td className="py-3 px-4">{getStudioName(booking.studioId)}</td>
+                              <td className="py-3 px-4">{getStudioName(booking.id)}</td>
                               <td className="py-3 px-4">{formatDate(booking.start)}</td>
                               <td className="py-3 px-4">{formatTimeRange(booking.start, booking.end)}</td>
                             </tr>
