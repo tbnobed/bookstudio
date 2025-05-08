@@ -364,6 +364,8 @@ export default function BookingModal({
     if (value && value !== "0") {
       const selectedTemplate = templates.find(t => t.id === parseInt(value));
       if (selectedTemplate) {
+        console.log("Selected template:", selectedTemplate);
+        
         // Pre-fill form with template data
         updateFormField('title', selectedTemplate.name);
         updateFormField('description', selectedTemplate.description || "");
@@ -377,6 +379,37 @@ export default function BookingModal({
         let endHour = end.getHours();
         const endMinutes = end.getMinutes();
         const endPeriod = endHour >= 12 ? 'pm' : 'am';
+        
+        // Apply crew/notification groups if they exist
+        if (selectedTemplate.crewRequired && Array.isArray(selectedTemplate.crewRequired)) {
+          updateFormField('notifyList', selectedTemplate.crewRequired.map(id => id.toString()));
+        }
+        
+        // Check for additional template data in the equipment field
+        if (selectedTemplate.equipment && Array.isArray(selectedTemplate.equipment) && selectedTemplate.equipment.length > 0) {
+          const additionalData = selectedTemplate.equipment[0];
+          console.log("Found additional template data:", additionalData);
+          
+          // Apply Studios (if available)
+          if (additionalData.studioIds && Array.isArray(additionalData.studioIds)) {
+            updateFormField('studioIds', additionalData.studioIds.map(id => id.toString()));
+          }
+          
+          // Apply PCR Room (if available)
+          if (additionalData.pcrRoomId !== undefined && additionalData.pcrRoomId !== null) {
+            updateFormField('pcrRoomId', additionalData.pcrRoomId.toString());
+          }
+          
+          // Apply Status (if available)
+          if (additionalData.status) {
+            updateFormField('status', additionalData.status);
+          }
+          
+          // Apply Color (if available)
+          if (additionalData.color) {
+            updateFormField('color', additionalData.color);
+          }
+        }
         
         if (endHour > 12) {
           endHour -= 12;
@@ -525,12 +558,25 @@ export default function BookingModal({
           // Convert notification group IDs from strings to numbers for the template
           const crewRequiredAsNumbers = formData.notifyList.map(id => parseInt(id));
           
+          // Convert studioIds from strings to numbers
+          const studioIdsAsNumbers = formData.studioIds.map(id => parseInt(id));
+          
+          // Prepare the additional template data to be stored in the equipment field
+          // This includes all the fields requested by the user
+          const additionalData = {
+            studioIds: studioIdsAsNumbers,
+            pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "0" ? parseInt(formData.pcrRoomId) : null,
+            status: formData.status, // "confirmed", "tentative", "cancelled"
+            color: formData.color,
+          };
+          
           const templateData = {
             name: formData.templateName,
-            description: formData.description,
+            description: formData.description || "",
             type: formData.bookingType,
             duration: durationMinutes,
             crewRequired: crewRequiredAsNumbers,
+            equipment: [additionalData], // Store additional data in equipment field
             createdBy: 1 // Using 1 as admin for now
           };
           
@@ -605,15 +651,27 @@ export default function BookingModal({
     // Convert notification group IDs from strings to numbers for the template
     const notifyListAsNumbers = formData.notifyList.map(id => parseInt(id));
     
+    // Convert studioIds from strings to numbers
+    const studioIdsAsNumbers = formData.studioIds.map(id => parseInt(id));
+    
+    // Prepare the additional template data to be stored in the equipment field
+    // This includes all the fields requested by the user
+    const additionalData = {
+      studioIds: studioIdsAsNumbers,
+      pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "0" ? parseInt(formData.pcrRoomId) : null,
+      status: formData.status, // "confirmed", "tentative", "cancelled"
+      color: formData.color,
+    };
+    
     // Prepare template data according to the insertTemplateSchema
     const templateData = {
       name: formData.templateName,
-      description: formData.description || null,
-      type: formData.bookingType,
+      description: formData.description || "",
+      type: formData.bookingType,  // Type of booking (production, maintenance, etc.)
       duration: durationMinutes,
-      crewRequired: notifyListAsNumbers,
-      equipment: [], // Empty equipment array as it's not used in the booking form
-      // The createdBy field will be set on the server from the authenticated user
+      crewRequired: notifyListAsNumbers, // Store notification groups
+      equipment: [additionalData], // Store additional data in the equipment field
+      createdBy: 1, // This will be overridden by the server with the actual user ID
     };
     
     try {
