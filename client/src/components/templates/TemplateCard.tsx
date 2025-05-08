@@ -56,7 +56,32 @@ export default function TemplateCard({
   
   // Get correct notification group names
   const renderNotificationGroups = () => {
-    if (!template.crewRequired || !Array.isArray(template.crewRequired) || template.crewRequired.length === 0) {
+    if (!template.crewRequired) {
+      return null;
+    }
+    
+    // Handle different potential types of crewRequired
+    let crewItems: any[] = [];
+    
+    if (Array.isArray(template.crewRequired)) {
+      crewItems = template.crewRequired;
+    } else if (typeof template.crewRequired === 'object') {
+      // Try to convert object to array for rendering
+      try {
+        const crewObj = template.crewRequired as any;
+        if (crewObj.notificationGroups && Array.isArray(crewObj.notificationGroups)) {
+          crewItems = crewObj.notificationGroups;
+        } else {
+          // Fallback - try to display object keys
+          crewItems = Object.keys(crewObj).map(key => ({name: key}));
+        }
+      } catch (e) {
+        console.error("Error processing template notification groups", e);
+        return null;
+      }
+    }
+    
+    if (crewItems.length === 0) {
       return null;
     }
     
@@ -64,9 +89,11 @@ export default function TemplateCard({
       <div className="mb-4">
         <p className="text-xs font-semibold text-gray-500 mb-1">Notification Groups:</p>
         <div className="flex flex-wrap gap-1">
-          {template.crewRequired.map((crew, index) => (
+          {crewItems.map((crew, index) => (
             <Badge key={index} variant="secondary" className="text-xs">
-              {typeof crew === 'object' ? JSON.stringify(crew) : String(crew)}
+              {typeof crew === 'object' 
+                ? (crew.name || crew.id || JSON.stringify(crew)) 
+                : String(crew)}
             </Badge>
           ))}
         </div>
@@ -77,6 +104,7 @@ export default function TemplateCard({
   // Check if we have additional template data
   const hasAdditionalData = () => {
     return template.equipment && 
+           typeof template.equipment === 'object' && 
            Array.isArray(template.equipment) && 
            template.equipment.length > 0 && 
            typeof template.equipment[0] === 'object';
@@ -86,7 +114,8 @@ export default function TemplateCard({
   const renderConfigSummary = () => {
     if (!hasAdditionalData()) return null;
     
-    const additionalData = template.equipment[0];
+    // Use type assertion since TypeScript can't know the structure
+    const additionalData = (template.equipment as any)[0];
     
     let settings = [];
     if (additionalData.studioIds && Array.isArray(additionalData.studioIds)) {

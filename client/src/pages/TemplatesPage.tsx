@@ -2,10 +2,9 @@ import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Template } from "@shared/schema";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import TemplateForm from "@/components/templates/TemplateForm";
+import TemplateCard from "@/components/templates/TemplateCard";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -164,50 +163,11 @@ export default function TemplatesPage() {
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {otherTemplates.map(template => (
-                  <Card key={template.id} className="overflow-hidden">
-                    <div className={`h-2 ${getTemplateTypeColor(template.type).split(" ")[0]}`}></div>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-lg">{template.name}</h3>
-                        <Badge variant="outline" className={getTemplateTypeColor(template.type)}>
-                          {formatTemplateType(template.type)}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-500 mb-2">Duration: {formatDuration(template.duration)}</p>
-                      
-                      {template.description && (
-                        <p className="text-sm text-gray-600 mb-4">{template.description}</p>
-                      )}
-                      
-                      {/* Required Crew */}
-                      {template.crewRequired && (template.crewRequired as string[]).length > 0 && (
-                        <div className="mb-4">
-                          <p className="text-xs font-semibold text-gray-500 mb-1">Required Crew:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {(template.crewRequired as string[]).map((crew, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {crew}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Equipment */}
-                      {template.equipment && (template.equipment as string[]).length > 0 && (
-                        <div className="mb-4">
-                          <p className="text-xs font-semibold text-gray-500 mb-1">Equipment:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {(template.equipment as string[]).map((item, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {item}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <TemplateCard 
+                    key={template.id}
+                    template={template}
+                    isEditable={false}
+                  />
                 ))}
               </div>
             )}
