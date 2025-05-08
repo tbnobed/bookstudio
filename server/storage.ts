@@ -1316,6 +1316,26 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async updatePcrRoom(id: number, updateData: Partial<Omit<PcrRoom, 'id'>>): Promise<PcrRoom | undefined> {
+    try {
+      // Don't allow changing id
+      const { id: _, ...dataToUpdate } = updateData as any;
+      
+      const [updatedPcrRoom] = await db.update(pcrRooms)
+        .set(dataToUpdate)
+        .where(eq(pcrRooms.id, id))
+        .returning();
+      
+      if (updatedPcrRoom) {
+        this.pcrRooms.set(id, updatedPcrRoom);
+      }
+      return updatedPcrRoom;
+    } catch (error) {
+      console.error(`Error updating PCR room with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
   async deletePcrRoom(id: number): Promise<boolean> {
     try {
       // First check if PCR room exists

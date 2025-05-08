@@ -1,7 +1,6 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,6 +39,23 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
     }
   });
 
+  // Update form when pcrRoom changes
+  useEffect(() => {
+    if (pcrRoom) {
+      form.reset({
+        name: pcrRoom.name,
+        description: pcrRoom.description,
+        status: pcrRoom.status
+      });
+    } else {
+      form.reset({
+        name: "",
+        description: "",
+        status: "available"
+      });
+    }
+  }, [pcrRoom, form]);
+
   // Create PCR Room mutation
   const createPcrRoomMutation = useMutation({
     mutationFn: async (data: InsertPcrRoom) => {
@@ -64,26 +80,30 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
       });
     },
   });
-
-  // Update PCR Room status mutation
-  const updatePcrRoomMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      const res = await apiRequest("PATCH", `/api/pcr-rooms/${id}/status`, { status });
+  
+  // Update PCR Room with full data mutation
+  const updateFullPcrRoomMutation = useMutation({
+    mutationFn: async (data: { id: number; description: string | null; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/pcr-rooms/${data.id}`, {
+        description: data.description,
+        status: data.status
+      });
       return await res.json();
     },
     onSuccess: () => {
       toast({
         title: "PCR Room updated",
-        description: "PCR Room status has been updated successfully",
+        description: "PCR Room has been updated successfully",
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/pcr-rooms"] });
       onClose();
+      form.reset();
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to update PCR Room status",
+        description: error.message || "Failed to update PCR Room",
         variant: "destructive",
       });
     },
@@ -92,8 +112,12 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
   // Form submission handler
   const onSubmit = async (data: z.infer<typeof pcrRoomSchema>) => {
     if (isEditMode && pcrRoom) {
-      // Only update the status for now
-      updatePcrRoomMutation.mutate({ id: pcrRoom.id, status: data.status });
+      // Update the PCR room with all form data
+      updateFullPcrRoomMutation.mutate({ 
+        id: pcrRoom.id, 
+        description: data.description, 
+        status: data.status 
+      });
     } else {
       // Create new PCR Room
       createPcrRoomMutation.mutate(data);
@@ -107,7 +131,7 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
           <DialogTitle>{isEditMode ? `Edit PCR Room: ${pcrRoom?.name}` : "Add PCR Room"}</DialogTitle>
           <DialogDescription>
             {isEditMode 
-              ? "Update the status of this PCR Room" 
+              ? "Update the PCR Room" 
               : "Add a new Production Control Room to the system"}
           </DialogDescription>
         </DialogHeader>
@@ -181,15 +205,15 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
                 type="button" 
                 variant="outline" 
                 onClick={onClose}
-                disabled={createPcrRoomMutation.isPending || updatePcrRoomMutation.isPending}
+                disabled={createPcrRoomMutation.isPending || updateFullPcrRoomMutation.isPending}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit"
-                disabled={createPcrRoomMutation.isPending || updatePcrRoomMutation.isPending}
+                disabled={createPcrRoomMutation.isPending || updateFullPcrRoomMutation.isPending}
               >
-                {createPcrRoomMutation.isPending || updatePcrRoomMutation.isPending 
+                {createPcrRoomMutation.isPending || updateFullPcrRoomMutation.isPending 
                   ? "Processing..." 
                   : isEditMode ? "Update" : "Create"}
               </Button>

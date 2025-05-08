@@ -505,6 +505,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.patch("/api/pcr-rooms/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      // Allow updating description and status
+      const updateSchema = z.object({
+        description: z.string().nullable().optional(),
+        status: z.string().optional()
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      
+      const updatedPcrRoom = await storage.updatePcrRoom(id, updateData);
+      if (!updatedPcrRoom) {
+        return res.status(404).json({ message: "PCR room not found" });
+      }
+      
+      res.json(updatedPcrRoom);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid PCR room data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update PCR room" });
+    }
+  });
+  
   app.delete("/api/pcr-rooms/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
