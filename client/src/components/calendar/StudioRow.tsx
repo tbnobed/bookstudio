@@ -1,8 +1,7 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio, PcrRoom, BookingStudio } from "@shared/schema";
 import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
-import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
@@ -64,8 +63,8 @@ function getStudioStatus(studio: Studio, bookings: Booking[], bookingStudioLinks
 }
 
 export default function StudioRow({ studio, weekDates, bookings, onBookingClick, readOnly = false }: StudioRowProps) {
-  const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  // Remove state from the component to prevent re-renders
+  // State will be managed by the parent WeeklyCalendar component
   
   // Fetch all booking-studio links to determine which bookings are associated with this studio via junction table
   // Use public endpoint if in readOnly mode (public calendar view)
@@ -145,8 +144,20 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       return;
     }
     
-    setSelectedDate(date);
-    setIsNewBookingModalOpen(true);
+    // Pass the click event up to the parent component via onBookingClick
+    const startDate = date;
+    const endDate = new Date(date.getTime() + 60 * 60 * 1000); // Default 1 hour
+    
+    onBookingClick({
+      id: 0, // Temporary ID for new booking
+      title: "New Booking",
+      start: startDate,
+      end: endDate,
+      studioId: studio.id,
+      type: "production",
+      description: "",
+      userId: 0
+    });
   };
 
   return (
@@ -305,24 +316,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                 colorClass = "border"; // Keep only the border class, we'll style it with inline styles
               }
               
-              // Use the booking ID itself for position calculation to ensure maximum stability
-              // This approach creates consistent positions that won't shift when modals open/close
-              // We use modulo on ID to handle very large IDs gracefully
-              
-              // Calculate an index position based on booking ID (completely stable value)
-              // Sort bookings by ID to ensure consistent ordering
-              const sortedBookingIds = [...dayBookings].sort((a, b) => a.id - b.id).map(b => b.id);
-              const stableIndex = sortedBookingIds.indexOf(booking.id);
-              
-              // Use a standard spacing calculation but adjust it for density
-              let spacing = 44; // Default spacing
-              if (dayBookings.length > 10) {
-                spacing = 34; // Tighter spacing for dense days
-              } else if (dayBookings.length > 5) {
-                spacing = 38; // Medium spacing
-              }
-              
-              let topPosition = 4 + (stableIndex * spacing);
+              // Use simple index-based positioning
+              // This is the simplest, most reliable approach
+              const index = dayBookings.findIndex(b => b.id === booking.id);
+              let topPosition = 4 + (index * 44);
               
               console.log(`Booking ${booking.title} in ${studio.name} on ${date.toDateString()} - position: ${topPosition}px`);
               
@@ -442,16 +439,6 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
           </div>
         );
       })}
-
-      {/* New Booking Modal */}
-      {selectedDate && (
-        <BookingModal 
-          isOpen={isNewBookingModalOpen}
-          onClose={() => setIsNewBookingModalOpen(false)}
-          selectedDate={selectedDate}
-          selectedStudio={studio.id}
-        />
-      )}
     </>
   );
 }
