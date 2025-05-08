@@ -218,6 +218,25 @@ export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSc
 export type InviteToken = typeof inviteTokens.$inferSelect;
 export type InsertInviteToken = z.infer<typeof insertInviteTokenSchema>;
 
+// System Settings schema
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSystemSettingsSchema = createInsertSchema(systemSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Type exports for system settings
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = z.infer<typeof insertSystemSettingsSchema>;
+
 // File Attachments schema
 export const fileAttachments = pgTable("file_attachments", {
   id: serial("id").primaryKey(),
