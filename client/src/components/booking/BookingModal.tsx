@@ -122,111 +122,133 @@ export default function BookingModal({
     }
   };
 
+  // Create dummy booking for new booking modal to use same code path
+  const createDummyBooking = () => {
+    // Calculate time range: default to 9am-10am
+    const startTime = new Date(selectedDate);
+    startTime.setHours(9, 0, 0, 0);
+    
+    const endTime = new Date(selectedDate);
+    endTime.setHours(10, 0, 0, 0);
+    
+    // Select default studio
+    const defaultStudioId = selectedStudio || (studios.length > 0 ? studios[0].id : null);
+    
+    return {
+      id: 0, // Dummy ID for new booking
+      title: "",
+      description: "",
+      studioId: defaultStudioId,
+      studio_id: defaultStudioId,
+      pcrRoomId: 0,
+      pcr_room_id: 0,
+      type: alertsOnly ? "maintenance" : "production",
+      start: startTime.toISOString(),
+      end: endTime.toISOString(),
+      templateId: 0,
+      template_id: 0,
+      notifyList: [],
+      notify_list: [],
+      severity: "medium",
+      color: "#4B83E2" // Default blue
+    };
+  };
+  
   // Initialize form when modal opens
   useEffect(() => {
     if (isOpen && !formInitializedRef.current) {
+      // Use actual booking for edit mode or create a dummy booking for new mode
+      const bookingToUse = booking || createDummyBooking();
+      
+      console.log("Populating form with booking data:", bookingToUse);
+      
+      // Create normalized booking object
+      const normalizedBooking = {
+        id: bookingToUse.id,
+        title: bookingToUse.title || "",
+        description: bookingToUse.description || "",
+        studioId: (bookingToUse.studioId !== undefined 
+          ? bookingToUse.studioId 
+          : bookingToUse.studio_id) || null,
+        pcrRoomId: (bookingToUse.pcrRoomId !== undefined 
+          ? bookingToUse.pcrRoomId 
+          : bookingToUse.pcr_room_id) || null,
+        type: bookingToUse.type || "",
+        start: bookingToUse.start,
+        end: bookingToUse.end,
+        templateId: (bookingToUse.templateId !== undefined 
+          ? bookingToUse.templateId 
+          : bookingToUse.template_id) || null,
+        notifyList: (bookingToUse.notifyList !== undefined 
+          ? bookingToUse.notifyList 
+          : bookingToUse.notify_list) || [],
+        severity: bookingToUse.severity || "medium",
+        color: bookingToUse.color || "#4B83E2" // Use booking color or default blue
+      };
+      
+      // Clean all-day prefix from type
+      const bookingType = normalizedBooking.type.replace("all-day:", "");
+      
+      // Format date and times - use local formatting to avoid timezone issues
+      const bookingDate = new Date(normalizedBooking.start);
+      const dateStr = formatDateForForm(bookingDate);
+      const startTimeStr = formatTime(normalizedBooking.start).toLowerCase().replace(" ", "");
+      const endTimeStr = formatTime(normalizedBooking.end).toLowerCase().replace(" ", "");
+      
+      // For debugging
       if (booking) {
-        // Edit mode - populate form with booking data
-        console.log("Populating form with booking data:", booking);
-        
-        // Create normalized booking object
-        const normalizedBooking = {
-          id: booking.id,
-          title: booking.title || "",
-          description: booking.description || "",
-          studioId: (booking.studioId !== undefined 
-            ? booking.studioId 
-            : booking.studio_id) || null,
-          pcrRoomId: (booking.pcrRoomId !== undefined 
-            ? booking.pcrRoomId 
-            : booking.pcr_room_id) || null,
-          type: booking.type || "",
-          start: booking.start,
-          end: booking.end,
-          templateId: (booking.templateId !== undefined 
-            ? booking.templateId 
-            : booking.template_id) || null,
-          notifyList: (booking.notifyList !== undefined 
-            ? booking.notifyList 
-            : booking.notify_list) || [],
-          severity: booking.severity || "medium",
-          color: booking.color || "#4B83E2" // Use booking color or default blue
-        };
-        
-        // Clean all-day prefix from type
-        const bookingType = normalizedBooking.type.replace("all-day:", "");
-        
-        // Format date and times - use local formatting to avoid timezone issues
-        const bookingDate = new Date(normalizedBooking.start);
-        const dateStr = formatDateForForm(bookingDate);
-        const startTimeStr = formatTime(normalizedBooking.start).toLowerCase().replace(" ", "");
-        const endTimeStr = formatTime(normalizedBooking.end).toLowerCase().replace(" ", "");
-        
         console.log(`Booking ${normalizedBooking.id}: Original date ${normalizedBooking.start}, converted to form date ${dateStr}`);
+      }
+      
+      // Initialize the form with studios
+      const initializeFormWithStudios = async () => {
+        // Default to main studioId (or selectedStudio) as an array
+        let studioIds = [];
         
-        // Fetch linked studios for this booking
-        const initializeFormWithStudios = async () => {
-          // Default to main studioId
-          let studioIds = normalizedBooking.studioId ? [normalizedBooking.studioId.toString()] : [];
-          
+        if (booking) {
+          // For edit mode: try to fetch linked studios 
           try {
-            // Try to fetch linked studios from the junction table
             studioIds = await fetchBookingStudios(normalizedBooking.id);
             console.log(`Setting up form with linked studios:`, studioIds);
           } catch (error) {
             console.error("Error fetching linked studios:", error);
-            // Fall back to the main studioId if there's an error
+            // Fall back to the main studioId
+            studioIds = normalizedBooking.studioId ? [normalizedBooking.studioId.toString()] : [];
           }
-          
-          // Set form data with the fetched studio IDs
-          setFormData({
-            title: normalizedBooking.title,
-            description: normalizedBooking.description,
-            studioId: normalizedBooking.studioId ? normalizedBooking.studioId.toString() : "",
-            studioIds: studioIds.length > 0 ? studioIds : [], 
-            pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "",
-            bookingType,
-            date: dateStr,
-            startTime: startTimeStr,
-            endTime: endTimeStr,
-            templateId: normalizedBooking.templateId ? normalizedBooking.templateId.toString() : "",
-            notifyList: normalizedBooking.notifyList,
-            saveAsTemplate: false,
-            templateName: "",
-            severity: normalizedBooking.severity,
-            color: normalizedBooking.color || defaultValues.color // Use normalized booking color or default
-          });
-        };
-        
-        initializeFormWithStudios();
-      } else {
-        // Create mode - set defaults
-        const newFormData = { ...defaultValues };
-        
-        // Set selected date if provided
-        if (selectedDate) {
-          newFormData.date = formatDateForForm(selectedDate);
-          newFormData.startTime = "9:00am";
-          newFormData.endTime = "10:00am";
+        } else {
+          // For new booking mode: use selectedStudio or first available
+          studioIds = selectedStudio 
+            ? [selectedStudio.toString()]
+            : (studios.length > 0 ? [studios[0].id.toString()] : []);
         }
         
-        // Set selected studio if provided
-        if (selectedStudio) {
-          newFormData.studioId = selectedStudio.toString();
-          newFormData.studioIds = [selectedStudio.toString()];
-        } else if (studios.length > 0) {
-          // Set first studio as default if none selected
-          newFormData.studioId = studios[0].id.toString();
-          newFormData.studioIds = [studios[0].id.toString()];
-        }
-        
-        setFormData(newFormData);
-      }
+        // Set form data with consistent initialization for both new and edit modes
+        setFormData({
+          title: normalizedBooking.title,
+          description: normalizedBooking.description,
+          studioId: normalizedBooking.studioId ? normalizedBooking.studioId.toString() : "",
+          studioIds: studioIds.length > 0 ? studioIds : [], 
+          pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "0", // Use "0" as default
+          bookingType,
+          date: dateStr,
+          startTime: startTimeStr,
+          endTime: endTimeStr,
+          templateId: normalizedBooking.templateId ? normalizedBooking.templateId.toString() : "0", // Use "0" as default
+          notifyList: normalizedBooking.notifyList,
+          saveAsTemplate: false,
+          templateName: "",
+          severity: normalizedBooking.severity,
+          color: normalizedBooking.color || defaultValues.color
+        });
+      };
+      
+      // Initialize form with studios (both for new and edit mode)
+      initializeFormWithStudios();
       
       // Mark form as initialized
       formInitializedRef.current = true;
     }
-  }, [isOpen, booking, selectedDate, selectedStudio, studios]);
+  }, [isOpen, booking, selectedDate, selectedStudio, studios, alertsOnly]);
   
   // Reset form when modal closes
   useEffect(() => {
@@ -461,8 +483,8 @@ export default function BookingModal({
             </DialogTitle>
           </DialogHeader>
         
-          {booking && !alertsOnly ? (
-            // Tabbed interface for existing bookings
+          {!alertsOnly ? (
+            // Tabbed interface for standard bookings (both new and edit)
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="details">Booking Details</TabsTrigger>
@@ -768,7 +790,18 @@ export default function BookingModal({
               </TabsContent>
               
               <TabsContent value="attachments" className="pt-4">
-                <FileAttachmentList bookingId={booking.id} />
+                {booking ? (
+                  <FileAttachmentList bookingId={booking.id} />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <p className="text-muted-foreground mb-2">
+                      File attachments will be available after creating this booking.
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      Save the booking first, then you can attach files.
+                    </p>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           ) : (
