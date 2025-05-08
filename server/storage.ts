@@ -80,6 +80,8 @@ export interface IStorage {
   markNotificationAsRead(id: number): Promise<Notification | undefined>;
   
   // System Settings
+  getSiteName(): Promise<string>;
+  setSiteName(name: string): Promise<SystemSetting>;
   getSystemSetting(key: string): Promise<SystemSetting | undefined>;
   getAllSystemSettings(): Promise<SystemSetting[]>;
   upsertSystemSetting(data: InsertSystemSetting): Promise<SystemSetting>;
@@ -2223,6 +2225,137 @@ export class DatabaseStorage implements IStorage {
       return deletedCount > 0;
     } catch (error) {
       console.error(`Error deleting booking-studio links for booking ID ${bookingId}:`, error);
+      return false;
+    }
+  }
+  
+  // System Settings methods
+  async getSystemSetting(key: string): Promise<SystemSetting | undefined> {
+    try {
+      // Check memory cache first
+      if (this.systemSettings) {
+        const cachedSetting = Array.from(this.systemSettings.values()).find(
+          setting => setting.key === key
+        );
+        if (cachedSetting) {
+          return cachedSetting;
+        }
+      }
+      
+      // If not in cache, fetch from database
+      const [setting] = await db.select()
+        .from(systemSettings)
+        .where(eq(systemSettings.key, key));
+      
+      if (setting) {
+        // Add to cache
+        if (!this.systemSettings) {
+          this.systemSettings = new Map();
+        }
+        this.systemSettings.set(setting.id, setting);
+      }
+      
+      return setting;
+    } catch (error) {
+      console.error(`Error getting system setting with key ${key}:`, error);
+      return undefined;
+    }
+  }
+  
+  async getAllSystemSettings(): Promise<SystemSetting[]> {
+    try {
+      const settings = await db.select().from(systemSettings);
+      
+      // Update cache
+      if (!this.systemSettings) {
+        this.systemSettings = new Map();
+      }
+      
+      settings.forEach(setting => {
+        this.systemSettings.set(setting.id, setting);
+      });
+      
+      return settings;
+    } catch (error) {
+      console.error("Error getting all system settings:", error);
+      
+      // Fall back to memory cache if available
+      if (this.systemSettings) {
+        return Array.from(this.systemSettings.values());
+      }
+      return [];
+    }
+  }
+  
+  async upsertSystemSetting(data: InsertSystemSetting): Promise<SystemSetting> {
+    try {
+      // Check if setting already exists
+      const existingSetting = await this.getSystemSetting(data.key);
+      
+      if (existingSetting) {
+        // Update existing setting
+        const updatedSetting = await db.update(systemSettings)
+          .set({ 
+            value: data.value,
+            updatedAt: new Date()
+          })
+          .where(eq(systemSettings.key, data.key))
+          .returning();
+        
+        if (updatedSetting.length > 0) {
+          // Update cache
+          if (!this.systemSettings) {
+            this.systemSettings = new Map();
+          }
+          this.systemSettings.set(updatedSetting[0].id, updatedSetting[0]);
+          return updatedSetting[0];
+        }
+      }
+      
+      // Create new setting
+      const [newSetting] = await db.insert(systemSettings)
+        .values({
+          ...data,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      // Add to cache
+      if (!this.systemSettings) {
+        this.systemSettings = new Map();
+      }
+      this.systemSettings.set(newSetting.id, newSetting);
+      
+      return newSetting;
+    } catch (error) {
+      console.error(`Error upserting system setting with key ${data.key}:`, error);
+      throw new Error(`Failed to upsert system setting: ${error.message}`);
+    }
+  }
+  
+  async deleteSystemSetting(key: string): Promise<boolean> {
+    try {
+      // Delete from database
+      const result = await db.delete(systemSettings)
+        .where(eq(systemSettings.key, key))
+        .returning();
+      
+      const deletedCount = result.length;
+      
+      if (deletedCount > 0 && this.systemSettings) {
+        // Remove from cache if it exists
+        const settingToDelete = Array.from(this.systemSettings.values())
+          .find(setting => setting.key === key);
+        
+        if (settingToDelete) {
+          this.systemSettings.delete(settingToDelete.id);
+        }
+      }
+      
+      return deletedCount > 0;
+    } catch (error) {
+      console.error(`Error deleting system setting with key ${key}:`, error);
       return false;
     }
   }
