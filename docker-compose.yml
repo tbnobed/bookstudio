@@ -68,28 +68,11 @@ services:
           async function verifyTables() {
             try {
               // Check for system_settings table
-              const result = await pool.query(\\\"
-                SELECT EXISTS (
-                  SELECT FROM information_schema.tables 
-                  WHERE table_schema = 'public'
-                  AND table_name = 'system_settings'
-                );
-              \\\");
+              const result = await pool.query('SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = \\'public\\' AND table_name = \\'system_settings\\');');
               if (!result.rows[0].exists) {
                 console.error('system_settings table not found. Running emergency fix...');
-                await pool.query(\\\"
-                  CREATE TABLE IF NOT EXISTS system_settings (
-                    key TEXT PRIMARY KEY,
-                    value TEXT NOT NULL,
-                    description TEXT,
-                    updated_at TIMESTAMPTZ DEFAULT NOW()
-                  );
-                \\\");
-                await pool.query(\\\"
-                  INSERT INTO system_settings (key, value, description)
-                  VALUES ('siteName', 'The Plex Studios', 'The name of the facility displayed throughout the application')
-                  ON CONFLICT (key) DO NOTHING;
-                \\\");
+                await pool.query('CREATE TABLE IF NOT EXISTS system_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, description TEXT, updated_at TIMESTAMPTZ DEFAULT NOW());');
+                await pool.query('INSERT INTO system_settings (key, value, description) VALUES (\\'siteName\\', \\'The Plex Studios\\', \\'The name of the facility displayed throughout the application\\') ON CONFLICT (key) DO NOTHING;');
                 console.log('Emergency table creation complete');
               } else {
                 console.log('Database tables verified successfully');
