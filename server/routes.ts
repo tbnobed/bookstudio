@@ -1651,5 +1651,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System Settings routes
+  app.get("/api/system/site-name", async (req, res) => {
+    try {
+      const siteName = await storage.getSiteName();
+      res.json({ siteName });
+    } catch (error) {
+      console.error("Error getting site name:", error);
+      res.status(500).json({ message: "Failed to fetch site name" });
+    }
+  });
+
+  app.put("/api/system/site-name", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const { siteName } = req.body;
+      
+      if (!siteName || typeof siteName !== 'string') {
+        return res.status(400).json({ message: "Site name is required and must be a string" });
+      }
+      
+      const setting = await storage.setSiteName(siteName);
+      res.json({ siteName: setting.value, message: "Site name updated successfully" });
+    } catch (error) {
+      console.error("Error setting site name:", error);
+      res.status(500).json({ message: "Failed to update site name" });
+    }
+  });
+
+  app.get("/api/system/settings", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const settings = await storage.getAllSystemSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error getting all system settings:", error);
+      res.status(500).json({ message: "Failed to fetch system settings" });
+    }
+  });
+
   return httpServer;
 }
