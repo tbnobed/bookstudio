@@ -766,6 +766,18 @@ export class MemStorage implements IStorage {
   }
 
   // System Settings methods
+  async getSiteName(): Promise<string> {
+    const siteSetting = await this.getSystemSetting('siteName');
+    return siteSetting?.value || 'BookStud.io';
+  }
+  
+  async setSiteName(name: string): Promise<SystemSetting> {
+    return this.upsertSystemSetting({ 
+      key: 'siteName', 
+      value: name 
+    });
+  }
+  
   async getSystemSetting(key: string): Promise<SystemSetting | undefined> {
     return Array.from(this.systemSettings.values()).find(
       (setting) => setting.key === key
@@ -824,6 +836,7 @@ export class DatabaseStorage implements IStorage {
   private notificationGroups: Map<number, NotificationGroup>;
   private pcrRooms: Map<number, PcrRoom>;
   private bookingStudios: Map<string, BookingStudio>;
+  private systemSettings: Map<number, SystemSetting>;
   
   private userIdCounter: number;
   private studioIdCounter: number;
@@ -833,6 +846,7 @@ export class DatabaseStorage implements IStorage {
   private notificationGroupIdCounter: number;
   private pcrRoomIdCounter: number;
   private bookingStudioIdCounter: number;
+  private systemSettingIdCounter: number;
   
   public sessionStore: session.Store;
   
@@ -845,6 +859,7 @@ export class DatabaseStorage implements IStorage {
     this.notificationGroups = new Map();
     this.pcrRooms = new Map();
     this.bookingStudios = new Map();
+    this.systemSettings = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
@@ -854,6 +869,7 @@ export class DatabaseStorage implements IStorage {
     this.notificationGroupIdCounter = 1;
     this.pcrRoomIdCounter = 1;
     this.bookingStudioIdCounter = 1;
+    this.systemSettingIdCounter = 1;
     
     this.sessionStore = new PostgresSessionStore({
       pool,
@@ -2230,6 +2246,18 @@ export class DatabaseStorage implements IStorage {
   }
   
   // System Settings methods
+  async getSiteName(): Promise<string> {
+    const siteSetting = await this.getSystemSetting('siteName');
+    return siteSetting?.value || 'BookStud.io';
+  }
+  
+  async setSiteName(name: string): Promise<SystemSetting> {
+    return this.upsertSystemSetting({ 
+      key: 'siteName', 
+      value: name 
+    });
+  }
+  
   async getSystemSetting(key: string): Promise<SystemSetting | undefined> {
     try {
       // Check memory cache first
