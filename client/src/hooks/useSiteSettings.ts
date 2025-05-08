@@ -24,6 +24,10 @@ export function useSiteSettings() {
         return "BookStud.io";
       }
     },
+    // Set staleTime to 0 to always fetch the latest data
+    staleTime: 0,
+    // Refresh the data when the window regains focus
+    refetchOnWindowFocus: true,
   });
 
   const updateSiteNameMutation = useMutation({

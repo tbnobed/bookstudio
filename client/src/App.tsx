@@ -21,6 +21,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { useDevice } from "@/hooks/use-mobile";
 import MobileLayout from "@/components/layout/MobileLayout";
+import { DocumentTitle } from "@/components/global/DocumentTitle";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -110,6 +111,8 @@ function App() {
   return (
     <TimezoneProvider>
       <TooltipProvider>
+        {/* Add DocumentTitle to update the title when siteName changes */}
+        <DocumentTitle />
         <AppLayout>
           <Router />
         </AppLayout>
