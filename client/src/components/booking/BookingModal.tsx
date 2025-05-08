@@ -8,11 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { Studio, Template, PcrRoom, InsertBooking } from "@shared/schema";
+import { Studio, Template, PcrRoom, InsertBooking, NotificationGroup } from "@shared/schema";
 import { z } from "zod";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { formatTime, generateTimeOptions, timeToDate } from "@/lib/dateUtils";
-import { Copy } from "lucide-react";
+import { Copy, Mail, Users, BellRing, Tag } from "lucide-react";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { FileAttachmentList } from "./FileAttachmentList";
 import CopyBookingModal from "./CopyBookingModal";
@@ -139,6 +140,11 @@ export default function BookingModal({
   // Fetch PCR rooms
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
     queryKey: ["/api/pcr-rooms"],
+  });
+  
+  // Fetch notification groups
+  const { data: notificationGroups = [] } = useQuery<NotificationGroup[]>({
+    queryKey: ["/api/notification-groups"],
   });
 
   // Get booking and template mutations
@@ -804,6 +810,56 @@ export default function BookingModal({
                           </div>
                         )}
                         
+                        {/* Notification Groups section for edit view */}
+                        <div>
+                          <div className="flex items-center mb-1">
+                            <BellRing className="h-4 w-4 mr-1 text-primary" />
+                            <Label>Notification Groups</Label>
+                          </div>
+                          
+                          {notificationGroups.length === 0 ? (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              No notification groups available
+                            </p>
+                          ) : (
+                            <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                              {notificationGroups.map((group) => (
+                                <div key={group.id} className="flex items-center justify-between">
+                                  <div className="flex items-center">
+                                    {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
+                                    {group.groupType === 'lighting' && <Tag className="h-3.5 w-3.5 mr-1 text-yellow-500" />}
+                                    {group.groupType === 'sound' && <Tag className="h-3.5 w-3.5 mr-1 text-green-500" />}
+                                    {group.groupType === 'directors' && <Tag className="h-3.5 w-3.5 mr-1 text-purple-500" />}
+                                    {group.groupType === 'production' && <Tag className="h-3.5 w-3.5 mr-1 text-red-500" />}
+                                    {group.groupType === 'engineering' && <Tag className="h-3.5 w-3.5 mr-1 text-orange-500" />}
+                                    <span className="text-xs">{group.name}</span>
+                                  </div>
+                                  <Checkbox
+                                    id={`notify-group-edit-${group.id}`}
+                                    checked={formData.notifyList.includes(group.id.toString())}
+                                    onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
+                                    className="h-4 w-4"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {formData.notifyList.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                              {formData.notifyList.map((groupId) => {
+                                const group = notificationGroups.find(g => g.id.toString() === groupId);
+                                if (!group) return null;
+                                return (
+                                  <Badge key={groupId} variant="outline" className="flex items-center gap-1 text-xs py-0">
+                                    <span>{group.name}</span>
+                                  </Badge>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                        
                         {alertsOnly && (
                           <div>
                             <Label htmlFor="severity">Severity</Label>
@@ -1130,6 +1186,56 @@ export default function BookingModal({
                         </div>
                       </div>
                     )}
+                    
+                    {/* Notification Groups section */}
+                    <div>
+                      <div className="flex items-center mb-1">
+                        <BellRing className="h-4 w-4 mr-1 text-primary" />
+                        <Label>Notification Groups</Label>
+                      </div>
+                      
+                      {notificationGroups.length === 0 ? (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          No notification groups available
+                        </p>
+                      ) : (
+                        <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                          {notificationGroups.map((group) => (
+                            <div key={group.id} className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
+                                {group.groupType === 'lighting' && <Tag className="h-3.5 w-3.5 mr-1 text-yellow-500" />}
+                                {group.groupType === 'sound' && <Tag className="h-3.5 w-3.5 mr-1 text-green-500" />}
+                                {group.groupType === 'directors' && <Tag className="h-3.5 w-3.5 mr-1 text-purple-500" />}
+                                {group.groupType === 'production' && <Tag className="h-3.5 w-3.5 mr-1 text-red-500" />}
+                                {group.groupType === 'engineering' && <Tag className="h-3.5 w-3.5 mr-1 text-orange-500" />}
+                                <span className="text-xs">{group.name}</span>
+                              </div>
+                              <Checkbox
+                                id={`notify-group-${group.id}`}
+                                checked={formData.notifyList.includes(group.id.toString())}
+                                onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
+                                className="h-4 w-4"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {formData.notifyList.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {formData.notifyList.map((groupId) => {
+                            const group = notificationGroups.find(g => g.id.toString() === groupId);
+                            if (!group) return null;
+                            return (
+                              <Badge key={groupId} variant="outline" className="flex items-center gap-1 text-xs py-0">
+                                <span>{group.name}</span>
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                     
                     {alertsOnly && (
                       <div>
