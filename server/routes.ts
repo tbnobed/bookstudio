@@ -666,6 +666,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: booking.type,
         severity: booking.severity,
         pcrRoomId: booking.pcrRoomId, // Include PCR room ID so it appears in the public view
+        color: booking.color, // Include color for consistent display in calendar
+        status: booking.status, // Include status for tentative bookings
         // Exclude userId, templateId, notifyList, and other private data
       }));
       
