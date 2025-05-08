@@ -50,6 +50,13 @@ backups
 *.bak
 *.backup
 
+# Local development only
+attached_assets
+.cache
+.local
+.upm
+.config
+
 # Miscellaneous
 README.md
 LICENSE

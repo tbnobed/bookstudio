@@ -36,3 +36,10 @@ yarn-error.log*
 
 # Docker volumes
 postgres_data/
+
+# Large directories and local development files
+attached_assets/
+.cache/
+.local/
+.upm/
+.config/
