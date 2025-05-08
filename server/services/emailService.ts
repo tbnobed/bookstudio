@@ -55,6 +55,59 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 const FROM_EMAIL = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
 const APP_NAME = 'BookStud.io';
 
+// Import the notification group service to get site management group
+import { getSiteManagementGroup } from './notificationGroupService';
+
+// Send site manager notification for any booking activity
+async function notifySiteManagers(
+  booking: Booking,
+  studio: Studio,
+  action: 'created' | 'updated' | 'cancelled',
+  user: User
+): Promise<boolean> {
+  try {
+    // Get the site management notification group
+    const siteManagementGroup = await getSiteManagementGroup();
+    
+    if (!siteManagementGroup) {
+      console.warn('Site management group not found. Cannot send notification to site managers.');
+      return false;
+    }
+    
+    const actionText = action.charAt(0).toUpperCase() + action.slice(1);
+    const subject = `${APP_NAME} - Studio Booking ${actionText} (SITE MANAGER NOTIFICATION)`;
+    
+    const text = `
+      SITE MANAGER NOTIFICATION
+      
+      A studio booking has been ${action}:
+      
+      - Studio: ${studio.name}
+      - Title: ${booking.title}
+      - From: ${formatDate(booking.start)}
+      - To: ${formatDate(booking.end)}
+      ${booking.description ? `- Description: ${booking.description}` : ''}
+      ${booking.status ? `- Status: ${booking.status}` : ''}
+      - User: ${user.name} (${user.email})
+      
+      This is an automated notification sent to all site managers.
+      
+      Thank you,
+      BookStud.io
+    `;
+    
+    return sendEmail({
+      to: siteManagementGroup.email,
+      from: FROM_EMAIL,
+      subject,
+      text,
+    });
+  } catch (error) {
+    console.error('Error sending site manager notification:', error);
+    return false;
+  }
+}
+
 // Send booking confirmation
 export async function sendBookingConfirmation(
   booking: Booking, 
@@ -79,12 +132,18 @@ export async function sendBookingConfirmation(
     Thank you for using BookStud.io!
   `;
   
-  return sendEmail({
+  // First send the user notification
+  const userNotification = await sendEmail({
     to: user.email,
     from: FROM_EMAIL,
     subject,
     text,
   });
+  
+  // Then notify site managers
+  const siteManagerNotification = await notifySiteManagers(booking, studio, 'created', user);
+  
+  return userNotification; // Return result of user notification
 }
 
 // Send booking update notification
@@ -111,12 +170,18 @@ export async function sendBookingUpdate(
     Thank you for using BookStud.io!
   `;
   
-  return sendEmail({
+  // First send the user notification
+  const userNotification = await sendEmail({
     to: user.email,
     from: FROM_EMAIL,
     subject,
     text,
   });
+  
+  // Then notify site managers
+  const siteManagerNotification = await notifySiteManagers(booking, studio, 'updated', user);
+  
+  return userNotification; // Return result of user notification
 }
 
 // Send booking cancellation notification
@@ -142,12 +207,18 @@ export async function sendBookingCancellation(
     Thank you for using BookStud.io!
   `;
   
-  return sendEmail({
+  // First send the user notification
+  const userNotification = await sendEmail({
     to: user.email,
     from: FROM_EMAIL,
     subject,
     text,
   });
+  
+  // Then notify site managers
+  const siteManagerNotification = await notifySiteManagers(booking, studio, 'cancelled', user);
+  
+  return userNotification; // Return result of user notification
 }
 
 // Send maintenance alert notification
@@ -174,8 +245,11 @@ export async function sendMaintenanceAlert(
     Thank you for using BookStud.io!
   `;
   
+  // Get the site management group
+  const siteManagementGroup = await getSiteManagementGroup();
+  
   // Send emails to all affected users
-  const promises = users.map(user => 
+  const userPromises = users.map(user => 
     sendEmail({
       to: user.email,
       from: FROM_EMAIL,
@@ -184,7 +258,43 @@ export async function sendMaintenanceAlert(
     })
   );
   
-  return Promise.all(promises);
+  // Always ensure site managers are notified of maintenance alerts
+  if (siteManagementGroup) {
+    console.log(`Sending maintenance alert to site management group: ${siteManagementGroup.name}`);
+    
+    // Send a more detailed message to site managers
+    const siteManagerText = `
+      MAINTENANCE ALERT - SITE MANAGER NOTIFICATION
+      
+      A maintenance event has been scheduled:
+      
+      - Title: ${booking.title}
+      - Type: Maintenance
+      - Severity: ${booking.severity || 'Medium'}
+      - From: ${formatDate(booking.start)}
+      - To: ${formatDate(booking.end)}
+      ${booking.description ? `- Description: ${booking.description}` : ''}
+      
+      This may affect studio availability. Please plan accordingly.
+      
+      This is an automated notification sent to all site managers.
+      
+      Thank you,
+      BookStud.io
+    `;
+    
+    // Add site manager notification to the promise array
+    userPromises.push(
+      sendEmail({
+        to: siteManagementGroup.email,
+        from: FROM_EMAIL,
+        subject: `${subject} (SITE MANAGER NOTIFICATION)`,
+        text: siteManagerText,
+      })
+    );
+  }
+  
+  return Promise.all(userPromises);
 }
 
 // Send facility-wide alert notification
@@ -211,8 +321,11 @@ export async function sendFacilityAlert(
     Thank you for using BookStud.io!
   `;
   
+  // Get the site management group
+  const siteManagementGroup = await getSiteManagementGroup();
+  
   // Send emails to all users
-  const promises = users.map(user => 
+  const userPromises = users.map(user => 
     sendEmail({
       to: user.email,
       from: FROM_EMAIL,
@@ -221,5 +334,41 @@ export async function sendFacilityAlert(
     })
   );
   
-  return Promise.all(promises);
+  // Always ensure site managers are notified of facility alerts
+  if (siteManagementGroup) {
+    console.log(`Sending facility alert to site management group: ${siteManagementGroup.name}`);
+    
+    // Send a more detailed message to site managers
+    const siteManagerText = `
+      FACILITY-WIDE ALERT - SITE MANAGER NOTIFICATION
+      
+      An important facility-wide alert has been issued:
+      
+      - Title: ${booking.title}
+      - Type: ${booking.type}
+      - Severity: ${booking.severity || 'High'}
+      - From: ${formatDate(booking.start)}
+      - To: ${formatDate(booking.end)}
+      ${booking.description ? `- Description: ${booking.description}` : ''}
+      
+      This affects all studios and facilities. Please plan accordingly.
+      
+      This is an automated notification sent to all site managers.
+      
+      Thank you,
+      BookStud.io
+    `;
+    
+    // Add site manager notification to the promise array
+    userPromises.push(
+      sendEmail({
+        to: siteManagementGroup.email,
+        from: FROM_EMAIL,
+        subject: `${subject} (SITE MANAGER NOTIFICATION)`,
+        text: siteManagerText,
+      })
+    );
+  }
+  
+  return Promise.all(userPromises);
 }

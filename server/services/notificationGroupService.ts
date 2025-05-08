@@ -16,25 +16,72 @@ const FROM_EMAIL = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io'
 const APP_NAME = 'BookStud.io';
 
 /**
+ * Get the site management notification group
+ * @returns Promise resolving to the site management notification group or null if not found
+ */
+export async function getSiteManagementGroup(): Promise<NotificationGroup | null> {
+  try {
+    // Get all notification groups
+    const allGroups = await storage.getAllNotificationGroups();
+    
+    // Find the site management group (groupType: 'facility')
+    const siteManagementGroup = allGroups.find(group => 
+      group.groupType === 'facility' && 
+      group.name.toLowerCase().includes('site management') &&
+      group.enabled
+    );
+    
+    console.log('Site management group found:', siteManagementGroup?.name || 'Not found');
+    
+    return siteManagementGroup || null;
+  } catch (error) {
+    console.error('Error fetching site management group:', error);
+    return null;
+  }
+}
+
+/**
  * Send an email to all members of specified notification groups
  * @param groupIds Array of notification group IDs
  * @param subject Email subject
  * @param message Email message
+ * @param alwaysNotifySiteManagers If true, always includes site management group (default: true)
  * @returns Promise resolving to an array of sending results
  */
 export async function sendEmailToGroups(
   groupIds: number[],
   subject: string,
-  message: string
+  message: string,
+  alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
   try {
-    // Get all notification groups
+    // Get all notification groups from the provided IDs
     const groups = await Promise.all(
       groupIds.map(id => storage.getNotificationGroup(id))
     );
     
     // Filter out any undefined groups (in case some don't exist)
-    const validGroups = groups.filter(group => group && group.enabled) as NotificationGroup[];
+    let validGroups = groups.filter(group => group && group.enabled) as NotificationGroup[];
+    
+    // Add site management group if not already included and alwaysNotifySiteManagers is true
+    if (alwaysNotifySiteManagers) {
+      const siteManagementGroup = await getSiteManagementGroup();
+      
+      if (siteManagementGroup) {
+        // Check if site management group is already in the list
+        const alreadyIncluded = validGroups.some(group => group.id === siteManagementGroup.id);
+        
+        if (!alreadyIncluded) {
+          console.log(`Adding site management group '${siteManagementGroup.name}' to notification recipients`);
+          validGroups.push(siteManagementGroup);
+        }
+      }
+    }
+    
+    // Remove any duplicate groups (by ID)
+    validGroups = validGroups.filter((group, index, self) => 
+      index === self.findIndex(g => g.id === group.id)
+    );
     
     console.log(`Sending emails to ${validGroups.length} notification groups`);
     
