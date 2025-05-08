@@ -110,13 +110,15 @@ export async function sendEmailToGroups(
  * @param studio The studio information
  * @param groupIds Array of notification group IDs
  * @param action The action taken (created, updated, cancelled)
+ * @param alwaysNotifySiteManagers If true, always includes site management group (default: true)
  * @returns Promise resolving to an array of sending results
  */
 export async function sendBookingNotificationToGroups(
   booking: Booking,
   studio: Studio | null,
   groupIds: number[],
-  action: 'created' | 'updated' | 'cancelled'
+  action: 'created' | 'updated' | 'cancelled',
+  alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
   const actionText = action.charAt(0).toUpperCase() + action.slice(1);
   const subject = `${APP_NAME} - Studio Booking ${actionText}`;
@@ -141,18 +143,20 @@ export async function sendBookingNotificationToGroups(
     BookStud.io
   `;
   
-  return sendEmailToGroups(groupIds, subject, message);
+  return sendEmailToGroups(groupIds, subject, message, alwaysNotifySiteManagers);
 }
 
 /**
  * Send a maintenance alert to specified notification groups
  * @param booking The maintenance event information
  * @param groupIds Array of notification group IDs
+ * @param alwaysNotifySiteManagers If true, always includes site management group (default: true)
  * @returns Promise resolving to an array of sending results
  */
 export async function sendMaintenanceAlertToGroups(
   booking: Booking,
-  groupIds: number[]
+  groupIds: number[],
+  alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - Maintenance Alert`;
   
@@ -176,18 +180,20 @@ export async function sendMaintenanceAlertToGroups(
     BookStud.io
   `;
   
-  return sendEmailToGroups(groupIds, subject, message);
+  return sendEmailToGroups(groupIds, subject, message, alwaysNotifySiteManagers);
 }
 
 /**
  * Send a facility-wide alert to specified notification groups
  * @param booking The facility alert information
  * @param groupIds Array of notification group IDs
+ * @param alwaysNotifySiteManagers If true, always includes site management group (default: true)
  * @returns Promise resolving to an array of sending results
  */
 export async function sendFacilityAlertToGroups(
   booking: Booking,
-  groupIds: number[]
+  groupIds: number[],
+  alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - IMPORTANT: Facility-Wide Alert`;
   
@@ -211,7 +217,7 @@ export async function sendFacilityAlertToGroups(
     BookStud.io
   `;
   
-  return sendEmailToGroups(groupIds, subject, message);
+  return sendEmailToGroups(groupIds, subject, message, alwaysNotifySiteManagers);
 }
 
 /**
@@ -219,12 +225,14 @@ export async function sendFacilityAlertToGroups(
  * @param subject Email subject
  * @param message Email message
  * @param groupIds Array of notification group IDs
+ * @param alwaysNotifySiteManagers If true, always includes site management group (default: true)
  * @returns Promise resolving to an array of sending results
  */
 export async function sendCustomNotificationToGroups(
   subject: string,
   message: string,
-  groupIds: number[]
+  groupIds: number[],
+  alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
-  return sendEmailToGroups(groupIds, subject, message);
+  return sendEmailToGroups(groupIds, subject, message, alwaysNotifySiteManagers);
 }

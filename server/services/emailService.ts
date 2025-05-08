@@ -1,5 +1,5 @@
 import { MailService } from '@sendgrid/mail';
-import type { User, Booking, Studio } from '@shared/schema';
+import type { User, Booking, Studio, NotificationGroup } from '@shared/schema';
 import { format } from 'date-fns';
 
 // Initialize the mail service
@@ -39,8 +39,8 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       to: params.to,
       from: params.from,
       subject: params.subject,
-      text: params.text,
-      html: params.html || params.text,
+      text: params.text || '',
+      html: params.html || params.text || '',
     });
     
     console.log(`Email sent successfully to ${params.to}`);
