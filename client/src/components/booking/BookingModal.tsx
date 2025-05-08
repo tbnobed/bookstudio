@@ -71,17 +71,32 @@ export default function BookingModal({
     isOpen
   });
   
-  // Ensure selectedStudio is properly processed
-  const studioIdStr = selectedStudio !== null && selectedStudio !== undefined
-    ? selectedStudio.toString()
+  // Ensure selectedStudio is properly processed - enhanced logging
+  console.log("BookingModal - Processing selectedStudio", {
+    selectedStudio,
+    typeOfSelectedStudio: typeof selectedStudio,
+    fromBooking: booking?.studioId,
+    typeOfBookingStudioId: booking ? typeof booking.studioId : 'N/A'
+  });
+
+  // If we have a booking with studioId, use that; otherwise use the passed selectedStudio
+  const effectiveStudio = booking?.studioId !== undefined && booking?.studioId !== null 
+    ? booking.studioId 
+    : selectedStudio;
+    
+  console.log("BookingModal - Effective studio ID:", effectiveStudio);
+    
+  const studioIdStr = effectiveStudio !== null && effectiveStudio !== undefined
+    ? String(effectiveStudio) // Explicitly convert to string to avoid type issues
     : "";
   
   const studioIdsArray = studioIdStr
     ? [studioIdStr]
     : [] as string[];
   
-  console.log("BookingModal - Studio selection:", {
+  console.log("BookingModal - Final studio selection:", {
     selectedStudio,
+    effectiveStudio,
     studioIdStr,
     studioIdsArray
   });

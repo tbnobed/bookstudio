@@ -331,7 +331,8 @@ export default function WeeklyCalendar({
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           booking={editBooking}
-          selectedStudio={editBooking.studioId}
+          selectedStudio={editBooking.studioId !== null && editBooking.studioId !== undefined ? Number(editBooking.studioId) : undefined}
+          selectedDate={editBooking.start ? new Date(editBooking.start) : undefined}
         />
       )}
 

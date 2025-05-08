@@ -148,12 +148,15 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
     const startDate = date;
     const endDate = new Date(date.getTime() + 60 * 60 * 1000); // Default 1 hour
     
+    // Log the studio ID we're trying to use for the new booking
+    console.log(`StudioRow - Creating new booking for studio ID: ${studio.id} (${studio.name})`);
+    
     onBookingClick({
       id: 0, // Temporary ID for new booking
       title: "New Booking",
       start: startDate,
       end: endDate,
-      studioId: studio.id,
+      studioId: studio.id, // This studio ID should be used for the selectedStudio prop
       type: "production",
       description: "",
       userId: 0,
