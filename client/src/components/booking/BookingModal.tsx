@@ -146,6 +146,13 @@ export default function BookingModal({
   const { data: notificationGroups = [] } = useQuery<NotificationGroup[]>({
     queryKey: ["/api/notification-groups"],
   });
+  
+  // Log notification groups when they are fetched
+  useEffect(() => {
+    if (notificationGroups.length > 0) {
+      console.log("Notification groups fetched:", notificationGroups);
+    }
+  }, [notificationGroups]);
 
   // Get booking and template mutations
   const { 
@@ -388,9 +395,17 @@ export default function BookingModal({
     const currentNotifyList = [...formData.notifyList];
     
     if (currentNotifyList.includes(crewId)) {
+      console.log(`Removing notification group ${crewId} from notifyList`);
       updateFormField('notifyList', currentNotifyList.filter(id => id !== crewId));
     } else {
+      console.log(`Adding notification group ${crewId} to notifyList`);
       updateFormField('notifyList', [...currentNotifyList, crewId]);
+    }
+    
+    // Log the notification group that was toggled
+    const group = notificationGroups.find((g: NotificationGroup) => g.id.toString() === crewId);
+    if (group) {
+      console.log(`Toggled notification group: ${group.name} (${group.groupType})`);
     }
   };
   
@@ -823,7 +838,7 @@ export default function BookingModal({
                             </p>
                           ) : (
                             <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
-                              {notificationGroups.map((group) => (
+                              {notificationGroups.map((group: NotificationGroup) => (
                                 <div key={group.id} className="flex items-center justify-between">
                                   <div className="flex items-center">
                                     {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
@@ -848,7 +863,7 @@ export default function BookingModal({
                           {formData.notifyList.length > 0 && (
                             <div className="mt-1.5 flex flex-wrap gap-1.5">
                               {formData.notifyList.map((groupId) => {
-                                const group = notificationGroups.find(g => g.id.toString() === groupId);
+                                const group = notificationGroups.find((g: NotificationGroup) => g.id.toString() === groupId);
                                 if (!group) return null;
                                 return (
                                   <Badge key={groupId} variant="outline" className="flex items-center gap-1 text-xs py-0">
@@ -1200,7 +1215,7 @@ export default function BookingModal({
                         </p>
                       ) : (
                         <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
-                          {notificationGroups.map((group) => (
+                          {notificationGroups.map((group: NotificationGroup) => (
                             <div key={group.id} className="flex items-center justify-between">
                               <div className="flex items-center">
                                 {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
@@ -1225,7 +1240,7 @@ export default function BookingModal({
                       {formData.notifyList.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
                           {formData.notifyList.map((groupId) => {
-                            const group = notificationGroups.find(g => g.id.toString() === groupId);
+                            const group = notificationGroups.find((g: NotificationGroup) => g.id.toString() === groupId);
                             if (!group) return null;
                             return (
                               <Badge key={groupId} variant="outline" className="flex items-center gap-1 text-xs py-0">
