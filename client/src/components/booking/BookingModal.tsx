@@ -175,6 +175,7 @@ export default function BookingModal({
           ? bookingToUse.pcrRoomId 
           : bookingToUse.pcr_room_id) || null,
         type: bookingToUse.type || "",
+        status: bookingToUse.status || "confirmed",
         start: bookingToUse.start,
         end: bookingToUse.end,
         templateId: (bookingToUse.templateId !== undefined 
