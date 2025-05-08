@@ -647,30 +647,83 @@ export default function BookingModal({
                       <div className="space-y-4">
                         <div>
                           <Label>Studios</Label>
-                          <div className="flex flex-col mt-2 space-y-2">
-                            {studios.map((studio) => (
-                              <div key={studio.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`studio-${studio.id}`}
-                                  checked={formData.studioIds.includes(studio.id.toString())}
-                                  onCheckedChange={(checked) => {
-                                    const studioId = studio.id.toString();
-                                    if (checked) {
-                                      updateFormField('studioIds', [...formData.studioIds, studioId]);
-                                    } else {
-                                      updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
-                                    }
-                                  }}
-                                />
-                                <Label
-                                  htmlFor={`studio-${studio.id}`}
-                                  className="cursor-pointer"
-                                >
-                                  {studio.name}
-                                </Label>
+                          {studios.length > 10 ? (
+                            <div className="grid grid-cols-2 mt-2 gap-x-4">
+                              <div className="space-y-2">
+                                {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
+                                  <div key={studio.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`studio-${studio.id}`}
+                                      checked={formData.studioIds.includes(studio.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        const studioId = studio.id.toString();
+                                        if (checked) {
+                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                        } else {
+                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`studio-${studio.id}`}
+                                      className="cursor-pointer text-sm"
+                                    >
+                                      {studio.name}
+                                    </Label>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                              <div className="space-y-2">
+                                {studios.slice(Math.ceil(studios.length / 2)).map((studio) => (
+                                  <div key={studio.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`studio-${studio.id}`}
+                                      checked={formData.studioIds.includes(studio.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        const studioId = studio.id.toString();
+                                        if (checked) {
+                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                        } else {
+                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`studio-${studio.id}`}
+                                      className="cursor-pointer text-sm"
+                                    >
+                                      {studio.name}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col mt-2 space-y-2">
+                              {studios.map((studio) => (
+                                <div key={studio.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`studio-${studio.id}`}
+                                    checked={formData.studioIds.includes(studio.id.toString())}
+                                    onCheckedChange={(checked) => {
+                                      const studioId = studio.id.toString();
+                                      if (checked) {
+                                        updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                      } else {
+                                        updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                      }
+                                    }}
+                                  />
+                                  <Label
+                                    htmlFor={`studio-${studio.id}`}
+                                    className="cursor-pointer"
+                                  >
+                                    {studio.name}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           {formData.studioIds.length === 0 && (
                             <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
                           )}
@@ -1028,30 +1081,83 @@ export default function BookingModal({
                     {(!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support")) && (
                       <div>
                         <Label>Studios</Label>
-                        <div className="flex flex-col mt-2 space-y-2">
-                          {studios.map((studio) => (
-                            <div key={studio.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`studio-${studio.id}`}
-                                checked={formData.studioIds.includes(studio.id.toString())}
-                                onCheckedChange={(checked) => {
-                                  const studioId = studio.id.toString();
-                                  if (checked) {
-                                    updateFormField('studioIds', [...formData.studioIds, studioId]);
-                                  } else {
-                                    updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
-                                  }
-                                }}
-                              />
-                              <Label
-                                htmlFor={`studio-${studio.id}`}
-                                className="cursor-pointer"
-                              >
-                                {studio.name}
-                              </Label>
+                        {studios.length > 10 ? (
+                            <div className="grid grid-cols-2 mt-2 gap-x-4">
+                              <div className="space-y-2">
+                                {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
+                                  <div key={studio.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`studio-${studio.id}`}
+                                      checked={formData.studioIds.includes(studio.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        const studioId = studio.id.toString();
+                                        if (checked) {
+                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                        } else {
+                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`studio-${studio.id}`}
+                                      className="cursor-pointer text-sm"
+                                    >
+                                      {studio.name}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="space-y-2">
+                                {studios.slice(Math.ceil(studios.length / 2)).map((studio) => (
+                                  <div key={studio.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`studio-${studio.id}`}
+                                      checked={formData.studioIds.includes(studio.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        const studioId = studio.id.toString();
+                                        if (checked) {
+                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                        } else {
+                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`studio-${studio.id}`}
+                                      className="cursor-pointer text-sm"
+                                    >
+                                      {studio.name}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          ))}
-                        </div>
+                          ) : (
+                            <div className="flex flex-col mt-2 space-y-2">
+                              {studios.map((studio) => (
+                                <div key={studio.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`studio-${studio.id}`}
+                                    checked={formData.studioIds.includes(studio.id.toString())}
+                                    onCheckedChange={(checked) => {
+                                      const studioId = studio.id.toString();
+                                      if (checked) {
+                                        updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                      } else {
+                                        updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                      }
+                                    }}
+                                  />
+                                  <Label
+                                    htmlFor={`studio-${studio.id}`}
+                                    className="cursor-pointer"
+                                  >
+                                    {studio.name}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         {formData.studioIds.length === 0 && (
                           <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
                         )}
