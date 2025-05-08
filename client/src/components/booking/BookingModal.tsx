@@ -642,7 +642,7 @@ export default function BookingModal({
                               <SelectValue placeholder="None" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">None</SelectItem>
+                              <SelectItem value="none">None</SelectItem>
                               {templates.map((template) => (
                                 <SelectItem key={template.id} value={template.id.toString()}>
                                   {template.name}
@@ -957,7 +957,7 @@ export default function BookingModal({
                             <SelectValue placeholder="None" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">None</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
                             {templates.map((template) => (
                               <SelectItem key={template.id} value={template.id.toString()}>
                                 {template.name}
