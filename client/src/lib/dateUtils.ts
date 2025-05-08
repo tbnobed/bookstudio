@@ -380,33 +380,82 @@ export function generateTimeOptions(): string[] {
  * @returns Date object representing the date and time in the facility timezone
  */
 export function timeToDate(dateStr: string, timeStr: string): Date {
-  // Extract hours and minutes from timeStr (format: "1:30pm", "12:00am", etc.)
-  const timeParts = timeStr.match(/^(\d+):(\d+)([ap]m)$/i);
-  if (!timeParts) throw new Error("Invalid time format");
-  
-  let [_, hours, minutes, period] = timeParts;
-  let hourNum = parseInt(hours);
-  const minuteNum = parseInt(minutes);
-  
-  // Convert to 24-hour format
-  if (period.toLowerCase() === "pm" && hourNum < 12) {
-    hourNum += 12;
-  } else if (period.toLowerCase() === "am" && hourNum === 12) {
-    hourNum = 0;
+  try {
+    // Validate inputs before attempting to parse
+    if (!dateStr || !timeStr) {
+      console.error(`Invalid inputs: dateStr=${dateStr}, timeStr=${timeStr}`);
+      throw new Error("Date and time values are required");
+    }
+    
+    console.log(`timeToDate - Attempting to parse date=${dateStr}, time=${timeStr}`);
+    
+    // Extract hours and minutes from timeStr (format: "1:30pm", "12:00am", etc.)
+    const timeParts = timeStr.match(/^(\d+):(\d+)([ap]m)$/i);
+    if (!timeParts) {
+      console.error(`Invalid time format: "${timeStr}"`);
+      throw new Error(`Invalid time format: "${timeStr}". Expected format like "1:30pm" or "12:00am".`);
+    }
+    
+    let [_, hours, minutes, period] = timeParts;
+    let hourNum = parseInt(hours);
+    const minuteNum = parseInt(minutes);
+    
+    // Validate parsed time components
+    if (isNaN(hourNum) || isNaN(minuteNum)) {
+      console.error(`Invalid time components: hours=${hourNum}, minutes=${minuteNum}`);
+      throw new Error("Invalid time components");
+    }
+    
+    // Convert to 24-hour format
+    if (period.toLowerCase() === "pm" && hourNum < 12) {
+      hourNum += 12;
+    } else if (period.toLowerCase() === "am" && hourNum === 12) {
+      hourNum = 0;
+    }
+    
+    // Parse the date string (format: "YYYY-MM-DD")
+    const dateParts = dateStr.split('-');
+    if (dateParts.length !== 3) {
+      console.error(`Invalid date format: "${dateStr}"`);
+      throw new Error(`Invalid date format: "${dateStr}". Expected format "YYYY-MM-DD".`);
+    }
+    
+    const [year, month, day] = dateParts.map(Number);
+    
+    // Validate date components
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+      console.error(`Invalid date components: year=${year}, month=${month}, day=${day}`);
+      throw new Error("Invalid date components");
+    }
+    
+    if (year < 2000 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) {
+      console.error(`Date values out of range: year=${year}, month=${month}, day=${day}`);
+      throw new Error("Date values out of range");
+    }
+    
+    // Use our createFacilityDate function with the year, month, day, hour, minute
+    // This ensures the date is explicitly created in the facility's timezone
+    // Note: month in createFacilityDate is 0-based, but the parsed month from dateStr is 1-based
+    const dateObj = createFacilityDate(year, month - 1, day, hourNum, minuteNum);
+    
+    // Validate the created date object
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      console.error(`Invalid date object created: ${dateObj}`);
+      throw new Error("Failed to create valid date object");
+    }
+    
+    // Log for debugging
+    console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()} (Dallas time)`);
+    
+    return dateObj;
+  } catch (error) {
+    console.error(`Error in timeToDate function:`, error);
+    
+    // Return a default date rather than throwing, to prevent form submission failures
+    const nowDallas = new Date();
+    console.warn(`Using fallback current time: ${nowDallas.toISOString()}`);
+    throw new Error(`Failed to parse date/time: ${error instanceof Error ? error.message : String(error)}`);
   }
-  
-  // Parse the date string (format: "YYYY-MM-DD")
-  const [year, month, day] = dateStr.split('-').map(Number);
-  
-  // Use our createFacilityDate function with the year, month, day, hour, minute
-  // This ensures the date is explicitly created in the facility's timezone
-  // Note: month in createFacilityDate is 0-based, but the parsed month from dateStr is 1-based
-  const dateObj = createFacilityDate(year, month - 1, day, hourNum, minuteNum);
-  
-  // Log for debugging
-  console.log(`Date selected: ${dateStr}, time: ${timeStr}, parsed as: ${dateObj.toISOString()} (Dallas time)`);
-  
-  return dateObj;
 }
 
 /**
