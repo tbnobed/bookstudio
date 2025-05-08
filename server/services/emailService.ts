@@ -52,7 +52,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 }
 
 // Email templates
-const FROM_EMAIL = 'noreply@bookstuio.com';
+const FROM_EMAIL = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
 const APP_NAME = 'BookStud.io';
 
 // Send booking confirmation
