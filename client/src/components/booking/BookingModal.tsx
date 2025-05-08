@@ -63,11 +63,34 @@ export default function BookingModal({
   };
 
   // Default form values
+  // Debug the received props
+  console.log("BookingModal - Props received:", {
+    selectedStudio,
+    hasPropBooking: !!booking,
+    bookingId: booking?.id || 'none',
+    isOpen
+  });
+  
+  // Ensure selectedStudio is properly processed
+  const studioIdStr = selectedStudio !== null && selectedStudio !== undefined
+    ? selectedStudio.toString()
+    : "";
+  
+  const studioIdsArray = studioIdStr
+    ? [studioIdStr]
+    : [] as string[];
+  
+  console.log("BookingModal - Studio selection:", {
+    selectedStudio,
+    studioIdStr,
+    studioIdsArray
+  });
+  
   const defaultValues = {
     title: "",
     description: "",
-    studioId: selectedStudio?.toString() || "", // Keep for backward compatibility
-    studioIds: selectedStudio ? [selectedStudio.toString()] : [] as string[], // Array for multiple studios
+    studioId: studioIdStr, // Keep for backward compatibility
+    studioIds: studioIdsArray, // Array for multiple studios
     pcrRoomId: "0",
     bookingType: alertsOnly ? "maintenance" : "production",
     status: "confirmed", // confirmed, tentative, cancelled

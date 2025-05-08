@@ -159,8 +159,13 @@ export default function WeeklyCalendar({
         }
       : booking;
     
-    // Ensure studioId is properly set
-    console.log(`WeeklyCalendar - Processing booking with studio ID: ${bookingToEdit.studioId}`);
+    // Log detailed booking information
+    console.log(`WeeklyCalendar - Processing booking for studio selection:`, {
+      id: bookingToEdit.id, 
+      title: bookingToEdit.title,
+      studioId: bookingToEdit.studioId,
+      isNewBooking: bookingToEdit.id === 0
+    });
     
     // Check if it's a facility-wide alert
     if ((bookingToEdit.type === "maintenance" || bookingToEdit.type === "it_support") && bookingToEdit.studioId === null) {
