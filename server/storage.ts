@@ -1796,39 +1796,114 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Notification Group methods - in-memory implementation until db table is created
+  // Notification Group methods using database
   async getNotificationGroup(id: number): Promise<NotificationGroup | undefined> {
-    return this.notificationGroups.get(id);
+    try {
+      const [group] = await db
+        .select()
+        .from(notificationGroups)
+        .where(eq(notificationGroups.id, id));
+      
+      return group;
+    } catch (error) {
+      console.error(`Error getting notification group with ID ${id}:`, error);
+      // Fall back to in-memory cache if database query fails
+      return this.notificationGroups.get(id);
+    }
   }
 
   async getNotificationGroupByType(groupType: string): Promise<NotificationGroup | undefined> {
-    return Array.from(this.notificationGroups.values()).find(
-      group => group.groupType === groupType
-    );
+    try {
+      const [group] = await db
+        .select()
+        .from(notificationGroups)
+        .where(eq(notificationGroups.groupType, groupType));
+      
+      return group;
+    } catch (error) {
+      console.error(`Error getting notification group by type ${groupType}:`, error);
+      // Fall back to in-memory cache if database query fails
+      return Array.from(this.notificationGroups.values()).find(
+        group => group.groupType === groupType
+      );
+    }
   }
 
   async getAllNotificationGroups(): Promise<NotificationGroup[]> {
-    return Array.from(this.notificationGroups.values());
+    try {
+      const groups = await db.select().from(notificationGroups);
+      
+      // Update the in-memory cache with database results
+      groups.forEach(group => {
+        this.notificationGroups.set(group.id, group);
+      });
+      
+      // Update counter to ensure new IDs are unique
+      if (groups.length > 0) {
+        const maxId = Math.max(...groups.map(group => group.id));
+        this.notificationGroupIdCounter = maxId + 1;
+      }
+      
+      return groups;
+    } catch (error) {
+      console.error("Error getting all notification groups:", error);
+      // Fall back to in-memory cache if database query fails
+      return Array.from(this.notificationGroups.values());
+    }
   }
 
   async createNotificationGroup(group: InsertNotificationGroup): Promise<NotificationGroup> {
-    const id = this.notificationGroupIdCounter++;
-    const newGroup: NotificationGroup = { ...group, id };
-    this.notificationGroups.set(id, newGroup);
-    return newGroup;
+    try {
+      const [newGroup] = await db
+        .insert(notificationGroups)
+        .values(group)
+        .returning();
+      
+      // Update in-memory cache and counter
+      this.notificationGroups.set(newGroup.id, newGroup);
+      this.notificationGroupIdCounter = Math.max(this.notificationGroupIdCounter, newGroup.id + 1);
+      
+      return newGroup;
+    } catch (error) {
+      console.error("Error creating notification group:", error);
+      throw error;
+    }
   }
 
   async updateNotificationGroup(id: number, data: Partial<InsertNotificationGroup>): Promise<NotificationGroup | undefined> {
-    const group = this.notificationGroups.get(id);
-    if (!group) return undefined;
-    
-    const updatedGroup: NotificationGroup = { ...group, ...data };
-    this.notificationGroups.set(id, updatedGroup);
-    return updatedGroup;
+    try {
+      const [updatedGroup] = await db
+        .update(notificationGroups)
+        .set(data)
+        .where(eq(notificationGroups.id, id))
+        .returning();
+      
+      if (updatedGroup) {
+        // Update in-memory cache
+        this.notificationGroups.set(id, updatedGroup);
+      }
+      
+      return updatedGroup;
+    } catch (error) {
+      console.error(`Error updating notification group with ID ${id}:`, error);
+      return undefined;
+    }
   }
   
   async deleteNotificationGroup(id: number): Promise<boolean> {
-    return this.notificationGroups.delete(id);
+    try {
+      const result = await db
+        .delete(notificationGroups)
+        .where(eq(notificationGroups.id, id));
+      
+      // Remove from in-memory cache
+      this.notificationGroups.delete(id);
+      
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      console.error(`Error deleting notification group with ID ${id}:`, error);
+      return false;
+    }
   }
   
   // Copy a booking to multiple dates
