@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-import { Booking, Studio } from "@shared/schema";
+import { Booking, Studio, BookingStudio } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { addDays, subtractDays, addMonths, subtractMonths } from "@/lib/dateUtils";
 
@@ -18,6 +18,7 @@ export default function StudioUsageChart({
   const [selectedView, setSelectedView] = useState(view);
   const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [bookingStudioMap, setBookingStudioMap] = useState<Record<number, number[]>>({});
 
   // Get date range based on timeframe
   const getDateRange = () => {
@@ -55,6 +56,26 @@ export default function StudioUsageChart({
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
   });
+  
+  const { data: bookingStudios = [] } = useQuery<BookingStudio[]>({
+    queryKey: ["/api/booking-studios"],
+  });
+  
+  // Process booking-studio relationships
+  useEffect(() => {
+    if (bookingStudios.length > 0) {
+      const studioMap: Record<number, number[]> = {};
+      
+      bookingStudios.forEach(bs => {
+        if (!studioMap[bs.bookingId]) {
+          studioMap[bs.bookingId] = [];
+        }
+        studioMap[bs.bookingId].push(bs.studioId);
+      });
+      
+      setBookingStudioMap(studioMap);
+    }
+  }, [bookingStudios]);
 
   // Process data for charts
   useEffect(() => {
@@ -63,8 +84,25 @@ export default function StudioUsageChart({
     if (selectedView === "bar" || selectedView === "line") {
       // For bar chart, count bookings per studio
       const studioUsage = studios.map(studio => {
-        const studioBookings = bookings.filter(booking => booking.studioId === studio.id);
-        const totalHours = studioBookings.reduce((total, booking) => {
+        // Count legacy single studio bookings
+        const directBookings = bookings.filter(booking => booking.studioId === studio.id);
+        
+        // Count bookings from the junction table
+        const junctionBookings = bookings.filter(booking => {
+          const studioIds = bookingStudioMap[booking.id] || [];
+          return studioIds.includes(studio.id);
+        });
+        
+        // Combine both types to get all bookings for this studio
+        const allStudioBookings = [...directBookings];
+        junctionBookings.forEach(jb => {
+          // Only add if not already in the array (to avoid duplicates)
+          if (!allStudioBookings.some(b => b.id === jb.id)) {
+            allStudioBookings.push(jb);
+          }
+        });
+        
+        const totalHours = allStudioBookings.reduce((total, booking) => {
           const start = new Date(booking.start);
           const end = new Date(booking.end);
           const durationInHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
@@ -73,7 +111,7 @@ export default function StudioUsageChart({
         
         return {
           name: studio.name,
-          bookings: studioBookings.length,
+          bookings: allStudioBookings.length,
           hours: Math.round(totalHours * 10) / 10,
         };
       });
@@ -101,7 +139,7 @@ export default function StudioUsageChart({
       
       setChartData(pieData);
     }
-  }, [bookings, studios, selectedView, selectedTimeframe]);
+  }, [bookings, studios, bookingStudioMap, selectedView, selectedTimeframe]);
 
   // Colors for the pie chart
   const COLORS = ['#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#EF4444'];
