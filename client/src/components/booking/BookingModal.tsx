@@ -79,7 +79,7 @@ export default function BookingModal({
     saveAsTemplate: false,
     templateName: "",
     severity: "medium", // low, medium, high, critical
-    color: "#4B83E2" // Default color for bookings (blue)
+    color: booking ? booking.color : "#4B83E2" // Use booking color or default blue
   };
   
   // State for form fields
@@ -152,7 +152,7 @@ export default function BookingModal({
       notify_list: [],
       severity: "medium",
       status: "confirmed",
-      color: "#4B83E2" // Default blue
+      color: booking ? booking.color : "#4B83E2" // Use booking color or default blue
     };
   };
   
@@ -186,7 +186,7 @@ export default function BookingModal({
           ? bookingToUse.notifyList 
           : bookingToUse.notify_list) || [],
         severity: bookingToUse.severity || "medium",
-        color: bookingToUse.color || "#4B83E2" // Use booking color or default blue
+        color: bookingToUse.color || (booking ? booking.color : "#4B83E2") // Use booking color or default blue
       };
       
       // Clean all-day prefix from type
