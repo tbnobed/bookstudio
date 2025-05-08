@@ -151,6 +151,7 @@ export default function BookingModal({
       notifyList: [],
       notify_list: [],
       severity: "medium",
+      status: "confirmed",
       color: "#4B83E2" // Default blue
     };
   };
