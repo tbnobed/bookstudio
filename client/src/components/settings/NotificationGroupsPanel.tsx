@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Pencil, Trash2, Mail, Users, Tag } from "lucide-react";
 import {
@@ -237,18 +237,37 @@ const NotificationGroupDialog: React.FC<{
 
 const NotificationGroupsPanel: React.FC = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<NotificationGroup | undefined>(undefined);
+  const [localGroups, setLocalGroups] = useState<NotificationGroup[]>([]);
 
   // Fetch notification groups
   const {
     data: groups = [] as NotificationGroup[],
     isLoading,
-    error
+    error,
+    refetch
   } = useQuery<NotificationGroup[]>({
     queryKey: ["/api/notification-groups"],
-    retry: 1
+    retry: 1,
+    refetchInterval: 5000, // Refresh data every 5 seconds
+    staleTime: 2000 // Data becomes stale after 2 seconds
   });
+
+  // Update local state when data changes from server
+  useEffect(() => {
+    if (groups) {
+      console.log("Notification groups updated from server:", groups);
+      setLocalGroups(groups);
+    }
+  }, [groups]);
+
+  // Force refresh function
+  const forceRefresh = () => {
+    console.log("Forcing refresh of notification groups");
+    refetch();
+  };
 
   // Create notification group mutation
   const createMutation = useMutation({
@@ -259,6 +278,7 @@ const NotificationGroupsPanel: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notification-groups"] });
       setIsDialogOpen(false);
+      forceRefresh();
       toast({
         title: "Success",
         description: "Notification group created successfully",
@@ -289,6 +309,7 @@ const NotificationGroupsPanel: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notification-groups"] });
       setIsDialogOpen(false);
       setSelectedGroup(undefined);
+      forceRefresh();
       toast({
         title: "Success",
         description: "Notification group updated successfully",
@@ -323,6 +344,7 @@ const NotificationGroupsPanel: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notification-groups"] });
+      forceRefresh();
       toast({
         title: "Success",
         description: "Notification group deleted successfully",
@@ -331,9 +353,19 @@ const NotificationGroupsPanel: React.FC = () => {
     onError: (error: Error) => {
       // If the error is about a non-existent group, we still want to refresh the UI
       if (error.message.includes("not found")) {
+        console.log("Group not found, forcing refresh");
         queryClient.invalidateQueries({ queryKey: ["/api/notification-groups"] });
+        forceRefresh();
+        
+        // Show a toast that's more informative but not an error
+        toast({
+          title: "Information",
+          description: "The notification group was already deleted or doesn't exist.",
+        });
+        return;
       }
       
+      // For other errors
       toast({
         title: "Error",
         description: `Failed to delete notification group: ${error.message}`,
