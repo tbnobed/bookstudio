@@ -305,15 +305,15 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                 colorClass = "border"; // Keep only the border class, we'll style it with inline styles
               }
               
-              // Calculate position based on booking index with larger spacing
-              // Use a base spacing of 40px between bookings (increased from 28px)
-              let topPosition = 4 + (bookingIndex * 40); 
+              // Set a consistent fixed position for the first booking regardless of count
+              // This ensures bookings always appear in the same position when the count changes
+              let topPosition = 4 + (bookingIndex * 44); 
               
               // If we have more than 10 bookings, adjust the spacing to be more compact
               if (dayBookings.length > 10) {
-                topPosition = 4 + (bookingIndex * 30); // 30px spacing for dense days (increased from 20px)
+                topPosition = 4 + (bookingIndex * 34); // Spacing for dense days
               } else if (dayBookings.length > 5) {
-                topPosition = 4 + (bookingIndex * 35); // 35px spacing for medium density days (increased from 24px)
+                topPosition = 4 + (bookingIndex * 38); // Spacing for medium density days
               }
               
               console.log(`Booking ${booking.title} in ${studio.name} on ${date.toDateString()} - position: ${topPosition}px`);
@@ -353,12 +353,12 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                             booking.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
                           }`}></span>
                         )}
-                        <span className="font-medium inline-block w-full overflow-hidden text-ellipsis">
+                        <span className="font-medium inline-block w-full overflow-hidden text-ellipsis whitespace-nowrap">
                           {booking.title}
                           {booking.pcrRoomId ? ` (${getPcrRoomName(booking.pcrRoomId)})` : ''}
                         </span>
                       </div>
-                      <div className="text-xs pl-3">
+                      <div className="text-xs pl-3 whitespace-nowrap">
                         {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
                       </div>
                     </div>
