@@ -377,7 +377,8 @@ export default function BookingModal({
     const studioIds = formData.studioIds.map(id => parseInt(id));
     
     try {
-      if (booking) {
+      // Check if it's a valid existing booking (booking exists and has a non-zero ID)
+      if (booking && booking.id && booking.id !== 0) {
         // Update existing booking
         console.log(`Updating booking ${booking.id} with studios:`, studioIds);
         
