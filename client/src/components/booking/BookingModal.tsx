@@ -90,9 +90,16 @@ export default function BookingModal({
     ? String(effectiveStudio) // Explicitly convert to string to avoid type issues
     : "";
   
+  // Always create an array with the studio ID if one is available
   const studioIdsArray = studioIdStr
     ? [studioIdStr]
     : [] as string[];
+    
+  console.log("BookingModal - Studio arrays prepared:", {
+    effectiveStudio,
+    studioIdStr,
+    studioIdsArray
+  });
   
   console.log("BookingModal - Final studio selection:", {
     selectedStudio,
@@ -171,11 +178,20 @@ export default function BookingModal({
     endTime.setHours(10, 0, 0, 0);
     
     // Select default studio - use effectiveStudio if available
+    // First try the effectiveStudio calculated above, then try selectedStudio prop,
+    // and only if neither is available, fall back to the first studio
     const effectiveStudioForDummy = effectiveStudio !== null && effectiveStudio !== undefined 
       ? effectiveStudio
       : selectedStudio !== null && selectedStudio !== undefined
         ? selectedStudio 
         : (studios.length > 0 ? studios[0].id : null);
+        
+    console.log("createDummyBooking - Studio selection priority:", {
+      effectiveStudio,
+      selectedStudio,
+      studiosAvailable: studios.length > 0,
+      finalChoice: effectiveStudioForDummy
+    });
     
     console.log("createDummyBooking - Using studio:", {
       effectiveStudio,
@@ -272,13 +288,19 @@ export default function BookingModal({
           
           // Get the effective studio ID from our earlier calculation 
           // or fall back to selectedStudio or studios[0]
-          const effectiveStudioForForm = effectiveStudio || selectedStudio;
+          const effectiveStudioForForm = effectiveStudio !== null && effectiveStudio !== undefined
+            ? effectiveStudio
+            : selectedStudio !== null && selectedStudio !== undefined
+              ? selectedStudio
+              : (studios.length > 0 ? studios[0].id : null);
           
           console.log("New booking - using effectiveStudioForForm:", effectiveStudioForForm);
           
           studioIds = effectiveStudioForForm !== null && effectiveStudioForForm !== undefined
             ? [String(effectiveStudioForForm)] // Ensure we're working with a string
             : (studios.length > 0 ? [String(studios[0].id)] : []);
+            
+          console.log("New booking - final studioIds:", studioIds);
         }
         
         // Set form data with consistent initialization for both new and edit modes
