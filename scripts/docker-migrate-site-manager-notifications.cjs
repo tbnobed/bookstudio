@@ -3,7 +3,7 @@
  * This script ensures a site management notification group exists
  */
 
-require('dotenv').config();
+// No need for dotenv in Docker environment as variables are provided directly
 const { Pool } = require('pg');
 
 // Connection configuration for database
