@@ -220,6 +220,7 @@ export default function BookingModal({
           }
         } else {
           // For new booking mode: use selectedStudio or first available
+          console.log("New booking mode - selectedStudio:", selectedStudio);
           studioIds = selectedStudio 
             ? [selectedStudio.toString()]
             : (studios.length > 0 ? [studios[0].id.toString()] : []);
