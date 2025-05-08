@@ -70,6 +70,7 @@ export default function BookingModal({
     studioIds: selectedStudio ? [selectedStudio.toString()] : [] as string[], // Array for multiple studios
     pcrRoomId: "0",
     bookingType: alertsOnly ? "maintenance" : "production",
+    status: "confirmed", // confirmed, tentative, cancelled
     date: formatDateForForm(selectedDate),
     startTime: "9:00am",
     endTime: "10:00am",

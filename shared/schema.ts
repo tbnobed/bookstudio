@@ -82,6 +82,7 @@ export const bookings = pgTable("bookings", {
   start: timestamp("start").notNull(),
   end: timestamp("end").notNull(),
   type: text("type").notNull(), // production, maintenance, rehearsal, it_support
+  status: text("status").default("confirmed"), // confirmed, tentative, cancelled
   severity: text("severity").default("medium"), // low, medium, high, critical (for alerts)
   templateId: integer("template_id"), // optional, if using a template
   notifyList: json("notify_list").default([]), // array of user/group IDs to notify
