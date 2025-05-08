@@ -433,6 +433,11 @@ export default function BookingModal({
       finalBookingType = `all-day:${formData.bookingType}`;
     }
     
+    // Convert notification group IDs from strings to numbers
+    const notifyListAsNumbers = formData.notifyList.map(id => parseInt(id));
+    console.log("Original notifyList (strings):", formData.notifyList);
+    console.log("Converted notifyList (numbers):", notifyListAsNumbers);
+    
     // Prepare booking data
     const bookingData: Partial<InsertBooking> = {
       title: formData.title,
@@ -441,7 +446,7 @@ export default function BookingModal({
       status: formData.status,
       start: startDate,
       end: endDate,
-      notifyList: formData.notifyList,
+      notifyList: notifyListAsNumbers,
       color: formData.color,
     };
     
@@ -517,12 +522,15 @@ export default function BookingModal({
           const durationMs = endDate.getTime() - startDate.getTime();
           const durationMinutes = Math.floor(durationMs / 60000);
           
+          // Convert notification group IDs from strings to numbers for the template
+          const crewRequiredAsNumbers = formData.notifyList.map(id => parseInt(id));
+          
           const templateData = {
             name: formData.templateName,
             description: formData.description,
             type: formData.bookingType,
             duration: durationMinutes,
-            crewRequired: formData.notifyList,
+            crewRequired: crewRequiredAsNumbers,
             createdBy: 1 // Using 1 as admin for now
           };
           
