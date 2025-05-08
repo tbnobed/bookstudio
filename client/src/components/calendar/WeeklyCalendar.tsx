@@ -32,6 +32,9 @@ export default function WeeklyCalendar({
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
+  const [newBookingStudio, setNewBookingStudio] = useState<number | null>(null);
+  const [newBookingDate, setNewBookingDate] = useState<Date | null>(null);
+  const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   
   // Update effectiveDate when props change with guaranteed fresh Date object
   useEffect(() => {
@@ -135,6 +138,16 @@ export default function WeeklyCalendar({
     // Log the booking object to debug
     console.log("WeeklyCalendar - handleBookingClick received:", booking);
     
+    // Check if this is a new booking request (id === 0)
+    if (booking.id === 0) {
+      console.log("WeeklyCalendar - Creating new booking with studio ID:", booking.studioId);
+      setNewBookingStudio(Number(booking.studioId));
+      setNewBookingDate(new Date(booking.start));
+      setIsNewBookingModalOpen(true);
+      return;
+    }
+    
+    // Otherwise, this is an existing booking edit
     // Check if it's an ApiBooking format (for alerts) or regular Booking
     const isApiFormat = 'studio_id' in booking;
     
