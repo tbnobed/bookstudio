@@ -1,0 +1,76 @@
+Storage] Fetching bookings between 2025-05-03T05:00:00.000Z and 2025-05-10T23:59:59.999Z
+app-1      | [Storage] Found 0 bookings in date range 2025-05-03T05:00:00.000Z to 2025-05-10T23:59:59.999Z
+app-1      | Error getting all bookings: error: column "color" does not exist
+app-1      |     at /app/node_modules/pg-pool/index.js:45:11
+app-1      |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+app-1      |     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+app-1      |     at async DatabaseStorage.getAllBookings (file:///app/dist/index.js:823:27)
+app-1      |     at async DatabaseStorage.getBookingsByDateRange (file:///app/dist/index.js:886:27)
+app-1      |     at async file:///app/dist/index.js:2349:21 {
+app-1      |   length: 106,
+app-1      |   severity: 'ERROR',
+app-1      |   code: '42703',
+app-1      |   detail: undefined,
+app-1      |   hint: undefined,
+app-1      |   position: '143',
+app-1      |   internalPosition: undefined,
+app-1      |   internalQuery: undefined,
+app-1      |   where: undefined,
+app-1      |   schema: undefined,
+app-1      |   table: undefined,
+app-1      |   column: undefined,
+app-1      |   dataType: undefined,
+app-1      |   constraint: undefined,
+app-1      |   file: 'parse_relation.c',
+app-1      |   line: '3647',
+app-1      |   routine: 'errorMissingColumn'
+app-1      | }
+app-1      | Error getting all bookings: error: column "color" does not exist
+app-1      |     at /app/node_modules/pg-pool/index.js:45:11
+app-1      |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+app-1      |     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+app-1      |     at async DatabaseStorage.getAllBookings (file:///app/dist/index.js:823:27)
+app-1      |     at async file:///app/dist/index.js:2351:21 {
+app-1      |   length: 106,
+app-1      |   severity: 'ERROR',
+app-1      |   code: '42703',
+app-1      |   detail: undefined,
+app-1      |   hint: undefined,
+app-1      |   position: '143',
+app-1      |   internalPosition: undefined,
+app-1      |   internalQuery: undefined,
+app-1      |   where: undefined,
+app-1      |   schema: undefined,
+app-1      |   table: undefined,
+app-1      |   column: undefined,
+app-1      |   dataType: undefined,
+app-1      |   constraint: undefined,
+app-1      |   file: 'parse_relation.c',
+app-1      |   line: '3647',
+app-1      |   routine: 'errorMissingColumn'
+app-1      | }
+app-1      | Retrieved 38 booking-studio links from database
+app-1      | [Public API] Returning 38 booking-studio links
+app-1      | Error getting bookings for user ID 1: error: column "color" does not exist
+app-1      |     at /app/node_modules/pg-pool/index.js:45:11
+app-1      |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+app-1      |     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+app-1      |     at async DatabaseStorage.getBookingsByUser (file:///app/dist/index.js:871:28)
+app-1      |     at async file:///app/dist/index.js:2399:25 {
+app-1      |   length: 106,
+app-1      |   severity: 'ERROR',
+app-1      |   code: '42703',
+app-1      |   detail: undefined,
+app-1      |   hint: undefined,
+app-1      |   position: '143',
+app-1      |   internalPosition: undefined,
+app-1      |   internalQuery: undefined,
+app-1      |   where: undefined,
+app-1      |   schema: undefined,
+app-1      |   table: undefined,
+app-1      |   column: undefined,
+app-1      |   dataType: undefined,
+app-1      |   constraint: undefined,
+app-1      |   file: 'parse_relation.c',
+app-1      |   line: '3647',
+app-1      |   routine: 'errorMissingColumn'

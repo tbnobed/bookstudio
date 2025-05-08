@@ -26,6 +26,11 @@ We have made several improvements to prepare BookStud.io for production deployme
    - Added database connection pooling and improved query performance
    - Increased logging rotation for better diagnostics
 
+5. **Database Schema Updates**
+   - Added booking color support with database migration
+   - Fixed missing column errors by adding automatic migrations
+   - Enhanced schema compatibility with previous versions
+
 ## Docker-Based Deployment
 
 This application is designed to be deployed entirely with Docker and Docker Compose, with no additional scripts needed.
@@ -166,7 +171,18 @@ docker-compose up -d
    - Check SendGrid verified sender email is correct
    - Check application logs for email-related errors
 
-4. **Docker container failing to start**
+4. **Database schema errors**
+   - If you see errors like `column "color" does not exist`, the database schema may need migration
+   - Run the included migration scripts using the initialization container: 
+     ```
+     docker-compose run --rm db-init node scripts/docker-migrate-booking-colors.cjs
+     ```
+   - If migrations fail, you may need to manually add missing columns:
+     ```
+     docker-compose exec db psql -U postgres -d bookstudio -c "ALTER TABLE bookings ADD COLUMN color TEXT DEFAULT '#3B82F6';"
+     ```
+
+5. **Docker container failing to start**
    - Check if the required ports are already in use
    - Verify Docker and Docker Compose are installed and running correctly
    - Check Docker logs: `docker-compose logs`
