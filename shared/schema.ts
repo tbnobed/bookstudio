@@ -222,7 +222,7 @@ export type InsertInviteToken = z.infer<typeof insertInviteTokenSchema>;
 export const systemSettings = pgTable("system_settings", {
   id: serial("id").primaryKey(),
   key: text("key").notNull().unique(),
-  value: text("value"),
+  value: text("value").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
