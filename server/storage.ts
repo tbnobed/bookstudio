@@ -82,7 +82,7 @@ export interface IStorage {
   // System Settings
   getSystemSetting(key: string): Promise<SystemSetting | undefined>;
   getAllSystemSettings(): Promise<SystemSetting[]>;
-  upsertSystemSetting(key: string, value: string): Promise<SystemSetting>;
+  upsertSystemSetting(data: InsertSystemSetting): Promise<SystemSetting>;
   deleteSystemSetting(key: string): Promise<boolean>;
   
   // Session management
@@ -761,6 +761,51 @@ export class MemStorage implements IStorage {
   
   async deleteNotificationGroup(id: number): Promise<boolean> {
     return this.notificationGroups.delete(id);
+  }
+
+  // System Settings methods
+  async getSystemSetting(key: string): Promise<SystemSetting | undefined> {
+    return Array.from(this.systemSettings.values()).find(
+      (setting) => setting.key === key
+    );
+  }
+  
+  async getAllSystemSettings(): Promise<SystemSetting[]> {
+    return Array.from(this.systemSettings.values());
+  }
+  
+  async upsertSystemSetting(data: InsertSystemSetting): Promise<SystemSetting> {
+    // Try to find existing setting by key
+    const existingSetting = await this.getSystemSetting(data.key);
+    
+    if (existingSetting) {
+      // Update existing setting
+      const updatedSetting: SystemSetting = { 
+        ...existingSetting, 
+        value: data.value,
+        updatedAt: new Date()
+      };
+      this.systemSettings.set(existingSetting.id, updatedSetting);
+      return updatedSetting;
+    } else {
+      // Create new setting
+      const id = this.systemSettingIdCounter++;
+      const newSetting: SystemSetting = { 
+        ...data, 
+        id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.systemSettings.set(id, newSetting);
+      return newSetting;
+    }
+  }
+  
+  async deleteSystemSetting(key: string): Promise<boolean> {
+    const setting = await this.getSystemSetting(key);
+    if (!setting) return false;
+    
+    return this.systemSettings.delete(setting.id);
   }
 }
 
