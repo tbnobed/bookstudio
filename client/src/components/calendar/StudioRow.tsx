@@ -334,7 +334,8 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                     <div 
                       className={cn(
                         "border rounded-md px-2 py-1 mb-1 overflow-hidden text-overflow-ellipsis text-xs z-10 transition-all hover:shadow-md",
-                        colorClass
+                        colorClass,
+                        booking.status === "tentative" && "border-dashed opacity-70"
                       )}
                       style={{
                         minHeight: "38px",
@@ -362,6 +363,9 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                         <span className="font-medium inline-block w-full overflow-hidden text-ellipsis whitespace-nowrap">
                           {booking.title}
                           {booking.pcrRoomId ? ` (${getPcrRoomName(booking.pcrRoomId)})` : ''}
+                          {booking.status === "tentative" && (
+                            <span className="ml-1 text-[10px] px-1 py-0.5 bg-gray-200 text-gray-700 rounded">Tentative</span>
+                          )}
                         </span>
                       </div>
                       <div className="text-xs pl-3 whitespace-nowrap">
@@ -403,6 +407,16 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                         <div className="flex items-center text-xs text-muted-foreground">
                           <Tag className="mr-1 h-3 w-3" />
                           <span className="capitalize">{booking.type.replace('_', ' ')}</span>
+                        </div>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 h-3 w-3">
+                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                            <path d="M12 8v4l3 3"></path>
+                          </svg>
+                          <span className="capitalize">{booking.status || "confirmed"}</span>
+                          {booking.status === "tentative" && (
+                            <span className="ml-1 text-[10px] px-1 py-0.5 bg-gray-200 text-gray-700 rounded">Pending confirmation</span>
+                          )}
                         </div>
                         {booking.pcrRoomId && (
                           <div className="flex items-center text-xs text-muted-foreground">
