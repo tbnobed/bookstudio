@@ -156,7 +156,14 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       studioId: studio.id,
       type: "production",
       description: "",
-      userId: 0
+      userId: 0,
+      // Add required properties to satisfy the Booking type
+      pcrRoomId: null,
+      severity: null,
+      templateId: null,
+      notifyList: [],
+      color: null,
+      createdAt: null
     });
   };
 
@@ -272,18 +279,18 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
           <div 
             key={index} 
             className={cn(
-              "relative border-b border-r", // Height set by style below
+              "flex flex-col border-b border-r p-1", // Use flex column layout
               isWeekend(date) ? "bg-gray-50" : "bg-white",
               isSameDay(date, new Date()) ? "bg-blue-50 border-blue-200" : "",
               "cursor-pointer hover:bg-gray-100 overflow-y-auto" // Added overflow-y-auto for scrolling
             )}
-            style={{ height: `${cellHeight}px` }}
+            style={{ minHeight: `${cellHeight}px` }}
             onClick={() => handleCellClick(date)}
           >
             {/* Display booking count if there are many */}
             {dayBookings.length > 5 && (
-              <div className="absolute top-0 right-0 z-20 px-1 text-xs font-semibold bg-gray-700 text-white rounded-bl-md">
-                {dayBookings.length}
+              <div className="self-end px-1 text-xs font-semibold bg-gray-700 text-white rounded-md mb-1">
+                {dayBookings.length} bookings
               </div>
             )}
             
@@ -316,27 +323,20 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                 colorClass = "border"; // Keep only the border class, we'll style it with inline styles
               }
               
-              // Use simple index-based positioning
-              // This is the simplest, most reliable approach
-              const index = dayBookings.findIndex(b => b.id === booking.id);
-              let topPosition = 4 + (index * 44);
-              
-              console.log(`Booking ${booking.title} in ${studio.name} on ${date.toDateString()} - position: ${topPosition}px`);
-              
-              // Calculate height for bookings - bigger than before
-              const height = dayBookings.length > 10 ? 28 : dayBookings.length > 5 ? 32 : 38;
+              // No positioning calculations - just render in a grid
+              // This eliminates layout shifts completely
+              console.log(`Rendering booking ${booking.title} in ${studio.name} on ${date.toDateString()}`);
               
               return (
                 <HoverCard key={booking.id}>
                   <HoverCardTrigger asChild>
                     <div 
                       className={cn(
-                        "absolute w-[calc(100%-4px)] left-[2px] border rounded-md px-2 py-1 overflow-hidden text-overflow-ellipsis text-xs z-10 transition-all hover:shadow-md",
+                        "border rounded-md px-2 py-1 mb-1 overflow-hidden text-overflow-ellipsis text-xs z-10 transition-all hover:shadow-md",
                         colorClass
                       )}
                       style={{
-                        top: `${topPosition}px`,
-                        minHeight: `${height}px`,
+                        minHeight: "38px",
                         ...(booking.color ? {
                           backgroundColor: `${booking.color}20`, // 20 is hex for 12% opacity
                           borderColor: booking.color,
