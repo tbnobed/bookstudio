@@ -1,13 +1,15 @@
 # BookStud.io Production Deployment Guide
 
-## Updates Summary
+## Version 1.1.0 Updates
 
-We have made several improvements to prepare BookStud.io for production deployment:
+We have made several improvements to BookStud.io for version 1.1.0:
 
-1. **Calendar Layout Fixes**
-   - Replaced absolute positioning with flex-column layout
-   - Fixed layout shifts when adding/editing bookings
-   - Improved rendering performance for cells with many bookings
+1. **Calendar and Booking Enhancements**
+   - Added booking color customization feature
+   - Implemented tentative booking status feature
+   - Fixed studio auto-selection in booking modal
+   - Fixed booking color preservation when copying bookings
+   - Enhanced error handling for date formatting and validation
 
 2. **Timezone Handling**
    - Added explicit America/Chicago timezone setting throughout the stack
@@ -94,10 +96,10 @@ Replace placeholders with your actual values.
    
    ```bash
    # Build with a specific version tag
-   VERSION=1.0.0 docker-compose build --no-cache
+   VERSION=1.1.0 docker-compose build --no-cache
    
    # Start with that version
-   VERSION=1.0.0 docker-compose up -d
+   VERSION=1.1.0 docker-compose up -d
    ```
 
 4. **Verify deployment**
@@ -105,8 +107,11 @@ Replace placeholders with your actual values.
    After deployment completes, verify that:
    - The application is accessible at http://your-domain.com or http://localhost:5000
    - You can log in to the application
-   - The calendar displays correctly
-   - Bookings can be created and edited
+   - The calendar displays correctly with proper studio rows
+   - Bookings can be created and edited with custom colors
+   - Tentative booking status can be selected
+   - Multi-studio bookings work correctly
+   - Booking copies preserve colors and settings
 
 ### Verification
 
@@ -172,14 +177,26 @@ docker-compose up -d
    - Check application logs for email-related errors
 
 4. **Database schema errors**
-   - If you see errors like `column "color" does not exist`, the database schema may need migration
+   - If you see errors like `column "color" does not exist` or `column "status" does not exist`, the database schema may need migration
    - Run the included migration scripts using the initialization container: 
      ```
+     # For booking colors
      docker-compose run --rm db-init node scripts/docker-migrate-booking-colors.cjs
+     
+     # For tentative booking status
+     docker-compose exec db psql -U postgres -d bookstudio -c "ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'confirmed';"
      ```
    - If migrations fail, you may need to manually add missing columns:
      ```
+     # For booking colors
      docker-compose exec db psql -U postgres -d bookstudio -c "ALTER TABLE bookings ADD COLUMN color TEXT DEFAULT '#3B82F6';"
+     
+     # For tentative booking status
+     docker-compose exec db psql -U postgres -d bookstudio -c "ALTER TABLE bookings ADD COLUMN status TEXT DEFAULT 'confirmed';"
+     ```
+   - Verify the schema updates with:
+     ```
+     docker-compose exec db psql -U postgres -d bookstudio -c "SELECT column_name FROM information_schema.columns WHERE table_name='bookings';"
      ```
 
 5. **Docker container failing to start**
