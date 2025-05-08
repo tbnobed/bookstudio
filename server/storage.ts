@@ -6,7 +6,8 @@ import {
   notifications, type Notification, type InsertNotification,
   notificationGroups, type NotificationGroup, type InsertNotificationGroup,
   pcrRooms, type PcrRoom, type InsertPcrRoom,
-  bookingStudios, type BookingStudio, type InsertBookingStudio
+  bookingStudios, type BookingStudio, type InsertBookingStudio,
+  systemSettings, type SystemSetting, type InsertSystemSetting
 } from "@shared/schema";
 
 import { db, pool } from "./db";
@@ -78,6 +79,12 @@ export interface IStorage {
   getNotificationsByUser(userId: number): Promise<Notification[]>;
   markNotificationAsRead(id: number): Promise<Notification | undefined>;
   
+  // System Settings
+  getSystemSetting(key: string): Promise<SystemSetting | undefined>;
+  getAllSystemSettings(): Promise<SystemSetting[]>;
+  upsertSystemSetting(key: string, value: string): Promise<SystemSetting>;
+  deleteSystemSetting(key: string): Promise<boolean>;
+  
   // Session management
   sessionStore: session.Store;
 }
@@ -94,6 +101,7 @@ export class MemStorage implements IStorage {
   private notifications: Map<number, Notification>;
   private notificationGroups: Map<number, NotificationGroup>;
   private bookingStudios: Map<string, BookingStudio>; // Use bookingId-studioId as key
+  private systemSettings: Map<string, SystemSetting>;
   
   private userIdCounter: number;
   private studioIdCounter: number;
@@ -102,6 +110,7 @@ export class MemStorage implements IStorage {
   private notificationIdCounter: number;
   private notificationGroupIdCounter: number;
   private bookingStudioIdCounter: number;
+  private systemSettingIdCounter: number;
   
   public sessionStore: session.Store;
 
@@ -114,6 +123,7 @@ export class MemStorage implements IStorage {
     this.notificationGroups = new Map();
     this.bookingStudios = new Map();
     this.pcrRooms = new Map();
+    this.systemSettings = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
@@ -123,6 +133,7 @@ export class MemStorage implements IStorage {
     this.notificationGroupIdCounter = 1;
     this.bookingStudioIdCounter = 1;
     this.pcrRoomIdCounter = 1;
+    this.systemSettingIdCounter = 1;
     
     // Create memory store for sessions
     this.sessionStore = new MemoryStore({
