@@ -101,6 +101,8 @@ services:
         node scripts/docker-migrate-file-attachments.cjs &&
         echo 'Adding booking colors support...' &&
         node scripts/docker-migrate-booking-colors.cjs &&
+        echo 'Adding booking status support...' &&
+        node scripts/docker-migrate-booking-status.cjs &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
         node scripts/docker-init-db.cjs &&
         echo 'Database initialization completed successfully' 
