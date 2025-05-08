@@ -103,6 +103,7 @@ COPY scripts/docker-migrate-booking-colors.cjs ./scripts/
 COPY scripts/docker-migrate-booking-status.cjs ./scripts/
 COPY scripts/docker-migrate-system-settings.cjs ./scripts/
 COPY scripts/docker-migrate-site-manager-notifications.cjs ./scripts/
+COPY scripts/verify-system-settings.cjs ./scripts/
 
 # Copy other necessary files
 COPY public ./public
