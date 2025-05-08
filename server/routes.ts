@@ -508,8 +508,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/pcr-rooms/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      // Allow updating description and status
+      // Allow updating name, description and status
       const updateSchema = z.object({
+        name: z.string().optional(),
         description: z.string().nullable().optional(),
         status: z.string().optional()
       });
