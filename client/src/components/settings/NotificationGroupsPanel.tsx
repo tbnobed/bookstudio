@@ -306,7 +306,20 @@ const NotificationGroupsPanel: React.FC = () => {
   // Delete notification group mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/notification-groups/${id}`);
+      try {
+        const response = await apiRequest("DELETE", `/api/notification-groups/${id}`);
+        
+        // Check if response is not ok (e.g., 404 Not Found)
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error ${response.status}`);
+        }
+        
+        return response;
+      } catch (error) {
+        console.error("Delete notification group error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notification-groups"] });
@@ -316,6 +329,11 @@ const NotificationGroupsPanel: React.FC = () => {
       });
     },
     onError: (error: Error) => {
+      // If the error is about a non-existent group, we still want to refresh the UI
+      if (error.message.includes("not found")) {
+        queryClient.invalidateQueries({ queryKey: ["/api/notification-groups"] });
+      }
+      
       toast({
         title: "Error",
         description: `Failed to delete notification group: ${error.message}`,
