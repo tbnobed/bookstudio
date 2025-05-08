@@ -3,8 +3,13 @@ import type { User, Booking, Studio, NotificationGroup } from '@shared/schema';
 import { format } from 'date-fns';
 import { storage } from '../storage';
 
-// Use the existing email service
-import { sendEmail, formatDate } from './emailService';
+// Use the existing email service functions
+import { sendEmail } from './emailService';
+
+// Format date helper (copied from emailService to avoid circular imports)
+function formatDate(date: Date): string {
+  return format(new Date(date), 'EEEE, MMMM d, yyyy - h:mm a');
+}
 
 // Constants
 const FROM_EMAIL = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';

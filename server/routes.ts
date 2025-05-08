@@ -22,7 +22,14 @@ import {
   sendBookingUpdate, 
   sendBookingCancellation, 
   sendMaintenanceAlert,
-  sendFacilityAlert
+  sendFacilityAlert 
+} from "./services/emailService";
+
+import {
+  sendBookingNotificationToGroups,
+  sendMaintenanceAlertToGroups,
+  sendFacilityAlertToGroups,
+  sendCustomNotificationToGroups
 } from "./services/emailService";
 import { 
   generatePasswordResetToken, 
