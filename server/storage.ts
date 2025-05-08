@@ -1318,17 +1318,27 @@ export class DatabaseStorage implements IStorage {
   
   async updatePcrRoom(id: number, updateData: Partial<Omit<PcrRoom, 'id'>>): Promise<PcrRoom | undefined> {
     try {
+      console.log(`Updating PCR room ${id} with data:`, JSON.stringify(updateData));
+      
       // Don't allow changing id
       const { id: _, ...dataToUpdate } = updateData as any;
+      
+      console.log(`Processed data to update:`, JSON.stringify(dataToUpdate));
       
       const [updatedPcrRoom] = await db.update(pcrRooms)
         .set(dataToUpdate)
         .where(eq(pcrRooms.id, id))
         .returning();
       
+      console.log(`PCR room update result:`, updatedPcrRoom ? JSON.stringify(updatedPcrRoom) : "null");
+      
       if (updatedPcrRoom) {
         this.pcrRooms.set(id, updatedPcrRoom);
+        console.log(`Updated PCR room in cache with ID ${id}`);
+      } else {
+        console.log(`No PCR room was updated with ID ${id}`);
       }
+      
       return updatedPcrRoom;
     } catch (error) {
       console.error(`Error updating PCR room with ID ${id}:`, error);

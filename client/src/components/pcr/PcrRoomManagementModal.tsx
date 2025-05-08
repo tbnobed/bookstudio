@@ -84,14 +84,18 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
   // Update PCR Room with full data mutation
   const updateFullPcrRoomMutation = useMutation({
     mutationFn: async (data: { id: number; name: string; description: string | null | undefined; status: string }) => {
+      console.log("Updating PCR Room with data:", data);
       const res = await apiRequest("PATCH", `/api/pcr-rooms/${data.id}`, {
         name: data.name,
         description: data.description === undefined ? null : data.description,
         status: data.status
       });
-      return await res.json();
+      const result = await res.json();
+      console.log("PCR Room update response:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("PCR Room update successful:", data);
       toast({
         title: "PCR Room updated",
         description: "PCR Room has been updated successfully",
@@ -102,6 +106,7 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
       form.reset();
     },
     onError: (error: Error) => {
+      console.error("PCR Room update error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to update PCR Room",
