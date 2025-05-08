@@ -23,7 +23,7 @@ interface EmailParams {
 }
 
 // Format date for emails
-function formatDate(date: Date): string {
+export function formatDate(date: Date): string {
   return format(new Date(date), 'EEEE, MMMM d, yyyy - h:mm a');
 }
 
