@@ -83,9 +83,9 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
   
   // Update PCR Room with full data mutation
   const updateFullPcrRoomMutation = useMutation({
-    mutationFn: async (data: { id: number; description: string | null; status: string }) => {
+    mutationFn: async (data: { id: number; description: string | null | undefined; status: string }) => {
       const res = await apiRequest("PATCH", `/api/pcr-rooms/${data.id}`, {
-        description: data.description,
+        description: data.description === undefined ? null : data.description,
         status: data.status
       });
       return await res.json();
@@ -115,7 +115,7 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
       // Update the PCR room with all form data
       updateFullPcrRoomMutation.mutate({ 
         id: pcrRoom.id, 
-        description: data.description, 
+        description: data.description === undefined ? null : data.description, 
         status: data.status 
       });
     } else {
@@ -166,7 +166,6 @@ export default function PcrRoomManagementModal({ isOpen, onClose, pcrRoom }: Pcr
                       placeholder="Optional description" 
                       {...field} 
                       value={field.value || ""}
-                      disabled={isEditMode}
                     />
                   </FormControl>
                   <FormMessage />
