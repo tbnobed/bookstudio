@@ -318,6 +318,7 @@ export default function WeeklyCalendar({
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           booking={editBooking}
+          selectedStudio={editBooking.studioId}
         />
       )}
 
