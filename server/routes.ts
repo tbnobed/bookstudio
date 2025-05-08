@@ -30,7 +30,7 @@ import {
   sendMaintenanceAlertToGroups,
   sendFacilityAlertToGroups,
   sendCustomNotificationToGroups
-} from "./services/emailService";
+} from "./services/notificationGroupService";
 import { 
   generatePasswordResetToken, 
   verifyPasswordResetToken, 
