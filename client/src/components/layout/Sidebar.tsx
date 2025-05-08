@@ -12,6 +12,7 @@ type SidebarProps = {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [location, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const { siteName } = useSiteSettings();
   
   // Debug log to track user changes in sidebar
   console.log("Sidebar rendering with user:", user);
@@ -40,8 +41,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     >
       <div className="flex flex-col h-full">
         <div className="p-1 border-b">
-          <div className="flex items-center justify-center">
-            <img src={logoPath} alt="BookStud.io logo" className="h-48 w-auto" />
+          <div className="flex items-center justify-center flex-col">
+            <img src={logoPath} alt="BookStud.io logo" className="h-36 w-auto" />
+            <h1 className="text-xl font-semibold text-gray-800 mb-2">{siteName}</h1>
           </div>
         </div>
         

@@ -6,16 +6,80 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Studio } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import StudioManagementModal from "@/components/studio/StudioManagementModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 import ProfilePanel from "@/components/settings/ProfilePanel";
 import PcrRoomsPanel from "@/components/settings/PcrRoomsPanel";
+
+// Site Name Form Component
+function SiteNameForm() {
+  const { siteName, updateSiteName, isUpdating } = useSiteSettings();
+  
+  // Set up form validation schema
+  const formSchema = z.object({
+    siteName: z.string()
+      .min(2, { message: "Site name must be at least 2 characters" })
+      .max(50, { message: "Site name must be less than 50 characters" })
+  });
+  
+  // Form initialization
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      siteName: siteName || "BookStud.io"
+    }
+  });
+  
+  // Update form default values when siteName is loaded
+  useEffect(() => {
+    if (siteName) {
+      form.reset({ siteName });
+    }
+  }, [siteName, form]);
+  
+  // Form submission handler
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    updateSiteName(values.siteName);
+  }
+  
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="siteName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Site Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter site name" {...field} />
+              </FormControl>
+              <FormDescription>
+                This will be displayed in the sidebar and browser title
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={isUpdating}>
+          {isUpdating ? "Updating..." : "Save Site Name"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
 
 export default function Settings() {
   const { user } = useAuth();
@@ -165,6 +229,16 @@ export default function Settings() {
           
           <TabsContent value="general">
             <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Site Settings</CardTitle>
+                  <CardDescription>Configure basic site information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <SiteNameForm />
+                </CardContent>
+              </Card>
+              
               <Card>
                 <CardHeader>
                   <CardTitle>Date & Time Settings</CardTitle>
