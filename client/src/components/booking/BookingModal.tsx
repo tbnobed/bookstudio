@@ -585,6 +585,56 @@ export default function BookingModal({
     setIsCopyModalOpen(false);
   };
   
+  // Save booking as template
+  const handleSaveAsTemplate = async () => {
+    if (!formData.templateName) {
+      toast({
+        title: "Error",
+        description: "Please enter a template name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Calculate duration in minutes
+    const startDate = timeToDate(formData.date, formData.startTime);
+    const endDate = timeToDate(formData.date, formData.endTime);
+    const durationMs = endDate.getTime() - startDate.getTime();
+    const durationMinutes = Math.floor(durationMs / 60000);
+    
+    // Convert notification group IDs from strings to numbers for the template
+    const notifyListAsNumbers = formData.notifyList.map(id => parseInt(id));
+    
+    const templateData = {
+      name: formData.templateName,
+      description: formData.description,
+      type: formData.bookingType,
+      duration: durationMinutes,
+      crewRequired: notifyListAsNumbers,
+      createdBy: 1, // Using 1 as admin for now
+      color: formData.color,
+      status: formData.status,
+      studioIds: formData.studioIds.map(id => parseInt(id)),
+      pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "0" ? parseInt(formData.pcrRoomId) : null
+    };
+    
+    try {
+      await createTemplate.mutateAsync(templateData);
+      toast({
+        title: "Success",
+        description: "Template saved successfully",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Error saving template:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save template",
+        variant: "destructive"
+      });
+    }
+  };
+  
   return (
     <div>
       {booking && !alertsOnly && (
@@ -1016,6 +1066,46 @@ export default function BookingModal({
                           <Copy className="w-3.5 h-3.5 mr-1" />
                           <span>Copy Booking</span>
                         </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              type="button" 
+                              size="sm" 
+                              className="space-x-1"
+                            >
+                              <Tag className="w-3.5 h-3.5 mr-1" />
+                              <span>Save as Template</span>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Save as Template</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Save this booking as a template for future use. The template will include studios, notification groups, PCR room, booking type, booking status, and color.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <div className="py-4">
+                              <Label htmlFor="templateName" className="text-left">Template Name</Label>
+                              <Input 
+                                id="templateName" 
+                                placeholder="Enter template name" 
+                                value={formData.templateName || ''}
+                                onChange={(e) => updateFormField('templateName', e.target.value)}
+                                className="mt-2"
+                              />
+                            </div>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={handleSaveAsTemplate}
+                              >
+                                Save Template
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                       
                       <Button
