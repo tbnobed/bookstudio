@@ -232,6 +232,7 @@ export default function BookingModal({
           studioIds: studioIds.length > 0 ? studioIds : [], 
           pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "0", // Use "0" as default
           bookingType,
+          status: normalizedBooking.status || "confirmed",
           date: dateStr,
           startTime: startTimeStr,
           endTime: endTimeStr,
@@ -337,6 +338,7 @@ export default function BookingModal({
       title: formData.title,
       description: formData.description,
       type: finalBookingType,
+      status: formData.status,
       start: startDate,
       end: endDate,
       notifyList: formData.notifyList,
@@ -632,6 +634,24 @@ export default function BookingModal({
                               <SelectItem value="maintenance">Maintenance</SelectItem>
                               <SelectItem value="it_support">IT Support</SelectItem>
                               <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="status">Booking Status</Label>
+                          <Select 
+                            value={formData.status} 
+                            onValueChange={(value) => updateFormField('status', value)} 
+                            required
+                          >
+                            <SelectTrigger id="status">
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="confirmed">Confirmed</SelectItem>
+                              <SelectItem value="tentative">Tentative</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
