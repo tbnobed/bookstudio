@@ -366,8 +366,12 @@ export default function BookingModal({
       if (selectedTemplate) {
         console.log("Selected template:", selectedTemplate);
         
-        // Pre-fill form with template data
-        updateFormField('title', selectedTemplate.name);
+        // Pre-fill form with template data - without overriding title
+        // We'll keep the user's title and only provide the template name as a default
+        // if the title field is empty
+        if (!formData.title) {
+          updateFormField('title', selectedTemplate.name);
+        }
         updateFormField('description', selectedTemplate.description || "");
         updateFormField('bookingType', selectedTemplate.type);
         
