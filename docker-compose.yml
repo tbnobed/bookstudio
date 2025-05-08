@@ -41,20 +41,21 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: "20m"
+        max-file: "5"
     # Healthcheck to verify application is running properly
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 30s
+      start_period: 45s
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting application...' &&
-        npm start
+        echo 'Starting BookStud.io application...' &&
+        echo 'Using timezone: America/Chicago' &&
+        node dist/index.js
       "
 
   # Database initialization container
@@ -123,12 +124,10 @@ services:
       timeout: 5s
       retries: 10
       start_period: 15s
-    # Enable this in production for database security
-    # command: postgres -c config_file=/etc/postgresql/postgresql.conf
-    # configs:
-    #   - source: postgres_config
-    #     target: /etc/postgresql/postgresql.conf
-
+    # Production-optimized Postgres settings
+    command: postgres -c shared_buffers=256MB -c max_connections=100 -c timezone='America/Chicago' -c work_mem=4MB
+    shm_size: '256mb'  # Shared memory size for PostgreSQL
+    
   # No need for Nginx in Docker when using Nginx Proxy Manager externally
 
 # Network configuration
@@ -139,9 +138,6 @@ networks:
 # Persistent volumes
 volumes:
   postgres_data:
+    name: bookstudio_postgres_data
   file_uploads:
-
-# Uncomment for production use
-# configs:
-#   postgres_config:
-#     file: ./postgresql.conf
+    name: bookstudio_file_uploads
