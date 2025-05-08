@@ -170,15 +170,25 @@ export default function BookingModal({
     const endTime = new Date(selectedDate);
     endTime.setHours(10, 0, 0, 0);
     
-    // Select default studio
-    const defaultStudioId = selectedStudio || (studios.length > 0 ? studios[0].id : null);
+    // Select default studio - use effectiveStudio if available
+    const effectiveStudioForDummy = effectiveStudio !== null && effectiveStudio !== undefined 
+      ? effectiveStudio
+      : selectedStudio !== null && selectedStudio !== undefined
+        ? selectedStudio 
+        : (studios.length > 0 ? studios[0].id : null);
+    
+    console.log("createDummyBooking - Using studio:", {
+      effectiveStudio,
+      selectedStudio,
+      effectiveStudioForDummy
+    });
     
     return {
       id: 0, // Dummy ID for new booking
       title: "",
       description: "",
-      studioId: defaultStudioId,
-      studio_id: defaultStudioId,
+      studioId: effectiveStudioForDummy,
+      studio_id: effectiveStudioForDummy,
       pcrRoomId: 0,
       pcr_room_id: 0,
       type: alertsOnly ? "maintenance" : "production",
@@ -259,9 +269,16 @@ export default function BookingModal({
         } else {
           // For new booking mode: use selectedStudio or first available
           console.log("New booking mode - selectedStudio:", selectedStudio);
-          studioIds = selectedStudio 
-            ? [selectedStudio.toString()]
-            : (studios.length > 0 ? [studios[0].id.toString()] : []);
+          
+          // Get the effective studio ID from our earlier calculation 
+          // or fall back to selectedStudio or studios[0]
+          const effectiveStudioForForm = effectiveStudio || selectedStudio;
+          
+          console.log("New booking - using effectiveStudioForForm:", effectiveStudioForForm);
+          
+          studioIds = effectiveStudioForForm !== null && effectiveStudioForForm !== undefined
+            ? [String(effectiveStudioForForm)] // Ensure we're working with a string
+            : (studios.length > 0 ? [String(studios[0].id)] : []);
         }
         
         // Set form data with consistent initialization for both new and edit modes
