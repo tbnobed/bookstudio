@@ -56,26 +56,28 @@ function SiteNameForm() {
   
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
         <FormField
           control={form.control}
           name="siteName"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="space-y-1">
               <FormLabel>Site Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter site name" {...field} />
-              </FormControl>
-              <FormDescription>
-                This will be displayed in the sidebar and browser title
+              <div className="flex items-center gap-2">
+                <FormControl>
+                  <Input placeholder="Enter site name" {...field} />
+                </FormControl>
+                <Button type="submit" disabled={isUpdating} className="flex-shrink-0">
+                  {isUpdating ? "Updating..." : "Save"}
+                </Button>
+              </div>
+              <FormDescription className="text-xs">
+                Displayed in the sidebar and browser title
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isUpdating}>
-          {isUpdating ? "Updating..." : "Save Site Name"}
-        </Button>
       </form>
     </Form>
   );
