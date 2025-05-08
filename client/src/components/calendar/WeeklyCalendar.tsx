@@ -132,6 +132,9 @@ export default function WeeklyCalendar({
       return;
     }
     
+    // Log the booking object to debug
+    console.log("WeeklyCalendar - handleBookingClick received:", booking);
+    
     // Check if it's an ApiBooking format (for alerts) or regular Booking
     const isApiFormat = 'studio_id' in booking;
     
@@ -150,9 +153,14 @@ export default function WeeklyCalendar({
           templateId: booking.template_id,
           notifyList: booking.notify_list,
           createdAt: booking.created_at,
-          severity: booking.severity
+          severity: booking.severity,
+          status: booking.status || "confirmed",
+          color: booking.color || null
         }
       : booking;
+    
+    // Ensure studioId is properly set
+    console.log(`WeeklyCalendar - Processing booking with studio ID: ${bookingToEdit.studioId}`);
     
     // Check if it's a facility-wide alert
     if ((bookingToEdit.type === "maintenance" || bookingToEdit.type === "it_support") && bookingToEdit.studioId === null) {
