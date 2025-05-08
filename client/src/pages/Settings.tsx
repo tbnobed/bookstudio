@@ -238,63 +238,8 @@ export default function Settings() {
                   <CardTitle>Site Settings</CardTitle>
                   <CardDescription>Configure basic site information</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent>
                   <SiteNameForm />
-                  
-                  <div className="mt-6 space-y-4">
-                    <div>
-                      <Label htmlFor="site-logo">Site Logo</Label>
-                      <div className="mt-2 flex items-center gap-4">
-                        <div className="h-16 w-16 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                        <div className="flex flex-col space-y-2">
-                          <Button size="sm" variant="outline">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                            Upload Logo
-                          </Button>
-                          <p className="text-xs text-muted-foreground">
-                            Recommended size: 180x180px, PNG or SVG
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Separator className="my-4" />
-                    
-                    <div>
-                      <Label htmlFor="facility-address">Facility Address</Label>
-                      <Textarea 
-                        id="facility-address" 
-                        placeholder="Enter facility address"
-                        className="mt-2 resize-none"
-                        rows={3}
-                        defaultValue="1234 Studio Way, Dallas, TX 75001"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        This address will be shown on booking confirmations
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="contact-email">Contact Email</Label>
-                      <Input 
-                        id="contact-email" 
-                        type="email"
-                        placeholder="admin@example.com"
-                        className="mt-2"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Used for system notifications and as reply-to address
-                      </p>
-                    </div>
-                    
-                    <Button className="mt-4">Save Changes</Button>
-                  </div>
                 </CardContent>
               </Card>
               
@@ -584,78 +529,25 @@ export default function Settings() {
                 <CardTitle>Backup & Restore</CardTitle>
                 <CardDescription>Manage system data</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent>
+                <div className="rounded-md bg-blue-50 p-4 mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 flex-1 md:flex md:justify-between">
+                      <p className="text-sm text-blue-700">
+                        Backup and restore operations are handled automatically through the Docker deployment process. Database backups are managed at the system level.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-2">Automated Backup System</h4>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm">Daily Database Backups</p>
-                          <p className="text-xs text-muted-foreground">
-                            Daily backups at 2:00 AM
-                          </p>
-                        </div>
-                        <Switch id="auto-backup" defaultChecked />
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm mb-1">Backup Retention Policy</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          <Button variant="outline" size="sm" className="flex flex-col py-2 h-auto">
-                            <span className="text-sm">7 Days</span>
-                            <span className="text-xs text-muted-foreground">Current</span>
-                          </Button>
-                          <Button variant="outline" size="sm" className="flex flex-col py-2 h-auto">
-                            <span className="text-sm">30 Days</span>
-                          </Button>
-                          <Button variant="outline" size="sm" className="flex flex-col py-2 h-auto">
-                            <span className="text-sm">90 Days</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div>
-                    <h4 className="font-semibold mb-2">Recent Backups</h4>
-                    <div className="space-y-3">
-                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded flex justify-between items-center">
-                        <div>
-                          <p className="text-sm font-medium">Auto Backup</p>
-                          <p className="text-xs text-muted-foreground">May 8, 2025 - 2:00 AM</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">Download</Button>
-                          <Button variant="outline" size="sm">Restore</Button>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded flex justify-between items-center">
-                        <div>
-                          <p className="text-sm font-medium">Auto Backup</p>
-                          <p className="text-xs text-muted-foreground">May 7, 2025 - 2:00 AM</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">Download</Button>
-                          <Button variant="outline" size="sm">Restore</Button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4">
-                      <Button className="w-full">
-                        Create Manual Backup
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div>
-                    <h4 className="font-semibold mb-2">System Information</h4>
+                    <h3 className="text-sm font-medium mb-2">System Information</h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="font-medium text-gray-500">Version</p>
@@ -667,7 +559,7 @@ export default function Settings() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-500">Last Backup</p>
-                        <p>May 8, 2025 - 2:00 AM</p>
+                        <p>Managed by Docker</p>
                       </div>
                       <div>
                         <p className="font-medium text-gray-500">Status</p>
@@ -676,6 +568,13 @@ export default function Settings() {
                         </span>
                       </div>
                     </div>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <h3 className="text-sm font-medium mb-2 text-gray-600">Contact Administrator</h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      For database maintenance, backup requests, or data restoration, please contact your system administrator.
+                    </p>
                   </div>
                 </div>
               </CardContent>
