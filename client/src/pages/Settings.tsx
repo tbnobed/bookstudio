@@ -233,13 +233,18 @@ export default function Settings() {
           
           <TabsContent value="general">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card>
+              <Card className="h-fit">
                 <CardHeader>
                   <CardTitle>Site Settings</CardTitle>
                   <CardDescription>Configure basic site information</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pb-8">
                   <SiteNameForm />
+                  <div className="mt-8 space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      This name appears throughout the application and in browser window titles.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
               
