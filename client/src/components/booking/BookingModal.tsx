@@ -951,6 +951,26 @@ export default function BookingModal({
                     <div>
                       <div className="space-y-4">
                         <div>
+                          <Label htmlFor="template">Template (Optional)</Label>
+                          <Select 
+                            value={formData.templateId} 
+                            onValueChange={handleTemplateChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="None" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">None</SelectItem>
+                              {templates.map((template) => (
+                                <SelectItem key={template.id} value={template.id.toString()}>
+                                  {template.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      
+                        <div>
                           <Label htmlFor="type">Booking Type</Label>
                           <Select 
                             value={formData.bookingType} 
@@ -1002,26 +1022,6 @@ export default function BookingModal({
                               {pcrRooms.map((pcrRoom) => (
                                 <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
                                   {pcrRoom.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="template">Template (Optional)</Label>
-                          <Select 
-                            value={formData.templateId} 
-                            onValueChange={handleTemplateChange}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="None" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">None</SelectItem>
-                              {templates.map((template) => (
-                                <SelectItem key={template.id} value={template.id.toString()}>
-                                  {template.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -1425,6 +1425,28 @@ export default function BookingModal({
                 {/* Right column - Booking configuration */}
                 <div>
                   <div className="space-y-4">
+                    {!alertsOnly && (
+                      <div>
+                        <Label htmlFor="template">Template (Optional)</Label>
+                        <Select 
+                          value={formData.templateId} 
+                          onValueChange={handleTemplateChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {templates.map((template) => (
+                              <SelectItem key={template.id} value={template.id.toString()}>
+                                {template.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    
                     <div>
                       <Label htmlFor="type">Booking Type</Label>
                       <Select 
@@ -1469,28 +1491,6 @@ export default function BookingModal({
                             {pcrRooms.map((pcrRoom) => (
                               <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
                                 {pcrRoom.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    
-                    {!alertsOnly && (
-                      <div>
-                        <Label htmlFor="template">Template (Optional)</Label>
-                        <Select 
-                          value={formData.templateId} 
-                          onValueChange={handleTemplateChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="None" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">None</SelectItem>
-                            {templates.map((template) => (
-                              <SelectItem key={template.id} value={template.id.toString()}>
-                                {template.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
