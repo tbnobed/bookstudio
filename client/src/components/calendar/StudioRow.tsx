@@ -163,7 +163,8 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       templateId: null,
       notifyList: [],
       color: null,
-      createdAt: null
+      createdAt: null,
+      status: "confirmed" // Add status field
     });
   };
 
