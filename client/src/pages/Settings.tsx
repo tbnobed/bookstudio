@@ -333,24 +333,18 @@ export default function Settings() {
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="dark-mode">Dark Mode</Label>
-                      <Switch id="dark-mode" />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="compact-view">Compact View</Label>
-                      <Switch id="compact-view" />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="show-weekends">Show Weekends</Label>
+                      <Label htmlFor="show-weekends">Show Weekends in Calendar</Label>
                       <Switch id="show-weekends" defaultChecked />
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="auto-refresh">Auto-refresh (every 5 minutes)</Label>
+                      <Label htmlFor="auto-refresh">Auto-refresh Calendar (every 5 minutes)</Label>
                       <Switch id="auto-refresh" defaultChecked />
                     </div>
+                  </div>
+                  
+                  <div className="pt-2 text-sm text-muted-foreground">
+                    <p>Additional customization options will be available in future updates.</p>
                   </div>
                   
                   <Button>Save Changes</Button>
@@ -493,16 +487,6 @@ export default function Settings() {
                       <Switch id="email-notifications" defaultChecked />
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                      <Switch id="sms-notifications" />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="browser-notifications">Browser Notifications</Label>
-                      <Switch id="browser-notifications" defaultChecked />
-                    </div>
-                    
                     <div className="pt-4 pb-2">
                       <h3 className="text-sm font-medium">Notification Events</h3>
                     </div>
@@ -521,11 +505,11 @@ export default function Settings() {
                       <Label htmlFor="notify-cancellations">Cancellations</Label>
                       <Switch id="notify-cancellations" defaultChecked />
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="notify-reminders">Booking Reminders (24h before)</Label>
-                      <Switch id="notify-reminders" defaultChecked />
-                    </div>
+                  </div>
+                  
+                  <div className="pt-2 text-sm text-muted-foreground">
+                    <p>Email notifications are sent to users and notification groups based on booking operations.</p>
+                    <p className="mt-2">Browser and SMS notifications will be available in future updates.</p>
                   </div>
                   
                   <Button>Save Notification Settings</Button>
@@ -544,56 +528,51 @@ export default function Settings() {
                 <CardDescription>Manage system data</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="rounded-md bg-blue-50 p-4 mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 flex-1 md:flex md:justify-between">
+                      <p className="text-sm text-blue-700">
+                        Backup and restore operations are handled automatically through the Docker deployment process. Database backups are managed at the system level.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-sm font-medium mb-2">Backup Data</h3>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Create a backup of all system data including bookings, templates, and user information.
-                    </p>
-                    <Button>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                      </svg>
-                      Create Backup
-                    </Button>
-                  </div>
-                  
-                  <div className="pt-4">
-                    <h3 className="text-sm font-medium mb-2">Restore Data</h3>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Restore system data from a previous backup file.
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="outline">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="17 8 12 3 7 8"></polyline>
-                          <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        Select Backup File
-                      </Button>
-                      <Button variant="secondary" disabled>
-                        Restore
-                      </Button>
+                    <h3 className="text-sm font-medium mb-2">System Information</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-medium text-gray-500">Version</p>
+                        <p>1.3.0</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-500">Database</p>
+                        <p>PostgreSQL</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-500">Last Backup</p>
+                        <p>Managed by Docker</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-500">Status</p>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Operational
+                        </span>
+                      </div>
                     </div>
                   </div>
                   
                   <div className="pt-4">
-                    <h3 className="text-sm font-medium mb-2 text-red-600">Danger Zone</h3>
+                    <h3 className="text-sm font-medium mb-2 text-gray-600">Contact Administrator</h3>
                     <p className="text-sm text-gray-500 mb-4">
-                      Permanently delete all system data. This action cannot be undone.
+                      For database maintenance, backup requests, or data restoration, please contact your system administrator.
                     </p>
-                    <Button variant="destructive">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                      </svg>
-                      Reset System Data
-                    </Button>
                   </div>
                 </div>
               </CardContent>
