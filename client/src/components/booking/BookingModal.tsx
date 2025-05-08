@@ -944,6 +944,26 @@ export default function BookingModal({
                             </SelectContent>
                           </Select>
                         </div>
+                        
+                        <div>
+                          <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                          <Select 
+                            value={formData.pcrRoomId} 
+                            onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="None" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">None</SelectItem>
+                              {pcrRooms.map((pcrRoom) => (
+                                <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                                  {pcrRoom.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
                     
@@ -1004,26 +1024,6 @@ export default function BookingModal({
                               <SelectItem value="confirmed">Confirmed</SelectItem>
                               <SelectItem value="tentative">Tentative</SelectItem>
                               <SelectItem value="cancelled">Cancelled</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
-                          <Select 
-                            value={formData.pcrRoomId} 
-                            onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="None" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="0">None</SelectItem>
-                              {pcrRooms.map((pcrRoom) => (
-                                <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                                  {pcrRoom.name}
-                                </SelectItem>
-                              ))}
                             </SelectContent>
                           </Select>
                         </div>
@@ -1419,6 +1419,28 @@ export default function BookingModal({
                         </SelectContent>
                       </Select>
                     </div>
+                    
+                    {!alertsOnly && (
+                      <div>
+                        <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                        <Select 
+                          value={formData.pcrRoomId} 
+                          onValueChange={(value) => updateFormField('pcrRoomId', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">None</SelectItem>
+                            {pcrRooms.map((pcrRoom) => (
+                              <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                                {pcrRoom.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -1475,28 +1497,6 @@ export default function BookingModal({
                         </SelectContent>
                       </Select>
                     </div>
-                    
-                    {!alertsOnly && (
-                      <div>
-                        <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
-                        <Select 
-                          value={formData.pcrRoomId} 
-                          onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="None" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">None</SelectItem>
-                            {pcrRooms.map((pcrRoom) => (
-                              <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                                {pcrRoom.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
                     
                     {!alertsOnly && (
                       <div>
