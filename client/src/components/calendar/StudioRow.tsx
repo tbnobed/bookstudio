@@ -277,7 +277,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
             )}
             
             {/* Map through studio bookings and position them dynamically */}
-            {dayBookings.map((booking, bookingIndex) => {
+            {dayBookings.map((booking) => {
               // Determine color based on booking type and severity for alerts
               let colorClass = "bg-blue-100 border-blue-300 text-blue-800";
               
@@ -305,26 +305,19 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                 colorClass = "border"; // Keep only the border class, we'll style it with inline styles
               }
               
-              // Create a stable position mapping using booking IDs to ensure consistent positions
-              // This is key to prevent layout shifts when opening/closing modals
-              const bookingPositions = useMemo(() => {
-                // Create a mapping of booking IDs to fixed positions
-                // This ensures that a booking always appears at the same position
-                const positions = new Map();
-                
-                // Sort bookings by ID to ensure consistent order
-                const sortedBookings = [...dayBookings].sort((a, b) => a.id - b.id);
-                
-                // Assign positions to each booking
-                sortedBookings.forEach((b, idx) => {
-                  positions.set(b.id, 4 + (idx * 44));
-                });
-                
-                return positions;
-              }, [dayBookings.map(b => b.id).join(',')]);
+              // Calculate position based on booking ID (stable value)
+              // This ensures consistent position regardless of array order changes
+              const stableIndex = dayBookings.findIndex(b => b.id === booking.id);
               
-              // Get the stable position for this booking
-              let topPosition = bookingPositions.get(booking.id) || 4;
+              // Use a standard spacing calculation but adjust it for density
+              let spacing = 44; // Default spacing
+              if (dayBookings.length > 10) {
+                spacing = 34; // Tighter spacing for dense days
+              } else if (dayBookings.length > 5) {
+                spacing = 38; // Medium spacing
+              }
+              
+              let topPosition = 4 + (stableIndex * spacing);
               
               console.log(`Booking ${booking.title} in ${studio.name} on ${date.toDateString()} - position: ${topPosition}px`);
               
