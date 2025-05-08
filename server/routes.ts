@@ -1216,6 +1216,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (bookingUser && studio) {
                 console.log(`Sending booking update email to user ${bookingUser.email} for booking "${updatedBooking.title}"`);
                 await sendBookingUpdate(updatedBooking, studio, bookingUser);
+                
+                // Send notification to notification groups if they exist
+                if (updatedBooking.notifyList && updatedBooking.notifyList.length > 0) {
+                  try {
+                    await sendBookingNotificationToGroups(
+                      updatedBooking,
+                      studio,
+                      updatedBooking.notifyList,
+                      'updated'
+                    );
+                    console.log(`Notification sent to ${updatedBooking.notifyList.length} groups about booking update`);
+                  } catch (notifyError) {
+                    console.error("Error sending notification to groups:", notifyError);
+                    // Continue execution even if notification failed
+                  }
+                }
               }
             } catch (emailError) {
               console.error("Error sending booking update email:", emailError);
