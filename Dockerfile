@@ -47,7 +47,7 @@ RUN echo "import express from 'express';" > server-prod.js && \
     echo "    console.log(`Server running on port ${port}`);" >> server-prod.js && \
     echo "    console.log(`Application timezone: ${process.env.TZ || 'UTC'}`);" >> server-prod.js && \
     echo "    console.log(`Facility timezone: ${process.env.FACILITY_TIMEZONE || process.env.TZ || 'UTC'}`);" >> server-prod.js && \
-    echo "    console.log('BookStudio Version: 1.4.0');" >> server-prod.js && \
+    echo "    console.log('BookStudio Version: 1.4.1');" >> server-prod.js && \
     echo "  });" >> server-prod.js && \
     echo "})();" >> server-prod.js && \
     npx esbuild server-prod.js --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
@@ -101,6 +101,7 @@ COPY scripts/docker-create-booking-studios.cjs ./scripts/
 COPY scripts/docker-migrate-file-attachments.cjs ./scripts/
 COPY scripts/docker-migrate-booking-colors.cjs ./scripts/
 COPY scripts/docker-migrate-booking-status.cjs ./scripts/
+COPY scripts/docker-migrate-system-settings.cjs ./scripts/
 COPY scripts/docker-migrate-site-manager-notifications.cjs ./scripts/
 
 # Copy other necessary files

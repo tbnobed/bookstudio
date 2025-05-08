@@ -53,8 +53,56 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting BookStud.io application v1.4.0...' &&
+        echo 'Starting BookStud.io application v1.4.1...' &&
         echo 'Using timezone: America/Chicago' &&
+        echo 'Verifying database tables before startup...' &&
+        node -e \"
+          const { Pool } = require('pg');
+          const pool = new Pool({
+            host: process.env.PGHOST,
+            port: process.env.PGPORT,
+            database: process.env.PGDATABASE,
+            user: process.env.PGUSER,
+            password: process.env.PGPASSWORD
+          });
+          async function verifyTables() {
+            try {
+              // Check for system_settings table
+              const result = await pool.query(\\\"
+                SELECT EXISTS (
+                  SELECT FROM information_schema.tables 
+                  WHERE table_schema = 'public'
+                  AND table_name = 'system_settings'
+                );
+              \\\");
+              if (!result.rows[0].exists) {
+                console.error('system_settings table not found. Running emergency fix...');
+                await pool.query(\\\"
+                  CREATE TABLE IF NOT EXISTS system_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    description TEXT,
+                    updated_at TIMESTAMPTZ DEFAULT NOW()
+                  );
+                \\\");
+                await pool.query(\\\"
+                  INSERT INTO system_settings (key, value, description)
+                  VALUES ('siteName', 'The Plex Studios', 'The name of the facility displayed throughout the application')
+                  ON CONFLICT (key) DO NOTHING;
+                \\\");
+                console.log('Emergency table creation complete');
+              } else {
+                console.log('Database tables verified successfully');
+              }
+            } catch (err) {
+              console.error('Database verification failed:', err);
+              process.exit(1);
+            } finally {
+              await pool.end();
+            }
+          }
+          verifyTables();
+        \" &&
         node dist/index.js
       "
 
@@ -103,6 +151,8 @@ services:
         node scripts/docker-migrate-booking-colors.cjs &&
         echo 'Adding booking status support...' &&
         node scripts/docker-migrate-booking-status.cjs &&
+        echo 'Setting up system settings table...' &&
+        node scripts/docker-migrate-system-settings.cjs &&
         echo 'Setting up site manager notification system...' &&
         node scripts/docker-migrate-site-manager-notifications.cjs &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
