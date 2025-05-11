@@ -485,7 +485,11 @@ export default function MobileDailyView({
                           {isFacilityAlert ? (
                             <Badge variant="destructive">Facility Alert</Badge>
                           ) : (
-                            <Badge variant="outline">{getStudiosForBooking(booking) || 'Unknown'}</Badge>
+                            <Badge variant={getLinkedStudiosForBooking(booking).length > 1 ? "secondary" : "outline"}>
+                              {getLinkedStudiosForBooking(booking).length > 1 
+                                ? `${getLinkedStudiosForBooking(booking).length} Studios` 
+                                : getStudiosForBooking(booking) || 'Unknown'}
+                            </Badge>
                           )}
                         </div>
                         
