@@ -250,33 +250,11 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         }
         
         const dayBookings = studioBookings.filter(booking => {
+          // Create a defensive copy of the booking.start date
           const bookingDate = new Date(booking.start);
           
-          // Log both dates for debugging to trace the timezone comparison issue
-          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${bookingDate.toISOString()})`);
-          
-          // Handle bookings that occur near midnight in the facility timezone
-          // Special case for this specific TCL booking that should appear on May 10th
-          if (booking.title === "TCL" && bookingDate.toISOString() === "2025-05-10T22:30:00.000Z") {
-            // Deep debugging for TCL booking
-            console.log(`DEBUGGING-TCL: Booking date=${bookingDate.toISOString()}, Cell date=${date.toISOString()}`);
-            console.log(`DEBUGGING-TCL: Facility dates - Booking=${getFacilityDateString(bookingDate)}, Cell=${getFacilityDateString(date)}`);
-            
-            // Get the facility date strings
-            const bookingFacilityDate = getFacilityDateString(bookingDate);
-            const cellFacilityDate = getFacilityDateString(date);
-              
-            // This is the critical fix: put this booking on May 10th only, not May 9th
-            if (cellFacilityDate === "2025-05-10") {
-              console.log(`FIXED: Placing TCL booking on May 10th`);
-              return true;
-            } else {
-              console.log(`FIXED: TCL booking only appears on May 10th, not ${cellFacilityDate}`);
-              return false;
-            }
-          }
-          
-          // Normal case - use isSameDay for other bookings
+          // Use the improved isSameDay function that now properly handles all timezone comparisons
+          // This ensures all bookings appear on the correct day in the facility timezone (America/Chicago)
           const result = isSameDay(bookingDate, date);
           
           if (result) {
