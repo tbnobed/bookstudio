@@ -42,9 +42,9 @@ export default function DayChronView({
     // Consider a booking an alert if:
     // 1. It has "alert" type, OR
     // 2. It has "Alert" in the title, OR
-    // 3. It's an "all-day" booking with "critical" severity, OR
-    // 4. It has critical severity, OR
-    // 5. It was created using the Add Alert button with maintenance type
+    // 3. It's an "all-day:maintenance" type booking, OR
+    // 4. It's an "all-day:it_support" type booking
+    // Note: We no longer force critical severity requirement for alerts
     
     // Debug logging to help diagnose alert detection
     console.log(`[ALERT CHECK] Booking ${booking.id} - ${booking.title}`, {
@@ -52,14 +52,14 @@ export default function DayChronView({
       severity: booking.severity,
       hasAlertInTitle: booking.title && booking.title.toLowerCase().includes('alert'),
       isAllDay: booking.type && booking.type.includes('all-day'),
-      isCritical: booking.severity === 'critical'
+      isMaintenance: booking.type && booking.type.includes('maintenance'),
+      isItSupport: booking.type && booking.type.includes('it_support')
     });
     
     return booking.type === 'alert' || 
            (booking.title && booking.title.toLowerCase().includes('alert')) ||
-           (booking.type && booking.type.includes('all-day') && booking.severity === 'critical') ||
-           (booking.severity === 'critical') || 
-           (booking.type === 'all-day:maintenance');
+           (booking.type && booking.type.includes('all-day:maintenance')) ||
+           (booking.type && booking.type.includes('all-day:it_support'));
   };
 
   // Separate alerts from regular bookings 
@@ -395,9 +395,9 @@ export default function DayChronView({
                   className="gap-1"
                   onClick={() => {
                     // Handle creating a new alert for the current date
+                    // Let the AlertModal handle defaults rather than hardcoding values here
                     const alertData = {
-                      type: "all-day:maintenance",
-                      severity: "critical",
+                      type: "maintenance", // Type will be prefixed with all-day if needed
                       start: date,
                       studioId: null
                     };

@@ -164,11 +164,7 @@ export default function AlertModal({
       // This will be used by isAllDayAlert in AlertsRow.tsx
       finalAlertType = `all-day:${alertType}`;
       
-      // If we've been called from the Add Alert button (alertsOnly is true), 
-      // ensure we're using the critical severity for proper alert detection
-      if (alertsOnly && severity !== "critical") {
-        setSeverity("critical");
-      }
+      // No longer forcing critical severity for alerts created from the Add Alert button
       
       console.log(`Creating all-day alert for date: ${date}`);
       console.log(`Start: ${localStartDate.toISOString()}, End: ${localEndDate.toISOString()}`);
