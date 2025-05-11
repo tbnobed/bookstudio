@@ -837,6 +837,7 @@ export class DatabaseStorage implements IStorage {
   private pcrRooms: Map<number, PcrRoom>;
   private bookingStudios: Map<string, BookingStudio>;
   private systemSettings: Map<number, SystemSetting>;
+  private bookingStudiosCache: BookingStudio[] = [];
   
   private userIdCounter: number;
   private studioIdCounter: number;
