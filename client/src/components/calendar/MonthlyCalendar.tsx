@@ -1,11 +1,44 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate, FACILITY_TIMEZONE } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
+import { CalendarClock, Clock, FileText, User, Tag, Tv } from "lucide-react";
+
+// Helper function to extract studios from a booking
+function extractStudiosFromBooking(booking: any, studiosList: any[]): any[] {
+  const result: any[] = [];
+  
+  // Add direct studio reference if exists
+  if (booking.studioId) {
+    const studio = studiosList.find(s => s.id === booking.studioId);
+    if (studio) result.push(studio);
+  }
+  
+  // Add studios from junction table
+  if (booking.bookingStudios && booking.bookingStudios.length > 0) {
+    booking.bookingStudios.forEach((bs: any) => {
+      const studio = studiosList.find(s => s.id === bs.studioId);
+      if (studio && !result.some(s => s.id === studio.id)) {
+        result.push(studio);
+      }
+    });
+  }
+  
+  // Add studios from studioIds array if present (used in some bookings)
+  if (booking.studioIds && Array.isArray(booking.studioIds)) {
+    booking.studioIds.forEach((studioId: number) => {
+      const studio = studiosList.find(s => s.id === studioId);
+      if (studio && !result.some(s => s.id === studio.id)) {
+        result.push(studio);
+      }
+    });
+  }
+  
+  return result;
+}
 
 interface MonthlyCalendarProps {
   date: Date;
