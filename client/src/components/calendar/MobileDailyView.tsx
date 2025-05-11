@@ -461,7 +461,7 @@ export default function MobileDailyView({
                         )}>
                           {/* PCR Room Information */}
                           <div className="text-xs text-gray-500 flex items-center gap-1 bg-gray-100 p-1 rounded mb-1">
-                            <MonitorPlay size={12} className="text-blue-500" />
+                            <MonitorPlay size={14} className="text-blue-500" />
                             <span>PCR: None assigned</span>
                           </div>
                           
@@ -593,9 +593,9 @@ export default function MobileDailyView({
 
                         {/* PCR Room - Direct Display */}
                         <div className="text-xs text-gray-500 flex items-center gap-1 mt-2 bg-gray-100 p-1 rounded">
-                          <Tv size={14} className="text-blue-500" />
+                          <MonitorPlay size={14} className="text-blue-500" />
                           <div>
-                            PCR ID: {booking.pcrRoomId || "None"} 
+                            PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"} 
                           </div>
                         </div>
                         
