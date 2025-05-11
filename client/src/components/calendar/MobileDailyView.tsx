@@ -38,15 +38,9 @@ function extractStudiosFromBooking(booking: any, studiosList: any[]): any[] {
     });
   }
   
-  // Add studios from studioIds array if present (used in some bookings)
-  if (booking.studioIds && Array.isArray(booking.studioIds)) {
-    booking.studioIds.forEach((studioId: number) => {
-      const studio = studiosList.find(s => s.id === studioId);
-      if (studio && !result.some(s => s.id === studio.id)) {
-        result.push(studio);
-      }
-    });
-  }
+  // Log the booking studio links to help with debugging
+  console.log(`Booking ${booking.id} (${booking.title}) has these studio links:`, 
+    booking.bookingStudios ? booking.bookingStudios.map((bs: any) => bs.studioId) : "none");
   
   return result;
 }
@@ -109,16 +103,26 @@ export default function MobileDailyView({
     });
   }, [todayBookings, bookingStudios]);
 
+  // Log the booking studios data
+  console.log("All bookingStudios data:", bookingStudios);
+  
   // Group bookings by studio (including linked bookings through booking_studios)
   const bookingsByStudio = studios.reduce((acc, studio) => {
     // Get all bookings that are linked to this studio (either directly or through booking_studios)
     acc[studio.id] = bookingsWithStudios.filter(booking => {
       // Direct studio reference
-      if (booking.studioId === studio.id) return true;
+      if (booking.studioId === studio.id) {
+        console.log(`Booking ${booking.id} (${booking.title}) is directly linked to Studio ${studio.id} (${studio.name})`);
+        return true;
+      }
       
       // Check booking_studios junction table
       if (booking.bookingStudios && booking.bookingStudios.length > 0) {
-        return booking.bookingStudios.some(bs => bs.studioId === studio.id);
+        const isLinked = booking.bookingStudios.some(bs => bs.studioId === studio.id);
+        if (isLinked) {
+          console.log(`Booking ${booking.id} (${booking.title}) is linked via junction table to Studio ${studio.id} (${studio.name})`);
+        }
+        return isLinked;
       }
       
       return false;
@@ -167,25 +171,57 @@ export default function MobileDailyView({
   // Get all studios with their current status
   const studiosWithStatus = getAllStudiosWithStatus();
   
-  // Function to get studio names for a booking
+  // Function to get directly linked studios for a booking
+  const getDirectStudiosForBooking = (booking: any): string => {
+    if (!booking || !booking.studioId) return "";
+    const studio = studios.find(s => s.id === booking.studioId);
+    return studio ? studio.name : "";
+  };
+  
+  // Function to get linked studios from the booking-studios junction table
+  const getLinkedStudiosForBooking = (booking: any): string[] => {
+    const studioNames: string[] = [];
+    
+    // Check direct studio reference first
+    if (booking.studioId) {
+      const studio = studios.find(s => s.id === booking.studioId);
+      if (studio) studioNames.push(studio.name);
+    }
+    
+    // Add studios from the bookingStudios lookup data we fetched
+    const links = bookingStudios.filter(bs => bs.bookingId === booking.id);
+    
+    if (links && links.length > 0) {
+      links.forEach(link => {
+        const studio = studios.find(s => s.id === link.studioId);
+        if (studio && !studioNames.includes(studio.name)) {
+          studioNames.push(studio.name);
+        }
+      });
+    }
+    
+    return studioNames;
+  };
+  
+  // Function to get a summary of studio names for a booking
   const getStudiosForBooking = (booking: any): string => {
-    const bookingStudios = extractStudiosFromBooking(booking, studios);
-    if (bookingStudios.length === 0) return "";
+    const studioNames = getLinkedStudiosForBooking(booking);
+    if (studioNames.length === 0) return "";
     
     // If there's just one studio, return its name
-    if (bookingStudios.length === 1) return bookingStudios[0].name;
+    if (studioNames.length === 1) return studioNames[0];
     
     // If there are multiple studios, return a summary
-    return `${bookingStudios[0].name} +${bookingStudios.length - 1}`;
+    return `${studioNames[0]} +${studioNames.length - 1}`;
   };
   
   // Function to get all studio names for a booking (without truncation)
   const getAllStudiosForBooking = (booking: any): string => {
-    const bookingStudios = extractStudiosFromBooking(booking, studios);
-    if (bookingStudios.length === 0) return "";
+    const studioNames = getLinkedStudiosForBooking(booking);
+    if (studioNames.length === 0) return "";
     
     // Return all studio names joined with commas
-    return bookingStudios.map(studio => studio.name).join(", ");
+    return studioNames.join(", ");
   };
 
   return (
@@ -354,8 +390,8 @@ export default function MobileDailyView({
                                 {formatTimeRange(bookingStart, bookingEnd)}
                               </div>
                               
-                              {/* Show linked studios if available */}
-                              {getAllStudiosForBooking(booking) && (
+                              {/* Show linked studios if there are multiple */}
+                              {getLinkedStudiosForBooking(booking).length > 1 && (
                                 <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                                   <Tv size={12} />
                                   {getAllStudiosForBooking(booking)}
