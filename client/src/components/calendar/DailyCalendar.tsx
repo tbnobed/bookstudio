@@ -68,19 +68,43 @@ export default function DailyCalendar({
     }
   }, [studios]);
 
-  // Filter bookings if selectedStudioIds is provided
-  const filteredBookings = selectedStudioIds.length > 0
-    ? bookings.filter(booking => {
-        // Include bookings with a direct studio ID match
-        if (booking.studioId && selectedStudioIds.includes(booking.studioId)) {
-          return true;
-        }
-        
-        // Check for bookings with studio links
-        const links = bookingStudioLinks.filter(link => link.bookingId === booking.id);
-        return links.some(link => selectedStudioIds.includes(link.studioId));
-      })
-    : bookings;
+  // Helper function to check if a booking overlaps with the current day
+  const isBookingForCurrentDay = (booking: Booking) => {
+    // Start and end dates of the booking
+    const bookingStart = new Date(booking.start);
+    const bookingEnd = new Date(booking.end);
+    
+    // Start and end of the current day
+    const dayStart = new Date(currentDate);
+    dayStart.setHours(0, 0, 0, 0);
+    
+    const dayEnd = new Date(currentDate);
+    dayEnd.setHours(23, 59, 59, 999);
+    
+    // Check if booking overlaps with the current day
+    return (
+      (bookingStart <= dayEnd && bookingEnd >= dayStart)
+    );
+  };
+  
+  // Filter bookings for the current day and by selectedStudioIds if provided
+  const filteredBookings = bookings
+    .filter(isBookingForCurrentDay)
+    .filter(booking => {
+      // If no studio IDs are selected, include all bookings for the day
+      if (selectedStudioIds.length === 0) {
+        return true;
+      }
+      
+      // Include bookings with a direct studio ID match
+      if (booking.studioId && selectedStudioIds.includes(booking.studioId)) {
+        return true;
+      }
+      
+      // Check for bookings with studio links
+      const links = bookingStudioLinks.filter(link => link.bookingId === booking.id);
+      return links.some(link => selectedStudioIds.includes(link.studioId));
+    });
 
   // Sort bookings chronologically by start time
   const sortedBookings = [...filteredBookings].sort((a, b) => {
