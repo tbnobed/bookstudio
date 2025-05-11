@@ -79,8 +79,22 @@ export default function DailyCalendar({
   const handleBookingClick = (booking: Booking) => {
     // Only allow editing if not in readOnly mode
     if (!readOnly) {
-      // Check if it's a facility-wide alert
-      if ((booking.type === "maintenance" || booking.type === "it_support") && booking.studioId === null) {
+      console.log("[DEBUG] Handling booking click:", booking);
+      
+      // Check if it's a facility-wide alert or critical maintenance booking
+      const isAlert = 
+        // Regular maintenance or IT support
+        ((booking.type === "maintenance" || booking.type === "it_support") && booking.studioId === null) ||
+        // All-day maintenance or all-day IT support
+        ((booking.type?.includes("maintenance") || booking.type?.includes("it_support")) && booking.severity === "critical") ||
+        // Explicit alert type
+        booking.type === "alert" ||
+        // Title includes "alert"
+        (booking.title && booking.title.toLowerCase().includes("alert"));
+        
+      console.log("[DEBUG] Is this an alert?", isAlert);
+      
+      if (isAlert) {
         // Use the dedicated AlertModal for facility-wide alerts
         setEditBooking(booking);
         setIsEditAlertModalOpen(true);
