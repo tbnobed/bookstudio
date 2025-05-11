@@ -37,25 +37,32 @@ export default function DayChronView({
     });
   }, [bookings, date]);
 
+  // Function to determine if a booking should be treated as an alert
+  const isAlertBooking = (booking: any) => {
+    // Consider a booking an alert if:
+    // 1. It has "alert" type, OR
+    // 2. It has "Alert" in the title, OR
+    // 3. It's an "all-day" booking with "critical" severity
+    // 4. It has critical severity
+    return booking.type === 'alert' || 
+           (booking.title && booking.title.toLowerCase().includes('alert')) ||
+           (booking.type && booking.type.includes('all-day') && booking.severity === 'critical') ||
+           (booking.severity === 'critical');
+  };
+
   // Separate alerts from regular bookings 
-  // "alert" type might not exist, or might be stored in different field
-  // Consider booking with title containing "Alert" as an alert as a fallback
   const alerts = useMemo(() => {
     // Debug log to see what types are available
     console.log("[DEBUG] All bookings for day:", dayBookings);
     
-    return dayBookings.filter(booking => 
-      booking.type === 'alert' || 
-      (booking.title && booking.title.toLowerCase().includes('alert'))
-    );
+    const alertBookings = dayBookings.filter(booking => isAlertBooking(booking));
+    console.log("[DEBUG] Filtered alert bookings:", alertBookings);
+    return alertBookings;
   }, [dayBookings]);
   
   // Sort regular bookings by start time
   const regularBookings = useMemo(() => {
-    const nonAlerts = dayBookings.filter(booking => 
-      booking.type !== 'alert' && 
-      (!booking.title || !booking.title.toLowerCase().includes('alert'))
-    );
+    const nonAlerts = dayBookings.filter(booking => !isAlertBooking(booking));
     return [...nonAlerts].sort((a, b) => {
       return new Date(a.start).getTime() - new Date(b.start).getTime();
     });
@@ -161,13 +168,8 @@ export default function DayChronView({
     const studiosList = getStudiosForBooking(booking);
     const pcrRoom = getPcrRoom(booking);
     
-    // Consider a booking an alert if:
-    // 1. It has "alert" type, OR
-    // 2. It has "Alert" in the title, OR
-    // 3. It's an "all-day" booking with "critical" severity
-    const isAlert = booking.type === 'alert' || 
-                   (booking.title && booking.title.toLowerCase().includes('alert')) ||
-                   (booking.type && booking.type.includes('all-day') && booking.severity === 'critical');
+    // Use our shared function to determine if this is an alert booking
+    const isAlert = isAlertBooking(booking);
     
     console.log("[DEBUG] Processing booking:", booking.id, booking.title, "isAlert:", isAlert);
     
@@ -369,14 +371,35 @@ export default function DayChronView({
         <div>
           {/* ALERTS SECTION */}
           {alerts.length > 0 && (
-            <div className="mb-6 p-4 border border-amber-200 bg-amber-50 rounded-md">
+            <div className="mb-6 p-4 border-2 border-red-400 bg-red-50 rounded-md shadow-md">
               <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle size={18} className="text-amber-500" />
-                <h3 className="text-lg font-semibold">Alerts</h3>
+                <AlertTriangle size={20} className="text-red-600" />
+                <h3 className="text-lg font-bold text-red-700">ALERTS & CRITICAL NOTICES</h3>
               </div>
               <div className="space-y-3">
                 {alerts.map(alert => (
-                  <BookingCard key={alert.id} booking={alert} />
+                  <div 
+                    key={alert.id} 
+                    className="p-3 rounded-md border-l-4 border-red-500 bg-white shadow-sm cursor-pointer hover:bg-gray-50"
+                    onClick={() => onBookingClick(alert)}
+                  >
+                    <div className="font-medium text-red-700">{alert.title}</div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {alert.description && alert.description.substring(0, 100)}
+                      {alert.description && alert.description.length > 100 ? '...' : ''}
+                    </div>
+                    <div className="mt-2 flex items-center text-xs">
+                      <div className="flex items-center gap-1 text-gray-700">
+                        <Clock size={14} className="flex-shrink-0" />
+                        <span>
+                          {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
+                        </span>
+                      </div>
+                      <span className="inline-block px-2 py-1 ml-2 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                        {alert.severity}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
