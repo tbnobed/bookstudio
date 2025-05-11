@@ -37,14 +37,25 @@ export default function DayChronView({
     });
   }, [bookings, date]);
 
-  // Separate alerts from regular bookings
+  // Separate alerts from regular bookings 
+  // "alert" type might not exist, or might be stored in different field
+  // Consider booking with title containing "Alert" as an alert as a fallback
   const alerts = useMemo(() => {
-    return dayBookings.filter(booking => booking.type === 'alert');
+    // Debug log to see what types are available
+    console.log("[DEBUG] All bookings for day:", dayBookings);
+    
+    return dayBookings.filter(booking => 
+      booking.type === 'alert' || 
+      (booking.title && booking.title.toLowerCase().includes('alert'))
+    );
   }, [dayBookings]);
   
   // Sort regular bookings by start time
   const regularBookings = useMemo(() => {
-    const nonAlerts = dayBookings.filter(booking => booking.type !== 'alert');
+    const nonAlerts = dayBookings.filter(booking => 
+      booking.type !== 'alert' && 
+      (!booking.title || !booking.title.toLowerCase().includes('alert'))
+    );
     return [...nonAlerts].sort((a, b) => {
       return new Date(a.start).getTime() - new Date(b.start).getTime();
     });
@@ -89,8 +100,12 @@ export default function DayChronView({
 
   // Get the background color class based on booking type
   const getTypeClass = (type: string, severity: string = 'normal') => {
+    // If it's an alert type (either by type field or determined by title)
+    const isAlert = type === 'alert' || (type && type.includes('all-day') && severity === 'critical');
+    
     // First check if it's an alert (severity-based color)
-    if (type === 'alert') {
+    if (isAlert) {
+      console.log("[DEBUG] Alert booking with severity:", severity);
       switch (severity) {
         case 'critical':
           return 'bg-red-100';
@@ -106,7 +121,10 @@ export default function DayChronView({
     }
     
     // Otherwise, use regular booking type
-    switch (type) {
+    // If type contains a colon, extract the main part
+    const mainType = type && type.includes(':') ? type.split(':')[1] : type;
+    
+    switch (mainType) {
       case 'production':
         return 'bg-blue-50';
       case 'maintenance':
@@ -142,7 +160,17 @@ export default function DayChronView({
   const BookingCard = ({ booking }: { booking: any }) => {
     const studiosList = getStudiosForBooking(booking);
     const pcrRoom = getPcrRoom(booking);
-    const isAlert = booking.type === 'alert';
+    
+    // Consider a booking an alert if:
+    // 1. It has "alert" type, OR
+    // 2. It has "Alert" in the title, OR
+    // 3. It's an "all-day" booking with "critical" severity
+    const isAlert = booking.type === 'alert' || 
+                   (booking.title && booking.title.toLowerCase().includes('alert')) ||
+                   (booking.type && booking.type.includes('all-day') && booking.severity === 'critical');
+    
+    console.log("[DEBUG] Processing booking:", booking.id, booking.title, "isAlert:", isAlert);
+    
     const typeClass = getTypeClass(booking.type, booking.severity);
     
     // Determine left border color
