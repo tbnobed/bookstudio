@@ -13,6 +13,39 @@ import { useLocation } from "wouter";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { formatTime, formatDate, isSameDay, formatTimeRange } from "@/lib/dateUtils";
 
+// Helper function to extract studios from a booking
+function extractStudiosFromBooking(booking: any, studiosList: any[]): any[] {
+  const result: any[] = [];
+  
+  // Add direct studio reference if exists
+  if (booking.studioId) {
+    const studio = studiosList.find(s => s.id === booking.studioId);
+    if (studio) result.push(studio);
+  }
+  
+  // Add studios from junction table
+  if (booking.bookingStudios && booking.bookingStudios.length > 0) {
+    booking.bookingStudios.forEach((bs: any) => {
+      const studio = studiosList.find(s => s.id === bs.studioId);
+      if (studio && !result.some(s => s.id === studio.id)) {
+        result.push(studio);
+      }
+    });
+  }
+  
+  // Add studios from studioIds array if present (used in some bookings)
+  if (booking.studioIds && Array.isArray(booking.studioIds)) {
+    booking.studioIds.forEach((studioId: number) => {
+      const studio = studiosList.find(s => s.id === studioId);
+      if (studio && !result.some(s => s.id === studio.id)) {
+        result.push(studio);
+      }
+    });
+  }
+  
+  return result;
+}
+
 interface MobileDailyViewProps {
   currentDate: Date;
   onDateChange: (date: Date) => void;
@@ -50,9 +83,25 @@ export default function MobileDailyView({
     queryKey: [`/api/bookings?start=${dayStart.toISOString()}&end=${dayEnd.toISOString()}`],
   });
 
-  // Group bookings by studio
+  // Group bookings by studio (including linked bookings through booking_studios)
   const bookingsByStudio = studios.reduce((acc, studio) => {
-    acc[studio.id] = todayBookings.filter(booking => booking.studioId === studio.id);
+    // Get all bookings that are linked to this studio (either directly or through booking_studios)
+    acc[studio.id] = todayBookings.filter(booking => {
+      // Direct studio reference
+      if (booking.studioId === studio.id) return true;
+      
+      // Check booking_studios junction table
+      if (booking.bookingStudios && booking.bookingStudios.length > 0) {
+        return booking.bookingStudios.some(bs => bs.studioId === studio.id);
+      }
+      
+      // Check studioIds array if present
+      if (booking.studioIds && Array.isArray(booking.studioIds)) {
+        return booking.studioIds.includes(studio.id);
+      }
+      
+      return false;
+    });
     return acc;
   }, {} as Record<number, Booking[]>);
 
@@ -96,6 +145,27 @@ export default function MobileDailyView({
 
   // Get all studios with their current status
   const studiosWithStatus = getAllStudiosWithStatus();
+  
+  // Function to get studio names for a booking
+  const getStudiosForBooking = (booking: any): string => {
+    const bookingStudios = extractStudiosFromBooking(booking, studios);
+    if (bookingStudios.length === 0) return "";
+    
+    // If there's just one studio, return its name
+    if (bookingStudios.length === 1) return bookingStudios[0].name;
+    
+    // If there are multiple studios, return a summary
+    return `${bookingStudios[0].name} +${bookingStudios.length - 1}`;
+  };
+  
+  // Function to get all studio names for a booking (without truncation)
+  const getAllStudiosForBooking = (booking: any): string => {
+    const bookingStudios = extractStudiosFromBooking(booking, studios);
+    if (bookingStudios.length === 0) return "";
+    
+    // Return all studio names joined with commas
+    return bookingStudios.map(studio => studio.name).join(", ");
+  };
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
@@ -263,6 +333,14 @@ export default function MobileDailyView({
                                 {formatTimeRange(bookingStart, bookingEnd)}
                               </div>
                               
+                              {/* Show linked studios if available */}
+                              {getAllStudiosForBooking(booking) && (
+                                <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                                  <Tv size={12} />
+                                  {getAllStudiosForBooking(booking)}
+                                </div>
+                              )}
+                              
                               {isUpcoming && (
                                 <div className="text-xs text-amber-700 mt-1">
                                   Starts in {formatDistance(bookingStart, now)}
@@ -310,8 +388,8 @@ export default function MobileDailyView({
                     // Determine if this is a facility alert
                     const isFacilityAlert = booking.studioId === null;
                     
-                    // Find studio name if not a facility alert
-                    const studio = !isFacilityAlert ? studios.find(s => s.id === booking.studioId) : null;
+                    // Get all studios linked to this booking
+                    const linkedStudios = extractStudiosFromBooking(booking, studios);
                     
                     return (
                       <div 
@@ -343,7 +421,7 @@ export default function MobileDailyView({
                           {isFacilityAlert ? (
                             <Badge variant="destructive">Facility Alert</Badge>
                           ) : (
-                            <Badge variant="outline">{studio?.name || 'Unknown'}</Badge>
+                            <Badge variant="outline">{getStudiosForBooking(booking) || 'Unknown'}</Badge>
                           )}
                         </div>
                         
@@ -351,6 +429,14 @@ export default function MobileDailyView({
                           <Clock size={14} />
                           {formatTimeRange(bookingStart, bookingEnd)}
                         </div>
+                        
+                        {/* Show detailed studio list for multi-studio bookings */}
+                        {!isFacilityAlert && linkedStudios.length > 0 && (
+                          <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
+                            <Tv size={14} />
+                            {getAllStudiosForBooking(booking)}
+                          </div>
+                        )}
                         
                         {isFacilityAlert && booking.severity && (
                           <div className="text-xs text-red-600 mt-1 flex items-center">
