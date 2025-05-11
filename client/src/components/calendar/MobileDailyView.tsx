@@ -1,6 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Booking, Studio } from "@shared/schema";
+
+// Define extended Booking type with bookingStudios
+interface BookingWithStudios extends Booking {
+  bookingStudios?: { bookingId: number; studioId: number }[];
+}
 import { cn } from "@/lib/utils";
 import { isToday, isPast, isAfter, isBefore, formatDistance, format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -82,11 +87,32 @@ export default function MobileDailyView({
   const { data: todayBookings = [] } = useQuery<Booking[]>({
     queryKey: [`/api/bookings?start=${dayStart.toISOString()}&end=${dayEnd.toISOString()}`],
   });
+  
+  // Fetch booking-studios junction data
+  const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({
+    queryKey: ['/api/booking-studios'],
+  });
+  
+  // Merge booking-studios data into the bookings
+  const bookingsWithStudios = useMemo<BookingWithStudios[]>(() => {
+    return todayBookings.map(booking => {
+      // Find all entries in bookingStudios that match this booking
+      const relatedBookingStudios = bookingStudios.filter(
+        bs => bs.bookingId === booking.id
+      );
+      
+      // Return a new booking object with the bookingStudios property
+      return {
+        ...booking,
+        bookingStudios: relatedBookingStudios
+      };
+    });
+  }, [todayBookings, bookingStudios]);
 
   // Group bookings by studio (including linked bookings through booking_studios)
   const bookingsByStudio = studios.reduce((acc, studio) => {
     // Get all bookings that are linked to this studio (either directly or through booking_studios)
-    acc[studio.id] = todayBookings.filter(booking => {
+    acc[studio.id] = bookingsWithStudios.filter(booking => {
       // Direct studio reference
       if (booking.studioId === studio.id) return true;
       
@@ -95,15 +121,10 @@ export default function MobileDailyView({
         return booking.bookingStudios.some(bs => bs.studioId === studio.id);
       }
       
-      // Check studioIds array if present
-      if (booking.studioIds && Array.isArray(booking.studioIds)) {
-        return booking.studioIds.includes(studio.id);
-      }
-      
       return false;
     });
     return acc;
-  }, {} as Record<number, Booking[]>);
+  }, {} as Record<number, BookingWithStudios[]>);
 
   // Get facility-wide alerts (bookings with studioId === null)
   const facilityAlerts = todayBookings.filter(booking => 
