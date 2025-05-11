@@ -125,16 +125,41 @@ export default function DailyCalendar({
       };
     });
   
-  // Filter bookings by selected studios if provided
-  const filteredBookings = processedBookings.filter(booking => {
+  // Define types for processed bookings
+  type ProcessedBooking = Booking & { linkedStudioIds: number[] };
+
+  // Separate bookings into regular bookings and facility-wide alerts
+  const { alerts, regularBookings } = processedBookings.reduce<{
+    alerts: ProcessedBooking[],
+    regularBookings: ProcessedBooking[]
+  }>((acc, booking) => {
+    // Check if it's a facility-wide alert (maintenance or IT support without a specific studio)
+    const isFacilityAlert = 
+      ((booking.type.includes('maintenance') || booking.type === 'it_support') && 
+       booking.studioId === null && 
+       booking.linkedStudioIds.length === 0);
+    
+    if (isFacilityAlert) {
+      acc.alerts.push(booking as ProcessedBooking);
+    } else {
+      acc.regularBookings.push(booking as ProcessedBooking);
+    }
+    return acc;
+  }, { alerts: [], regularBookings: [] });
+  
+  // Filter regular bookings by selected studios if provided
+  const filteredRegularBookings = regularBookings.filter(booking => {
     // If no studio IDs are selected, include all bookings for the day
     if (selectedStudioIds.length === 0) {
       return true;
     }
     
     // Check if any of the booking's linked studios match the selected studios
-    return booking.linkedStudioIds.some(studioId => selectedStudioIds.includes(studioId));
+    return booking.linkedStudioIds.some((studioId: number) => selectedStudioIds.includes(studioId));
   });
+  
+  // Always include facility-wide alerts regardless of studio selection
+  const filteredBookings = [...filteredRegularBookings, ...alerts];
 
   // Sort bookings chronologically by start time
   const sortedBookings = [...filteredBookings].sort((a, b) => {
@@ -187,9 +212,28 @@ export default function DailyCalendar({
     style: React.CSSProperties;
   }
 
+  // Check if a booking is a facility-wide alert
+  const isFacilityAlert = (booking: Booking) => {
+    return (booking.type.includes('maintenance') || booking.type === 'it_support') && 
+           booking.studioId === null;
+  };
+
   // Get the appropriate booking class based on booking type and color
   const getBookingClass = (booking: Booking): BookingStyle => {
     const baseClasses = "mb-4 p-4 rounded-md shadow cursor-pointer border transition-all duration-200 hover:shadow-md";
+    
+    // Special styling for facility-wide alerts
+    if (isFacilityAlert(booking)) {
+      const isHighSeverity = booking.severity === 'critical';
+      const alertClasses = isHighSeverity
+        ? `${baseClasses} bg-red-100 hover:bg-red-200 border-red-500 border-2`
+        : `${baseClasses} bg-amber-100 hover:bg-amber-200 border-amber-500`;
+      
+      return {
+        className: `${alertClasses} flex flex-col`,
+        style: { borderWidth: isHighSeverity ? '2px' : '1px' }
+      };
+    }
     
     // If booking has a custom color, use it
     if (booking.color) {
@@ -327,16 +371,32 @@ export default function DailyCalendar({
                         <p className="text-sm text-gray-700">{formatBookingTime(booking)}</p>
                         
                         {/* Studios with improved styling */}
-                        <div className="flex flex-wrap mt-3 gap-1">
-                          {getStudiosForBooking(booking).map((studioName, index) => (
-                            <span 
-                              key={index} 
-                              className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium"
-                            >
-                              {studioName}
+                        {isFacilityAlert(booking) ? (
+                          <div className="mt-2 flex items-center">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                viewBox="0 0 24 24" 
+                                fill="currentColor" 
+                                className="w-4 h-4 mr-1"
+                              >
+                                <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+                              </svg>
+                              Facility-wide Alert
                             </span>
-                          ))}
-                        </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap mt-3 gap-1">
+                            {getStudiosForBooking(booking).map((studioName, index) => (
+                              <span 
+                                key={index} 
+                                className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium"
+                              >
+                                {studioName}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         
                         {/* PCR Room with improved styling */}
                         {booking.pcrRoomId && (
