@@ -580,10 +580,10 @@ export default function MobileDailyView({
                         )}
 
                         {/* Show PCR room information for non-facility bookings */}
-                        {!isFacilityAlert && getPcrRoom(booking) && (
+                        {!isFacilityAlert && (
                           <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
-                            <MonitorPlay size={14} />
-                            {getPcrRoom(booking)?.name}
+                            <Tv size={14} />
+                            PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"}
                           </div>
                         )}
                         
