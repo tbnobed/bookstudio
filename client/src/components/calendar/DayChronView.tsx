@@ -3,9 +3,14 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatTime } from '@/lib/dateUtils';
 import { Badge } from '@/components/ui/badge';
-import { Tv, Clock, Users } from 'lucide-react';
+import { Tv, Clock, Users, Info, CalendarDays, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from "@tanstack/react-query";
+import { 
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 interface DayChronViewProps {
   date: Date;
@@ -44,7 +49,7 @@ export default function DayChronView({
   }, [dayBookings]);
 
   // Fetch all booking-studio links for multiple studio support
-  const { data: bookingStudioLinks = [] } = useQuery({
+  const { data: bookingStudioLinks = [] } = useQuery<any[]>({
     queryKey: ['/api/booking-studios'],
   });
 
@@ -77,7 +82,7 @@ export default function DayChronView({
     
     // Look through bookingStudioLinks for this booking's ID
     const links = bookingStudioLinks.filter((link: any) => link.bookingId === booking.id);
-    if (links.length > 0) {
+    if (links && links.length > 0) {
       console.log(`[DEBUG] Found ${links.length} booking-studio links for booking ${booking.id}`);
       links.forEach((link: any) => {
         const studio = studios.find(s => s.id === link.studioId);
@@ -191,61 +196,128 @@ export default function DayChronView({
             const bookingColor = booking.color || '#3b82f6';
             
             return (
-              <div 
-                key={booking.id}
-                className={cn(
-                  "border rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors",
-                  typeClass
-                )}
-                style={{
-                  borderLeftColor: bookingColor,
-                  borderLeftWidth: '4px'
-                }}
-                onClick={() => onBookingClick(booking)}
-              >
-                <div className="flex justify-between items-start">
-                  <h3 className="text-base font-bold">{booking.title}</h3>
-                  <Badge className="ml-2">{formatBookingType(booking.type)}</Badge>
-                </div>
-                
-                <div className="mt-2 text-sm">
-                  {/* Time */}
-                  <div className="flex items-center gap-1 text-gray-700">
-                    <Clock size={14} className="flex-shrink-0" />
-                    <span>
-                      {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
-                    </span>
-                  </div>
-                  
-                  {/* Studios */}
-                  <div className="flex items-center gap-1 text-gray-700 mt-1">
-                    <Users size={14} className="flex-shrink-0" />
-                    <div className="flex flex-wrap gap-1">
-                      {studiosList.length === 0 ? (
-                        <span className="text-gray-500">No studios assigned</span>
-                      ) : (
-                        studiosList.map(studio => (
-                          <Badge 
-                            key={studio.id} 
-                            variant="secondary" 
-                            className="text-xs"
-                          >
-                            {studio.name}
-                          </Badge>
-                        ))
+              <HoverCard key={booking.id} openDelay={300} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <div 
+                    className={cn(
+                      "border rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors",
+                      typeClass
+                    )}
+                    style={{
+                      borderLeftColor: bookingColor,
+                      borderLeftWidth: '4px'
+                    }}
+                    onClick={() => onBookingClick(booking)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-base font-bold">{booking.title}</h3>
+                      <Badge className="ml-2">{formatBookingType(booking.type)}</Badge>
+                    </div>
+                    
+                    <div className="mt-2 text-sm">
+                      {/* Time */}
+                      <div className="flex items-center gap-1 text-gray-700">
+                        <Clock size={14} className="flex-shrink-0" />
+                        <span>
+                          {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
+                        </span>
+                      </div>
+                      
+                      {/* Studios */}
+                      <div className="flex items-center gap-1 text-gray-700 mt-1">
+                        <Users size={14} className="flex-shrink-0" />
+                        <div className="flex flex-wrap gap-1">
+                          {studiosList.length === 0 ? (
+                            <span className="text-gray-500">No studios assigned</span>
+                          ) : (
+                            studiosList.map(studio => (
+                              <Badge 
+                                key={studio.id} 
+                                variant="secondary" 
+                                className="text-xs"
+                              >
+                                {studio.name}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* PCR room */}
+                      {pcrRoom && (
+                        <div className="flex items-center gap-1 text-gray-700 mt-1">
+                          <Tv size={14} className="flex-shrink-0" />
+                          <span>{pcrRoom.name}</span>
+                        </div>
                       )}
                     </div>
                   </div>
-                  
-                  {/* PCR room */}
-                  {pcrRoom && (
-                    <div className="flex items-center gap-1 text-gray-700 mt-1">
-                      <Tv size={14} className="flex-shrink-0" />
-                      <span>{pcrRoom.name}</span>
+                </HoverCardTrigger>
+                
+                <HoverCardContent className="w-80">
+                  <div className="flex justify-between">
+                    <div>
+                      <h4 className="text-sm font-semibold">{booking.title}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        <CalendarDays className="h-3.5 w-3.5 inline-block mr-1" />
+                        {format(new Date(booking.start), 'MMMM d, yyyy')}
+                      </p>
                     </div>
-                  )}
-                </div>
-              </div>
+                    <div 
+                      className="h-12 w-12 rounded-full" 
+                      style={{ 
+                        backgroundColor: bookingColor || '#4B83E2',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white'
+                      }}
+                    >
+                      <Bookmark className="h-6 w-6" />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-2">
+                    <h5 className="text-xs font-medium mb-1">Description</h5>
+                    <p className="text-xs">
+                      {booking.description || "No description provided."}
+                    </p>
+                  </div>
+                  
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div>
+                      <h5 className="text-xs font-medium mb-1">Time</h5>
+                      <p className="text-xs">
+                        {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
+                      </p>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-medium mb-1">Type</h5>
+                      <p className="text-xs capitalize">{formatBookingType(booking.type)}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-medium mb-1">Studios</h5>
+                      <div className="flex flex-wrap gap-1">
+                        {studiosList.map(studio => (
+                          <Badge key={studio.id} variant="outline" className="text-[10px]">
+                            {studio.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-medium mb-1">PCR Room</h5>
+                      <p className="text-xs">
+                        {pcrRoom ? pcrRoom.name : "None"}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 text-xs text-muted-foreground">
+                    <p>Click to edit booking details</p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
             );
           })}
         </div>
