@@ -5,6 +5,7 @@ import { formatTime } from '@/lib/dateUtils';
 import { Badge } from '@/components/ui/badge';
 import { Tv, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useQuery } from "@tanstack/react-query";
 
 interface DayChronViewProps {
   date: Date;
@@ -42,14 +43,25 @@ export default function DayChronView({
     });
   }, [dayBookings]);
 
-  // Get studio names for a booking
+  // Fetch all booking-studio links for multiple studio support
+  const { data: bookingStudioLinks = [] } = useQuery({
+    queryKey: ['/api/booking-studios'],
+  });
+
+  // Get studio names for a booking (including all linked studios)
   const getStudiosForBooking = (booking: any) => {
+    // Debug log the booking data
+    console.log(`[DEBUG] Getting studios for booking: ${booking.id} (${booking.title})`);
+    
     const studioList: typeof studios = [];
     
     // Check direct studio assignment
     if (booking.studioId) {
       const studio = studios.find(s => s.id === booking.studioId);
-      if (studio) studioList.push(studio);
+      if (studio) {
+        console.log(`[DEBUG] Adding primary studio: ${studio.name} (${studio.id})`);
+        studioList.push(studio);
+      }
     }
     
     // Check booking_studios junction table
@@ -57,6 +69,20 @@ export default function DayChronView({
       booking.bookingStudios.forEach((bs: any) => {
         const studio = studios.find(s => s.id === bs.studioId);
         if (studio && !studioList.some(s => s.id === studio.id)) {
+          console.log(`[DEBUG] Adding linked studio from booking.bookingStudios: ${studio.name} (${studio.id})`);
+          studioList.push(studio);
+        }
+      });
+    }
+    
+    // Look through bookingStudioLinks for this booking's ID
+    const links = bookingStudioLinks.filter((link: any) => link.bookingId === booking.id);
+    if (links.length > 0) {
+      console.log(`[DEBUG] Found ${links.length} booking-studio links for booking ${booking.id}`);
+      links.forEach((link: any) => {
+        const studio = studios.find(s => s.id === link.studioId);
+        if (studio && !studioList.some(s => s.id === studio.id)) {
+          console.log(`[DEBUG] Adding linked studio from bookingStudioLinks: ${studio.name} (${studio.id})`);
           studioList.push(studio);
         }
       });
@@ -67,11 +93,14 @@ export default function DayChronView({
       booking.studioIds.forEach((studioId: number) => {
         const studio = studios.find(s => s.id === studioId);
         if (studio && !studioList.some(s => s.id === studio.id)) {
+          console.log(`[DEBUG] Adding studio from studioIds array: ${studio.name} (${studio.id})`);
           studioList.push(studio);
         }
       });
     }
     
+    // Log the result
+    console.log(`[DEBUG] Final studio list for booking ${booking.id}: `, studioList.map(s => s.name));
     return studioList;
   };
 
