@@ -6,6 +6,9 @@ import { createTimeSlots, formatTime } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
 import { Clock, Users, Tv } from "lucide-react";
+import DayListView from "@/components/calendar/DayListView";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 
 interface DailyCalendarProps {
   date: Date;
