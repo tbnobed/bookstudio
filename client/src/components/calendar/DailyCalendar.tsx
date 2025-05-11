@@ -87,24 +87,54 @@ export default function DailyCalendar({
     );
   };
   
-  // Filter bookings for the current day and by selectedStudioIds if provided
-  const filteredBookings = bookings
+  // Helper function to check if a booking is associated with a studio
+  const isBookingForStudio = (booking: Booking, studioId: number) => {
+    // Check direct studio assignment
+    if (booking.studioId === studioId) {
+      return true;
+    }
+    
+    // Check studio links
+    const links = bookingStudioLinks.filter(link => link.bookingId === booking.id);
+    return links.some(link => link.studioId === studioId);
+  };
+  
+  // Process bookings to include studio details
+  const processedBookings = bookings
     .filter(isBookingForCurrentDay)
-    .filter(booking => {
-      // If no studio IDs are selected, include all bookings for the day
-      if (selectedStudioIds.length === 0) {
-        return true;
+    .map(booking => {
+      // Get all studios linked to this booking
+      const linkedStudioIds: number[] = [];
+      
+      // Add the primary studio if set
+      if (booking.studioId) {
+        linkedStudioIds.push(booking.studioId);
       }
       
-      // Include bookings with a direct studio ID match
-      if (booking.studioId && selectedStudioIds.includes(booking.studioId)) {
-        return true;
-      }
-      
-      // Check for bookings with studio links
+      // Add all linked studios
       const links = bookingStudioLinks.filter(link => link.bookingId === booking.id);
-      return links.some(link => selectedStudioIds.includes(link.studioId));
+      links.forEach(link => {
+        if (!linkedStudioIds.includes(link.studioId)) {
+          linkedStudioIds.push(link.studioId);
+        }
+      });
+      
+      return {
+        ...booking,
+        linkedStudioIds
+      };
     });
+  
+  // Filter bookings by selected studios if provided
+  const filteredBookings = processedBookings.filter(booking => {
+    // If no studio IDs are selected, include all bookings for the day
+    if (selectedStudioIds.length === 0) {
+      return true;
+    }
+    
+    // Check if any of the booking's linked studios match the selected studios
+    return booking.linkedStudioIds.some(studioId => selectedStudioIds.includes(studioId));
+  });
 
   // Sort bookings chronologically by start time
   const sortedBookings = [...filteredBookings].sort((a, b) => {
@@ -197,18 +227,31 @@ export default function DailyCalendar({
     return { className, style: {} };
   };
 
-  // Get studio names for a booking
-  const getStudiosForBooking = (booking: Booking) => {
-    // First check for direct studioId assignment
-    if (booking.studioId && studioIdMap[booking.studioId]) {
-      return [studioIdMap[booking.studioId].name];
-    }
+  // Get studio names for a booking using linkedStudioIds
+  const getStudiosForBooking = (booking: any) => {
+    const studioNames: string[] = [];
     
-    // Then check booking-studio links
-    const links = bookingStudioLinks.filter(link => link.bookingId === booking.id);
-    const studioNames = links
-      .map(link => studioIdMap[link.studioId]?.name)
-      .filter(Boolean); // Remove any undefined names
+    // Use the linkedStudioIds if it's a processed booking
+    if (booking.linkedStudioIds && booking.linkedStudioIds.length > 0) {
+      booking.linkedStudioIds.forEach((studioId: number) => {
+        if (studioIdMap[studioId]?.name) {
+          studioNames.push(studioIdMap[studioId].name);
+        }
+      });
+    } 
+    // Fallback to direct studio ID if linkedStudioIds is not available
+    else if (booking.studioId && studioIdMap[booking.studioId]) {
+      studioNames.push(studioIdMap[booking.studioId].name);
+    }
+    // Fallback to checking booking-studio links directly
+    else {
+      const links = bookingStudioLinks.filter(link => link.bookingId === booking.id);
+      links.forEach(link => {
+        if (studioIdMap[link.studioId]?.name && !studioNames.includes(studioIdMap[link.studioId].name)) {
+          studioNames.push(studioIdMap[link.studioId].name);
+        }
+      });
+    }
     
     return studioNames.length > 0 ? studioNames : ['No studio assigned'];
   };
