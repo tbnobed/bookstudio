@@ -138,22 +138,63 @@ export default function DailyCalendar({
     }
   };
 
-  // Get the appropriate booking class based on booking type
-  const getBookingClass = (booking: Booking) => {
+  // Get PCR room data for lookups
+  const { data: pcrRooms = [] } = useQuery<any[]>({
+    queryKey: ['/api/pcr-rooms'],
+  });
+  
+  // Get PCR room name for a booking
+  const getPcrRoomName = (pcrRoomId: number | null) => {
+    if (!pcrRoomId) return null;
+    
+    // Find PCR room in fetched data
+    const pcrRoom = pcrRooms.find((room: any) => room.id === pcrRoomId);
+    return pcrRoom?.name || `PCR Room ${pcrRoomId}`;
+  };
+
+  type BookingStyle = {
+    className: string;
+    style: React.CSSProperties;
+  }
+
+  // Get the appropriate booking class based on booking type and color
+  const getBookingClass = (booking: Booking): BookingStyle => {
     const baseClasses = "mb-4 p-4 rounded-md shadow-sm cursor-pointer";
     
+    // If booking has a custom color, use it
+    if (booking.color) {
+      const colorStyle: React.CSSProperties = { 
+        borderLeftColor: booking.color,
+        backgroundColor: `${booking.color}20` // 20 is hex for 12% opacity
+      };
+      
+      return {
+        className: `${baseClasses} hover:bg-opacity-20 border-l-4`,
+        style: colorStyle
+      };
+    }
+    
+    // Otherwise use the default type-based colors
+    let className = "";
     switch (booking.type) {
       case "maintenance":
-        return `${baseClasses} bg-amber-100 hover:bg-amber-200 border-l-4 border-amber-500`;
+      case "all-day:maintenance":
+        className = `${baseClasses} bg-amber-100 hover:bg-amber-200 border-l-4 border-amber-500`;
+        break;
       case "it_support":
-        return `${baseClasses} bg-red-100 hover:bg-red-200 border-l-4 border-red-500`;
+        className = `${baseClasses} bg-red-100 hover:bg-red-200 border-l-4 border-red-500`;
+        break;
       case "rehearsal":
-        return `${baseClasses} bg-purple-100 hover:bg-purple-200 border-l-4 border-purple-500`;
+        className = `${baseClasses} bg-purple-100 hover:bg-purple-200 border-l-4 border-purple-500`;
+        break;
       case "production":
-        return `${baseClasses} bg-blue-100 hover:bg-blue-200 border-l-4 border-blue-500`;
+        className = `${baseClasses} bg-blue-100 hover:bg-blue-200 border-l-4 border-blue-500`;
+        break;
       default:
-        return `${baseClasses} bg-gray-100 hover:bg-gray-200 border-l-4 border-gray-500`;
+        className = `${baseClasses} bg-gray-100 hover:bg-gray-200 border-l-4 border-gray-500`;
     }
+    
+    return { className, style: {} };
   };
 
   // Get studio names for a booking
@@ -207,36 +248,42 @@ export default function DailyCalendar({
             </div>
           ) : (
             <div className="space-y-1">
-              {sortedBookings.map((booking) => (
-                <div 
-                  key={booking.id} 
-                  className={getBookingClass(booking)}
-                  onClick={() => handleBookingClick(booking)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-lg">{booking.title}</h3>
-                      <p className="text-sm text-gray-700">{formatBookingTime(booking)}</p>
-                      <div className="text-sm mt-2">
-                        <span className="font-medium">Studios: </span>
-                        {getStudiosForBooking(booking).join(', ')}
-                      </div>
-                      {booking.pcrRoomId && (
-                        <div className="text-sm mt-1">
-                          <span className="font-medium">PCR Room: </span>
-                          {booking.pcrRoomId}
+              {sortedBookings.map((booking) => {
+                const bookingStyle = getBookingClass(booking);
+                const pcrRoomName = booking.pcrRoomId ? getPcrRoomName(booking.pcrRoomId) : null;
+                
+                return (
+                  <div 
+                    key={booking.id} 
+                    className={bookingStyle.className}
+                    style={bookingStyle.style}
+                    onClick={() => handleBookingClick(booking)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-bold text-lg">{booking.title}</h3>
+                        <p className="text-sm text-gray-700">{formatBookingTime(booking)}</p>
+                        <div className="text-sm mt-2">
+                          <span className="font-medium">Studios: </span>
+                          {getStudiosForBooking(booking).join(', ')}
                         </div>
-                      )}
+                        {booking.pcrRoomId && (
+                          <div className="text-sm mt-1">
+                            <span className="font-medium">PCR Room: </span>
+                            {pcrRoomName}
+                          </div>
+                        )}
+                      </div>
+                      <div className="px-2 py-1 bg-white/50 rounded text-xs capitalize">
+                        {booking.type.replace('all-day:', '')}
+                      </div>
                     </div>
-                    <div className="px-2 py-1 rounded text-xs capitalize">
-                      {booking.type}
-                    </div>
+                    {booking.description && (
+                      <p className="mt-2 text-sm text-gray-600">{booking.description}</p>
+                    )}
                   </div>
-                  {booking.description && (
-                    <p className="mt-2 text-sm text-gray-600">{booking.description}</p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
