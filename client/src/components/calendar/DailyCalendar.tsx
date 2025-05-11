@@ -7,6 +7,7 @@ import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
 import { Clock, Users, Tv } from "lucide-react";
 import DayListView from "@/components/calendar/DayListView";
+import DayChronView from "@/components/calendar/DayChronView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 
@@ -202,18 +203,30 @@ export default function DailyCalendar({
     }
   };
 
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'chron'>('chron');
 
   return (
     <>
       <div className="overflow-auto h-[calc(100vh-8rem)]">
-        <Tabs defaultValue="list" className="w-full" onValueChange={(value) => setViewMode(value as 'grid' | 'list')}>
+        <Tabs defaultValue="chron" className="w-full" onValueChange={(value) => setViewMode(value as 'grid' | 'list' | 'chron')}>
           <div className="flex justify-end mb-2 px-4">
             <TabsList>
-              <TabsTrigger value="list">List View</TabsTrigger>
+              <TabsTrigger value="chron">Chronological</TabsTrigger>
+              <TabsTrigger value="list">By Studio</TabsTrigger>
               <TabsTrigger value="grid">Grid View</TabsTrigger>
             </TabsList>
           </div>
+          
+          <TabsContent value="chron" className="mt-0">
+            <DayChronView 
+              date={currentDate}
+              bookings={bookings}
+              studios={studios}
+              pcrRooms={pcrRooms}
+              onBookingClick={handleBookingClick}
+              readOnly={readOnly}
+            />
+          </TabsContent>
           
           <TabsContent value="list" className="mt-0">
             <DayListView 
