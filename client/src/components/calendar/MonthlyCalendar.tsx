@@ -79,7 +79,7 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     const isToday = isSameDay(date, new Date());
     
     return cn(
-      "h-38 border p-1 transition-colors duration-200",
+      "h-40 border p-1 transition-colors duration-200",
       isCurrentMonth ? "bg-white" : "bg-gray-50 text-gray-400",
       isToday && "bg-blue-50 border-blue-200",
       readOnly ? "cursor-default" : "cursor-pointer hover:bg-gray-100"
@@ -121,6 +121,11 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                 </div>
                 
                 <div className="mt-1 space-y-1 max-h-[130px] overflow-y-auto text-xs">
+                  {getBookingsForDay(date).length === 0 && date.getMonth() === currentDate.getMonth() && (
+                    <div className="h-20 flex items-center justify-center text-gray-400 italic border border-dashed border-gray-200 rounded-md">
+                      <span>No bookings</span>
+                    </div>
+                  )}
                   {getBookingsForDay(date).slice(0, 5).map((booking) => {
                     // Determine color based on booking type
                     let colorClass = "bg-blue-100 text-blue-800";
