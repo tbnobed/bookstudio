@@ -153,10 +153,22 @@ export function useStudioStatus() {
    * @returns An array of studios with their status
    */
   const getAllStudiosWithStatus = () => {
-    return studios.map(studio => ({
-      ...studio,
-      statusInfo: getStudioStatus(studio.id)
-    }));
+    console.log("getAllStudiosWithStatus called, studio count:", studios.length);
+    console.log("bookingStudioLinks count:", bookingStudioLinks.length);
+    
+    return studios.map(studio => {
+      const status = getStudioStatus(studio.id);
+      
+      // Debug if we have a current booking
+      if (status.currentBooking) {
+        console.log(`Studio ${studio.id} (${studio.name}) has current booking:`, status.currentBooking.title);
+      }
+      
+      return {
+        ...studio,
+        statusInfo: status
+      };
+    });
   };
   
   return {
