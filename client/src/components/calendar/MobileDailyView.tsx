@@ -4,7 +4,7 @@ import { Booking, Studio } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { isToday, isPast, isAfter, isBefore, formatDistance, format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, CalendarDays, Plus, AlertTriangle, Activity } from "lucide-react";
+import { Calendar, Clock, CalendarDays, Plus, AlertTriangle, Activity, Tv } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
