@@ -59,10 +59,27 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     queryKey: ["/api/pcr-rooms"],
   });
   
+  // Fetch studios to display names
+  const { data: allStudios = [] } = useQuery<any[]>({
+    queryKey: ["/api/studios"],
+  });
+  
   // Function to get PCR room name from ID
   const getPcrRoomName = (pcrRoomId: number): string => {
     const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
     return pcrRoom ? pcrRoom.name : `PCR #${pcrRoomId}`;
+  };
+  
+  // Function to get studio names for a booking
+  const getStudiosForBooking = (booking: any): string => {
+    const bookingStudios = extractStudiosFromBooking(booking, allStudios);
+    if (bookingStudios.length === 0) return "";
+    
+    // If there's just one studio, return its name
+    if (bookingStudios.length === 1) return bookingStudios[0].name;
+    
+    // If there are multiple studios, return a summary
+    return `${bookingStudios[0].name} +${bookingStudios.length - 1}`;
   };
 
   // Calculate month days whenever current date changes
@@ -401,6 +418,12 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                                   <span className="text-xs opacity-80">{getPcrRoomName(booking.pcrRoomId)}</span>
                                 )}
                               </div>
+                              {getStudiosForBooking(booking) && (
+                                <div className="flex items-center text-xs opacity-80">
+                                  <Tv className="h-3 w-3 mr-1" />
+                                  <span className="truncate">{getStudiosForBooking(booking)}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </HoverCardTrigger>
@@ -429,6 +452,12 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                                 <Clock className="mr-1 h-3 w-3" />
                                 <span>{formatTime(booking.start)} - {formatTime(booking.end)}</span>
                               </div>
+                              {getStudiosForBooking(booking) && (
+                                <div className="flex items-center text-xs text-muted-foreground">
+                                  <Tv className="mr-1 h-3 w-3" />
+                                  <span>{getStudiosForBooking(booking)}</span>
+                                </div>
+                              )}
                               {booking.pcrRoomId && (
                                 <div className="flex items-center text-xs text-muted-foreground">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 h-3 w-3">
@@ -513,6 +542,12 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                                         <span>{getPcrRoomName(booking.pcrRoomId)}</span>
                                       )}
                                     </div>
+                                    {getStudiosForBooking(booking) && (
+                                      <div className="flex items-center text-xs opacity-80">
+                                        <Tv className="h-3 w-3 mr-1" />
+                                        <span className="truncate">{getStudiosForBooking(booking)}</span>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               );
