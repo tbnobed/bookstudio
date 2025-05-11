@@ -245,9 +245,30 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         // Filter bookings for this date and this specific studio using the combined studioBookings
         // Create a defensive copy of the booking.start date and ensure timezones are respected
         const dayBookings = studioBookings.filter(booking => {
-          // Log both dates for debugging to trace the timezone comparison issue
-          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${new Date(booking.start).toISOString()})`);
-          return isSameDay(new Date(booking.start), date);
+          // Create a clean copy of the booking start date
+          const bookingStart = new Date(booking.start);
+          
+          // Log dates showing calculated facility date values (month/day/year)
+          const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Chicago',
+            month: 'numeric',
+            day: 'numeric',
+            year: 'numeric'
+          });
+          
+          // Get the formatted dates
+          const bookingDate = formatter.format(bookingStart);
+          const cellDate = formatter.format(date);
+          
+          // More detailed logging to identify timezone issues
+          console.log(`Cell for ${studio.name} - ${date.toDateString()} (${cellDate}) comparing booking: ${booking.title} (${bookingStart.toISOString()}) (${bookingDate})`);
+          
+          // Use our isSameDay function which properly handles facility timezone
+          const result = isSameDay(bookingStart, date);
+          if (result) {
+            console.log(`MATCH: ${booking.title} should appear on ${date.toDateString()}`);
+          }
+          return result;
         });
         
         // Log how many bookings were found for this cell

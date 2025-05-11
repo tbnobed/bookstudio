@@ -33,8 +33,9 @@ export default function MonthlyCalendar({
     queryKey: ["/api/pcr-rooms"],
   });
   
-  // Function to get PCR room name from ID
-  const getPcrRoomName = (pcrRoomId: number): string => {
+  // Function to get PCR room name from ID, with safety check
+  const getPcrRoomName = (pcrRoomId: number | null | undefined): string => {
+    if (!pcrRoomId) return "No PCR";
     const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
     return pcrRoom ? pcrRoom.name : `PCR #${pcrRoomId}`;
   };
