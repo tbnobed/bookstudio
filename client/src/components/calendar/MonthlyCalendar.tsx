@@ -79,7 +79,7 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     const isToday = isSameDay(date, new Date());
     
     return cn(
-      "h-40 border p-1 transition-colors duration-200",
+      "h-32 border p-1 transition-colors duration-200",
       isCurrentMonth ? "bg-white" : "bg-gray-50 text-gray-400",
       isToday && "bg-blue-50 border-blue-200",
       readOnly ? "cursor-default" : "cursor-pointer hover:bg-gray-100"
@@ -88,10 +88,10 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
 
   return (
     <>
-      <div className="overflow-auto h-[calc(100vh-5rem)] w-full">
-        <div className="px-2 py-2">
+      <div className="overflow-auto h-[calc(100vh-8rem)]">
+        <div className="container mx-auto p-4">
           {/* Month Header */}
-          <h2 className="text-xl font-semibold mb-2 px-2">
+          <h2 className="text-xl font-semibold mb-4">
             {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h2>
           
@@ -99,7 +99,7 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
           <div className="grid grid-cols-7 gap-px">
             {/* Day names */}
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="text-center font-medium py-1 px-1 bg-gray-100">
+              <div key={day} className="text-center font-medium p-2 bg-gray-100">
                 {day}
               </div>
             ))}
@@ -120,13 +120,8 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                   </span>
                 </div>
                 
-                <div className="mt-1 space-y-1 max-h-[130px] overflow-y-auto text-xs">
-                  {getBookingsForDay(date).length === 0 && date.getMonth() === currentDate.getMonth() && (
-                    <div className="h-20 flex items-center justify-center text-gray-400 italic border border-dashed border-gray-200 rounded-md">
-                      <span>No bookings</span>
-                    </div>
-                  )}
-                  {getBookingsForDay(date).slice(0, 5).map((booking) => {
+                <div className="mt-1 space-y-1 max-h-[90px] overflow-y-auto text-xs">
+                  {getBookingsForDay(date).slice(0, 3).map((booking) => {
                     // Determine color based on booking type
                     let colorClass = "bg-blue-100 text-blue-800";
                     if (booking.type === "maintenance") {
@@ -152,27 +147,18 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                         <HoverCardTrigger asChild>
                           <div 
                             className={cn(
-                              "py-0.5 px-1 rounded-sm truncate mb-1", 
+                              "p-1 rounded truncate", 
                               booking.color ? "" : colorClass, 
-                              readOnly ? "cursor-default" : "cursor-pointer hover:opacity-80"
+                              readOnly ? "cursor-default" : "cursor-pointer"
                             )}
                             style={booking.color ? customStyle : {}}
                             onClick={(e) => handleBookingClick(e, booking)}
                           >
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium truncate max-w-[85%]">
-                                {booking.title}
-                              </span>
-                              <span className="text-xs opacity-80">{formatTime(booking.start).split(' ')[0]}</span>
-                            </div>
-                            {booking.pcrRoomId && (
-                              <div className="text-xs flex items-center mt-0.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                  <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"></path>
-                                </svg>
-                                <span className="truncate">{getPcrRoomName(booking.pcrRoomId)}</span>
-                              </div>
-                            )}
+                            <span className="font-medium">
+                              {booking.title}
+                              {booking.pcrRoomId ? ` (${getPcrRoomName(booking.pcrRoomId)})` : ''}
+                            </span>
+                            <div>{formatTime(booking.start)}</div>
                           </div>
                         </HoverCardTrigger>
                         <HoverCardContent className="w-80 p-4">
@@ -225,9 +211,9 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                     );
                   })}
                   
-                  {getBookingsForDay(date).length > 5 && (
-                    <div className="text-xs font-medium text-blue-600 mt-1 bg-blue-50 px-2 py-1 rounded text-center">
-                      +{getBookingsForDay(date).length - 5} more bookings
+                  {getBookingsForDay(date).length > 3 && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      +{getBookingsForDay(date).length - 3} more
                     </div>
                   )}
                 </div>
