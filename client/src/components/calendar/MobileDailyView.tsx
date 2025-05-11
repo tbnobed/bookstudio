@@ -428,6 +428,12 @@ export default function MobileDailyView({
                                   {getAllStudiosForBooking(booking)}
                                 </div>
                               )}
+
+                              {/* PCR Room Information */}
+                              <div className="text-xs text-gray-500 flex items-center gap-1 mt-1 bg-gray-100 p-1 rounded">
+                                <MonitorPlay size={12} className="text-blue-500" />
+                                PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"}
+                              </div>
                               
                               {isUpcoming && (
                                 <div className="text-xs text-amber-700 mt-1">
@@ -448,11 +454,17 @@ export default function MobileDailyView({
                       <div className="text-sm">
                         {/* Show current status summary */}
                         <div className={cn(
-                          "rounded-md py-3 px-4 border flex flex-col",
+                          "rounded-md py-3 px-4 border flex flex-col gap-2",
                           statusInfo.status === 'in-use' ? 'bg-red-50 border-red-200' : 
                           statusInfo.status === 'upcoming' ? 'bg-amber-50 border-amber-200' : 
                           'bg-green-50 border-green-200'
                         )}>
+                          {/* PCR Room Information */}
+                          <div className="text-xs text-gray-500 flex items-center gap-1 bg-gray-100 p-1 rounded mb-1">
+                            <MonitorPlay size={12} className="text-blue-500" />
+                            <span>PCR: None assigned</span>
+                          </div>
+                          
                           {/* Current status */}
                           <div className={cn(
                             "font-medium",
