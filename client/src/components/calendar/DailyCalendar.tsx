@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Booking, Studio } from "@shared/schema";
+import { Booking, Studio, BookingStudio, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { createTimeSlots, formatTime } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
+import { Clock, Users, Tv } from "lucide-react";
 
 interface DailyCalendarProps {
   date: Date;
@@ -127,11 +128,53 @@ export default function DailyCalendar({
     return { hour, minute };
   };
 
-  // Get the appropriate slot class based on booking type
+  // Fetch PCR rooms to display with bookings
+  const { data: pcrRooms = [] } = useQuery({
+    queryKey: ['/api/pcr-rooms'],
+  });
+
+  // Fetch booking-studio links to show multiple studios per booking
+  const { data: bookingStudioLinks = [] } = useQuery({
+    queryKey: ['/api/booking-studios'],
+  });
+
+  // Define types for PCR rooms and booking studio links
+  type PcrRoom = { id: number; name: string; description: string };
+  
+  // Get a PCR room name by its ID
+  const getPcrRoomName = (pcrRoomId: number | null) => {
+    if (!pcrRoomId) return null;
+    const room = pcrRooms?.find((room: PcrRoom) => room.id === pcrRoomId);
+    return room ? room.name : null;
+  };
+
+  // Get all studios for a booking
+  const getBookingStudios = (bookingId: number) => {
+    // Ensure bookingStudioLinks is defined before filtering
+    if (!bookingStudioLinks) return [];
+    
+    const links = bookingStudioLinks.filter((link: { bookingId: number; studioId: number }) => 
+      link.bookingId === bookingId
+    );
+    
+    return links.map((link: { studioId: number }) => 
+      studios.find(studio => studio.id === link.studioId)
+    ).filter(Boolean);
+  };
+
+  // Get the appropriate slot class based on booking type and color
   const getSlotClass = (booking: Booking | undefined) => {
     const baseClass = readOnly ? "bg-white" : "bg-white hover:bg-gray-100";
     if (!booking) return baseClass;
     
+    // If booking has a custom color, use it
+    if (booking.color) {
+      return readOnly 
+        ? `bg-opacity-15` 
+        : `hover:bg-opacity-25 bg-opacity-15`;
+    }
+    
+    // Otherwise use default color scheme based on type
     switch (booking.type) {
       case "maintenance":
         return readOnly ? "bg-amber-100" : "bg-amber-100 hover:bg-amber-200";
@@ -177,15 +220,47 @@ export default function DailyCalendar({
                       readOnly ? "cursor-default" : "cursor-pointer",
                       getSlotClass(booking)
                     )}
+                    style={booking?.color ? {
+                      backgroundColor: `${booking.color}25`, // 15% opacity
+                      borderLeftColor: booking.color,
+                      borderLeftWidth: '3px'
+                    } : {}}
                     onClick={() => booking 
                       ? handleBookingClick(booking) 
                       : handleSlotClick(studio, timeSlot)
                     }
                   >
                     {booking && (
-                      <div className="px-2 py-1 text-xs truncate">
-                        <div className="font-medium">{booking.title}</div>
-                        <div>{formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}</div>
+                      <div className="p-1 text-xs truncate h-full flex flex-col">
+                        <div className="font-medium" style={booking.color ? { color: booking.color } : {}}>
+                          {booking.title}
+                        </div>
+                        
+                        <div className="flex items-center gap-1 mt-auto">
+                          <Clock size={10} className="flex-shrink-0" />
+                          <span>{formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}</span>
+                        </div>
+                        
+                        {/* Show PCR room if assigned */}
+                        {booking.pcrRoomId && getPcrRoomName(booking.pcrRoomId) && (
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <Tv size={10} className="flex-shrink-0" />
+                            <span>{getPcrRoomName(booking.pcrRoomId)}</span>
+                          </div>
+                        )}
+                        
+                        {/* Show linked studios */}
+                        {booking.id && getBookingStudios(booking.id).length > 1 && (
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <Users size={10} className="flex-shrink-0" />
+                            <span className="truncate">
+                              {getBookingStudios(booking.id)
+                                .filter(s => s && s.id !== studio.id)
+                                .map(s => s?.name)
+                                .join(', ')}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
