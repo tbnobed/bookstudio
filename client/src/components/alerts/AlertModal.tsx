@@ -114,12 +114,21 @@ export default function AlertModal({
   const resetForm = () => {
     setTitle("");
     setDescription("");
-    setAlertType("maintenance");
-    setSeverity("medium");
+    
+    // If alertsOnly is true, set defaults relevant for alerts
+    if (alertsOnly) {
+      setAlertType("maintenance");
+      setSeverity("critical");
+      setIsAllDay(true);
+    } else {
+      setAlertType("maintenance");
+      setSeverity("medium");
+      setIsAllDay(false);
+    }
+    
     setDate(selectedDate ? selectedDate.toISOString().split("T")[0] : "");
     setStartTime("9:00am");
     setEndTime("10:00am");
-    setIsAllDay(false);
     setNotifyList([]);
   };
 
@@ -164,8 +173,8 @@ export default function AlertModal({
       console.log(`Creating time-bound alert for date: ${date}, converted start: ${startDate.toISOString()}`);
       
       // Ensure we preserve the intended day regardless of timezone
-      localStartDate = new Date(startDate);
-      localEndDate = new Date(endDate);
+      localStartDate = startDate;
+      localEndDate = endDate;
     }
     
     const alertData: Partial<InsertBooking> = {
@@ -173,8 +182,8 @@ export default function AlertModal({
       description,
       studioId: null, // Use camelCase to match the schema definitions
       type: finalAlertType, // Use our modified type with all-day flag if applicable
-      start: localStartDate instanceof Date ? localStartDate.toISOString() : localStartDate,
-      end: localEndDate instanceof Date ? localEndDate.toISOString() : localEndDate,
+      start: localStartDate,  // startDate is already a Date object
+      end: localEndDate,      // endDate is already a Date object
       notifyList: notifyList,
       severity: severity
     };
