@@ -255,21 +255,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
           // Log both dates for debugging to trace the timezone comparison issue
           console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${bookingDate.toISOString()})`);
           
-          // Our improved isSameDay function should handle most cases correctly now
-          // but keep the special case for TCL booking just to be extra safe
-          const bookingStartStr = String(booking.start || '');
-          if (booking.title === "TCL" && bookingStartStr.includes("2025-05-10T22:30:00")) {
-            // Force it to be on the 10th (Saturday) not the 9th (Friday)
-            const isMay10th = date.getMonth() === 4 && date.getDate() === 10;
-            
-            if (isMay10th) {
-              console.log(`OVERRIDE: Found TCL booking, forcing it to May 10th`);
-              return true;
-            } else if (date.getMonth() === 4 && date.getDate() === 9) {
-              // Ensure it doesn't appear on the 9th
-              console.log(`OVERRIDE: Preventing TCL from appearing on May 9th`);
-              return false;
-            }
+          // No more overrides - we're relying on our timezone-aware date comparison
+          // Log some extra details to help debug bookings on the edge of day boundaries
+          if (booking.title === "TCL") {
+            console.log(`DEBUGGING: TCL booking date comparison for ${date.toDateString()}`);
           }
           
           // Normal case - use isSameDay for other bookings
