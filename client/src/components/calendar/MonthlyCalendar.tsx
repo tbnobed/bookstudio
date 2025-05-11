@@ -85,56 +85,122 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
            (isITSupportType && booking.severity);
   };
   
-  // Get bookings for a specific day, sorted by alert status (alerts first)
-  const getBookingsForDay = (date: Date) => {
-    const dayBookings = bookings.filter(booking => {
-      // Create defensive copies of dates to avoid timezone issues
-      const bookingStartDate = new Date(booking.start);
-      const targetDate = new Date(date.getTime());
-      return isSameDay(bookingStartDate, targetDate);
+  // Pre-process bookings by date for performance
+  const [bookingsByDate, maxBookingsPerDay] = (() => {
+    const result = new Map<string, any[]>();
+    let maxCount = 0;
+    
+    // First pass: Group bookings by date string
+    bookings.forEach(booking => {
+      const bookingDate = new Date(booking.start);
+      const dateStr = `${bookingDate.getFullYear()}-${bookingDate.getMonth() + 1}-${bookingDate.getDate()}`;
+      
+      if (!result.has(dateStr)) {
+        result.set(dateStr, []);
+      }
+      result.get(dateStr)?.push(booking);
     });
     
-    // Sort to put alerts first, then by start time
-    return dayBookings.sort((a, b) => {
-      const aIsAlert = isAlertBooking(a);
-      const bIsAlert = isAlertBooking(b);
+    // Second pass: Sort each day's bookings and find max count
+    result.forEach((dayBookings, dateStr) => {
+      // Sort to put alerts first, then by start time
+      dayBookings.sort((a, b) => {
+        const aIsAlert = isAlertBooking(a);
+        const bIsAlert = isAlertBooking(b);
+        
+        if (aIsAlert && !bIsAlert) return -1;
+        if (!aIsAlert && bIsAlert) return 1;
+        
+        // If both are alerts, sort by severity (critical first)
+        if (aIsAlert && bIsAlert) {
+          const severityOrder: Record<string, number> = { 
+            critical: 0, 
+            high: 1, 
+            medium: 2, 
+            low: 3 
+          };
+          const aSeverityValue = a.severity && typeof a.severity === 'string' ? severityOrder[a.severity] : 999;
+          const bSeverityValue = b.severity && typeof b.severity === 'string' ? severityOrder[b.severity] : 999;
+          return aSeverityValue - bSeverityValue;
+        }
+        
+        // Otherwise sort by start time
+        return new Date(a.start).getTime() - new Date(b.start).getTime();
+      });
       
-      if (aIsAlert && !bIsAlert) return -1;
-      if (!aIsAlert && bIsAlert) return 1;
-      
-      // If both are alerts, sort by severity (critical first)
-      if (aIsAlert && bIsAlert) {
-        const severityOrder: Record<string, number> = { 
-          critical: 0, 
-          high: 1, 
-          medium: 2, 
-          low: 3 
-        };
-        const aSeverityValue = a.severity && typeof a.severity === 'string' ? severityOrder[a.severity] : 999;
-        const bSeverityValue = b.severity && typeof b.severity === 'string' ? severityOrder[b.severity] : 999;
-        return aSeverityValue - bSeverityValue;
-      }
-      
-      // Otherwise sort by start time
-      return new Date(a.start).getTime() - new Date(b.start).getTime();
+      maxCount = Math.max(maxCount, dayBookings.length);
     });
+    
+    return [result, maxCount];
+  })();
+
+  // Function to get bookings for a specific day, using the pre-processed map
+  const getBookingsForDay = (date: Date) => {
+    const dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+    return bookingsByDate.get(dateStr) || [];
   };
 
   // Calculate max number of bookings to show per day based on bookings density
   const getMaxDisplayCount = () => {
-    // Count max bookings per day to decide how many to show
-    const bookingsPerDay = monthDays.map(date => 
-      getBookingsForDay(date).length
-    );
-    const maxBookingsForAnyDay = Math.max(...bookingsPerDay, 1);
+    // Adaptive logic based on pre-calculated max
+    if (maxBookingsPerDay <= 2) return 5;      // Very sparse
+    if (maxBookingsPerDay <= 4) return 4;      // Sparse
+    if (maxBookingsPerDay <= 6) return 3;      // Average
+    return 2;                                  // Dense
+  };
+
+  // Pre-compute booking styles to avoid redundant calculations
+  function getBookingStyles(booking: any, isAlert: boolean) {
+    // Determine color based on booking type and alert status
+    let colorClass = "bg-blue-100 text-blue-800";
+    let borderStyle = "";
     
-    // Adaptive logic:
-    // Dense month (lots of bookings): show fewer per day
-    // Sparse month: can show more per day
-    if (maxBookingsForAnyDay <= 2) return 5;      // Very sparse
-    if (maxBookingsForAnyDay <= 4) return 4;      // Sparse
-    if (maxBookingsForAnyDay <= 6) return 3;      // Average
-    return 2;                                     // Dense
+    if (isAlert) {
+      // Use severity-based colors for alerts
+      switch (booking.severity) {
+        case "critical":
+          colorClass = "bg-red-50 text-red-800 border-red-500";
+          borderStyle = "border-l-2";
+          break;
+        case "high":
+          colorClass = "bg-orange-50 text-orange-800 border-orange-500";
+          borderStyle = "border-l-2";
+          break;
+        case "medium":
+          colorClass = "bg-amber-50 text-amber-800 border-amber-500";
+          borderStyle = "border-l-2";
+          break;
+        default: // low or undefined
+          colorClass = "bg-blue-50 text-blue-800 border-blue-500";
+          borderStyle = "border-l-2";
+      }
+    } else {
+      // Use regular booking type colors
+      if (booking.type === "maintenance" || (booking.type && booking.type.includes("maintenance"))) {
+        colorClass = "bg-amber-100 text-amber-800";
+      } else if (booking.type === "it_support" || (booking.type && booking.type.includes("it_support"))) {
+        colorClass = "bg-red-100 text-red-800";
+      } else if (booking.type === "rehearsal") {
+        colorClass = "bg-purple-100 text-purple-800";
+      } else if (booking.type === "production") {
+        colorClass = "bg-green-100 text-green-800";
+      }
+    }
+    
+    // Style object for custom colors (only apply for non-alerts)
+    const customStyle = !isAlert && booking.color ? {
+      backgroundColor: `${booking.color}20`,
+      color: booking.color,
+      borderColor: booking.color,
+      border: '1px solid'
+    } : {};
+    
+    // Extract the main part of the booking type (remove "all-day:" prefix)
+    const bookingType = booking.type && booking.type.includes(':') 
+      ? booking.type.split(':')[1] 
+      : booking.type;
+      
+    return { colorClass, borderStyle, customStyle, bookingType };
   };
 
   // Get classes for a day cell
@@ -191,54 +257,8 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                     // Check if this is an alert booking
                     const isAlert = isAlertBooking(booking);
                     
-                    // Determine color based on booking type and alert status
-                    let colorClass = "bg-blue-100 text-blue-800";
-                    let borderStyle = "";
-                    
-                    if (isAlert) {
-                      // Use severity-based colors for alerts
-                      switch (booking.severity) {
-                        case "critical":
-                          colorClass = "bg-red-50 text-red-800 border-red-500";
-                          borderStyle = "border-l-2";
-                          break;
-                        case "high":
-                          colorClass = "bg-orange-50 text-orange-800 border-orange-500";
-                          borderStyle = "border-l-2";
-                          break;
-                        case "medium":
-                          colorClass = "bg-amber-50 text-amber-800 border-amber-500";
-                          borderStyle = "border-l-2";
-                          break;
-                        default: // low or undefined
-                          colorClass = "bg-blue-50 text-blue-800 border-blue-500";
-                          borderStyle = "border-l-2";
-                      }
-                    } else {
-                      // Use regular booking type colors
-                      if (booking.type === "maintenance" || (booking.type && booking.type.includes("maintenance"))) {
-                        colorClass = "bg-amber-100 text-amber-800";
-                      } else if (booking.type === "it_support" || (booking.type && booking.type.includes("it_support"))) {
-                        colorClass = "bg-red-100 text-red-800";
-                      } else if (booking.type === "rehearsal") {
-                        colorClass = "bg-purple-100 text-purple-800";
-                      } else if (booking.type === "production") {
-                        colorClass = "bg-green-100 text-green-800";
-                      }
-                    }
-                    
-                    // Style object for custom colors (only apply for non-alerts)
-                    const customStyle = !isAlert && booking.color ? {
-                      backgroundColor: `${booking.color}20`,
-                      color: booking.color,
-                      borderColor: booking.color,
-                      border: '1px solid'
-                    } : {};
-                    
-                    // Extract the main part of the booking type (remove "all-day:" prefix)
-                    const bookingType = booking.type && booking.type.includes(':') 
-                      ? booking.type.split(':')[1] 
-                      : booking.type;
+                    // Use memoized classes for better performance
+                    const { colorClass, borderStyle, customStyle, bookingType } = getBookingStyles(booking, isAlert);
                     
                     return (
                       <HoverCard key={booking.id}>
