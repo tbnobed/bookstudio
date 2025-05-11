@@ -395,9 +395,9 @@ export default function DayChronView({
                   className="gap-1"
                   onClick={() => {
                     // Handle creating a new alert for the current date
-                    // Let the AlertModal handle defaults rather than hardcoding values here
+                    // Create the proper alert type that will be recognized in DailyCalendar
                     const alertData = {
-                      type: "maintenance", // Type will be prefixed with all-day if needed
+                      type: "all-day:maintenance", // Using the correct format for new alerts
                       start: date,
                       studioId: null
                     };
