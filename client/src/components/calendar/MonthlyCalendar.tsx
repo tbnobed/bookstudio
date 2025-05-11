@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate } from "@/lib/dateUtils";
+import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate, FACILITY_TIMEZONE } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
@@ -112,15 +112,33 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
            (isITSupportType && booking.severity);
   };
   
-  // Pre-process bookings by date for performance
+  // Pre-process bookings by date for performance, using facility timezone
   const [bookingsByDate, maxBookingsPerDay] = (() => {
     const result = new Map<string, any[]>();
     let maxCount = 0;
     
-    // First pass: Group bookings by date string
+    // Helper function to get date string in facility timezone
+    const getDateStringInFacilityTimezone = (date: Date): string => {
+      // Use Intl.DateTimeFormat to get the date components in the facility timezone
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: FACILITY_TIMEZONE,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      
+      const parts = formatter.formatToParts(date);
+      const month = parts.find(part => part.type === 'month')?.value || '01';
+      const day = parts.find(part => part.type === 'day')?.value || '01';
+      const year = parts.find(part => part.type === 'year')?.value || '2025';
+      
+      return `${year}-${month}-${day}`;
+    };
+    
+    // First pass: Group bookings by date string in facility timezone
     bookings.forEach(booking => {
       const bookingDate = new Date(booking.start);
-      const dateStr = `${bookingDate.getFullYear()}-${bookingDate.getMonth() + 1}-${bookingDate.getDate()}`;
+      const dateStr = getDateStringInFacilityTimezone(bookingDate);
       
       if (!result.has(dateStr)) {
         result.set(dateStr, []);
@@ -161,9 +179,22 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     return [result, maxCount];
   })();
 
-  // Function to get bookings for a specific day, using the pre-processed map
+  // Function to get bookings for a specific day, using the pre-processed map with timezone awareness
   const getBookingsForDay = (date: Date) => {
-    const dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+    // Use Intl.DateTimeFormat to get the date components in the facility timezone
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: FACILITY_TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    
+    const parts = formatter.formatToParts(date);
+    const month = parts.find(part => part.type === 'month')?.value || '01';
+    const day = parts.find(part => part.type === 'day')?.value || '01';
+    const year = parts.find(part => part.type === 'year')?.value || '2025';
+    
+    const dateStr = `${year}-${month}-${day}`;
     return bookingsByDate.get(dateStr) || [];
   };
 
