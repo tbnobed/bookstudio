@@ -419,10 +419,24 @@ export default function DayChronView({
                 {alerts.map(alert => (
                   <div 
                     key={alert.id} 
-                    className="p-3 rounded-md border-l-4 border-red-500 bg-white shadow-sm cursor-pointer hover:bg-gray-50"
+                    className={cn(
+                      "p-3 rounded-md border-l-4 bg-white shadow-sm cursor-pointer hover:bg-gray-50",
+                      alert.severity === "critical" ? "border-red-500" : 
+                      alert.severity === "high" ? "border-orange-500" : 
+                      alert.severity === "medium" ? "border-amber-500" : 
+                      "border-blue-500"
+                    )}
                     onClick={() => onBookingClick(alert)}
                   >
-                    <div className="font-medium text-red-700">{alert.title}</div>
+                    <div className={cn(
+                      "font-medium",
+                      alert.severity === "critical" ? "text-red-700" : 
+                      alert.severity === "high" ? "text-orange-700" : 
+                      alert.severity === "medium" ? "text-amber-700" : 
+                      "text-blue-700"
+                    )}>
+                      {alert.title}
+                    </div>
                     <div className="text-sm text-gray-600 mt-1">
                       {alert.description && alert.description.substring(0, 100)}
                       {alert.description && alert.description.length > 100 ? '...' : ''}
@@ -434,7 +448,13 @@ export default function DayChronView({
                           {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
                         </span>
                       </div>
-                      <span className="inline-block px-2 py-1 ml-2 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                      <span className={cn(
+                        "inline-block px-2 py-1 ml-2 rounded-full text-xs font-semibold",
+                        alert.severity === "critical" ? "bg-red-100 text-red-700" : 
+                        alert.severity === "high" ? "bg-orange-100 text-orange-700" : 
+                        alert.severity === "medium" ? "bg-amber-100 text-amber-700" : 
+                        "bg-blue-100 text-blue-700"
+                      )}>
                         {alert.severity}
                       </span>
                     </div>
