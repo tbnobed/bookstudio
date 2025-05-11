@@ -208,117 +208,14 @@ export default function DailyCalendar({
   return (
     <>
       <div className="overflow-auto h-[calc(100vh-8rem)]">
-        <Tabs defaultValue="chron" className="w-full" onValueChange={(value) => setViewMode(value as 'grid' | 'list' | 'chron')}>
-          <div className="flex justify-end mb-2 px-4">
-            <TabsList>
-              <TabsTrigger value="chron">Chronological</TabsTrigger>
-              <TabsTrigger value="list">By Studio</TabsTrigger>
-              <TabsTrigger value="grid">Grid View</TabsTrigger>
-            </TabsList>
-          </div>
-          
-          <TabsContent value="chron" className="mt-0">
-            <DayChronView 
-              date={currentDate}
-              bookings={bookings}
-              studios={studios}
-              pcrRooms={pcrRooms}
-              onBookingClick={handleBookingClick}
-              readOnly={readOnly}
-            />
-          </TabsContent>
-          
-          <TabsContent value="list" className="mt-0">
-            <DayListView 
-              date={currentDate}
-              bookings={bookings}
-              studios={studios}
-              pcrRooms={pcrRooms}
-              onBookingClick={handleBookingClick}
-              readOnly={readOnly}
-            />
-          </TabsContent>
-          
-          <TabsContent value="grid" className="mt-0">
-            <div className="min-w-[800px]">
-              {/* Time Column Header */}
-              <div className="grid grid-cols-[100px_repeat(auto-fill,1fr)] sticky top-0 z-10">
-                <div className="h-14 border-b bg-white font-medium flex items-center justify-center">Time</div>
-                {filteredStudios.map((studio) => (
-                  <div key={studio.id} className="h-14 border-b bg-white font-medium flex items-center justify-center px-2">
-                    {studio.name}
-                  </div>
-                ))}
-              </div>
-
-              {/* Time Grid */}
-              {timeSlots.map((timeSlot, index) => (
-                <div key={index} className="grid grid-cols-[100px_repeat(auto-fill,1fr)]">
-                  <div className="h-12 border-b bg-gray-50 flex items-center justify-center text-sm font-medium">
-                    {formatTime(new Date(`2000-01-01T${timeSlot}:00`))}
-                  </div>
-                  
-                  {filteredStudios.map((studio) => {
-                    const booking = getBookingForTimeSlot(studio.id, timeSlot);
-                    return (
-                      <div 
-                        key={studio.id} 
-                        className={cn(
-                          "h-12 border-b border-r",
-                          readOnly ? "cursor-default" : "cursor-pointer",
-                          getSlotClass(booking)
-                        )}
-                        style={booking?.color ? {
-                          backgroundColor: `${booking.color}15`, // 15% opacity
-                          borderLeftColor: booking.color,
-                          borderLeftWidth: '4px'
-                        } : {}}
-                        onClick={() => booking 
-                          ? handleBookingClick(booking) 
-                          : handleSlotClick(studio, timeSlot)
-                        }
-                      >
-                        {booking && (
-                          <div className="p-1.5 text-xs truncate h-full flex flex-col">
-                            <div className="font-semibold text-sm mb-0.5" style={booking.color ? { color: booking.color } : {}}>
-                              {booking.title}
-                            </div>
-                            
-                            <div className="flex items-center gap-1 text-gray-700">
-                              <Clock size={12} className="flex-shrink-0" />
-                              <span>{formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}</span>
-                            </div>
-                            
-                            {/* Show PCR room if assigned */}
-                            {booking.pcrRoomId && getPcrRoomName(booking.pcrRoomId) && (
-                              <div className="flex items-center gap-1 text-gray-600 mt-0.5">
-                                <Tv size={12} className="flex-shrink-0" />
-                                <span>{getPcrRoomName(booking.pcrRoomId)}</span>
-                              </div>
-                            )}
-                            
-                            {/* Show linked studios */}
-                            {booking.id && getBookingStudios(booking.id).length > 1 && (
-                              <div className="flex items-center gap-1 text-gray-600 mt-0.5">
-                                <Users size={12} className="flex-shrink-0" />
-                                <span className="truncate">
-                                  {getBookingStudios(booking.id)
-                                    .filter((s: Studio) => s.id !== studio.id)
-                                    .map((s: Studio) => s.name)
-                                    .join(', ')}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+        <DayChronView 
+          date={currentDate}
+          bookings={bookings}
+          studios={studios}
+          pcrRooms={pcrRooms}
+          onBookingClick={handleBookingClick}
+          readOnly={readOnly}
+        />
       </div>
 
       {/* Edit Booking Modal - for studio bookings */}
