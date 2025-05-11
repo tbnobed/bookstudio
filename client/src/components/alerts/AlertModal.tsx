@@ -115,11 +115,14 @@ export default function AlertModal({
     setTitle("");
     setDescription("");
     
-    // If alertsOnly is true, set defaults relevant for alerts
+    // If alertsOnly is true, set defaults specifically for alerts
+    // This ensures that when the "Add Alert" button is clicked, 
+    // we create a proper alert that will show in the alerts section
     if (alertsOnly) {
-      setAlertType("maintenance");
-      setSeverity("critical");
-      setIsAllDay(true);
+      setAlertType("maintenance");  // Will become "all-day:maintenance" 
+      setSeverity("critical");      // Critical severity is required for alerts
+      setIsAllDay(true);            // Alerts are typically all-day events
+      console.log("Setting up alert defaults - critical severity and all-day flag");
     } else {
       setAlertType("maintenance");
       setSeverity("medium");
@@ -184,11 +187,20 @@ export default function AlertModal({
       localEndDate = endDate;
     }
     
+    // When using "Add Alert" button, we want to force critical severity
+    // and all-day:maintenance type to ensure it shows up in the alerts section
+    const effectiveSeverity = alertsOnly ? "critical" : severity;
+    const effectiveType = alertsOnly && !finalAlertType.startsWith("all-day:") 
+      ? "all-day:maintenance" 
+      : finalAlertType;
+
+    console.log(`Creating alert with type: ${effectiveType}, severity: ${effectiveSeverity}, alertsOnly: ${alertsOnly}`);
+    
     const alertData: Partial<InsertBooking> = {
       title,
       description,
       studioId: null, // Use camelCase to match the schema definitions
-      type: finalAlertType, // Use our modified type with all-day flag if applicable
+      type: effectiveType, // Use the effective type with proper flag
       start: localStartDate instanceof Date 
         ? localStartDate 
         : new Date(localStartDate), // Convert to Date if it's a string
@@ -196,7 +208,7 @@ export default function AlertModal({
         ? localEndDate 
         : new Date(localEndDate), // Convert to Date if it's a string
       notifyList: notifyList,
-      severity: severity
+      severity: effectiveSeverity // Use the effective severity
     };
     
     if (alert) {

@@ -42,12 +42,24 @@ export default function DayChronView({
     // Consider a booking an alert if:
     // 1. It has "alert" type, OR
     // 2. It has "Alert" in the title, OR
-    // 3. It's an "all-day" booking with "critical" severity
-    // 4. It has critical severity
+    // 3. It's an "all-day" booking with "critical" severity, OR
+    // 4. It has critical severity, OR
+    // 5. It was created using the Add Alert button with maintenance type
+    
+    // Debug logging to help diagnose alert detection
+    console.log(`[ALERT CHECK] Booking ${booking.id} - ${booking.title}`, {
+      type: booking.type, 
+      severity: booking.severity,
+      hasAlertInTitle: booking.title && booking.title.toLowerCase().includes('alert'),
+      isAllDay: booking.type && booking.type.includes('all-day'),
+      isCritical: booking.severity === 'critical'
+    });
+    
     return booking.type === 'alert' || 
            (booking.title && booking.title.toLowerCase().includes('alert')) ||
            (booking.type && booking.type.includes('all-day') && booking.severity === 'critical') ||
-           (booking.severity === 'critical');
+           (booking.severity === 'critical') || 
+           (booking.type === 'all-day:maintenance');
   };
 
   // Separate alerts from regular bookings 
