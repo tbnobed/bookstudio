@@ -240,6 +240,26 @@ export default function MonthlyCalendar({
                                 <Clock className="mr-1 h-3 w-3" />
                                 <span>{formatTime(booking.start)} - {formatTime(booking.end)}</span>
                               </div>
+                              {/* Show studios in hover card */}
+                              {getStudiosForBooking(booking).length > 0 && (
+                                <div className="flex items-start text-xs text-muted-foreground">
+                                  <Tv className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
+                                  <div>
+                                    {getStudiosForBooking(booking).length === 1 ? (
+                                      <span>{getStudiosForBooking(booking)[0]}</span>
+                                    ) : (
+                                      <div className="flex flex-col">
+                                        <span className="font-medium mb-0.5">Studios:</span>
+                                        {getStudiosForBooking(booking).map((studio, idx) => (
+                                          <span key={idx} className="ml-1">• {studio}</span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Show PCR room in hover card */}
                               {booking.pcrRoomId && (
                                 <div className="flex items-center text-xs text-muted-foreground">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 h-3 w-3">

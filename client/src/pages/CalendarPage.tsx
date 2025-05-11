@@ -16,12 +16,18 @@ function MonthlyCalendarWrapper({ currentDate, studios }: { currentDate: Date, s
   // Fetch bookings for the entire month
   const { bookings, isLoading } = useStudioBookings(monthStart, monthEnd);
   
+  // Fetch booking-studio links to display studio information
+  const { data: bookingStudioLinks = [] } = useQuery({
+    queryKey: ['/api/booking-studios'],
+  });
+  
   return (
     <MonthlyCalendar
       key={currentDate.toISOString()} // Add key to force complete re-render on date change
       date={currentDate}
       studios={studios}
       bookings={bookings}
+      bookingStudioLinks={bookingStudioLinks}
       readOnly={false}
     />
   );
