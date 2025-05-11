@@ -242,68 +242,17 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       })()}
       
       {weekDates.map((date, index) => {
-        // Filter bookings for this date and this specific studio using the combined studioBookings
-        // Create a defensive copy of the booking.start date and ensure timezones are respected
+        // Filter bookings for this date and this specific studio
         const dayBookings = studioBookings.filter(booking => {
-          // Check if the booking should appear on this date in the facility timezone
-          // Get the facility date for both the booking start and the cell date
-          const bookingStart = booking.start;
-          const cellDate = date;
-          
-          // Additional logging for deep debugging
-          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title}`);
-          console.log(`  Booking start raw: ${bookingStart}, cell date raw: ${cellDate.toISOString()}`);
-          
-          // Convert booking date to facility timezone components
-          // Make defensive copy of the booking.start date
-          const bookingDate = new Date(bookingStart);
-          
-          // Use Intl.DateTimeFormat to get the date components in the facility timezone
-          const facilityTimezone = 'America/Chicago';
-          
-          const bookingFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: facilityTimezone,
-            year: 'numeric',
-            month: 'numeric',
-            day: 'numeric'
-          });
-          
-          const cellFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: facilityTimezone,
-            year: 'numeric',
-            month: 'numeric',
-            day: 'numeric'
-          });
-          
-          // Get the date parts
-          const bookingParts = bookingFormatter.formatToParts(bookingDate);
-          const cellParts = cellFormatter.formatToParts(cellDate);
-          
-          // Extract parts and convert to numbers
-          const bookingYear = parseInt(bookingParts.find(part => part.type === 'year')?.value || '2025', 10);
-          const bookingMonth = parseInt(bookingParts.find(part => part.type === 'month')?.value || '1', 10);
-          const bookingDay = parseInt(bookingParts.find(part => part.type === 'day')?.value || '1', 10);
-          
-          const cellYear = parseInt(cellParts.find(part => part.type === 'year')?.value || '2025', 10);
-          const cellMonth = parseInt(cellParts.find(part => part.type === 'month')?.value || '1', 10);
-          const cellDay = parseInt(cellParts.find(part => part.type === 'day')?.value || '1', 10);
-          
-          console.log(`  Booking facility date: ${bookingMonth}/${bookingDay}/${bookingYear}`);
-          console.log(`  Cell facility date: ${cellMonth}/${cellDay}/${cellYear}`);
-          
-          // Compare the actual dates in facility timezone
-          const isMatch = bookingYear === cellYear && 
-                          bookingMonth === cellMonth && 
-                          bookingDay === cellDay;
-          
-          console.log(`  Match result: ${isMatch}`);
-          return isMatch;
+          // Use our improved isSameDay function from dateUtils
+          // It properly handles timezone conversion to facility timezone
+          return isSameDay(booking.start, date);
         });
         
-        // Log how many bookings were found for this cell
+        // Log how many bookings were found for this cell (minimized for better performance)
         console.log(`Cell for ${studio.name} - ${date.toDateString()} has ${dayBookings.length} bookings`);
         if (dayBookings.length > 0) {
-          console.log(`FOUND BOOKINGS for ${studio.name} on ${date.toDateString()}:`, dayBookings.map(b => ({id: b.id, title: b.title, start: new Date(b.start).toISOString()})));
+          console.log(`FOUND BOOKINGS for ${studio.name} on ${date.toDateString()}:`, dayBookings.map(b => b.title));
         }
         
         // Calculate dynamic height for cells - same logic as row header

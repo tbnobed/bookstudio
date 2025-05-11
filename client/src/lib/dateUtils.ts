@@ -84,17 +84,15 @@ export function createFacilityDate(
  * @returns Date string in YYYY-MM-DD format in facility timezone
  */
 export function formatDateForForm(date: Date): string {
-  // Use our convertToFacilityDate helper to get components in facility timezone
-  const facilityDate = convertToFacilityDate(date);
+  // Using en-CA locale with Intl.DateTimeFormat gives us YYYY-MM-DD format directly
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: FACILITY_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
   
-  // Format as YYYY-MM-DD
-  // Ensure month and day are padded with leading zeros
-  const year = facilityDate.year.toString();
-  const month = facilityDate.month.toString().padStart(2, '0');
-  const day = facilityDate.day.toString().padStart(2, '0');
-  
-  // Format as YYYY-MM-DD for form inputs
-  const formattedDate = `${year}-${month}-${day}`;
+  const formattedDate = formatter.format(date);
   
   console.log(`formatDateForForm: Input date: ${date.toISOString()}, formatted as: ${formattedDate}`);
   
@@ -258,24 +256,36 @@ export function getMonthDays(year: number, month: number): Date[] {
  * @returns True if the dates represent the same day in facility timezone
  */
 export function isSameDay(date1: Date | string, date2: Date | string): boolean {
-  // Use our convertToFacilityDate helper to get date components in facility timezone
-  const d1 = convertToFacilityDate(date1);
-  const d2 = convertToFacilityDate(date2);
+  // Create defensive copies
+  const d1 = typeof date1 === "string" ? new Date(date1) : new Date(date1.getTime());
+  const d2 = typeof date2 === "string" ? new Date(date2) : new Date(date2.getTime());
   
-  // Compare the year, month, and day values directly
-  const result = d1.year === d2.year && d1.month === d2.month && d1.day === d2.day;
+  // Use Intl.DateTimeFormat to get the formatted date string in facility timezone
+  // Format as YYYY-MM-DD to ensure proper comparison by day
+  const f1 = new Intl.DateTimeFormat('en-CA', { 
+    timeZone: FACILITY_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(d1);
   
-  // Log detailed comparison for debugging dates in May 2025 (our test data period)
-  // Make defensive copies for debug messaging only
-  const dt1 = typeof date1 === "string" ? new Date(date1) : new Date(date1.getTime());
-  const dt2 = typeof date2 === "string" ? new Date(date2) : new Date(date2.getTime());
+  const f2 = new Intl.DateTimeFormat('en-CA', {
+    timeZone: FACILITY_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(d2);
+  
+  // Direct string comparison of YYYY-MM-DD formatted dates
+  const result = f1 === f2;
+  
   const debugDate = new Date(2025, 4, 8); // May 8, 2025
-  const diffD1 = Math.abs((dt1.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
-  const diffD2 = Math.abs((dt2.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
+  const diffD1 = Math.abs((d1.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
+  const diffD2 = Math.abs((d2.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
   
   // Only log for dates near our problem period (May 2025)
   if (diffD1 < 30 || diffD2 < 30) {
-    console.log(`isSameDay: Comparing "${dt1.toISOString()}" (${d1.month}/${d1.day}/${d1.year}) with "${dt2.toISOString()}" (${d2.month}/${d2.day}/${d2.year}) => ${result}`);
+    console.log(`isSameDay: Comparing "${d1.toISOString()}" (${f1}) with "${d2.toISOString()}" (${f2}) => ${result}`);
   }
   
   return result;
