@@ -6,6 +6,11 @@ import { createTimeSlots, formatTime } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
 import { format } from "date-fns";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 interface DailyCalendarProps {
   date: Date;
@@ -135,7 +140,7 @@ export default function DailyCalendar({
   }>((acc, booking) => {
     // Check if it's a facility-wide alert (maintenance or IT support without a specific studio)
     const isFacilityAlert = 
-      ((booking.type.includes('maintenance') || booking.type === 'it_support') && 
+      ((booking.type?.includes('maintenance') || booking.type === 'it_support') && 
        booking.studioId === null && 
        booking.linkedStudioIds.length === 0);
     
@@ -214,7 +219,7 @@ export default function DailyCalendar({
 
   // Check if a booking is a facility-wide alert
   const isFacilityAlert = (booking: Booking) => {
-    return (booking.type.includes('maintenance') || booking.type === 'it_support') && 
+    return (booking.type?.includes('maintenance') || booking.type === 'it_support') && 
            booking.studioId === null;
   };
 
@@ -357,75 +362,159 @@ export default function DailyCalendar({
               {sortedBookings.map((booking) => {
                 const bookingStyle = getBookingClass(booking);
                 const pcrRoomName = booking.pcrRoomId ? getPcrRoomName(booking.pcrRoomId) : null;
+                const studioNames = getStudiosForBooking(booking);
                 
                 return (
-                  <div 
-                    key={booking.id} 
-                    className={bookingStyle.className}
-                    style={bookingStyle.style}
-                    onClick={() => handleBookingClick(booking)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-lg">{booking.title}</h3>
-                        <p className="text-sm text-gray-700">{formatBookingTime(booking)}</p>
-                        
-                        {/* Studios with improved styling */}
-                        {isFacilityAlert(booking) ? (
-                          <div className="mt-2 flex items-center">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                              <svg 
-                                xmlns="http://www.w3.org/2000/svg" 
-                                viewBox="0 0 24 24" 
-                                fill="currentColor" 
-                                className="w-4 h-4 mr-1"
-                              >
-                                <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
-                              </svg>
-                              Facility-wide Alert
-                            </span>
+                  <HoverCard key={booking.id}>
+                    <HoverCardTrigger asChild>
+                      <div 
+                        className={bookingStyle.className}
+                        style={bookingStyle.style}
+                        onClick={() => handleBookingClick(booking)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-bold text-lg">{booking.title}</h3>
+                            <p className="text-sm text-gray-700">{formatBookingTime(booking)}</p>
+                            
+                            {/* Studios with improved styling */}
+                            {isFacilityAlert(booking) ? (
+                              <div className="mt-2 flex items-center">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    viewBox="0 0 24 24" 
+                                    fill="currentColor" 
+                                    className="w-4 h-4 mr-1"
+                                  >
+                                    <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+                                  </svg>
+                                  Facility-wide Alert
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-wrap mt-3 gap-1">
+                                {studioNames.map((studioName, index) => (
+                                  <span 
+                                    key={index} 
+                                    className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium"
+                                  >
+                                    {studioName}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {/* PCR Room with improved styling */}
+                            {booking.pcrRoomId && (
+                              <div className="mt-2">
+                                <span 
+                                  className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-xs font-medium inline-flex items-center"
+                                >
+                                  <span className="mr-1">🎛️</span> {pcrRoomName}
+                                </span>
+                              </div>
+                            )}
                           </div>
-                        ) : (
-                          <div className="flex flex-wrap mt-3 gap-1">
-                            {getStudiosForBooking(booking).map((studioName, index) => (
-                              <span 
-                                key={index} 
-                                className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium"
-                              >
-                                {studioName}
-                              </span>
-                            ))}
+                          
+                          {/* Booking type badge */}
+                          <div className={`px-2 py-1 rounded-full shadow-sm text-xs font-semibold capitalize ${
+                            booking.type?.includes('maintenance') ? 'bg-amber-100 text-amber-800' :
+                            booking.type === 'it_support' ? 'bg-red-100 text-red-800' :
+                            booking.type === 'rehearsal' ? 'bg-purple-100 text-purple-800' :
+                            booking.type === 'production' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {booking.type?.split(':').join(': ') || 'Unknown'}
+                          </div>
+                        </div>
+                      </div>
+                    </HoverCardTrigger>
+                    
+                    <HoverCardContent className="w-80 z-50">
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold">{booking.title}</h4>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-500">Time:</span>
+                          <span className="text-xs font-medium">{formatBookingTime(booking)}</span>
+                        </div>
+                        
+                        {booking.description && (
+                          <div>
+                            <span className="text-xs text-gray-500">Description:</span>
+                            <p className="text-xs mt-1 italic">{booking.description || "No description"}</p>
                           </div>
                         )}
                         
-                        {/* PCR Room with improved styling */}
+                        {!isFacilityAlert(booking) && studioNames.length > 0 && (
+                          <div>
+                            <span className="text-xs text-gray-500">Studios:</span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {studioNames.map((name, idx) => (
+                                <span key={idx} className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                                  {name}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                         {booking.pcrRoomId && (
-                          <div className="mt-2">
-                            <span 
-                              className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-xs font-medium inline-flex items-center"
-                            >
-                              <span className="mr-1">🎛️</span> {pcrRoomName}
+                          <div className="flex justify-between">
+                            <span className="text-xs text-gray-500">PCR Room:</span>
+                            <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full">
+                              {pcrRoomName}
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-500">Status:</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            booking.status === 'confirmed' 
+                              ? 'bg-green-100 text-green-800' 
+                              : booking.status === 'tentative'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : "N/A"}
+                          </span>
+                        </div>
+                        
+                        {booking.severity && (
+                          <div className="flex justify-between">
+                            <span className="text-xs text-gray-500">Severity:</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              booking.severity === 'critical' 
+                                ? 'bg-red-100 text-red-800' 
+                                : booking.severity === 'high'
+                                  ? 'bg-orange-100 text-orange-800'
+                                  : booking.severity === 'medium'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1)}
+                            </span>
+                          </div>
+                        )}
+
+                        {booking.type && (
+                          <div className="flex justify-between">
+                            <span className="text-xs text-gray-500">Type:</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              booking.type?.includes('maintenance') ? 'bg-amber-100 text-amber-800' :
+                              booking.type === 'it_support' ? 'bg-red-100 text-red-800' :
+                              booking.type === 'rehearsal' ? 'bg-purple-100 text-purple-800' :
+                              booking.type === 'production' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {booking.type?.split(':').join(': ') || 'Unknown'}
                             </span>
                           </div>
                         )}
                       </div>
-                      {/* Improved booking type badge */}
-                      <div className={`px-2 py-1 rounded-full shadow-sm text-xs font-semibold capitalize ${
-                        booking.type.includes('maintenance') ? 'bg-amber-200 text-amber-800' :
-                        booking.type === 'it_support' ? 'bg-red-200 text-red-800' :
-                        booking.type === 'rehearsal' ? 'bg-purple-200 text-purple-800' :
-                        booking.type === 'production' ? 'bg-blue-200 text-blue-800' :
-                        'bg-gray-200 text-gray-800'
-                      }`}>
-                        {booking.type.replace('all-day:', '')}
-                      </div>
-                    </div>
-                    {booking.description && (
-                      <div className="mt-3 pt-2 border-t border-gray-200">
-                        <p className="text-sm text-gray-700">{booking.description}</p>
-                      </div>
-                    )}
-                  </div>
+                    </HoverCardContent>
+                  </HoverCard>
                 );
               })}
             </div>
@@ -433,30 +522,27 @@ export default function DailyCalendar({
         </div>
       </div>
 
-      {/* Edit Booking Modal - for studio bookings */}
+      {/* Booking modals */}
       {editBooking && (
-        <BookingModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          booking={editBooking}
-        />
+        <>
+          <BookingModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            bookingId={editBooking.id}
+          />
+          <AlertModal 
+            isOpen={isEditAlertModalOpen}
+            onClose={() => setIsEditAlertModalOpen(false)}
+            bookingId={editBooking.id}
+          />
+        </>
       )}
       
-      {/* Edit Alert Modal - for facility-wide alerts */}
-      {editBooking && (
-        <AlertModal
-          isOpen={isEditAlertModalOpen}
-          onClose={() => setIsEditAlertModalOpen(false)}
-          alert={editBooking}
-        />
-      )}
-
-      {/* New Booking Modal */}
       <BookingModal
         isOpen={isNewBookingModalOpen}
         onClose={() => setIsNewBookingModalOpen(false)}
-        selectedDate={currentDate}
-        selectedStudio={selectedStudio?.id}
+        selectedStudio={selectedStudio}
+        initialDate={currentDate}
       />
     </>
   );
