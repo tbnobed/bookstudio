@@ -232,22 +232,24 @@ export default function DayListView({
                           </span>
                         </div>
                         
-                        {/* Show linked studios if more than the current one */}
-                        {bookingStudios.length > 1 && (
-                          <div className="flex items-center gap-1 text-gray-700 mt-1">
-                            <Users size={14} className="flex-shrink-0" />
-                            <div className="flex flex-wrap gap-1">
-                              {bookingStudios
-                                .filter(s => s.name !== studioGroup.studioName)
-                                .map(studio => (
-                                  <Badge key={studio.id} variant="secondary" className="text-xs">
-                                    {studio.name}
-                                  </Badge>
-                                ))
-                              }
-                            </div>
+                        {/* Always show linked studios */}
+                        <div className="flex items-center gap-1 text-gray-700 mt-1">
+                          <Users size={14} className="flex-shrink-0" />
+                          <div className="flex flex-wrap gap-1">
+                            {bookingStudios.length === 0 && (
+                              <span className="text-gray-500">No studios assigned</span>
+                            )}
+                            {bookingStudios.map(studio => (
+                              <Badge 
+                                key={studio.id} 
+                                variant={studio.name === studioGroup.studioName ? "default" : "secondary"} 
+                                className="text-xs"
+                              >
+                                {studio.name}
+                              </Badge>
+                            ))}
                           </div>
-                        )}
+                        </div>
                         
                         {/* Show PCR room if assigned */}
                         {pcrRoom && (
