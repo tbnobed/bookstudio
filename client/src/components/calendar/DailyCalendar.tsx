@@ -128,6 +128,14 @@ export default function DailyCalendar({
     return { hour, minute };
   };
 
+  // Define type for PCR Room
+  type PcrRoom = {
+    id: number;
+    name: string;
+    description: string;
+    status?: string;
+  };
+
   // Fetch PCR rooms to display with bookings
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
     queryKey: ['/api/pcr-rooms'],
@@ -145,8 +153,17 @@ export default function DailyCalendar({
     return room ? room.name : null;
   };
 
+  // Define type for BookingStudio (junction table)
+  type BookingStudio = {
+    id: number;
+    bookingId: number;
+    studioId: number;
+  };
+
   // Get all studios for a booking
-  const getBookingStudios = (bookingId: number) => {
+  const getBookingStudios = (bookingId: number): Studio[] => {
+    if (!bookingStudioLinks || !studios) return [];
+    
     // Filter booking-studio links for this booking
     const links = bookingStudioLinks.filter(link => link.bookingId === bookingId);
     
@@ -161,14 +178,13 @@ export default function DailyCalendar({
     const baseClass = readOnly ? "bg-white" : "bg-white hover:bg-gray-100";
     if (!booking) return baseClass;
     
-    // If booking has a custom color, use it
+    // For custom colored bookings, we'll use inline styles instead of classes
+    // So just return the base class as the color is applied through style prop
     if (booking.color) {
-      return readOnly 
-        ? `bg-opacity-15` 
-        : `hover:bg-opacity-25 bg-opacity-15`;
+      return baseClass;
     }
     
-    // Otherwise use default color scheme based on type
+    // Use default color scheme based on type
     switch (booking.type) {
       case "maintenance":
         return readOnly ? "bg-amber-100" : "bg-amber-100 hover:bg-amber-200";
@@ -215,9 +231,9 @@ export default function DailyCalendar({
                       getSlotClass(booking)
                     )}
                     style={booking?.color ? {
-                      backgroundColor: `${booking.color}25`, // 15% opacity
+                      backgroundColor: `${booking.color}15`, // 15% opacity
                       borderLeftColor: booking.color,
-                      borderLeftWidth: '3px'
+                      borderLeftWidth: '4px'
                     } : {}}
                     onClick={() => booking 
                       ? handleBookingClick(booking) 
@@ -225,28 +241,28 @@ export default function DailyCalendar({
                     }
                   >
                     {booking && (
-                      <div className="p-1 text-xs truncate h-full flex flex-col">
-                        <div className="font-medium" style={booking.color ? { color: booking.color } : {}}>
+                      <div className="p-1.5 text-xs truncate h-full flex flex-col">
+                        <div className="font-semibold text-sm mb-0.5" style={booking.color ? { color: booking.color } : {}}>
                           {booking.title}
                         </div>
                         
-                        <div className="flex items-center gap-1 mt-auto">
-                          <Clock size={10} className="flex-shrink-0" />
+                        <div className="flex items-center gap-1 text-gray-700">
+                          <Clock size={12} className="flex-shrink-0" />
                           <span>{formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}</span>
                         </div>
                         
                         {/* Show PCR room if assigned */}
                         {booking.pcrRoomId && getPcrRoomName(booking.pcrRoomId) && (
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Tv size={10} className="flex-shrink-0" />
+                          <div className="flex items-center gap-1 text-gray-600 mt-0.5">
+                            <Tv size={12} className="flex-shrink-0" />
                             <span>{getPcrRoomName(booking.pcrRoomId)}</span>
                           </div>
                         )}
                         
                         {/* Show linked studios */}
                         {booking.id && getBookingStudios(booking.id).length > 1 && (
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Users size={10} className="flex-shrink-0" />
+                          <div className="flex items-center gap-1 text-gray-600 mt-0.5">
+                            <Users size={12} className="flex-shrink-0" />
                             <span className="truncate">
                               {getBookingStudios(booking.id)
                                 .filter((s: Studio) => s.id !== studio.id)
