@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format, addDays, parse, isBefore } from "date-fns";
+import { format, addDays, parse, isBefore, differenceInMinutes } from "date-fns";
 import { Calendar as CalendarIcon, Copy, Info } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -20,7 +20,7 @@ import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
 interface CopyBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  booking: Booking;
+  booking: Booking | any; // Allow any to handle cases when booking might be incomplete
 }
 
 export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBookingModalProps) {
@@ -149,10 +149,20 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
   
   // Format the time range (e.g., "9:00 AM - 11:00 AM")
   const formatTimeRange = () => {
-    const start = new Date(booking.start);
-    const end = new Date(booking.end);
+    // Only attempt to format if we have valid dates
+    if (!booking || !booking.start || !booking.end) {
+      return "Time not available";
+    }
     
-    return `${format(start, "h:mm a")} - ${format(end, "h:mm a")} (${FACILITY_TIMEZONE})`;
+    try {
+      const start = new Date(booking.start);
+      const end = new Date(booking.end);
+      
+      return `${format(start, "h:mm a")} - ${format(end, "h:mm a")} (${FACILITY_TIMEZONE})`;
+    } catch (error) {
+      console.error("Error formatting time range:", error);
+      return "Time not available";
+    }
   };
   
   // Calculate the duration in hours and minutes
