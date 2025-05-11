@@ -31,7 +31,8 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
   const [titleSuffix, setTitleSuffix] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   
-  const bookingDate = new Date(booking.start);
+  // Make sure booking.start is a valid date before creating a Date object
+  const bookingDate = booking && booking.start ? new Date(booking.start) : new Date();
   
   // Mutation to copy a booking to multiple dates
   const copyBookingMutation = useMutation({
