@@ -1528,7 +1528,8 @@ export class DatabaseStorage implements IStorage {
   
   async getAllBookings(): Promise<Booking[]> {
     try {
-      const allBookings = await db.select().from(bookings);
+      // Modified select to use db.query for safer access
+      const allBookings = await db.query.bookings.findMany();
       allBookings.forEach(booking => {
         this.bookings.set(booking.id, booking);
       });
@@ -2137,21 +2138,34 @@ export class DatabaseStorage implements IStorage {
   
   async getAllBookingStudioLinks(): Promise<BookingStudio[]> {
     try {
+      // First check if the table exists, since we just created it
+      const tableCheck = await db.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'booking_studios'
+        );
+      `);
+      
+      if (!tableCheck.rows?.[0]?.exists) {
+        console.log("booking_studios table does not exist yet");
+        return [];
+      }
+      
       // Get all booking-studio links from database
-      const links = await db.select()
-        .from(bookingStudios);
+      const links = await db.query.bookingStudios.findMany();
+      
+      // Cache the results for fallback
+      this.bookingStudiosCache = links;
       
       console.log(`Retrieved ${links.length} booking-studio links from database`);
       return links;
     } catch (error) {
       console.error("Error getting all booking-studio links:", error);
       // Fall back to memory cache if available
-      if (this.bookingStudios) {
-        const links = Array.from(this.bookingStudios.values());
-        console.log(`Retrieved ${links.length} booking-studio links from memory cache`);
-        return links;
-      }
-      return [];
+      const cachedLinks = this.bookingStudiosCache || [];
+      console.log("Retrieved", cachedLinks.length, "booking-studio links from memory cache");
+      return cachedLinks;
     }
   }
   
