@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Booking, Studio } from "@shared/schema";
+import { Booking, Studio, BookingStudio } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { createTimeSlots, formatTime } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
+import { format } from "date-fns";
 
 interface DailyCalendarProps {
   date: Date;
@@ -21,17 +22,12 @@ export default function DailyCalendar({
   bookings: propBookings = [], 
   readOnly = false 
 }: DailyCalendarProps) {
-  const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<{ studio: Studio; time: string } | null>(null);
-
-  // Create time slots from 6am to 10pm in 30-minute intervals
-  useEffect(() => {
-    setTimeSlots(createTimeSlots(6, 22, 30));
-  }, []);
+  const [selectedStudio, setSelectedStudio] = useState<Studio | null>(null);
+  const [studioIdMap, setStudioIdMap] = useState<Record<number, Studio>>({});
 
   // Fetch studios only if not provided via props
   const { data: fetchedStudios = [] } = useQuery<Studio[]>({
@@ -56,19 +52,42 @@ export default function DailyCalendar({
 
   const bookings = propBookings.length > 0 ? propBookings : fetchedBookings;
 
-  // Filter studios if selectedStudioIds is provided
-  const filteredStudios = selectedStudioIds.length > 0
-    ? studios.filter((studio) => selectedStudioIds.includes(studio.id))
-    : studios;
+  // Fetch booking-studio links for multi-studio bookings
+  const { data: bookingStudioLinks = [] } = useQuery<BookingStudio[]>({
+    queryKey: ['/api/booking-studios'],
+  });
 
-  // Handle cell click to create a new booking
-  const handleSlotClick = (studio: Studio, time: string) => {
-    // Only allow booking creation if not in readOnly mode
-    if (!readOnly) {
-      setSelectedSlot({ studio, time });
-      setIsNewBookingModalOpen(true);
+  // Create a map of studio IDs to studio objects for quick lookups
+  useEffect(() => {
+    if (studios.length > 0) {
+      const studioMap: Record<number, Studio> = {};
+      studios.forEach(studio => {
+        studioMap[studio.id] = studio;
+      });
+      setStudioIdMap(studioMap);
     }
-  };
+  }, [studios]);
+
+  // Filter bookings if selectedStudioIds is provided
+  const filteredBookings = selectedStudioIds.length > 0
+    ? bookings.filter(booking => {
+        // Include bookings with a direct studio ID match
+        if (booking.studioId && selectedStudioIds.includes(booking.studioId)) {
+          return true;
+        }
+        
+        // Check for bookings with studio links
+        const links = bookingStudioLinks.filter(link => link.bookingId === booking.id);
+        return links.some(link => selectedStudioIds.includes(link.studioId));
+      })
+    : bookings;
+
+  // Sort bookings chronologically by start time
+  const sortedBookings = [...filteredBookings].sort((a, b) => {
+    const dateA = new Date(a.start);
+    const dateB = new Date(b.start);
+    return dateA.getTime() - dateB.getTime();
+  });
 
   // Handle booking click for editing
   const handleBookingClick = (booking: Booking) => {
@@ -87,112 +106,115 @@ export default function DailyCalendar({
     }
   };
 
-  // Check if a booking overlaps with a time slot
-  const getBookingForTimeSlot = (studioId: number, timeSlot: string) => {
-    const slotTime = parseTimeString(timeSlot);
-    
-    // Convert slot time to a Date object
-    const slotDateTime = new Date(currentDate);
-    slotDateTime.setHours(slotTime.hour, slotTime.minute, 0, 0);
-    
-    // Add 30 minutes to get the end time
-    const slotEndDateTime = new Date(slotDateTime);
-    slotEndDateTime.setMinutes(slotEndDateTime.getMinutes() + 30);
-    
-    // Find a booking that overlaps with this slot
-    return bookings.find(booking => {
-      // Create defensive copies of booking dates to avoid timezone issues
-      const bookingStart = new Date(booking.start);
-      const bookingEnd = new Date(booking.end);
-      
-      // Also create defensive copies of slot dates
-      const slotStartCopy = new Date(slotDateTime.getTime());
-      const slotEndCopy = new Date(slotEndDateTime.getTime());
-      
-      // Check if this booking is for this studio
-      if (booking.studioId !== studioId) return false;
-      
-      // Check if the booking overlaps with the slot time
-      return (
-        (bookingStart <= slotStartCopy && bookingEnd > slotStartCopy) ||
-        (bookingStart < slotEndCopy && bookingEnd >= slotEndCopy) ||
-        (bookingStart >= slotStartCopy && bookingEnd <= slotEndCopy)
-      );
-    });
+  // Handle "New Booking" button click
+  const handleNewBooking = (studio: Studio | null) => {
+    if (!readOnly) {
+      setSelectedStudio(studio);
+      setIsNewBookingModalOpen(true);
+    }
   };
 
-  // Helper to parse time strings like "08:30" into hours and minutes
-  const parseTimeString = (timeString: string) => {
-    const [hour, minute] = timeString.split(":").map(Number);
-    return { hour, minute };
-  };
-
-  // Get the appropriate slot class based on booking type
-  const getSlotClass = (booking: Booking | undefined) => {
-    const baseClass = readOnly ? "bg-white" : "bg-white hover:bg-gray-100";
-    if (!booking) return baseClass;
+  // Get the appropriate booking class based on booking type
+  const getBookingClass = (booking: Booking) => {
+    const baseClasses = "mb-4 p-4 rounded-md shadow-sm cursor-pointer";
     
     switch (booking.type) {
       case "maintenance":
-        return readOnly ? "bg-amber-100" : "bg-amber-100 hover:bg-amber-200";
+        return `${baseClasses} bg-amber-100 hover:bg-amber-200 border-l-4 border-amber-500`;
       case "it_support":
-        return readOnly ? "bg-red-100" : "bg-red-100 hover:bg-red-200";
+        return `${baseClasses} bg-red-100 hover:bg-red-200 border-l-4 border-red-500`;
       case "rehearsal":
-        return readOnly ? "bg-purple-100" : "bg-purple-100 hover:bg-purple-200";
+        return `${baseClasses} bg-purple-100 hover:bg-purple-200 border-l-4 border-purple-500`;
       case "production":
-        return readOnly ? "bg-blue-100" : "bg-blue-100 hover:bg-blue-200";
+        return `${baseClasses} bg-blue-100 hover:bg-blue-200 border-l-4 border-blue-500`;
       default:
-        return readOnly ? "bg-gray-100" : "bg-gray-100 hover:bg-gray-200";
+        return `${baseClasses} bg-gray-100 hover:bg-gray-200 border-l-4 border-gray-500`;
     }
+  };
+
+  // Get studio names for a booking
+  const getStudiosForBooking = (booking: Booking) => {
+    // First check for direct studioId assignment
+    if (booking.studioId && studioIdMap[booking.studioId]) {
+      return [studioIdMap[booking.studioId].name];
+    }
+    
+    // Then check booking-studio links
+    const links = bookingStudioLinks.filter(link => link.bookingId === booking.id);
+    const studioNames = links
+      .map(link => studioIdMap[link.studioId]?.name)
+      .filter(Boolean); // Remove any undefined names
+    
+    return studioNames.length > 0 ? studioNames : ['No studio assigned'];
+  };
+
+  // Format booking time
+  const formatBookingTime = (booking: Booking) => {
+    const start = new Date(booking.start);
+    const end = new Date(booking.end);
+    return `${formatTime(start)} - ${formatTime(end)}`;
   };
 
   return (
     <>
       <div className="overflow-auto h-[calc(100vh-8rem)]">
-        <div className="min-w-[800px]">
-          {/* Time Column Header */}
-          <div className="grid grid-cols-[100px_repeat(auto-fill,1fr)] sticky top-0 z-10">
-            <div className="h-14 border-b bg-white font-medium flex items-center justify-center">Time</div>
-            {filteredStudios.map((studio) => (
-              <div key={studio.id} className="h-14 border-b bg-white font-medium flex items-center justify-center px-2">
-                {studio.name}
-              </div>
-            ))}
+        <div className="p-4">
+          {/* Date header */}
+          <div className="sticky top-0 z-10 bg-white pb-2 mb-4 border-b">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">
+                {format(currentDate, "EEEE, MMMM d, yyyy")}
+              </h2>
+              {!readOnly && (
+                <button 
+                  onClick={() => handleNewBooking(null)} 
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  + New Booking
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Time Grid */}
-          {timeSlots.map((timeSlot, index) => (
-            <div key={index} className="grid grid-cols-[100px_repeat(auto-fill,1fr)]">
-              <div className="h-12 border-b bg-gray-50 flex items-center justify-center text-sm font-medium">
-                {formatTime(new Date(`2000-01-01T${timeSlot}:00`))}
-              </div>
-              
-              {filteredStudios.map((studio) => {
-                const booking = getBookingForTimeSlot(studio.id, timeSlot);
-                return (
-                  <div 
-                    key={studio.id} 
-                    className={cn(
-                      "h-12 border-b border-r",
-                      readOnly ? "cursor-default" : "cursor-pointer",
-                      getSlotClass(booking)
-                    )}
-                    onClick={() => booking 
-                      ? handleBookingClick(booking) 
-                      : handleSlotClick(studio, timeSlot)
-                    }
-                  >
-                    {booking && (
-                      <div className="px-2 py-1 text-xs truncate">
-                        <div className="font-medium">{booking.title}</div>
-                        <div>{formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}</div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          {/* Chronological booking list */}
+          {sortedBookings.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No bookings scheduled for this day.
             </div>
-          ))}
+          ) : (
+            <div className="space-y-1">
+              {sortedBookings.map((booking) => (
+                <div 
+                  key={booking.id} 
+                  className={getBookingClass(booking)}
+                  onClick={() => handleBookingClick(booking)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-bold text-lg">{booking.title}</h3>
+                      <p className="text-sm text-gray-700">{formatBookingTime(booking)}</p>
+                      <div className="text-sm mt-2">
+                        <span className="font-medium">Studios: </span>
+                        {getStudiosForBooking(booking).join(', ')}
+                      </div>
+                      {booking.pcrRoomId && (
+                        <div className="text-sm mt-1">
+                          <span className="font-medium">PCR Room: </span>
+                          {booking.pcrRoomId}
+                        </div>
+                      )}
+                    </div>
+                    <div className="px-2 py-1 rounded text-xs capitalize">
+                      {booking.type}
+                    </div>
+                  </div>
+                  {booking.description && (
+                    <p className="mt-2 text-sm text-gray-600">{booking.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -215,14 +237,12 @@ export default function DailyCalendar({
       )}
 
       {/* New Booking Modal */}
-      {selectedSlot && (
-        <BookingModal
-          isOpen={isNewBookingModalOpen}
-          onClose={() => setIsNewBookingModalOpen(false)}
-          selectedDate={currentDate}
-          selectedStudio={selectedSlot.studio.id}
-        />
-      )}
+      <BookingModal
+        isOpen={isNewBookingModalOpen}
+        onClose={() => setIsNewBookingModalOpen(false)}
+        selectedDate={currentDate}
+        selectedStudio={selectedStudio?.id}
+      />
     </>
   );
 }
