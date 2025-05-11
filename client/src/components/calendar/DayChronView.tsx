@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { formatTime } from '@/lib/dateUtils';
+import { formatTime, isSameDay } from '@/lib/dateUtils';
 import { Badge } from '@/components/ui/badge';
 import { Tv, Clock, Users, Info, CalendarDays, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,12 +32,8 @@ export default function DayChronView({
   // Get bookings for the selected day
   const dayBookings = useMemo(() => {
     return bookings.filter(booking => {
-      const bookingDate = new Date(booking.start);
-      return (
-        bookingDate.getFullYear() === date.getFullYear() &&
-        bookingDate.getMonth() === date.getMonth() &&
-        bookingDate.getDate() === date.getDate()
-      );
+      // Use facility's isSameDay function which handles timezone correctly
+      return isSameDay(new Date(booking.start), date);
     });
   }, [bookings, date]);
 
