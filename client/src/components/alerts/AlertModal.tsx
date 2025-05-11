@@ -40,13 +40,15 @@ interface AlertModalProps {
   onClose: () => void;
   alert?: any; // Optional existing alert for editing
   selectedDate?: Date;
+  alertsOnly?: boolean; // When true, forces alert-type creation
 }
 
 export default function AlertModal({ 
   isOpen, 
   onClose, 
   alert, 
-  selectedDate 
+  selectedDate,
+  alertsOnly = false
 }: AlertModalProps) {
   // Form state
   const [title, setTitle] = useState("");
@@ -171,8 +173,8 @@ export default function AlertModal({
       description,
       studioId: null, // Use camelCase to match the schema definitions
       type: finalAlertType, // Use our modified type with all-day flag if applicable
-      start: localStartDate.toISOString(),
-      end: localEndDate.toISOString(),
+      start: localStartDate instanceof Date ? localStartDate.toISOString() : localStartDate,
+      end: localEndDate instanceof Date ? localEndDate.toISOString() : localEndDate,
       notifyList: notifyList,
       severity: severity
     };

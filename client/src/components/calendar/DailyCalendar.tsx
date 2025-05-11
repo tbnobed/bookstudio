@@ -77,10 +77,17 @@ export default function DailyCalendar({
   };
 
   // Handle booking click for editing
-  const handleBookingClick = (booking: Booking) => {
+  const handleBookingClick = (booking: any) => {
     // Only allow editing if not in readOnly mode
     if (!readOnly) {
       console.log("[DEBUG] Handling booking click:", booking);
+      
+      // Special case: this could be a new alert request from the "Add Alert" button
+      if (booking.type && booking.type === "all-day:maintenance" && !booking.id) {
+        console.log("[DEBUG] Creating new alert from button click");
+        setIsNewAlertModalOpen(true);
+        return;
+      }
       
       // Check if it's a facility-wide alert or critical maintenance booking
       const isAlert = 
@@ -260,6 +267,14 @@ export default function DailyCalendar({
           selectedStudio={selectedSlot.studio.id}
         />
       )}
+
+      {/* New Alert Modal */}
+      <AlertModal
+        isOpen={isNewAlertModalOpen}
+        onClose={() => setIsNewAlertModalOpen(false)}
+        selectedDate={currentDate}
+        alertsOnly={true}
+      />
     </>
   );
 }
