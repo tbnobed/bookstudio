@@ -47,7 +47,7 @@ interface MonthlyCalendarProps {
   readOnly?: boolean;
 }
 
-export default function MonthlyCalendar({ date: currentDate, studios, bookings: propBookings = [], readOnly = false }: MonthlyCalendarProps) {
+export default function MonthlyCalendar({ date: currentDate, studios: studiosProp, bookings: propBookings = [], readOnly = false }: MonthlyCalendarProps) {
   const [monthDays, setMonthDays] = useState<Date[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
