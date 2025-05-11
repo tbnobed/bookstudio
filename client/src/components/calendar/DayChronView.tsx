@@ -370,12 +370,39 @@ export default function DayChronView({
       ) : (
         <div>
           {/* ALERTS SECTION */}
-          {alerts.length > 0 && (
-            <div className="mb-6 p-4 border-2 border-red-400 bg-red-50 rounded-md shadow-md">
-              <div className="flex items-center gap-2 mb-3">
+          <div className={`mb-6 p-4 border-2 border-red-400 bg-red-50 rounded-md shadow-md ${alerts.length === 0 ? 'border-dashed' : ''}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
                 <AlertTriangle size={20} className="text-red-600" />
                 <h3 className="text-lg font-bold text-red-700">ALERTS & CRITICAL NOTICES</h3>
               </div>
+              {!readOnly && (
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  className="gap-1"
+                  onClick={() => {
+                    // Handle creating a new alert for the current date
+                    const alertData = {
+                      type: "all-day:maintenance",
+                      severity: "critical",
+                      start: date,
+                      studioId: null
+                    };
+                    onBookingClick(alertData);
+                  }}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Add Alert</span>
+                </Button>
+              )}
+            </div>
+            
+            {alerts.length === 0 ? (
+              <div className="text-center py-3 bg-white rounded-md text-gray-500">
+                <p>No alerts for this day</p>
+              </div>
+            ) : (
               <div className="space-y-3">
                 {alerts.map(alert => (
                   <div 
@@ -402,8 +429,8 @@ export default function DayChronView({
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
           
           {/* REGULAR BOOKINGS SECTION */}
           <div className="mt-4">

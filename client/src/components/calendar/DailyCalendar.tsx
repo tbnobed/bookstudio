@@ -31,6 +31,7 @@ export default function DailyCalendar({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
+  const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ studio: Studio; time: string } | null>(null);
 
   // Create time slots from 6am to 10pm in 30-minute intervals
