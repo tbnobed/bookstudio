@@ -182,12 +182,17 @@ export default function MobileDailyView({
   const getLinkedStudiosForBooking = (booking: any): string[] => {
     if (!booking) return [];
     
+    console.log(`Getting linked studios for booking ${booking.id} (${booking.title})`);
+    
     const studioNames: string[] = [];
     
     // Check direct studio reference first
     if (booking.studioId) {
       const studio = studios.find(s => s.id === booking.studioId);
-      if (studio) studioNames.push(studio.name);
+      if (studio) {
+        console.log(`Found direct link to studio ${studio.id} (${studio.name})`);
+        studioNames.push(studio.name);
+      }
     }
     
     // Add studios from the bookingStudios lookup data we fetched
@@ -196,17 +201,19 @@ export default function MobileDailyView({
       Number(bs.bookingId) === Number(booking.id)
     );
     
-    console.log(`Finding linked studios for booking ${booking.id}: `, links);
+    console.log(`Finding linked studios for booking ${booking.id}: found ${links.length} links`);
     
     if (links && links.length > 0) {
       links.forEach(link => {
         const studio = studios.find(s => s.id === link.studioId);
         if (studio && !studioNames.includes(studio.name)) {
+          console.log(`Found linked studio ${studio.id} (${studio.name}) via junction table`);
           studioNames.push(studio.name);
         }
       });
     }
     
+    console.log(`Total studios linked to booking ${booking.id}: ${studioNames.length} (${studioNames.join(', ')})`);
     return studioNames;
   };
   
@@ -421,8 +428,53 @@ export default function MobileDailyView({
                         })}
                       </div>
                     ) : (
-                      <div className="text-center text-gray-500 py-2 text-sm">
-                        No bookings today
+                      <div className="text-sm">
+                        {/* Show current status summary */}
+                        <div className={cn(
+                          "rounded-md py-3 px-4 border flex flex-col",
+                          statusInfo.status === 'in-use' ? 'bg-red-50 border-red-200' : 
+                          statusInfo.status === 'upcoming' ? 'bg-amber-50 border-amber-200' : 
+                          'bg-green-50 border-green-200'
+                        )}>
+                          {/* Current status */}
+                          <div className={cn(
+                            "font-medium",
+                            statusInfo.status === 'in-use' ? 'text-red-600' : 
+                            statusInfo.status === 'upcoming' ? 'text-amber-600' : 
+                            'text-green-600'
+                          )}>
+                            {statusInfo.status === 'in-use' 
+                              ? statusInfo.currentBooking?.title || 'In Use' 
+                              : statusInfo.status === 'upcoming' 
+                                ? statusInfo.nextBooking?.title || 'Upcoming Booking'
+                                : 'Available'}
+                          </div>
+                          
+                          {/* Time information for status */}
+                          {statusInfo.status === 'in-use' && statusInfo.currentBooking && (
+                            <div className="text-xs text-gray-600 mt-1 flex items-center gap-1">
+                              <Clock size={12} />
+                              {formatTimeRange(
+                                new Date(statusInfo.currentBooking.start), 
+                                new Date(statusInfo.currentBooking.end)
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Show linked studios if applicable */}
+                          {statusInfo.currentBooking && getLinkedStudiosForBooking(statusInfo.currentBooking).length > 1 && (
+                            <div className="text-xs text-gray-600 flex items-center gap-1 mt-1">
+                              <Tv size={12} />
+                              {getAllStudiosForBooking(statusInfo.currentBooking)}
+                            </div>
+                          )}
+                          
+                          {statusInfo.status === 'upcoming' && statusInfo.nextBooking && (
+                            <div className="text-xs text-amber-600 mt-1">
+                              Starts in {formatDistance(new Date(statusInfo.nextBooking.start), now)}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
