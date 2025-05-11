@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio, PcrRoom, BookingStudio } from "@shared/schema";
-import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange, convertToFacilityDate } from "@/lib/dateUtils";
+import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange, convertToFacilityDate, FACILITY_TIMEZONE } from "@/lib/dateUtils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
@@ -259,15 +259,17 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
           const bookingDate = new Date(bookingStart);
           
           // Use Intl.DateTimeFormat to get the date components in the facility timezone
+          const facilityTimezone = 'America/Chicago';
+          
           const bookingFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: FACILITY_TIMEZONE,
+            timeZone: facilityTimezone,
             year: 'numeric',
             month: 'numeric',
             day: 'numeric'
           });
           
           const cellFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: FACILITY_TIMEZONE,
+            timeZone: facilityTimezone,
             year: 'numeric',
             month: 'numeric',
             day: 'numeric'
