@@ -275,6 +275,9 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
             {dayAlerts.length > 0 ? (
               <div className="flex flex-col h-full w-full p-1 overflow-y-auto">
                 {dayAlerts.map((alert) => {
+                  // Debug to see the exact severity value being passed
+                  console.log(`Alert ${alert.id} (${alert.title}) severity:`, alert.severity);
+                  
                   // Determine color based on alert severity
                   let colorClass = "bg-blue-100 border-blue-400 border text-blue-800 shadow-sm"; // default - low severity
                   
@@ -285,6 +288,9 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
                   } else if (alert.severity === "medium") {
                     colorClass = "bg-amber-100 border-amber-400 border text-amber-800 shadow-sm";
                   }
+                  
+                  // Double-check the resulting color class for debugging
+                  console.log(`Alert ${alert.id} color class:`, colorClass);
                   
                   return (
                     <HoverCard key={alert.id}>
