@@ -3,14 +3,9 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatTime, isSameDay } from '@/lib/dateUtils';
 import { Badge } from '@/components/ui/badge';
-import { Tv, Clock, Users, CalendarDays, Bookmark, AlertTriangle } from 'lucide-react';
+import { Tv, Clock, Users, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from "@tanstack/react-query";
-import { 
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 
 interface DayChronViewProps {
   date: Date;
@@ -87,59 +82,113 @@ export default function DayChronView({
     return pcrRooms.find(pcr => pcr.id === booking.pcrRoomId);
   };
 
-  // Get the background color class based on booking type
-  const getTypeClass = (type: string, severity: string = 'normal') => {
-    // First check if it's an alert (severity-based color)
-    if (type === 'alert') {
-      switch (severity) {
-        case 'critical':
-          return 'bg-red-100';
-        case 'high':
-          return 'bg-orange-100';
-        case 'medium':
-          return 'bg-yellow-100';
-        case 'low':
-          return 'bg-blue-100';
-        default:
-          return 'bg-yellow-100';
-      }
-    }
-    
-    // Otherwise, use regular booking type
-    switch (type) {
-      case 'production':
-        return 'bg-blue-50';
-      case 'maintenance':
-        return 'bg-amber-50';
-      case 'it_support':
-        return 'bg-red-50';
-      case 'rehearsal':
-        return 'bg-purple-50';
+  // Get the severity color for alerts
+  const getSeverityColor = (severity: string = 'medium') => {
+    switch (severity) {
+      case 'critical':
+        return '#f44336'; // Red
+      case 'high':
+        return '#ff9800'; // Orange
+      case 'medium':
+        return '#ffc107'; // Amber
+      case 'low':
+        return '#2196f3'; // Blue
       default:
-        return 'bg-gray-50';
+        return '#ffc107'; // Default to amber for unknown severity
     }
   };
 
-  // Format a booking type for display
-  const formatBookingType = (type: string = '') => {
-    switch (type) {
-      case 'production':
-        return 'Production';
-      case 'maintenance':
-        return 'Maintenance';
-      case 'it_support':
-        return 'IT Support';
-      case 'rehearsal':
-        return 'Rehearsal';
-      case 'alert':
-        return 'Alert';
-      default:
-        return type || 'Unknown';
-    }
+  // Render an alert item
+  const renderAlert = (alert: any) => {
+    const severityColor = getSeverityColor(alert.severity);
+    
+    return (
+      <div 
+        key={alert.id}
+        className="border rounded-md p-3 mb-2 bg-opacity-10 cursor-pointer hover:bg-gray-50"
+        style={{
+          backgroundColor: `${severityColor}10`,
+          borderLeftColor: severityColor,
+          borderLeftWidth: '4px'
+        }}
+        onClick={() => onBookingClick(alert)}
+      >
+        <div className="flex justify-between">
+          <h4 className="font-semibold">{alert.title}</h4>
+          <Badge variant={alert.severity === 'critical' ? 'destructive' : 'outline'}>
+            {alert.severity ? alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1) : 'Alert'}
+          </Badge>
+        </div>
+        <div className="mt-1 text-sm flex items-center gap-1 text-gray-600">
+          <Clock size={14} className="flex-shrink-0" />
+          <span>{formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}</span>
+        </div>
+        {alert.description && (
+          <div className="mt-1 text-sm text-gray-600 line-clamp-2">
+            {alert.description}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render a regular booking item
+  const renderBooking = (booking: any) => {
+    const studiosList = getStudiosForBooking(booking);
+    const pcrRoom = getPcrRoom(booking);
+    const bookingColor = booking.color || '#3b82f6';
+    
+    return (
+      <div 
+        key={booking.id}
+        className="border rounded-md p-3 mb-2 cursor-pointer hover:bg-gray-50"
+        style={{
+          borderLeftColor: bookingColor,
+          borderLeftWidth: '4px'
+        }}
+        onClick={() => onBookingClick(booking)}
+      >
+        <div className="flex justify-between">
+          <h4 className="font-semibold">{booking.title}</h4>
+          <Badge variant="outline">
+            {booking.type === 'production' ? 'Production' :
+             booking.type === 'maintenance' ? 'Maintenance' :
+             booking.type === 'it_support' ? 'IT Support' :
+             booking.type === 'rehearsal' ? 'Rehearsal' : 
+             booking.type || 'Booking'}
+          </Badge>
+        </div>
+        
+        <div className="mt-1 text-sm flex items-center gap-1 text-gray-600">
+          <Clock size={14} />
+          <span>{formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}</span>
+        </div>
+        
+        {studiosList.length > 0 && (
+          <div className="mt-1 text-sm flex items-center gap-1 text-gray-600">
+            <Users size={14} />
+            <span>{studiosList.map(studio => studio.name).join(', ')}</span>
+          </div>
+        )}
+        
+        {pcrRoom && (
+          <div className="mt-1 text-sm flex items-center gap-1 text-gray-600">
+            <Tv size={14} />
+            <span>{pcrRoom.name}</span>
+          </div>
+        )}
+        
+        {booking.description && (
+          <div className="mt-1 text-sm text-gray-600 line-clamp-2">
+            {booking.description}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="w-full p-4">
+    <div className="p-4 w-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">
           {format(date, 'EEEE, MMMM d, yyyy')}
@@ -179,251 +228,30 @@ export default function DayChronView({
           <p className="text-gray-500">No bookings for this day</p>
         </div>
       ) : (
-        <>
-          {/* Display Alerts first */}
+        <div>
+          {/* ALERTS SECTION - Always displayed at the top */}
           {alerts.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-2 flex items-center">
-                <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" />
-                Alerts
-              </h3>
-              <div className="space-y-3">
-                {alerts.map((alert) => {
-                  const typeClass = getTypeClass(alert.type, alert.severity);
-                  const severityColor = alert.severity === 'critical' ? '#f44336' : 
-                                        alert.severity === 'high' ? '#ff9800' : 
-                                        alert.severity === 'medium' ? '#ffc107' : 
-                                        alert.severity === 'low' ? '#2196f3' : '#ffc107';
-                  
-                  return (
-                    <HoverCard key={alert.id} openDelay={300} closeDelay={100}>
-                      <HoverCardTrigger asChild>
-                        <div 
-                          className={cn(
-                            "border rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors",
-                            typeClass
-                          )}
-                          style={{
-                            borderLeftColor: severityColor,
-                            borderLeftWidth: '4px'
-                          }}
-                          onClick={() => onBookingClick(alert)}
-                        >
-                          <div className="flex justify-between items-start">
-                            <h3 className="text-base font-bold">{alert.title}</h3>
-                            <Badge className="ml-2" variant={alert.severity === 'critical' ? 'destructive' : 'outline'}>
-                              {alert.severity 
-                                ? alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1) 
-                                : 'Alert'}
-                            </Badge>
-                          </div>
-                          
-                          <div className="mt-2 text-sm">
-                            {/* Time */}
-                            <div className="flex items-center gap-1 text-gray-700">
-                              <Clock size={14} className="flex-shrink-0" />
-                              <span>
-                                {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
-                              </span>
-                            </div>
-                            
-                            {/* Description preview for alerts */}
-                            {alert.description && (
-                              <div className="mt-1 text-gray-600 line-clamp-2">
-                                {alert.description}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </HoverCardTrigger>
-                      
-                      <HoverCardContent className="w-80">
-                        <div className="flex justify-between">
-                          <div>
-                            <h4 className="text-sm font-semibold">{alert.title}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              <CalendarDays className="h-3.5 w-3.5 inline-block mr-1" />
-                              {format(new Date(alert.start), 'MMMM d, yyyy')}
-                            </p>
-                          </div>
-                          <div 
-                            className="h-12 w-12 rounded-full" 
-                            style={{ 
-                              backgroundColor: severityColor,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'white'
-                            }}
-                          >
-                            <AlertTriangle className="h-6 w-6" />
-                          </div>
-                        </div>
-                        
-                        <div className="mt-2">
-                          <h5 className="text-xs font-medium mb-1">Description</h5>
-                          <p className="text-xs">
-                            {alert.description || "No description provided."}
-                          </p>
-                        </div>
-                        
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                          <div>
-                            <h5 className="text-xs font-medium mb-1">Time</h5>
-                            <p className="text-xs">
-                              {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
-                            </p>
-                          </div>
-                          <div>
-                            <h5 className="text-xs font-medium mb-1">Severity</h5>
-                            <p className="text-xs capitalize">{alert.severity || 'Normal'}</p>
-                          </div>
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  );
-                })}
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle size={18} className="text-amber-500" />
+                <h3 className="text-lg font-semibold">Alerts</h3>
+              </div>
+              <div className="space-y-3 rounded-md border border-amber-200 bg-amber-50 p-3">
+                {alerts.map(alert => renderAlert(alert))}
               </div>
             </div>
           )}
           
-          {/* Display regular bookings */}
+          {/* BOOKINGS SECTION */}
           {regularBookings.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold mb-2">Bookings</h3>
-              <div className="space-y-3">
-                {regularBookings.map((booking) => {
-                  const studiosList = getStudiosForBooking(booking);
-                  const pcrRoom = getPcrRoom(booking);
-                  const typeClass = getTypeClass(booking.type);
-                  const bookingColor = booking.color || '#3b82f6';
-                  
-                  return (
-                    <HoverCard key={booking.id} openDelay={300} closeDelay={100}>
-                      <HoverCardTrigger asChild>
-                        <div 
-                          className={cn(
-                            "border rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors",
-                            typeClass
-                          )}
-                          style={{
-                            borderLeftColor: bookingColor,
-                            borderLeftWidth: '4px'
-                          }}
-                          onClick={() => onBookingClick(booking)}
-                        >
-                          <div className="flex justify-between items-start">
-                            <h3 className="text-base font-bold">{booking.title}</h3>
-                            <Badge className="ml-2" variant="outline">
-                              {formatBookingType(booking.type)}
-                            </Badge>
-                          </div>
-                          
-                          <div className="mt-2 text-sm">
-                            {/* Time */}
-                            <div className="flex items-center gap-1 text-gray-700">
-                              <Clock size={14} className="flex-shrink-0" />
-                              <span>
-                                {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
-                              </span>
-                            </div>
-                            
-                            {/* Studios */}
-                            {studiosList.length > 0 && (
-                              <div className="flex items-center gap-1 text-gray-700 mt-1">
-                                <Users size={14} className="flex-shrink-0" />
-                                <div className="flex flex-wrap gap-1">
-                                  {studiosList.map(studio => (
-                                    <Badge 
-                                      key={studio.id} 
-                                      variant="secondary" 
-                                      className="text-xs"
-                                    >
-                                      {studio.name}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* PCR room */}
-                            {pcrRoom && (
-                              <div className="flex items-center gap-1 text-gray-700 mt-1">
-                                <Tv size={14} className="flex-shrink-0" />
-                                <span>{pcrRoom.name}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </HoverCardTrigger>
-                      
-                      <HoverCardContent className="w-80">
-                        <div className="flex justify-between">
-                          <div>
-                            <h4 className="text-sm font-semibold">{booking.title}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              <CalendarDays className="h-3.5 w-3.5 inline-block mr-1" />
-                              {format(new Date(booking.start), 'MMMM d, yyyy')}
-                            </p>
-                          </div>
-                          <div 
-                            className="h-12 w-12 rounded-full" 
-                            style={{ 
-                              backgroundColor: bookingColor,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'white'
-                            }}
-                          >
-                            <Bookmark className="h-6 w-6" />
-                          </div>
-                        </div>
-                        
-                        <div className="mt-2">
-                          <h5 className="text-xs font-medium mb-1">Description</h5>
-                          <p className="text-xs">
-                            {booking.description || "No description provided."}
-                          </p>
-                        </div>
-                        
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                          <div>
-                            <h5 className="text-xs font-medium mb-1">Time</h5>
-                            <p className="text-xs">
-                              {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
-                            </p>
-                          </div>
-                          <div>
-                            <h5 className="text-xs font-medium mb-1">Type</h5>
-                            <p className="text-xs capitalize">{formatBookingType(booking.type)}</p>
-                          </div>
-                          
-                          <div>
-                            <h5 className="text-xs font-medium mb-1">Studios</h5>
-                            <div className="flex flex-wrap gap-1">
-                              {studiosList.map(studio => (
-                                <Badge key={studio.id} variant="outline" className="text-[10px]">
-                                  {studio.name}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                          <div>
-                            <h5 className="text-xs font-medium mb-1">PCR Room</h5>
-                            <p className="text-xs">
-                              {pcrRoom ? pcrRoom.name : "None"}
-                            </p>
-                          </div>
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  );
-                })}
+              <h3 className="text-lg font-semibold mb-3">Bookings</h3>
+              <div className="space-y-4">
+                {regularBookings.map(booking => renderBooking(booking))}
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
