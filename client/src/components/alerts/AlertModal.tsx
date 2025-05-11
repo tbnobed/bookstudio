@@ -147,6 +147,7 @@ export default function AlertModal({
       // Create start and end dates in the local timezone to maintain the intended date
       // Month is 0-indexed in JavaScript Date, so subtract 1
       const startDateObj = new Date(year, month-1, day, 0, 0, 0, 0);
+      // End date at the end of the day, but technically it goes to next day at midnight
       const endDateObj = new Date(year, month-1, day, 23, 59, 59, 999);
       
       localStartDate = startDateObj;
@@ -160,9 +161,15 @@ export default function AlertModal({
       // This will be used by isAllDayAlert in AlertsRow.tsx
       finalAlertType = `all-day:${alertType}`;
       
+      // If we've been called from the Add Alert button (alertsOnly is true), 
+      // ensure we're using the critical severity for proper alert detection
+      if (alertsOnly && severity !== "critical") {
+        setSeverity("critical");
+      }
+      
       console.log(`Creating all-day alert for date: ${date}`);
       console.log(`Start: ${localStartDate.toISOString()}, End: ${localEndDate.toISOString()}`);
-      console.log(`Modified type with flag: ${finalAlertType}`);
+      console.log(`Modified type with flag: ${finalAlertType}, Severity: ${severity}`);
     } else {
       // Regular time-bound event
       // Convert times to date objects using our utility function
