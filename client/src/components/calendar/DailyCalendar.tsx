@@ -129,37 +129,31 @@ export default function DailyCalendar({
   };
 
   // Fetch PCR rooms to display with bookings
-  const { data: pcrRooms = [] } = useQuery({
+  const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
     queryKey: ['/api/pcr-rooms'],
   });
 
   // Fetch booking-studio links to show multiple studios per booking
-  const { data: bookingStudioLinks = [] } = useQuery({
+  const { data: bookingStudioLinks = [] } = useQuery<BookingStudio[]>({
     queryKey: ['/api/booking-studios'],
   });
-
-  // Define types for PCR rooms and booking studio links
-  type PcrRoom = { id: number; name: string; description: string };
   
   // Get a PCR room name by its ID
   const getPcrRoomName = (pcrRoomId: number | null) => {
     if (!pcrRoomId) return null;
-    const room = pcrRooms?.find((room: PcrRoom) => room.id === pcrRoomId);
+    const room = pcrRooms.find(room => room.id === pcrRoomId);
     return room ? room.name : null;
   };
 
   // Get all studios for a booking
   const getBookingStudios = (bookingId: number) => {
-    // Ensure bookingStudioLinks is defined before filtering
-    if (!bookingStudioLinks) return [];
+    // Filter booking-studio links for this booking
+    const links = bookingStudioLinks.filter(link => link.bookingId === bookingId);
     
-    const links = bookingStudioLinks.filter((link: { bookingId: number; studioId: number }) => 
-      link.bookingId === bookingId
-    );
-    
-    return links.map((link: { studioId: number }) => 
+    // Map the studio IDs to actual studio objects
+    return links.map(link => 
       studios.find(studio => studio.id === link.studioId)
-    ).filter(Boolean);
+    ).filter(Boolean) as Studio[];
   };
 
   // Get the appropriate slot class based on booking type and color
@@ -255,8 +249,8 @@ export default function DailyCalendar({
                             <Users size={10} className="flex-shrink-0" />
                             <span className="truncate">
                               {getBookingStudios(booking.id)
-                                .filter(s => s && s.id !== studio.id)
-                                .map(s => s?.name)
+                                .filter((s: Studio) => s.id !== studio.id)
+                                .map((s: Studio) => s.name)
                                 .join(', ')}
                             </span>
                           </div>
