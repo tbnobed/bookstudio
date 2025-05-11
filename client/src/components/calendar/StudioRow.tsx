@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio, PcrRoom, BookingStudio } from "@shared/schema";
-import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
+import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange, convertToFacilityDate } from "@/lib/dateUtils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
@@ -255,16 +255,44 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
           console.log(`  Booking start raw: ${bookingStart}, cell date raw: ${cellDate.toISOString()}`);
           
           // Convert booking date to facility timezone components
-          const bookingFacilityDate = convertToFacilityDate(bookingStart);
-          const cellFacilityDate = convertToFacilityDate(cellDate);
+          // Make defensive copy of the booking.start date
+          const bookingDate = new Date(bookingStart);
           
-          console.log(`  Booking facility date: ${bookingFacilityDate.month}/${bookingFacilityDate.day}/${bookingFacilityDate.year}`);
-          console.log(`  Cell facility date: ${cellFacilityDate.month}/${cellFacilityDate.day}/${cellFacilityDate.year}`);
+          // Use Intl.DateTimeFormat to get the date components in the facility timezone
+          const bookingFormatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: FACILITY_TIMEZONE,
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+          });
+          
+          const cellFormatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: FACILITY_TIMEZONE,
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+          });
+          
+          // Get the date parts
+          const bookingParts = bookingFormatter.formatToParts(bookingDate);
+          const cellParts = cellFormatter.formatToParts(cellDate);
+          
+          // Extract parts and convert to numbers
+          const bookingYear = parseInt(bookingParts.find(part => part.type === 'year')?.value || '2025', 10);
+          const bookingMonth = parseInt(bookingParts.find(part => part.type === 'month')?.value || '1', 10);
+          const bookingDay = parseInt(bookingParts.find(part => part.type === 'day')?.value || '1', 10);
+          
+          const cellYear = parseInt(cellParts.find(part => part.type === 'year')?.value || '2025', 10);
+          const cellMonth = parseInt(cellParts.find(part => part.type === 'month')?.value || '1', 10);
+          const cellDay = parseInt(cellParts.find(part => part.type === 'day')?.value || '1', 10);
+          
+          console.log(`  Booking facility date: ${bookingMonth}/${bookingDay}/${bookingYear}`);
+          console.log(`  Cell facility date: ${cellMonth}/${cellDay}/${cellYear}`);
           
           // Compare the actual dates in facility timezone
-          const isMatch = bookingFacilityDate.year === cellFacilityDate.year && 
-                          bookingFacilityDate.month === cellFacilityDate.month && 
-                          bookingFacilityDate.day === cellFacilityDate.day;
+          const isMatch = bookingYear === cellYear && 
+                          bookingMonth === cellMonth && 
+                          bookingDay === cellDay;
           
           console.log(`  Match result: ${isMatch}`);
           return isMatch;
