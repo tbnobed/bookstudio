@@ -70,18 +70,38 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     // 2. It has "Alert" in the title, OR
     // 3. It's an "all-day:maintenance" type booking, OR
     // 4. It's an "all-day:it_support" type booking
+    // 5. It has "update" or "network" in the title (for network updates), OR
+    // 6. It has maintenance or it_support type with severity property
     
     const hasAlertInTitle = booking.title && booking.title.toLowerCase().includes('alert');
+    const hasUpdateInTitle = booking.title && booking.title.toLowerCase().includes('update');
+    const hasNetworkInTitle = booking.title && booking.title.toLowerCase().includes('network');
+    const hasIssueInTitle = booking.title && booking.title.toLowerCase().includes('issue');
     const isAllDayMaintenance = booking.type && booking.type.includes('all-day:maintenance');
     const isAllDayITSupport = booking.type && booking.type.includes('all-day:it_support');
     const isMaintenanceType = booking.type === 'maintenance';
     const isITSupportType = booking.type === 'it_support';
     
+    // Special case handling for known alert titles
+    const specialCaseAlerts = [
+      'network update', 
+      'mu2 toa space issue'
+    ];
+    
+    const isSpecialCaseAlert = booking.title && 
+      specialCaseAlerts.some(alertTitle => 
+        booking.title.toLowerCase().includes(alertTitle.toLowerCase())
+      );
+    
     return booking.type === 'alert' || 
            hasAlertInTitle || 
+           isSpecialCaseAlert ||
+           (hasUpdateInTitle && hasNetworkInTitle) || // Network updates are alerts
+           hasIssueInTitle || // Issues are alerts
            isAllDayMaintenance || 
            isAllDayITSupport ||
            (isMaintenanceType && booking.severity) ||
+           (isMaintenanceType && hasUpdateInTitle) || // Maintenance updates are alerts 
            (isITSupportType && booking.severity);
   };
   
