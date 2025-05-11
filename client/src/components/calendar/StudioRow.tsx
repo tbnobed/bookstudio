@@ -379,7 +379,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                       </div>
                     </div>
                   </HoverCardTrigger>
-                  <HoverCardContent className="w-80 p-4">
+                  <HoverCardContent className="w-96 p-5 z-50">
                     <div className="space-y-3">
                       <div className="flex justify-between items-start">
                         <h4 className="text-sm font-semibold">{booking.title}</h4>
