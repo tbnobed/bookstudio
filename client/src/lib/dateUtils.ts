@@ -222,57 +222,50 @@ export function getMonthDays(year: number, month: number): Date[] {
  * @param date2 Second date to compare
  * @returns True if the dates represent the same day in facility timezone
  */
-export function isSameDay(date1: Date | string, date2: Date | string): boolean {
-  // Make defensive copies to ensure we don't modify the inputs
-  const d1 = typeof date1 === "string" ? new Date(date1) : new Date(date1.getTime());
-  const d2 = typeof date2 === "string" ? new Date(date2) : new Date(date2.getTime());
+/**
+ * Get the date in facility timezone as YYYY-MM-DD string
+ * This is a crucial function that normalizes dates to the facility timezone
+ */
+export function getFacilityDateString(date: Date | string): string {
+  // Make defensive copy
+  const d = typeof date === "string" ? new Date(date) : new Date(date.getTime());
   
-  // Use Intl.DateTimeFormat to get the date components in the facility timezone
+  // Format using Intl.DateTimeFormat with the facility timezone
   const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: FACILITY_TIMEZONE,
     year: 'numeric',
-    month: 'numeric',
-    day: 'numeric'
+    month: '2-digit',
+    day: '2-digit'
   });
   
-  // Get formatted dates in the facility timezone (America/Chicago - Dallas)
-  const d1Formatted = formatter.format(d1);
-  const d2Formatted = formatter.format(d2);
+  const parts = formatter.formatToParts(d);
+  const month = parts.find(p => p.type === 'month')?.value || '01';
+  const day = parts.find(p => p.type === 'day')?.value || '01';
+  const year = parts.find(p => p.type === 'year')?.value || '2025';
   
-  // Get the actual date components for better debug info
-  const d1Parts = formatter.formatToParts(d1);
-  const d2Parts = formatter.formatToParts(d2);
+  // Return YYYY-MM-DD format for easy comparison
+  return `${year}-${month}-${day}`;
+}
+
+export function isSameDay(date1: Date | string, date2: Date | string): boolean {
+  // Get both dates as YYYY-MM-DD strings in facility timezone
+  const d1String = getFacilityDateString(date1);
+  const d2String = getFacilityDateString(date2);
   
-  // Extract day, month, year for both dates in facility timezone
-  const getDatePart = (parts: Intl.DateTimeFormatPart[], type: string) => {
-    const part = parts.find(p => p.type === type);
-    return part ? part.value : '';
-  };
+  // Simple string comparison ensures exact match of year, month, and day
+  const result = d1String === d2String;
   
-  const d1Month = getDatePart(d1Parts, 'month');
-  const d1Day = getDatePart(d1Parts, 'day');
-  const d1Year = getDatePart(d1Parts, 'year');
+  // Enhanced debugging that shows the actual facility dates being compared
+  const d1 = typeof date1 === "string" ? new Date(date1) : new Date(date1.getTime());
+  const d2 = typeof date2 === "string" ? new Date(date2) : new Date(date2.getTime());
   
-  const d2Month = getDatePart(d2Parts, 'month');
-  const d2Day = getDatePart(d2Parts, 'day');
-  const d2Year = getDatePart(d2Parts, 'year');
-  
-  // Check if the dates are the same day in the facility timezone
-  // by comparing year, month, and day separately
-  const result = (
-    d1Year === d2Year &&
-    d1Month === d2Month &&
-    d1Day === d2Day
-  );
-  
-  // Log detailed comparison for debugging purposes
+  // Only log for dates in May 2025 (our problem period)
   const debugDate = new Date(2025, 4, 8); // May 8, 2025
   const diffD1 = Math.abs((d1.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
   const diffD2 = Math.abs((d2.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
   
-  // Only log for dates near our problem period (May 2025)
   if (diffD1 < 30 || diffD2 < 30) {
-    console.log(`isSameDay: Comparing "${d1.toISOString()}" (${d1Month}/${d1Day}/${d1Year}) with "${d2.toISOString()}" (${d2Month}/${d2Day}/${d2Year}) => ${result}`);
+    console.log(`isSameDay: Comparing "${d1.toISOString()}" (facility: ${d1String}) with "${d2.toISOString()}" (facility: ${d2String}) => ${result}`);
   }
   
   return result;

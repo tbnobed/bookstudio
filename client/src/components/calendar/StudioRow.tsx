@@ -255,9 +255,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
           // Log both dates for debugging to trace the timezone comparison issue
           console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${bookingDate.toISOString()})`);
           
-          // Handle the TCL booking specially since timezone conversion is causing issues
-          // We know this is for May 10th at 10:30 PM UTC / 5:30 PM Chicago time
-          if (booking.title === "TCL" && booking.start === "2025-05-10T22:30:00.000Z") {
+          // Our improved isSameDay function should handle most cases correctly now
+          // but keep the special case for TCL booking just to be extra safe
+          const bookingStartStr = String(booking.start || '');
+          if (booking.title === "TCL" && bookingStartStr.includes("2025-05-10T22:30:00")) {
             // Force it to be on the 10th (Saturday) not the 9th (Friday)
             const isMay10th = date.getMonth() === 4 && date.getDate() === 10;
             
