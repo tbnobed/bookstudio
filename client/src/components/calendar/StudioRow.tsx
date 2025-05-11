@@ -245,9 +245,29 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         // Filter bookings for this date and this specific studio using the combined studioBookings
         // Create a defensive copy of the booking.start date and ensure timezones are respected
         const dayBookings = studioBookings.filter(booking => {
-          // Log both dates for debugging to trace the timezone comparison issue
-          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${new Date(booking.start).toISOString()})`);
-          return isSameDay(new Date(booking.start), date);
+          // Check if the booking should appear on this date in the facility timezone
+          // Get the facility date for both the booking start and the cell date
+          const bookingStart = booking.start;
+          const cellDate = date;
+          
+          // Additional logging for deep debugging
+          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title}`);
+          console.log(`  Booking start raw: ${bookingStart}, cell date raw: ${cellDate.toISOString()}`);
+          
+          // Convert booking date to facility timezone components
+          const bookingFacilityDate = convertToFacilityDate(bookingStart);
+          const cellFacilityDate = convertToFacilityDate(cellDate);
+          
+          console.log(`  Booking facility date: ${bookingFacilityDate.month}/${bookingFacilityDate.day}/${bookingFacilityDate.year}`);
+          console.log(`  Cell facility date: ${cellFacilityDate.month}/${cellFacilityDate.day}/${cellFacilityDate.year}`);
+          
+          // Compare the actual dates in facility timezone
+          const isMatch = bookingFacilityDate.year === cellFacilityDate.year && 
+                          bookingFacilityDate.month === cellFacilityDate.month && 
+                          bookingFacilityDate.day === cellFacilityDate.day;
+          
+          console.log(`  Match result: ${isMatch}`);
+          return isMatch;
         });
         
         // Log how many bookings were found for this cell
