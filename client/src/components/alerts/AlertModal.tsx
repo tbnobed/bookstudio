@@ -182,8 +182,12 @@ export default function AlertModal({
       description,
       studioId: null, // Use camelCase to match the schema definitions
       type: finalAlertType, // Use our modified type with all-day flag if applicable
-      start: localStartDate,  // startDate is already a Date object
-      end: localEndDate,      // endDate is already a Date object
+      start: localStartDate instanceof Date 
+        ? localStartDate 
+        : new Date(localStartDate), // Convert to Date if it's a string
+      end: localEndDate instanceof Date 
+        ? localEndDate 
+        : new Date(localEndDate), // Convert to Date if it's a string
       notifyList: notifyList,
       severity: severity
     };
