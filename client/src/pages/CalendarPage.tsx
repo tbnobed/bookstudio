@@ -17,7 +17,7 @@ function MonthlyCalendarWrapper({ currentDate, studios }: { currentDate: Date, s
   const { bookings, isLoading } = useStudioBookings(monthStart, monthEnd);
   
   // Fetch booking-studio links to display studio information
-  const { data: bookingStudioLinks = [] } = useQuery({
+  const { data: bookingStudioLinks = [] } = useQuery<any[]>({
     queryKey: ['/api/booking-studios'],
   });
   

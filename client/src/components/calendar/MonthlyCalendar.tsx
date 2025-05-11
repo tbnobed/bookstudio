@@ -160,14 +160,16 @@ export default function MonthlyCalendar({
                     let colorClass = "bg-blue-100 text-blue-800";
                     let isAlert = false;
                     
-                    if (booking.type === "maintenance") {
+                    if (booking.type === "maintenance" || booking.type === "facility_alert") {
                       colorClass = "bg-amber-100 text-amber-800";
                       isAlert = true;
                       
                       // If it's a critical maintenance alert (e.g. power outage), make it more prominent
                       if (booking.title.toLowerCase().includes("power") || 
                           booking.title.toLowerCase().includes("outage") ||
-                          booking.title.toLowerCase().includes("emergency")) {
+                          booking.title.toLowerCase().includes("emergency") ||
+                          booking.title.toLowerCase().includes("critical") ||
+                          booking.severity === "critical") {
                         colorClass = "bg-red-100 text-red-800";
                       }
                     } else if (booking.type === "it_support") {
