@@ -143,7 +143,7 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     const isToday = isSameDay(date, new Date());
     
     return cn(
-      "h-40 border p-1 transition-colors duration-200", // Increased height
+      "h-auto border p-1 transition-colors duration-200", // Auto height to fill available space
       isCurrentMonth ? "bg-white" : "bg-gray-50 text-gray-400",
       isToday && "bg-blue-50 border-blue-200",
       readOnly ? "cursor-default" : "cursor-pointer hover:bg-gray-100"
@@ -152,18 +152,20 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
 
   return (
     <>
-      <div className="overflow-auto h-[calc(100vh-8rem)]">
-        <div className="container mx-auto p-4">
+      <div className="overflow-hidden h-[calc(100vh-8rem)] flex flex-col">
+        <div className="p-2">
           {/* Month Header */}
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="text-xl font-semibold mb-2">
             {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h2>
-          
+        </div>
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-px">
+          <div className="grid grid-cols-7 flex-1" style={{ minHeight: 'calc(100vh - 10rem)' }}>
             {/* Day names */}
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="text-center font-medium p-2 bg-gray-100">
+              <div key={day} className="text-center font-medium p-2 bg-gray-100 sticky top-0">
                 {day}
               </div>
             ))}
@@ -172,10 +174,10 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
             {monthDays.map((date, i) => (
               <div 
                 key={i} 
-                className={getDayClass(date)}
+                className={`${getDayClass(date)} flex flex-col h-full`}
                 onClick={() => handleDayClick(date)}
               >
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start p-1 sticky top-0 bg-white z-10">
                   <span className={cn(
                     "text-sm font-semibold",
                     isSameDay(date, new Date()) && "bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center"
@@ -184,7 +186,7 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                   </span>
                 </div>
                 
-                <div className="mt-1 space-y-1 max-h-[110px] overflow-y-auto text-xs">
+                <div className="flex-1 overflow-y-auto space-y-1 text-xs" style={{ minHeight: '120px' }}>
                   {getBookingsForDay(date).slice(0, getMaxDisplayCount()).map((booking) => {
                     // Check if this is an alert booking
                     const isAlert = isAlertBooking(booking);
