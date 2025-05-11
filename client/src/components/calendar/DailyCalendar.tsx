@@ -189,42 +189,50 @@ export default function DailyCalendar({
 
   // Get the appropriate booking class based on booking type and color
   const getBookingClass = (booking: Booking): BookingStyle => {
-    const baseClasses = "mb-4 p-4 rounded-md shadow-sm cursor-pointer";
+    const baseClasses = "mb-4 p-4 rounded-md shadow cursor-pointer border transition-all duration-200 hover:shadow-md";
     
     // If booking has a custom color, use it
     if (booking.color) {
       const colorStyle: React.CSSProperties = { 
         borderLeftColor: booking.color,
-        backgroundColor: `${booking.color}20` // 20 is hex for 12% opacity
+        borderLeftWidth: '4px',
+        backgroundColor: `${booking.color}10` // 10 is hex for 6% opacity
       };
       
       return {
-        className: `${baseClasses} hover:bg-opacity-20 border-l-4`,
+        className: `${baseClasses} hover:bg-opacity-30`,
         style: colorStyle
       };
     }
     
     // Otherwise use the default type-based colors
     let className = "";
+    let style: React.CSSProperties = {};
+    
     switch (booking.type) {
       case "maintenance":
       case "all-day:maintenance":
-        className = `${baseClasses} bg-amber-100 hover:bg-amber-200 border-l-4 border-amber-500`;
+        className = `${baseClasses} bg-amber-50 hover:bg-amber-100 border-amber-400`;
+        style = { borderLeftWidth: '4px' };
         break;
       case "it_support":
-        className = `${baseClasses} bg-red-100 hover:bg-red-200 border-l-4 border-red-500`;
+        className = `${baseClasses} bg-red-50 hover:bg-red-100 border-red-400`;
+        style = { borderLeftWidth: '4px' };
         break;
       case "rehearsal":
-        className = `${baseClasses} bg-purple-100 hover:bg-purple-200 border-l-4 border-purple-500`;
+        className = `${baseClasses} bg-purple-50 hover:bg-purple-100 border-purple-400`;
+        style = { borderLeftWidth: '4px' };
         break;
       case "production":
-        className = `${baseClasses} bg-blue-100 hover:bg-blue-200 border-l-4 border-blue-500`;
+        className = `${baseClasses} bg-blue-50 hover:bg-blue-100 border-blue-400`;
+        style = { borderLeftWidth: '4px' };
         break;
       default:
-        className = `${baseClasses} bg-gray-100 hover:bg-gray-200 border-l-4 border-gray-500`;
+        className = `${baseClasses} bg-gray-50 hover:bg-gray-100 border-gray-400`;
+        style = { borderLeftWidth: '4px' };
     }
     
-    return { className, style: {} };
+    return { className, style };
   };
 
   // Get studio names for a booking using linkedStudioIds
@@ -286,8 +294,19 @@ export default function DailyCalendar({
 
           {/* Chronological booking list */}
           {sortedBookings.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No bookings scheduled for this day.
+            <div className="text-center py-12 px-4">
+              <div className="p-6 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <h3 className="text-lg font-medium text-gray-600 mb-1">No Bookings</h3>
+                <p className="text-gray-500">There are no bookings scheduled for this day.</p>
+                {!readOnly && (
+                  <button 
+                    onClick={() => handleNewBooking(null)} 
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Create a Booking
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="space-y-1">
@@ -306,23 +325,45 @@ export default function DailyCalendar({
                       <div>
                         <h3 className="font-bold text-lg">{booking.title}</h3>
                         <p className="text-sm text-gray-700">{formatBookingTime(booking)}</p>
-                        <div className="text-sm mt-2">
-                          <span className="font-medium">Studios: </span>
-                          {getStudiosForBooking(booking).join(', ')}
+                        
+                        {/* Studios with improved styling */}
+                        <div className="flex flex-wrap mt-3 gap-1">
+                          {getStudiosForBooking(booking).map((studioName, index) => (
+                            <span 
+                              key={index} 
+                              className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium"
+                            >
+                              {studioName}
+                            </span>
+                          ))}
                         </div>
+                        
+                        {/* PCR Room with improved styling */}
                         {booking.pcrRoomId && (
-                          <div className="text-sm mt-1">
-                            <span className="font-medium">PCR Room: </span>
-                            {pcrRoomName}
+                          <div className="mt-2">
+                            <span 
+                              className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-xs font-medium inline-flex items-center"
+                            >
+                              <span className="mr-1">🎛️</span> {pcrRoomName}
+                            </span>
                           </div>
                         )}
                       </div>
-                      <div className="px-2 py-1 bg-white/50 rounded text-xs capitalize">
+                      {/* Improved booking type badge */}
+                      <div className={`px-2 py-1 rounded-full shadow-sm text-xs font-semibold capitalize ${
+                        booking.type.includes('maintenance') ? 'bg-amber-200 text-amber-800' :
+                        booking.type === 'it_support' ? 'bg-red-200 text-red-800' :
+                        booking.type === 'rehearsal' ? 'bg-purple-200 text-purple-800' :
+                        booking.type === 'production' ? 'bg-blue-200 text-blue-800' :
+                        'bg-gray-200 text-gray-800'
+                      }`}>
                         {booking.type.replace('all-day:', '')}
                       </div>
                     </div>
                     {booking.description && (
-                      <p className="mt-2 text-sm text-gray-600">{booking.description}</p>
+                      <div className="mt-3 pt-2 border-t border-gray-200">
+                        <p className="text-sm text-gray-700">{booking.description}</p>
+                      </div>
                     )}
                   </div>
                 );
