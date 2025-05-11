@@ -232,7 +232,7 @@ export default function MonthlyCalendar({
                             )}
                           </div>
                         </HoverCardTrigger>
-                        <HoverCardContent className="w-96 p-5 z-50">
+                        <HoverCardContent className="w-80 p-4">
                           <div className="space-y-3">
                             <h4 className="text-sm font-semibold">{booking.title}</h4>
                             <div className="space-y-1">

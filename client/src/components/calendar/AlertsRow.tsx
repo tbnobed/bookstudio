@@ -319,7 +319,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
                           </div>
                         </div>
                       </HoverCardTrigger>
-                      <HoverCardContent className="w-96 p-5 z-50">
+                      <HoverCardContent className="w-80 p-4">
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <span className={cn(

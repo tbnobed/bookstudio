@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio, PcrRoom, BookingStudio } from "@shared/schema";
-import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange, getFacilityDateString } from "@/lib/dateUtils";
+import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
@@ -244,24 +244,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       {weekDates.map((date, index) => {
         // Filter bookings for this date and this specific studio using the combined studioBookings
         // Create a defensive copy of the booking.start date and ensure timezones are respected
-        // Hack to force TCL booking onto the right day
-        if (date.getDay() === 6 && date.getMonth() === 4 && date.getDate() === 10) { // Saturday, May 10
-          console.log(`SPECIAL CASE: Checking for May 10 TCL booking`);
-        }
-        
         const dayBookings = studioBookings.filter(booking => {
-          // Create a defensive copy of the booking.start date
-          const bookingDate = new Date(booking.start);
-          
-          // Use the improved isSameDay function that now properly handles all timezone comparisons
-          // This ensures all bookings appear on the correct day in the facility timezone (America/Chicago)
-          const result = isSameDay(bookingDate, date);
-          
-          if (result) {
-            console.log(`MATCH: ${booking.title} should appear on ${date.toDateString()}`);
-          }
-          
-          return result;
+          // Log both dates for debugging to trace the timezone comparison issue
+          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${new Date(booking.start).toISOString()})`);
+          return isSameDay(new Date(booking.start), date);
         });
         
         // Log how many bookings were found for this cell
@@ -277,20 +263,18 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         
         // Find max bookings across the entire row to keep consistent height
         // Use the same calculation as in the header to ensure cells match the row height
-        const maxBookingsPerDay = weekDates.map(cellDate => {
+        const maxBookingsPerDay = weekDates.map(date => {
           const count = studioBookings.filter(booking => {
             const bookingStartDate = new Date(booking.start);
-            // Use the same improved method for consistency
-            return isSameDay(bookingStartDate, cellDate);
+            return isSameDay(bookingStartDate, date);
           }).length;
-          return { date: cellDate.toDateString(), count };
+          return { date: date.toDateString(), count };
         });
         
         // Get the actual max number
         const maxBookingsForStudio = Math.max(...maxBookingsPerDay.map(day => day.count), 0);
         
-        // Only log once to reduce noise
-        console.log(`Studio ${studio.name} - max bookings per day:`, maxBookingsPerDay);
+        console.log(`Cell for ${studio.name} - ${date.toDateString()} has ${dayBookings.length} bookings`);
         
         const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
         const cellHeight = baseHeight + additionalHeight;
@@ -395,7 +379,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                       </div>
                     </div>
                   </HoverCardTrigger>
-                  <HoverCardContent className="w-96 p-5 z-50">
+                  <HoverCardContent className="w-80 p-4">
                     <div className="space-y-3">
                       <div className="flex justify-between items-start">
                         <h4 className="text-sm font-semibold">{booking.title}</h4>
