@@ -63,14 +63,78 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     }
   };
 
-  // Get bookings for a specific day
+  // Check if a booking is an alert by checking its type and title
+  const isAlertBooking = (booking: any) => {
+    // Check for alert indicators:
+    // 1. It has "alert" type, OR
+    // 2. It has "Alert" in the title, OR
+    // 3. It's an "all-day:maintenance" type booking, OR
+    // 4. It's an "all-day:it_support" type booking
+    
+    const hasAlertInTitle = booking.title && booking.title.toLowerCase().includes('alert');
+    const isAllDayMaintenance = booking.type && booking.type.includes('all-day:maintenance');
+    const isAllDayITSupport = booking.type && booking.type.includes('all-day:it_support');
+    const isMaintenanceType = booking.type === 'maintenance';
+    const isITSupportType = booking.type === 'it_support';
+    
+    return booking.type === 'alert' || 
+           hasAlertInTitle || 
+           isAllDayMaintenance || 
+           isAllDayITSupport ||
+           (isMaintenanceType && booking.severity) ||
+           (isITSupportType && booking.severity);
+  };
+  
+  // Get bookings for a specific day, sorted by alert status (alerts first)
   const getBookingsForDay = (date: Date) => {
-    return bookings.filter(booking => {
+    const dayBookings = bookings.filter(booking => {
       // Create defensive copies of dates to avoid timezone issues
       const bookingStartDate = new Date(booking.start);
       const targetDate = new Date(date.getTime());
       return isSameDay(bookingStartDate, targetDate);
     });
+    
+    // Sort to put alerts first, then by start time
+    return dayBookings.sort((a, b) => {
+      const aIsAlert = isAlertBooking(a);
+      const bIsAlert = isAlertBooking(b);
+      
+      if (aIsAlert && !bIsAlert) return -1;
+      if (!aIsAlert && bIsAlert) return 1;
+      
+      // If both are alerts, sort by severity (critical first)
+      if (aIsAlert && bIsAlert) {
+        const severityOrder: Record<string, number> = { 
+          critical: 0, 
+          high: 1, 
+          medium: 2, 
+          low: 3 
+        };
+        const aSeverityValue = a.severity && typeof a.severity === 'string' ? severityOrder[a.severity] : 999;
+        const bSeverityValue = b.severity && typeof b.severity === 'string' ? severityOrder[b.severity] : 999;
+        return aSeverityValue - bSeverityValue;
+      }
+      
+      // Otherwise sort by start time
+      return new Date(a.start).getTime() - new Date(b.start).getTime();
+    });
+  };
+
+  // Calculate max number of bookings to show per day based on bookings density
+  const getMaxDisplayCount = () => {
+    // Count max bookings per day to decide how many to show
+    const bookingsPerDay = monthDays.map(date => 
+      getBookingsForDay(date).length
+    );
+    const maxBookingsForAnyDay = Math.max(...bookingsPerDay, 1);
+    
+    // Adaptive logic:
+    // Dense month (lots of bookings): show fewer per day
+    // Sparse month: can show more per day
+    if (maxBookingsForAnyDay <= 2) return 5;      // Very sparse
+    if (maxBookingsForAnyDay <= 4) return 4;      // Sparse
+    if (maxBookingsForAnyDay <= 6) return 3;      // Average
+    return 2;                                     // Dense
   };
 
   // Get classes for a day cell
@@ -79,7 +143,7 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     const isToday = isSameDay(date, new Date());
     
     return cn(
-      "h-32 border p-1 transition-colors duration-200",
+      "h-40 border p-1 transition-colors duration-200", // Increased height
       isCurrentMonth ? "bg-white" : "bg-gray-50 text-gray-400",
       isToday && "bg-blue-50 border-blue-200",
       readOnly ? "cursor-default" : "cursor-pointer hover:bg-gray-100"
@@ -120,27 +184,59 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                   </span>
                 </div>
                 
-                <div className="mt-1 space-y-1 max-h-[90px] overflow-y-auto text-xs">
-                  {getBookingsForDay(date).slice(0, 3).map((booking) => {
-                    // Determine color based on booking type
+                <div className="mt-1 space-y-1 max-h-[110px] overflow-y-auto text-xs">
+                  {getBookingsForDay(date).slice(0, getMaxDisplayCount()).map((booking) => {
+                    // Check if this is an alert booking
+                    const isAlert = isAlertBooking(booking);
+                    
+                    // Determine color based on booking type and alert status
                     let colorClass = "bg-blue-100 text-blue-800";
-                    if (booking.type === "maintenance") {
-                      colorClass = "bg-amber-100 text-amber-800";
-                    } else if (booking.type === "it_support") {
-                      colorClass = "bg-red-100 text-red-800";
-                    } else if (booking.type === "rehearsal") {
-                      colorClass = "bg-purple-100 text-purple-800";
-                    } else if (booking.type === "production") {
-                      colorClass = "bg-green-100 text-green-800";
+                    let borderStyle = "";
+                    
+                    if (isAlert) {
+                      // Use severity-based colors for alerts
+                      switch (booking.severity) {
+                        case "critical":
+                          colorClass = "bg-red-50 text-red-800 border-red-500";
+                          borderStyle = "border-l-2";
+                          break;
+                        case "high":
+                          colorClass = "bg-orange-50 text-orange-800 border-orange-500";
+                          borderStyle = "border-l-2";
+                          break;
+                        case "medium":
+                          colorClass = "bg-amber-50 text-amber-800 border-amber-500";
+                          borderStyle = "border-l-2";
+                          break;
+                        default: // low or undefined
+                          colorClass = "bg-blue-50 text-blue-800 border-blue-500";
+                          borderStyle = "border-l-2";
+                      }
+                    } else {
+                      // Use regular booking type colors
+                      if (booking.type === "maintenance" || (booking.type && booking.type.includes("maintenance"))) {
+                        colorClass = "bg-amber-100 text-amber-800";
+                      } else if (booking.type === "it_support" || (booking.type && booking.type.includes("it_support"))) {
+                        colorClass = "bg-red-100 text-red-800";
+                      } else if (booking.type === "rehearsal") {
+                        colorClass = "bg-purple-100 text-purple-800";
+                      } else if (booking.type === "production") {
+                        colorClass = "bg-green-100 text-green-800";
+                      }
                     }
                     
-                    // Style object for custom colors
-                    const customStyle = booking.color ? {
+                    // Style object for custom colors (only apply for non-alerts)
+                    const customStyle = !isAlert && booking.color ? {
                       backgroundColor: `${booking.color}20`,
                       color: booking.color,
                       borderColor: booking.color,
                       border: '1px solid'
                     } : {};
+                    
+                    // Extract the main part of the booking type (remove "all-day:" prefix)
+                    const bookingType = booking.type && booking.type.includes(':') 
+                      ? booking.type.split(':')[1] 
+                      : booking.type;
                     
                     return (
                       <HoverCard key={booking.id}>
@@ -148,23 +244,45 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                           <div 
                             className={cn(
                               "p-1 rounded truncate", 
-                              booking.color ? "" : colorClass, 
+                              !isAlert && booking.color ? "" : colorClass,
+                              borderStyle,
+                              "flex justify-between items-center",
                               readOnly ? "cursor-default" : "cursor-pointer"
                             )}
-                            style={booking.color ? customStyle : {}}
+                            style={!isAlert && booking.color ? customStyle : {}}
                             onClick={(e) => handleBookingClick(e, booking)}
                           >
-                            <span className="font-medium">
-                              {booking.title}
-                              {booking.pcrRoomId ? ` (${getPcrRoomName(booking.pcrRoomId)})` : ''}
-                            </span>
-                            <div>{formatTime(booking.start)}</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium truncate">
+                                {isAlert && <span className="inline-block h-2 w-2 rounded-full bg-current mr-1" />}
+                                {booking.title}
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span>{formatTime(booking.start)}</span>
+                                {booking.pcrRoomId && (
+                                  <span className="text-xs opacity-80">{getPcrRoomName(booking.pcrRoomId)}</span>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </HoverCardTrigger>
                         <HoverCardContent className="w-80 p-4">
                           <div className="space-y-3">
                             <h4 className="text-sm font-semibold">{booking.title}</h4>
                             <div className="space-y-1">
+                              {isAlert && (
+                                <div className="flex items-center text-xs">
+                                  <span className={cn(
+                                    "px-2 py-0.5 rounded-full text-xs font-medium",
+                                    booking.severity === "critical" ? "bg-red-100 text-red-800" : 
+                                    booking.severity === "high" ? "bg-orange-100 text-orange-800" : 
+                                    booking.severity === "medium" ? "bg-amber-100 text-amber-800" : 
+                                    "bg-blue-100 text-blue-800"
+                                  )}>
+                                    {booking.severity || "Low"} Severity
+                                  </span>
+                                </div>
+                              )}
                               <div className="flex items-center text-xs text-muted-foreground">
                                 <CalendarClock className="mr-1 h-3 w-3" />
                                 <span>{formatDate(booking.start)}</span>
@@ -183,7 +301,7 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                               )}
                               <div className="flex items-center text-xs text-muted-foreground">
                                 <Tag className="mr-1 h-3 w-3" />
-                                <span className="capitalize">{booking.type.replace('_', ' ')}</span>
+                                <span className="capitalize">{bookingType?.replace('_', ' ')}</span>
                               </div>
                               {booking.description && (
                                 <div className="flex items-start mt-2 text-xs text-muted-foreground">
@@ -211,9 +329,9 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                     );
                   })}
                   
-                  {getBookingsForDay(date).length > 3 && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      +{getBookingsForDay(date).length - 3} more
+                  {getBookingsForDay(date).length > getMaxDisplayCount() && (
+                    <div className="text-xs text-gray-500 mt-1 bg-gray-50 rounded p-1 text-center">
+                      +{getBookingsForDay(date).length - getMaxDisplayCount()} more
                     </div>
                   )}
                 </div>
