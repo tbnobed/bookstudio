@@ -58,8 +58,15 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     e.stopPropagation();
     // Only allow editing if not in readOnly mode
     if (!readOnly) {
-      setEditBooking(booking);
-      setIsEditModalOpen(true);
+      // Check if this is an alert booking
+      const isAlert = isAlertBooking(booking);
+      
+      // If it's an alert, don't allow editing (alerts should be view-only)
+      if (!isAlert) {
+        // Regular booking - open the standard edit modal
+        setEditBooking(booking);
+        setIsEditModalOpen(true);
+      }
     }
   };
 
@@ -176,15 +183,31 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
     let borderStyle = "";
     
     if (isAlert) {
+      // Default severity if not specified
+      let effectiveSeverity = booking.severity || 'medium';
+      
+      // Special case handling for alerts based on title
+      const isNetworkUpdate = booking.title && booking.title.toLowerCase().includes('network update');
+      const isIssue = booking.title && booking.title.toLowerCase().includes('issue');
+      
+      // Override severity based on content if not explicitly set
+      if (!booking.severity) {
+        if (isNetworkUpdate) {
+          effectiveSeverity = 'critical'; // Network updates are critical
+        } else if (isIssue) {
+          effectiveSeverity = 'high'; // Issues are high priority
+        }
+      }
+      
       // Use severity-based colors for alerts
-      switch (booking.severity) {
+      switch (effectiveSeverity) {
         case "critical":
           colorClass = "bg-red-50 text-red-800 border-red-500";
-          borderStyle = "border-l-2";
+          borderStyle = "border-l-4"; // Thicker border for critical
           break;
         case "high":
           colorClass = "bg-orange-50 text-orange-800 border-orange-500";
-          borderStyle = "border-l-2";
+          borderStyle = "border-l-4"; // Thicker border for high
           break;
         case "medium":
           colorClass = "bg-amber-50 text-amber-800 border-amber-500";
@@ -289,14 +312,23 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                               !isAlert && booking.color ? "" : colorClass,
                               borderStyle,
                               "flex justify-between items-center",
-                              readOnly ? "cursor-default" : "cursor-pointer"
+                              isAlert ? "cursor-default" : (readOnly ? "cursor-default" : "cursor-pointer"),
+                              isAlert && "ring-1 ring-opacity-50"
                             )}
                             style={!isAlert && booking.color ? customStyle : {}}
                             onClick={(e) => handleBookingClick(e, booking)}
                           >
                             <div className="flex-1 min-w-0">
                               <div className="font-medium truncate">
-                                {isAlert && <span className="inline-block h-2 w-2 rounded-full bg-current mr-1" />}
+                                {isAlert && (
+                                  <span className="inline-flex items-center mr-1 text-destructive">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                    </svg>
+                                  </span>
+                                )}
                                 {booking.title}
                               </div>
                               <div className="flex items-center justify-between">
