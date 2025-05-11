@@ -87,6 +87,11 @@ export default function MobileDailyView({
     queryKey: ['/api/booking-studios'],
   });
   
+  // Fetch PCR rooms
+  const { data: pcrRooms = [] } = useQuery<any[]>({
+    queryKey: ['/api/pcr-rooms'],
+  });
+  
   // Merge booking-studios data into the bookings
   const bookingsWithStudios = useMemo<BookingWithStudios[]>(() => {
     return todayBookings.map(booking => {
@@ -236,6 +241,12 @@ export default function MobileDailyView({
     
     // Return all studio names joined with commas
     return studioNames.join(", ");
+  };
+  
+  // Function to get PCR room for a booking
+  const getPcrRoom = (booking: any) => {
+    if (!booking?.pcrRoomId) return null;
+    return pcrRooms.find(pcr => pcr.id === booking.pcrRoomId);
   };
 
   return (
@@ -559,6 +570,14 @@ export default function MobileDailyView({
                           <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
                             <Tv size={14} />
                             {getAllStudiosForBooking(booking)}
+                          </div>
+                        )}
+
+                        {/* Show PCR room information for non-facility bookings */}
+                        {!isFacilityAlert && getPcrRoom(booking) && (
+                          <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
+                            <MonitorPlay size={14} />
+                            {getPcrRoom(booking)?.name}
                           </div>
                         )}
                         
