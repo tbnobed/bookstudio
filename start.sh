@@ -148,14 +148,6 @@ print_message "$BLUE" "Current timezone: $(date +%Z)"
 # Run any additional migration scripts for new features
 print_message "$BLUE" "Running database migrations for new features..."
 
-# First run the comprehensive schema check to ensure all required tables/columns exist
-if [ -f "scripts/docker-ensure-schema.cjs" ]; then
-    print_message "$BLUE" "Ensuring database schema is up to date..."
-    node scripts/docker-ensure-schema.cjs
-else
-    print_message "$YELLOW" "Warning: Schema validation script not found"
-fi
-
 # Run the PCR rooms migration
 if [ -f "scripts/migrate-pcr-rooms.ts" ]; then
     print_message "$BLUE" "Migrating PCR rooms schema..."

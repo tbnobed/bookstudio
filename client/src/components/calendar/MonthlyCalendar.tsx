@@ -160,9 +160,7 @@ export default function MonthlyCalendar({
                     let colorClass = "bg-blue-100 text-blue-800";
                     let isAlert = false;
                     
-                    if (booking.type === "maintenance" || 
-                        booking.type === "facility_alert" || 
-                        booking.type === "all-day:maintenance") {
+                    if (booking.type === "maintenance" || booking.type === "facility_alert") {
                       colorClass = "bg-amber-100 text-amber-800";
                       isAlert = true;
                       

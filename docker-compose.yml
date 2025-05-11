@@ -187,8 +187,6 @@ services:
         node scripts/docker-fix-system-settings.cjs &&
         echo 'Setting up site manager notification system...' &&
         node scripts/docker-migrate-site-manager-notifications.cjs &&
-        echo 'Ensuring all required database schema elements exist...' &&
-        node scripts/docker-ensure-schema.cjs &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
         node scripts/docker-init-db.cjs &&
         echo 'Database initialization completed successfully' 

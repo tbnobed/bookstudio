@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio, PcrRoom, BookingStudio } from "@shared/schema";
-import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange, convertToFacilityDate, FACILITY_TIMEZONE } from "@/lib/dateUtils";
+import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
@@ -242,17 +242,18 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       })()}
       
       {weekDates.map((date, index) => {
-        // Filter bookings for this date and this specific studio
+        // Filter bookings for this date and this specific studio using the combined studioBookings
+        // Create a defensive copy of the booking.start date and ensure timezones are respected
         const dayBookings = studioBookings.filter(booking => {
-          // Use our improved isSameDay function from dateUtils
-          // It properly handles timezone conversion to facility timezone
-          return isSameDay(booking.start, date);
+          // Log both dates for debugging to trace the timezone comparison issue
+          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${new Date(booking.start).toISOString()})`);
+          return isSameDay(new Date(booking.start), date);
         });
         
-        // Log how many bookings were found for this cell (minimized for better performance)
+        // Log how many bookings were found for this cell
         console.log(`Cell for ${studio.name} - ${date.toDateString()} has ${dayBookings.length} bookings`);
         if (dayBookings.length > 0) {
-          console.log(`FOUND BOOKINGS for ${studio.name} on ${date.toDateString()}:`, dayBookings.map(b => b.title));
+          console.log(`FOUND BOOKINGS for ${studio.name} on ${date.toDateString()}:`, dayBookings.map(b => ({id: b.id, title: b.title, start: new Date(b.start).toISOString()})));
         }
         
         // Calculate dynamic height for cells - same logic as row header
