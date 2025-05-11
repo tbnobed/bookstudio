@@ -537,7 +537,11 @@ export default function MobileDailyView({
                           {isFacilityAlert ? (
                             <Badge variant="destructive">Facility Alert</Badge>
                           ) : (
-                            <Badge variant={getLinkedStudiosForBooking(booking).length > 1 ? "secondary" : "outline"}>
+                            <Badge 
+                              variant={getLinkedStudiosForBooking(booking).length > 1 ? "secondary" : "outline"}
+                              className="flex items-center gap-1"
+                            >
+                              {getLinkedStudiosForBooking(booking).length > 1 && <Tv size={12} />}
                               {getLinkedStudiosForBooking(booking).length > 1 
                                 ? `${getLinkedStudiosForBooking(booking).length} Studios` 
                                 : getStudiosForBooking(booking) || 'Unknown'}
@@ -550,8 +554,8 @@ export default function MobileDailyView({
                           {formatTimeRange(bookingStart, bookingEnd)}
                         </div>
                         
-                        {/* Show detailed studio list for multi-studio bookings */}
-                        {!isFacilityAlert && linkedStudios.length > 0 && (
+                        {/* Show detailed studio list for all non-facility bookings */}
+                        {!isFacilityAlert && getLinkedStudiosForBooking(booking).length > 0 && (
                           <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
                             <Tv size={14} />
                             {getAllStudiosForBooking(booking)}
