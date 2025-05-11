@@ -245,9 +245,19 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         // Filter bookings for this date and this specific studio using the combined studioBookings
         // Create a defensive copy of the booking.start date and ensure timezones are respected
         const dayBookings = studioBookings.filter(booking => {
+          const bookingDate = new Date(booking.start);
+          
           // Log both dates for debugging to trace the timezone comparison issue
-          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${new Date(booking.start).toISOString()})`);
-          return isSameDay(new Date(booking.start), date);
+          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${bookingDate.toISOString()})`);
+          
+          // Use the improved isSameDay function to compare dates in facility timezone
+          const result = isSameDay(bookingDate, date);
+          
+          if (result) {
+            console.log(`MATCH: ${booking.title} should appear on ${date.toDateString()}`);
+          }
+          
+          return result;
         });
         
         // Log how many bookings were found for this cell
@@ -263,18 +273,20 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         
         // Find max bookings across the entire row to keep consistent height
         // Use the same calculation as in the header to ensure cells match the row height
-        const maxBookingsPerDay = weekDates.map(date => {
+        const maxBookingsPerDay = weekDates.map(cellDate => {
           const count = studioBookings.filter(booking => {
             const bookingStartDate = new Date(booking.start);
-            return isSameDay(bookingStartDate, date);
+            // Use the same improved method for consistency
+            return isSameDay(bookingStartDate, cellDate);
           }).length;
-          return { date: date.toDateString(), count };
+          return { date: cellDate.toDateString(), count };
         });
         
         // Get the actual max number
         const maxBookingsForStudio = Math.max(...maxBookingsPerDay.map(day => day.count), 0);
         
-        console.log(`Cell for ${studio.name} - ${date.toDateString()} has ${dayBookings.length} bookings`);
+        // Only log once to reduce noise
+        console.log(`Studio ${studio.name} - max bookings per day:`, maxBookingsPerDay);
         
         const additionalHeight = Math.min(maxBookingsForStudio * heightPerBooking, maxAdditionalHeight);
         const cellHeight = baseHeight + additionalHeight;

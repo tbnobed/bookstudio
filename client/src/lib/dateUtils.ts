@@ -257,8 +257,13 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
   const d2Day = getDatePart(d2Parts, 'day');
   const d2Year = getDatePart(d2Parts, 'year');
   
-  // Result is true if all date parts match
-  const result = d1Formatted === d2Formatted;
+  // Check if the dates are the same day in the facility timezone
+  // by comparing year, month, and day separately
+  const result = (
+    d1Year === d2Year &&
+    d1Month === d2Month &&
+    d1Day === d2Day
+  );
   
   // Log detailed comparison for debugging purposes
   const debugDate = new Date(2025, 4, 8); // May 8, 2025
