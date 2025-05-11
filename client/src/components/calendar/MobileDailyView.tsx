@@ -245,8 +245,14 @@ export default function MobileDailyView({
   
   // Function to get PCR room for a booking
   const getPcrRoom = (booking: any) => {
+    console.log("Checking PCR room for booking:", booking.id, booking.title);
+    console.log("PCR room ID:", booking.pcrRoomId);
+    console.log("Available PCR rooms:", pcrRooms);
+    
     if (!booking?.pcrRoomId) return null;
-    return pcrRooms.find(pcr => pcr.id === booking.pcrRoomId);
+    const room = pcrRooms.find(pcr => pcr.id === booking.pcrRoomId);
+    console.log("Found PCR room:", room);
+    return room;
   };
 
   return (
