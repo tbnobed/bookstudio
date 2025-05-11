@@ -435,9 +435,59 @@ export default function MonthlyCalendar({ date: currentDate, studios, bookings: 
                   })}
                   
                   {getBookingsForDay(date).length > getMaxDisplayCount() && (
-                    <div className="text-xs text-gray-500 mt-1 bg-gray-50 rounded p-1 text-center">
-                      +{getBookingsForDay(date).length - getMaxDisplayCount()} more
-                    </div>
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <div className="text-xs text-gray-500 mt-1 bg-gray-50 hover:bg-gray-100 rounded p-1 text-center cursor-pointer">
+                          +{getBookingsForDay(date).length - getMaxDisplayCount()} more
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80 p-2">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">All bookings ({formatDate(date)})</h4>
+                          <div className="max-h-60 overflow-y-auto space-y-1">
+                            {getBookingsForDay(date).map((booking) => {
+                              const isAlert = isAlertBooking(booking);
+                              const { colorClass, borderStyle, customStyle } = getBookingStyles(booking, isAlert);
+                              
+                              return (
+                                <div
+                                  key={booking.id}
+                                  className={cn(
+                                    "p-1 rounded text-xs",
+                                    !isAlert && booking.color ? "" : colorClass,
+                                    borderStyle,
+                                    "flex justify-between items-center",
+                                    isAlert && "ring-1 ring-opacity-50"
+                                  )}
+                                  style={!isAlert && booking.color ? customStyle : {}}
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate">
+                                      {isAlert && (
+                                        <span className="inline-flex items-center mr-1 text-destructive">
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                          </svg>
+                                        </span>
+                                      )}
+                                      {booking.title}
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs opacity-80">
+                                      <span>{formatTime(booking.start)}</span>
+                                      {booking.pcrRoomId && (
+                                        <span>{getPcrRoomName(booking.pcrRoomId)}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
                   )}
                 </div>
               </div>
