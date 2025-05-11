@@ -119,10 +119,10 @@ export default function AlertModal({
     // This ensures that when the "Add Alert" button is clicked, 
     // we create a proper alert that will show in the alerts section
     if (alertsOnly) {
-      setAlertType("maintenance");  // Will become "all-day:maintenance" 
-      setSeverity("critical");      // Critical severity is required for alerts
-      setIsAllDay(true);            // Alerts are typically all-day events
-      console.log("Setting up alert defaults - critical severity and all-day flag");
+      setAlertType("maintenance");  // Default alert type 
+      setSeverity("medium");        // Default severity (not forcing critical)
+      setIsAllDay(true);            // Defaults to all-day but can be changed
+      console.log("Setting up alert defaults with medium severity and all-day flag");
     } else {
       setAlertType("maintenance");
       setSeverity("medium");
@@ -187,9 +187,9 @@ export default function AlertModal({
       localEndDate = endDate;
     }
     
-    // When using "Add Alert" button, we want to force critical severity
-    // and all-day:maintenance type to ensure it shows up in the alerts section
-    const effectiveSeverity = alertsOnly ? "critical" : severity;
+    // When using "Add Alert" button with alertsOnly=true, we should use all-day:maintenance type
+    // but we should respect the user's chosen severity level
+    const effectiveSeverity = severity; // Use the severity chosen by the user
     const effectiveType = alertsOnly && !finalAlertType.startsWith("all-day:") 
       ? "all-day:maintenance" 
       : finalAlertType;
