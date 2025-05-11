@@ -180,6 +180,8 @@ export default function MobileDailyView({
   
   // Function to get linked studios from the booking-studios junction table
   const getLinkedStudiosForBooking = (booking: any): string[] => {
+    if (!booking) return [];
+    
     const studioNames: string[] = [];
     
     // Check direct studio reference first
@@ -189,7 +191,12 @@ export default function MobileDailyView({
     }
     
     // Add studios from the bookingStudios lookup data we fetched
-    const links = bookingStudios.filter(bs => bs.bookingId === booking.id);
+    // Make sure we're comparing numbers to numbers
+    const links = bookingStudios.filter(bs => 
+      Number(bs.bookingId) === Number(booking.id)
+    );
+    
+    console.log(`Finding linked studios for booking ${booking.id}: `, links);
     
     if (links && links.length > 0) {
       links.forEach(link => {
@@ -390,7 +397,7 @@ export default function MobileDailyView({
                                 {formatTimeRange(bookingStart, bookingEnd)}
                               </div>
                               
-                              {/* Show linked studios if there are multiple */}
+                              {/* Show linked studios display for this booking if multiple */}
                               {getLinkedStudiosForBooking(booking).length > 1 && (
                                 <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                                   <Tv size={12} />
