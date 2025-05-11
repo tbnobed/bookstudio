@@ -5,23 +5,16 @@ import { cn } from "@/lib/utils";
 import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { CalendarClock, Clock, FileText, User, Tag, Tv } from "lucide-react";
+import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 
 interface MonthlyCalendarProps {
   date: Date;
   studios: any[];
   bookings: any[];
-  bookingStudioLinks?: any[];
   readOnly?: boolean;
 }
 
-export default function MonthlyCalendar({ 
-  date: currentDate, 
-  studios, 
-  bookings: propBookings = [], 
-  bookingStudioLinks = [],
-  readOnly = false 
-}: MonthlyCalendarProps) {
+export default function MonthlyCalendar({ date: currentDate, studios, bookings: propBookings = [], readOnly = false }: MonthlyCalendarProps) {
   const [monthDays, setMonthDays] = useState<Date[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -37,28 +30,6 @@ export default function MonthlyCalendar({
   const getPcrRoomName = (pcrRoomId: number): string => {
     const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
     return pcrRoom ? pcrRoom.name : `PCR #${pcrRoomId}`;
-  };
-  
-  // Helper function to get studio names for a booking
-  const getStudiosForBooking = (booking: any) => {
-    // First check for bookingStudioLinks
-    const links = bookingStudioLinks.filter(link => link.bookingId === booking.id);
-    
-    if (links.length > 0) {
-      // Map studio IDs to studio names
-      return links.map(link => {
-        const studio = studios.find(s => s.id === link.studioId);
-        return studio ? studio.name : `Studio #${link.studioId}`;
-      });
-    }
-    
-    // If no links found, check for legacy studioId field
-    if (booking.studioId) {
-      const studio = studios.find(s => s.id === booking.studioId);
-      return studio ? [studio.name] : [`Studio #${booking.studioId}`];
-    }
-    
-    return [];
   };
 
   // Calculate month days whenever current date changes
@@ -156,25 +127,12 @@ export default function MonthlyCalendar({
                     </div>
                   )}
                   {getBookingsForDay(date).slice(0, 5).map((booking) => {
-                    // Determine color based on booking type and handle alerts
+                    // Determine color based on booking type
                     let colorClass = "bg-blue-100 text-blue-800";
-                    let isAlert = false;
-                    
-                    if (booking.type === "maintenance" || booking.type === "facility_alert") {
+                    if (booking.type === "maintenance") {
                       colorClass = "bg-amber-100 text-amber-800";
-                      isAlert = true;
-                      
-                      // If it's a critical maintenance alert (e.g. power outage), make it more prominent
-                      if (booking.title.toLowerCase().includes("power") || 
-                          booking.title.toLowerCase().includes("outage") ||
-                          booking.title.toLowerCase().includes("emergency") ||
-                          booking.title.toLowerCase().includes("critical") ||
-                          booking.severity === "critical") {
-                        colorClass = "bg-red-100 text-red-800";
-                      }
                     } else if (booking.type === "it_support") {
                       colorClass = "bg-red-100 text-red-800";
-                      isAlert = true;
                     } else if (booking.type === "rehearsal") {
                       colorClass = "bg-purple-100 text-purple-800";
                     } else if (booking.type === "production") {
@@ -207,19 +165,6 @@ export default function MonthlyCalendar({
                               </span>
                               <span className="text-xs opacity-80">{formatTime(booking.start).split(' ')[0]}</span>
                             </div>
-                            {/* Show studios for non-alert type bookings */}
-                            {!isAlert && getStudiosForBooking(booking).length > 0 && (
-                              <div className="text-xs flex items-center mt-0.5">
-                                <Tv className="w-3 h-3 mr-1 flex-shrink-0" />
-                                <span className="truncate">
-                                  {getStudiosForBooking(booking).length > 1 
-                                    ? `${getStudiosForBooking(booking).length} studios` 
-                                    : getStudiosForBooking(booking)[0]}
-                                </span>
-                              </div>
-                            )}
-                            
-                            {/* Show PCR room if available */}
                             {booking.pcrRoomId && (
                               <div className="text-xs flex items-center mt-0.5">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -242,26 +187,6 @@ export default function MonthlyCalendar({
                                 <Clock className="mr-1 h-3 w-3" />
                                 <span>{formatTime(booking.start)} - {formatTime(booking.end)}</span>
                               </div>
-                              {/* Show studios in hover card */}
-                              {getStudiosForBooking(booking).length > 0 && (
-                                <div className="flex items-start text-xs text-muted-foreground">
-                                  <Tv className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
-                                  <div>
-                                    {getStudiosForBooking(booking).length === 1 ? (
-                                      <span>{getStudiosForBooking(booking)[0]}</span>
-                                    ) : (
-                                      <div className="flex flex-col">
-                                        <span className="font-medium mb-0.5">Studios:</span>
-                                        {getStudiosForBooking(booking).map((studio, idx) => (
-                                          <span key={idx} className="ml-1">• {studio}</span>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {/* Show PCR room in hover card */}
                               {booking.pcrRoomId && (
                                 <div className="flex items-center text-xs text-muted-foreground">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 h-3 w-3">
