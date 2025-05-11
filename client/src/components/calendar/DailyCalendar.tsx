@@ -317,10 +317,10 @@ export default function DailyCalendar({
 
   return (
     <>
-      <div className="overflow-auto h-[calc(100vh-8rem)]">
-        <div className="p-4">
+      <div className="overflow-auto h-[calc(100vh-5rem)] w-full">
+        <div className="p-3">
           {/* Date header */}
-          <div className="sticky top-0 z-10 bg-white pb-2 mb-4 border-b">
+          <div className="sticky top-0 z-10 bg-white pb-2 mb-3 border-b">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">
                 {format(currentDate, "EEEE, MMMM d, yyyy")}
