@@ -44,15 +44,15 @@ export default function ResponsiveBookingModal(props: BookingModalProps) {
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
-  // Enhanced props for the BookingModal
+  // Enhanced props for the BookingModal with more robust date handling
   const enhancedProps = {
     ...props,
     // Ensure the booking prop is properly prepared
     booking: props.booking ? {
       ...props.booking,
-      // Force date conversion for any string dates
-      start: props.booking.start ? new Date(props.booking.start) : undefined,
-      end: props.booking.end ? new Date(props.booking.end) : undefined,
+      // Store both the string format (for API) and Date objects (for UI components)
+      _startDate: new Date(props.booking.start),
+      _endDate: new Date(props.booking.end),
       // Make sure all fields are correctly typed
       studioIds: props.booking.studioIds || (props.booking.studioId ? [props.booking.studioId] : [])
     } : undefined

@@ -407,6 +407,8 @@ export function SimpleMobileForm({
     }
   }, [isOpen]);
   
+  console.log("SimpleMobileForm - About to render form:", { isOpen, hasBooking: !!booking, formData });
+
   if (!isOpen) return null;
   
   return (
@@ -424,7 +426,7 @@ export function SimpleMobileForm({
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="simple-mobile-form">
+        <form onSubmit={handleSubmit} className="simple-mobile-form" style={{ overflow: 'auto', maxHeight: 'calc(90vh - 60px)' }}>
           <div className="form-group">
             <label htmlFor="sm-title">Title*</label>
             <input 
