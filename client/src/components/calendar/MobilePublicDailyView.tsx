@@ -264,25 +264,7 @@ export default function MobilePublicDailyView({
         )}
       </div>
 
-      {/* Real-Time Studio Status */}
-      <div className="p-4 bg-blue-50">
-        <div className="flex items-center text-blue-600 font-medium mb-2">
-          <Activity className="h-5 w-5 mr-1.5" /> Real-Time Studio Status
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {studiosWithStatus.map(studio => (
-            <div
-              key={studio.id}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-white text-sm font-medium", 
-                getStudioStatusColor(studio)
-              )}
-            >
-              {studio.name}
-            </div>
-          ))}
-        </div>
-      </div>
+
 
       {/* Main content - Studios and bookings */}
       <Tabs defaultValue="studios" className="flex-1 overflow-hidden flex flex-col">
@@ -481,17 +463,11 @@ export default function MobilePublicDailyView({
         </TabsContent>
       </Tabs>
       
-      {/* Fixed bottom navigation bar with login button */}
+      {/* Fixed bottom navigation bar with only login button */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-        <div className="flex items-center justify-around h-16">
-          {/* Calendar Icon (inactive) */}
-          <div className="flex flex-col items-center justify-center w-full h-full text-gray-400">
-            <Calendar size={20} />
-            <span className="text-xs mt-1">Calendar</span>
-          </div>
-          
-          {/* Login Button (center) */}
-          <div className="flex flex-col items-center justify-center w-full h-full">
+        <div className="flex items-center justify-center h-16">
+          {/* Login Button (center only) */}
+          <div className="flex flex-col items-center justify-center">
             <button 
               onClick={handleLoginClick}
               className="rounded-full bg-blue-600 p-3 text-white shadow-md"
@@ -499,12 +475,6 @@ export default function MobilePublicDailyView({
               <LogIn size={24} />
             </button>
             <span className="text-xs mt-1">Log in</span>
-          </div>
-          
-          {/* Reports Icon (inactive) */}
-          <div className="flex flex-col items-center justify-center w-full h-full text-gray-400">
-            <AlertTriangle size={20} />
-            <span className="text-xs mt-1">Alerts</span>
           </div>
         </div>
       </div>
