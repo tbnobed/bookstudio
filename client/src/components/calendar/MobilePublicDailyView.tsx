@@ -30,7 +30,7 @@ function extractStudiosFromBooking(booking: any, studiosList: any[]): any[] {
   
   // Add studios from junction table
   if (booking.bookingStudios && booking.bookingStudios.length > 0) {
-    booking.bookingStudios.forEach((bs: any) => {
+    booking.bookingStudios.forEach((bs: { bookingId: number; studioId: number }) => {
       const studio = studiosList.find(s => s.id === bs.studioId);
       if (studio && !result.some(s => s.id === studio.id)) {
         result.push(studio);
@@ -66,7 +66,9 @@ export default function MobilePublicDailyView({
   });
   
   // Get the date range for today in Chicago timezone
-  const { startOfDay, endOfDay } = getDayRangeInChicago(currentDate);
+  const dateRange = getDayRangeInChicago(currentDate);
+  const startOfDay = dateRange.start;
+  const endOfDay = dateRange.end;
   
   console.log("MobilePublicDailyView - Showing bookings for", formatDate(currentDate), "in Chicago timezone");
   console.log("MobilePublicDailyView - Date range:", startOfDay.toISOString(), "to", endOfDay.toISOString());
@@ -115,7 +117,7 @@ export default function MobilePublicDailyView({
     
     // Find all booking-studio links for this booking
     const studioLinks = bookingStudioLinks.filter(
-      link => link.bookingId === bookingId
+      (link: { bookingId: number; studioId: number }) => link.bookingId === bookingId
     );
     
     // Attach the links to the booking
@@ -137,7 +139,7 @@ export default function MobilePublicDailyView({
       
       // Check booking_studios junction table
       if (booking.bookingStudios && booking.bookingStudios.length > 0) {
-        const isLinked = booking.bookingStudios.some(bs => bs.studioId === studio.id);
+        const isLinked = booking.bookingStudios.some((bs: { bookingId: number; studioId: number }) => bs.studioId === studio.id);
         if (isLinked) {
           console.log(`Booking ${booking.id} (${booking.title}) is linked via junction table to Studio ${studio.id} (${studio.name})`);
         }
@@ -191,7 +193,7 @@ export default function MobilePublicDailyView({
   // Helper to get PCR room for a booking
   const getPcrRoom = (booking: BookingWithStudios) => {
     if (!booking?.pcrRoomId) return null;
-    const room = pcrRooms.find(pcr => pcr.id === booking.pcrRoomId);
+    const room = pcrRooms.find((pcr: { id: number; name: string }) => pcr.id === booking.pcrRoomId);
     return room;
   };
   
