@@ -758,13 +758,13 @@ export default function BookingModal({
                     <div>
                       <div className="space-y-4">
                         <div>
-                          <Label className="text-base font-medium">Studios</Label>
-                          <div className="grid grid-cols-2 mt-2 gap-2">
+                          <Label className="text-sm md:text-base font-medium">Studios</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 mt-1 md:mt-2 gap-1 md:gap-2 max-h-[180px] overflow-y-auto">
                             {studios.map((studio) => (
-                              <div key={studio.id} className="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-md">
+                              <div key={studio.id} className="flex items-center space-x-2 p-1 md:p-2 hover:bg-slate-50 rounded-md">
                                 <Checkbox
                                   id={`studio-${studio.id}`}
-                                  className="h-4 w-4"
+                                  className="h-3.5 w-3.5 md:h-4 md:w-4"
                                   checked={formData.studioIds.includes(studio.id.toString())}
                                   onCheckedChange={(checked) => {
                                     const studioId = studio.id.toString();
@@ -777,7 +777,7 @@ export default function BookingModal({
                                 />
                                 <Label
                                   htmlFor={`studio-${studio.id}`}
-                                  className="cursor-pointer text-sm"
+                                  className="cursor-pointer text-xs md:text-sm"
                                 >
                                   {studio.name}
                                 </Label>
@@ -790,10 +790,10 @@ export default function BookingModal({
                         </div>
                         
                         {/* Notification Groups section */}
-                        <div className="mt-4">
+                        <div className="mt-3 md:mt-4">
                           <div className="flex items-center mb-1">
-                            <BellRing className="h-4 w-4 mr-1 text-primary" />
-                            <Label>Notification Groups</Label>
+                            <BellRing className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1 text-primary" />
+                            <Label className="text-sm md:text-base">Notification Groups</Label>
                           </div>
                           
                           {notificationGroups.length === 0 ? (
@@ -801,24 +801,24 @@ export default function BookingModal({
                               No notification groups available
                             </p>
                           ) : (
-                            <div className="mt-1.5 border rounded-md p-2 max-h-[180px] overflow-y-auto">
-                              <div className="grid grid-cols-1 gap-1.5">
+                            <div className="mt-1 md:mt-1.5 border rounded-md p-1 md:p-2 max-h-[150px] overflow-y-auto">
+                              <div className="grid grid-cols-1 gap-1">
                                 {notificationGroups.map((group: NotificationGroup) => (
-                                  <div key={group.id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-md">
+                                  <div key={group.id} className="flex items-center justify-between p-1 md:p-2 hover:bg-slate-50 rounded-md">
                                     <div className="flex items-center">
-                                      {group.groupType === 'camera' && <Tag className="h-4 w-4 mr-1.5 text-blue-500" />}
-                                      {group.groupType === 'lighting' && <Tag className="h-4 w-4 mr-1.5 text-yellow-500" />}
-                                      {group.groupType === 'sound' && <Tag className="h-4 w-4 mr-1.5 text-green-500" />}
-                                      {group.groupType === 'directors' && <Tag className="h-4 w-4 mr-1.5 text-purple-500" />}
-                                      {group.groupType === 'production' && <Tag className="h-4 w-4 mr-1.5 text-red-500" />}
-                                      {group.groupType === 'engineering' && <Tag className="h-4 w-4 mr-1.5 text-orange-500" />}
-                                      <span className="text-base">{group.name}</span>
+                                      {group.groupType === 'camera' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-blue-500" />}
+                                      {group.groupType === 'lighting' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-yellow-500" />}
+                                      {group.groupType === 'sound' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-green-500" />}
+                                      {group.groupType === 'directors' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-purple-500" />}
+                                      {group.groupType === 'production' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-red-500" />}
+                                      {group.groupType === 'engineering' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-orange-500" />}
+                                      <span className="text-xs md:text-sm">{group.name}</span>
                                     </div>
                                     <Checkbox
                                       id={`notify-group-${group.id}`}
                                       checked={formData.notifyList.includes(group.id.toString())}
                                       onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
-                                      className="h-5 w-5"
+                                      className="h-3.5 w-3.5 md:h-4 md:w-4"
                                     />
                                   </div>
                                 ))}
@@ -847,30 +847,30 @@ export default function BookingModal({
                     <div>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="date" className="text-base font-medium">Date</Label>
+                          <Label htmlFor="date" className="text-sm md:text-base font-medium">Date</Label>
                           <Input
                             id="date"
                             type="date"
                             value={formData.date}
                             onChange={(e) => updateFormField('date', e.target.value)}
                             required
-                            className="h-11 mt-1.5 text-base"
+                            className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base"
                           />
                         </div>
                         
                         <div>
-                          <Label htmlFor="start-time" className="text-base font-medium">Start Time</Label>
+                          <Label htmlFor="start-time" className="text-sm md:text-base font-medium">Start Time</Label>
                           <Select 
                             value={formData.startTime} 
                             onValueChange={(value) => updateFormField('startTime', value)} 
                             required
                           >
-                            <SelectTrigger id="start-time" className="h-11 mt-1.5 text-base">
+                            <SelectTrigger id="start-time" className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
                               <SelectValue placeholder="Select start time" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-[300px]">
+                            <SelectContent className="max-h-[230px]">
                               {generateTimeOptions().map((time) => (
-                                <SelectItem key={time} value={time} className="text-base py-1.5">
+                                <SelectItem key={time} value={time} className="text-xs md:text-sm py-1">
                                   {time}
                                 </SelectItem>
                               ))}
@@ -879,7 +879,7 @@ export default function BookingModal({
                         </div>
                         
                         <div>
-                          <Label htmlFor="end-time" className="text-base font-medium">End Time</Label>
+                          <Label htmlFor="end-time" className="text-sm md:text-base font-medium">End Time</Label>
                           <Select 
                             value={formData.endTime} 
                             onValueChange={(value) => updateFormField('endTime', value)} 
