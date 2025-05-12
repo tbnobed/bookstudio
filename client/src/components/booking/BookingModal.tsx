@@ -706,7 +706,7 @@ export default function BookingModal({
       )}
       
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto px-2 sm:px-6 w-[95vw] sm:w-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto px-2 sm:px-6 w-[95vw] sm:w-auto max-w-full mobile-booking-form">
           <DialogHeader>
             <DialogTitle className="text-xl">
               {booking && booking.id > 0
@@ -720,8 +720,8 @@ export default function BookingModal({
             // Tabbed interface for standard bookings (both new and edit)
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="details">Booking Details</TabsTrigger>
-                <TabsTrigger value="attachments">File Attachments</TabsTrigger>
+                <TabsTrigger value="details" className="py-3 text-base h-14">Booking Details</TabsTrigger>
+                <TabsTrigger value="attachments" className="py-3 text-base h-14">File Attachments</TabsTrigger>
               </TabsList>
               
               <TabsContent value="details" className="pt-4">
