@@ -114,13 +114,13 @@ export default function MobilePublicDailyView({
     const bookingStart = new Date(booking.start);
     const bookingEnd = new Date(booking.end);
     
-    // Check if booking overlaps with current day
-    const overlapsWithToday = (
-      (isSameDay(bookingStart, currentDate) || isSameDay(bookingEnd, currentDate)) ||
-      (bookingStart <= dateRange.end && bookingEnd >= dateRange.start)
-    );
+    // Log for debugging
+    console.log("isSameDay: Comparing", JSON.stringify(bookingStart), "with", JSON.stringify(currentDate), "=>", isSameDay(bookingStart, currentDate));
     
-    return overlapsWithToday && booking.type !== 'alert' && booking.type !== 'maintenance';
+    // Only show bookings that start on the selected day
+    const startsOnSelectedDay = isSameDay(bookingStart, currentDate);
+    
+    return startsOnSelectedDay && booking.type !== 'alert' && booking.type !== 'maintenance';
   });
   
   // Process bookings to include their studio relationships
