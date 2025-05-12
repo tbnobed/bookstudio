@@ -1,18 +1,32 @@
 /**
- * Type definitions for PCR (Production Control Rooms)
+ * Type definitions for PCR rooms (Production Control Rooms)
  */
 
 /**
- * PCR room status types
- */
-export type PcrRoomStatus = 'available' | 'in-use' | 'maintenance' | 'down';
-
-/**
- * PCR room type as returned from the API
+ * PCR Room as returned from the API
  */
 export interface ApiPcrRoom {
   id: number;
   name: string;
+  description: string | null;
+  status: 'available' | 'unavailable' | 'maintenance';
+}
+
+/**
+ * Form data for creating/editing a PCR room
+ */
+export interface PcrRoomFormData {
+  id?: number;
+  name: string;
   description: string;
-  status: PcrRoomStatus;
+  status: 'available' | 'unavailable' | 'maintenance';
+}
+
+/**
+ * PCR Room creation/update payload
+ */
+export interface PcrRoomPayload {
+  name: string;
+  description: string;
+  status: 'available' | 'unavailable' | 'maintenance';
 }

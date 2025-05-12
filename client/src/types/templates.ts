@@ -1,30 +1,33 @@
 /**
  * Type definitions for templates
  */
-import { BookingType, BookingStatus, BookingSeverity } from './bookings';
+
 import { Json } from './common';
 
 /**
- * Template type as returned from the API
+ * Template as returned from the API
  */
 export interface ApiTemplate {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   type: string;
   duration: number;
-  crewRequired: string[] | null;  // Array of email addresses or notification group IDs
-  equipment: any | null;          // JSON field that can store additional data like studioIds, etc.
+  crewRequired: number[] | null;
+  equipment: TemplateEquipment[] | TemplateEquipment | null;
   createdBy: number;
+}
 
-  // The following properties may be stored in the equipment JSON field
-  // We'll access them through our template handlers
-  studioIds?: number[];          // May be stored in equipment.studioIds
-  pcrRoomId?: number | null;     // May be stored in equipment.pcrRoomId
-  status?: BookingStatus;        // May be stored in equipment.status
-  severity?: BookingSeverity;    // May be stored in equipment.severity
-  color?: string;                // May be stored in equipment.color
-  notifyList?: string[];         // May be identical to crewRequired
+/**
+ * Template equipment data structure
+ */
+export interface TemplateEquipment {
+  studioIds?: number[];
+  pcrRoomId?: number | null;
+  status?: string;
+  severity?: string;
+  color?: string;
+  [key: string]: any;
 }
 
 /**
@@ -34,13 +37,20 @@ export interface TemplateFormData {
   id?: number;
   name: string;
   description: string;
-  type: BookingType;
+  type: string;
   duration: number;
-  studioIds: number[];
-  pcrRoomId: number | null;
-  crewRequired: string[];
-  equipment: any;
-  status?: BookingStatus;
-  severity?: BookingSeverity;
-  color?: string;
+  crewRequired: number[];
+  equipment: TemplateEquipment[];
+}
+
+/**
+ * Template creation/update payload
+ */
+export interface TemplatePayload {
+  name: string;
+  description: string;
+  type: string;
+  duration: number;
+  crewRequired: number[];
+  equipment: Json;
 }

@@ -142,6 +142,7 @@ export function SimpleMobileForm({
   // Handle template selection
   const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const templateId = parseInt(e.target.value, 10);
+    console.log('Template dropdown change detected:', e.target.value);
     
     if (templateId > 0) {
       const selectedTemplate = templates.find(t => t.id === templateId);
@@ -154,54 +155,79 @@ export function SimpleMobileForm({
           // Extract studio IDs from equipment or use a default
           let templateStudioIds: number[] = [];
           
-          // Some templates store studioIds in the equipment JSON field as an object
-          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
-            // Try to extract studioIds from equipment
-            const equipmentObj = selectedTemplate.equipment as any;
-            if (equipmentObj.studioIds && Array.isArray(equipmentObj.studioIds)) {
-              templateStudioIds = equipmentObj.studioIds;
+          // Process equipment based on its type
+          if (selectedTemplate.equipment) {
+            // Check if equipment is an array and the first item is an object with studioIds
+            if (Array.isArray(selectedTemplate.equipment) && selectedTemplate.equipment.length > 0 
+                && typeof selectedTemplate.equipment[0] === 'object' && selectedTemplate.equipment[0] !== null) {
+              
+              const equipmentItem = selectedTemplate.equipment[0];
+              console.log('Template equipment item:', equipmentItem);
+              
+              // Extract studioIds if available
+              if (equipmentItem.studioIds && Array.isArray(equipmentItem.studioIds)) {
+                templateStudioIds = equipmentItem.studioIds;
+                console.log('Found studioIds in equipment:', templateStudioIds);
+              }
+              
+              // Extract PCR room ID if available
+              if ('pcrRoomId' in equipmentItem) {
+                prev.pcrRoomId = equipmentItem.pcrRoomId;
+                console.log('Found pcrRoomId in equipment:', prev.pcrRoomId);
+              }
+              
+              // Extract status if available
+              if (equipmentItem.status && ['confirmed', 'pending', 'cancelled', 'draft'].includes(equipmentItem.status)) {
+                prev.status = equipmentItem.status as BookingStatus;
+                console.log('Found status in equipment:', prev.status);
+              }
+              
+              // Extract severity if available
+              if (equipmentItem.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentItem.severity)) {
+                prev.severity = equipmentItem.severity as BookingSeverity;
+                console.log('Found severity in equipment:', prev.severity);
+              }
+              
+              // Extract color if available
+              if (equipmentItem.color) {
+                prev.color = equipmentItem.color;
+                console.log('Found color in equipment:', prev.color);
+              }
+            } else if (typeof selectedTemplate.equipment === 'object' && selectedTemplate.equipment !== null) {
+              // Handle case where equipment is a direct object
+              const equipmentObj = selectedTemplate.equipment as any;
+              
+              if (equipmentObj.studioIds && Array.isArray(equipmentObj.studioIds)) {
+                templateStudioIds = equipmentObj.studioIds;
+                console.log('Found studioIds in equipment object:', templateStudioIds);
+              }
+              
+              if ('pcrRoomId' in equipmentObj) {
+                prev.pcrRoomId = equipmentObj.pcrRoomId;
+                console.log('Found pcrRoomId in equipment object:', prev.pcrRoomId);
+              }
+              
+              if (equipmentObj.status && ['confirmed', 'pending', 'cancelled', 'draft'].includes(equipmentObj.status)) {
+                prev.status = equipmentObj.status as BookingStatus;
+                console.log('Found status in equipment object:', prev.status);
+              }
+              
+              if (equipmentObj.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentObj.severity)) {
+                prev.severity = equipmentObj.severity as BookingSeverity;
+                console.log('Found severity in equipment object:', prev.severity);
+              }
+              
+              if (equipmentObj.color) {
+                prev.color = equipmentObj.color;
+                console.log('Found color in equipment object:', prev.color);
+              }
             }
           }
           
           // Fallback: use current studio if no studio IDs in template
           if (templateStudioIds.length === 0) {
             templateStudioIds = [prev.studioId];
-          }
-          
-          // Extract PCR room ID from equipment or use default
-          let templatePcrRoomId = prev.pcrRoomId;
-          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
-            const equipmentObj = selectedTemplate.equipment as any;
-            if (equipmentObj.pcrRoomId !== undefined) {
-              templatePcrRoomId = equipmentObj.pcrRoomId;
-            }
-          }
-          
-          // Extract status from equipment or use default
-          let templateStatus = prev.status;
-          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
-            const equipmentObj = selectedTemplate.equipment as any;
-            if (equipmentObj.status && ['confirmed', 'pending', 'cancelled', 'draft'].includes(equipmentObj.status)) {
-              templateStatus = equipmentObj.status as BookingStatus;
-            }
-          }
-          
-          // Extract severity from equipment or use default
-          let templateSeverity = prev.severity;
-          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
-            const equipmentObj = selectedTemplate.equipment as any;
-            if (equipmentObj.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentObj.severity)) {
-              templateSeverity = equipmentObj.severity as BookingSeverity;
-            }
-          }
-          
-          // Extract color from equipment or use default
-          let templateColor = prev.color;
-          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
-            const equipmentObj = selectedTemplate.equipment as any;
-            if (equipmentObj.color) {
-              templateColor = equipmentObj.color;
-            }
+            console.log('No studioIds found, using current studio:', templateStudioIds);
           }
           
           // Cast template.type to BookingType if it is valid, otherwise use previous type
@@ -220,12 +246,12 @@ export function SimpleMobileForm({
             templateId,
             name: selectedTemplate.name,
             type: typeCast,
-            status: templateStatus,
-            severity: templateSeverity,
+            status: prev.status,
+            severity: prev.severity,
             duration: templateDurationMinutes,
             studios: templateStudioIds,
-            pcrRoomId: templatePcrRoomId,
-            color: templateColor,
+            pcrRoomId: prev.pcrRoomId,
+            color: prev.color,
             newEndTime
           });
 
@@ -238,11 +264,6 @@ export function SimpleMobileForm({
             type: typeCast,
             studioId: templateStudioIds[0] || prev.studioId,
             studioIds: templateStudioIds,
-            pcrRoomId: templatePcrRoomId,
-            status: templateStatus,
-            severity: templateSeverity,
-            color: templateColor,
-            notifyList: selectedTemplate.crewRequired ? (Array.isArray(selectedTemplate.crewRequired) ? selectedTemplate.crewRequired : []) : prev.notifyList,
             end: newEndTime // Set end time based on template duration
           };
         });
