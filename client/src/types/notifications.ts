@@ -1,53 +1,24 @@
 /**
- * Type definitions for notification system in BookStud.io
+ * Type definitions for notifications and notification groups
  */
 
-// Notification group
+/**
+ * Notification group as returned from the API
+ */
 export interface NotificationGroup {
   id: number;
   name: string;
-  description: string | null;
+  description?: string;
   emails: string[];
-  createdBy: number;
-  createdAt: string;
 }
 
-// Notification preferences
-export interface NotificationPreferences {
-  userId: number;
-  bookingCreated: boolean;
-  bookingUpdated: boolean;
-  bookingCancelled: boolean;
-  bookingReminder: boolean;
-  systemAlerts: boolean;
-  maintenanceAlerts: boolean;
-}
-
-// Email notification data
-export interface EmailNotification {
-  to: string[];
-  subject: string;
-  templateId: string;
-  dynamicTemplateData: Record<string, any>;
-}
-
-// Notification log entry
-export interface NotificationLog {
+/**
+ * Notification as returned from the API
+ */
+export interface ApiNotification {
   id: number;
-  type: 'email' | 'sms' | 'system';
-  recipients: string[];
-  subject: string;
-  content: string;
-  status: 'pending' | 'sent' | 'failed';
-  error?: string;
+  userId: number;
+  message: string;
+  read: boolean;
   createdAt: string;
-  sentAt?: string;
-}
-
-// Notification group creation/edit form data
-export interface NotificationGroupFormData {
-  id?: number;
-  name: string;
-  description: string;
-  emails: string[];
 }

@@ -1,25 +1,18 @@
 /**
- * Type definitions for PCR (Production Control Room) rooms in BookStud.io
+ * Type definitions for PCR (Production Control Rooms)
  */
 
-// PCR room status types
-export type PcrRoomStatus = 'available' | 'maintenance' | 'reserved';
+/**
+ * PCR room status types
+ */
+export type PcrRoomStatus = 'available' | 'in-use' | 'maintenance' | 'down';
 
-// API PCR Room data
+/**
+ * PCR room type as returned from the API
+ */
 export interface ApiPcrRoom {
   id: number;
   name: string;
-  description: string | null;
-  status: PcrRoomStatus;
-  features?: string[] | null;
-  createdAt?: string;
-}
-
-// PCR Room form data
-export interface PcrRoomFormData {
-  id?: number;
-  name: string;
   description: string;
   status: PcrRoomStatus;
-  features: string[];
 }

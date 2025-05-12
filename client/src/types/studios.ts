@@ -1,27 +1,18 @@
 /**
- * Type definitions for studios in BookStud.io
+ * Type definitions for studios
  */
 
-// Studio status types
-export type StudioStatus = 'available' | 'maintenance' | 'reserved';
+/**
+ * Studio status types
+ */
+export type StudioStatus = 'available' | 'in-use' | 'maintenance' | 'down';
 
-// API Studio data
+/**
+ * Studio type as returned from the API
+ */
 export interface ApiStudio {
   id: number;
   name: string;
-  description: string | null;
-  status: StudioStatus;
-  features: string[] | null;
-  location: string | null;
-  createdAt?: string;
-}
-
-// Studio form data
-export interface StudioFormData {
-  id?: number;
-  name: string;
   description: string;
   status: StudioStatus;
-  features: string[];
-  location: string;
 }

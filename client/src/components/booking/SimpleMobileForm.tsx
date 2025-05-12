@@ -147,31 +147,69 @@ export function SimpleMobileForm({
       const selectedTemplate = templates.find(t => t.id === templateId);
       
       if (selectedTemplate) {
-        console.log('SimpleMobileForm - Applying template:', selectedTemplate.name);
+        console.log('SimpleMobileForm - Applying template:', selectedTemplate.name, selectedTemplate);
         
         // Apply template settings to form
         setFormData(prev => {
-          // Determine studio ID - use first from template if available
-          const studioId = selectedTemplate.studioIds && selectedTemplate.studioIds.length > 0 
-            ? selectedTemplate.studioIds[0] 
-            : prev.studioId;
-            
+          // Extract studio IDs from equipment or use a default
+          let templateStudioIds: number[] = [];
+          
+          // Some templates store studioIds in the equipment JSON field as an object
+          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
+            // Try to extract studioIds from equipment
+            const equipmentObj = selectedTemplate.equipment as any;
+            if (equipmentObj.studioIds && Array.isArray(equipmentObj.studioIds)) {
+              templateStudioIds = equipmentObj.studioIds;
+            }
+          }
+          
+          // Fallback: use current studio if no studio IDs in template
+          if (templateStudioIds.length === 0) {
+            templateStudioIds = [prev.studioId];
+          }
+          
+          // Extract PCR room ID from equipment or use default
+          let templatePcrRoomId = prev.pcrRoomId;
+          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
+            const equipmentObj = selectedTemplate.equipment as any;
+            if (equipmentObj.pcrRoomId !== undefined) {
+              templatePcrRoomId = equipmentObj.pcrRoomId;
+            }
+          }
+          
+          // Extract status from equipment or use default
+          let templateStatus = prev.status;
+          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
+            const equipmentObj = selectedTemplate.equipment as any;
+            if (equipmentObj.status && ['confirmed', 'pending', 'cancelled', 'draft'].includes(equipmentObj.status)) {
+              templateStatus = equipmentObj.status as BookingStatus;
+            }
+          }
+          
+          // Extract severity from equipment or use default
+          let templateSeverity = prev.severity;
+          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
+            const equipmentObj = selectedTemplate.equipment as any;
+            if (equipmentObj.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentObj.severity)) {
+              templateSeverity = equipmentObj.severity as BookingSeverity;
+            }
+          }
+          
+          // Extract color from equipment or use default
+          let templateColor = prev.color;
+          if (selectedTemplate.equipment && typeof selectedTemplate.equipment === 'object') {
+            const equipmentObj = selectedTemplate.equipment as any;
+            if (equipmentObj.color) {
+              templateColor = equipmentObj.color;
+            }
+          }
+          
           // Cast template.type to BookingType if it is valid, otherwise use previous type
           const typeCast = (['recording', 'live', 'maintenance', 'other', 'production'].includes(selectedTemplate.type)
             ? selectedTemplate.type as BookingType
             : prev.type);
-          
-          // Cast template.status to BookingStatus if it is valid, otherwise use previous status
-          const statusCast = (['confirmed', 'pending', 'cancelled', 'draft'].includes(selectedTemplate.status)
-            ? selectedTemplate.status as BookingStatus
-            : prev.status);
-            
-          // Cast template.severity to BookingSeverity if it is valid, otherwise use previous severity
-          const severityCast = (['low', 'medium', 'high', 'critical'].includes(selectedTemplate.severity)
-            ? selectedTemplate.severity as BookingSeverity
-            : prev.severity);
 
-          // Calculate duration in minutes
+          // Calculate duration in minutes (this is available directly in the database)
           const templateDurationMinutes = selectedTemplate.duration || 60; // Default to 1 hour
           
           // Calculate new end time based on current start time + template duration
@@ -182,10 +220,13 @@ export function SimpleMobileForm({
             templateId,
             name: selectedTemplate.name,
             type: typeCast,
-            status: statusCast,
-            severity: severityCast,
+            status: templateStatus,
+            severity: templateSeverity,
             duration: templateDurationMinutes,
-            studios: selectedTemplate.studioIds || [studioId]
+            studios: templateStudioIds,
+            pcrRoomId: templatePcrRoomId,
+            color: templateColor,
+            newEndTime
           });
 
           // Return updated form data with template values
@@ -195,13 +236,13 @@ export function SimpleMobileForm({
             title: prev.title || selectedTemplate.name, // Only use template name if title is empty
             description: selectedTemplate.description || prev.description,
             type: typeCast,
-            studioId: studioId,
-            studioIds: selectedTemplate.studioIds || [studioId],
-            pcrRoomId: selectedTemplate.pcrRoomId || prev.pcrRoomId,
-            status: statusCast,
-            severity: severityCast,
-            color: selectedTemplate.color || prev.color,
-            notifyList: selectedTemplate.notifyList || prev.notifyList,
+            studioId: templateStudioIds[0] || prev.studioId,
+            studioIds: templateStudioIds,
+            pcrRoomId: templatePcrRoomId,
+            status: templateStatus,
+            severity: templateSeverity,
+            color: templateColor,
+            notifyList: selectedTemplate.crewRequired ? (Array.isArray(selectedTemplate.crewRequired) ? selectedTemplate.crewRequired : []) : prev.notifyList,
             end: newEndTime // Set end time based on template duration
           };
         });
