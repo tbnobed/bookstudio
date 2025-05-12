@@ -185,7 +185,29 @@ export default function MobileDailyView({
 
   // Handle booking/slot click
   const handleBookingClick = (booking: Booking) => {
-    setEditBooking(booking);
+    // Fix for edit booking issue - ensure all properties are properly set
+    // This creates a clean booking object with all required props explicitly
+    const cleanBooking = {
+      id: booking.id,
+      title: booking.title || '',
+      description: booking.description || '',
+      studioId: booking.studioId || null,
+      pcrRoomId: booking.pcrRoomId || null,
+      start: new Date(booking.start),
+      end: new Date(booking.end),
+      type: booking.type || 'production',
+      status: booking.status || 'confirmed',
+      severity: booking.severity || null,
+      templateId: booking.templateId || 0,
+      notifyList: booking.notifyList || [],
+      color: booking.color || '#3b82f6',
+      // Ensure studioIds is initialized properly
+      studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
+    };
+    
+    console.log("MobileDailyView - handleBookingClick - Clean booking created:", cleanBooking);
+    
+    setEditBooking(cleanBooking);
     setIsEditModalOpen(true);
   };
 

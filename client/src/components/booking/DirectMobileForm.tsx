@@ -32,6 +32,21 @@ export function DirectMobileForm({
   // Initial studio ID from props or booking
   const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 0);
   
+  // Debug logging for tracing booking data issues
+  useEffect(() => {
+    console.log('DirectMobileForm - Booking data received:', {
+      hasBooking: !!booking,
+      bookingId: booking?.id || 'none',
+      bookingTitle: booking?.title || 'none',
+      studioId: booking?.studioId,
+      startDate: booking?.start,
+      endDate: booking?.end,
+      notifyList: booking?.notifyList,
+      selectedStudio: selectedStudio,
+      isOpen: isOpen
+    });
+  }, [booking, selectedStudio, isOpen]);
+  
   // Update dates when selectedDate changes
   useEffect(() => {
     if (!booking) {
@@ -47,6 +62,35 @@ export function DirectMobileForm({
       });
     }
   }, [selectedDate, booking]);
+  
+  // Add dedicated effect to update form data when booking changes
+  // This ensures form data is refreshed when a booking is loaded for editing
+  useEffect(() => {
+    if (booking) {
+      console.log("DirectMobileForm - Refreshing form data from booking:", booking);
+      
+      // Create a complete form data object from the booking
+      const updatedFormData = {
+        id: booking.id || 0,
+        title: booking.title || '',
+        description: booking.description || '',
+        studioId: booking.studioId || (selectedStudio || studios[0]?.id || 0),
+        pcrRoomId: booking.pcrRoomId || null,
+        start: new Date(booking.start),
+        end: new Date(booking.end),
+        type: booking.type || 'production',
+        status: booking.status || 'confirmed',
+        severity: booking.severity || null,
+        templateId: booking.templateId || 0,
+        notifyList: booking.notifyList || [],
+        color: booking.color || '#3b82f6',
+        studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
+      };
+      
+      console.log("DirectMobileForm - Setting form data to:", updatedFormData);
+      setFormData(updatedFormData);
+    }
+  }, [booking, selectedStudio, studios]);
   
   // Create very basic form state
   const [formData, setFormData] = useState<FormBookingData>({
