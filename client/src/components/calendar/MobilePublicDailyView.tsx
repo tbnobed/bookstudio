@@ -492,7 +492,6 @@ export default function MobilePublicDailyView({
             >
               <LogIn size={24} />
             </button>
-            <span className="text-xs mt-1">Log in</span>
           </div>
         </div>
       </div>
