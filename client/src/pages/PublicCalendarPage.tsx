@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 const logoPath = '/bookstuio.png';
 import { calculateStudioStatus, getStudioStatusColor } from '@/lib/studioUtils';
 import { usePublicBookingStudioLinks } from '@/hooks/useBookingStudioLinks';
+import { useDevice } from '@/hooks/use-mobile';
+import { useLocation } from 'wouter';
 
 // Define our own DateRange type since it's not exported from date-fns
 interface DateRange {
@@ -32,6 +34,18 @@ export interface ApiBooking {
 }
 
 function PublicCalendarPage() {
+  // Check if the user is on a mobile device and redirect if needed
+  const { isSmallScreen } = useDevice();
+  const [, navigate] = useLocation();
+  
+  // If we're on the default public calendar page and using a mobile device,
+  // redirect to the mobile-specific public calendar page
+  useEffect(() => {
+    if (isSmallScreen) {
+      navigate('/public-calendar/mobile');
+    }
+  }, [isSmallScreen, navigate]);
+  
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewType, setViewType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
   const [dateRange, setDateRange] = useState<DateRange>(getDatesForWeek(currentDate));

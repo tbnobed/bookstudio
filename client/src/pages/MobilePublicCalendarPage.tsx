@@ -1,8 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MobilePublicDailyView from '@/components/calendar/MobilePublicDailyView';
 import { useQuery } from '@tanstack/react-query';
+import { useDevice } from '@/hooks/use-mobile';
+import { useLocation } from 'wouter';
 
 export default function MobilePublicCalendarPage() {
+  // Detect if we're on a larger screen and redirect to desktop version if needed
+  const { isSmallScreen } = useDevice();
+  const [, navigate] = useLocation();
+  
+  // If we're on the mobile public calendar page but using a larger screen,
+  // redirect to the standard public calendar page
+  useEffect(() => {
+    if (!isSmallScreen) {
+      navigate('/public-calendar');
+    }
+  }, [isSmallScreen, navigate]);
+  
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   
   // Get the site name
