@@ -117,7 +117,7 @@ export default function MobileDailyView({
     getStudioStatus,
     studios,
     now 
-  } = useStudioStatus(todayBookings);;
+  } = useStudioStatus(todayBookings);
   
   // Fetch booking-studios junction data
   const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({
