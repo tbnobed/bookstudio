@@ -84,25 +84,25 @@ export function SimpleMobileForm({
         pcrRoomId: pcrRoomId || null
       }));
     } else if (name === 'startDate') {
-      const [currentDate, currentTime] = formData.start.toISOString().split('T');
-      const newDateTimeStr = `${value}T${currentTime}`;
+      const [currentDate, startTime] = formData.start.toISOString().split('T');
+      const [endDate, endTime] = formData.end.toISOString().split('T');
+      
+      const newStartDateTimeStr = `${value}T${startTime}`;
+      const newEndDateTimeStr = `${value}T${endTime}`;
+      
       setFormData(prev => ({
         ...prev,
-        start: new Date(newDateTimeStr)
+        start: new Date(newStartDateTimeStr),
+        end: new Date(newEndDateTimeStr)
       }));
-    } else if (name === 'endDate') {
-      const [currentDate, currentTime] = formData.end.toISOString().split('T');
-      const newDateTimeStr = `${value}T${currentTime}`;
-      setFormData(prev => ({
-        ...prev,
-        end: new Date(newDateTimeStr)
-      }));
+    // We no longer use endDate since we're using a single date
     } else if (name === 'startTime') {
       const currentDate = formData.start.toISOString().split('T')[0];
       const newDateTimeStr = `${currentDate}T${value}:00`;
       setFormData(prev => ({
         ...prev,
-        start: new Date(newDateTimeStr)
+        start: new Date(newDateTimeStr),
+        // Keep the end date the same, we're only modifying the start time
       }));
     } else if (name === 'endTime') {
       const currentDate = formData.end.toISOString().split('T')[0];
@@ -462,19 +462,6 @@ export function SimpleMobileForm({
           </div>
           
           <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="sm-end-date">End Date*</label>
-              <input 
-                type="date"
-                id="sm-end-date"
-                name="endDate"
-                value={formatDateForForm(formData.end)}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
-            </div>
-            
             <div className="form-group">
               <label htmlFor="sm-end-time">End Time*</label>
               <input 
