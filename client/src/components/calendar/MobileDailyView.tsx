@@ -91,9 +91,33 @@ export default function MobileDailyView({
   console.log(`MobileDailyView - Date range: ${dayStart.toISOString()} to ${dayEnd.toISOString()}`);
 
   // Fetch bookings for the selected day using Chicago midnight-to-midnight
-  const { data: todayBookings = [] } = useQuery<Booking[]>({
+  const { data: fetchedBookings = [] } = useQuery<Booking[]>({
     queryKey: [`/api/bookings?start=${dayStart.toISOString()}&end=${dayEnd.toISOString()}`],
   });
+  
+  // Apply additional client-side filter to ensure only bookings from the current day are shown
+  // A booking is considered to be "on the current day" if it starts on or before the end of the day
+  // and ends after the start of the day (i.e., it overlaps with the day)
+  const todayBookings = useMemo(() => {
+    return fetchedBookings.filter(booking => {
+      const bookingStart = new Date(booking.start);
+      const bookingEnd = new Date(booking.end);
+      
+      // Check if the booking overlaps with the day range
+      const isOverlapping = bookingStart <= dayEnd && bookingEnd > dayStart;
+      
+      // Additional check for bookings that span exactly at midnight
+      const isOnCurrentDay = isSameDay(bookingStart, currentDate) || 
+                             isSameDay(bookingEnd, currentDate) ||
+                             (bookingStart < dayStart && bookingEnd > dayEnd);
+      
+      console.log(`Booking ${booking.id} (${booking.title}) overlapping: ${isOverlapping}, on current day: ${isOnCurrentDay}`);
+      
+      return isOverlapping && isOnCurrentDay;
+    });
+  }, [fetchedBookings, dayStart, dayEnd, currentDate]);
+  
+  console.log(`After filtering, found ${todayBookings.length} bookings for today (${currentDate.toDateString()})`);
   
   // Fetch booking-studios junction data
   const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({
