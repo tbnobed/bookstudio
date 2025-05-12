@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import BookingModal from "./BookingModal";
 import MobileBookingForm from "./MobileBookingForm";
+import MobileDialogFix from "./MobileDialogFix"; // Import the DOM manipulation fix
 import "./mobile-styles.css";
+import "./mobile-fixes.css"; // Import the emergency fixes
 
 export interface BookingModalProps {
   isOpen: boolean;
@@ -37,6 +39,8 @@ export default function ResponsiveBookingModal(props: BookingModalProps) {
       {/* The original BookingModal component will handle everything, 
           but with our CSS it will conditionally show either the desktop or mobile view */}
       <div className={isMobileView ? "mobile-view-active" : "desktop-view-active"}>
+        {/* Render emergency fix component only when on mobile */}
+        {isMobileView && props.isOpen && <MobileDialogFix />}
         <BookingModal {...props} />
       </div>
     </>

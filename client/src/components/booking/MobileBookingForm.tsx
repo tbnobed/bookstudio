@@ -12,6 +12,7 @@ import { BellRing, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import "./mobile-styles.css";
+import "./mobile-fixes.css"; // Import additional emergency fixes
 
 // Add styles to prevent horizontal scrolling
 import { useEffect as useLayoutEffect } from "react";
@@ -56,8 +57,28 @@ export default function MobileBookingForm({
     };
   }, []);
   
-  // Define smaller form width to prevent overflow
-  const formWidth = '80%';
+  // Define smaller form width to prevent overflow - using 70% to ensure no horizontal scroll
+  const formWidth = '70%';
+  
+  // Apply a common style to all form elements to ensure consistent sizing
+  const applyConsistentWidths = () => {
+    useLayoutEffect(() => {
+      const dialogContent = document.querySelector('[data-radix-dialog-content]');
+      if (dialogContent) {
+        // Force dialog to 75vw width
+        dialogContent.setAttribute('style', 'width: 75vw !important; max-width: 75vw !important; margin: 0 auto !important; padding: 5px !important; overflow-x: hidden !important;');
+        
+        // Force all form inputs to be narrower
+        const formElements = dialogContent.querySelectorAll('input, select, textarea, [role="combobox"]');
+        formElements.forEach(el => {
+          el.setAttribute('style', 'width: 95% !important; max-width: 95% !important; box-sizing: border-box !important;');
+        });
+      }
+    }, []);
+  };
+  
+  // Call our function to enforce styles
+  applyConsistentWidths();
 
   return (
     <form 

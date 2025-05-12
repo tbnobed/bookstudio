@@ -68,6 +68,21 @@
   white-space: nowrap !important;
 }
 
+/* Extreme fix for Select components which often cause horizontal scroll */
+.mobile-view-active [data-radix-select-trigger],
+.mobile-view-active [role="combobox"],
+.mobile-view-active .select-trigger,
+.mobile-view-active [data-state] button,
+.mobile-view-active .SelectTrigger,
+.mobile-view-active select {
+  width: 95% !important;
+  max-width: 95% !important;
+  min-width: 0 !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
 /* Media query for the smallest screens */
 @media screen and (max-width: 320px) {
   #root [data-radix-dialog-content],
