@@ -305,12 +305,13 @@ export function SimpleMobileForm({
     const group = notificationGroups.find(g => g.id === groupId);
     
     if (group) {
-      // Add all emails from the group to the notify list
+      // Add the group email to the notify list
       setFormData(prev => {
         // Convert to array first to ensure compatibility
         const currentNotifyList = Array.isArray(prev.notifyList) ? prev.notifyList : [];
         // Use Array.from with Set to ensure unique values
-        const notifyList = Array.from(new Set([...currentNotifyList, ...group.emails]));
+        // The schema uses a single email field, not an emails array
+        const notifyList = Array.from(new Set([...currentNotifyList, group.email]));
         return {
           ...prev,
           notifyList
