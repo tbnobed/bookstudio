@@ -19,6 +19,7 @@ import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import InvitePage from "@/pages/InvitePage";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
+import { CalendarProvider } from "@/contexts/CalendarContext";
 import { useDevice } from "@/hooks/use-mobile";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { DocumentTitle } from "@/components/global/DocumentTitle";
@@ -110,15 +111,17 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <TimezoneProvider>
-      <TooltipProvider>
-        {/* Add DocumentTitle to update the title when siteName changes */}
-        <DocumentTitle />
-        <AppLayout>
-          <Router />
-        </AppLayout>
-        <Toaster />
-        <ToastNotification />
-      </TooltipProvider>
+      <CalendarProvider>
+        <TooltipProvider>
+          {/* Add DocumentTitle to update the title when siteName changes */}
+          <DocumentTitle />
+          <AppLayout>
+            <Router />
+          </AppLayout>
+          <Toaster />
+          <ToastNotification />
+        </TooltipProvider>
+      </CalendarProvider>
     </TimezoneProvider>
   );
 }

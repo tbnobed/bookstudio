@@ -3,12 +3,15 @@ import { useDevice } from "@/hooks/use-mobile";
 import MobileDailyView from "@/components/calendar/MobileDailyView";
 import MobileNavbar from "@/components/layout/MobileNavbar";
 import { useLocation } from "wouter";
+import { useCalendarContext } from "@/contexts/CalendarContext";
 
 export default function MobileCalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<"day" | "week" | "month">("day");
-  const { isMobile, isTablet, isDesktop } = useDevice();
+  const { isSmallScreen, isTablet, isDesktop } = useDevice();
   const [, navigate] = useLocation();
+  const { selectedDate, setSelectedDate, view, setView } = useCalendarContext();
+  
+  // Local state as a fallback and to maintain component-level control
+  const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
 
   // Redirect to desktop calendar if not on mobile or tablet
   useEffect(() => {
@@ -39,14 +42,20 @@ export default function MobileCalendarPage() {
   const handleDateChange = (date: Date) => {
     // Create a clean date object to avoid reference issues
     const cleanDate = new Date(date.getTime());
+    
+    // Update both component state and global context
     setCurrentDate(cleanDate);
+    setSelectedDate(cleanDate);
   };
 
   // Handle view change (will navigate to weekly view)
   const handleViewChange = (newView: "day" | "week" | "month") => {
     if (newView === "week") {
+      // Update the global context before navigating
+      setView(newView);
       navigate("/calendar");
     } else {
+      // Update both local and global state
       setView(newView);
     }
   };
