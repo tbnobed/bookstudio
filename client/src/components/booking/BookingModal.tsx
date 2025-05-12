@@ -1042,7 +1042,7 @@ export default function BookingModal({
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                className="bg-red-500 hover:bg-red-600"
+                                className="bg-red-500 hover:bg-red-600 text-xs sm:text-sm py-1.5 h-9 px-3"
                                 onClick={() => {
                                   deleteBooking.mutate(booking.id, {
                                     onSuccess: () => {
@@ -1073,11 +1073,10 @@ export default function BookingModal({
                           onClick={handleOpenCopyModal} 
                           variant="outline" 
                           type="button" 
-                          size="sm" 
-                          className="space-x-1"
+                          className="text-xs sm:text-sm py-1.5 h-9 px-3 flex items-center"
                         >
                           <Copy className="w-3.5 h-3.5 mr-1" />
-                          <span>Copy Booking</span>
+                          <span>Copy</span>
                         </Button>
                         
                         <AlertDialog>
@@ -1085,11 +1084,10 @@ export default function BookingModal({
                             <Button 
                               variant="outline" 
                               type="button" 
-                              size="sm" 
-                              className="space-x-1"
+                              className="text-xs sm:text-sm py-1.5 h-9 px-3 flex items-center"
                             >
                               <Tag className="w-3.5 h-3.5 mr-1" />
-                              <span>Save as Template</span>
+                              <span>Template</span>
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -1113,8 +1111,9 @@ export default function BookingModal({
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={handleSaveAsTemplate}
+                                className="text-xs sm:text-sm py-1.5 h-9 px-3"
                               >
-                                Save Template
+                                Save
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
