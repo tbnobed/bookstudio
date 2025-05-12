@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { formatTime, formatDate, isSameDay, formatTimeRange } from "@/lib/dateUtils";
+import { useCalendarContext } from "@/contexts/CalendarContext";
 
 // Helper function to extract studios from a booking
 function extractStudiosFromBooking(booking: any, studiosList: any[]): any[] {
@@ -61,6 +62,16 @@ export default function MobileDailyView({
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // Get date from context as well as props
+  const { selectedDate, setSelectedDate } = useCalendarContext();
+  
+  // Ensure context stays in sync with props
+  useEffect(() => {
+    if (currentDate && (!selectedDate || !isSameDay(currentDate, selectedDate))) {
+      setSelectedDate(currentDate);
+    }
+  }, [currentDate, selectedDate, setSelectedDate]);
   
   // Use our studio status hook to get real-time status
   const { 
@@ -153,17 +164,22 @@ export default function MobileDailyView({
   const goToPreviousDay = () => {
     const prevDay = new Date(currentDate);
     prevDay.setDate(prevDay.getDate() - 1);
+    // Update both the prop callback and the context
     onDateChange(prevDay);
+    setSelectedDate(prevDay);
   };
 
   const goToNextDay = () => {
     const nextDay = new Date(currentDate);
     nextDay.setDate(nextDay.getDate() + 1);
+    // Update both the prop callback and the context
     onDateChange(nextDay);
+    setSelectedDate(nextDay);
   };
 
   // Switch to weekly view
   const switchToWeeklyView = () => {
+    // Update both via props and context
     onViewChange("week");
   };
 
@@ -645,14 +661,14 @@ export default function MobileDailyView({
       <ResponsiveBookingModal
         isOpen={isNewBookingModalOpen}
         onClose={() => setIsNewBookingModalOpen(false)}
-        selectedDate={currentDate}
+        selectedDate={selectedDate || currentDate}
       />
       
       {/* New Alert Modal */}
       <AlertModal
         isOpen={isNewAlertModalOpen}
         onClose={() => setIsNewAlertModalOpen(false)}
-        selectedDate={currentDate}
+        selectedDate={selectedDate || currentDate}
       />
     </div>
   );
