@@ -220,7 +220,7 @@ export default function SimpleMobileForm({
     if (name === 'startDate') {
       console.log(`Date change: Setting date to ${value}`);
       
-      // Create a date object in Chicago timezone
+      // Create a date object for Chicago timezone
       const [year, month, day] = value.split('-').map(Number);
       
       // Get current Chicago time components from the start date
@@ -230,29 +230,17 @@ export default function SimpleMobileForm({
       const minutes = startChicagoDate.getMinutes();
       
       // Create a new date in Chicago timezone
-      const chicagoDateStr = `${year}-${month}-${day}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
-      const localDate = new Date(chicagoDateStr);
-      
-      // Adjust for Chicago timezone offset to get the correct UTC time
-      const chicagoOffset = new Date().getTimezoneOffset() - 
-                           new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', hour: '2-digit' }).includes('AM') ? 360 : 300;
-      const utcDate = new Date(localDate.getTime() + chicagoOffset * 60000);
-      
-      console.log(`Adjusted date: Chicago: ${chicagoDateStr}, UTC: ${utcDate.toISOString()}`);
+      const newStartDate = new Date(formData.start);
+      newStartDate.setFullYear(year, month - 1, day);
       
       // Also update end date to be on the same day
-      const endChicagoDate = new Date(formData.end.toLocaleString('en-US', chicagoOptions));
-      const endHours = endChicagoDate.getHours();
-      const endMinutes = endChicagoDate.getMinutes();
-      
-      const endChicagoDateStr = `${year}-${month}-${day}T${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}:00`;
-      const endLocalDate = new Date(endChicagoDateStr);
-      const endUtcDate = new Date(endLocalDate.getTime() + chicagoOffset * 60000);
+      const newEndDate = new Date(formData.end);
+      newEndDate.setFullYear(year, month - 1, day);
       
       setFormData(prev => ({ 
         ...prev, 
-        start: utcDate,
-        end: endUtcDate
+        start: newStartDate,
+        end: newEndDate
       }));
       return;
     }
@@ -260,56 +248,28 @@ export default function SimpleMobileForm({
     if (name === 'startTime') {
       console.log(`Start time change: Setting time to ${value}`);
       
-      // Get the current date parts in Chicago timezone
-      const chicagoOptions = { timeZone: 'America/Chicago' };
-      const chicagoDate = new Date(formData.start.toLocaleString('en-US', chicagoOptions));
-      const year = chicagoDate.getFullYear();
-      const month = chicagoDate.getMonth() + 1;
-      const day = chicagoDate.getDate();
-      
       // Parse the new time
       const [hours, minutes] = value.split(':').map(Number);
       
-      // Create a new date string in Chicago timezone
-      const chicagoDateStr = `${year}-${month}-${day}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
-      const localDate = new Date(chicagoDateStr);
+      // Update the time portion of the start date
+      const newStartDate = new Date(formData.start);
+      newStartDate.setHours(hours, minutes);
       
-      // Adjust for Chicago timezone offset to get the correct UTC time
-      const chicagoOffset = new Date().getTimezoneOffset() - 
-                           new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', hour: '2-digit' }).includes('AM') ? 360 : 300;
-      const utcDate = new Date(localDate.getTime() + chicagoOffset * 60000);
-      
-      console.log(`Adjusted time: Chicago: ${chicagoDateStr}, UTC: ${utcDate.toISOString()}`);
-      
-      setFormData(prev => ({ ...prev, start: utcDate }));
+      setFormData(prev => ({ ...prev, start: newStartDate }));
       return;
     }
     
     if (name === 'endTime') {
       console.log(`End time change: Setting time to ${value}`);
       
-      // Get the current date parts in Chicago timezone
-      const chicagoOptions = { timeZone: 'America/Chicago' };
-      const chicagoDate = new Date(formData.end.toLocaleString('en-US', chicagoOptions));
-      const year = chicagoDate.getFullYear();
-      const month = chicagoDate.getMonth() + 1;
-      const day = chicagoDate.getDate();
-      
       // Parse the new time
       const [hours, minutes] = value.split(':').map(Number);
       
-      // Create a new date string in Chicago timezone
-      const chicagoDateStr = `${year}-${month}-${day}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
-      const localDate = new Date(chicagoDateStr);
+      // Update the time portion of the end date
+      const newEndDate = new Date(formData.end);
+      newEndDate.setHours(hours, minutes);
       
-      // Adjust for Chicago timezone offset to get the correct UTC time
-      const chicagoOffset = new Date().getTimezoneOffset() - 
-                           new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', hour: '2-digit' }).includes('AM') ? 360 : 300;
-      const utcDate = new Date(localDate.getTime() + chicagoOffset * 60000);
-      
-      console.log(`Adjusted end time: Chicago: ${chicagoDateStr}, UTC: ${utcDate.toISOString()}`);
-      
-      setFormData(prev => ({ ...prev, end: utcDate }));
+      setFormData(prev => ({ ...prev, end: newEndDate }));
       return;
     }
     
@@ -464,24 +424,6 @@ export default function SimpleMobileForm({
   console.log("SimpleMobileForm - About to render form:", { isOpen, hasBooking: !!booking, formData });
 
   if (!isOpen) return null;
-  
-  // Create a stable version of the formData to avoid rendering issues
-  const stableFormData = {
-    id: formData?.id || 0,
-    title: formData?.title || '',
-    description: formData?.description || '',
-    studioId: formData?.studioId || 0,
-    pcrRoomId: formData?.pcrRoomId || null,
-    start: formData?.start || new Date(),
-    end: formData?.end || new Date(),
-    type: formData?.type || 'production',
-    status: formData?.status || 'confirmed',
-    severity: formData?.severity || null,
-    templateId: formData?.templateId || 0,
-    notifyList: formData?.notifyList || [],
-    color: formData?.color || '#3b82f6',
-    studioIds: formData?.studioIds || []
-  };
   
   return (
     <div className="simple-mobile-form-overlay" style={{ zIndex: 9999 }}>

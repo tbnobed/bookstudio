@@ -43,17 +43,28 @@ export function formatTimeForForm(date: Date | string): string {
 }
 
 /**
- * Check if two dates are on the same day
+ * Check if two dates are on the same day in America/Chicago timezone
  * @param date1 First date
  * @param date2 Second date
- * @returns True if dates are on the same day
+ * @returns True if dates are on the same day in Chicago timezone
  */
 export function isSameDay(date1: Date, date2: Date): boolean {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
+  // Convert dates to Chicago timezone strings
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  };
+  
+  const chicagoDate1 = new Date(date1).toLocaleString('en-US', options);
+  const chicagoDate2 = new Date(date2).toLocaleString('en-US', options);
+  
+  // Log the comparison for debugging
+  console.log(`isSameDay: Comparing "${date1.toISOString()}" (${chicagoDate1}) with "${date2.toISOString()}" (${chicagoDate2}) => ${chicagoDate1 === chicagoDate2}`);
+  
+  // If the formatted dates (without time) match, they're the same day in Chicago timezone
+  return chicagoDate1 === chicagoDate2;
 }
 
 /**
