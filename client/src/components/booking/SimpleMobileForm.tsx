@@ -4,7 +4,7 @@ import { ApiStudio } from '../../types/studios';
 import { ApiPcrRoom } from '../../types/pcr-rooms';
 import { ApiTemplate } from '../../types/templates';
 import { NotificationGroup } from '../../types/notifications';
-import { formatDateForForm, formatTimeForForm } from '../../utils/dateUtils';
+import { formatDateForForm, formatTimeForForm } from '@/utils/dateUtils';
 import { useStudios } from '../../hooks/useStudios';
 import { usePcrRooms } from '../../hooks/usePcrRooms';
 import { useTemplates } from '../../hooks/useTemplates';
