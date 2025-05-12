@@ -76,23 +76,34 @@ export function SimpleMobileForm({
       // Create a complete form data object from the booking
       // Force explicit setting of all properties to ensure nothing is missed
       const updatedFormData: FormBookingData = {
-        id: booking.id || 0,
-        title: booking.title || '',
-        description: booking.description || '',
-        studioId: booking.studioId || (selectedStudio || studios[0]?.id || 0),
-        pcrRoomId: booking.pcrRoomId || null,
-        // Access the Date objects we stored from BookingFormSelector if they exist
-        // Otherwise fall back to converting the strings
-        start: (booking as any)._startDate || new Date(booking.start),
-        end: (booking as any)._endDate || new Date(booking.end),
+        id: Number(booking.id) || 0,
+        title: String(booking.title || ''),
+        description: String(booking.description || ''),
+        studioId: Number(booking.studioId) || Number(selectedStudio) || (studios[0]?.id || 0),
+        pcrRoomId: booking.pcrRoomId !== undefined ? Number(booking.pcrRoomId) : null,
+        
+        // Handle the date objects carefully
+        // First check if we already have proper date objects in _startDate/_endDate properties
+        start: booking._startDate instanceof Date ? booking._startDate : 
+               (typeof booking.start === 'string' ? new Date(booking.start) : booking.start),
+               
+        end: booking._endDate instanceof Date ? booking._endDate : 
+             (typeof booking.end === 'string' ? new Date(booking.end) : booking.end),
+             
         type: booking.type || 'production',
         status: booking.status || 'confirmed',
         severity: booking.severity || null,
-        templateId: booking.templateId || 0,
-        notifyList: booking.notifyList || [],
+        templateId: Number(booking.templateId) || 0,
+        
+        // Process notification list properly
+        notifyList: Array.isArray(booking.notifyList) ? booking.notifyList : 
+                   (booking.notifyList ? String(booking.notifyList).split(',').filter(Boolean) : []),
+                   
         color: booking.color || '#3b82f6',
-        // Make sure studioIds is properly initialized 
-        studioIds: (booking as any).studioIds || (booking.studioId ? [booking.studioId] : [])
+        
+        // Ensure studioIds is an array of numbers
+        studioIds: Array.isArray(booking.studioIds) ? booking.studioIds.map(Number).filter(Boolean) :
+                  (booking.studioId ? [Number(booking.studioId)] : [])
       };
       
       // Try to force React to see this as a new object by cloning it
@@ -101,7 +112,7 @@ export function SimpleMobileForm({
       // Use a small timeout to ensure React processes state updates in order
       setTimeout(() => {
         setFormData({...updatedFormData});
-      }, 50);
+      }, 100); // Increased timeout for more reliable state updates
     }
   }, [booking, selectedStudio, studios, isOpen]);  // Add isOpen to dependencies to re-run when modal opens
   

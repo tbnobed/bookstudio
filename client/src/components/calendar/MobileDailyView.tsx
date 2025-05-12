@@ -185,6 +185,17 @@ export default function MobileDailyView({
 
   // Handle booking/slot click
   const handleBookingClick = (booking: Booking) => {
+    console.log("MobileDailyView - handleBookingClick - Original booking:", booking);
+    
+    // Get all linked studios for this booking first
+    const linkedStudios = getLinkedStudiosForBooking(booking);
+    const studioIds = linkedStudios.map(studio => studio.id);
+    
+    console.log("MobileDailyView - handleBookingClick - Linked studios:", {
+      linkedStudios,
+      studioIds
+    });
+    
     // Enhanced booking cleanup and preparation
     // This creates a clean booking object with all required props explicitly
     const cleanBooking: any = {
@@ -193,27 +204,21 @@ export default function MobileDailyView({
       description: booking.description || '',
       studioId: booking.studioId || null,
       pcrRoomId: booking.pcrRoomId || null,
-      // Convert dates to proper Date objects
-      start: new Date(booking.start),
-      end: new Date(booking.end),
+      // Keep original string dates for API compatibility
+      start: booking.start,
+      end: booking.end,
+      // Store Date objects explicitly in special properties
+      _startDate: new Date(booking.start),
+      _endDate: new Date(booking.end),
       type: booking.type || 'production',
       status: booking.status || 'confirmed',
       severity: booking.severity || null,
       templateId: booking.templateId || 0,
       notifyList: booking.notifyList || [],
       color: booking.color || '#3b82f6',
-      // Ensure studioIds is initialized properly
-      studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
+      // Use the linked studios we fetched
+      studioIds: studioIds.length > 0 ? studioIds : (booking.studioId ? [booking.studioId] : [])
     };
-    
-    // Force conversion of dates to proper ISO strings if needed
-    if (typeof cleanBooking.start === 'string') {
-      cleanBooking.start = new Date(cleanBooking.start);
-    }
-    
-    if (typeof cleanBooking.end === 'string') {
-      cleanBooking.end = new Date(cleanBooking.end);
-    }
     
     // Add any missing fields that might be needed by the form
     cleanBooking.userId = booking.userId || 1; // Default to admin
@@ -230,7 +235,7 @@ export default function MobileDailyView({
         editModalIsOpen: true,
         editBookingData: cleanBooking
       });
-    }, 10);
+    }, 50); // Increased timeout for more reliable state updates
   };
 
   // Get all studios with their current status

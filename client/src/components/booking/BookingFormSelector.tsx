@@ -33,35 +33,69 @@ export function BookingFormSelector({
   const processedBooking = React.useMemo(() => {
     if (!booking) return null;
     
+    console.log("BookingFormSelector - Original booking data:", booking);
+    
     // Make deep copies of date objects but keep original string formats for API compatibility
     // This ensures the form components receive valid data without type conflicts
     const newBooking = { ...booking };
     
-    // Store the actual Date objects in these properties for internal use
-    // but keep the original string format in the main properties
-    if (newBooking.start) {
+    // Ensure start and end are proper date objects for form processing
+    // First check if we already have Date objects stored in _startDate/_endDate
+    if (newBooking._startDate && newBooking._startDate instanceof Date) {
+      console.log("BookingFormSelector - Using existing _startDate:", newBooking._startDate);
+    } else if (newBooking.start) {
+      // Create a new Date object from the start value
       (newBooking as any)._startDate = new Date(newBooking.start);
+      console.log("BookingFormSelector - Created new _startDate from:", newBooking.start, 
+        "Result:", (newBooking as any)._startDate);
     }
     
-    if (newBooking.end) {
+    if (newBooking._endDate && newBooking._endDate instanceof Date) {
+      console.log("BookingFormSelector - Using existing _endDate:", newBooking._endDate);
+    } else if (newBooking.end) {
+      // Create a new Date object from the end value
       (newBooking as any)._endDate = new Date(newBooking.end);
+      console.log("BookingFormSelector - Created new _endDate from:", newBooking.end, 
+        "Result:", (newBooking as any)._endDate);
     }
     
-    // Make sure all properties have values
-    newBooking.title = newBooking.title || '';
-    newBooking.description = newBooking.description || '';
-    newBooking.studioId = newBooking.studioId || selectedStudio || null;
-    newBooking.type = newBooking.type || 'production';
-    newBooking.status = newBooking.status || 'confirmed';
+    // Make sure all properties have values - enforce types and defaults
+    newBooking.id = Number(newBooking.id) || 0;
+    newBooking.title = String(newBooking.title || '');
+    newBooking.description = String(newBooking.description || '');
+    newBooking.studioId = Number(newBooking.studioId) || Number(selectedStudio) || null;
+    newBooking.pcrRoomId = newBooking.pcrRoomId !== undefined ? Number(newBooking.pcrRoomId) : null;
+    newBooking.type = String(newBooking.type || 'production');
+    newBooking.status = String(newBooking.status || 'confirmed');
     newBooking.severity = newBooking.severity || null;
-    newBooking.templateId = newBooking.templateId || 0;
-    newBooking.notifyList = newBooking.notifyList || [];
-    newBooking.color = newBooking.color || '#3b82f6';
+    newBooking.templateId = Number(newBooking.templateId) || 0;
     
-    // Ensure studioIds exists
-    if (!newBooking.studioIds) {
-      (newBooking as any).studioIds = newBooking.studioId ? [newBooking.studioId] : [];
+    // Handle notification list correctly
+    if (!newBooking.notifyList) {
+      newBooking.notifyList = [];
+    } else if (!Array.isArray(newBooking.notifyList)) {
+      // Convert to array if not already
+      newBooking.notifyList = String(newBooking.notifyList).split(',').filter(Boolean);
     }
+    
+    newBooking.color = String(newBooking.color || '#3b82f6');
+    
+    // Ensure studioIds exists as an array of numbers
+    if (!newBooking.studioIds || !Array.isArray(newBooking.studioIds)) {
+      (newBooking as any).studioIds = newBooking.studioId ? [Number(newBooking.studioId)] : [];
+      console.log("BookingFormSelector - Created studioIds from studioId:", (newBooking as any).studioIds);
+    } else {
+      // Ensure all studioIds are numbers
+      (newBooking as any).studioIds = (newBooking as any).studioIds.map(Number).filter(Boolean);
+      console.log("BookingFormSelector - Using existing studioIds:", (newBooking as any).studioIds);
+    }
+    
+    // Add userId if missing (required by API)
+    if (!newBooking.userId) {
+      newBooking.userId = 1; // Default to admin user
+    }
+    
+    console.log("BookingFormSelector - Processed booking data:", newBooking);
     
     return newBooking;
   }, [booking, selectedStudio]);
