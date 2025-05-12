@@ -166,6 +166,23 @@ export function SimpleMobileForm({
             ? selectedTemplate.severity as BookingSeverity
             : prev.severity);
 
+          // Calculate duration in minutes
+          const templateDurationMinutes = selectedTemplate.duration || 60; // Default to 1 hour
+          
+          // Calculate new end time based on current start time + template duration
+          const newEndTime = new Date(prev.start);
+          newEndTime.setMinutes(newEndTime.getMinutes() + templateDurationMinutes);
+
+          console.log('Template applying with values:', {
+            templateId,
+            name: selectedTemplate.name,
+            type: typeCast,
+            status: statusCast,
+            severity: severityCast,
+            duration: templateDurationMinutes,
+            studios: selectedTemplate.studioIds || [studioId]
+          });
+
           // Return updated form data with template values
           return {
             ...prev,
@@ -179,7 +196,8 @@ export function SimpleMobileForm({
             status: statusCast,
             severity: severityCast,
             color: selectedTemplate.color || prev.color,
-            notifyList: selectedTemplate.notifyList || prev.notifyList
+            notifyList: selectedTemplate.notifyList || prev.notifyList,
+            end: newEndTime // Set end time based on template duration
           };
         });
       }

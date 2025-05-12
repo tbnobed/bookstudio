@@ -74,6 +74,28 @@ export function DirectMobileForm({
           const statusCast = (['confirmed', 'pending', 'cancelled', 'draft'].includes(selectedTemplate.status)
             ? selectedTemplate.status as BookingStatus
             : prev.status);
+          
+          // Cast template.severity to BookingSeverity if it is valid, otherwise use previous severity
+          const severityCast = (['low', 'medium', 'high', 'critical'].includes(selectedTemplate.severity)
+            ? selectedTemplate.severity as BookingSeverity
+            : prev.severity);
+            
+          // Calculate duration in minutes
+          const templateDurationMinutes = selectedTemplate.duration || 60; // Default to 1 hour
+          
+          // Calculate new end time based on current start time + template duration
+          const newEndTime = new Date(prev.start);
+          newEndTime.setMinutes(newEndTime.getMinutes() + templateDurationMinutes);
+          
+          console.log('Template applying with values:', {
+            templateId,
+            name: selectedTemplate.name,
+            type: typeCast,
+            status: statusCast,
+            severity: severityCast,
+            duration: templateDurationMinutes,
+            studios: selectedTemplate.studioIds || [studioId]
+          });
             
           // Apply template settings
           return {
@@ -86,9 +108,10 @@ export function DirectMobileForm({
             studioIds: selectedTemplate.studioIds || [studioId],
             pcrRoomId: selectedTemplate.pcrRoomId || prev.pcrRoomId,
             status: statusCast,
-            severity: selectedTemplate.severity as BookingSeverity || prev.severity,
+            severity: severityCast,
             color: selectedTemplate.color || prev.color,
-            notifyList: selectedTemplate.notifyList || prev.notifyList
+            notifyList: selectedTemplate.notifyList || prev.notifyList,
+            end: newEndTime // Set end time based on template duration
           };
         });
       }
