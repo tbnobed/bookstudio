@@ -501,10 +501,7 @@ export function SimpleMobileForm({
                 className="form-select"
               >
                 <option value="production">Production</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="private">Private</option>
-                <option value="alert">Alert</option>
-                <option value="other">Other</option>
+                <option value="rehearsal">Rehearsal</option>
               </select>
             </div>
             
