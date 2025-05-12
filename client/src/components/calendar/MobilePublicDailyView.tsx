@@ -11,7 +11,16 @@ interface BookingWithStudios extends Booking {
 import { cn } from "@/lib/utils";
 import { isToday, isPast, isAfter, isBefore, formatDistance, format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, CalendarDays, AlertTriangle, Activity, Tv, MonitorPlay, LogIn } from "lucide-react";
+import { 
+  Calendar, 
+  Clock, 
+  CalendarDays, 
+  AlertTriangle, 
+  Tv, 
+  MonitorPlay, 
+  LogIn, 
+  BarChart 
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
@@ -52,7 +61,6 @@ export default function MobilePublicDailyView({
 }: MobilePublicDailyViewProps) {
   const [, navigate] = useLocation();
   const [currentDate, setCurrentDate] = useState<Date>(initialDate);
-  const [activeTab, setActiveTab] = useState<"studios" | "alerts">("studios");
   
   // Handle date change from parent component
   useEffect(() => {
@@ -65,26 +73,29 @@ export default function MobilePublicDailyView({
     staleTime: 60 * 1000, // 1 minute
   });
   
-  // Get the date range for today in Chicago timezone
-  const dateRange = getDayRangeInChicago(currentDate);
-  const startOfDay = dateRange.start;
-  const endOfDay = dateRange.end;
-  
-  console.log("MobilePublicDailyView - Showing bookings for", formatDate(currentDate), "in Chicago timezone");
-  console.log("MobilePublicDailyView - Date range:", startOfDay.toISOString(), "to", endOfDay.toISOString());
-  
-  // Fetch bookings from public API for the current date
-  const { data: allBookings = [], isLoading, error } = useQuery<BookingWithStudios[]>({
-    queryKey: ['/api/public/bookings', startOfDay.toISOString(), endOfDay.toISOString()],
-    queryFn: async () => {
-      const res = await apiRequest('GET', `/api/public/bookings?start=${startOfDay.toISOString()}&end=${endOfDay.toISOString()}`);
-      return res.json();
-    },
+  // Fetch PCR rooms
+  const { data: pcrRooms = [] } = useQuery<any[]>({
+    queryKey: ['/api/pcr-rooms'],
     staleTime: 60 * 1000, // 1 minute
   });
   
-  // Fetch booking-studio links from public API
-  const { data: bookingStudioLinks = [] } = useQuery({
+  // Get the date range for today in Chicago timezone
+  const dateRange = getDayRangeInChicago(currentDate);
+  console.log("MobilePublicDailyView - Showing bookings for", format(currentDate, 'MMMM d, yyyy'), "in Chicago timezone");
+  console.log("MobilePublicDailyView - Date range:", dateRange.start.toISOString(), "to", dateRange.end.toISOString());
+
+  // Fetch public bookings for the current date
+  const { data: publicBookings = [], isLoading, error } = useQuery<BookingWithStudios[]>({
+    queryKey: ['/api/public/bookings', dateRange.start.toISOString(), dateRange.end.toISOString()],
+    queryFn: async () => {
+      const res = await apiRequest('GET', `/api/public/bookings?start=${dateRange.start.toISOString()}&end=${dateRange.end.toISOString()}`);
+      return res.json();
+    },
+    staleTime: 30 * 1000, // 30 seconds
+  });
+  
+  // Fetch booking-studio relationships
+  const { data: bookingStudios = [] } = useQuery<{ id: number; bookingId: number; studioId: number }[]>({
     queryKey: ['/api/public/booking-studios'],
     queryFn: async () => {
       const res = await apiRequest('GET', `/api/public/booking-studios`);
@@ -93,44 +104,47 @@ export default function MobilePublicDailyView({
     staleTime: 60 * 1000, // 1 minute
   });
   
-  // Today's bookings
-  const todayBookings = allBookings.filter(booking => {
+  // Filter bookings for today
+  const todayBookings = publicBookings.filter(booking => {
     const bookingStart = new Date(booking.start);
     const bookingEnd = new Date(booking.end);
     
     // Check if booking overlaps with current day
     const overlapsWithToday = (
       (isSameDay(bookingStart, currentDate) || isSameDay(bookingEnd, currentDate)) ||
-      (isBefore(bookingStart, startOfDay) && isAfter(bookingEnd, startOfDay))
+      (bookingStart <= dateRange.end && bookingEnd >= dateRange.start)
     );
     
     console.log(`Booking ${booking.id} (${booking.title}) overlapping: ${overlapsWithToday}, on current day: ${isSameDay(bookingStart, currentDate)}`);
     
-    return overlapsWithToday;
+    return overlapsWithToday && booking.type !== 'alert' && booking.type !== 'maintenance';
   });
   
-  console.log(`After filtering, found ${todayBookings.length} bookings for today (${formatDate(currentDate)})`);
+  console.log(`After filtering, found ${todayBookings.length} bookings for today (${format(currentDate, 'MMMM d, yyyy')})`);
   
-  // Enhanced bookings with bookingStudios junction data
+  // Process bookings to include their studio relationships
   const bookingsWithStudios = todayBookings.map(booking => {
-    const bookingId = booking.id;
-    
-    // Find all booking-studio links for this booking
-    const studioLinks = bookingStudioLinks.filter(
-      (link: { bookingId: number; studioId: number }) => link.bookingId === bookingId
-    );
-    
-    // Attach the links to the booking
+    const relatedBookingStudios = bookingStudios.filter(bs => bs.bookingId === booking.id);
     return {
       ...booking,
-      bookingStudios: studioLinks
+      bookingStudios: relatedBookingStudios,
     };
   });
   
-  // Group bookings by studio (including linked bookings through booking_studios)
-  const bookingsByStudio = studios.reduce((acc, studio) => {
+  // Filter facility alerts (bookings with type 'alert' or 'maintenance')
+  const facilityAlerts = publicBookings.filter(booking => 
+    booking.type === 'alert' || 
+    booking.type === 'maintenance' || 
+    booking.type === 'facility_alert' ||
+    booking.severity !== null
+  );
+  
+  // Organize bookings by studio
+  const bookingsByStudio: Record<number, BookingWithStudios[]> = {};
+  
+  studios.forEach(studio => {
     // Get all bookings that are linked to this studio (either directly or through booking_studios)
-    acc[studio.id] = bookingsWithStudios.filter(booking => {
+    bookingsByStudio[studio.id] = bookingsWithStudios.filter(booking => {
       // Direct studio reference
       if (booking.studioId === studio.id) {
         console.log(`Booking ${booking.id} (${booking.title}) is directly linked to Studio ${studio.id} (${studio.name})`);
@@ -139,7 +153,7 @@ export default function MobilePublicDailyView({
       
       // Check booking_studios junction table
       if (booking.bookingStudios && booking.bookingStudios.length > 0) {
-        const isLinked = booking.bookingStudios.some((bs: { bookingId: number; studioId: number }) => bs.studioId === studio.id);
+        const isLinked = booking.bookingStudios.some(bs => bs.studioId === studio.id);
         if (isLinked) {
           console.log(`Booking ${booking.id} (${booking.title}) is linked via junction table to Studio ${studio.id} (${studio.name})`);
         }
@@ -148,65 +162,57 @@ export default function MobilePublicDailyView({
       
       return false;
     });
-    return acc;
-  }, {} as Record<number, BookingWithStudios[]>);
-
-  // Get facility-wide alerts (bookings with studioId === null)
-  const facilityAlerts = todayBookings.filter(booking => 
-    booking.studioId === null && 
-    (booking.type === "maintenance" || 
-     booking.type === "it_support" || 
-     booking.type === "facility_alert" || 
-     booking.type === "alert" ||
-     booking.severity !== null) // Include any booking with a severity set
-  );
+  });
   
-  // Debug alerts
   console.log("Mobile view - All bookings:", todayBookings);
   console.log("Mobile view - Facility alerts:", facilityAlerts);
-
-  // Navigate to previous/next day
-  const goToPreviousDay = () => {
+  
+  // Navigation functions
+  function goToPreviousDay() {
     const prevDay = new Date(currentDate);
     prevDay.setDate(prevDay.getDate() - 1);
-    // Update both the prop callback and the component state
-    onDateChange(prevDay);
     setCurrentDate(prevDay);
-  };
-
-  const goToNextDay = () => {
+    onDateChange(prevDay);
+  }
+  
+  function goToNextDay() {
     const nextDay = new Date(currentDate);
     nextDay.setDate(nextDay.getDate() + 1);
-    // Update both the prop callback and the component state
-    onDateChange(nextDay);
     setCurrentDate(nextDay);
-  };
+    onDateChange(nextDay);
+  }
   
-  // Navigate to today
-  const goToToday = () => {
+  function goToToday() {
     const today = new Date();
-    // Update both the prop callback and the component state
-    onDateChange(today);
     setCurrentDate(today);
-  };
-
+    onDateChange(today);
+  }
+  
+  function handleLoginClick() {
+    navigate("/auth");
+  }
+  
   // Helper to get PCR room for a booking
   const getPcrRoom = (booking: BookingWithStudios) => {
     if (!booking?.pcrRoomId) return null;
     const room = pcrRooms.find((pcr: { id: number; name: string }) => pcr.id === booking.pcrRoomId);
-    return room;
+    return room || { id: booking.pcrRoomId, name: `PCR ${booking.pcrRoomId}` };
   };
   
-  // Fetch PCR rooms
-  const { data: pcrRooms = [] } = useQuery({
-    queryKey: ['/api/pcr-rooms'],
-    staleTime: 60 * 1000, // 1 minute
-  });
-
-  // Navigate to login page
-  const handleLoginClick = () => {
-    navigate("/auth");
-  };
+  // Update document title with site name
+  useEffect(() => {
+    // Fetch site name from API
+    fetch('/api/system/site-name')
+      .then(res => res.json())
+      .then(data => {
+        // Update document title with site name
+        document.title = data.siteName || "Studio Booking";
+        console.log("Document title updated to:", data);
+      })
+      .catch(err => {
+        console.error("Error fetching site name:", err);
+      });
+  }, []);
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
@@ -222,7 +228,7 @@ export default function MobilePublicDailyView({
           
           <div className="flex flex-col items-center">
             <h1 className="text-lg font-bold">
-              {isToday(currentDate) ? "Today" : formatDate(currentDate)}
+              {isToday(currentDate) ? "Today" : format(currentDate, "MMM d, yyyy")}
             </h1>
             <span className="text-sm text-gray-500">
               {formatDate(currentDate)}
@@ -251,200 +257,190 @@ export default function MobilePublicDailyView({
         )}
       </div>
 
-      {/* Tabs for Studios and Alerts */}
-      <div className="border-b">
-        <Tabs 
-          defaultValue="studios" 
-          value={activeTab} 
-          onValueChange={(value) => setActiveTab(value as "studios" | "alerts")}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="studios">Studios</TabsTrigger>
-            <TabsTrigger value="alerts" className="relative">
-              Alerts
-              {facilityAlerts.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {facilityAlerts.length}
-                </span>
-              )}
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="studios" className="p-0">
-            {/* Studios List */}
-            <div className="overflow-y-auto">
-              {studios.map((studio) => {
+      {/* Main content - Studios and bookings */}
+      <Tabs defaultValue="studios" className="flex-1 overflow-hidden flex flex-col">
+        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10">
+          <TabsTrigger value="studios">Studios Status</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+        </TabsList>
+        
+        {/* Studios Status Tab */}
+        <TabsContent value="studios" className="flex-1 overflow-auto pb-20 -mx-1 px-1 overscroll-contain">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin h-6 w-6 border-t-2 border-blue-500 rounded-full"></div>
+            </div>
+          ) : error ? (
+            <div className="p-4 text-center text-red-500">
+              Failed to load bookings. Please try again.
+            </div>
+          ) : (
+            <div className="p-4 grid grid-cols-1 gap-4">
+              {studios.map(studio => {
                 const studioBookings = bookingsByStudio[studio.id] || [];
                 
                 return (
-                  <div key={studio.id} className="border-b last:border-b-0">
-                    <div className="bg-gray-50 p-3 sticky top-0">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          <Tv className="h-4 w-4 mr-2 text-blue-800" />
-                          <h3 className="font-medium">{studio.name}</h3>
-                        </div>
-                      </div>
+                  <div key={studio.id} className="bg-white rounded-lg border shadow-sm overflow-hidden touch-pan-y">
+                    <div className="flex items-center p-4 border-b sticky top-0 bg-white">
+                      <div className="w-3 h-3 rounded-full mr-2 bg-blue-500"></div>
+                      <h3 className="font-medium flex-1">{studio.name}</h3>
                     </div>
                     
-                    <div className="px-3 pb-2">
+                    <div className="divide-y">
                       {studioBookings.length === 0 ? (
-                        <div className="py-3 text-center text-gray-500 text-sm">
+                        <div className="p-4 text-center text-gray-500 italic">
                           No bookings scheduled
                         </div>
                       ) : (
-                        <div className="space-y-2 py-2">
-                          {studioBookings.map((booking) => {
-                            const startTime = new Date(booking.start);
-                            const endTime = new Date(booking.end);
-                            const pcrRoom = getPcrRoom(booking);
-                            
-                            // Get linked studios for this booking
-                            const linkedStudios = extractStudiosFromBooking(booking, studios);
-                            
-                            console.log(`Getting linked studios for booking ${booking.id} (${booking.title})`);
-                            if (booking.studioId) {
-                              console.log(`Found direct link to studio ${booking.studioId} (${studios.find(s => s.id === booking.studioId)?.name})`);
-                            }
-                            
-                            if (booking.bookingStudios && booking.bookingStudios.length > 0) {
-                              console.log(`Finding linked studios for booking ${booking.id}: found ${booking.bookingStudios.length} links`);
-                            }
-                            console.log(`Total studios linked to booking ${booking.id}: ${linkedStudios.length} (${linkedStudios.map(s => s.name).join(', ')})`);
-                            
-                            return (
-                              <div 
-                                key={booking.id} 
-                                className={cn(
-                                  "rounded-md shadow-sm p-3 text-sm border-l-4",
-                                  booking.status === "confirmed" ? "border-l-green-500 bg-green-50" :
-                                  booking.status === "tentative" ? "border-l-orange-500 bg-orange-50" :
-                                  booking.status === "cancelled" ? "border-l-red-500 bg-red-50" :
-                                  booking.type === "maintenance" ? "border-l-purple-500 bg-purple-50" :
-                                  booking.type === "alert" || booking.severity ? "border-l-amber-500 bg-amber-50" :
-                                  "border-l-blue-500 bg-blue-50"
-                                )}
-                              >
-                                <div className="flex justify-between mb-1">
-                                  <div className="font-medium">{booking.title}</div>
-                                  <div className="text-gray-600 text-xs flex items-center">
-                                    <Clock className="h-3 w-3 mr-1 inline" /> 
-                                    {formatTimeRange(startTime, endTime)}
-                                  </div>
+                        studioBookings.map(booking => {
+                          const startTime = new Date(booking.start);
+                          const endTime = new Date(booking.end);
+                          const pcrRoom = getPcrRoom(booking);
+                          
+                          return (
+                            <div key={booking.id} className="p-3 hover:bg-gray-50">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-gray-900">{booking.title}</h4>
+                                  {booking.description && (
+                                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                                      {booking.description}
+                                    </p>
+                                  )}
                                 </div>
                                 
-                                {booking.description && (
-                                  <div className="text-xs text-gray-600 mb-1 line-clamp-2">
-                                    {booking.description}
-                                  </div>
-                                )}
-                                
-                                <div className="flex flex-wrap gap-1 mt-1.5">
-                                  {/* Status badge */}
-                                  {booking.status && (
-                                    <Badge variant="outline" className={cn(
-                                      "text-xs",
-                                      booking.status === "confirmed" ? "border-green-500 text-green-700 bg-green-50" :
-                                      booking.status === "tentative" ? "border-orange-500 text-orange-700 bg-orange-50" :
-                                      booking.status === "cancelled" ? "border-red-500 text-red-700 bg-red-50" :
-                                      "border-gray-500 text-gray-700 bg-gray-50"
-                                    )}>
-                                      {booking.status}
-                                    </Badge>
-                                  )}
-                                  
-                                  {/* Type badge */}
-                                  {booking.type && (
-                                    <Badge variant="outline" className="text-xs border-gray-300">
-                                      {booking.type}
-                                    </Badge>
-                                  )}
-                                  
-                                  {/* PCR Room badge */}
-                                  {pcrRoom && (
-                                    <Badge variant="outline" className="text-xs border-gray-300 bg-gray-100">
-                                      <MonitorPlay className="mr-1 h-3 w-3" />
-                                      {pcrRoom.name}
-                                    </Badge>
-                                  )}
-                                  
-                                  {/* Show studio links if more than the current studio */}
-                                  {linkedStudios.length > 1 && (
-                                    <Badge variant="outline" className="text-xs border-blue-300 bg-blue-50 text-blue-700">
-                                      <Tv className="mr-1 h-3 w-3" />
-                                      {linkedStudios.length} studios
-                                    </Badge>
-                                  )}
+                                <div className="text-sm text-gray-500 whitespace-nowrap ml-2">
+                                  {formatTimeRange(startTime, endTime)}
                                 </div>
                               </div>
-                            );
-                          })}
-                        </div>
+                              
+                              {/* Status badges */}
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {booking.status && (
+                                  <Badge variant="outline" className={cn(
+                                    "text-xs",
+                                    booking.status === "confirmed" ? "border-green-500 text-green-700 bg-green-50" :
+                                    booking.status === "tentative" ? "border-orange-500 text-orange-700 bg-orange-50" :
+                                    booking.status === "cancelled" ? "border-red-500 text-red-700 bg-red-50" :
+                                    "border-gray-500 text-gray-700 bg-gray-50"
+                                  )}>
+                                    {booking.status}
+                                  </Badge>
+                                )}
+                                
+                                {booking.type && (
+                                  <Badge variant="outline" className="text-xs border-gray-300">
+                                    {booking.type}
+                                  </Badge>
+                                )}
+                                
+                                {pcrRoom && (
+                                  <Badge variant="outline" className="text-xs border-gray-300 bg-gray-50 flex items-center gap-1">
+                                    <MonitorPlay className="h-3 w-3" />
+                                    {pcrRoom.name}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   </div>
                 );
               })}
             </div>
-          </TabsContent>
-          
-          <TabsContent value="alerts" className="p-0">
-            {/* Alerts List */}
-            <div className="p-3">
-              {facilityAlerts.length === 0 ? (
-                <div className="py-4 text-center text-gray-500">
-                  No facility alerts for this day
+          )}
+        </TabsContent>
+        
+        <TabsContent value="timeline" className="flex-1 overflow-auto pb-20">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin h-6 w-6 border-t-2 border-blue-500 rounded-full"></div>
+            </div>
+          ) : error ? (
+            <div className="p-4 text-center text-red-500">
+              Failed to load bookings. Please try again.
+            </div>
+          ) : (
+            <div className="p-4">
+              {/* Timeline view - all bookings sorted by time */}
+              {bookingsWithStudios.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar size={48} className="mx-auto mb-2 text-gray-400" />
+                  <p>No bookings scheduled for today</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {facilityAlerts.map((alert) => {
-                    const startTime = new Date(alert.start);
-                    const endTime = new Date(alert.end);
+                <div className="space-y-4">
+                  {bookingsWithStudios.map(booking => {
+                    const startTime = new Date(booking.start);
+                    const endTime = new Date(booking.end);
+                    const pcrRoom = getPcrRoom(booking);
+                    
+                    // Get linked studios for this booking
+                    const linkedStudios = extractStudiosFromBooking(booking, studios);
                     
                     return (
                       <div 
-                        key={alert.id} 
+                        key={booking.id} 
                         className={cn(
-                          "rounded-md shadow-sm p-3 text-sm border-l-4",
-                          alert.severity === "high" ? "border-l-red-500 bg-red-50" :
-                          alert.severity === "medium" ? "border-l-amber-500 bg-amber-50" :
-                          "border-l-blue-500 bg-blue-50"
+                          "rounded-lg border shadow-sm overflow-hidden",
+                          booking.status === "confirmed" ? "border-l-4 border-l-green-500" :
+                          booking.status === "tentative" ? "border-l-4 border-l-orange-500" :
+                          booking.status === "cancelled" ? "border-l-4 border-l-red-500" :
+                          "border-l-4 border-l-blue-500"
                         )}
                       >
-                        <div className="flex justify-between">
-                          <div className="font-medium flex items-center">
-                            <AlertTriangle className={cn(
-                              "h-4 w-4 mr-1",
-                              alert.severity === "high" ? "text-red-500" :
-                              alert.severity === "medium" ? "text-amber-500" :
-                              "text-blue-500"
-                            )} />
-                            {alert.title}
+                        <div className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-medium">{booking.title}</h3>
+                            <div className="text-sm text-gray-500">
+                              {formatTimeRange(startTime, endTime)}
+                            </div>
                           </div>
-                          <div className="text-gray-600 text-xs">
-                            {formatTimeRange(startTime, endTime)}
-                          </div>
-                        </div>
-                        
-                        {alert.description && (
-                          <div className="text-xs text-gray-600 mt-1">
-                            {alert.description}
-                          </div>
-                        )}
-                        
-                        <div className="flex gap-1 mt-2">
-                          {alert.severity && (
-                            <Badge variant={alert.severity === "high" ? "destructive" : "outline"} className="text-xs">
-                              {alert.severity} severity
-                            </Badge>
+                          
+                          {booking.description && (
+                            <p className="text-sm text-gray-600 mb-3">
+                              {booking.description}
+                            </p>
                           )}
                           
-                          {alert.type && alert.type !== "alert" && (
-                            <Badge variant="outline" className="text-xs">
-                              {alert.type}
-                            </Badge>
-                          )}
+                          {/* Studios involved */}
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {linkedStudios.map(studio => (
+                              <Badge key={studio.id} className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+                                <Tv className="h-3 w-3 mr-1" /> {studio.name}
+                              </Badge>
+                            ))}
+                          </div>
+                          
+                          {/* Status and other badges */}
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {booking.status && (
+                              <Badge variant="outline" className={cn(
+                                "text-xs",
+                                booking.status === "confirmed" ? "border-green-500 text-green-700 bg-green-50" :
+                                booking.status === "tentative" ? "border-orange-500 text-orange-700 bg-orange-50" :
+                                booking.status === "cancelled" ? "border-red-500 text-red-700 bg-red-50" :
+                                "border-gray-500 text-gray-700 bg-gray-50"
+                              )}>
+                                {booking.status}
+                              </Badge>
+                            )}
+                            
+                            {booking.type && (
+                              <Badge variant="outline" className="text-xs border-gray-300">
+                                {booking.type}
+                              </Badge>
+                            )}
+                            
+                            {pcrRoom && (
+                              <Badge variant="outline" className="text-xs border-gray-300 bg-gray-50 flex items-center gap-1">
+                                <MonitorPlay className="h-3 w-3" />
+                                {pcrRoom.name}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -452,35 +448,20 @@ export default function MobilePublicDailyView({
                 </div>
               )}
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+          )}
+        </TabsContent>
+      </Tabs>
       
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto">
-        {isLoading && (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-spin h-6 w-6 border-t-2 border-blue-500 rounded-full"></div>
-          </div>
-        )}
-        
-        {error && (
-          <div className="p-4 text-center text-red-500">
-            Failed to load bookings. Please try again.
-          </div>
-        )}
-      </div>
-      
-      {/* Bottom Navigation Bar (Login button instead of Add button) */}
-      <div className="border-t flex items-center bg-white h-16 px-4">
-        <div className="grid grid-cols-3 w-full">
-          {/* Calendar Navigation */}
-          <button className="flex flex-col items-center justify-center h-full text-gray-600">
-            <CalendarDays size={20} />
+      {/* Fixed bottom navigation bar with login button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+        <div className="flex items-center justify-around h-16">
+          {/* Calendar Icon (inactive) */}
+          <div className="flex flex-col items-center justify-center w-full h-full text-gray-400">
+            <Calendar size={20} />
             <span className="text-xs mt-1">Calendar</span>
-          </button>
+          </div>
           
-          {/* Login Button */}
+          {/* Login Button (center) */}
           <div className="flex flex-col items-center justify-center w-full h-full">
             <button 
               onClick={handleLoginClick}
@@ -488,10 +469,13 @@ export default function MobilePublicDailyView({
             >
               <LogIn size={24} />
             </button>
+            <span className="text-xs mt-1">Log in</span>
           </div>
           
-          {/* Empty slot for symmetry */}
-          <div className="flex flex-col items-center justify-center w-full h-full">
+          {/* Reports Icon (inactive) */}
+          <div className="flex flex-col items-center justify-center w-full h-full text-gray-400">
+            <AlertTriangle size={20} />
+            <span className="text-xs mt-1">Alerts</span>
           </div>
         </div>
       </div>
