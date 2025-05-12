@@ -300,18 +300,30 @@ export function SimpleMobileForm({
     }
   };
   
-  // Handle notification group selection
+  // Handle notification group selection with toggle behavior
   const handleNotificationGroupSelect = (groupId: number) => {
     const group = notificationGroups.find(g => g.id === groupId);
     
     if (group) {
-      // Add the group ID to the notify list (not the email)
       setFormData(prev => {
         // Convert to array first to ensure compatibility
         const currentNotifyList = Array.isArray(prev.notifyList) ? prev.notifyList : [];
-        // Store the group ID as a string to match the format used in BookingModal
-        const notifyList = Array.from(new Set([...currentNotifyList, groupId.toString()]));
-        console.log('Adding notification group to notifyList:', groupId.toString(), group.name);
+        const groupIdStr = groupId.toString();
+        
+        // Check if the group is already in the list
+        const isSelected = currentNotifyList.includes(groupIdStr);
+        
+        let notifyList;
+        if (isSelected) {
+          // Remove the group if already selected (toggle behavior)
+          notifyList = currentNotifyList.filter(id => id !== groupIdStr);
+          console.log('Removing notification group from notifyList:', groupIdStr, group.name);
+        } else {
+          // Add the group if not already selected
+          notifyList = [...currentNotifyList, groupIdStr];
+          console.log('Adding notification group to notifyList:', groupIdStr, group.name);
+        }
+        
         return {
           ...prev,
           notifyList
@@ -562,18 +574,32 @@ export function SimpleMobileForm({
           <div className="form-group">
             <label>Notify Groups</label>
             <div className="notify-group-select">
-              {notificationGroups.map(group => (
-                <div key={group.id} className="notify-group-item">
-                  <button
-                    type="button"
-                    onClick={() => handleNotificationGroupSelect(group.id)}
-                    className="notify-group-button"
-                  >
-                    {group.name}
-                  </button>
-                </div>
-              ))}
+              {notificationGroups.map(group => {
+                // Check if this group is in the notify list
+                const isSelected = formData.notifyList.includes(group.id.toString());
+                
+                return (
+                  <div key={group.id} className="notify-group-item">
+                    <button
+                      type="button"
+                      onClick={() => handleNotificationGroupSelect(group.id)}
+                      className={`notify-group-button ${isSelected ? 'selected' : ''}`}
+                    >
+                      {group.name}
+                      {isSelected && ' ✓'}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
+            {formData.notifyList.length > 0 && (
+              <div className="mt-2 text-xs text-gray-600">
+                Selected groups: {formData.notifyList.map(id => {
+                  const group = notificationGroups.find(g => g.id.toString() === id);
+                  return group ? group.name : '';
+                }).filter(Boolean).join(', ')}
+              </div>
+            )}
           </div>
           
           <div className="form-actions">

@@ -15,6 +15,39 @@
   transform: translateY(-2px);
 }
 
+/* Notification group styles */
+.notify-group-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.notify-group-item {
+  margin-bottom: 0.5rem;
+}
+
+.notify-group-button {
+  padding: 0.35rem 0.7rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+.notify-group-button:hover {
+  background-color: #e5e7eb;
+}
+
+.notify-group-button.selected {
+  background-color: #dbeafe;
+  border: 1px solid #93c5fd;
+  color: #1e40af;
+  font-weight: 500;
+}
+
 :root {
       --background: 0 0% 100%;
 --foreground: 20 14.3% 4.1%;
