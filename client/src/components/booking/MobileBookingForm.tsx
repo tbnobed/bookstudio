@@ -56,9 +56,27 @@ export default function MobileBookingForm({
     };
   }, []);
   
+  // Define smaller form width to prevent overflow
+  const formWidth = '80%';
+
   return (
-    <form onSubmit={onSubmit} className="mobile-booking-form space-y-4" style={{ width: '92%', maxWidth: '92%', margin: '0 auto', overflowX: 'hidden' }}>
-      <div className="space-y-4" style={{ width: '100%', maxWidth: '100%' }}>
+    <form 
+      onSubmit={onSubmit} 
+      className="mobile-booking-form space-y-4" 
+      style={{ 
+        width: formWidth, 
+        maxWidth: formWidth, 
+        margin: '0 auto', 
+        overflowX: 'hidden',
+        padding: '0px',
+        boxSizing: 'border-box'
+      }}
+    >
+      <div className="space-y-4" style={{ 
+        width: '100%', 
+        maxWidth: '100%',
+        overflowX: 'hidden' 
+      }}>
         {/* Title and description section */}
         <div className="form-item">
           <Label htmlFor="title" className="text-base font-medium">Title</Label>
