@@ -1014,35 +1014,35 @@ export default function BookingModal({
                         </div>
                         
                         <div>
-                          <Label htmlFor="status">Booking Status</Label>
+                          <Label htmlFor="status" className="text-base font-medium">Booking Status</Label>
                           <Select 
                             value={formData.status} 
                             onValueChange={(value) => updateFormField('status', value)} 
                             required
                           >
-                            <SelectTrigger id="status">
+                            <SelectTrigger id="status" className="h-11 mt-1.5 text-base">
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="confirmed">Confirmed</SelectItem>
-                              <SelectItem value="tentative">Tentative</SelectItem>
-                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                              <SelectItem value="confirmed" className="text-base py-1.5">Confirmed</SelectItem>
+                              <SelectItem value="tentative" className="text-base py-1.5">Tentative</SelectItem>
+                              <SelectItem value="cancelled" className="text-base py-1.5">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         
                         {!alertsOnly && (
                           <div>
-                            <Label htmlFor="color">Booking Color</Label>
-                            <div className="flex items-center mt-1.5">
+                            <Label htmlFor="color" className="text-base font-medium">Booking Color</Label>
+                            <div className="flex items-center mt-2">
                               <Input
                                 id="color"
                                 type="color"
                                 value={formData.color}
                                 onChange={(e) => updateFormField('color', e.target.value)}
-                                className="w-16 h-8 p-1 mr-2"
+                                className="w-20 h-10 p-1 mr-3"
                               />
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-sm text-muted-foreground">
                                 Custom color for calendar display
                               </span>
                             </div>
@@ -1051,20 +1051,20 @@ export default function BookingModal({
                         
                         {alertsOnly && (
                           <div>
-                            <Label htmlFor="severity">Severity</Label>
+                            <Label htmlFor="severity" className="text-base font-medium">Severity</Label>
                             <Select 
                               value={formData.severity} 
                               onValueChange={(value) => updateFormField('severity', value)} 
                               required
                             >
-                              <SelectTrigger>
+                              <SelectTrigger className="h-11 mt-1.5 text-base">
                                 <SelectValue placeholder="Select severity" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="low">Low</SelectItem>
-                                <SelectItem value="medium">Medium</SelectItem>
-                                <SelectItem value="high">High</SelectItem>
-                                <SelectItem value="critical">Critical</SelectItem>
+                                <SelectItem value="low" className="text-base py-1.5">Low</SelectItem>
+                                <SelectItem value="medium" className="text-base py-1.5">Medium</SelectItem>
+                                <SelectItem value="high" className="text-base py-1.5">High</SelectItem>
+                                <SelectItem value="critical" className="text-base py-1.5">Critical</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -1078,7 +1078,7 @@ export default function BookingModal({
                       <div className="flex space-x-2">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" type="button" size="sm" className="text-red-500">
+                            <Button variant="outline" type="button" size="default" className="text-red-500 h-10">
                               Delete
                             </Button>
                           </AlertDialogTrigger>
