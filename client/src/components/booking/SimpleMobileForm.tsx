@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { useStudios } from '@/hooks/useStudios';
-import { usePcrRooms } from '@/hooks/usePcrRooms';
-import { useTemplates } from '@/hooks/useTemplates';
-import { useNotificationGroups } from '@/hooks/useNotificationGroups';
-import { FormBookingData, ApiBooking } from '../../types/bookings';
-import { formatDateForForm } from '../../utils/dateUtils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatDateForForm, formatTimeForForm } from '../../utils/dateUtils';
+import { FormBookingData, ApiBooking, BookingType, BookingStatus, BookingSeverity } from '../../types/bookings';
+import { Studio } from '../../types/studios';
+import { PcrRoom } from '../../types/pcr-rooms';
+import { useStudios } from '../../hooks/useStudios';
+import { usePcrRooms } from '../../hooks/usePcrRooms';
 import './simple-mobile.css';
 
 interface SimpleMobileFormProps {
@@ -16,10 +20,6 @@ interface SimpleMobileFormProps {
   selectedStudio?: number | null;
 }
 
-/**
- * A simplified mobile booking form that uses native inputs instead of shadcn components
- * This version is optimized for medium-sized mobile devices with decent screens
- */
 export function SimpleMobileForm({
   isOpen,
   onClose,
@@ -29,80 +29,117 @@ export function SimpleMobileForm({
 }: SimpleMobileFormProps) {
   const { studios = [] } = useStudios();
   const { pcrRooms = [] } = usePcrRooms();
-  const { templates = [] } = useTemplates();
-  const { notificationGroups = [] } = useNotificationGroups();
   
-  // Form state
+  // Initialize form data with default values or existing booking data
   const [formData, setFormData] = useState<FormBookingData>({
     id: booking?.id || 0,
     title: booking?.title || '',
     description: booking?.description || '',
     studioId: selectedStudio || booking?.studioId || (studios[0]?.id || 0),
-    pcrRoomId: booking?.pcrRoomId || 0,
+    pcrRoomId: booking?.pcrRoomId || (pcrRooms[0]?.id || 0),
+    start: booking ? new Date(booking.start) : new Date(),
+    end: booking ? new Date(booking.end) : new Date(Date.now() + 3600000), // Default 1 hour later
     type: booking?.type || 'production',
-    start: booking?.start ? new Date(booking.start) : new Date(),
-    end: booking?.end ? new Date(booking.end) : new Date(Date.now() + 60 * 60 * 1000), // Default 1 hour duration
+    status: booking?.status || 'draft',
+    severity: booking?.severity || 'low',
     templateId: booking?.templateId || 0,
-    status: booking?.status || 'confirmed',
     notifyList: booking?.notifyList || [],
-    severity: booking?.severity || 'medium',
-    color: booking?.color || '#4B83E2'
+    color: booking?.color || '#3b82f6' // Default blue
   });
   
-  // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    
-    if (type === 'checkbox') {
-      const checkbox = e.target as HTMLInputElement;
-      
-      // Handle checkboxes for notification groups
-      if (name.startsWith('notify_')) {
-        const groupId = name.replace('notify_', '');
-        
-        setFormData(prev => {
-          const newNotifyList = checkbox.checked
-            ? [...prev.notifyList, groupId]
-            : prev.notifyList.filter(id => id !== groupId);
-          
-          return { ...prev, notifyList: newNotifyList };
-        });
+  // Handle form field changes
+  const handleChange = (field: string, value: any) => {
+    setFormData(prev => {
+      // Special case for notifyList which needs to be an array
+      if (field === 'notifyList') {
+        if (typeof value === 'string') {
+          return {
+            ...prev,
+            notifyList: value.split(',').map(email => email.trim())
+          };
+        }
       }
-    } else if (name === 'start' || name === 'end') {
-      // Handle date/time inputs
-      const [date, time] = value.split('T');
-      const newDate = new Date(`${date}T${time || '00:00'}`);
-      setFormData(prev => ({ ...prev, [name]: newDate }));
+      
+      // Handle empty studioId as number
+      if (field === 'studioId' && value === '') {
+        return {
+          ...prev,
+          studioId: 0
+        };
+      }
+      
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
+  };
+  
+  // Handle date and time changes
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    if (name === 'startDate') {
+      const [currentDate, currentTime] = formData.start.toISOString().split('T');
+      const newDateTimeStr = `${value}T${currentTime}`;
+      const newDate = new Date(newDateTimeStr);
+      setFormData(prev => ({ ...prev, start: newDate }));
+    } else if (name === 'endDate') {
+      const [currentDate, currentTime] = formData.end.toISOString().split('T');
+      const newDateTimeStr = `${value}T${currentTime}`;
+      const newDate = new Date(newDateTimeStr);
+      setFormData(prev => ({ ...prev, end: newDate }));
+    } else if (name === 'startTime') {
+      const currentDate = formData.start.toISOString().split('T')[0];
+      const newDateTimeStr = `${currentDate}T${value}:00`;
+      const newDate = new Date(newDateTimeStr);
+      setFormData(prev => ({ ...prev, start: newDate }));
+    } else if (name === 'endTime') {
+      const currentDate = formData.end.toISOString().split('T')[0];
+      const newDateTimeStr = `${currentDate}T${value}:00`;
+      const newDate = new Date(newDateTimeStr);
+      setFormData(prev => ({ ...prev, end: newDate }));
+    }
+  };
+  
+  // Handle select changes
+  const handleSelectChange = (field: string, value: string) => {
+    if (field === 'studioId' || field === 'pcrRoomId' || field === 'templateId') {
+      setFormData(prev => ({ ...prev, [field]: parseInt(value, 10) }));
+    } else if (field === 'type' || field === 'status' || field === 'severity') {
+      setFormData(prev => ({ ...prev, [field]: value }));
     } else {
-      // Handle all other inputs
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [field]: value }));
     }
   };
   
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('SimpleMobileForm - Submitting:', formData);
     onSubmit(formData);
   };
   
-  // Format dates for display in form inputs
-  const formatDateTimeLocal = (date: Date) => {
-    return format(date, "yyyy-MM-dd'T'HH:mm");
-  };
+  // Auto focus first field on open
+  useEffect(() => {
+    if (isOpen) {
+      const titleInput = document.getElementById('mobile-title');
+      if (titleInput) {
+        titleInput.focus();
+      }
+    }
+  }, [isOpen]);
   
-  // If not open, don't render anything
   if (!isOpen) return null;
   
   return (
-    <div className="simple-mobile-overlay">
-      <div className="simple-mobile-container">
-        <div className="simple-mobile-header">
-          <h2 className="simple-mobile-title">
-            {booking && booking.id > 0 ? 'Edit Booking' : 'New Booking'}
-          </h2>
+    <div className="simple-mobile-form-overlay">
+      <div className="simple-mobile-form-container">
+        <div className="simple-mobile-form-header">
+          <h2>{booking ? 'Edit Booking' : 'New Booking'}</h2>
           <button 
             type="button" 
-            className="simple-mobile-close-btn"
+            className="close-button"
             onClick={onClose}
           >
             ×
@@ -110,226 +147,189 @@ export function SimpleMobileForm({
         </div>
         
         <form onSubmit={handleSubmit} className="simple-mobile-form">
-          {/* Title */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="title">Title:</label>
-            <input
-              type="text"
-              id="title"
-              name="title"
+          <div className="form-group">
+            <Label htmlFor="mobile-title">Title</Label>
+            <Input 
+              id="mobile-title"
               value={formData.title}
-              onChange={handleChange}
-              placeholder="Enter booking title"
-              required
-              className="simple-mobile-input"
+              onChange={(e) => handleChange('title', e.target.value)}
+              required 
             />
           </div>
           
-          {/* Type */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="type">Type:</label>
-            <select
-              id="type"
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              className="simple-mobile-select"
-            >
-              <option value="production">Production</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="private">Private</option>
-              <option value="alert">Alert/Notification</option>
-            </select>
-          </div>
-          
-          {/* Studio selection */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="studioId">Studio:</label>
-            <select
-              id="studioId"
-              name="studioId"
-              value={formData.studioId || ''}
-              onChange={handleChange}
-              className="simple-mobile-select"
-              required
-            >
-              <option value="">Select a studio</option>
-              {studios.map(studio => (
-                <option key={studio.id} value={studio.id}>
-                  {studio.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {/* PCR Room selection */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="pcrRoomId">PCR Room:</label>
-            <select
-              id="pcrRoomId"
-              name="pcrRoomId"
-              value={formData.pcrRoomId || ''}
-              onChange={handleChange}
-              className="simple-mobile-select"
-            >
-              <option value="0">None</option>
-              {pcrRooms.map(room => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Template selection */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="templateId">Template:</label>
-            <select
-              id="templateId"
-              name="templateId"
-              value={formData.templateId || ''}
-              onChange={handleChange}
-              className="simple-mobile-select"
-            >
-              <option value="0">None</option>
-              {templates.map(template => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Start Date/Time */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="start">Start:</label>
-            <input
-              type="datetime-local"
-              id="start"
-              name="start"
-              value={formatDateTimeLocal(formData.start)}
-              onChange={handleChange}
-              className="simple-mobile-input"
-              required
-            />
-          </div>
-          
-          {/* End Date/Time */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="end">End:</label>
-            <input
-              type="datetime-local"
-              id="end"
-              name="end"
-              value={formatDateTimeLocal(formData.end)}
-              onChange={handleChange}
-              className="simple-mobile-input"
-              required
-            />
-          </div>
-          
-          {/* Status */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="status">Status:</label>
-            <select
-              id="status"
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="simple-mobile-select"
-            >
-              <option value="draft">Draft</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-          
-          {/* Severity (for maintenance/alerts) */}
-          {formData.type === 'maintenance' || formData.type === 'alert' ? (
-            <div className="simple-mobile-form-group">
-              <label htmlFor="severity">Severity:</label>
-              <select
-                id="severity"
-                name="severity"
-                value={formData.severity}
-                onChange={handleChange}
-                className="simple-mobile-select"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
-              </select>
-            </div>
-          ) : null}
-          
-          {/* Description */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="description">Description:</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description || ''}
-              onChange={handleChange}
-              placeholder="Enter booking details"
+          <div className="form-group">
+            <Label htmlFor="mobile-description">Description</Label>
+            <Textarea 
+              id="mobile-description"
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
               rows={3}
-              className="simple-mobile-textarea"
             />
           </div>
           
-          {/* Notification Groups */}
-          <div className="simple-mobile-form-group">
-            <label>Notify:</label>
-            <div className="simple-mobile-checkbox-grid">
-              {notificationGroups.map(group => (
-                <div key={group.id} className="simple-mobile-checkbox-item">
-                  <input
-                    type="checkbox"
-                    id={`notify_${group.id}`}
-                    name={`notify_${group.id}`}
-                    checked={formData.notifyList.includes(group.id.toString())}
-                    onChange={handleChange}
-                    className="simple-mobile-checkbox"
-                  />
-                  <label htmlFor={`notify_${group.id}`} className="simple-mobile-checkbox-label">
-                    {group.name}
-                  </label>
-                </div>
-              ))}
-            </div>
+          <div className="form-group">
+            <Label htmlFor="mobile-studio">Studio</Label>
+            <Select 
+              value={formData.studioId.toString()}
+              onValueChange={(value) => handleSelectChange('studioId', value)}
+            >
+              <SelectTrigger id="mobile-studio">
+                <SelectValue placeholder="Select a studio" />
+              </SelectTrigger>
+              <SelectContent>
+                {studios.map((studio) => (
+                  <SelectItem key={studio.id} value={studio.id.toString()}>
+                    {studio.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
-          {/* Color Selection */}
-          <div className="simple-mobile-form-group">
-            <label htmlFor="color">Color:</label>
-            <div className="simple-mobile-color-selector">
-              <input
-                type="color"
-                id="color"
-                name="color"
-                value={formData.color}
-                onChange={handleChange}
-                className="simple-mobile-color-input"
+          <div className="form-group">
+            <Label htmlFor="mobile-pcr-room">PCR Room</Label>
+            <Select 
+              value={formData.pcrRoomId.toString()}
+              onValueChange={(value) => handleSelectChange('pcrRoomId', value)}
+            >
+              <SelectTrigger id="mobile-pcr-room">
+                <SelectValue placeholder="Select a PCR room" />
+              </SelectTrigger>
+              <SelectContent>
+                {pcrRooms.map((pcrRoom) => (
+                  <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                    {pcrRoom.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <Label htmlFor="mobile-start-date">Start Date</Label>
+              <Input 
+                id="mobile-start-date"
+                type="date"
+                name="startDate"
+                value={formatDateForForm(formData.start)}
+                onChange={handleDateChange}
+                required
               />
-              <span className="simple-mobile-color-preview" style={{ backgroundColor: formData.color }}></span>
+            </div>
+            <div className="form-group">
+              <Label htmlFor="mobile-start-time">Start Time</Label>
+              <Input 
+                id="mobile-start-time"
+                type="time"
+                name="startTime"
+                value={formatTimeForForm(formData.start)}
+                onChange={handleDateChange}
+                required
+              />
             </div>
           </div>
           
-          {/* Action Buttons */}
-          <div className="simple-mobile-actions">
-            <button
-              type="button"
-              onClick={onClose}
-              className="simple-mobile-button simple-mobile-button-cancel"
+          <div className="form-row">
+            <div className="form-group">
+              <Label htmlFor="mobile-end-date">End Date</Label>
+              <Input 
+                id="mobile-end-date"
+                type="date"
+                name="endDate"
+                value={formatDateForForm(formData.end)}
+                onChange={handleDateChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <Label htmlFor="mobile-end-time">End Time</Label>
+              <Input 
+                id="mobile-end-time"
+                type="time"
+                name="endTime"
+                value={formatTimeForForm(formData.end)}
+                onChange={handleDateChange}
+                required
+              />
+            </div>
+          </div>
+          
+          <div className="form-group">
+            <Label htmlFor="mobile-type">Booking Type</Label>
+            <Select 
+              value={formData.type}
+              onValueChange={(value) => handleSelectChange('type', value)}
             >
+              <SelectTrigger id="mobile-type">
+                <SelectValue placeholder="Select a type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="production">Production</SelectItem>
+                <SelectItem value="maintenance">Maintenance</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
+                <SelectItem value="alert">Alert</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {(formData.type === 'production' || formData.type === 'other') && (
+            <div className="form-group">
+              <Label htmlFor="mobile-status">Status</Label>
+              <Select 
+                value={formData.status}
+                onValueChange={(value) => handleSelectChange('status', value)}
+              >
+                <SelectTrigger id="mobile-status">
+                  <SelectValue placeholder="Select a status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
+          {(formData.type === 'maintenance' || formData.type === 'alert') && (
+            <div className="form-group">
+              <Label htmlFor="mobile-severity">Severity</Label>
+              <Select 
+                value={formData.severity}
+                onValueChange={(value) => handleSelectChange('severity', value)}
+              >
+                <SelectTrigger id="mobile-severity">
+                  <SelectValue placeholder="Select severity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
+          <div className="form-group">
+            <Label htmlFor="mobile-color">Color</Label>
+            <Input 
+              id="mobile-color"
+              type="color"
+              value={formData.color}
+              onChange={(e) => handleChange('color', e.target.value)}
+            />
+          </div>
+          
+          <div className="form-actions">
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="simple-mobile-button simple-mobile-button-submit"
-            >
-              {booking && booking.id > 0 ? 'Update' : 'Create'}
-            </button>
+            </Button>
+            <Button type="submit">
+              {booking ? 'Update' : 'Create'} Booking
+            </Button>
           </div>
         </form>
       </div>

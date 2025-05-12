@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { useStudios } from '@/hooks/useStudios';
-import { FormBookingData, ApiBooking } from '../../types/bookings';
+import { ApiBooking, FormBookingData, BookingType } from '../../types/bookings';
+import { formatDateForForm, formatTimeForForm } from '../../utils/dateUtils';
+import { useStudios } from '../../hooks/useStudios';
+import { usePcrRooms } from '../../hooks/usePcrRooms';
 import './direct-mobile.css';
 
+// Ultra-simplified form for low-end mobile devices
 interface DirectMobileFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,10 +14,6 @@ interface DirectMobileFormProps {
   selectedStudio?: number | null;
 }
 
-/**
- * An ultra-simplified booking form for very low-end devices or small screens
- * This form has minimal features and is designed to be as lightweight as possible
- */
 export function DirectMobileForm({
   isOpen,
   onClose,
@@ -24,63 +22,100 @@ export function DirectMobileForm({
   selectedStudio = null
 }: DirectMobileFormProps) {
   const { studios = [] } = useStudios();
+  const { pcrRooms = [] } = usePcrRooms();
   
-  // Form state with bare minimum required fields
+  // Determine initial studio ID
+  const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 0);
+  
+  // Initialize form data
   const [formData, setFormData] = useState<FormBookingData>({
     id: booking?.id || 0,
     title: booking?.title || '',
     description: booking?.description || '',
-    studioId: selectedStudio || booking?.studioId || (studios[0]?.id || 0),
-    pcrRoomId: booking?.pcrRoomId || 0,
+    studioId: initialStudioId,
+    pcrRoomId: booking?.pcrRoomId || (pcrRooms[0]?.id || 0),
+    start: booking ? new Date(booking.start) : new Date(),
+    end: booking ? new Date(booking.end) : new Date(Date.now() + 3600000), // Default 1 hour later
     type: booking?.type || 'production',
-    start: booking?.start ? new Date(booking.start) : new Date(),
-    end: booking?.end ? new Date(booking.end) : new Date(Date.now() + 60 * 60 * 1000), // Default 1 hour
+    status: booking?.status || 'draft',
+    severity: booking?.severity || 'low',
     templateId: booking?.templateId || 0,
-    status: booking?.status || 'confirmed',
     notifyList: booking?.notifyList || [],
-    severity: booking?.severity || 'medium',
-    color: booking?.color || '#4B83E2'
+    color: booking?.color || '#3b82f6' // Default blue
   });
   
-  // Handle form input changes
+  // Handle form field changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'start' || name === 'end') {
-      // Handle date/time inputs
-      const [date, time] = value.split('T');
-      const newDate = new Date(`${date}T${time || '00:00'}`);
-      setFormData(prev => ({ ...prev, [name]: newDate }));
+    if (name === 'studioId' || name === 'pcrRoomId' || name === 'templateId') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: parseInt(value, 10) || 0
+      }));
+    } else if (name === 'startDate') {
+      const [currentDate, currentTime] = formData.start.toISOString().split('T');
+      const newDateTimeStr = `${value}T${currentTime}`;
+      setFormData(prev => ({
+        ...prev,
+        start: new Date(newDateTimeStr)
+      }));
+    } else if (name === 'endDate') {
+      const [currentDate, currentTime] = formData.end.toISOString().split('T');
+      const newDateTimeStr = `${value}T${currentTime}`;
+      setFormData(prev => ({
+        ...prev,
+        end: new Date(newDateTimeStr)
+      }));
+    } else if (name === 'startTime') {
+      const currentDate = formData.start.toISOString().split('T')[0];
+      const newDateTimeStr = `${currentDate}T${value}:00`;
+      setFormData(prev => ({
+        ...prev,
+        start: new Date(newDateTimeStr)
+      }));
+    } else if (name === 'endTime') {
+      const currentDate = formData.end.toISOString().split('T')[0];
+      const newDateTimeStr = `${currentDate}T${value}:00`;
+      setFormData(prev => ({
+        ...prev,
+        end: new Date(newDateTimeStr)
+      }));
     } else {
-      // Handle all other inputs
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
   };
   
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('DirectMobileForm - Submitting:', formData);
     onSubmit(formData);
   };
   
-  // Format dates for display
-  const formatDateTimeLocal = (date: Date) => {
-    return format(date, "yyyy-MM-dd'T'HH:mm");
-  };
+  // Auto focus first field when form opens
+  useEffect(() => {
+    if (isOpen) {
+      const titleInput = document.getElementById('dm-title');
+      if (titleInput) {
+        titleInput.focus();
+      }
+    }
+  }, [isOpen]);
   
-  // If not open, don't render anything
   if (!isOpen) return null;
   
   return (
     <div className="direct-mobile-overlay">
       <div className="direct-mobile-container">
         <div className="direct-mobile-header">
-          <h2 className="direct-mobile-title">
-            {booking && booking.id > 0 ? 'Edit Booking' : 'New Booking'}
-          </h2>
+          <h2>{booking ? 'Edit' : 'New'}</h2>
           <button 
             type="button" 
-            className="direct-mobile-close-btn"
+            className="dm-close-button"
             onClick={onClose}
           >
             ×
@@ -88,33 +123,41 @@ export function DirectMobileForm({
         </div>
         
         <form onSubmit={handleSubmit} className="direct-mobile-form">
-          {/* Title */}
-          <div className="direct-mobile-form-group">
-            <label htmlFor="title">Title:</label>
-            <input
+          <div className="dm-form-group">
+            <label htmlFor="dm-title">Title*</label>
+            <input 
               type="text"
-              id="title"
+              id="dm-title"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Enter booking title"
               required
-              className="direct-mobile-input"
+              className="dm-input"
             />
           </div>
           
-          {/* Studio selection */}
-          <div className="direct-mobile-form-group">
-            <label htmlFor="studioId">Studio:</label>
-            <select
-              id="studioId"
-              name="studioId"
-              value={formData.studioId || ''}
+          <div className="dm-form-group">
+            <label htmlFor="dm-description">Description</label>
+            <textarea 
+              id="dm-description"
+              name="description"
+              value={formData.description}
               onChange={handleChange}
-              className="direct-mobile-select"
+              rows={2}
+              className="dm-textarea"
+            />
+          </div>
+          
+          <div className="dm-form-group">
+            <label htmlFor="dm-studio">Studio*</label>
+            <select 
+              id="dm-studio"
+              name="studioId"
+              value={formData.studioId}
+              onChange={handleChange}
               required
+              className="dm-select"
             >
-              <option value="">Select a studio</option>
               {studios.map(studio => (
                 <option key={studio.id} value={studio.id}>
                   {studio.name}
@@ -123,79 +166,86 @@ export function DirectMobileForm({
             </select>
           </div>
           
-          {/* Start Date/Time */}
-          <div className="direct-mobile-form-group">
-            <label htmlFor="start">Start:</label>
-            <input
-              type="datetime-local"
-              id="start"
-              name="start"
-              value={formatDateTimeLocal(formData.start)}
-              onChange={handleChange}
-              className="direct-mobile-input"
-              required
-            />
+          <div className="dm-form-row">
+            <div className="dm-form-group">
+              <label htmlFor="dm-start-date">Start Date*</label>
+              <input 
+                type="date"
+                id="dm-start-date"
+                name="startDate"
+                value={formatDateForForm(formData.start)}
+                onChange={handleChange}
+                required
+                className="dm-input"
+              />
+            </div>
+            
+            <div className="dm-form-group">
+              <label htmlFor="dm-start-time">Start Time*</label>
+              <input 
+                type="time"
+                id="dm-start-time"
+                name="startTime"
+                value={formatTimeForForm(formData.start)}
+                onChange={handleChange}
+                required
+                className="dm-input"
+              />
+            </div>
           </div>
           
-          {/* End Date/Time */}
-          <div className="direct-mobile-form-group">
-            <label htmlFor="end">End:</label>
-            <input
-              type="datetime-local"
-              id="end"
-              name="end"
-              value={formatDateTimeLocal(formData.end)}
-              onChange={handleChange}
-              className="direct-mobile-input"
-              required
-            />
+          <div className="dm-form-row">
+            <div className="dm-form-group">
+              <label htmlFor="dm-end-date">End Date*</label>
+              <input 
+                type="date"
+                id="dm-end-date"
+                name="endDate"
+                value={formatDateForForm(formData.end)}
+                onChange={handleChange}
+                required
+                className="dm-input"
+              />
+            </div>
+            
+            <div className="dm-form-group">
+              <label htmlFor="dm-end-time">End Time*</label>
+              <input 
+                type="time"
+                id="dm-end-time"
+                name="endTime"
+                value={formatTimeForForm(formData.end)}
+                onChange={handleChange}
+                required
+                className="dm-input"
+              />
+            </div>
           </div>
           
-          {/* Description */}
-          <div className="direct-mobile-form-group">
-            <label htmlFor="description">Description:</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description || ''}
-              onChange={handleChange}
-              placeholder="Enter booking details"
-              rows={2}
-              className="direct-mobile-textarea"
-            />
-          </div>
-          
-          {/* Type */}
-          <div className="direct-mobile-form-group">
-            <label htmlFor="type">Type:</label>
-            <select
-              id="type"
+          <div className="dm-form-group">
+            <label htmlFor="dm-type">Type*</label>
+            <select 
+              id="dm-type"
               name="type"
               value={formData.type}
               onChange={handleChange}
-              className="direct-mobile-select"
+              required
+              className="dm-select"
             >
               <option value="production">Production</option>
               <option value="maintenance">Maintenance</option>
               <option value="private">Private</option>
-              <option value="alert">Alert/Notification</option>
+              <option value="alert">Alert</option>
+              <option value="other">Other</option>
             </select>
           </div>
           
-          {/* Action Buttons */}
-          <div className="direct-mobile-actions">
-            <button
-              type="button"
-              onClick={onClose}
-              className="direct-mobile-button direct-mobile-button-cancel"
-            >
+          <div className="dm-form-actions">
+            <button type="button" className="dm-button cancel" onClick={onClose}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className="direct-mobile-button direct-mobile-button-submit"
-            >
-              {booking && booking.id > 0 ? 'Update' : 'Create'}
+            <button type="submit" className="dm-button submit">
+              {booking ? 'Update' : 'Create'}
             </button>
           </div>
         </form>

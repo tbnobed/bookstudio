@@ -1,131 +1,151 @@
-/* 
- * DirectMobileForm.tsx styles
- * Ultra-simplified version for low-end devices and small screens
- */
+/* Direct Mobile Form Styles - Ultra simplified for low-end devices */
+
 .direct-mobile-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 9999;
-  padding: 8px;
-  overflow-y: auto;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  overflow: hidden;
 }
 
 .direct-mobile-container {
-  width: 100%;
-  max-height: 95vh;
-  overflow-y: auto;
-  background-color: white;
+  background-color: #fff;
+  width: 92%;
+  max-width: 400px;
   border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  margin: 10px auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  max-height: 96vh;
+  overflow-y: auto;
 }
 
 .direct-mobile-header {
-  padding: 10px 12px;
-  border-bottom: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: sticky;
-  top: 0;
-  background-color: white;
-  z-index: 1;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #ddd;
+  background-color: #f5f5f5;
 }
 
-.direct-mobile-title {
-  font-size: 1.1rem;
-  font-weight: 600;
+.direct-mobile-header h2 {
   margin: 0;
-  color: #111827;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
 }
 
-.direct-mobile-close-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
+.dm-close-button {
   background: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  color: #6b7280;
+  border: none;
+  font-size: 20px;
+  color: #555;
   cursor: pointer;
+  padding: 4px 8px;
 }
 
 .direct-mobile-form {
   padding: 12px;
 }
 
-.direct-mobile-form-group {
+.dm-form-group {
   margin-bottom: 12px;
 }
 
-.direct-mobile-form-group label {
+.dm-form-group label {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 500;
-  margin-bottom: 3px;
-  color: #4b5563;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #444;
 }
 
-.direct-mobile-input,
-.direct-mobile-select,
-.direct-mobile-textarea {
+.dm-input,
+.dm-select,
+.dm-textarea {
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #d1d5db;
+  padding: 8px;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 0.9rem;
-  color: #111827;
-  background-color: #f9fafb;
+  font-size: 14px;
+  background-color: #fff;
 }
 
-.direct-mobile-input:focus,
-.direct-mobile-select:focus,
-.direct-mobile-textarea:focus {
-  outline: none;
-  border-color: #4B83E2;
+.dm-textarea {
+  resize: vertical;
+  min-height: 40px;
 }
 
-.direct-mobile-actions {
+.dm-form-row {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dm-form-row .dm-form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.dm-form-actions {
+  display: flex;
   gap: 8px;
   margin-top: 16px;
 }
 
-.direct-mobile-button {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
+.dm-button {
   flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
 }
 
-.direct-mobile-button-cancel {
-  background-color: #f3f4f6;
-  border: 1px solid #d1d5db;
-  color: #4b5563;
+.dm-button.cancel {
+  background-color: #e0e0e0;
+  color: #333;
 }
 
-.direct-mobile-button-submit {
-  background-color: #4B83E2;
-  border: 1px solid #4171c7;
+.dm-button.submit {
+  background-color: #3b82f6;
   color: white;
 }
 
-/* iOS specific styling */
-@supports (-webkit-touch-callout: none) {
-  .direct-mobile-input, 
-  .direct-mobile-select {
-    font-size: 16px; /* Prevents iOS zoom */
+/* Optimizations for very small screens */
+@media (max-width: 320px) {
+  .direct-mobile-container {
+    width: 98%;
+  }
+  
+  .direct-mobile-header h2 {
+    font-size: 14px;
+  }
+  
+  .dm-form-group label {
+    font-size: 12px;
+  }
+  
+  .dm-input,
+  .dm-select,
+  .dm-textarea,
+  .dm-button {
+    font-size: 12px;
+    padding: 6px;
+  }
+  
+  .dm-form-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .direct-mobile-form {
+    padding: 8px;
   }
 }
