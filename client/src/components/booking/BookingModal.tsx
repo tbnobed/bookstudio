@@ -761,7 +761,7 @@ export default function BookingModal({
           onSubmit={handleFormSubmit}
           booking={booking}
           selectedStudio={selectedStudio}
-          defaultStudioId={studios[0]?.id}
+          selectedDate={selectedDate}
         />
       ) : (
         // Use the original Dialog on larger screens
