@@ -305,13 +305,13 @@ export function SimpleMobileForm({
     const group = notificationGroups.find(g => g.id === groupId);
     
     if (group) {
-      // Add the group email to the notify list
+      // Add the group ID to the notify list (not the email)
       setFormData(prev => {
         // Convert to array first to ensure compatibility
         const currentNotifyList = Array.isArray(prev.notifyList) ? prev.notifyList : [];
-        // Use Array.from with Set to ensure unique values
-        // The schema uses a single email field, not an emails array
-        const notifyList = Array.from(new Set([...currentNotifyList, group.email]));
+        // Store the group ID as a string to match the format used in BookingModal
+        const notifyList = Array.from(new Set([...currentNotifyList, groupId.toString()]));
+        console.log('Adding notification group to notifyList:', groupId.toString(), group.name);
         return {
           ...prev,
           notifyList
