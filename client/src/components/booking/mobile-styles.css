@@ -35,76 +35,80 @@
     display: block;
   }
   
-  /* Mobile Dialog Styling */
+  /* Mobile Dialog Styling - Fix center alignment */
   [data-radix-popper-content-wrapper] {
-    width: 100% !important;
-    transform: none !important;
-    left: 0 !important;
-    right: 0 !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
     max-width: 100vw !important;
+    transform: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   
-  [role="dialog"] {
-    width: 100% !important;
-    max-width: 100% !important;
+  /* Target all dialog content classes */
+  .DialogContent, 
+  .Overlay,
+  div[role="dialog"],
+  div[data-state="open"][role="dialog"],
+  [role="dialog"],
+  [data-radix-dialog-content] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
     margin: 0 !important;
     padding: 16px !important;
+    overflow-y: auto !important;
+    transform: none !important;
   }
   
   /* Dialog content styling for better mobile experience */
   
-  /* Fix only the booking form grid layout on mobile */
-  @media (max-width: 767px) {
-    .mobile-view-active [data-radix-dialog-content] .grid.grid-cols-3,
-    .mobile-view-active [data-radix-dialog-content] .grid.grid-cols-2 {
-      display: flex !important;
-      flex-direction: column !important;
-      width: 100% !important;
-      max-width: 100% !important;
-    }
-    
-    /* Make form inputs in dialog take up full width */
-    .mobile-view-active [data-radix-dialog-content] select,
-    .mobile-view-active [data-radix-dialog-content] input,
-    .mobile-view-active [data-radix-dialog-content] textarea {
-      width: 100% !important;
-      max-width: 280px !important;
-    }
-  }
-  
-  /* These are specific mobile booking dialog fixes */
-  .mobile-view-active [role="dialog"] {
-    max-width: 100vw !important;
-    padding: 16px !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
+  /* COMPLETE DIALOG POSITION FIX FOR MOBILE */
+  /* Target wrappers that might be causing overflow */
+  .mobile-view-active [data-radix-dialog-overlay],
+  .mobile-view-active [data-radix-dialog-content],
+  .mobile-view-active [data-radix-popper-content-wrapper] {
+    position: fixed !important;
+    top: 0 !important;
     left: 0 !important;
     right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+    transform: none !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure dialog content is properly sized and positioned */
+  .mobile-view-active [role="dialog"], 
+  .mobile-view-active .DialogContent {
     position: fixed !important;
     top: 0 !important;
     bottom: 0 !important;
-    height: 100vh !important;
-    overflow-y: auto !important;
-  }
-  
-  /* Fix for Shadcn modal on mobile */
-  .mobile-view-active .fixed.inset-0 {
-    width: 100vw !important;
-    height: 100vh !important;
-  }
-  
-  /* Override max-width for dialog content */
-  div[role="dialog"],
-  .DialogOverlay,
-  .DialogContent,
-  [data-radix-popper-content-wrapper] > div {
-    width: 100% !important;
-    max-width: 100vw !important;
-    box-sizing: border-box !important;
     left: 0 !important;
     right: 0 !important;
-    padding: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    padding: 1rem !important;
     margin: 0 !important;
+    border-radius: 0 !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
   
   /* Force content to fit within screen */
