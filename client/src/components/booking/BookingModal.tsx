@@ -396,7 +396,7 @@ export default function BookingModal({
           
           // Apply Studios (if available)
           if (additionalData.studioIds && Array.isArray(additionalData.studioIds)) {
-            updateFormField('studioIds', additionalData.studioIds.map(id => id.toString()));
+            updateFormField('studioIds', additionalData.studioIds.map((id: number | string) => id.toString()));
           }
           
           // Apply PCR Room (if available)
@@ -1174,7 +1174,7 @@ export default function BookingModal({
                       <Button
                         type="submit"
                         disabled={updateBooking.isPending}
-                        className="h-12 text-base px-6"
+                        className="md:h-auto md:text-sm md:px-4 h-12 text-base px-6 sm:mt-0 mt-2"
                       >
                         {updateBooking.isPending ? (
                           <span>Saving...</span>
@@ -1580,7 +1580,7 @@ export default function BookingModal({
                 <Button
                   type="submit"
                   disabled={createBooking.isPending}
-                  className="h-12 text-base px-6"
+                  className="md:h-auto md:text-sm md:px-4 h-12 text-base px-6 sm:mt-0 mt-2"
                 >
                   {createBooking.isPending ? (
                     <span>Creating...</span>
