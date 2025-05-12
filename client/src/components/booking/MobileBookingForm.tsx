@@ -11,7 +11,7 @@ import { generateTimeOptions } from "@/lib/dateUtils";
 import { BellRing, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import "./MobileBookingForm.css";
+import "./mobile-styles.css";
 
 // Interface must match the expected props from BookingModal
 interface MobileBookingFormProps {

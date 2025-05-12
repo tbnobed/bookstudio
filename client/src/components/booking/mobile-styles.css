@@ -51,17 +51,6 @@
     padding: 16px !important;
   }
   
-  .mobile-booking-form .grid {
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  
-  /* Fix for time fields */
-  .mobile-booking-form .grid-cols-2 {
-    grid-template-columns: 1fr !important;
-  }
-}
-  
   /* Fix horizontal scrolling issue */
   .mobile-booking-form {
     width: 100%;
@@ -81,10 +70,16 @@
   
   /* Adjust grid layouts for mobile */
   .mobile-booking-form .grid {
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 12px;
   }
+  
+  /* Fix for time fields */
+  .mobile-booking-form .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
 
 /* Mobile styling enhancements */
 .mobile-booking-form .accordion-trigger {

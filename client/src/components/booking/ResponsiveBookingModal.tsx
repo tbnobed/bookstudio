@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import BookingModal from "./BookingModal";
 import MobileBookingForm from "./MobileBookingForm";
-import "./MobileBookingForm.css";
+import "./mobile-styles.css";
 
 export interface BookingModalProps {
   isOpen: boolean;
