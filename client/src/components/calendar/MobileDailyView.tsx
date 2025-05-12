@@ -11,7 +11,7 @@ import { isToday, isPast, isAfter, isBefore, formatDistance, format } from "date
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, CalendarDays, Plus, AlertTriangle, Activity, Tv, MonitorPlay } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import BookingModal from "@/components/booking/BookingModal";
+import ResponsiveBookingModal from "@/components/booking";
 import AlertModal from "@/components/alerts/AlertModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
@@ -634,7 +634,7 @@ export default function MobileDailyView({
       {/* Modals */}
       {/* Edit Booking Modal */}
       {editBooking && (
-        <BookingModal
+        <ResponsiveBookingModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           booking={editBooking}
@@ -642,7 +642,7 @@ export default function MobileDailyView({
       )}
       
       {/* New Booking Modal */}
-      <BookingModal
+      <ResponsiveBookingModal
         isOpen={isNewBookingModalOpen}
         onClose={() => setIsNewBookingModalOpen(false)}
         selectedDate={currentDate}
