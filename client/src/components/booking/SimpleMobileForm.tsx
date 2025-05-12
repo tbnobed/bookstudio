@@ -509,7 +509,7 @@ export function SimpleMobileForm({
             </div>
             
             <div className="form-group">
-              <label htmlFor="sm-status">Status*</label>
+              <label htmlFor="sm-status">Booking status*</label>
               <select 
                 id="sm-status"
                 name="status"
@@ -518,10 +518,9 @@ export function SimpleMobileForm({
                 required
                 className="form-select"
               >
-                <option value="draft">Draft</option>
                 <option value="confirmed">Confirmed</option>
+                <option value="tentative">Tentative</option>
                 <option value="cancelled">Cancelled</option>
-                <option value="completed">Completed</option>
               </select>
             </div>
           </div>
