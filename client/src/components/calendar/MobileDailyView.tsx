@@ -281,18 +281,7 @@ export default function MobileDailyView({
         </Button>
       </div>
 
-      {/* View toggle */}
-      <div className="p-2 flex justify-center">
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="flex items-center gap-2" 
-          onClick={switchToWeeklyView}
-        >
-          <CalendarDays size={16} />
-          <span>Switch to Weekly View</span>
-        </Button>
-      </div>
+      {/* Removed "Switch to Weekly View" button as requested */}
 
       {/* Real-time Studio Status Banner */}
       {isToday(currentDate) && (
