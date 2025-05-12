@@ -706,9 +706,9 @@ export default function BookingModal({
       )}
       
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto px-4 sm:px-6">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl">
               {booking && booking.id > 0
                 ? (alertsOnly ? "Edit Alert" : "Edit Booking") 
                 : (alertsOnly ? "New Alert" : "New Booking")
