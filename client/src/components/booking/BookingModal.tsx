@@ -48,6 +48,20 @@ export default function BookingModal({
   alertsOnly = false
 }: BookingModalProps) {
   const { toast } = useToast();
+  
+  // Debug logging to track booking data
+  useEffect(() => {
+    console.log("BookingModal - Props received:", {
+      hasPropBooking: !!booking,
+      bookingId: booking?.id || "none",
+      isOpen
+    });
+    
+    console.log("BookingModal - Processing selectedStudio", {
+      typeOfSelectedStudio: typeof selectedStudio,
+      typeOfBookingStudioId: booking?.studioId ? typeof booking.studioId : "N/A"
+    });
+  }, [booking, selectedStudio, isOpen]);
   const formInitializedRef = useRef(false);
   
   // Format date for form - using local date to avoid timezone issues

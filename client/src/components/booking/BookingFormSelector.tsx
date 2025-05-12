@@ -72,7 +72,16 @@ export function BookingFormSelector({
       connection: (navigator as any).connection?.effectiveType || 'unknown',
       userAgent: navigator.userAgent
     });
-  }, [isLowEndDevice]);
+    
+    // Debug booking data
+    console.log('BookingFormSelector - Booking data:', {
+      hasBooking: !!booking,
+      bookingId: booking?.id || 'none',
+      bookingTitle: booking?.title || 'none',
+      studio: selectedStudio,
+      isOpen
+    });
+  }, [isLowEndDevice, booking, selectedStudio, isOpen]);
   
   // Render the appropriate form based on device capability
   return isLowEndDevice ? (

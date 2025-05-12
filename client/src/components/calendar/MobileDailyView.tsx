@@ -654,8 +654,17 @@ export default function MobileDailyView({
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           booking={editBooking}
+          selectedDate={currentDate}
         />
       )}
+      
+      {/* Debug log when edit modal opens */}
+      {isEditModalOpen && editBooking && console.log("MobileDailyView - Edit Modal Opening:", {
+        bookingId: editBooking.id,
+        bookingTitle: editBooking.title,
+        editModalIsOpen: isEditModalOpen,
+        editBookingData: editBooking
+      })}
       
       {/* New Booking Modal */}
       <ResponsiveBookingModal
