@@ -74,14 +74,6 @@ export default function MobileDailyView({
     }
   }, [currentDate, selectedDate, setSelectedDate]);
   
-  // Use our studio status hook to get real-time status
-  const { 
-    getAllStudiosWithStatus, 
-    getStudioStatus,
-    studios,
-    now 
-  } = useStudioStatus();
-
   // Get date range in Chicago timezone for the day (midnight to midnight)
   // This is important because we want bookings for the day as seen in Chicago
   // regardless of the user's local timezone
@@ -118,6 +110,14 @@ export default function MobileDailyView({
   }, [fetchedBookings, dayStart, dayEnd, currentDate]);
   
   console.log(`After filtering, found ${todayBookings.length} bookings for today (${currentDate.toDateString()})`);
+  
+  // Use our studio status hook to get real-time status, passing our filtered bookings
+  const { 
+    getAllStudiosWithStatus, 
+    getStudioStatus,
+    studios,
+    now 
+  } = useStudioStatus(todayBookings);;
   
   // Fetch booking-studios junction data
   const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({

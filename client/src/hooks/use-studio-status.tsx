@@ -13,18 +13,24 @@ interface StudioStatusInfo {
 
 /**
  * Hook to get real-time status of studios
+ * @param filteredBookings Optional array of pre-filtered bookings to use instead of fetching all bookings
  * @returns A function that returns the status of a studio
  */
-export function useStudioStatus() {
+export function useStudioStatus(filteredBookings?: Booking[]) {
   // Fetch all studios
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ['/api/studios'],
   });
   
   // Fetch all bookings (we'll filter client-side)
-  const { data: bookings = [] } = useQuery<Booking[]>({
+  const { data: fetchedBookings = [] } = useQuery<Booking[]>({
     queryKey: ['/api/bookings'],
+    // Skip this query if we're using filtered bookings
+    enabled: filteredBookings === undefined
   });
+  
+  // Use provided filtered bookings if available, otherwise use fetched bookings
+  const bookings = filteredBookings || fetchedBookings;
   
   // Fetch booking-studio links
   const { data: bookingStudioLinks = [] } = useQuery<BookingStudio[]>({
