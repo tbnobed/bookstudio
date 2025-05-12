@@ -8,12 +8,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
+import { useCalendarContext } from "@/contexts/CalendarContext";
 
 export default function MobileNavbar() {
   const [location, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
+  const { selectedDate } = useCalendarContext();
   
   // Handle logout
   const handleLogout = () => {
@@ -199,13 +201,13 @@ export default function MobileNavbar() {
       <BookingModal
         isOpen={isNewBookingModalOpen}
         onClose={() => setIsNewBookingModalOpen(false)}
-        selectedDate={new Date()}
+        selectedDate={selectedDate || new Date()}
       />
       
       <AlertModal
         isOpen={isNewAlertModalOpen}
         onClose={() => setIsNewAlertModalOpen(false)}
-        selectedDate={new Date()}
+        selectedDate={selectedDate || new Date()}
       />
     </>
   );
