@@ -1,11 +1,16 @@
 version: '3.8'
 
+# If you experience build timeouts with Alpine packages, replace Dockerfile with Dockerfile.optimized:
+# cp Dockerfile.optimized Dockerfile
+
 services:
   # Application server
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      # Uncomment the next line if having network issues during build
+      # network: host
     image: bookstudio:${VERSION:-latest}
     restart: always
     ports:
@@ -141,6 +146,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # Uncomment the next line if having network issues during build
+      # network: host
     image: bookstudio:${VERSION:-latest}
     depends_on:
       db:

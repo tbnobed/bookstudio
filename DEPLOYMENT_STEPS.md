@@ -97,6 +97,10 @@ echo SESSION_SECRET=$(openssl rand -hex 32) >> .env
 # Make sure you're in the application directory
 cd /opt/bookstudio
 
+# If you experience build timeouts with Alpine package repositories, 
+# use the optimized Dockerfile that uses faster mirrors:
+cp Dockerfile.optimized Dockerfile
+
 # Build the Docker images
 docker-compose build --no-cache
 
@@ -300,6 +304,25 @@ docker-compose restart
 # Complete reset (use with caution, retains database data)
 docker-compose down
 docker-compose up -d
+```
+
+### Docker Build Timeouts
+
+If you experience timeouts during the Docker build process, usually when installing Alpine packages:
+
+```bash
+# 1. Use the optimized Dockerfile with faster mirrors
+cp Dockerfile.optimized Dockerfile
+
+# 2. If still having issues, try building with host network mode
+docker-compose build --network=host
+
+# 3. If the issue persists, try building with no cache but with a longer timeout
+docker build --no-cache --network=host --progress=plain --timeout=600s -t bookstudio:latest .
+
+# 4. As a last resort, manually build and push each stage separately
+docker build --target builder -t bookstudio:builder .
+docker build --no-cache -t bookstudio:latest .
 ```
 
 ## 13. Additional Resources
