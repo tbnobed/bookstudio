@@ -41,10 +41,24 @@ function PublicCalendarPage() {
   // If we're on the default public calendar page and using a mobile device,
   // redirect to the mobile-specific public calendar page
   useEffect(() => {
+    // Log device detection for debugging
+    console.log("PublicCalendarPage: Device detection", { 
+      isSmallScreen, 
+      windowWidth: window.innerWidth,
+      userAgent: navigator.userAgent
+    });
+    
+    // Use immediate (non-conditional) redirection with a timeout to ensure it happens after rendering
     if (isSmallScreen) {
-      navigate('/public-calendar/mobile');
+      console.log("PublicCalendarPage: Redirecting to mobile view");
+      // Use setTimeout to ensure redirection happens after component mounts
+      const redirectTimer = setTimeout(() => {
+        window.location.href = '/public-calendar/mobile';
+      }, 100);
+      
+      return () => clearTimeout(redirectTimer);
     }
-  }, [isSmallScreen, navigate]);
+  }, [isSmallScreen]);
   
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewType, setViewType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
