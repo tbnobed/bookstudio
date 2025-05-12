@@ -1123,7 +1123,7 @@ export default function BookingModal({
                       <Button
                         type="submit"
                         disabled={updateBooking.isPending}
-                        className="text-xs sm:text-sm py-1.5 h-9 px-3 sm:mt-0 mt-2"
+                        className="text-xs sm:text-sm py-1 md:py-1.5 h-8 md:h-9 px-2 md:px-3 sm:mt-0 mt-2"
                       >
                         {updateBooking.isPending ? (
                           <span>Saving...</span>
@@ -1155,24 +1155,26 @@ export default function BookingModal({
             // Regular form for new bookings or alerts
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title" className="text-sm md:text-base font-medium">Title</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => updateFormField('title', e.target.value)}
                   placeholder={alertsOnly ? "Enter alert title" : "Enter booking title"}
                   required
+                  className="h-10 md:h-12 mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3"
                 />
               </div>
               
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className="text-sm md:text-base font-medium">Description</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => updateFormField('description', e.target.value)}
                   placeholder={alertsOnly ? "Enter alert details" : "Enter booking details"}
                   rows={3}
+                  className="mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3 py-1.5 md:py-2"
                 />
               </div>
               
@@ -1183,10 +1185,10 @@ export default function BookingModal({
                   <div className="space-y-4">
                     {(!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support")) && (
                       <div>
-                        <Label>Studios</Label>
+                        <Label className="text-sm md:text-base font-medium">Studios</Label>
                         {studios.length > 10 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 mt-2 gap-x-4">
-                              <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 mt-1 md:mt-2 gap-x-3 md:gap-x-4">
+                              <div className="space-y-2 md:space-y-3">
                                 {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
                                   <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
                                     <Checkbox
@@ -1511,25 +1513,26 @@ export default function BookingModal({
               
               {formData.saveAsTemplate && (
                 <div>
-                  <Label htmlFor="template-name">Template Name</Label>
+                  <Label htmlFor="template-name" className="text-sm md:text-base font-medium">Template Name</Label>
                   <Input
                     id="template-name"
                     value={formData.templateName}
                     onChange={(e) => updateFormField('templateName', e.target.value)}
                     placeholder="Enter a name for this template"
                     required={formData.saveAsTemplate}
+                    className="h-10 md:h-12 mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3"
                   />
                 </div>
               )}
               
-              <DialogFooter className="flex flex-col sm:flex-row items-center justify-between pt-4 w-full">
+              <DialogFooter className="flex flex-col sm:flex-row items-center justify-between pt-2 md:pt-4 w-full">
                 <div className="w-full sm:w-auto">
                   {/* Left side empty for alignment */}
                 </div>
                 <Button
                   type="submit"
                   disabled={createBooking.isPending}
-                  className="text-xs sm:text-sm h-9 py-1.5 px-3 sm:mt-0 mt-2"
+                  className="text-xs sm:text-sm h-8 md:h-9 py-1 md:py-1.5 px-2 md:px-3 sm:mt-0 mt-2"
                 >
                   {createBooking.isPending ? (
                     <span>Creating...</span>
