@@ -45,7 +45,7 @@ export default function MobileBookingForm({
     <form onSubmit={onSubmit} className="mobile-booking-form space-y-4">
       <div className="space-y-4">
         {/* Title and description section */}
-        <div>
+        <div className="form-item">
           <Label htmlFor="title" className="text-base font-medium">Title</Label>
           <Input
             id="title"
@@ -57,7 +57,7 @@ export default function MobileBookingForm({
           />
         </div>
         
-        <div>
+        <div className="form-item">
           <Label htmlFor="description" className="text-base font-medium">Description</Label>
           <Textarea
             id="description"
@@ -75,8 +75,8 @@ export default function MobileBookingForm({
           <AccordionItem value="date-time">
             <AccordionTrigger className="text-base font-medium">Date & Time</AccordionTrigger>
             <AccordionContent>
-              <div className="space-y-3">
-                <div>
+              <div className="space-y-3 date-time-container">
+                <div className="form-item">
                   <Label htmlFor="date">Date</Label>
                   <Input
                     id="date"
@@ -88,7 +88,7 @@ export default function MobileBookingForm({
                   />
                 </div>
                 
-                <div>
+                <div className="form-item">
                   <Label htmlFor="start-time">Start Time</Label>
                   <Select 
                     value={formData.startTime} 
@@ -108,7 +108,7 @@ export default function MobileBookingForm({
                   </Select>
                 </div>
                 
-                <div>
+                <div className="form-item">
                   <Label htmlFor="end-time">End Time</Label>
                   <Select 
                     value={formData.endTime} 
@@ -173,7 +173,7 @@ export default function MobileBookingForm({
                   )}
 
                   {/* PCR Room Selection */}
-                  <div className="mt-3">
+                  <div className="mt-3 form-item">
                     <Label htmlFor="pcr-room">PCR Room</Label>
                     <Select 
                       value={formData.pcrRoomId?.toString() || ""} 
