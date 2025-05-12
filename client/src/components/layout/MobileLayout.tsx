@@ -20,6 +20,7 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
   const isPublicPage = location === "/auth" || 
                      location === "/login" || 
                      location === "/public-calendar" || 
+                     location === "/public-calendar/mobile" ||
                      location.startsWith("/reset-password/") ||
                      location.startsWith("/invite/");
 
