@@ -1028,7 +1028,7 @@ export default function BookingModal({
                       <div className="flex flex-wrap gap-2">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" type="button" size="default" className="text-red-500 h-10">
+                            <Button variant="outline" type="button" size="sm" className="text-red-500 text-xs sm:text-sm py-1.5 h-9 px-3">
                               Delete
                             </Button>
                           </AlertDialogTrigger>
@@ -1124,12 +1124,12 @@ export default function BookingModal({
                       <Button
                         type="submit"
                         disabled={updateBooking.isPending}
-                        className="md:h-auto md:text-sm md:px-4 h-12 text-base px-6 sm:mt-0 mt-2"
+                        className="text-xs sm:text-sm py-1.5 h-9 px-3 sm:mt-0 mt-2"
                       >
                         {updateBooking.isPending ? (
                           <span>Saving...</span>
                         ) : (
-                          <span>Save Changes</span>
+                          <span>Save</span>
                         )}
                       </Button>
                     </div>
@@ -1530,12 +1530,12 @@ export default function BookingModal({
                 <Button
                   type="submit"
                   disabled={createBooking.isPending}
-                  className="md:h-auto md:text-sm md:px-4 h-12 text-base px-6 sm:mt-0 mt-2"
+                  className="text-xs sm:text-sm h-9 py-1.5 px-3 sm:mt-0 mt-2"
                 >
                   {createBooking.isPending ? (
                     <span>Creating...</span>
                   ) : (
-                    <span>{alertsOnly ? "Create Alert" : "Create Booking"}</span>
+                    <span>{alertsOnly ? "Create Alert" : "Create"}</span>
                   )}
                 </Button>
               </DialogFooter>
