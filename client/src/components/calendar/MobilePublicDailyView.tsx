@@ -264,7 +264,25 @@ export default function MobilePublicDailyView({
         )}
       </div>
 
-
+      {/* Real-Time Studio Status */}
+      <div className="p-4 bg-blue-50">
+        <div className="flex items-center text-blue-600 font-medium mb-2">
+          <Activity className="h-5 w-5 mr-1.5" /> Real-Time Studio Status
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {studiosWithStatus.map(studio => (
+            <div
+              key={studio.id}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-white text-sm font-medium", 
+                getStudioStatusColor(studio)
+              )}
+            >
+              {studio.name}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Main content - Studios and bookings */}
       <Tabs defaultValue="studios" className="flex-1 overflow-hidden flex flex-col">
