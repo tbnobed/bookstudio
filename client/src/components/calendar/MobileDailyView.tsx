@@ -364,27 +364,44 @@ export default function MobileDailyView({
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
       {/* Header with date navigation */}
-      <div className="border-b p-4 flex justify-between items-center bg-white sticky top-0 z-10">
-        <Button variant="ghost" size="icon" onClick={goToPreviousDay}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </Button>
-        
-        <div className="flex flex-col items-center">
-          <h1 className="text-lg font-bold">
-            {isToday(currentDate) ? "Today" : formatDate(currentDate)}
-          </h1>
-          <span className="text-sm text-gray-500">
-            {formatDate(currentDate)}
-          </span>
+      <div className="border-b p-4 bg-white sticky top-0 z-10">
+        {/* Date navigation buttons */}
+        <div className="flex justify-between items-center mb-2">
+          <Button variant="ghost" size="icon" onClick={goToPreviousDay}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </Button>
+          
+          <div className="flex flex-col items-center">
+            <h1 className="text-lg font-bold">
+              {isToday(currentDate) ? "Today" : formatDate(currentDate)}
+            </h1>
+            <span className="text-sm text-gray-500">
+              {formatDate(currentDate)}
+            </span>
+          </div>
+          
+          <Button variant="ghost" size="icon" onClick={goToNextDay}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </Button>
         </div>
         
-        <Button variant="ghost" size="icon" onClick={goToNextDay}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </Button>
+        {/* Today button - only visible when not on today's date */}
+        {!isToday(currentDate) && (
+          <div className="flex justify-center">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+              onClick={goToToday}
+            >
+              <Calendar className="h-4 w-4 mr-1" /> Today
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Removed "Switch to Weekly View" button as requested */}
