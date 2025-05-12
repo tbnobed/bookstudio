@@ -1186,30 +1186,55 @@ export default function BookingModal({
                     {(!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support")) && (
                       <div>
                         <Label className="text-sm md:text-base font-medium">Studios</Label>
-                        <div className="grid grid-cols-2 mt-1 md:mt-2 gap-x-2 gap-y-1 md:gap-x-4 max-h-48 overflow-y-auto pr-1">
-                          {studios.map((studio) => (
-                            <div key={studio.id} className="flex items-center space-x-2 p-1 hover:bg-slate-50 rounded-md">
-                              <Checkbox
-                                id={`studio-${studio.id}`}
-                                checked={formData.studioIds.includes(studio.id.toString())}
-                                onCheckedChange={(checked) => {
-                                  const studioId = studio.id.toString();
-                                  if (checked) {
-                                    updateFormField('studioIds', [...formData.studioIds, studioId]);
-                                  } else {
-                                    updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
-                                  }
-                                }}
-                                className="h-4 w-4"
-                              />
-                              <Label
-                                htmlFor={`studio-${studio.id}`}
-                                className="cursor-pointer text-xs md:text-sm"
-                              >
-                                {studio.name}
-                              </Label>
-                            </div>
-                          ))}
+                        <div className="mt-1 md:mt-2 max-h-48 overflow-y-auto pr-1">
+                          <div className="flex flex-wrap">
+                            {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
+                              <div key={studio.id} className="w-1/2 flex items-center space-x-1 p-1 hover:bg-slate-50 rounded-md">
+                                <Checkbox
+                                  id={`studio-${studio.id}`}
+                                  checked={formData.studioIds.includes(studio.id.toString())}
+                                  onCheckedChange={(checked) => {
+                                    const studioId = studio.id.toString();
+                                    if (checked) {
+                                      updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                    } else {
+                                      updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                    }
+                                  }}
+                                  className="h-4 w-4"
+                                />
+                                <Label
+                                  htmlFor={`studio-${studio.id}`}
+                                  className="cursor-pointer text-xs md:text-sm"
+                                >
+                                  {studio.name}
+                                </Label>
+                              </div>
+                            ))}
+                            {studios.slice(Math.ceil(studios.length / 2)).map((studio) => (
+                              <div key={studio.id} className="w-1/2 flex items-center space-x-1 p-1 hover:bg-slate-50 rounded-md">
+                                <Checkbox
+                                  id={`studio-${studio.id}`}
+                                  checked={formData.studioIds.includes(studio.id.toString())}
+                                  onCheckedChange={(checked) => {
+                                    const studioId = studio.id.toString();
+                                    if (checked) {
+                                      updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                    } else {
+                                      updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                    }
+                                  }}
+                                  className="h-4 w-4"
+                                />
+                                <Label
+                                  htmlFor={`studio-${studio.id}`}
+                                  className="cursor-pointer text-xs md:text-sm"
+                                >
+                                  {studio.name}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                         {formData.studioIds.length === 0 && (
                           <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
