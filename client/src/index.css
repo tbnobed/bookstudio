@@ -13,6 +13,67 @@
   transform: translateY(-2px);
 }
 
+/* Mobile-friendly booking form styles */
+.mobile-booking-form {
+  /* Make all form controls larger on mobile */
+  --form-control-height: 48px;
+}
+
+.mobile-booking-form input:not([type="checkbox"]), 
+.mobile-booking-form select,
+.mobile-booking-form .select-trigger,
+.mobile-booking-form button {
+  min-height: var(--form-control-height);
+  font-size: 16px !important;
+}
+
+.mobile-booking-form textarea {
+  min-height: 96px;
+  font-size: 16px !important;
+  padding: 12px !important;
+}
+
+.mobile-booking-form label {
+  font-size: 16px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.mobile-booking-form [type="checkbox"],
+.mobile-booking-form [role="checkbox"] {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+@media (max-width: 640px) {
+  .mobile-booking-form {
+    padding: 12px !important;
+    width: 95vw !important;
+    max-width: 95vw !important;
+  }
+  
+  .tabs-list {
+    padding: 8px !important;
+  }
+  
+  .tabs-trigger {
+    height: 48px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Make inputs bigger on mobile */
+  input, select, textarea, button, .checkbox {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+  
+  /* Increase checkbox size on mobile */
+  [type="checkbox"], [role="checkbox"] {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}
+
 :root {
       --background: 0 0% 100%;
 --foreground: 20 14.3% 4.1%;

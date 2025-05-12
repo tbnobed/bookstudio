@@ -719,9 +719,9 @@ export default function BookingModal({
           {!alertsOnly ? (
             // Tabbed interface for standard bookings (both new and edit)
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="details" className="py-3 text-base h-14">Booking Details</TabsTrigger>
-                <TabsTrigger value="attachments" className="py-3 text-base h-14">File Attachments</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 tabs-list">
+                <TabsTrigger value="details" className="py-3 text-base h-14 tabs-trigger">Booking Details</TabsTrigger>
+                <TabsTrigger value="attachments" className="py-3 text-base h-14 tabs-trigger">File Attachments</TabsTrigger>
               </TabsList>
               
               <TabsContent value="details" className="pt-4">
