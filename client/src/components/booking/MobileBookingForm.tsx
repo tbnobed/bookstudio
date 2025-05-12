@@ -74,16 +74,21 @@ export default function MobileBookingForm({
       onSubmit={onSubmit} 
       className="mobile-booking-form space-y-4" 
       style={{ 
-        width: '100%', 
-        maxWidth: '100%', 
+        width: '90%', 
+        maxWidth: '90%',
+        margin: '0 auto',
         overflowX: 'hidden',
         padding: '10px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         boxSizing: 'border-box'
       }}
     >
       <div className="space-y-4" style={{ 
-        width: '100%', 
-        maxWidth: '100%',
+        width: '90%', 
+        maxWidth: '90%',
+        margin: '0 auto',
         overflowX: 'hidden' 
       }}>
         {/* Title and description section */}

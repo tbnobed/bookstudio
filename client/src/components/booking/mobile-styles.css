@@ -56,19 +56,17 @@
   [role="dialog"],
   [data-radix-dialog-content] {
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 84vw !important; /* REDUCED WIDTH - MAJOR FIX */
-    max-width: 84vw !important; /* REDUCED WIDTH - MAJOR FIX */
-    height: 100vh !important;
-    max-height: 100vh !important;
-    margin: 0 auto !important; /* Center horizontally */
-    padding: 10px !important; /* Reduced padding */
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 95vw !important; /* WIDER WIDTH - MAKE CONTENT VISIBLE */
+    max-width: 95vw !important; 
+    height: auto !important;
+    max-height: 90vh !important;
+    margin: 0 !important; /* Reset margins */
+    padding: 15px !important; /* Increase padding for readability */
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    transform: none !important;
     box-sizing: border-box !important;
   }
   
@@ -94,26 +92,24 @@
     box-sizing: border-box !important;
   }
   
-  /* AGGRESSIVE FIX FOR DIALOG POSITIONING AND WIDTH */
+  /* FOCUSED FIX FOR DIALOG CONTENT VISIBILITY */
   .mobile-view-active [role="dialog"], 
   .mobile-view-active .DialogContent,
   .mobile-view-active [data-radix-dialog-content] {
     position: fixed !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 80vw !important; /* DRASTICALLY REDUCED to prevent horizontal scroll */
-    max-width: 80vw !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    padding: 0.5rem !important; /* Minimal padding */
-    margin: 0 auto !important; /* Center the content */
-    border-radius: 0 !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 95vw !important; /* WIDER to make content visible */
+    max-width: 95vw !important;
+    height: auto !important;
+    max-height: 90vh !important;
+    padding: 20px !important; /* Increased padding for better readability */
+    margin: 0 !important;
+    border-radius: 8px !important;
     box-sizing: border-box !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    transform: none !important;
   }
   
   /* Target form elements more specifically */
@@ -197,11 +193,11 @@
   .mobile-view-active [data-radix-dialog-content] input[type="time"],
   .mobile-view-active [data-radix-dialog-content] select,
   .mobile-view-active [data-radix-dialog-content] textarea {
-    width: calc(100% - 10px) !important;
-    max-width: calc(100% - 10px) !important;
-    margin-right: 5px !important;
-    margin-left: 5px !important;
+    width: 90% !important;
+    max-width: 90% !important;
+    margin: 5px auto !important;
     box-sizing: border-box !important;
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
   }
   
   /* Ensure text doesn't overflow in buttons/selects */
