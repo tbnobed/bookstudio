@@ -706,7 +706,7 @@ export default function BookingModal({
       )}
       
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto px-4 sm:px-6">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto px-2 sm:px-6 w-[95vw] sm:w-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">
               {booking && booking.id > 0
@@ -753,7 +753,7 @@ export default function BookingModal({
                   </div>
                   
                   {/* Responsive grid for form controls - 1 column on mobile, 3 on larger screens */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-5">
                     {/* Left column - Studios */}
                     <div>
                       <div className="space-y-4">
