@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SimpleMobileForm } from './SimpleMobileForm';
+import SimpleMobileForm from './SimpleMobileForm';
 import { DirectMobileForm } from './DirectMobileForm';
 import { FormBookingData, ApiBooking } from '../../types/bookings';
 import { Studio } from '../../types/studios';
