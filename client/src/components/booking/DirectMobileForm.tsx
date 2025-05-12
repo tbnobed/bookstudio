@@ -59,15 +59,18 @@ export function DirectMobileForm({
         description: booking.description || '',
         studioId: booking.studioId || (selectedStudio || studios[0]?.id || 0),
         pcrRoomId: booking.pcrRoomId || null,
-        start: new Date(booking.start),
-        end: new Date(booking.end),
+        // Access the Date objects we stored from BookingFormSelector if they exist
+        // Otherwise fall back to converting the strings
+        start: (booking as any)._startDate || new Date(booking.start),
+        end: (booking as any)._endDate || new Date(booking.end),
         type: booking.type || 'production',
         status: booking.status || 'confirmed',
         severity: booking.severity || null,
         templateId: booking.templateId || 0,
         notifyList: booking.notifyList || [],
         color: booking.color || '#3b82f6',
-        studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
+        // Make sure studioIds is properly initialized
+        studioIds: (booking as any).studioIds || (booking.studioId ? [booking.studioId] : [])
       };
       
       // Force React to see this as a new object by using setTimeout

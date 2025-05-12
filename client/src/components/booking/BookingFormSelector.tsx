@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ApiBooking, FormBookingData } from '../../types/bookings';
 import { SimpleMobileForm } from './SimpleMobileForm';
 import { DirectMobileForm } from './DirectMobileForm';
@@ -33,24 +33,37 @@ export function BookingFormSelector({
   const processedBooking = React.useMemo(() => {
     if (!booking) return null;
     
-    // Create a complete processed booking object with all fields properly formatted
-    return {
-      ...booking,
-      id: booking.id,
-      title: booking.title || '',
-      description: booking.description || '',
-      studioId: booking.studioId || selectedStudio || null,
-      // Force date conversion for any string dates
-      start: booking.start ? new Date(booking.start) : new Date(),
-      end: booking.end ? new Date(booking.end) : new Date(),
-      type: booking.type || 'production',
-      status: booking.status || 'confirmed',
-      severity: booking.severity || null,
-      templateId: booking.templateId || 0,
-      notifyList: booking.notifyList || [],
-      color: booking.color || '#3b82f6',
-      studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
-    };
+    // Make deep copies of date objects but keep original string formats for API compatibility
+    // This ensures the form components receive valid data without type conflicts
+    const newBooking = { ...booking };
+    
+    // Store the actual Date objects in these properties for internal use
+    // but keep the original string format in the main properties
+    if (newBooking.start) {
+      (newBooking as any)._startDate = new Date(newBooking.start);
+    }
+    
+    if (newBooking.end) {
+      (newBooking as any)._endDate = new Date(newBooking.end);
+    }
+    
+    // Make sure all properties have values
+    newBooking.title = newBooking.title || '';
+    newBooking.description = newBooking.description || '';
+    newBooking.studioId = newBooking.studioId || selectedStudio || null;
+    newBooking.type = newBooking.type || 'production';
+    newBooking.status = newBooking.status || 'confirmed';
+    newBooking.severity = newBooking.severity || null;
+    newBooking.templateId = newBooking.templateId || 0;
+    newBooking.notifyList = newBooking.notifyList || [];
+    newBooking.color = newBooking.color || '#3b82f6';
+    
+    // Ensure studioIds exists
+    if (!newBooking.studioIds) {
+      (newBooking as any).studioIds = newBooking.studioId ? [newBooking.studioId] : [];
+    }
+    
+    return newBooking;
   }, [booking, selectedStudio]);
   // Detect if we're on a low-end device based on screen size and memory
   const isLowEndDevice = React.useMemo(() => {
