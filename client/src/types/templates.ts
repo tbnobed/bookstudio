@@ -1,47 +1,35 @@
 /**
- * Type definitions for booking templates
+ * Type definitions for booking templates in BookStud.io
  */
 
-import { BookingType, BookingSeverity, BookingStatus } from './bookings';
-
-// Template data
-export interface Template {
+// API Template data
+export interface ApiTemplate {
   id: number;
   name: string;
   description: string | null;
-  type: BookingType;
-  defaultDuration: number | null;
-  status: BookingStatus;
-  severity: BookingSeverity;
-  studioIds: number[] | null;
+  type: string;
+  duration: number;
+  studioIds: number[];
   pcrRoomId: number | null;
+  status: string;
+  severity: string;
   color: string | null;
-  equipment: string[] | null;
-  notifyList: string[] | null;
-  createdBy: number;
-  createdAt: string;
+  notifyList: string[];
+  createdAt?: string;
+  userId?: number;
 }
 
-// Template creation/edit form data
+// Template form data
 export interface TemplateFormData {
   id?: number;
   name: string;
   description: string;
-  type: BookingType;
-  defaultDuration: number;
-  status: BookingStatus;
-  severity: BookingSeverity;
+  type: string;
+  duration: number;
   studioIds: number[];
   pcrRoomId: number | null;
+  status: string;
+  severity: string;
   color: string;
-  equipment: string[];
   notifyList: string[];
-}
-
-// Template dropdown/display item
-export interface TemplateItem {
-  id: number;
-  name: string;
-  description: string | null;
-  color: string | null;
 }

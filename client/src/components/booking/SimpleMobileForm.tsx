@@ -135,18 +135,31 @@ export function SimpleMobileForm({
       const selectedTemplate = templates.find(t => t.id === templateId);
       
       if (selectedTemplate) {
+        console.log('SimpleMobileForm - Applying template:', selectedTemplate.name);
+        
         // Apply template settings to form
-        setFormData(prev => ({
-          ...prev,
-          templateId,
-          type: selectedTemplate.type,
-          color: selectedTemplate.color || prev.color,
-          status: selectedTemplate.status,
-          severity: selectedTemplate.severity,
-          pcrRoomId: selectedTemplate.pcrRoomId || prev.pcrRoomId,
-          studioIds: selectedTemplate.studioIds || prev.studioIds || [],
-          notifyList: selectedTemplate.notifyList || prev.notifyList
-        }));
+        setFormData(prev => {
+          // Determine studio ID - use first from template if available
+          const studioId = selectedTemplate.studioIds && selectedTemplate.studioIds.length > 0 
+            ? selectedTemplate.studioIds[0] 
+            : prev.studioId;
+
+          // Return updated form data with template values
+          return {
+            ...prev,
+            templateId,
+            title: prev.title || selectedTemplate.name, // Only use template name if title is empty
+            description: selectedTemplate.description || prev.description,
+            type: selectedTemplate.type,
+            studioId: studioId,
+            studioIds: selectedTemplate.studioIds || [studioId],
+            pcrRoomId: selectedTemplate.pcrRoomId || prev.pcrRoomId,
+            status: selectedTemplate.status || prev.status,
+            severity: selectedTemplate.severity || prev.severity,
+            color: selectedTemplate.color || prev.color,
+            notifyList: selectedTemplate.notifyList || prev.notifyList
+          };
+        });
       }
     }
   };

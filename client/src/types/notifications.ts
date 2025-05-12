@@ -1,9 +1,6 @@
 /**
- * Type definitions for notification groups and notifications
+ * Type definitions for notification system in BookStud.io
  */
-
-// Types of notifications
-export type NotificationType = 'booking' | 'maintenance' | 'alert' | 'system';
 
 // Notification group
 export interface NotificationGroup {
@@ -11,21 +8,40 @@ export interface NotificationGroup {
   name: string;
   description: string | null;
   emails: string[];
-  phoneNumbers: string[] | null;
-  isDefault: boolean;
+  createdBy: number;
+  createdAt: string;
 }
 
-// Notification
-export interface Notification {
+// Notification preferences
+export interface NotificationPreferences {
+  userId: number;
+  bookingCreated: boolean;
+  bookingUpdated: boolean;
+  bookingCancelled: boolean;
+  bookingReminder: boolean;
+  systemAlerts: boolean;
+  maintenanceAlerts: boolean;
+}
+
+// Email notification data
+export interface EmailNotification {
+  to: string[];
+  subject: string;
+  templateId: string;
+  dynamicTemplateData: Record<string, any>;
+}
+
+// Notification log entry
+export interface NotificationLog {
   id: number;
-  type: NotificationType;
-  title: string;
-  message: string;
-  sentAt: string;
-  groupId: number;
-  bookingId: number | null;
-  readBy: number[];
-  sentBy: number;
+  type: 'email' | 'sms' | 'system';
+  recipients: string[];
+  subject: string;
+  content: string;
+  status: 'pending' | 'sent' | 'failed';
+  error?: string;
+  createdAt: string;
+  sentAt?: string;
 }
 
 // Notification group creation/edit form data
@@ -33,15 +49,5 @@ export interface NotificationGroupFormData {
   id?: number;
   name: string;
   description: string;
-  emails: string[];
-  phoneNumbers: string[];
-  isDefault: boolean;
-}
-
-// Notification item for dropdown/display
-export interface NotificationGroupItem {
-  id: number;
-  name: string;
-  description: string | null;
   emails: string[];
 }

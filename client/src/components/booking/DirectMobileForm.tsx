@@ -90,7 +90,9 @@ export function DirectMobileForm({
     const { name, value } = e.target;
     
     if (name === 'templateId') {
-      handleTemplateChange(e);
+      if (e.target instanceof HTMLSelectElement) {
+        handleTemplateChange(e as React.ChangeEvent<HTMLSelectElement>);
+      }
     } else if (name === 'studioId') {
       const studioId = parseInt(value, 10) || 0;
       setFormData(prev => ({
