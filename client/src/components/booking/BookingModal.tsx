@@ -735,7 +735,7 @@ export default function BookingModal({
                       onChange={(e) => updateFormField('title', e.target.value)}
                       placeholder="Enter booking title"
                       required
-                      className="h-11 mt-1.5 text-base"
+                      className="h-12 mt-1.5 text-base px-3"
                     />
                   </div>
                   
@@ -748,12 +748,12 @@ export default function BookingModal({
                       onChange={(e) => updateFormField('description', e.target.value)}
                       placeholder="Enter booking details"
                       rows={3}
-                      className="mt-1.5 text-base"
+                      className="mt-1.5 text-base px-3 py-2"
                     />
                   </div>
                   
                   {/* Responsive grid for form controls - 1 column on mobile, 3 on larger screens */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                     {/* Left column - Studios */}
                     <div>
                       <div className="space-y-4">
@@ -1233,7 +1233,7 @@ export default function BookingModal({
               </div>
               
               {/* 3-column grid for form controls */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                 {/* Left column - Studios */}
                 <div>
                   <div className="space-y-4">
