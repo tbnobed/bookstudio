@@ -68,6 +68,36 @@ export function isSameDay(date1: Date, date2: Date): boolean {
 }
 
 /**
+ * Get the start and end of day in Chicago timezone for a given date
+ * This returns UTC date objects that represent midnight to midnight in Chicago
+ * @param date The date to get day range for
+ * @returns Object with start and end properties representing midnight to midnight in Chicago timezone
+ */
+export function getDayRangeInChicago(date: Date): { start: Date, end: Date } {
+  // Format the date in Chicago timezone to get year, month, day components
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  };
+  
+  const chicagoDateStr = date.toLocaleString('en-US', options);
+  const [monthDayYear, _] = chicagoDateStr.split(',');
+  const [month, day, year] = monthDayYear.split('/').map(Number);
+  
+  // Create a date object representing midnight at the start of the day in Chicago
+  const chicagoMidnight = new Date(Date.UTC(year, month - 1, day, 5, 0, 0, 0)); // 00:00 in Chicago is 05:00 in UTC
+  
+  // Create end of day (23:59:59.999)
+  const chicagoEndOfDay = new Date(Date.UTC(year, month - 1, day, 29, 59, 59, 999)); // 23:59:59.999 in Chicago
+  
+  console.log(`getDayRangeInChicago: For date ${date.toISOString()} (${chicagoDateStr}), range is: ${chicagoMidnight.toISOString()} to ${chicagoEndOfDay.toISOString()}`);
+  
+  return { start: chicagoMidnight, end: chicagoEndOfDay };
+}
+
+/**
  * Format a date for display in America/Chicago timezone
  * @param date Date to format
  * @returns Formatted date string

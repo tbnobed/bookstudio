@@ -18,6 +18,7 @@ import { useLocation } from "wouter";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { formatTime, formatDate, isSameDay, formatTimeRange } from "@/lib/dateUtils";
 import { useCalendarContext } from "@/contexts/CalendarContext";
+import { getDayRangeInChicago } from "@/utils/dateUtils";
 
 // Helper function to extract studios from a booking
 function extractStudiosFromBooking(booking: any, studiosList: any[]): any[] {
@@ -81,14 +82,15 @@ export default function MobileDailyView({
     now 
   } = useStudioStatus();
 
-  // Prepare date range for the day (midnight to midnight)
-  const dayStart = new Date(currentDate);
-  dayStart.setHours(0, 0, 0, 0);
+  // Get date range in Chicago timezone for the day (midnight to midnight)
+  // This is important because we want bookings for the day as seen in Chicago
+  // regardless of the user's local timezone
+  const { start: dayStart, end: dayEnd } = getDayRangeInChicago(currentDate);
   
-  const dayEnd = new Date(currentDate);
-  dayEnd.setHours(23, 59, 59, 999);
+  console.log(`MobileDailyView - Showing bookings for ${currentDate.toDateString()} in Chicago timezone`);
+  console.log(`MobileDailyView - Date range: ${dayStart.toISOString()} to ${dayEnd.toISOString()}`);
 
-  // Fetch bookings for the selected day
+  // Fetch bookings for the selected day using Chicago midnight-to-midnight
   const { data: todayBookings = [] } = useQuery<Booking[]>({
     queryKey: [`/api/bookings?start=${dayStart.toISOString()}&end=${dayEnd.toISOString()}`],
   });
