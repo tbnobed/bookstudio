@@ -23,6 +23,11 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
                      location.startsWith("/reset-password/") ||
                      location.startsWith("/invite/");
 
+  // Check if we're on a mobile-specific page
+  const isMobilePage = location === "/mobile" || 
+                    location === "/calendar/mobile" || 
+                    (isSmallScreen && (location === "/" || location === "/calendar"));
+                    
   // Only show the mobile navbar when on mobile screen and not on a public page
   const showMobileNav = isSmallScreen && !isPublicPage;
 

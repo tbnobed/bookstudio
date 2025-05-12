@@ -41,6 +41,7 @@ function Router() {
       <ProtectedRoute path="/" component={CalendarComponent} />
       <ProtectedRoute path="/calendar" component={CalendarComponent} />
       <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
+      <ProtectedRoute path="/calendar/mobile" component={MobileCalendarPage} />
       <ProtectedRoute path="/my-bookings" component={MyBookingsPage} />
       <ProtectedRoute path="/templates" component={TemplatesPage} />
       <ProtectedRoute path="/reports" component={ReportsPage} />
@@ -66,6 +67,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   
   // Check if we're on the mobile-specific page (no sidebar needed)
   const isMobilePage = location === "/mobile" || 
+                    location === "/calendar/mobile" ||
                     (isSmallScreen && (location === "/" || location === "/calendar"));
   
   // Only show the sidebar when not on public pages or mobile pages
