@@ -70,7 +70,7 @@ export default function MobileBookingForm({
         </div>
 
         {/* Accordion for sections */}
-        <Accordion type="single" collapsible className="w-full">
+        <Accordion type="single" collapsible className="w-full mobile-accordion">
           {/* Date and Time Section */}
           <AccordionItem value="date-time">
             <AccordionTrigger className="text-base font-medium">Date & Time</AccordionTrigger>
@@ -359,7 +359,7 @@ export default function MobileBookingForm({
         <Button
           type="submit"
           disabled={isSaving}
-          className="w-full"
+          className="w-full mobile-submit-btn"
         >
           {isSaving ? (
             <span>Creating...</span>
