@@ -1,123 +1,160 @@
 /**
- * Date utility functions for the Booking system
- * Provides consistent date formatting across the application
- * Optimized for America/Chicago timezone
+ * Date utility functions for the BookStud.io application
+ * Handles date/time formatting with timezone awareness
  */
 
-import { format } from 'date-fns';
-
-/**
- * Format a date for display in the calendar
- * @param date The date to format
- * @returns Formatted date string (e.g., "May 5, 2025")
- */
-export function formatDate(date: Date): string {
-  return format(date, 'MMM d, yyyy');
-}
-
-/**
- * Format a time for display in the calendar
- * @param date The date to format
- * @returns Formatted time string (e.g., "2:30 PM")
- */
-export function formatTime(date: Date): string {
-  return format(date, 'h:mm a');
-}
-
-/**
- * Format a date and time for display in the calendar
- * @param date The date to format
- * @returns Formatted date and time string (e.g., "May 5, 2025 2:30 PM")
- */
-export function formatDateTime(date: Date): string {
-  return format(date, 'MMM d, yyyy h:mm a');
-}
-
-/**
- * Format a date for use in an HTML date input
- * @param date The date to format
- * @returns Formatted date string (e.g., "2025-05-05")
- */
-export function formatDateForForm(date: Date): string {
-  return format(date, 'yyyy-MM-dd');
-}
-
-/**
- * Format a time for use in an HTML time input
- * @param date The date to format
- * @returns Formatted time string (e.g., "14:30")
- */
-export function formatTimeForForm(date: Date): string {
-  return format(date, 'HH:mm');
-}
-
-/**
- * Generate America/Chicago timezone-aware date string 
- * @param date The date to format
- * @returns Formatted date string for Chicago timezone
- */
-export function formatChicagoDate(date: Date): string {
-  // This offset would be better handled with a library like date-fns-tz
-  // For now, this is a simple implementation
-  return format(date, 'yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\'');
-}
-
-/**
- * Determines if a date is today
- * @param date The date to check
- * @returns True if the date is today
- */
-export function isToday(date: Date): boolean {
-  const today = new Date();
-  return date.getDate() === today.getDate() &&
-         date.getMonth() === today.getMonth() &&
-         date.getFullYear() === today.getFullYear();
-}
-
-/**
- * Creates a date range array for the calendar
- * @param startDate The start date
- * @param days Number of days in the range
- * @returns Array of Date objects
- */
-export function createDateRange(startDate: Date, days: number): Date[] {
-  const dates: Date[] = [];
-  const start = new Date(startDate);
+// Format a date for display in the UI
+export function formatDate(date: Date | string): string {
+  if (!date) return '';
   
-  for (let i = 0; i < days; i++) {
-    const date = new Date(start);
-    date.setDate(date.getDate() + i);
-    dates.push(date);
-  }
+  const d = typeof date === 'string' ? new Date(date) : date;
   
-  return dates;
+  // Format: May 5, 2025
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'America/Chicago'
+  });
 }
 
-/**
- * Gets the duration between two dates in hours and minutes
- * @param startDate The start date
- * @param endDate The end date
- * @returns Duration string (e.g., "2h 30m")
- */
-export function getDuration(startDate: Date, endDate: Date): string {
-  const diffMs = endDate.getTime() - startDate.getTime();
-  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+// Format a time for display in the UI
+export function formatTime(date: Date | string): string {
+  if (!date) return '';
   
-  if (diffHrs === 0) {
-    return `${diffMins}m`;
-  } else if (diffMins === 0) {
-    return `${diffHrs}h`;
+  const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Format: 9:30 AM
+  return d.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'America/Chicago'
+  });
+}
+
+// Format a date and time together for display
+export function formatDateTime(date: Date | string): string {
+  if (!date) return '';
+  
+  const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Format: May 5, 2025 9:30 AM
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'America/Chicago'
+  });
+}
+
+// Format date for form inputs (YYYY-MM-DD)
+export function formatDateForForm(date: Date | string): string {
+  if (!date) return '';
+  
+  const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Use ISO string to get YYYY-MM-DD format but adjust for timezone
+  // This ensures we're getting the correct day in the America/Chicago timezone
+  const year = d.toLocaleString('en-US', { year: 'numeric', timeZone: 'America/Chicago' });
+  const month = d.toLocaleString('en-US', { month: '2-digit', timeZone: 'America/Chicago' }).padStart(2, '0');
+  const day = d.toLocaleString('en-US', { day: '2-digit', timeZone: 'America/Chicago' }).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
+}
+
+// Format time for form inputs (HH:MM)
+export function formatTimeForForm(date: Date | string): string {
+  if (!date) return '';
+  
+  const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Get hours and minutes in America/Chicago timezone
+  const timeStr = d.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/Chicago'
+  });
+  
+  return timeStr;
+}
+
+// Calculate duration between two dates in hours and minutes
+export function formatDuration(start: Date | string, end: Date | string): string {
+  if (!start || !end) return '';
+  
+  const startDate = typeof start === 'string' ? new Date(start) : start;
+  const endDate = typeof end === 'string' ? new Date(end) : end;
+  
+  // Calculate duration in milliseconds
+  const durationMs = endDate.getTime() - startDate.getTime();
+  
+  // Convert to hours and minutes
+  const hours = Math.floor(durationMs / (1000 * 60 * 60));
+  const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (hours === 0) {
+    return `${minutes}m`;
+  } else if (minutes === 0) {
+    return `${hours}h`;
   } else {
-    return `${diffHrs}h ${diffMins}m`;
+    return `${hours}h ${minutes}m`;
   }
 }
 
-/**
- * Creates a timezone-aware ISO string
- * @param date The date to format
- * @returns ISO date string
- */
-export function toISOString(date: Date): string {
-  return date.toISOString();
+// Check if two date ranges overlap
+export function datesOverlap(
+  start1: Date | string,
+  end1: Date | string,
+  start2: Date | string,
+  end2: Date | string
+): boolean {
+  const s1 = typeof start1 === 'string' ? new Date(start1) : start1;
+  const e1 = typeof end1 === 'string' ? new Date(end1) : end1;
+  const s2 = typeof start2 === 'string' ? new Date(start2) : start2;
+  const e2 = typeof end2 === 'string' ? new Date(end2) : end2;
+  
+  return s1 < e2 && s2 < e1;
+}
+
+// Get start of day (midnight) for a given date in America/Chicago timezone
+export function getStartOfDay(date: Date | string): Date {
+  const d = typeof date === 'string' ? new Date(date) : new Date(date);
+  
+  // Format the date in Chicago timezone as YYYY-MM-DD
+  const dateStr = formatDateForForm(d);
+  
+  // Create a new date with time set to 00:00:00 in Chicago timezone
+  return new Date(`${dateStr}T00:00:00-05:00`);
+}
+
+// Get end of day (23:59:59.999) for a given date in America/Chicago timezone
+export function getEndOfDay(date: Date | string): Date {
+  const d = typeof date === 'string' ? new Date(date) : new Date(date);
+  
+  // Format the date in Chicago timezone as YYYY-MM-DD
+  const dateStr = formatDateForForm(d);
+  
+  // Create a new date with time set to 23:59:59.999 in Chicago timezone
+  return new Date(`${dateStr}T23:59:59.999-05:00`);
+}
+
+// Convert a date to America/Chicago timezone ISO string
+export function toChicagoISOString(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Get the date components in Chicago timezone
+  const year = d.toLocaleString('en-US', { year: 'numeric', timeZone: 'America/Chicago' });
+  const month = d.toLocaleString('en-US', { month: '2-digit', timeZone: 'America/Chicago' }).padStart(2, '0');
+  const day = d.toLocaleString('en-US', { day: '2-digit', timeZone: 'America/Chicago' }).padStart(2, '0');
+  const hour = d.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: 'America/Chicago' }).padStart(2, '0');
+  const minute = d.toLocaleString('en-US', { minute: '2-digit', timeZone: 'America/Chicago' }).padStart(2, '0');
+  const second = d.toLocaleString('en-US', { second: '2-digit', timeZone: 'America/Chicago' }).padStart(2, '0');
+  
+  // Construct ISO string in Chicago timezone
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}-05:00`;
 }

@@ -1,17 +1,17 @@
 /**
- * Type definitions for bookings
+ * Type definitions for bookings in the BookStud.io system
  */
 
-// Booking types
+// Booking type
 export type BookingType = 'production' | 'maintenance' | 'private' | 'alert' | 'other';
 
 // Booking status
 export type BookingStatus = 'draft' | 'confirmed' | 'cancelled' | 'completed';
 
-// Booking severity (for alerts/maintenance)
+// Booking severity level
 export type BookingSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-// Booking data from API
+// API response booking data
 export interface ApiBooking {
   id: number;
   title: string;
@@ -19,58 +19,74 @@ export interface ApiBooking {
   studioId: number | null;
   pcrRoomId: number | null;
   userId: number;
-  start: string | Date;
-  end: string | Date;
+  start: string;
+  end: string;
   type: BookingType;
   templateId: number | null;
-  status: BookingStatus;
   notifyList: string[];
-  color: string;
+  createdAt: string;
+  status: BookingStatus;
   severity: BookingSeverity;
+  color: string | null;
 }
 
-// Form data for creating/editing a booking
+// Booking with linked studios data
+export interface BookingWithStudios extends ApiBooking {
+  studioIds: number[];
+  studios?: { id: number; name: string }[];
+}
+
+// Form data for booking creation/editing
 export interface FormBookingData {
   id: number;
   title: string;
   description: string;
   studioId: number;
-  pcrRoomId: number;
+  pcrRoomId: number | null;
   start: Date;
   end: Date;
   type: BookingType;
   templateId: number;
   status: BookingStatus;
-  notifyList: string[];
   severity: BookingSeverity;
+  notifyList: string[];
   color: string;
-  studioIds?: number[];
+  studioIds: number[];
 }
 
-// API response from booking creation
-export interface BookingResponse {
-  success: boolean;
-  booking?: ApiBooking;
-  error?: string;
+// Calendar event data
+export interface CalendarEventData {
+  id: number;
+  title: string;
+  start: Date;
+  end: Date;
+  resourceId?: number;
+  color?: string;
+  textColor?: string;
+  borderColor?: string;
+  bookingType: BookingType;
+  severity: BookingSeverity;
+  studioId?: number;
+  studioIds: number[];
 }
 
-// Booking with studios data
-export interface BookingWithStudios extends ApiBooking {
-  studios: number[];
+// Booking occurrence data (for recurring bookings)
+export interface BookingOccurrence {
+  id: number;
+  date: string;
+  bookingId: number;
+  status: BookingStatus;
 }
 
-// Calendar day cell data
-export interface CalendarDayData {
-  date: Date;
-  bookings: ApiBooking[];
-  isToday: boolean;
-  isInCurrentMonth: boolean;
-}
-
-// Calendar day with processed bookings
-export interface ProcessedCalendarDay {
-  date: Date;
-  bookingsByStudio: Record<number, ApiBooking[]>;
-  isToday: boolean;
-  isInCurrentMonth: boolean;
+// Booking search/filter parameters
+export interface BookingSearchParams {
+  startDate?: string;
+  endDate?: string;
+  studioId?: number;
+  pcrRoomId?: number;
+  userId?: number;
+  type?: BookingType;
+  status?: BookingStatus;
+  severity?: BookingSeverity;
+  q?: string; // Search query
 }

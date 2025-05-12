@@ -1,11 +1,11 @@
 /**
- * Type definitions for Production Control Rooms (PCR)
+ * Type definitions for Production Control Rooms (PCR) in the BookStud.io system
  */
 
-// PCR room status
+// PCR room status types
 export type PcrRoomStatus = 'available' | 'maintenance' | 'offline';
 
-// PCR room data
+// Complete PCR room data
 export interface PcrRoom {
   id: number;
   name: string;
@@ -15,7 +15,7 @@ export interface PcrRoom {
   capacity: number | null;
 }
 
-// PCR room with associated bookings
+// PCR room with linked bookings data
 export interface PcrRoomWithBookings extends PcrRoom {
   bookings: number[];
 }
