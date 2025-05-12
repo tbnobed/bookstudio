@@ -1174,6 +1174,7 @@ export default function BookingModal({
                       <Button
                         type="submit"
                         disabled={updateBooking.isPending}
+                        className="h-12 text-base px-6"
                       >
                         {updateBooking.isPending ? (
                           <span>Saving...</span>
@@ -1579,6 +1580,7 @@ export default function BookingModal({
                 <Button
                   type="submit"
                   disabled={createBooking.isPending}
+                  className="h-12 text-base px-6"
                 >
                   {createBooking.isPending ? (
                     <span>Creating...</span>
