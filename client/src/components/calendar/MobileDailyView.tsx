@@ -189,13 +189,20 @@ export default function MobileDailyView({
   const handleBookingClick = (booking: Booking) => {
     console.log("MobileDailyView - handleBookingClick - Original booking:", booking);
     
-    // Get all linked studios for this booking first
-    const linkedStudios = getLinkedStudiosForBooking(booking);
-    const studioIds = linkedStudios.map(studio => studio.id);
+    // Get all linked studio names for this booking first
+    const linkedStudioNames = getLinkedStudiosForBooking(booking);
+    
+    // Get linked studio IDs by looking up each studio by name
+    const linkedStudioIds = linkedStudioNames
+      .map(name => {
+        const studio = studios.find(s => s.name === name);
+        return studio ? studio.id : null;
+      })
+      .filter(id => id !== null);
     
     console.log("MobileDailyView - handleBookingClick - Linked studios:", {
-      linkedStudios,
-      studioIds
+      linkedStudioNames,
+      linkedStudioIds
     });
     
     // Enhanced booking cleanup and preparation
