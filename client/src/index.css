@@ -1,9 +1,10 @@
+/* Import mobile fixes and overflow prevention */
+@import url('./styles/body-overflow-fix.css');
+@import url('./styles/mobile-fixes.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import mobile fixes */
-@import url('./styles/mobile-fixes.css');
 
 /* Custom styles for bookstud.io */
 .booking-card {

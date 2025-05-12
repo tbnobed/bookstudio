@@ -66,6 +66,103 @@
     box-sizing: border-box !important;
   }
   
+  /* Fix tab overflow issues */
+  .mobile-view-active .TabsList,
+  .mobile-view-active div[role="tablist"] {
+    width: 100% !important;
+    padding: 2px !important;
+    overflow-x: hidden !important;
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+  
+  .mobile-view-active .TabsTrigger,
+  .mobile-view-active [role="tab"] {
+    padding: 6px 8px !important;
+    font-size: 0.75rem !important;
+    max-width: 32% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  
+  /* Fix grid layout in mobile dialog */
+  .mobile-view-active .grid,
+  .mobile-view-active div.grid,
+  .mobile-view-active .grid-cols-2,
+  .mobile-view-active .grid-cols-3 {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Fix scrollable elements that cause overflow */
+  .mobile-view-active .space-y-1.border.rounded-md.p-2.max-h-\[150px\].overflow-y-auto {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Fix form elements width */
+  .mobile-view-active input,
+  .mobile-view-active select,
+  .mobile-view-active textarea,
+  .mobile-view-active .SelectTrigger,
+  .mobile-view-active button,
+  .mobile-view-active [role="combobox"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Fix label wrapping */
+  .mobile-view-active label,
+  .mobile-view-active .Label {
+    display: block !important;
+    width: 100% !important;
+    white-space: normal !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Time selection elements need specific fixes */
+  .mobile-view-active .flex.items-center.gap-2,
+  .mobile-view-active .flex.flex-col.space-y-2,
+  .mobile-view-active .flex.flex-row,
+  .mobile-view-active .grid.grid-cols-2,
+  .mobile-view-active .grid.grid-cols-3 {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Force all elements in flex containers to be full width and stacked */
+  .mobile-view-active .flex > *,
+  .mobile-view-active .grid > *,
+  .mobile-view-active .flex.items-center.space-x-2 > *,
+  .mobile-view-active .grid.gap-2 > * {
+    margin-bottom: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Target the DateTime inputs specifically which are causing horizontal scrolling */
+  .mobile-view-active .grid.grid-cols-3.gap-2 {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .mobile-view-active .flex.items-center.gap-2.mt-1 {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  
   /* Dialog content styling for better mobile experience */
   .mobile-view-active [role="dialog"],
   .mobile-view-active [data-radix-dialog-content],

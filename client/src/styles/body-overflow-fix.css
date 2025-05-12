@@ -1,0 +1,43 @@
+/* 
+ * Critical body-level overflow fixes
+ * These styles are applied globally to fix horizontal scrolling issues
+ */
+
+body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative !important;
+}
+
+#root {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+/* Dialog portals need special handling */
+[data-radix-portal] {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Special handling for when mobile forms are open */
+body.mobile-form-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+body.mobile-form-open [role="dialog"],
+body.mobile-form-open [data-radix-popper-content-wrapper] {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  padding: 10px !important;
+}
