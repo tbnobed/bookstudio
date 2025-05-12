@@ -1079,8 +1079,8 @@ export default function BookingModal({
                   </div>
                   
                   <DialogFooter className="pt-4">
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-4">
+                      <div className="flex flex-wrap gap-2">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" type="button" size="default" className="text-red-500 h-10">
@@ -1578,8 +1578,8 @@ export default function BookingModal({
                 </div>
               )}
               
-              <DialogFooter className="flex items-center justify-between pt-4">
-                <div>
+              <DialogFooter className="flex flex-col sm:flex-row items-center justify-between pt-4 w-full">
+                <div className="w-full sm:w-auto">
                   {/* Left side empty for alignment */}
                 </div>
                 <Button

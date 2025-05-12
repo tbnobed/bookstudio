@@ -27,33 +27,78 @@
 .form-grid select,
 .form-grid textarea {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix all input fields to be full width in containers */
+input, select, textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Responsive layout styles */
 @media (max-width: 640px) {
-  /* Use better padding on mobile screens */
+  /* Tighter spacing for mobile */
   .tabs-list {
-    padding: 8px !important;
+    padding: 4px !important;
   }
   
-  /* Make form inputs properly sized for mobile without being oversized */
+  /* Proper mobile text size */
   input, select, textarea, button {
     font-size: 16px;
   }
   
-  /* Auto-adjust grid layouts */
-  .grid-cols-2, .grid-cols-3 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-  
-  /* Improve spacing on mobile */
-  .form-grid > div {
-    margin-bottom: 1.25rem;
-  }
-  
-  /* Give more breathable padding */
+  /* Prevent overflow */
   .DialogContent {
-    padding: 1rem !important;
+    width: 85% !important;
+    max-width: 85% !important;
+    padding: 8px !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Form viewport fix */
+  [role="dialog"] {
+    width: 85vw !important;
+    max-width: none !important;
+    overflow-x: visible !important;
+  }
+  
+  /* Remove horizontal scrolling caused by padding/margin */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Remove horizontal scroll from form contents */
+  form {
+    max-width: 100%;
+    width: 100%;
+    overflow-x: visible;
+  }
+  
+  /* Ensure all grids stack on mobile */
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Remove unneeded padding */
+  .p-4, .p-5, .p-6 {
+    padding: 0.5rem !important;
+  }
+  
+  /* Make space between elements */
+  .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.75rem !important;
+  }
+
+  /* Make buttons full width on very small screens */
+  @media (max-width: 370px) {
+    button {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
   }
 }
 
