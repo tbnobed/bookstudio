@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Template } from '../types/templates';
+import { ApiTemplate } from '../types/templates';
 
 export function useTemplates() {
-  const { data: templates = [], isLoading, error } = useQuery<Template[]>({
+  const { data: templates = [], isLoading, error } = useQuery<ApiTemplate[]>({
     queryKey: ['/api/templates'],
   });
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ApiBooking, FormBookingData, BookingType, BookingStatus, BookingSeverity } from '../../types/bookings';
-import { Studio } from '../../types/studios';
-import { PcrRoom } from '../../types/pcr-rooms';
-import { Template } from '../../types/templates';
+import { ApiStudio } from '../../types/studios';
+import { ApiPcrRoom } from '../../types/pcr-rooms';
+import { ApiTemplate } from '../../types/templates';
 import { NotificationGroup } from '../../types/notifications';
 import { formatDateForForm, formatTimeForForm } from '../../utils/dateUtils';
 import { useStudios } from '../../hooks/useStudios';

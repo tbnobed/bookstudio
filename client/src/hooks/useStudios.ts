@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Studio } from '../types/studios';
+import { ApiStudio } from '../types/studios';
 
 export function useStudios() {
-  const { data: studios = [], isLoading, error } = useQuery<Studio[]>({
+  const { data: studios = [], isLoading, error } = useQuery<ApiStudio[]>({
     queryKey: ['/api/studios'],
   });
 

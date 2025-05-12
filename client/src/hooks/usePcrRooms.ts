@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { PcrRoom } from '../types/pcr-rooms';
+import { ApiPcrRoom } from '../types/pcr-rooms';
 
 export function usePcrRooms() {
-  const { data: pcrRooms = [], isLoading, error } = useQuery<PcrRoom[]>({
+  const { data: pcrRooms = [], isLoading, error } = useQuery<ApiPcrRoom[]>({
     queryKey: ['/api/pcr-rooms'],
   });
 
