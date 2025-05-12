@@ -202,6 +202,14 @@ export default function MobileDailyView({
     onDateChange(nextDay);
     setSelectedDate(nextDay);
   };
+  
+  // Navigate to today
+  const goToToday = () => {
+    const today = new Date();
+    // Update both the prop callback and the context
+    onDateChange(today);
+    setSelectedDate(today);
+  };
 
   // Switch to weekly view
   const switchToWeeklyView = () => {
