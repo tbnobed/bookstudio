@@ -19,15 +19,7 @@ export default function ResponsiveBookingModal(props: BookingModalProps) {
   // Effect to set up resize listener for mobile detection
   useEffect(() => {
     const checkIfMobile = () => {
-      const isMobile = window.innerWidth < 768; // 768px is the standard md breakpoint in Tailwind
-      setIsMobileView(isMobile);
-      
-      // Add or remove a body class to help with global styling
-      if (isMobile && props.isOpen) {
-        document.body.classList.add('mobile-form-open');
-      } else {
-        document.body.classList.remove('mobile-form-open');
-      }
+      setIsMobileView(window.innerWidth < 768); // 768px is the standard md breakpoint in Tailwind
     };
     
     // Check initially
@@ -37,11 +29,8 @@ export default function ResponsiveBookingModal(props: BookingModalProps) {
     window.addEventListener('resize', checkIfMobile);
     
     // Clean up
-    return () => {
-      window.removeEventListener('resize', checkIfMobile);
-      document.body.classList.remove('mobile-form-open');
-    };
-  }, [props.isOpen]);
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   return (
     <>

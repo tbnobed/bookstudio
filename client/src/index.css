@@ -1,6 +1,4 @@
-/* Import mobile fixes and overflow prevention */
-@import url('./styles/body-overflow-fix.css');
-@import url('./styles/mobile-fixes.css');
+/* Custom styles for bookstud.io */
 
 @tailwind base;
 @tailwind components;
