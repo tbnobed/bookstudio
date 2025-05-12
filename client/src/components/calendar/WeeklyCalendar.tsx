@@ -5,7 +5,7 @@ import { Studio, Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import StudioRow from "./StudioRow";
 import AlertsRow from "./AlertsRow";
-import BookingModal from "../booking/BookingModal";
+import { ResponsiveBookingModal } from "@/components/booking";
 import AlertModal from "../alerts/AlertModal";
 import { useStudioBookings } from "../../hooks/useStudioBookings";
 
@@ -340,7 +340,7 @@ export default function WeeklyCalendar({
 
       {/* Edit Booking Modal - for studio bookings */}
       {editBooking && (
-        <BookingModal
+        <ResponsiveBookingModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           booking={editBooking}
@@ -359,7 +359,7 @@ export default function WeeklyCalendar({
       )}
 
       {/* New Booking Modal - for creating a booking from a cell click */}
-      <BookingModal
+      <ResponsiveBookingModal
         isOpen={isNewBookingModalOpen}
         onClose={() => setIsNewBookingModalOpen(false)}
         selectedStudio={newBookingStudio !== null ? newBookingStudio : undefined}

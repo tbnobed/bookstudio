@@ -11,7 +11,7 @@ import { isToday, isPast, isAfter, isBefore, formatDistance, format } from "date
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, CalendarDays, Plus, AlertTriangle, Activity, Tv, MonitorPlay } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import ResponsiveBookingModal from "@/components/booking";
+import { ResponsiveBookingModal } from "@/components/booking";
 import AlertModal from "@/components/alerts/AlertModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
