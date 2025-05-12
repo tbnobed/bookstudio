@@ -52,17 +52,41 @@ input, select, textarea {
   
   /* Prevent overflow */
   .DialogContent {
-    width: 85% !important;
-    max-width: 85% !important;
+    width: 95% !important;
+    max-width: 95% !important;
     padding: 8px !important;
     overflow-x: hidden !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Make form labels and text smaller on mobile */
+  .DialogContent label {
+    font-size: 0.875rem !important;
+  }
+  
+  .DialogContent input,
+  .DialogContent select,
+  .DialogContent textarea {
+    font-size: 0.875rem !important;
+    padding: 0.375rem 0.5rem !important;
   }
   
   /* Form viewport fix */
   [role="dialog"] {
-    width: 85vw !important;
+    width: 95vw !important;
     max-width: none !important;
     overflow-x: visible !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  
+  /* AlertDialog and Dialog action buttons */
+  .AlertDialogAction,
+  .AlertDialogCancel {
+    font-size: 0.75rem !important;
+    padding: 0.375rem 0.75rem !important;
+    height: 2.25rem !important;
   }
   
   /* Remove horizontal scrolling caused by padding/margin */

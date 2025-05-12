@@ -753,7 +753,7 @@ export default function BookingModal({
                   </div>
                   
                   {/* Responsive grid for form controls - 1 column on mobile, 3 on larger screens */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 form-grid">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5 form-grid">
                     {/* Left column - Studios */}
                     <div>
                       <div className="space-y-4">
