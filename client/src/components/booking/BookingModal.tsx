@@ -1194,7 +1194,7 @@ export default function BookingModal({
                       <div>
                         <Label className="text-sm md:text-base font-medium">Studios</Label>
                         <div className="mt-1 max-h-48 overflow-y-auto pr-1">
-                          <div className="grid grid-cols-2 gap-1 sm:gap-2">
+                          <div className="grid grid-cols-2 gap-1">
                             {studios.map((studio: Studio) => (
                               <div key={studio.id} className="flex items-center space-x-1 p-1 hover:bg-slate-50 rounded-md">
                                 <Checkbox
@@ -1208,11 +1208,11 @@ export default function BookingModal({
                                       updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
                                     }
                                   }}
-                                  className="h-3 w-3 sm:h-4 sm:w-4"
+                                  className="h-4 w-4"
                                 />
                                 <Label
                                   htmlFor={`studio-${studio.id}`}
-                                  className="cursor-pointer text-xs sm:text-sm truncate"
+                                  className="cursor-pointer text-xs md:text-sm"
                                 >
                                   {studio.name}
                                 </Label>
