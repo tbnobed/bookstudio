@@ -11,6 +11,7 @@ import { generateTimeOptions } from "@/lib/dateUtils";
 import { BellRing, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import "./MobileBookingForm.css";
 
 // Interface must match the expected props from BookingModal
 interface MobileBookingFormProps {
@@ -41,7 +42,7 @@ export default function MobileBookingForm({
   handleLoadTemplate
 }: MobileBookingFormProps) {
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="mobile-booking-form space-y-4">
       <div className="space-y-4">
         {/* Title and description section */}
         <div>

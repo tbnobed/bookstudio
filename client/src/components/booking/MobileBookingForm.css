@@ -1,0 +1,55 @@
+/* Mobile Booking Form Styles */
+
+/* Desktop/Mobile View Toggles */
+.desktop-view-active form:not(.mobile-booking-form) {
+  display: block;
+}
+
+.desktop-view-active .mobile-booking-form {
+  display: none;
+}
+
+.mobile-view-active form:not(.mobile-booking-form) {
+  display: none;
+}
+
+.mobile-view-active .mobile-booking-form {
+  display: block;
+}
+
+/* Media Query Overrides */
+@media (min-width: 768px) {
+  .mobile-view-active {
+    display: none;
+  }
+  .desktop-view-active {
+    display: block;
+  }
+}
+
+@media (max-width: 767px) {
+  .desktop-view-active {
+    display: none;
+  }
+  .mobile-view-active {
+    display: block;
+  }
+}
+
+/* Mobile styling enhancements */
+.mobile-booking-form .accordion-trigger {
+  font-weight: 500;
+}
+
+.mobile-booking-form .accordion-content {
+  padding: 12px;
+}
+
+.mobile-booking-form .form-section {
+  margin-bottom: 16px;
+}
+
+.mobile-booking-form .mobile-submit-btn {
+  width: 100%;
+  margin-top: 20px;
+}
