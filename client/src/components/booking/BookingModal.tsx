@@ -728,25 +728,27 @@ export default function BookingModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Title - Full width */}
                   <div>
-                    <Label htmlFor="title">Title</Label>
+                    <Label htmlFor="title" className="text-base font-medium">Title</Label>
                     <Input
                       id="title"
                       value={formData.title}
                       onChange={(e) => updateFormField('title', e.target.value)}
                       placeholder="Enter booking title"
                       required
+                      className="h-11 mt-1.5 text-base"
                     />
                   </div>
                   
                   {/* Description - Full width */}
                   <div>
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description" className="text-base font-medium">Description</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => updateFormField('description', e.target.value)}
                       placeholder="Enter booking details"
                       rows={3}
+                      className="mt-1.5 text-base"
                     />
                   </div>
                   
@@ -851,23 +853,23 @@ export default function BookingModal({
                               No notification groups available
                             </p>
                           ) : (
-                            <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                            <div className="space-y-2 mt-1.5 border rounded-md p-2 max-h-[180px] overflow-y-auto">
                               {notificationGroups.map((group: NotificationGroup) => (
-                                <div key={group.id} className="flex items-center justify-between">
+                                <div key={group.id} className="flex items-center justify-between p-1.5 hover:bg-slate-50 rounded-md">
                                   <div className="flex items-center">
-                                    {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
-                                    {group.groupType === 'lighting' && <Tag className="h-3.5 w-3.5 mr-1 text-yellow-500" />}
-                                    {group.groupType === 'sound' && <Tag className="h-3.5 w-3.5 mr-1 text-green-500" />}
-                                    {group.groupType === 'directors' && <Tag className="h-3.5 w-3.5 mr-1 text-purple-500" />}
-                                    {group.groupType === 'production' && <Tag className="h-3.5 w-3.5 mr-1 text-red-500" />}
-                                    {group.groupType === 'engineering' && <Tag className="h-3.5 w-3.5 mr-1 text-orange-500" />}
-                                    <span className="text-xs">{group.name}</span>
+                                    {group.groupType === 'camera' && <Tag className="h-4 w-4 mr-1.5 text-blue-500" />}
+                                    {group.groupType === 'lighting' && <Tag className="h-4 w-4 mr-1.5 text-yellow-500" />}
+                                    {group.groupType === 'sound' && <Tag className="h-4 w-4 mr-1.5 text-green-500" />}
+                                    {group.groupType === 'directors' && <Tag className="h-4 w-4 mr-1.5 text-purple-500" />}
+                                    {group.groupType === 'production' && <Tag className="h-4 w-4 mr-1.5 text-red-500" />}
+                                    {group.groupType === 'engineering' && <Tag className="h-4 w-4 mr-1.5 text-orange-500" />}
+                                    <span className="text-sm">{group.name}</span>
                                   </div>
                                   <Checkbox
                                     id={`notify-group-${group.id}`}
                                     checked={formData.notifyList.includes(group.id.toString())}
                                     onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
-                                    className="h-4 w-4"
+                                    className="h-5 w-5"
                                   />
                                 </div>
                               ))}
@@ -972,18 +974,18 @@ export default function BookingModal({
                     <div>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="template">Template (Optional)</Label>
+                          <Label htmlFor="template" className="text-base font-medium">Template (Optional)</Label>
                           <Select 
                             value={formData.templateId} 
                             onValueChange={handleTemplateChange}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-11 mt-1.5 text-base">
                               <SelectValue placeholder="None" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="none">None</SelectItem>
+                              <SelectItem value="none" className="text-base py-1.5">None</SelectItem>
                               {templates.map((template) => (
-                                <SelectItem key={template.id} value={template.id.toString()}>
+                                <SelectItem key={template.id} value={template.id.toString()} className="text-base py-1.5">
                                   {template.name}
                                 </SelectItem>
                               ))}
@@ -992,21 +994,21 @@ export default function BookingModal({
                         </div>
                       
                         <div>
-                          <Label htmlFor="type">Booking Type</Label>
+                          <Label htmlFor="type" className="text-base font-medium">Booking Type</Label>
                           <Select 
                             value={formData.bookingType} 
                             onValueChange={(value) => updateFormField('bookingType', value)} 
                             required
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-11 mt-1.5 text-base">
                               <SelectValue placeholder="Select type" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="production">Production</SelectItem>
-                              <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                              <SelectItem value="maintenance">Maintenance</SelectItem>
-                              <SelectItem value="it_support">IT Support</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
+                              <SelectItem value="production" className="text-base py-1.5">Production</SelectItem>
+                              <SelectItem value="rehearsal" className="text-base py-1.5">Rehearsal</SelectItem>
+                              <SelectItem value="maintenance" className="text-base py-1.5">Maintenance</SelectItem>
+                              <SelectItem value="it_support" className="text-base py-1.5">IT Support</SelectItem>
+                              <SelectItem value="other" className="text-base py-1.5">Other</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
