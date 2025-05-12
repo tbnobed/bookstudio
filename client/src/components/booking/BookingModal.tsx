@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { FileAttachmentList } from "./FileAttachmentList";
 import CopyBookingModal from "./CopyBookingModal";
-import MobileBookingForm from "./MobileBookingForm";
+import { BookingFormSelector } from "./BookingFormSelector";
 
 interface BookingModalProps {
   isOpen: boolean;
