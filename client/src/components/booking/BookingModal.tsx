@@ -696,6 +696,53 @@ export default function BookingModal({
     }
   };
   
+  // Detect mobile
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+  // Listen for window resize to update mobile state
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // Handle form submission with proper data transformation
+  const handleFormSubmit = (data: any) => {
+    console.log("Mobile form submission:", data);
+    
+    // Create clean booking data object for API submission
+    const bookingData = {
+      id: data.id || 0,
+      title: data.title || "",
+      description: data.description || "",
+      studioId: data.studioId,
+      pcrRoomId: data.pcrRoomId || 0,
+      type: data.type || "production",
+      start: data.start,
+      end: data.end,
+      templateId: data.templateId || 0,
+      status: data.status || "confirmed",
+      notifyList: Array.isArray(data.notifyList) ? data.notifyList : [],
+      severity: data.severity || "medium",
+      color: data.color || "#4B83E2"
+    };
+    
+    console.log("Transformed booking data:", bookingData);
+    
+    // Create a new booking or update existing one
+    if (booking && booking.id > 0) {
+      updateBooking.mutate(bookingData);
+    } else {
+      createBooking.mutate(bookingData);
+    }
+    
+    // Close the modal
+    onClose();
+  };
+  
   return (
     <div>
       {booking && !alertsOnly && (
@@ -706,16 +753,28 @@ export default function BookingModal({
         />
       )}
       
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {booking && booking.id > 0
-                ? (alertsOnly ? "Edit Alert" : "Edit Booking") 
-                : (alertsOnly ? "New Alert" : "New Booking")
-              }
-            </DialogTitle>
-          </DialogHeader>
+      {isMobile ? (
+        // Use our mobile-optimized form on smaller screens
+        <BookingFormSelector
+          isOpen={isOpen}
+          onClose={onClose}
+          onSubmit={handleFormSubmit}
+          booking={booking}
+          selectedStudio={selectedStudio}
+          defaultStudioId={studios[0]?.id}
+        />
+      ) : (
+        // Use the original Dialog on larger screens
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {booking && booking.id > 0
+                  ? (alertsOnly ? "Edit Alert" : "Edit Booking") 
+                  : (alertsOnly ? "New Alert" : "New Booking")
+                }
+              </DialogTitle>
+            </DialogHeader>
         
           {!alertsOnly ? (
             // Tabbed interface for standard bookings (both new and edit)
@@ -1589,6 +1648,7 @@ export default function BookingModal({
           )}
         </DialogContent>
       </Dialog>
+      )}
     </div>
   );
 }
