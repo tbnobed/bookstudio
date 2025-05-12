@@ -1,69 +1,139 @@
-import React, { useState, useEffect } from 'react';
-import { ApiBooking, FormBookingData, BookingType, BookingStatus, BookingSeverity } from '../../types/bookings';
-import { ApiStudio } from '../../types/studios';
-import { ApiPcrRoom } from '../../types/pcr-rooms';
-import { ApiTemplate } from '../../types/templates';
-import { NotificationGroup } from '../../types/notifications';
-import { formatDateForForm, formatTimeForForm } from '@/utils/dateUtils';
-import { useStudios } from '../../hooks/useStudios';
-import { usePcrRooms } from '../../hooks/usePcrRooms';
-import { useTemplates } from '../../hooks/useTemplates';
-import { useNotificationGroups } from '../../hooks/useNotificationGroups';
+import { useState, useEffect } from 'react';
 import './simple-mobile.css';
+import { BookingType, BookingSeverity, BookingStatus } from '@/types/bookings';
+import { formatDateForForm, formatTimeForForm } from '@/utils/dateUtils';
 
-// Enhanced mobile form with more features than DirectMobileForm but still simplified
+interface FormBookingData {
+  id: number;
+  title: string;
+  description: string;
+  studioId: number;
+  pcrRoomId: number | null;
+  start: Date;
+  end: Date;
+  type: string;
+  status: string;
+  severity: string | null;
+  templateId: number;
+  notifyList: string[];
+  color: string;
+  studioIds: number[];
+}
+
+interface Studio {
+  id: number;
+  name: string;
+  description: string;
+  status: string;
+}
+
+interface PcrRoom {
+  id: number;
+  name: string;
+  description: string;
+  status: string;
+}
+
+interface Template {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  duration: number;
+  crewRequired: any[];
+  equipment: any[];
+  createdBy: number;
+}
+
+interface NotificationGroup {
+  id: number;
+  name: string;
+  email: string;
+  description: string;
+}
+
 interface SimpleMobileFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: FormBookingData) => void;
-  booking?: ApiBooking | null;
-  selectedStudio?: number | null;
+  booking?: any;
   selectedDate?: Date;
+  selectedStudio?: number;
 }
 
-export function SimpleMobileForm({
+export default function SimpleMobileForm({
   isOpen,
   onClose,
   onSubmit,
-  booking = null,
-  selectedStudio = null,
-  selectedDate = new Date()
+  booking,
+  selectedDate = new Date(),
+  selectedStudio
 }: SimpleMobileFormProps) {
-  const { studios = [] } = useStudios();
-  const { pcrRooms = [] } = usePcrRooms();
-  const { templates = [] } = useTemplates();
-  const { notificationGroups = [] } = useNotificationGroups();
-  
-  // Debug logging for better trace information
+  const [studios, setStudios] = useState<Studio[]>([]);
+  const [pcrRooms, setPcrRooms] = useState<PcrRoom[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [notificationGroups, setNotificationGroups] = useState<NotificationGroup[]>([]);
+  const [formData, setFormData] = useState<FormBookingData>({
+    id: 0,
+    title: '',
+    description: '',
+    studioId: 0,
+    pcrRoomId: null,
+    start: selectedDate,
+    end: new Date(selectedDate.getTime() + 60 * 60 * 1000), // 1 hour later
+    type: 'production',
+    status: 'draft',
+    severity: 'low',
+    templateId: 0,
+    notifyList: [],
+    color: '#3b82f6',
+    studioIds: []
+  });
+
+  // Log incoming booking data for debugging
   useEffect(() => {
-    console.log('SimpleMobileForm - Booking data received:', {
+    console.log("SimpleMobileForm - Booking data received:", {
       hasBooking: !!booking,
-      bookingId: booking?.id || 'none',
-      bookingTitle: booking?.title || 'none',
+      bookingId: booking?.id || "none",
+      bookingTitle: booking?.title || "none",
       studioId: booking?.studioId,
       startDate: booking?.start,
       endDate: booking?.end,
       notifyList: booking?.notifyList,
-      selectedStudio: selectedStudio,
-      isOpen: isOpen
+      selectedStudio,
+      isOpen
     });
-    
-    console.log('SimpleMobileForm - Templates loaded:', templates);
-  }, [booking, templates, selectedStudio, isOpen]);
-  
-  // Update form dates when selectedDate changes
+  }, [booking, selectedStudio, isOpen]);
+
+  // Load data from API
   useEffect(() => {
-    if (!booking) {
-      // Only update if this is a new booking (not editing)
-      setFormData(prev => {
-        const newStart = new Date(selectedDate);
-        const newEnd = new Date(new Date(selectedDate).getTime() + 3600000); // 1 hour later
-        return {
-          ...prev,
-          start: newStart,
-          end: newEnd
-        };
+    if (isOpen) {
+      // Fetch all needed data in parallel
+      Promise.all([
+        fetch('/api/studios').then(res => res.json()),
+        fetch('/api/pcr-rooms').then(res => res.json()),
+        fetch('/api/templates').then(res => res.json()),
+        fetch('/api/notification-groups').then(res => res.json())
+      ]).then(([studiosData, pcrRoomsData, templatesData, groupsData]) => {
+        setStudios(studiosData);
+        setPcrRooms(pcrRoomsData);
+        setTemplates(templatesData);
+        console.log("SimpleMobileForm - Templates loaded:", templatesData);
+        setNotificationGroups(groupsData);
+      }).catch(error => {
+        console.error('Error loading form data:', error);
       });
+    }
+  }, [isOpen]);
+  
+  // Initialize form with selected date
+  useEffect(() => {
+    if (selectedDate && !booking) {
+      setFormData(data => ({
+        ...data,
+        start: new Date(selectedDate),
+        end: new Date(selectedDate.getTime() + 60 * 60 * 1000) // Add 1 hour
+      }));
     }
   }, [selectedDate, booking]);
   
@@ -119,281 +189,192 @@ export function SimpleMobileForm({
   // Determine initial studio ID
   const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 0);
   
-  // Determine initial studio IDs array for multi-selection
-  const initialStudioIds: number[] = [];
-  
-  if (booking?.studioId) {
-    initialStudioIds.push(booking.studioId);
-  } else if (selectedStudio) {
-    initialStudioIds.push(selectedStudio);
-  }
-  
-  // Initialize form data
-  const [formData, setFormData] = useState<FormBookingData>({
-    id: booking?.id || 0,
-    title: booking?.title || '',
-    description: booking?.description || '',
-    studioId: initialStudioId,
-    pcrRoomId: booking?.pcrRoomId || (pcrRooms[0]?.id || 0),
-    start: booking ? new Date(booking.start) : new Date(selectedDate),
-    end: booking ? new Date(booking.end) : new Date(new Date(selectedDate).getTime() + 3600000), // Default 1 hour later
-    type: booking?.type || 'production',
-    status: booking?.status || 'draft',
-    severity: booking?.severity || 'low',
-    templateId: booking?.templateId || 0,
-    notifyList: booking?.notifyList || [],
-    color: booking?.color || '#3b82f6', // Default blue
-    studioIds: initialStudioIds
-  });
-  
-  // Handle form field changes
+  // Fetch booking data for linked studios when editing an existing booking
+  useEffect(() => {
+    if (booking?.id) {
+      fetch(`/api/bookings/${booking.id}/studios`)
+        .then(res => res.json())
+        .then(linkedStudios => {
+          console.log("Fetched linked studios for booking " + booking.id + ":", linkedStudios);
+          if (linkedStudios && linkedStudios.length > 0) {
+            // Update the form data with these studios
+            const linkedStudioIds = linkedStudios.map((studio: Studio) => studio.id.toString());
+            console.log("Setting up form with linked studios:", linkedStudioIds);
+            setFormData(data => ({
+              ...data,
+              studioIds: linkedStudioIds.map(Number)
+            }));
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching linked studios:', error);
+        });
+    }
+  }, [booking]);
+
+  // Change handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'studioId' || name === 'templateId') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: parseInt(value, 10) || 0
-      }));
-    } else if (name === 'pcrRoomId') {
-      // Parse pcrRoomId as number, but allow null (0 = null)
-      const pcrRoomId = parseInt(value, 10);
-      setFormData(prev => ({
-        ...prev,
-        pcrRoomId: pcrRoomId || null
-      }));
-    } else if (name === 'startDate') {
-      const [currentDate, startTime] = formData.start.toISOString().split('T');
-      const [endDate, endTime] = formData.end.toISOString().split('T');
+    // Special handling for date and time fields
+    if (name === 'startDate') {
+      // Update the start date while keeping the time
+      const currentStart = new Date(formData.start);
+      const [year, month, day] = value.split('-').map(Number);
+      const newDate = new Date(currentStart);
+      newDate.setFullYear(year, month - 1, day);
       
-      const newStartDateTimeStr = `${value}T${startTime}`;
-      const newEndDateTimeStr = `${value}T${endTime}`;
+      // Also update end date to be on the same day
+      const currentEnd = new Date(formData.end);
+      const endDate = new Date(currentEnd);
+      endDate.setFullYear(year, month - 1, day);
       
-      setFormData(prev => ({
-        ...prev,
-        start: new Date(newStartDateTimeStr),
-        end: new Date(newEndDateTimeStr)
+      setFormData(prev => ({ 
+        ...prev, 
+        start: newDate,
+        end: endDate
       }));
-    // We no longer use endDate since we're using a single date
-    } else if (name === 'startTime') {
-      const currentDate = formData.start.toISOString().split('T')[0];
-      const newDateTimeStr = `${currentDate}T${value}:00`;
-      setFormData(prev => ({
-        ...prev,
-        start: new Date(newDateTimeStr),
-        // Keep the end date the same, we're only modifying the start time
-      }));
-    } else if (name === 'endTime') {
-      const currentDate = formData.end.toISOString().split('T')[0];
-      const newDateTimeStr = `${currentDate}T${value}:00`;
-      setFormData(prev => ({
-        ...prev,
-        end: new Date(newDateTimeStr)
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      return;
     }
-  };
-  
-  // Handle multi-select studios
-  const handleStudioSelect = (studioId: number) => {
-    setFormData(prev => {
-      // Clone the current studioIds array or initialize empty array
-      const studioIds = [...(prev.studioIds || [])];
-      const index = studioIds.indexOf(studioId);
+    
+    if (name === 'startTime') {
+      // Update just the time portion of the start datetime
+      const currentDate = new Date(formData.start);
+      const [hours, minutes] = value.split(':').map(Number);
+      currentDate.setHours(hours, minutes);
       
-      if (index === -1) {
-        // Add studio if not already selected
-        studioIds.push(studioId);
-      } else {
-        // Remove studio if already selected
-        studioIds.splice(index, 1);
-      }
+      setFormData(prev => ({ ...prev, start: currentDate }));
+      return;
+    }
+    
+    if (name === 'endTime') {
+      // Update just the time portion of the end datetime
+      const currentDate = new Date(formData.end);
+      const [hours, minutes] = value.split(':').map(Number);
+      currentDate.setHours(hours, minutes);
       
-      // Validate that at least one studio is selected
-      // When showing validation form, we rely on the error hint to notify users
-      
-      return {
-        ...prev,
-        studioIds,
-        // Always keep the first studio as primary, but allow 0 when no studios selected
-        // This is important for validation to work correctly
-        studioId: studioIds.length > 0 ? studioIds[0] : 0
-      };
-    });
+      setFormData(prev => ({ ...prev, end: currentDate }));
+      return;
+    }
+    
+    // Handle pcrRoomId to convert "0" to null
+    if (name === 'pcrRoomId') {
+      const pcrValue = parseInt(value);
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: pcrValue === 0 ? null : pcrValue 
+      }));
+      return;
+    }
+    
+    // For all other fields, just update normally
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
   
   // Handle template selection
   const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const templateId = parseInt(e.target.value, 10);
-    console.log('Template dropdown change detected:', e.target.value);
+    const templateId = parseInt(e.target.value);
+    if (templateId === 0) {
+      // No template selected
+      return;
+    }
     
-    if (templateId > 0) {
-      const selectedTemplate = templates.find(t => t.id === templateId);
+    // Find the selected template
+    const selectedTemplate = templates.find(t => t.id === templateId);
+    if (!selectedTemplate) return;
+    
+    // Use template values for the form
+    setFormData(prev => {
+      // Create a new date object for end time based on template duration
+      const startTime = new Date(prev.start);
+      const endTime = new Date(startTime);
+      endTime.setMinutes(startTime.getMinutes() + (selectedTemplate.duration || 60));
       
-      if (selectedTemplate) {
-        console.log('SimpleMobileForm - Applying template:', selectedTemplate.name, selectedTemplate);
-        
-        // Apply template settings to form
-        setFormData(prev => {
-          // Extract studio IDs from equipment or use a default
-          let templateStudioIds: number[] = [];
-          
-          // Process equipment based on its type
-          if (selectedTemplate.equipment) {
-            // Check if equipment is an array and the first item is an object with studioIds
-            if (Array.isArray(selectedTemplate.equipment) && selectedTemplate.equipment.length > 0 
-                && typeof selectedTemplate.equipment[0] === 'object' && selectedTemplate.equipment[0] !== null) {
-              
-              const equipmentItem = selectedTemplate.equipment[0];
-              console.log('Template equipment item:', equipmentItem);
-              
-              // Extract studioIds if available
-              if (equipmentItem.studioIds && Array.isArray(equipmentItem.studioIds)) {
-                templateStudioIds = equipmentItem.studioIds;
-                console.log('Found studioIds in equipment:', templateStudioIds);
-              }
-              
-              // Extract PCR room ID if available
-              if ('pcrRoomId' in equipmentItem) {
-                prev.pcrRoomId = equipmentItem.pcrRoomId;
-                console.log('Found pcrRoomId in equipment:', prev.pcrRoomId);
-              }
-              
-              // Extract status if available
-              if (equipmentItem.status && ['confirmed', 'pending', 'cancelled', 'draft'].includes(equipmentItem.status)) {
-                prev.status = equipmentItem.status as BookingStatus;
-                console.log('Found status in equipment:', prev.status);
-              }
-              
-              // Extract severity if available and only apply for alert type
-              if (equipmentItem.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentItem.severity) && 
-                  (selectedTemplate.type === 'alert' || prev.type === 'alert' as BookingType)) {
-                prev.severity = equipmentItem.severity as BookingSeverity;
-                console.log('Found severity in equipment for alert:', prev.severity);
-              }
-              
-              // Extract color if available
-              if (equipmentItem.color) {
-                prev.color = equipmentItem.color;
-                console.log('Found color in equipment:', prev.color);
-              }
-            } else if (typeof selectedTemplate.equipment === 'object' && selectedTemplate.equipment !== null) {
-              // Handle case where equipment is a direct object
-              const equipmentObj = selectedTemplate.equipment as any;
-              
-              if (equipmentObj.studioIds && Array.isArray(equipmentObj.studioIds)) {
-                templateStudioIds = equipmentObj.studioIds;
-                console.log('Found studioIds in equipment object:', templateStudioIds);
-              }
-              
-              if ('pcrRoomId' in equipmentObj) {
-                prev.pcrRoomId = equipmentObj.pcrRoomId;
-                console.log('Found pcrRoomId in equipment object:', prev.pcrRoomId);
-              }
-              
-              if (equipmentObj.status && ['confirmed', 'pending', 'cancelled', 'draft'].includes(equipmentObj.status)) {
-                prev.status = equipmentObj.status as BookingStatus;
-                console.log('Found status in equipment object:', prev.status);
-              }
-              
-              // Extract severity if available and only apply for alert type
-              if (equipmentObj.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentObj.severity) && 
-                  (selectedTemplate.type === 'alert' || prev.type === 'alert' as BookingType)) {
-                prev.severity = equipmentObj.severity as BookingSeverity;
-                console.log('Found severity in equipment object for alert:', prev.severity);
-              }
-              
-              if (equipmentObj.color) {
-                prev.color = equipmentObj.color;
-                console.log('Found color in equipment object:', prev.color);
-              }
-            }
-          }
-          
-          // Fallback: use current studio if no studio IDs in template
-          if (templateStudioIds.length === 0) {
-            templateStudioIds = [prev.studioId];
-            console.log('No studioIds found, using current studio:', templateStudioIds);
-          }
-          
-          // Cast template.type to BookingType if it is valid, otherwise use previous type
-          const typeCast = (['recording', 'live', 'maintenance', 'other', 'production'].includes(selectedTemplate.type)
-            ? selectedTemplate.type as BookingType
-            : prev.type);
-
-          // Calculate duration in minutes (this is available directly in the database)
-          const templateDurationMinutes = selectedTemplate.duration || 60; // Default to 1 hour
-          
-          // Calculate new end time based on current start time + template duration
-          const newEndTime = new Date(prev.start);
-          newEndTime.setMinutes(newEndTime.getMinutes() + templateDurationMinutes);
-
-          console.log('Template applying with values:', {
-            templateId,
-            name: selectedTemplate.name,
-            type: typeCast,
-            status: prev.status,
-            severity: prev.severity,
-            duration: templateDurationMinutes,
-            studios: templateStudioIds,
-            pcrRoomId: prev.pcrRoomId,
-            color: prev.color,
-            newEndTime
-          });
-
-          // Return updated form data with template values
-          return {
-            ...prev,
-            templateId,
-            title: prev.title || selectedTemplate.name, // Only use template name if title is empty
-            description: selectedTemplate.description || prev.description,
-            type: typeCast,
-            studioId: templateStudioIds[0] || prev.studioId,
-            studioIds: templateStudioIds,
-            end: newEndTime // Set end time based on template duration
-          };
-        });
+      // Update the form with template values
+      const updatedFormData = {
+        ...prev,
+        title: selectedTemplate.name,
+        description: selectedTemplate.description || '',
+        type: selectedTemplate.type || 'production',
+        templateId,
+        end: endTime
+      };
+      
+      // If the template has studioIds property, use it
+      if ('studioIds' in selectedTemplate && Array.isArray(selectedTemplate.studioIds)) {
+        updatedFormData.studioIds = [...selectedTemplate.studioIds];
       }
-    }
+      
+      // If the template has status, use it
+      if ('status' in selectedTemplate && selectedTemplate.status) {
+        updatedFormData.status = selectedTemplate.status;
+      }
+      
+      // If the template has severity, use it
+      if ('severity' in selectedTemplate && selectedTemplate.severity) {
+        updatedFormData.severity = selectedTemplate.severity;
+      }
+      
+      // If the template has other properties, handle them here
+      if ('pcrRoomId' in selectedTemplate) {
+        updatedFormData.pcrRoomId = selectedTemplate.pcrRoomId;
+      }
+      
+      if ('color' in selectedTemplate && selectedTemplate.color) {
+        updatedFormData.color = selectedTemplate.color;
+      }
+      
+      if ('notifyList' in selectedTemplate && Array.isArray(selectedTemplate.notifyList)) {
+        updatedFormData.notifyList = [...selectedTemplate.notifyList];
+      }
+      
+      return updatedFormData;
+    });
   };
   
-  // Handle notification group selection with toggle behavior
+  // Handle studio selection/deselection
+  const handleStudioSelect = (studioId: number) => {
+    setFormData(prev => {
+      const studioIds = [...(prev.studioIds || [])];
+      
+      // Toggle the studio - if it's already in the list, remove it, otherwise add it
+      const index = studioIds.indexOf(studioId);
+      if (index !== -1) {
+        studioIds.splice(index, 1);
+      } else {
+        studioIds.push(studioId);
+      }
+      
+      // Set the first studio as the studioId for backwards compatibility
+      const primaryStudioId = studioIds.length > 0 ? studioIds[0] : 0;
+      
+      return { 
+        ...prev, 
+        studioIds,
+        studioId: primaryStudioId
+      };
+    });
+  };
+  
+  // Handle notification group selection
   const handleNotificationGroupSelect = (groupId: number) => {
-    const group = notificationGroups.find(g => g.id === groupId);
-    
-    if (group) {
-      setFormData(prev => {
-        // Convert to array first to ensure compatibility
-        const currentNotifyList = Array.isArray(prev.notifyList) ? prev.notifyList : [];
-        const groupIdStr = groupId.toString();
-        
-        // Check if the group is already in the list
-        const isSelected = currentNotifyList.includes(groupIdStr);
-        
-        let notifyList;
-        if (isSelected) {
-          // Remove the group if already selected (toggle behavior)
-          notifyList = currentNotifyList.filter(id => id !== groupIdStr);
-          console.log('Removing notification group from notifyList:', groupIdStr, group.name);
-        } else {
-          // Add the group if not already selected
-          notifyList = [...currentNotifyList, groupIdStr];
-          console.log('Adding notification group to notifyList:', groupIdStr, group.name);
-        }
-        
-        return {
-          ...prev,
-          notifyList
-        };
-      });
-    }
+    setFormData(prev => {
+      const notifyList = [...prev.notifyList];
+      const groupIdString = groupId.toString();
+      
+      // Toggle the group
+      const index = notifyList.indexOf(groupIdString);
+      if (index !== -1) {
+        notifyList.splice(index, 1);
+      } else {
+        notifyList.push(groupIdString);
+      }
+      
+      return { ...prev, notifyList };
+    });
   };
   
-  // Handle form submission
+  // Form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -411,10 +392,16 @@ export function SimpleMobileForm({
   // Auto focus first field when form opens
   useEffect(() => {
     if (isOpen) {
-      const titleInput = document.getElementById('sm-title');
-      if (titleInput) {
-        titleInput.focus();
-      }
+      // Short delay to ensure the form is fully rendered
+      setTimeout(() => {
+        const titleInput = document.getElementById('sm-title');
+        if (titleInput) {
+          titleInput.focus();
+          console.log("SimpleMobileForm - Found and focused title input");
+        } else {
+          console.log("SimpleMobileForm - Could not find title input to focus");
+        }
+      }, 300);
     }
   }, [isOpen]);
   
@@ -422,9 +409,27 @@ export function SimpleMobileForm({
 
   if (!isOpen) return null;
   
+  // Create a stable version of the formData to avoid rendering issues
+  const stableFormData = {
+    id: formData?.id || 0,
+    title: formData?.title || '',
+    description: formData?.description || '',
+    studioId: formData?.studioId || 0,
+    pcrRoomId: formData?.pcrRoomId || null,
+    start: formData?.start || new Date(),
+    end: formData?.end || new Date(),
+    type: formData?.type || 'production',
+    status: formData?.status || 'confirmed',
+    severity: formData?.severity || null,
+    templateId: formData?.templateId || 0,
+    notifyList: formData?.notifyList || [],
+    color: formData?.color || '#3b82f6',
+    studioIds: formData?.studioIds || []
+  };
+  
   return (
-    <div className="simple-mobile-form-overlay">
-      <div className="simple-mobile-form-container">
+    <div className="simple-mobile-form-overlay" style={{ zIndex: 9999 }}>
+      <div className="simple-mobile-form-container" style={{ width: '95%', maxWidth: '500px', backgroundColor: '#fff' }}>
         <div className="simple-mobile-form-header">
           <h2>{booking ? 'Edit Booking' : 'New Booking'}</h2>
           <button 
@@ -437,7 +442,13 @@ export function SimpleMobileForm({
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="simple-mobile-form" style={{ overflow: 'auto', maxHeight: 'calc(90vh - 60px)' }}>
+        <form onSubmit={handleSubmit} className="simple-mobile-form" style={{ 
+          overflow: 'auto', 
+          maxHeight: 'calc(90vh - 60px)',
+          padding: '16px',
+          display: 'block',
+          visibility: 'visible'
+        }}>
           <div className="form-group">
             <label htmlFor="sm-title">Title*</label>
             <input 
@@ -547,7 +558,7 @@ export function SimpleMobileForm({
                 type="time"
                 id="sm-start-time"
                 name="startTime"
-                value={formatTimeForForm(formData.start)}
+                value={new Date(formData.start).toTimeString().slice(0, 5)}
                 onChange={handleChange}
                 required
                 className="form-input"
@@ -555,19 +566,17 @@ export function SimpleMobileForm({
             </div>
           </div>
           
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="sm-end-time">End Time*</label>
-              <input 
-                type="time"
-                id="sm-end-time"
-                name="endTime"
-                value={formatTimeForForm(formData.end)}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
-            </div>
+          <div className="form-group">
+            <label htmlFor="sm-end-time">End Time*</label>
+            <input 
+              type="time"
+              id="sm-end-time"
+              name="endTime"
+              value={new Date(formData.end).toTimeString().slice(0, 5)}
+              onChange={handleChange}
+              required
+              className="form-input"
+            />
           </div>
           
           <div className="form-row">
@@ -604,13 +613,13 @@ export function SimpleMobileForm({
           </div>
           
           {/* Severity is only shown for alert type bookings */}
-          {formData.type === 'alert' as BookingType && (
+          {formData.type === 'alert' && (
             <div className="form-group">
               <label htmlFor="sm-severity">Severity</label>
               <select 
                 id="sm-severity"
                 name="severity"
-                value={formData.severity}
+                value={formData.severity || 'low'}
                 onChange={handleChange}
                 className="form-select"
               >
