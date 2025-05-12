@@ -753,7 +753,7 @@ export default function BookingModal({
                   </div>
                   
                   {/* Responsive grid for form controls - 1 column on mobile, 3 on larger screens */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 form-grid">
                     {/* Left column - Studios */}
                     <div>
                       <div className="space-y-4">
@@ -1233,7 +1233,7 @@ export default function BookingModal({
               </div>
               
               {/* 3-column grid for form controls */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 form-grid">
                 {/* Left column - Studios */}
                 <div>
                   <div className="space-y-4">
@@ -1241,7 +1241,7 @@ export default function BookingModal({
                       <div>
                         <Label>Studios</Label>
                         {studios.length > 10 ? (
-                            <div className="grid grid-cols-2 mt-2 gap-x-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 mt-2 gap-x-4">
                               <div className="space-y-3">
                                 {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
                                   <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">

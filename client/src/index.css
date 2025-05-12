@@ -13,30 +13,47 @@
   transform: translateY(-2px);
 }
 
+/* Form styling for better responsive behavior */
+.form-grid > div {
+  margin-bottom: 1rem;
+}
+
+.form-grid label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+  width: 100%;
+}
+
 /* Responsive layout styles */
 @media (max-width: 640px) {
-  /* Ensure dialog takes appropriate width on mobile */
-  .DialogContent {
-    width: 95vw !important;
-    max-width: 95vw !important;
-  }
-  
-  /* Ensure grid columns stack on mobile */
-  .mobile-booking-form .grid-cols-2,
-  .mobile-booking-form .grid-cols-3 {
-    grid-template-columns: 1fr !important;
-  }
-  
-  /* Prevent form elements from being cut off */
-  .mobile-booking-form .tabs-list {
+  /* Use better padding on mobile screens */
+  .tabs-list {
     padding: 8px !important;
   }
   
-  /* Use standard size inputs appropriate for touch */
-  .mobile-booking-form input,
-  .mobile-booking-form select,
-  .mobile-booking-form textarea {
+  /* Make form inputs properly sized for mobile without being oversized */
+  input, select, textarea, button {
     font-size: 16px;
+  }
+  
+  /* Auto-adjust grid layouts */
+  .grid-cols-2, .grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  /* Improve spacing on mobile */
+  .form-grid > div {
+    margin-bottom: 1.25rem;
+  }
+  
+  /* Give more breathable padding */
+  .DialogContent {
+    padding: 1rem !important;
   }
 }
 
