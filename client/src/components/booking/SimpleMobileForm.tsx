@@ -32,6 +32,11 @@ export function SimpleMobileForm({
   const { templates = [] } = useTemplates();
   const { notificationGroups = [] } = useNotificationGroups();
   
+  // Debug log templates when they load
+  useEffect(() => {
+    console.log('SimpleMobileForm - Templates loaded:', templates);
+  }, [templates]);
+  
   // Determine initial studio ID
   const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 0);
   
@@ -278,15 +283,21 @@ export function SimpleMobileForm({
               id="sm-template"
               name="templateId"
               value={formData.templateId}
-              onChange={handleTemplateChange}
+              onChange={(e) => {
+                console.log('Template dropdown change detected:', e.target.value);
+                handleTemplateChange(e);
+              }}
               className="form-select"
             >
               <option value="0">No template</option>
-              {templates.map(template => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
+              {templates.map(template => {
+                console.log('Rendering template option:', template.id, template.name);
+                return (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                );
+              })}
             </select>
           </div>
           
