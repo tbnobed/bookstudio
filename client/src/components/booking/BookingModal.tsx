@@ -728,27 +728,27 @@ export default function BookingModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Title - Full width */}
                   <div>
-                    <Label htmlFor="title" className="text-base font-medium">Title</Label>
+                    <Label htmlFor="title" className="text-sm md:text-base font-medium">Title</Label>
                     <Input
                       id="title"
                       value={formData.title}
                       onChange={(e) => updateFormField('title', e.target.value)}
                       placeholder="Enter booking title"
                       required
-                      className="h-12 mt-1.5 text-base px-3"
+                      className="h-10 md:h-12 mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3"
                     />
                   </div>
                   
                   {/* Description - Full width */}
                   <div>
-                    <Label htmlFor="description" className="text-base font-medium">Description</Label>
+                    <Label htmlFor="description" className="text-sm md:text-base font-medium">Description</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => updateFormField('description', e.target.value)}
                       placeholder="Enter booking details"
                       rows={3}
-                      className="mt-1.5 text-base px-3 py-2"
+                      className="mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3 py-1.5 md:py-2"
                     />
                   </div>
                   
@@ -885,12 +885,12 @@ export default function BookingModal({
                             onValueChange={(value) => updateFormField('endTime', value)} 
                             required
                           >
-                            <SelectTrigger id="end-time" className="h-11 mt-1.5 text-base">
+                            <SelectTrigger id="end-time" className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
                               <SelectValue placeholder="Select end time" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-[300px]">
+                            <SelectContent className="max-h-[230px]">
                               {generateTimeOptions().map((time) => (
-                                <SelectItem key={time} value={time} className="text-base py-1.5">
+                                <SelectItem key={time} value={time} className="text-xs md:text-sm py-1">
                                   {time}
                                 </SelectItem>
                               ))}
@@ -899,18 +899,18 @@ export default function BookingModal({
                         </div>
                         
                         <div>
-                          <Label htmlFor="pcrRoom" className="text-base font-medium">PCR Room (Optional)</Label>
+                          <Label htmlFor="pcrRoom" className="text-sm md:text-base font-medium">PCR Room (Optional)</Label>
                           <Select 
                             value={formData.pcrRoomId} 
                             onValueChange={(value) => updateFormField('pcrRoomId', value)}
                           >
-                            <SelectTrigger className="h-11 mt-1.5 text-base">
+                            <SelectTrigger className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
                               <SelectValue placeholder="None" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="0" className="text-base py-1.5">None</SelectItem>
+                              <SelectItem value="0" className="text-xs md:text-sm py-1">None</SelectItem>
                               {pcrRooms.map((pcrRoom) => (
-                                <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()} className="text-base py-1.5">
+                                <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()} className="text-xs md:text-sm py-1">
                                   {pcrRoom.name}
                                 </SelectItem>
                               ))}
@@ -924,18 +924,18 @@ export default function BookingModal({
                     <div>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="template" className="text-base font-medium">Template (Optional)</Label>
+                          <Label htmlFor="template" className="text-sm md:text-base font-medium">Template (Optional)</Label>
                           <Select 
                             value={formData.templateId} 
                             onValueChange={handleTemplateChange}
                           >
-                            <SelectTrigger className="h-11 mt-1.5 text-base">
+                            <SelectTrigger className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
                               <SelectValue placeholder="None" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="none" className="text-base py-1.5">None</SelectItem>
+                              <SelectItem value="none" className="text-xs md:text-sm py-1">None</SelectItem>
                               {templates.map((template) => (
-                                <SelectItem key={template.id} value={template.id.toString()} className="text-base py-1.5">
+                                <SelectItem key={template.id} value={template.id.toString()} className="text-xs md:text-sm py-1">
                                   {template.name}
                                 </SelectItem>
                               ))}
@@ -944,55 +944,55 @@ export default function BookingModal({
                         </div>
                       
                         <div>
-                          <Label htmlFor="type" className="text-base font-medium">Booking Type</Label>
+                          <Label htmlFor="type" className="text-sm md:text-base font-medium">Booking Type</Label>
                           <Select 
                             value={formData.bookingType} 
                             onValueChange={(value) => updateFormField('bookingType', value)} 
                             required
                           >
-                            <SelectTrigger className="h-11 mt-1.5 text-base">
+                            <SelectTrigger className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
                               <SelectValue placeholder="Select type" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="production" className="text-base py-1.5">Production</SelectItem>
-                              <SelectItem value="rehearsal" className="text-base py-1.5">Rehearsal</SelectItem>
-                              <SelectItem value="maintenance" className="text-base py-1.5">Maintenance</SelectItem>
-                              <SelectItem value="it_support" className="text-base py-1.5">IT Support</SelectItem>
-                              <SelectItem value="other" className="text-base py-1.5">Other</SelectItem>
+                              <SelectItem value="production" className="text-xs md:text-sm py-1">Production</SelectItem>
+                              <SelectItem value="rehearsal" className="text-xs md:text-sm py-1">Rehearsal</SelectItem>
+                              <SelectItem value="maintenance" className="text-xs md:text-sm py-1">Maintenance</SelectItem>
+                              <SelectItem value="it_support" className="text-xs md:text-sm py-1">IT Support</SelectItem>
+                              <SelectItem value="other" className="text-xs md:text-sm py-1">Other</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         
                         <div>
-                          <Label htmlFor="status" className="text-base font-medium">Booking Status</Label>
+                          <Label htmlFor="status" className="text-sm md:text-base font-medium">Booking Status</Label>
                           <Select 
                             value={formData.status} 
                             onValueChange={(value) => updateFormField('status', value)} 
                             required
                           >
-                            <SelectTrigger id="status" className="h-11 mt-1.5 text-base">
+                            <SelectTrigger id="status" className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="confirmed" className="text-base py-1.5">Confirmed</SelectItem>
-                              <SelectItem value="tentative" className="text-base py-1.5">Tentative</SelectItem>
-                              <SelectItem value="cancelled" className="text-base py-1.5">Cancelled</SelectItem>
+                              <SelectItem value="confirmed" className="text-xs md:text-sm py-1">Confirmed</SelectItem>
+                              <SelectItem value="tentative" className="text-xs md:text-sm py-1">Tentative</SelectItem>
+                              <SelectItem value="cancelled" className="text-xs md:text-sm py-1">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         
                         {!alertsOnly && (
                           <div>
-                            <Label htmlFor="color" className="text-base font-medium">Booking Color</Label>
-                            <div className="flex items-center mt-2">
+                            <Label htmlFor="color" className="text-sm md:text-base font-medium">Booking Color</Label>
+                            <div className="flex items-center mt-1 md:mt-2">
                               <Input
                                 id="color"
                                 type="color"
                                 value={formData.color}
                                 onChange={(e) => updateFormField('color', e.target.value)}
-                                className="w-20 h-10 p-1 mr-3"
+                                className="w-16 md:w-20 h-8 md:h-10 p-1 mr-2 md:mr-3"
                               />
-                              <span className="text-sm text-muted-foreground">
+                              <span className="text-xs md:text-sm text-muted-foreground">
                                 Custom color for calendar display
                               </span>
                             </div>
@@ -1001,20 +1001,20 @@ export default function BookingModal({
                         
                         {alertsOnly && (
                           <div>
-                            <Label htmlFor="severity" className="text-base font-medium">Severity</Label>
+                            <Label htmlFor="severity" className="text-sm md:text-base font-medium">Severity</Label>
                             <Select 
                               value={formData.severity} 
                               onValueChange={(value) => updateFormField('severity', value)} 
                               required
                             >
-                              <SelectTrigger className="h-11 mt-1.5 text-base">
+                              <SelectTrigger className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
                                 <SelectValue placeholder="Select severity" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="low" className="text-base py-1.5">Low</SelectItem>
-                                <SelectItem value="medium" className="text-base py-1.5">Medium</SelectItem>
-                                <SelectItem value="high" className="text-base py-1.5">High</SelectItem>
-                                <SelectItem value="critical" className="text-base py-1.5">Critical</SelectItem>
+                                <SelectItem value="low" className="text-xs md:text-sm py-1">Low</SelectItem>
+                                <SelectItem value="medium" className="text-xs md:text-sm py-1">Medium</SelectItem>
+                                <SelectItem value="high" className="text-xs md:text-sm py-1">High</SelectItem>
+                                <SelectItem value="critical" className="text-xs md:text-sm py-1">Critical</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
