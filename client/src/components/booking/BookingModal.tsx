@@ -756,12 +756,12 @@ export default function BookingModal({
                     <div>
                       <div className="space-y-4">
                         <div>
-                          <Label>Studios</Label>
+                          <Label className="text-base font-medium">Studios</Label>
                           {studios.length > 10 ? (
                             <div className="grid grid-cols-2 mt-2 gap-x-4">
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
-                                  <div key={studio.id} className="flex items-center space-x-2">
+                                  <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
                                     <Checkbox
                                       id={`studio-${studio.id}`}
                                       checked={formData.studioIds.includes(studio.id.toString())}
@@ -776,16 +776,16 @@ export default function BookingModal({
                                     />
                                     <Label
                                       htmlFor={`studio-${studio.id}`}
-                                      className="cursor-pointer text-sm"
+                                      className="cursor-pointer text-base"
                                     >
                                       {studio.name}
                                     </Label>
                                   </div>
                                 ))}
                               </div>
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 {studios.slice(Math.ceil(studios.length / 2)).map((studio) => (
-                                  <div key={studio.id} className="flex items-center space-x-2">
+                                  <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
                                     <Checkbox
                                       id={`studio-${studio.id}`}
                                       checked={formData.studioIds.includes(studio.id.toString())}
@@ -800,7 +800,7 @@ export default function BookingModal({
                                     />
                                     <Label
                                       htmlFor={`studio-${studio.id}`}
-                                      className="cursor-pointer text-sm"
+                                      className="cursor-pointer text-base"
                                     >
                                       {studio.name}
                                     </Label>
@@ -811,7 +811,7 @@ export default function BookingModal({
                           ) : (
                             <div className="flex flex-col mt-2 space-y-2">
                               {studios.map((studio) => (
-                                <div key={studio.id} className="flex items-center space-x-2">
+                                <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
                                   <Checkbox
                                     id={`studio-${studio.id}`}
                                     checked={formData.studioIds.includes(studio.id.toString())}
@@ -1234,9 +1234,9 @@ export default function BookingModal({
                         <Label>Studios</Label>
                         {studios.length > 10 ? (
                             <div className="grid grid-cols-2 mt-2 gap-x-4">
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
-                                  <div key={studio.id} className="flex items-center space-x-2">
+                                  <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
                                     <Checkbox
                                       id={`studio-${studio.id}`}
                                       checked={formData.studioIds.includes(studio.id.toString())}
@@ -1251,16 +1251,16 @@ export default function BookingModal({
                                     />
                                     <Label
                                       htmlFor={`studio-${studio.id}`}
-                                      className="cursor-pointer text-sm"
+                                      className="cursor-pointer text-base"
                                     >
                                       {studio.name}
                                     </Label>
                                   </div>
                                 ))}
                               </div>
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 {studios.slice(Math.ceil(studios.length / 2)).map((studio) => (
-                                  <div key={studio.id} className="flex items-center space-x-2">
+                                  <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
                                     <Checkbox
                                       id={`studio-${studio.id}`}
                                       checked={formData.studioIds.includes(studio.id.toString())}
@@ -1275,7 +1275,7 @@ export default function BookingModal({
                                     />
                                     <Label
                                       htmlFor={`studio-${studio.id}`}
-                                      className="cursor-pointer text-sm"
+                                      className="cursor-pointer text-base"
                                     >
                                       {studio.name}
                                     </Label>
@@ -1286,7 +1286,7 @@ export default function BookingModal({
                           ) : (
                             <div className="flex flex-col mt-2 space-y-2">
                               {studios.map((studio) => (
-                                <div key={studio.id} className="flex items-center space-x-2">
+                                <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
                                   <Checkbox
                                     id={`studio-${studio.id}`}
                                     checked={formData.studioIds.includes(studio.id.toString())}
