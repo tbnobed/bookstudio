@@ -250,7 +250,7 @@ export default function MobileDailyView({
       notifyList: booking.notifyList || [],
       color: booking.color || '#3b82f6',
       // Use the linked studios we fetched
-      studioIds: studioIds.length > 0 ? studioIds : (booking.studioId ? [booking.studioId] : [])
+      studioIds: linkedStudioIds.length > 0 ? linkedStudioIds : (booking.studioId ? [booking.studioId] : [])
     };
     
     // Add any missing fields that might be needed by the form
