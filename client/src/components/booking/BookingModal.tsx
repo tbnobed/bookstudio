@@ -750,8 +750,8 @@ export default function BookingModal({
                     />
                   </div>
                   
-                  {/* 3-column grid for form controls */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Responsive grid for form controls - 1 column on mobile, 3 on larger screens */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {/* Left column - Studios */}
                     <div>
                       <div className="space-y-4">
@@ -895,29 +895,30 @@ export default function BookingModal({
                     <div>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="date">Date</Label>
+                          <Label htmlFor="date" className="text-base font-medium">Date</Label>
                           <Input
                             id="date"
                             type="date"
                             value={formData.date}
                             onChange={(e) => updateFormField('date', e.target.value)}
                             required
+                            className="h-11 mt-1.5 text-base"
                           />
                         </div>
                         
                         <div>
-                          <Label htmlFor="start-time">Start Time</Label>
+                          <Label htmlFor="start-time" className="text-base font-medium">Start Time</Label>
                           <Select 
                             value={formData.startTime} 
                             onValueChange={(value) => updateFormField('startTime', value)} 
                             required
                           >
-                            <SelectTrigger id="start-time">
+                            <SelectTrigger id="start-time" className="h-11 mt-1.5 text-base">
                               <SelectValue placeholder="Select start time" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-[200px]">
+                            <SelectContent className="max-h-[300px]">
                               {generateTimeOptions().map((time) => (
-                                <SelectItem key={time} value={time}>
+                                <SelectItem key={time} value={time} className="text-base py-1.5">
                                   {time}
                                 </SelectItem>
                               ))}
@@ -926,18 +927,18 @@ export default function BookingModal({
                         </div>
                         
                         <div>
-                          <Label htmlFor="end-time">End Time</Label>
+                          <Label htmlFor="end-time" className="text-base font-medium">End Time</Label>
                           <Select 
                             value={formData.endTime} 
                             onValueChange={(value) => updateFormField('endTime', value)} 
                             required
                           >
-                            <SelectTrigger id="end-time">
+                            <SelectTrigger id="end-time" className="h-11 mt-1.5 text-base">
                               <SelectValue placeholder="Select end time" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-[200px]">
+                            <SelectContent className="max-h-[300px]">
                               {generateTimeOptions().map((time) => (
-                                <SelectItem key={time} value={time}>
+                                <SelectItem key={time} value={time} className="text-base py-1.5">
                                   {time}
                                 </SelectItem>
                               ))}
@@ -946,18 +947,18 @@ export default function BookingModal({
                         </div>
                         
                         <div>
-                          <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
+                          <Label htmlFor="pcrRoom" className="text-base font-medium">PCR Room (Optional)</Label>
                           <Select 
                             value={formData.pcrRoomId} 
                             onValueChange={(value) => updateFormField('pcrRoomId', value)}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-11 mt-1.5 text-base">
                               <SelectValue placeholder="None" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="0">None</SelectItem>
+                              <SelectItem value="0" className="text-base py-1.5">None</SelectItem>
                               {pcrRooms.map((pcrRoom) => (
-                                <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
+                                <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()} className="text-base py-1.5">
                                   {pcrRoom.name}
                                 </SelectItem>
                               ))}
