@@ -152,7 +152,7 @@ export function MobileBookingController({
         onSubmit={handleFormSubmit}
         booking={booking}
         selectedStudio={selectedStudio}
-        defaultStudioId={studios[0]?.id}
+        selectedDate={selectedDate}
       />
     );
   }

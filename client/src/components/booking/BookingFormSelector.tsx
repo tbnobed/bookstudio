@@ -17,6 +17,7 @@ interface BookingFormSelectorProps {
   booking?: ApiBooking | null;
   selectedStudio?: number | null;
   forceSimpleMode?: boolean;
+  selectedDate?: Date;
 }
 
 export function BookingFormSelector({
@@ -25,7 +26,8 @@ export function BookingFormSelector({
   onSubmit,
   booking = null,
   selectedStudio = null,
-  forceSimpleMode = false
+  forceSimpleMode = false,
+  selectedDate = new Date()
 }: BookingFormSelectorProps) {
   // Detect if we're on a low-end device based on screen size and memory
   const isLowEndDevice = React.useMemo(() => {
@@ -80,6 +82,7 @@ export function BookingFormSelector({
       onSubmit={onSubmit}
       booking={booking}
       selectedStudio={selectedStudio}
+      selectedDate={selectedDate}
     />
   ) : (
     <SimpleMobileForm 
@@ -88,6 +91,7 @@ export function BookingFormSelector({
       onSubmit={onSubmit}
       booking={booking}
       selectedStudio={selectedStudio}
+      selectedDate={selectedDate}
     />
   );
 }

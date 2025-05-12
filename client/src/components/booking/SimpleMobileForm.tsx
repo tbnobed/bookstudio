@@ -18,6 +18,7 @@ interface SimpleMobileFormProps {
   onSubmit: (data: FormBookingData) => void;
   booking?: ApiBooking | null;
   selectedStudio?: number | null;
+  selectedDate?: Date;
 }
 
 export function SimpleMobileForm({
@@ -25,7 +26,8 @@ export function SimpleMobileForm({
   onClose,
   onSubmit,
   booking = null,
-  selectedStudio = null
+  selectedStudio = null,
+  selectedDate = new Date()
 }: SimpleMobileFormProps) {
   const { studios = [] } = useStudios();
   const { pcrRooms = [] } = usePcrRooms();
@@ -435,7 +437,7 @@ export function SimpleMobileForm({
           
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="sm-start-date">Start Date*</label>
+              <label htmlFor="sm-start-date">Date*</label>
               <input 
                 type="date"
                 id="sm-start-date"
