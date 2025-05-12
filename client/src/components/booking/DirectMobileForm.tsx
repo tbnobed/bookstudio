@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ApiBooking, FormBookingData } from '../../types/bookings';
+import { ApiBooking, FormBookingData, BookingType, BookingStatus, BookingSeverity } from '../../types/bookings';
 import { formatDateForForm, formatTimeForForm } from '../../utils/dateUtils';
 import { useTemplates } from '../../hooks/useTemplates';
 import { useStudios } from '../../hooks/useStudios';
@@ -64,6 +64,16 @@ export function DirectMobileForm({
           const studioId = selectedTemplate.studioIds && selectedTemplate.studioIds.length > 0 
             ? selectedTemplate.studioIds[0] 
             : prev.studioId;
+          
+          // Cast template.type to BookingType if it is valid, otherwise use previous type
+          const typeCast = (['recording', 'live', 'maintenance', 'other', 'production'].includes(selectedTemplate.type)
+            ? selectedTemplate.type as BookingType
+            : prev.type);
+          
+          // Cast template.status to BookingStatus if it is valid, otherwise use previous status
+          const statusCast = (['confirmed', 'pending', 'cancelled', 'draft'].includes(selectedTemplate.status)
+            ? selectedTemplate.status as BookingStatus
+            : prev.status);
             
           // Apply template settings
           return {
@@ -71,12 +81,12 @@ export function DirectMobileForm({
             templateId,
             title: prev.title || selectedTemplate.name, // Only use template name if title is empty
             description: selectedTemplate.description || prev.description,
-            type: selectedTemplate.type,
+            type: typeCast,
             studioId,
             studioIds: selectedTemplate.studioIds || [studioId],
             pcrRoomId: selectedTemplate.pcrRoomId || prev.pcrRoomId,
-            status: selectedTemplate.status || prev.status,
-            severity: selectedTemplate.severity || prev.severity,
+            status: statusCast,
+            severity: selectedTemplate.severity as BookingSeverity || prev.severity,
             color: selectedTemplate.color || prev.color,
             notifyList: selectedTemplate.notifyList || prev.notifyList
           };
@@ -99,6 +109,13 @@ export function DirectMobileForm({
         ...prev,
         studioId,
         studioIds: studioId ? [studioId] : []
+      }));
+    } else if (name === 'pcrRoomId') {
+      // Parse pcrRoomId as number, but allow null (0 = null)
+      const pcrRoomId = parseInt(value, 10);
+      setFormData(prev => ({
+        ...prev,
+        pcrRoomId: pcrRoomId || null
       }));
     } else if (name === 'startDate') {
       const [currentDate, currentTime] = formData.start.toISOString().split('T');
