@@ -39,6 +39,22 @@ export function SimpleMobileForm({
     console.log('SimpleMobileForm - Templates loaded:', templates);
   }, [templates]);
   
+  // Update form dates when selectedDate changes
+  useEffect(() => {
+    if (!booking) {
+      // Only update if this is a new booking (not editing)
+      setFormData(prev => {
+        const newStart = new Date(selectedDate);
+        const newEnd = new Date(new Date(selectedDate).getTime() + 3600000); // 1 hour later
+        return {
+          ...prev,
+          start: newStart,
+          end: newEnd
+        };
+      });
+    }
+  }, [selectedDate, booking]);
+  
   // Determine initial studio ID
   const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 0);
   
@@ -58,8 +74,8 @@ export function SimpleMobileForm({
     description: booking?.description || '',
     studioId: initialStudioId,
     pcrRoomId: booking?.pcrRoomId || (pcrRooms[0]?.id || 0),
-    start: booking ? new Date(booking.start) : new Date(),
-    end: booking ? new Date(booking.end) : new Date(Date.now() + 3600000), // Default 1 hour later
+    start: booking ? new Date(booking.start) : new Date(selectedDate),
+    end: booking ? new Date(booking.end) : new Date(new Date(selectedDate).getTime() + 3600000), // Default 1 hour later
     type: booking?.type || 'production',
     status: booking?.status || 'draft',
     severity: booking?.severity || 'low',

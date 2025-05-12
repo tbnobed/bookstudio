@@ -13,6 +13,7 @@ interface DirectMobileFormProps {
   onSubmit: (data: FormBookingData) => void;
   booking?: ApiBooking | null;
   selectedStudio?: number | null;
+  selectedDate?: Date;
 }
 
 export function DirectMobileForm({
@@ -20,7 +21,8 @@ export function DirectMobileForm({
   onClose,
   onSubmit,
   booking = null,
-  selectedStudio = null
+  selectedStudio = null,
+  selectedDate = new Date()
 }: DirectMobileFormProps) {
   // Get data from hooks
   const { studios = [] } = useStudios();
@@ -30,6 +32,22 @@ export function DirectMobileForm({
   // Initial studio ID from props or booking
   const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 0);
   
+  // Update dates when selectedDate changes
+  useEffect(() => {
+    if (!booking) {
+      // Only update if this is a new booking (not editing)
+      setFormData(prev => {
+        const newStart = new Date(selectedDate);
+        const newEnd = new Date(new Date(selectedDate).getTime() + 3600000); // 1 hour later
+        return {
+          ...prev,
+          start: newStart,
+          end: newEnd
+        };
+      });
+    }
+  }, [selectedDate, booking]);
+  
   // Create very basic form state
   const [formData, setFormData] = useState<FormBookingData>({
     id: booking?.id || 0,
@@ -37,8 +55,8 @@ export function DirectMobileForm({
     description: booking?.description || '',
     studioId: initialStudioId,
     pcrRoomId: booking?.pcrRoomId || 0, 
-    start: booking ? new Date(booking.start) : new Date(),
-    end: booking ? new Date(booking.end) : new Date(Date.now() + 3600000), // Default 1 hour later
+    start: booking ? new Date(booking.start) : new Date(selectedDate),
+    end: booking ? new Date(booking.end) : new Date(new Date(selectedDate).getTime() + 3600000), // Default 1 hour later
     type: booking?.type || 'production',
     status: booking?.status || 'draft',
     severity: booking?.severity || 'low',
