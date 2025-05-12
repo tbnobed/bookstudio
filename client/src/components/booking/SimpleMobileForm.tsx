@@ -190,10 +190,11 @@ export function SimpleMobileForm({
                 console.log('Found status in equipment:', prev.status);
               }
               
-              // Extract severity if available
-              if (equipmentItem.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentItem.severity)) {
+              // Extract severity if available and only apply for alert type
+              if (equipmentItem.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentItem.severity) && 
+                  (selectedTemplate.type === 'alert' || prev.type === 'alert' as BookingType)) {
                 prev.severity = equipmentItem.severity as BookingSeverity;
-                console.log('Found severity in equipment:', prev.severity);
+                console.log('Found severity in equipment for alert:', prev.severity);
               }
               
               // Extract color if available
@@ -220,9 +221,11 @@ export function SimpleMobileForm({
                 console.log('Found status in equipment object:', prev.status);
               }
               
-              if (equipmentObj.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentObj.severity)) {
+              // Extract severity if available and only apply for alert type
+              if (equipmentObj.severity && ['low', 'medium', 'high', 'critical'].includes(equipmentObj.severity) && 
+                  (selectedTemplate.type === 'alert' || prev.type === 'alert' as BookingType)) {
                 prev.severity = equipmentObj.severity as BookingSeverity;
-                console.log('Found severity in equipment object:', prev.severity);
+                console.log('Found severity in equipment object for alert:', prev.severity);
               }
               
               if (equipmentObj.color) {
@@ -523,21 +526,24 @@ export function SimpleMobileForm({
             </div>
           </div>
           
-          <div className="form-group">
-            <label htmlFor="sm-severity">Severity</label>
-            <select 
-              id="sm-severity"
-              name="severity"
-              value={formData.severity}
-              onChange={handleChange}
-              className="form-select"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
-          </div>
+          {/* Severity is only shown for alert type bookings */}
+          {formData.type === 'alert' as BookingType && (
+            <div className="form-group">
+              <label htmlFor="sm-severity">Severity</label>
+              <select 
+                id="sm-severity"
+                name="severity"
+                value={formData.severity}
+                onChange={handleChange}
+                className="form-select"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+          )}
           
           <div className="form-group">
             <label htmlFor="sm-color">Color</label>
