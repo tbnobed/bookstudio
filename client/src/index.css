@@ -50,6 +50,12 @@ input, select, textarea {
     font-size: 16px;
   }
   
+  /* Force studios to display in two columns on mobile */
+  .grid-cols-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr !important;
+  }
+  
   /* Prevent overflow */
   .DialogContent {
     width: 95% !important;

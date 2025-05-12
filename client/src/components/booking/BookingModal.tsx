@@ -1194,7 +1194,7 @@ export default function BookingModal({
                       <div>
                         <Label className="text-sm md:text-base font-medium">Studios</Label>
                         <div className="mt-1 max-h-48 overflow-y-auto pr-1">
-                          <div className="grid grid-cols-2 gap-1">
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
                             {studios.map((studio: Studio) => (
                               <div key={studio.id} className="flex items-center space-x-1 p-1 hover:bg-slate-50 rounded-md">
                                 <Checkbox
