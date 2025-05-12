@@ -1,28 +1,47 @@
-// Booking template type definitions
+/**
+ * Type definitions for booking templates
+ */
 
-import { BookingType } from './bookings';
+import { BookingType, BookingSeverity, BookingStatus } from './bookings';
 
-// Data structure from API for booking templates
+// Template data
 export interface Template {
   id: number;
   name: string;
-  description: string;
-  duration: number; // Duration in minutes
+  description: string | null;
   type: BookingType;
-  pcrRoomId: number;
-  userId: number;
-  color: string;
-  studioIds: number[];
+  defaultDuration: number | null;
+  status: BookingStatus;
+  severity: BookingSeverity;
+  studioIds: number[] | null;
+  pcrRoomId: number | null;
+  color: string | null;
+  equipment: string[] | null;
+  notifyList: string[] | null;
+  createdBy: number;
+  createdAt: string;
 }
 
-// Form data structure for template creation/editing
+// Template creation/edit form data
 export interface TemplateFormData {
   id?: number;
   name: string;
   description: string;
-  duration: number;
   type: BookingType;
-  pcrRoomId: number;
-  color: string;
+  defaultDuration: number;
+  status: BookingStatus;
+  severity: BookingSeverity;
   studioIds: number[];
+  pcrRoomId: number | null;
+  color: string;
+  equipment: string[];
+  notifyList: string[];
+}
+
+// Template dropdown/display item
+export interface TemplateItem {
+  id: number;
+  name: string;
+  description: string | null;
+  color: string | null;
 }

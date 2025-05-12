@@ -1,17 +1,37 @@
-// Studio type definitions for the BookStud.io application
+/**
+ * Type definitions for TV studios
+ */
 
-// Studio data structure from API
+// Studio status
+export type StudioStatus = 'available' | 'maintenance' | 'offline';
+
+// Studio data
 export interface Studio {
   id: number;
   name: string;
-  description: string;
-  status?: 'available' | 'maintenance' | 'booked' | 'off-air';
-  color?: string;
+  description: string | null;
+  status: StudioStatus;
+  location: string | null;
+  capacity: number | null;
+  equipment: string[] | null;
+  image: string | null;
+  color: string | null;
 }
 
-// Used for studio filtering in the UI
-export interface StudioFilterOption {
-  id: number;
+// Studio with booking data
+export interface StudioWithBookings extends Studio {
+  bookings: number[];
+}
+
+// Studio creation/edit form data
+export interface StudioFormData {
+  id?: number;
   name: string;
-  selected: boolean;
+  description: string;
+  status: StudioStatus;
+  location: string;
+  capacity: number;
+  equipment: string[];
+  image: string | null;
+  color: string;
 }

@@ -1,90 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { ApiBooking, FormBookingData } from '../../types/bookings';
 import { SimpleMobileForm } from './SimpleMobileForm';
 import { DirectMobileForm } from './DirectMobileForm';
-import { FormBookingData, ApiBooking } from '../../types/bookings';
 
-// Utility to detect if running on low-end mobile device
-function isMobileDevice() {
-  return (
-    window.innerWidth <= 768 ||
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
-    )
-  );
-}
+// Device capability thresholds
+const LOW_END_DEVICE_THRESHOLD = {
+  maxMemory: 2, // GB
+  maxWidth: 375 // pixels
+};
 
-// Utility to detect if running on a very small screen or old mobile device
-function isLowEndMobileDevice() {
-  return (
-    window.innerWidth <= 480 ||
-    /Android 4|iPhone OS [0-8]_/i.test(navigator.userAgent)
-  );
-}
-
+// Component to intelligently select the appropriate form based on device capabilities
 interface BookingFormSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: FormBookingData) => void;
   booking?: ApiBooking | null;
   selectedStudio?: number | null;
-  defaultStudioId?: number;
+  forceSimpleMode?: boolean;
 }
 
-/**
- * This component selects the appropriate mobile form based on:
- * 1. The user's device capabilities
- * 2. User preferences (if implemented)
- * 3. Screen size
- * 
- * For very low-end devices or small screens, it uses the ultra-simple DirectMobileForm.
- * For better devices, it uses SimpleMobileForm which has more features.
- */
 export function BookingFormSelector({
   isOpen,
   onClose,
   onSubmit,
-  booking,
-  selectedStudio,
-  defaultStudioId
+  booking = null,
+  selectedStudio = null,
+  forceSimpleMode = false
 }: BookingFormSelectorProps) {
-  // Check if we should use the super-simple form
-  const [useDirectForm, setUseDirectForm] = useState(isLowEndMobileDevice());
-  
-  // Update on resize
-  useEffect(() => {
-    const handleResize = () => {
-      setUseDirectForm(isLowEndMobileDevice());
-    };
+  // Detect if we're on a low-end device based on screen size and memory
+  const isLowEndDevice = React.useMemo(() => {
+    if (forceSimpleMode) return true;
     
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    // Check device memory if available (Chrome-specific)
+    const hasLimitedMemory = (navigator as any).deviceMemory && (navigator as any).deviceMemory < LOW_END_DEVICE_THRESHOLD.maxMemory;
+    
+    // Check screen size
+    const hasSmallScreen = window.innerWidth <= LOW_END_DEVICE_THRESHOLD.maxWidth;
+    
+    // Check for slow connection
+    const hasSlowConnection = (navigator as any).connection && 
+      ((navigator as any).connection.effectiveType === '2g' || 
+       (navigator as any).connection.effectiveType === 'slow-2g');
+    
+    // Check for Android older than version 7 (API level 24)
+    const isOldAndroid = /Android/.test(navigator.userAgent) && 
+      parseFloat(navigator.userAgent.match(/Android\s+([\d.]+)/)?.[1] || '99') < 7;
+    
+    // Check for mobile device with likely limited capabilities
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Consider it a low-end device if it meets any two of these criteria
+    const lowEndFactors = [
+      hasLimitedMemory,
+      hasSmallScreen,
+      hasSlowConnection,
+      isOldAndroid,
+      isMobileDevice
+    ].filter(Boolean).length;
+    
+    return lowEndFactors >= 2;
+  }, [forceSimpleMode]);
   
-  // Handle form submission
-  const handleSubmit = (data: FormBookingData) => {
-    console.log("Form selector received form data:", data);
-    onSubmit(data);
-  };
+  // Log detection results
+  React.useEffect(() => {
+    console.log('BookingFormSelector - Device detection:', {
+      isLowEndDevice,
+      width: window.innerWidth,
+      deviceMemory: (navigator as any).deviceMemory || 'unknown',
+      connection: (navigator as any).connection?.effectiveType || 'unknown',
+      userAgent: navigator.userAgent
+    });
+  }, [isLowEndDevice]);
   
-  // If modal is not open, don't render anything
-  if (!isOpen) return null;
-  
-  // Choose the appropriate form based on device capability
-  return useDirectForm ? (
+  // Render the appropriate form based on device capability
+  return isLowEndDevice ? (
     <DirectMobileForm
       isOpen={isOpen}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onSubmit}
       booking={booking}
-      selectedStudio={selectedStudio || defaultStudioId}
+      selectedStudio={selectedStudio}
     />
   ) : (
-    <SimpleMobileForm
+    <SimpleMobileForm 
       isOpen={isOpen}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onSubmit}
       booking={booking}
-      selectedStudio={selectedStudio || defaultStudioId}
+      selectedStudio={selectedStudio}
     />
   );
 }

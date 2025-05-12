@@ -1,24 +1,47 @@
-// Notification related type definitions
+/**
+ * Type definitions for notification groups and notifications
+ */
 
-// Notification group (email distribution list)
+// Types of notifications
+export type NotificationType = 'booking' | 'maintenance' | 'alert' | 'system';
+
+// Notification group
 export interface NotificationGroup {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   emails: string[];
+  phoneNumbers: string[] | null;
+  isDefault: boolean;
 }
 
-// Notification types
-export type NotificationType = 'booking_created' | 'booking_updated' | 'booking_cancelled' | 'maintenance' | 'alert';
-
-// Notification data structure
+// Notification
 export interface Notification {
   id: number;
   type: NotificationType;
   title: string;
   message: string;
-  read: boolean;
-  createdAt: string;
-  targetId?: number; // ID of the related entity (booking, maintenance, etc.)
-  userId: number;
+  sentAt: string;
+  groupId: number;
+  bookingId: number | null;
+  readBy: number[];
+  sentBy: number;
+}
+
+// Notification group creation/edit form data
+export interface NotificationGroupFormData {
+  id?: number;
+  name: string;
+  description: string;
+  emails: string[];
+  phoneNumbers: string[];
+  isDefault: boolean;
+}
+
+// Notification item for dropdown/display
+export interface NotificationGroupItem {
+  id: number;
+  name: string;
+  description: string | null;
+  emails: string[];
 }

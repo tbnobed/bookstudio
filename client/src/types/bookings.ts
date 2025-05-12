@@ -1,122 +1,76 @@
-// Booking type definitions for the BookStud.io application
+/**
+ * Type definitions for bookings
+ */
 
-// Studio booking types
+// Booking types
 export type BookingType = 'production' | 'maintenance' | 'private' | 'alert' | 'other';
 
-// Booking status values
-export type BookingStatus = 'draft' | 'confirmed' | 'cancelled';
+// Booking status
+export type BookingStatus = 'draft' | 'confirmed' | 'cancelled' | 'completed';
 
-// Booking severity levels for maintenance and alerts
+// Booking severity (for alerts/maintenance)
 export type BookingSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-// Data structure for bookings fetched from API
+// Booking data from API
 export interface ApiBooking {
-  // Core properties
   id: number;
   title: string;
-  description: string;
-  studioId: number;
-  pcrRoomId: number; 
+  description: string | null;
+  studioId: number | null;
+  pcrRoomId: number | null;
   userId: number;
-  
-  // Timing
-  start: string; 
-  end: string;
-  
-  // Classification
+  start: string | Date;
+  end: string | Date;
   type: BookingType;
+  templateId: number | null;
   status: BookingStatus;
-  severity: BookingSeverity;
-  
-  // Additional metadata
-  templateId: number;
   notifyList: string[];
   color: string;
-  
-  // Optional - studios linked to this booking (for multi-studio bookings)
-  studios?: {
-    id: number;
-    name: string;
-  }[];
+  severity: BookingSeverity;
 }
 
-// Form data structure used in booking forms
+// Form data for creating/editing a booking
 export interface FormBookingData {
-  // Core properties
   id: number;
   title: string;
   description: string;
   studioId: number;
   pcrRoomId: number;
-  
-  // Timing - using Date objects for easier form handling
   start: Date;
   end: Date;
-  
-  // Classification
   type: BookingType;
-  status: BookingStatus;
-  severity: BookingSeverity;
-  
-  // Additional metadata
   templateId: number;
+  status: BookingStatus;
   notifyList: string[];
-  color: string;
-}
-
-// Data structure for creating a new booking
-export interface CreateBookingRequest {
-  title: string;
-  description: string;
-  studioId: number;
-  pcrRoomId: number;
-  type: BookingType;
-  start: Date;
-  end: Date;
-  templateId: number;
-  status: BookingStatus;
   severity: BookingSeverity;
   color: string;
-  studioIds: number[]; // Array of studio IDs for multi-studio bookings
+  studioIds?: number[];
 }
 
-// Data structure for updating an existing booking
-export interface UpdateBookingRequest {
-  id: number;
-  data: Partial<{
-    title: string;
-    description: string;
-    studioId: number;
-    pcrRoomId: number;
-    type: string;
-    start: Date;
-    end: Date;
-    userId: number;
-    templateId: number;
-    status: string;
-    notifyList: string[];
-    severity: string;
-    color: string;
-  }>;
-  studioIds?: number[]; // Array of studio IDs for multi-studio bookings
+// API response from booking creation
+export interface BookingResponse {
+  success: boolean;
+  booking?: ApiBooking;
+  error?: string;
 }
 
-// Data structure for booking templates
-export interface BookingTemplate {
-  id: number;
-  name: string;
-  description: string;
-  duration: number; // Duration in minutes
-  type: BookingType;
-  pcrRoomId: number;
-  userId: number;
-  color: string;
-  studioIds: number[];
+// Booking with studios data
+export interface BookingWithStudios extends ApiBooking {
+  studios: number[];
 }
 
-// Response from booking-studios endpoint
-export interface BookingStudioLink {
-  id: number;
-  bookingId: number;
-  studioId: number;
+// Calendar day cell data
+export interface CalendarDayData {
+  date: Date;
+  bookings: ApiBooking[];
+  isToday: boolean;
+  isInCurrentMonth: boolean;
+}
+
+// Calendar day with processed bookings
+export interface ProcessedCalendarDay {
+  date: Date;
+  bookingsByStudio: Record<number, ApiBooking[]>;
+  isToday: boolean;
+  isInCurrentMonth: boolean;
 }
