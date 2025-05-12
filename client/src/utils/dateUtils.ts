@@ -4,22 +4,42 @@
 
 /**
  * Format a date to a string in the format YYYY-MM-DD for use in form inputs
+ * Correctly handles the America/Chicago timezone
  * @param date Date object or string
  * @returns Formatted date string in YYYY-MM-DD format
  */
 export function formatDateForForm(date: Date | string): string {
   const d = date instanceof Date ? date : new Date(date);
-  return d.toISOString().split('T')[0];
+  
+  // Format the date in Chicago timezone
+  const chicagoDate = new Date(d.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+  
+  // Format as YYYY-MM-DD
+  const year = chicagoDate.getFullYear();
+  const month = String(chicagoDate.getMonth() + 1).padStart(2, '0');
+  const day = String(chicagoDate.getDate()).padStart(2, '0');
+  
+  console.log(`formatDateForForm: Input date: ${date}, Chicago date: ${chicagoDate}, formatted as: ${year}-${month}-${day}`);
+  
+  return `${year}-${month}-${day}`;
 }
 
 /**
  * Format a date to a string in the format HH:MM for use in form inputs
+ * Correctly handles the America/Chicago timezone
  * @param date Date object or string
  * @returns Formatted time string in HH:MM format
  */
 export function formatTimeForForm(date: Date | string): string {
   const d = date instanceof Date ? date : new Date(date);
-  return d.toTimeString().slice(0, 5);
+  
+  // Format time in Chicago timezone using 24-hour format
+  return d.toLocaleTimeString('en-US', { 
+    timeZone: 'America/Chicago',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 /**

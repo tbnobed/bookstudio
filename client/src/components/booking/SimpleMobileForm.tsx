@@ -218,42 +218,98 @@ export default function SimpleMobileForm({
     
     // Special handling for date and time fields
     if (name === 'startDate') {
-      // Update the start date while keeping the time
-      const currentStart = new Date(formData.start);
+      console.log(`Date change: Setting date to ${value}`);
+      
+      // Create a date object in Chicago timezone
       const [year, month, day] = value.split('-').map(Number);
-      const newDate = new Date(currentStart);
-      newDate.setFullYear(year, month - 1, day);
+      
+      // Get current Chicago time components from the start date
+      const chicagoOptions = { timeZone: 'America/Chicago' };
+      const startChicagoDate = new Date(formData.start.toLocaleString('en-US', chicagoOptions));
+      const hours = startChicagoDate.getHours();
+      const minutes = startChicagoDate.getMinutes();
+      
+      // Create a new date in Chicago timezone
+      const chicagoDateStr = `${year}-${month}-${day}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+      const localDate = new Date(chicagoDateStr);
+      
+      // Adjust for Chicago timezone offset to get the correct UTC time
+      const chicagoOffset = new Date().getTimezoneOffset() - 
+                           new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', hour: '2-digit' }).includes('AM') ? 360 : 300;
+      const utcDate = new Date(localDate.getTime() + chicagoOffset * 60000);
+      
+      console.log(`Adjusted date: Chicago: ${chicagoDateStr}, UTC: ${utcDate.toISOString()}`);
       
       // Also update end date to be on the same day
-      const currentEnd = new Date(formData.end);
-      const endDate = new Date(currentEnd);
-      endDate.setFullYear(year, month - 1, day);
+      const endChicagoDate = new Date(formData.end.toLocaleString('en-US', chicagoOptions));
+      const endHours = endChicagoDate.getHours();
+      const endMinutes = endChicagoDate.getMinutes();
+      
+      const endChicagoDateStr = `${year}-${month}-${day}T${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}:00`;
+      const endLocalDate = new Date(endChicagoDateStr);
+      const endUtcDate = new Date(endLocalDate.getTime() + chicagoOffset * 60000);
       
       setFormData(prev => ({ 
         ...prev, 
-        start: newDate,
-        end: endDate
+        start: utcDate,
+        end: endUtcDate
       }));
       return;
     }
     
     if (name === 'startTime') {
-      // Update just the time portion of the start datetime
-      const currentDate = new Date(formData.start);
-      const [hours, minutes] = value.split(':').map(Number);
-      currentDate.setHours(hours, minutes);
+      console.log(`Start time change: Setting time to ${value}`);
       
-      setFormData(prev => ({ ...prev, start: currentDate }));
+      // Get the current date parts in Chicago timezone
+      const chicagoOptions = { timeZone: 'America/Chicago' };
+      const chicagoDate = new Date(formData.start.toLocaleString('en-US', chicagoOptions));
+      const year = chicagoDate.getFullYear();
+      const month = chicagoDate.getMonth() + 1;
+      const day = chicagoDate.getDate();
+      
+      // Parse the new time
+      const [hours, minutes] = value.split(':').map(Number);
+      
+      // Create a new date string in Chicago timezone
+      const chicagoDateStr = `${year}-${month}-${day}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+      const localDate = new Date(chicagoDateStr);
+      
+      // Adjust for Chicago timezone offset to get the correct UTC time
+      const chicagoOffset = new Date().getTimezoneOffset() - 
+                           new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', hour: '2-digit' }).includes('AM') ? 360 : 300;
+      const utcDate = new Date(localDate.getTime() + chicagoOffset * 60000);
+      
+      console.log(`Adjusted time: Chicago: ${chicagoDateStr}, UTC: ${utcDate.toISOString()}`);
+      
+      setFormData(prev => ({ ...prev, start: utcDate }));
       return;
     }
     
     if (name === 'endTime') {
-      // Update just the time portion of the end datetime
-      const currentDate = new Date(formData.end);
-      const [hours, minutes] = value.split(':').map(Number);
-      currentDate.setHours(hours, minutes);
+      console.log(`End time change: Setting time to ${value}`);
       
-      setFormData(prev => ({ ...prev, end: currentDate }));
+      // Get the current date parts in Chicago timezone
+      const chicagoOptions = { timeZone: 'America/Chicago' };
+      const chicagoDate = new Date(formData.end.toLocaleString('en-US', chicagoOptions));
+      const year = chicagoDate.getFullYear();
+      const month = chicagoDate.getMonth() + 1;
+      const day = chicagoDate.getDate();
+      
+      // Parse the new time
+      const [hours, minutes] = value.split(':').map(Number);
+      
+      // Create a new date string in Chicago timezone
+      const chicagoDateStr = `${year}-${month}-${day}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+      const localDate = new Date(chicagoDateStr);
+      
+      // Adjust for Chicago timezone offset to get the correct UTC time
+      const chicagoOffset = new Date().getTimezoneOffset() - 
+                           new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', hour: '2-digit' }).includes('AM') ? 360 : 300;
+      const utcDate = new Date(localDate.getTime() + chicagoOffset * 60000);
+      
+      console.log(`Adjusted end time: Chicago: ${chicagoDateStr}, UTC: ${utcDate.toISOString()}`);
+      
+      setFormData(prev => ({ ...prev, end: utcDate }));
       return;
     }
     
@@ -558,7 +614,7 @@ export default function SimpleMobileForm({
                 type="time"
                 id="sm-start-time"
                 name="startTime"
-                value={new Date(formData.start).toTimeString().slice(0, 5)}
+                value={formatTimeForForm(formData.start)}
                 onChange={handleChange}
                 required
                 className="form-input"
@@ -572,7 +628,7 @@ export default function SimpleMobileForm({
               type="time"
               id="sm-end-time"
               name="endTime"
-              value={new Date(formData.end).toTimeString().slice(0, 5)}
+              value={formatTimeForForm(formData.end)}
               onChange={handleChange}
               required
               className="form-input"
