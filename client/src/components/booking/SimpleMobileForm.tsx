@@ -122,19 +122,27 @@ export function SimpleMobileForm({
   // Handle multi-select studios
   const handleStudioSelect = (studioId: number) => {
     setFormData(prev => {
+      // Clone the current studioIds array or initialize empty array
       const studioIds = [...(prev.studioIds || [])];
       const index = studioIds.indexOf(studioId);
       
       if (index === -1) {
+        // Add studio if not already selected
         studioIds.push(studioId);
       } else {
+        // Remove studio if already selected
         studioIds.splice(index, 1);
       }
+      
+      // Validate that at least one studio is selected
+      // When showing validation form, we rely on the error hint to notify users
       
       return {
         ...prev,
         studioIds,
-        studioId: studioIds[0] || 0 // Always keep the first studio as primary
+        // Always keep the first studio as primary, but allow 0 when no studios selected
+        // This is important for validation to work correctly
+        studioId: studioIds.length > 0 ? studioIds[0] : 0
       };
     });
   };
@@ -293,6 +301,14 @@ export function SimpleMobileForm({
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that at least one studio is selected
+    if (!formData.studioIds || formData.studioIds.length === 0) {
+      console.log('SimpleMobileForm - Validation failed: No studios selected');
+      // Don't submit - just let the error hint display
+      return;
+    }
+    
     console.log('SimpleMobileForm - Submitting:', formData);
     onSubmit(formData);
   };
@@ -377,25 +393,7 @@ export function SimpleMobileForm({
           </div>
           
           <div className="form-group">
-            <label htmlFor="sm-studio">Primary Studio*</label>
-            <select 
-              id="sm-studio"
-              name="studioId"
-              value={formData.studioId}
-              onChange={handleChange}
-              required
-              className="form-select"
-            >
-              {studios.map(studio => (
-                <option key={studio.id} value={studio.id}>
-                  {studio.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label>Additional Studios</label>
+            <label>Studios*</label>
             <div className="studio-multi-select">
               {studios.map(studio => (
                 <div key={studio.id} className="checkbox-item">
@@ -409,6 +407,9 @@ export function SimpleMobileForm({
                 </div>
               ))}
             </div>
+            {(formData.studioIds || []).length === 0 && (
+              <div className="error-hint">Please select at least one studio</div>
+            )}
           </div>
           
           <div className="form-group">
