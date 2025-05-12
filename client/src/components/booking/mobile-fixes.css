@@ -1,24 +1,11 @@
-/* EMERGENCY MOBILE FIXES TO PREVENT HORIZONTAL SCROLLING */
+/* MOBILE FORM FIXES - SIMPLIFIED */
 
-/* Target dialog content directly with higher specificity */
-#root [data-radix-dialog-content],
-#root [data-state="open"][role="dialog"],
-#root [role="dialog"].DialogContent,
-#root .mobile-view-active [role="dialog"],
-#root .mobile-view-active .DialogContent {
-  width: 85vw !important;
-  max-width: 85vw !important;
-  position: fixed !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  margin: 0 auto !important;
-  padding: 8px !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  box-sizing: border-box !important;
-  transform: none !important;
+/* Allow dialogs to use default positioning */
+.mobile-view-active [role="dialog"],
+.mobile-view-active .DialogContent {
+  overflow-x: hidden;
+  padding: 12px;
+  display: block;
 }
 
 /* Force form elements to stay within bounds */

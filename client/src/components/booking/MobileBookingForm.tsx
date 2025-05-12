@@ -57,39 +57,27 @@ export default function MobileBookingForm({
     };
   }, []);
   
-  // Define smaller form width to prevent overflow - using 70% to ensure no horizontal scroll
-  const formWidth = '70%';
+  // Define normal form width to make content visible
+  const formWidth = '100%';
   
-  // Apply a common style to all form elements to ensure consistent sizing
-  const applyConsistentWidths = () => {
-    useLayoutEffect(() => {
-      const dialogContent = document.querySelector('[data-radix-dialog-content]');
-      if (dialogContent) {
-        // Force dialog to 75vw width
-        dialogContent.setAttribute('style', 'width: 75vw !important; max-width: 75vw !important; margin: 0 auto !important; padding: 5px !important; overflow-x: hidden !important;');
-        
-        // Force all form inputs to be narrower
-        const formElements = dialogContent.querySelectorAll('input, select, textarea, [role="combobox"]');
-        formElements.forEach(el => {
-          el.setAttribute('style', 'width: 95% !important; max-width: 95% !important; box-sizing: border-box !important;');
-        });
-      }
-    }, []);
-  };
-  
-  // Call our function to enforce styles
-  applyConsistentWidths();
+  // Let's stop direct DOM manipulation as it's hiding content
+  useLayoutEffect(() => {
+    // Just prevent body scroll
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   return (
     <form 
       onSubmit={onSubmit} 
       className="mobile-booking-form space-y-4" 
       style={{ 
-        width: formWidth, 
-        maxWidth: formWidth, 
-        margin: '0 auto', 
+        width: '100%', 
+        maxWidth: '100%', 
         overflowX: 'hidden',
-        padding: '0px',
+        padding: '10px',
         boxSizing: 'border-box'
       }}
     >
