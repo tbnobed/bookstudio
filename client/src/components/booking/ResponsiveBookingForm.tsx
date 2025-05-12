@@ -1,109 +1,118 @@
-import React, { useEffect, useState } from 'react';
-import { BookingType, ApiBooking, FormBookingData } from '../../types/bookings';
-import { formatDateForForm, formatTimeForForm } from '../../utils/dateUtils';
-import { DirectMobileForm } from './DirectMobileForm';
+import React, { useState, useEffect } from 'react';
 import { SimpleMobileForm } from './SimpleMobileForm';
+import { DirectMobileForm } from './DirectMobileForm';
+import { FormBookingData, ApiBooking } from '../../types/bookings';
+import { Studio } from '../../types/studios';
+import { Template } from '../../types/templates';
+import { PcrRoom } from '../../types/pcr-rooms';
+import { NotificationGroup } from '../../types/notifications';
+import { useStudios } from '../../hooks/useStudios';
 import { usePcrRooms } from '../../hooks/usePcrRooms';
 import { useTemplates } from '../../hooks/useTemplates';
 import { useNotificationGroups } from '../../hooks/useNotificationGroups';
-import { useStudios } from '../../hooks/useStudios';
 
-// Default form data for new bookings
-const defaultFormData: FormBookingData = {
-  id: 0,
-  title: '',
-  description: '',
-  studioId: 1,
-  pcrRoomId: 0,
-  type: 'production',
-  start: new Date().toISOString(),
-  end: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(),
-  templateId: 0,
-  notifyList: [],
-  severity: 'medium',
-  status: 'confirmed',
-  color: '#4B83E2'
-};
+// Utility to detect if running on mobile device
+function isMobileDevice() {
+  return (
+    window.innerWidth <= 768 ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  );
+}
+
+// Utility to detect if running on a very small screen or old mobile device
+function isLowEndMobileDevice() {
+  return (
+    window.innerWidth <= 480 ||
+    /Android 4|iPhone OS [0-8]_/i.test(navigator.userAgent)
+  );
+}
 
 interface ResponsiveBookingFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: FormBookingData) => void;
+  onSubmit: (data: any) => void;
   booking?: ApiBooking | null;
   selectedStudio?: number | null;
   defaultStudioId?: number;
-  useSimpleForm?: boolean;
 }
 
+/**
+ * A responsive booking form that automatically chooses the most appropriate
+ * form component based on the device capabilities.
+ */
 export function ResponsiveBookingForm({
   isOpen,
   onClose,
   onSubmit,
-  booking,
-  selectedStudio,
-  defaultStudioId,
-  useSimpleForm = true // Default to simple form for mobile
+  booking = null,
+  selectedStudio = null,
+  defaultStudioId
 }: ResponsiveBookingFormProps) {
+  // Fetch all required data
+  const { studios = [] } = useStudios();
   const { pcrRooms = [] } = usePcrRooms();
   const { templates = [] } = useTemplates();
   const { notificationGroups = [] } = useNotificationGroups();
-  const { studios = [] } = useStudios();
   
-  // Handle form submission wrapper function
-  const handleSubmit = (data: any) => {
-    // Format and validate before submitting
-    const formattedData: FormBookingData = {
-      id: data.id || 0,
-      title: data.title,
-      description: data.description || '',
-      studioId: data.studioId || selectedStudio || defaultStudioId || studios[0]?.id || 1,
-      pcrRoomId: data.pcrRoomId || 0,
-      type: (data.type || 'production') as BookingType,
-      start: data.start,
-      end: data.end,
-      templateId: data.templateId || 0,
-      notifyList: data.notifyList || [],
-      severity: data.severity || 'medium',
-      status: data.status || 'confirmed',
-      color: data.color || '#4B83E2'
+  // Detect device capabilities
+  const [isMobile, setIsMobile] = useState(isMobileDevice());
+  const [isLowEnd, setIsLowEnd] = useState(isLowEndMobileDevice());
+  
+  // Update device capability detection on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(isMobileDevice());
+      setIsLowEnd(isLowEndMobileDevice());
     };
     
-    onSubmit(formattedData);
-  };
-
-  // Prepare initial booking data if editing
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // Prepare initial form data
   const initialData = booking ? {
     ...booking,
-    startDate: formatDateForForm(booking.start),
-    startTime: formatTimeForForm(booking.start),
-    endDate: formatDateForForm(booking.end),
-    endTime: formatTimeForForm(booking.end),
+    start: new Date(booking.start),
+    end: new Date(booking.end)
   } : null;
   
-  // Render the appropriate form based on preference
-  if (useSimpleForm) {
-    return (
-      <SimpleMobileForm
-        isOpen={isOpen}
-        onClose={onClose}
-        onSubmit={handleSubmit}
-        booking={booking}
-        selectedStudio={selectedStudio}
-        defaultStudioId={defaultStudioId}
-      />
-    );
-  } else {
-    return (
-      <DirectMobileForm
-        isOpen={isOpen}
-        onClose={onClose}
-        onSubmit={handleSubmit}
-        studios={studios}
-        pcrRooms={pcrRooms}
-        templates={templates}
-        notificationGroups={notificationGroups}
-        initialData={initialData}
-      />
-    );
+  // Handle form submission
+  const handleSubmit = (data: any) => {
+    console.log("ResponsiveBookingForm submit:", data);
+    onSubmit(data);
+  };
+  
+  // Choose the appropriate form component based on device capabilities
+  if (isMobile) {
+    // Mobile device - choose based on capability
+    if (isLowEnd) {
+      // Use ultra-simplified form for low-end devices
+      return (
+        <DirectMobileForm
+          isOpen={isOpen}
+          onClose={onClose}
+          onSubmit={handleSubmit}
+          booking={booking}
+          selectedStudio={selectedStudio}
+        />
+      );
+    } else {
+      // Use simplified form for normal mobile devices
+      return (
+        <SimpleMobileForm
+          isOpen={isOpen}
+          onClose={onClose}
+          onSubmit={handleSubmit}
+          booking={booking}
+          selectedStudio={selectedStudio}
+        />
+      );
+    }
   }
+  
+  // Not a mobile device - just pass through to the original BookingModal
+  // (handled by the parent component)
+  return null;
 }

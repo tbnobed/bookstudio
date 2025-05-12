@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { ApiBooking, FormBookingData } from '../../types/bookings';
-import { ResponsiveBookingForm } from './ResponsiveBookingForm';
+import { SimpleMobileForm } from './SimpleMobileForm';
+import { DirectMobileForm } from './DirectMobileForm';
+import { FormBookingData, ApiBooking } from '../../types/bookings';
 
-// Utility function to detect if running on mobile device
+// Utility to detect if running on low-end mobile device
 function isMobileDevice() {
   return (
     window.innerWidth <= 768 ||
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     )
+  );
+}
+
+// Utility to detect if running on a very small screen or old mobile device
+function isLowEndMobileDevice() {
+  return (
+    window.innerWidth <= 480 ||
+    /Android 4|iPhone OS [0-8]_/i.test(navigator.userAgent)
   );
 }
 
@@ -21,6 +30,15 @@ interface BookingFormSelectorProps {
   defaultStudioId?: number;
 }
 
+/**
+ * This component selects the appropriate mobile form based on:
+ * 1. The user's device capabilities
+ * 2. User preferences (if implemented)
+ * 3. Screen size
+ * 
+ * For very low-end devices or small screens, it uses the ultra-simple DirectMobileForm.
+ * For better devices, it uses SimpleMobileForm which has more features.
+ */
 export function BookingFormSelector({
   isOpen,
   onClose,
@@ -29,38 +47,44 @@ export function BookingFormSelector({
   selectedStudio,
   defaultStudioId
 }: BookingFormSelectorProps) {
-  // Determine if we're on a mobile device
-  const [isMobile, setIsMobile] = useState(isMobileDevice());
+  // Check if we should use the super-simple form
+  const [useDirectForm, setUseDirectForm] = useState(isLowEndMobileDevice());
   
-  // Detect screen resize to update mobile state
+  // Update on resize
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(isMobileDevice());
+      setUseDirectForm(isLowEndMobileDevice());
     };
     
     window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   
   // Handle form submission
   const handleSubmit = (data: FormBookingData) => {
-    // Format and validate before submitting
+    console.log("Form selector received form data:", data);
     onSubmit(data);
   };
-
-  // Use the direct mobile form for simplicity on mobile devices
-  // In the future, we could add a toggle for users to switch between simple and detailed form
-  return (
-    <ResponsiveBookingForm
+  
+  // If modal is not open, don't render anything
+  if (!isOpen) return null;
+  
+  // Choose the appropriate form based on device capability
+  return useDirectForm ? (
+    <DirectMobileForm
       isOpen={isOpen}
       onClose={onClose}
       onSubmit={handleSubmit}
       booking={booking}
-      selectedStudio={selectedStudio}
-      defaultStudioId={defaultStudioId}
-      useSimpleForm={isMobile}
+      selectedStudio={selectedStudio || defaultStudioId}
+    />
+  ) : (
+    <SimpleMobileForm
+      isOpen={isOpen}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      booking={booking}
+      selectedStudio={selectedStudio || defaultStudioId}
     />
   );
 }
