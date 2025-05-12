@@ -29,13 +29,6 @@ import { useToast } from "@/hooks/use-toast";
 import { FileAttachmentList } from "./FileAttachmentList";
 import CopyBookingModal from "./CopyBookingModal";
 
-// Helper function to split an array into chunks of a specified size
-function chunk<T>(array: T[], size: number): T[][] {
-  return Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
-    array.slice(i * size, i * size + size)
-  );
-}
-
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -403,7 +396,7 @@ export default function BookingModal({
           
           // Apply Studios (if available)
           if (additionalData.studioIds && Array.isArray(additionalData.studioIds)) {
-            updateFormField('studioIds', additionalData.studioIds.map((id: number | string) => id.toString()));
+            updateFormField('studioIds', additionalData.studioIds.map(id => id.toString()));
           }
           
           // Apply PCR Room (if available)
@@ -713,9 +706,9 @@ export default function BookingModal({
       )}
       
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto px-2 sm:px-6 w-[95vw] sm:w-auto max-w-full mobile-booking-form">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl">
+            <DialogTitle>
               {booking && booking.id > 0
                 ? (alertsOnly ? "Edit Alert" : "Edit Booking") 
                 : (alertsOnly ? "New Alert" : "New Booking")
@@ -726,81 +719,131 @@ export default function BookingModal({
           {!alertsOnly ? (
             // Tabbed interface for standard bookings (both new and edit)
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="flex w-full tabs-list text-xs">
-                <TabsTrigger value="details" className="py-1 h-8 tabs-trigger text-xs">Booking Details</TabsTrigger>
-                <TabsTrigger value="attachments" className="py-1 h-8 tabs-trigger text-xs">File Attachments</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="details">Booking Details</TabsTrigger>
+                <TabsTrigger value="attachments">File Attachments</TabsTrigger>
               </TabsList>
               
               <TabsContent value="details" className="pt-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Title - Full width */}
                   <div>
-                    <Label htmlFor="title" className="text-sm md:text-base font-medium">Title</Label>
+                    <Label htmlFor="title">Title</Label>
                     <Input
                       id="title"
                       value={formData.title}
                       onChange={(e) => updateFormField('title', e.target.value)}
                       placeholder="Enter booking title"
                       required
-                      className="h-10 md:h-12 mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3"
                     />
                   </div>
                   
                   {/* Description - Full width */}
                   <div>
-                    <Label htmlFor="description" className="text-sm md:text-base font-medium">Description</Label>
+                    <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => updateFormField('description', e.target.value)}
                       placeholder="Enter booking details"
                       rows={3}
-                      className="mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3 py-1.5 md:py-2"
                     />
                   </div>
                   
-                  {/* Responsive grid for form controls - 1 column on mobile, 3 on larger screens */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5 form-grid">
+                  {/* 3-column grid for form controls */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Left column - Studios */}
                     <div>
                       <div className="space-y-4">
                         <div>
-                          <Label className="text-sm md:text-base font-medium">Studios</Label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 mt-1 md:mt-2 gap-1 md:gap-2 max-h-[180px] overflow-y-auto">
-                            {studios.map((studio) => (
-                              <div key={studio.id} className="flex items-center space-x-2 p-1 md:p-2 hover:bg-slate-50 rounded-md">
-                                <Checkbox
-                                  id={`studio-${studio.id}`}
-                                  className="h-3.5 w-3.5 md:h-4 md:w-4"
-                                  checked={formData.studioIds.includes(studio.id.toString())}
-                                  onCheckedChange={(checked) => {
-                                    const studioId = studio.id.toString();
-                                    if (checked) {
-                                      updateFormField('studioIds', [...formData.studioIds, studioId]);
-                                    } else {
-                                      updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
-                                    }
-                                  }}
-                                />
-                                <Label
-                                  htmlFor={`studio-${studio.id}`}
-                                  className="cursor-pointer text-xs md:text-sm"
-                                >
-                                  {studio.name}
-                                </Label>
+                          <Label>Studios</Label>
+                          {studios.length > 10 ? (
+                            <div className="grid grid-cols-2 mt-2 gap-x-4">
+                              <div className="space-y-2">
+                                {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
+                                  <div key={studio.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`studio-${studio.id}`}
+                                      checked={formData.studioIds.includes(studio.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        const studioId = studio.id.toString();
+                                        if (checked) {
+                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                        } else {
+                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`studio-${studio.id}`}
+                                      className="cursor-pointer text-sm"
+                                    >
+                                      {studio.name}
+                                    </Label>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                              <div className="space-y-2">
+                                {studios.slice(Math.ceil(studios.length / 2)).map((studio) => (
+                                  <div key={studio.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`studio-${studio.id}`}
+                                      checked={formData.studioIds.includes(studio.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        const studioId = studio.id.toString();
+                                        if (checked) {
+                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                        } else {
+                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`studio-${studio.id}`}
+                                      className="cursor-pointer text-sm"
+                                    >
+                                      {studio.name}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col mt-2 space-y-2">
+                              {studios.map((studio) => (
+                                <div key={studio.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`studio-${studio.id}`}
+                                    checked={formData.studioIds.includes(studio.id.toString())}
+                                    onCheckedChange={(checked) => {
+                                      const studioId = studio.id.toString();
+                                      if (checked) {
+                                        updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                      } else {
+                                        updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                      }
+                                    }}
+                                  />
+                                  <Label
+                                    htmlFor={`studio-${studio.id}`}
+                                    className="cursor-pointer"
+                                  >
+                                    {studio.name}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           {formData.studioIds.length === 0 && (
                             <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
                           )}
                         </div>
                         
                         {/* Notification Groups section */}
-                        <div className="mt-3 md:mt-4">
+                        <div className="mt-4">
                           <div className="flex items-center mb-1">
-                            <BellRing className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1 text-primary" />
-                            <Label className="text-sm md:text-base">Notification Groups</Label>
+                            <BellRing className="h-4 w-4 mr-1 text-primary" />
+                            <Label>Notification Groups</Label>
                           </div>
                           
                           {notificationGroups.length === 0 ? (
@@ -808,28 +851,26 @@ export default function BookingModal({
                               No notification groups available
                             </p>
                           ) : (
-                            <div className="mt-1 md:mt-1.5 border rounded-md p-1 md:p-2 max-h-[150px] overflow-y-auto">
-                              <div className="grid grid-cols-1 gap-1">
-                                {notificationGroups.map((group: NotificationGroup) => (
-                                  <div key={group.id} className="flex items-center justify-between p-1 md:p-2 hover:bg-slate-50 rounded-md">
-                                    <div className="flex items-center">
-                                      {group.groupType === 'camera' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-blue-500" />}
-                                      {group.groupType === 'lighting' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-yellow-500" />}
-                                      {group.groupType === 'sound' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-green-500" />}
-                                      {group.groupType === 'directors' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-purple-500" />}
-                                      {group.groupType === 'production' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-red-500" />}
-                                      {group.groupType === 'engineering' && <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5 text-orange-500" />}
-                                      <span className="text-xs md:text-sm">{group.name}</span>
-                                    </div>
-                                    <Checkbox
-                                      id={`notify-group-${group.id}`}
-                                      checked={formData.notifyList.includes(group.id.toString())}
-                                      onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
-                                      className="h-3.5 w-3.5 md:h-4 md:w-4"
-                                    />
+                            <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                              {notificationGroups.map((group: NotificationGroup) => (
+                                <div key={group.id} className="flex items-center justify-between">
+                                  <div className="flex items-center">
+                                    {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
+                                    {group.groupType === 'lighting' && <Tag className="h-3.5 w-3.5 mr-1 text-yellow-500" />}
+                                    {group.groupType === 'sound' && <Tag className="h-3.5 w-3.5 mr-1 text-green-500" />}
+                                    {group.groupType === 'directors' && <Tag className="h-3.5 w-3.5 mr-1 text-purple-500" />}
+                                    {group.groupType === 'production' && <Tag className="h-3.5 w-3.5 mr-1 text-red-500" />}
+                                    {group.groupType === 'engineering' && <Tag className="h-3.5 w-3.5 mr-1 text-orange-500" />}
+                                    <span className="text-xs">{group.name}</span>
                                   </div>
-                                ))}
-                              </div>
+                                  <Checkbox
+                                    id={`notify-group-${group.id}`}
+                                    checked={formData.notifyList.includes(group.id.toString())}
+                                    onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
+                                    className="h-4 w-4"
+                                  />
+                                </div>
+                              ))}
                             </div>
                           )}
                           
@@ -854,30 +895,29 @@ export default function BookingModal({
                     <div>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="date" className="text-sm md:text-base font-medium">Date</Label>
+                          <Label htmlFor="date">Date</Label>
                           <Input
                             id="date"
                             type="date"
                             value={formData.date}
                             onChange={(e) => updateFormField('date', e.target.value)}
                             required
-                            className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base"
                           />
                         </div>
                         
                         <div>
-                          <Label htmlFor="start-time" className="text-sm md:text-base font-medium">Start Time</Label>
+                          <Label htmlFor="start-time">Start Time</Label>
                           <Select 
                             value={formData.startTime} 
                             onValueChange={(value) => updateFormField('startTime', value)} 
                             required
                           >
-                            <SelectTrigger id="start-time" className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
+                            <SelectTrigger id="start-time">
                               <SelectValue placeholder="Select start time" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-[230px]">
+                            <SelectContent className="max-h-[200px]">
                               {generateTimeOptions().map((time) => (
-                                <SelectItem key={time} value={time} className="text-xs md:text-sm py-1">
+                                <SelectItem key={time} value={time}>
                                   {time}
                                 </SelectItem>
                               ))}
@@ -886,18 +926,18 @@ export default function BookingModal({
                         </div>
                         
                         <div>
-                          <Label htmlFor="end-time" className="text-sm md:text-base font-medium">End Time</Label>
+                          <Label htmlFor="end-time">End Time</Label>
                           <Select 
                             value={formData.endTime} 
                             onValueChange={(value) => updateFormField('endTime', value)} 
                             required
                           >
-                            <SelectTrigger id="end-time" className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
+                            <SelectTrigger id="end-time">
                               <SelectValue placeholder="Select end time" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-[230px]">
+                            <SelectContent className="max-h-[200px]">
                               {generateTimeOptions().map((time) => (
-                                <SelectItem key={time} value={time} className="text-xs md:text-sm py-1">
+                                <SelectItem key={time} value={time}>
                                   {time}
                                 </SelectItem>
                               ))}
@@ -906,18 +946,18 @@ export default function BookingModal({
                         </div>
                         
                         <div>
-                          <Label htmlFor="pcrRoom" className="text-sm md:text-base font-medium">PCR Room (Optional)</Label>
+                          <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
                           <Select 
                             value={formData.pcrRoomId} 
                             onValueChange={(value) => updateFormField('pcrRoomId', value)}
                           >
-                            <SelectTrigger className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
+                            <SelectTrigger>
                               <SelectValue placeholder="None" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="0" className="text-xs md:text-sm py-1">None</SelectItem>
+                              <SelectItem value="0">None</SelectItem>
                               {pcrRooms.map((pcrRoom) => (
-                                <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()} className="text-xs md:text-sm py-1">
+                                <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
                                   {pcrRoom.name}
                                 </SelectItem>
                               ))}
@@ -931,18 +971,18 @@ export default function BookingModal({
                     <div>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="template" className="text-sm md:text-base font-medium">Template (Optional)</Label>
+                          <Label htmlFor="template">Template (Optional)</Label>
                           <Select 
                             value={formData.templateId} 
                             onValueChange={handleTemplateChange}
                           >
-                            <SelectTrigger className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
+                            <SelectTrigger>
                               <SelectValue placeholder="None" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="none" className="text-xs md:text-sm py-1">None</SelectItem>
+                              <SelectItem value="none">None</SelectItem>
                               {templates.map((template) => (
-                                <SelectItem key={template.id} value={template.id.toString()} className="text-xs md:text-sm py-1">
+                                <SelectItem key={template.id} value={template.id.toString()}>
                                   {template.name}
                                 </SelectItem>
                               ))}
@@ -951,55 +991,55 @@ export default function BookingModal({
                         </div>
                       
                         <div>
-                          <Label htmlFor="type" className="text-sm md:text-base font-medium">Booking Type</Label>
+                          <Label htmlFor="type">Booking Type</Label>
                           <Select 
                             value={formData.bookingType} 
                             onValueChange={(value) => updateFormField('bookingType', value)} 
                             required
                           >
-                            <SelectTrigger className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
+                            <SelectTrigger>
                               <SelectValue placeholder="Select type" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="production" className="text-xs md:text-sm py-1">Production</SelectItem>
-                              <SelectItem value="rehearsal" className="text-xs md:text-sm py-1">Rehearsal</SelectItem>
-                              <SelectItem value="maintenance" className="text-xs md:text-sm py-1">Maintenance</SelectItem>
-                              <SelectItem value="it_support" className="text-xs md:text-sm py-1">IT Support</SelectItem>
-                              <SelectItem value="other" className="text-xs md:text-sm py-1">Other</SelectItem>
+                              <SelectItem value="production">Production</SelectItem>
+                              <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                              <SelectItem value="maintenance">Maintenance</SelectItem>
+                              <SelectItem value="it_support">IT Support</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         
                         <div>
-                          <Label htmlFor="status" className="text-sm md:text-base font-medium">Booking Status</Label>
+                          <Label htmlFor="status">Booking Status</Label>
                           <Select 
                             value={formData.status} 
                             onValueChange={(value) => updateFormField('status', value)} 
                             required
                           >
-                            <SelectTrigger id="status" className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
+                            <SelectTrigger id="status">
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="confirmed" className="text-xs md:text-sm py-1">Confirmed</SelectItem>
-                              <SelectItem value="tentative" className="text-xs md:text-sm py-1">Tentative</SelectItem>
-                              <SelectItem value="cancelled" className="text-xs md:text-sm py-1">Cancelled</SelectItem>
+                              <SelectItem value="confirmed">Confirmed</SelectItem>
+                              <SelectItem value="tentative">Tentative</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         
                         {!alertsOnly && (
                           <div>
-                            <Label htmlFor="color" className="text-sm md:text-base font-medium">Booking Color</Label>
-                            <div className="flex items-center mt-1 md:mt-2">
+                            <Label htmlFor="color">Booking Color</Label>
+                            <div className="flex items-center mt-1.5">
                               <Input
                                 id="color"
                                 type="color"
                                 value={formData.color}
                                 onChange={(e) => updateFormField('color', e.target.value)}
-                                className="w-16 md:w-20 h-8 md:h-10 p-1 mr-2 md:mr-3"
+                                className="w-16 h-8 p-1 mr-2"
                               />
-                              <span className="text-xs md:text-sm text-muted-foreground">
+                              <span className="text-xs text-muted-foreground">
                                 Custom color for calendar display
                               </span>
                             </div>
@@ -1008,20 +1048,20 @@ export default function BookingModal({
                         
                         {alertsOnly && (
                           <div>
-                            <Label htmlFor="severity" className="text-sm md:text-base font-medium">Severity</Label>
+                            <Label htmlFor="severity">Severity</Label>
                             <Select 
                               value={formData.severity} 
                               onValueChange={(value) => updateFormField('severity', value)} 
                               required
                             >
-                              <SelectTrigger className="h-9 md:h-11 mt-1 md:mt-1.5 text-sm md:text-base">
+                              <SelectTrigger>
                                 <SelectValue placeholder="Select severity" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="low" className="text-xs md:text-sm py-1">Low</SelectItem>
-                                <SelectItem value="medium" className="text-xs md:text-sm py-1">Medium</SelectItem>
-                                <SelectItem value="high" className="text-xs md:text-sm py-1">High</SelectItem>
-                                <SelectItem value="critical" className="text-xs md:text-sm py-1">Critical</SelectItem>
+                                <SelectItem value="low">Low</SelectItem>
+                                <SelectItem value="medium">Medium</SelectItem>
+                                <SelectItem value="high">High</SelectItem>
+                                <SelectItem value="critical">Critical</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -1031,11 +1071,11 @@ export default function BookingModal({
                   </div>
                   
                   <DialogFooter className="pt-4">
-                    <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-4">
-                      <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex space-x-2">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" type="button" size="sm" className="text-red-500 text-xs sm:text-sm py-1.5 h-9 px-3">
+                            <Button variant="outline" type="button" size="sm" className="text-red-500">
                               Delete
                             </Button>
                           </AlertDialogTrigger>
@@ -1049,7 +1089,7 @@ export default function BookingModal({
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                className="bg-red-500 hover:bg-red-600 text-xs sm:text-sm py-1.5 h-9 px-3"
+                                className="bg-red-500 hover:bg-red-600"
                                 onClick={() => {
                                   deleteBooking.mutate(booking.id, {
                                     onSuccess: () => {
@@ -1080,10 +1120,11 @@ export default function BookingModal({
                           onClick={handleOpenCopyModal} 
                           variant="outline" 
                           type="button" 
-                          className="text-xs sm:text-sm py-1.5 h-9 px-3 flex items-center"
+                          size="sm" 
+                          className="space-x-1"
                         >
                           <Copy className="w-3.5 h-3.5 mr-1" />
-                          <span>Copy</span>
+                          <span>Copy Booking</span>
                         </Button>
                         
                         <AlertDialog>
@@ -1091,10 +1132,11 @@ export default function BookingModal({
                             <Button 
                               variant="outline" 
                               type="button" 
-                              className="text-xs sm:text-sm py-1.5 h-9 px-3 flex items-center"
+                              size="sm" 
+                              className="space-x-1"
                             >
                               <Tag className="w-3.5 h-3.5 mr-1" />
-                              <span>Template</span>
+                              <span>Save as Template</span>
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -1118,9 +1160,8 @@ export default function BookingModal({
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={handleSaveAsTemplate}
-                                className="text-xs sm:text-sm py-1.5 h-9 px-3"
                               >
-                                Save
+                                Save Template
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -1130,12 +1171,11 @@ export default function BookingModal({
                       <Button
                         type="submit"
                         disabled={updateBooking.isPending}
-                        className="text-xs sm:text-sm py-1 md:py-1.5 h-8 md:h-9 px-2 md:px-3 sm:mt-0 mt-2"
                       >
                         {updateBooking.isPending ? (
                           <span>Saving...</span>
                         ) : (
-                          <span>Save</span>
+                          <span>Save Changes</span>
                         )}
                       </Button>
                     </div>
@@ -1162,64 +1202,112 @@ export default function BookingModal({
             // Regular form for new bookings or alerts
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="title" className="text-sm md:text-base font-medium">Title</Label>
+                <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => updateFormField('title', e.target.value)}
                   placeholder={alertsOnly ? "Enter alert title" : "Enter booking title"}
                   required
-                  className="h-10 md:h-12 mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3"
                 />
               </div>
               
               <div>
-                <Label htmlFor="description" className="text-sm md:text-base font-medium">Description</Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => updateFormField('description', e.target.value)}
                   placeholder={alertsOnly ? "Enter alert details" : "Enter booking details"}
                   rows={3}
-                  className="mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3 py-1.5 md:py-2"
                 />
               </div>
               
               {/* 3-column grid for form controls */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 form-grid">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Left column - Studios */}
                 <div>
                   <div className="space-y-4">
                     {(!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support")) && (
                       <div>
-                        <Label className="text-sm md:text-base font-medium">Studios</Label>
-                        <div className="mt-1 max-h-48 overflow-y-auto pr-1">
-                          <div className="grid grid-cols-2 gap-1">
-                            {studios.map((studio: Studio) => (
-                              <div key={studio.id} className="flex items-center space-x-1 p-1 hover:bg-slate-50 rounded-md">
-                                <Checkbox
-                                  id={`studio-${studio.id}`}
-                                  checked={formData.studioIds.includes(studio.id.toString())}
-                                  onCheckedChange={(checked) => {
-                                    const studioId = studio.id.toString();
-                                    if (checked) {
-                                      updateFormField('studioIds', [...formData.studioIds, studioId]);
-                                    } else {
-                                      updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
-                                    }
-                                  }}
-                                  className="h-4 w-4"
-                                />
-                                <Label
-                                  htmlFor={`studio-${studio.id}`}
-                                  className="cursor-pointer text-xs md:text-sm"
-                                >
-                                  {studio.name}
-                                </Label>
+                        <Label>Studios</Label>
+                        {studios.length > 10 ? (
+                            <div className="grid grid-cols-2 mt-2 gap-x-4">
+                              <div className="space-y-2">
+                                {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
+                                  <div key={studio.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`studio-${studio.id}`}
+                                      checked={formData.studioIds.includes(studio.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        const studioId = studio.id.toString();
+                                        if (checked) {
+                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                        } else {
+                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`studio-${studio.id}`}
+                                      className="cursor-pointer text-sm"
+                                    >
+                                      {studio.name}
+                                    </Label>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                        </div>
+                              <div className="space-y-2">
+                                {studios.slice(Math.ceil(studios.length / 2)).map((studio) => (
+                                  <div key={studio.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`studio-${studio.id}`}
+                                      checked={formData.studioIds.includes(studio.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        const studioId = studio.id.toString();
+                                        if (checked) {
+                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                        } else {
+                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`studio-${studio.id}`}
+                                      className="cursor-pointer text-sm"
+                                    >
+                                      {studio.name}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col mt-2 space-y-2">
+                              {studios.map((studio) => (
+                                <div key={studio.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`studio-${studio.id}`}
+                                    checked={formData.studioIds.includes(studio.id.toString())}
+                                    onCheckedChange={(checked) => {
+                                      const studioId = studio.id.toString();
+                                      if (checked) {
+                                        updateFormField('studioIds', [...formData.studioIds, studioId]);
+                                      } else {
+                                        updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
+                                      }
+                                    }}
+                                  />
+                                  <Label
+                                    htmlFor={`studio-${studio.id}`}
+                                    className="cursor-pointer"
+                                  >
+                                    {studio.name}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         {formData.studioIds.length === 0 && (
                           <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
                         )}
@@ -1470,31 +1558,29 @@ export default function BookingModal({
               
               {formData.saveAsTemplate && (
                 <div>
-                  <Label htmlFor="template-name" className="text-sm md:text-base font-medium">Template Name</Label>
+                  <Label htmlFor="template-name">Template Name</Label>
                   <Input
                     id="template-name"
                     value={formData.templateName}
                     onChange={(e) => updateFormField('templateName', e.target.value)}
                     placeholder="Enter a name for this template"
                     required={formData.saveAsTemplate}
-                    className="h-10 md:h-12 mt-1 md:mt-1.5 text-sm md:text-base px-2 md:px-3"
                   />
                 </div>
               )}
               
-              <DialogFooter className="flex flex-col sm:flex-row items-center justify-between pt-2 md:pt-4 w-full">
-                <div className="w-full sm:w-auto">
+              <DialogFooter className="flex items-center justify-between pt-4">
+                <div>
                   {/* Left side empty for alignment */}
                 </div>
                 <Button
                   type="submit"
                   disabled={createBooking.isPending}
-                  className="text-xs sm:text-sm h-8 md:h-9 py-1 md:py-1.5 px-2 md:px-3 sm:mt-0 mt-2"
                 >
                   {createBooking.isPending ? (
                     <span>Creating...</span>
                   ) : (
-                    <span>{alertsOnly ? "Create Alert" : "Create"}</span>
+                    <span>{alertsOnly ? "Create Alert" : "Create Booking"}</span>
                   )}
                 </Button>
               </DialogFooter>
