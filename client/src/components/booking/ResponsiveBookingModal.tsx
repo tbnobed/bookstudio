@@ -18,6 +18,16 @@ export default function ResponsiveBookingModal(props: BookingModalProps) {
   // State to track if viewport is mobile size
   const [isMobileView, setIsMobileView] = useState(false);
 
+  // Add debug log to check booking data
+  useEffect(() => {
+    console.log("ResponsiveBookingModal received props:", {
+      isOpen: props.isOpen,
+      booking: props.booking,
+      hasBooking: !!props.booking,
+      bookingId: props.booking?.id || "none"
+    });
+  }, [props.isOpen, props.booking]);
+
   // Effect to set up resize listener for mobile detection
   useEffect(() => {
     const checkIfMobile = () => {
