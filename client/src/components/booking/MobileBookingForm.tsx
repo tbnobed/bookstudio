@@ -13,6 +13,11 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import "./mobile-styles.css";
 
+// Add styles to prevent horizontal scrolling
+import { useEffect as useLayoutEffect } from "react";
+
+// This will help ensure no horizontal scrolling on the mobile form
+
 // Interface must match the expected props from BookingModal
 interface MobileBookingFormProps {
   formData: any;
@@ -41,9 +46,19 @@ export default function MobileBookingForm({
   alertsOnly,
   handleLoadTemplate
 }: MobileBookingFormProps) {
+  // Add effect to prevent horizontal scroll
+  useLayoutEffect(() => {
+    // Prevent horizontal scroll when dialog is open
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+  
   return (
-    <form onSubmit={onSubmit} className="mobile-booking-form space-y-4">
-      <div className="space-y-4">
+    <form onSubmit={onSubmit} className="mobile-booking-form space-y-4" style={{ width: '92%', maxWidth: '92%', margin: '0 auto', overflowX: 'hidden' }}>
+      <div className="space-y-4" style={{ width: '100%', maxWidth: '100%' }}>
         {/* Title and description section */}
         <div className="form-item">
           <Label htmlFor="title" className="text-base font-medium">Title</Label>
