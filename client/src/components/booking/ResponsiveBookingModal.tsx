@@ -44,12 +44,28 @@ export default function ResponsiveBookingModal(props: BookingModalProps) {
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
+  // Enhanced props for the BookingModal
+  const enhancedProps = {
+    ...props,
+    // Ensure the booking prop is properly prepared
+    booking: props.booking ? {
+      ...props.booking,
+      // Force date conversion for any string dates
+      start: props.booking.start ? new Date(props.booking.start) : undefined,
+      end: props.booking.end ? new Date(props.booking.end) : undefined,
+      // Make sure all fields are correctly typed
+      studioIds: props.booking.studioIds || (props.booking.studioId ? [props.booking.studioId] : [])
+    } : undefined
+  };
+  
+  console.log("ResponsiveBookingModal - Enhanced booking props:", enhancedProps);
+  
   return (
     <>
       {/* The original BookingModal component will handle everything, 
           but with our CSS it will conditionally show either the desktop or mobile view */}
       <div className={isMobileView ? "mobile-view-active" : "desktop-view-active"}>
-        <BookingModal {...props} />
+        <BookingModal {...enhancedProps} />
       </div>
     </>
   );

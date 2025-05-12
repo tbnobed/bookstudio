@@ -47,6 +47,38 @@ export function DirectMobileForm({
     });
   }, [booking, selectedStudio, isOpen]);
   
+  // Add a dedicated effect to update form data when booking changes or modal opens
+  useEffect(() => {
+    if (booking && isOpen) {
+      console.log("DirectMobileForm - Refreshing form data from booking:", booking);
+      
+      // Create a complete form data object from the booking with explicit properties
+      const updatedFormData = {
+        id: booking.id || 0,
+        title: booking.title || '',
+        description: booking.description || '',
+        studioId: booking.studioId || (selectedStudio || studios[0]?.id || 0),
+        pcrRoomId: booking.pcrRoomId || null,
+        start: new Date(booking.start),
+        end: new Date(booking.end),
+        type: booking.type || 'production',
+        status: booking.status || 'confirmed',
+        severity: booking.severity || null,
+        templateId: booking.templateId || 0,
+        notifyList: booking.notifyList || [],
+        color: booking.color || '#3b82f6',
+        studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
+      };
+      
+      // Force React to see this as a new object by using setTimeout
+      console.log("DirectMobileForm - Setting form data to:", updatedFormData);
+      
+      setTimeout(() => {
+        setFormData({...updatedFormData});
+      }, 50);
+    }
+  }, [booking, selectedStudio, studios, isOpen, pcrRooms]);
+  
   // Update dates when selectedDate changes
   useEffect(() => {
     if (!booking) {

@@ -185,14 +185,15 @@ export default function MobileDailyView({
 
   // Handle booking/slot click
   const handleBookingClick = (booking: Booking) => {
-    // Fix for edit booking issue - ensure all properties are properly set
+    // Enhanced booking cleanup and preparation
     // This creates a clean booking object with all required props explicitly
-    const cleanBooking = {
+    const cleanBooking: any = {
       id: booking.id,
       title: booking.title || '',
       description: booking.description || '',
       studioId: booking.studioId || null,
       pcrRoomId: booking.pcrRoomId || null,
+      // Convert dates to proper Date objects
       start: new Date(booking.start),
       end: new Date(booking.end),
       type: booking.type || 'production',
@@ -205,10 +206,31 @@ export default function MobileDailyView({
       studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
     };
     
-    console.log("MobileDailyView - handleBookingClick - Clean booking created:", cleanBooking);
+    // Force conversion of dates to proper ISO strings if needed
+    if (typeof cleanBooking.start === 'string') {
+      cleanBooking.start = new Date(cleanBooking.start);
+    }
     
-    setEditBooking(cleanBooking);
-    setIsEditModalOpen(true);
+    if (typeof cleanBooking.end === 'string') {
+      cleanBooking.end = new Date(cleanBooking.end);
+    }
+    
+    // Add any missing fields that might be needed by the form
+    cleanBooking.userId = booking.userId || 1; // Default to admin
+    
+    console.log("MobileDailyView - handleBookingClick - Enhanced booking:", cleanBooking);
+    
+    // Force a delay to ensure booking data is set before modal opens
+    setTimeout(() => {
+      setEditBooking(cleanBooking);
+      setIsEditModalOpen(true);
+      console.log("MobileDailyView - Edit Modal Opening:", {
+        bookingId: cleanBooking.id,
+        bookingTitle: cleanBooking.title,
+        editModalIsOpen: true,
+        editBookingData: cleanBooking
+      });
+    }, 10);
   };
 
   // Get all studios with their current status

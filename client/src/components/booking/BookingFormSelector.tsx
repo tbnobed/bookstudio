@@ -29,6 +29,29 @@ export function BookingFormSelector({
   forceSimpleMode = false,
   selectedDate = new Date()
 }: BookingFormSelectorProps) {
+  // Clean and prepare booking data to ensure proper form population
+  const processedBooking = React.useMemo(() => {
+    if (!booking) return null;
+    
+    // Create a complete processed booking object with all fields properly formatted
+    return {
+      ...booking,
+      id: booking.id,
+      title: booking.title || '',
+      description: booking.description || '',
+      studioId: booking.studioId || selectedStudio || null,
+      // Force date conversion for any string dates
+      start: booking.start ? new Date(booking.start) : new Date(),
+      end: booking.end ? new Date(booking.end) : new Date(),
+      type: booking.type || 'production',
+      status: booking.status || 'confirmed',
+      severity: booking.severity || null,
+      templateId: booking.templateId || 0,
+      notifyList: booking.notifyList || [],
+      color: booking.color || '#3b82f6',
+      studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
+    };
+  }, [booking, selectedStudio]);
   // Detect if we're on a low-end device based on screen size and memory
   const isLowEndDevice = React.useMemo(() => {
     if (forceSimpleMode) return true;
@@ -83,13 +106,23 @@ export function BookingFormSelector({
     });
   }, [isLowEndDevice, booking, selectedStudio, isOpen]);
   
+  // Add additional debugging
+  useEffect(() => {
+    console.log('BookingFormSelector - Processed booking data:', {
+      original: booking,
+      processed: processedBooking,
+      isOpen,
+      selectedDate
+    });
+  }, [booking, processedBooking, isOpen, selectedDate]);
+  
   // Render the appropriate form based on device capability
   return isLowEndDevice ? (
     <DirectMobileForm
       isOpen={isOpen}
       onClose={onClose}
       onSubmit={onSubmit}
-      booking={booking}
+      booking={processedBooking} // Use the processed booking
       selectedStudio={selectedStudio}
       selectedDate={selectedDate}
     />
@@ -98,7 +131,7 @@ export function BookingFormSelector({
       isOpen={isOpen}
       onClose={onClose}
       onSubmit={onSubmit}
-      booking={booking}
+      booking={processedBooking} // Use the processed booking
       selectedStudio={selectedStudio}
       selectedDate={selectedDate}
     />

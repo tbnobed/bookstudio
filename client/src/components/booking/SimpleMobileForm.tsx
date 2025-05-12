@@ -74,6 +74,7 @@ export function SimpleMobileForm({
       console.log("SimpleMobileForm - Refreshing form data from booking:", booking);
       
       // Create a complete form data object from the booking
+      // Force explicit setting of all properties to ensure nothing is missed
       const updatedFormData: FormBookingData = {
         id: booking.id || 0,
         title: booking.title || '',
@@ -92,10 +93,15 @@ export function SimpleMobileForm({
         studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
       };
       
+      // Try to force React to see this as a new object by cloning it
       console.log("SimpleMobileForm - Setting form data to:", updatedFormData);
-      setFormData(updatedFormData);
+      
+      // Use a small timeout to ensure React processes state updates in order
+      setTimeout(() => {
+        setFormData({...updatedFormData});
+      }, 50);
     }
-  }, [booking, selectedStudio, studios]);
+  }, [booking, selectedStudio, studios, isOpen]);  // Add isOpen to dependencies to re-run when modal opens
   
   // Determine initial studio ID
   const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 0);
