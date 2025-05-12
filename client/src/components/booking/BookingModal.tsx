@@ -760,12 +760,13 @@ export default function BookingModal({
                         <div>
                           <Label className="text-base font-medium">Studios</Label>
                           {studios.length > 10 ? (
-                            <div className="grid grid-cols-2 mt-2 gap-x-4">
-                              <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 mt-2 gap-2 sm:gap-x-4">
+                              <div className="space-y-2">
                                 {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
-                                  <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
+                                  <div key={studio.id} className="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-md">
                                     <Checkbox
                                       id={`studio-${studio.id}`}
+                                      className="h-5 w-5"
                                       checked={formData.studioIds.includes(studio.id.toString())}
                                       onCheckedChange={(checked) => {
                                         const studioId = studio.id.toString();
@@ -785,11 +786,12 @@ export default function BookingModal({
                                   </div>
                                 ))}
                               </div>
-                              <div className="space-y-3">
+                              <div className="space-y-2">
                                 {studios.slice(Math.ceil(studios.length / 2)).map((studio) => (
-                                  <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
+                                  <div key={studio.id} className="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-md">
                                     <Checkbox
                                       id={`studio-${studio.id}`}
+                                      className="h-5 w-5"
                                       checked={formData.studioIds.includes(studio.id.toString())}
                                       onCheckedChange={(checked) => {
                                         const studioId = studio.id.toString();
@@ -811,11 +813,12 @@ export default function BookingModal({
                               </div>
                             </div>
                           ) : (
-                            <div className="flex flex-col mt-2 space-y-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 mt-2 gap-2">
                               {studios.map((studio) => (
-                                <div key={studio.id} className="flex items-center space-x-3 p-1.5 hover:bg-slate-50 rounded-md">
+                                <div key={studio.id} className="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-md">
                                   <Checkbox
                                     id={`studio-${studio.id}`}
+                                    className="h-5 w-5"
                                     checked={formData.studioIds.includes(studio.id.toString())}
                                     onCheckedChange={(checked) => {
                                       const studioId = studio.id.toString();
@@ -828,7 +831,7 @@ export default function BookingModal({
                                   />
                                   <Label
                                     htmlFor={`studio-${studio.id}`}
-                                    className="cursor-pointer"
+                                    className="cursor-pointer text-base"
                                   >
                                     {studio.name}
                                   </Label>
@@ -853,26 +856,28 @@ export default function BookingModal({
                               No notification groups available
                             </p>
                           ) : (
-                            <div className="space-y-2 mt-1.5 border rounded-md p-2 max-h-[180px] overflow-y-auto">
-                              {notificationGroups.map((group: NotificationGroup) => (
-                                <div key={group.id} className="flex items-center justify-between p-1.5 hover:bg-slate-50 rounded-md">
-                                  <div className="flex items-center">
-                                    {group.groupType === 'camera' && <Tag className="h-4 w-4 mr-1.5 text-blue-500" />}
-                                    {group.groupType === 'lighting' && <Tag className="h-4 w-4 mr-1.5 text-yellow-500" />}
-                                    {group.groupType === 'sound' && <Tag className="h-4 w-4 mr-1.5 text-green-500" />}
-                                    {group.groupType === 'directors' && <Tag className="h-4 w-4 mr-1.5 text-purple-500" />}
-                                    {group.groupType === 'production' && <Tag className="h-4 w-4 mr-1.5 text-red-500" />}
-                                    {group.groupType === 'engineering' && <Tag className="h-4 w-4 mr-1.5 text-orange-500" />}
-                                    <span className="text-sm">{group.name}</span>
+                            <div className="mt-1.5 border rounded-md p-2 max-h-[180px] overflow-y-auto">
+                              <div className="grid grid-cols-1 gap-1.5">
+                                {notificationGroups.map((group: NotificationGroup) => (
+                                  <div key={group.id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-md">
+                                    <div className="flex items-center">
+                                      {group.groupType === 'camera' && <Tag className="h-4 w-4 mr-1.5 text-blue-500" />}
+                                      {group.groupType === 'lighting' && <Tag className="h-4 w-4 mr-1.5 text-yellow-500" />}
+                                      {group.groupType === 'sound' && <Tag className="h-4 w-4 mr-1.5 text-green-500" />}
+                                      {group.groupType === 'directors' && <Tag className="h-4 w-4 mr-1.5 text-purple-500" />}
+                                      {group.groupType === 'production' && <Tag className="h-4 w-4 mr-1.5 text-red-500" />}
+                                      {group.groupType === 'engineering' && <Tag className="h-4 w-4 mr-1.5 text-orange-500" />}
+                                      <span className="text-base">{group.name}</span>
+                                    </div>
+                                    <Checkbox
+                                      id={`notify-group-${group.id}`}
+                                      checked={formData.notifyList.includes(group.id.toString())}
+                                      onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
+                                      className="h-5 w-5"
+                                    />
                                   </div>
-                                  <Checkbox
-                                    id={`notify-group-${group.id}`}
-                                    checked={formData.notifyList.includes(group.id.toString())}
-                                    onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
-                                    className="h-5 w-5"
-                                  />
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </div>
                           )}
                           
