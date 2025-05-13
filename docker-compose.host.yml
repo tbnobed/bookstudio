@@ -1,5 +1,5 @@
-# Production Docker Compose configuration for BookStud.io
-# With enhanced database migration reliability
+# Production Docker Compose configuration for BookStud.io with host networking
+# With enhanced database migration reliability and improved connectivity
 
 services:
   # Application server
@@ -10,15 +10,13 @@ services:
     image: bookstudio:${VERSION:-latest}
     restart: always
     network_mode: host
-    # When using network_mode: host, the ports directive is ignored
-    # Comment out ports to avoid warnings
+    # When using host network, ports are directly exposed on the host
     # ports:
     #   - "${PORT:-5000}:5000"
-    # Expose port 5000 for Nginx Proxy Manager to access
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@db:5432/${PGDATABASE:-bookstudio}
-      - PGHOST=db
+      - DATABASE_URL=postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@localhost:5432/${PGDATABASE:-bookstudio}
+      - PGHOST=localhost
       - PGPORT=5432
       - PGUSER=${PGUSER:-postgres}
       - PGPASSWORD=${PGPASSWORD:-postgres}
@@ -40,13 +38,6 @@ services:
     volumes:
       - ./logs:/app/logs
       - file_uploads:/app/uploads
-    networks:
-      - app-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "5"
     # Healthcheck to verify application is running properly
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
@@ -113,8 +104,8 @@ services:
         condition: service_healthy
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@db:5432/${PGDATABASE:-bookstudio}
-      - PGHOST=db
+      - DATABASE_URL=postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@localhost:5432/${PGDATABASE:-bookstudio}
+      - PGHOST=localhost
       - PGPORT=5432
       - PGUSER=${PGUSER:-postgres}
       - PGPASSWORD=${PGPASSWORD:-postgres}
@@ -128,8 +119,6 @@ services:
       - SUPPORT_SITE_MANAGER_ROLE=true
       - TZ=America/Chicago
       - FACILITY_TIMEZONE=America/Chicago
-    networks:
-      - app-network
     # Run database migrations and initialization with error handling
     command: >
       sh -c "
@@ -177,6 +166,7 @@ services:
   db:
     image: postgres:14-alpine
     restart: always
+    network_mode: host
     environment:
       - POSTGRES_USER=${PGUSER:-postgres}
       - POSTGRES_PASSWORD=${PGPASSWORD:-postgres}
@@ -185,11 +175,6 @@ services:
       - PGTZ=America/Chicago
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    # Use the host network for better connectivity during builds
-    network_mode: host
-    # Comment out networks when using host networking
-    # networks:
-    #   - app-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres}"]
       interval: 5s
@@ -199,13 +184,6 @@ services:
     # Production-optimized Postgres settings
     command: postgres -c shared_buffers=256MB -c max_connections=100 -c timezone='America/Chicago' -c work_mem=4MB
     shm_size: '256mb'  # Shared memory size for PostgreSQL
-    
-  # No need for Nginx in Docker when using Nginx Proxy Manager externally
-
-# Network configuration
-networks:
-  app-network:
-    driver: bridge
 
 # Persistent volumes
 volumes:

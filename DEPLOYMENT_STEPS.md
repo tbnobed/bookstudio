@@ -124,9 +124,9 @@ If you prefer to deploy manually:
 # Make sure you're in the application directory
 cd /opt/bookstudio
 
-# Use production-optimized configurations
+# Use production-optimized configurations with host networking
 cp Dockerfile.stable Dockerfile
-cp docker-compose.production.yml docker-compose.yml
+cp docker-compose.host.yml docker-compose.yml
 
 # Build the Docker images
 docker-compose build
