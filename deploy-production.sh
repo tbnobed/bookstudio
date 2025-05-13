@@ -26,7 +26,7 @@ fi
 
 # Copy configuration files
 echo "Setting up production-optimized configurations..."
-cp Dockerfile.production Dockerfile
+cp Dockerfile.stable Dockerfile
 cp docker-compose.production.yml docker-compose.yml
 
 # Ensure scripts directory exists

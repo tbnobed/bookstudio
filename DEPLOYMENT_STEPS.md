@@ -125,7 +125,7 @@ If you prefer to deploy manually:
 cd /opt/bookstudio
 
 # Use production-optimized configurations
-cp Dockerfile.production Dockerfile
+cp Dockerfile.stable Dockerfile
 cp docker-compose.production.yml docker-compose.yml
 
 # Build the Docker images
