@@ -1,0 +1,123 @@
+# Offline-capable Dockerfile for environments with limited connectivity
+# Multi-stage build for production environments
+FROM node:20.18.1-alpine3.19 AS builder
+
+WORKDIR /app
+
+# Skip updates entirely - don't rely on package repositories being available
+# This is critical for environments with limited internet connectivity
+
+# Directly copy files and install dependencies
+COPY package*.json ./
+
+# Use offline mode to avoid network requests during build
+RUN npm ci --offline --no-audit || npm ci --prefer-offline --no-audit || npm ci
+
+# Copy source files
+COPY client/ ./client/
+COPY server/ ./server/
+COPY shared/ ./shared/
+COPY scripts/ ./scripts/
+COPY public/ ./public/
+COPY *.ts ./
+COPY *.js ./
+COPY *.json ./
+
+# Modify the bundling step for offline compatibility
+RUN npm run build || (echo "Retry build" && npm run build)
+
+# Create a production-ready server file (avoid downloading anything new)
+RUN echo "import express from 'express';" > server-prod.js && \
+    echo "import { registerRoutes } from './server/routes.js';" >> server-prod.js && \
+    echo "import fs from 'fs';" >> server-prod.js && \
+    echo "import path from 'path';" >> server-prod.js && \
+    echo "const app = express();" >> server-prod.js && \
+    echo "app.use(express.json({ limit: '50mb' }));" >> server-prod.js && \
+    echo "app.use(express.urlencoded({ extended: false, limit: '50mb' }));" >> server-prod.js && \
+    echo "(async () => {" >> server-prod.js && \
+    echo "  const server = await registerRoutes(app);" >> server-prod.js && \
+    echo "  const distPath = path.resolve(process.cwd(), 'dist/public');" >> server-prod.js && \
+    echo "  app.use(express.static(distPath, { maxAge: '1d' }));" >> server-prod.js && \
+    echo "  app.use('*', (req, res) => {" >> server-prod.js && \
+    echo "    res.sendFile(path.resolve(distPath, 'index.html'));" >> server-prod.js && \
+    echo "  });" >> server-prod.js && \
+    echo "  const port = process.env.PORT || 5000;" >> server-prod.js && \
+    echo "  server.listen({" >> server-prod.js && \
+    echo "    port," >> server-prod.js && \
+    echo "    host: '0.0.0.0'," >> server-prod.js && \
+    echo "  }, () => {" >> server-prod.js && \
+    echo "    console.log(`Server running on port ${port}`);" >> server-prod.js && \
+    echo "    console.log(`Application timezone: ${process.env.TZ || 'UTC'}`);" >> server-prod.js && \
+    echo "    console.log(`Facility timezone: ${process.env.FACILITY_TIMEZONE || process.env.TZ || 'UTC'}`);" >> server-prod.js && \
+    echo "    console.log('BookStudio Version: 1.4.1');" >> server-prod.js && \
+    echo "  });" >> server-prod.js && \
+    echo "})();" >> server-prod.js
+
+# Bundle the server file without downloading anything new
+RUN echo 'Bundling server file...' && \
+    ls -la ./node_modules/.bin && \
+    ./node_modules/.bin/esbuild server-prod.js --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+
+# Ensure static files are properly copied
+RUN mkdir -p dist/public && cp -r public/* dist/public/
+# Make files accessible
+RUN chmod -R 755 dist
+
+# Stage 2: Production stage
+FROM node:20.18.1-alpine3.19
+
+WORKDIR /app
+
+# Skip updates entirely and use minimal dependencies
+# Set environment variables
+ENV RUNNING_IN_DOCKER=true
+ENV PORT=5000
+ENV NODE_ENV=production
+ENV TZ=America/Chicago
+ENV FACILITY_TIMEZONE=America/Chicago
+
+# Install only essential timezone data (no network updates)
+RUN echo "Setting timezone..." && \
+    ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime && \
+    echo "America/Chicago" > /etc/timezone
+
+# Create unprivileged user for running the application
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Create necessary directories with proper permissions
+RUN mkdir -p logs uploads
+RUN chown -R appuser:appgroup logs uploads
+RUN chmod 755 uploads
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies with offline mode if possible
+RUN npm ci --only=production --offline || npm ci --only=production --prefer-offline || npm ci --only=production
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/scripts ./scripts
+
+# Copy all migration & fix scripts
+COPY scripts/docker-*.cjs ./scripts/
+COPY scripts/fix-*.js ./scripts/
+
+# Copy other necessary files
+COPY public ./public
+
+# Change ownership to the unprivileged user
+RUN chown -R appuser:appgroup /app
+
+# Switch to unprivileged user
+USER appuser
+
+# Expose application port
+EXPOSE 5000
+
+# Healthcheck to verify application is running properly
+HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
+  CMD wget -qO- http://localhost:5000/api/health || exit 1
+
+# Default command is overridden in docker-compose.yml to add migration step
+CMD ["node", "dist/index.js"]

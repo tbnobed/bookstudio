@@ -25,8 +25,8 @@ if docker ps | grep -q bookstudio_db; then
 fi
 
 # Copy configuration files
-echo "Setting up production-optimized configurations with host networking..."
-cp Dockerfile.stable Dockerfile
+echo "Setting up offline-capable production configuration..."
+cp Dockerfile.offline Dockerfile
 cp docker-compose.host.yml docker-compose.yml
 
 # Ensure scripts directory exists
