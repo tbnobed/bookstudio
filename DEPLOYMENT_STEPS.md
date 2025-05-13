@@ -272,6 +272,28 @@ docker-compose logs db
 
 # Run database fix script for common issues
 docker-compose exec app node scripts/fix-db-all.js
+
+# If you encounter system_settings table issues with missing description column
+docker-compose exec app node scripts/fix-system-settings.js
+```
+
+#### Fixing system_settings Table Issues
+
+The system occasionally encounters an error with the system_settings table during database initialization:
+
+```
+Error in system settings migration: error: column "description" of relation "system_settings" does not exist
+```
+
+This happens because the migration script tries to insert data with a "description" column that might not exist in older schema versions. The deployment process now automatically addresses this by:
+
+1. Running the fix script first (docker-fix-system-settings.cjs)
+2. Then running the standard migration script
+
+If you need to fix this manually after deployment:
+
+```bash
+docker-compose exec app node scripts/fix-system-settings.js
 ```
 
 ### Application Issues

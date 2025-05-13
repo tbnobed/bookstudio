@@ -188,10 +188,10 @@ services:
         node scripts/docker-migrate-booking-colors.cjs &&
         echo 'Adding booking status support...' &&
         node scripts/docker-migrate-booking-status.cjs &&
-        echo 'Setting up system settings table...' &&
-        node scripts/docker-migrate-system-settings.cjs &&
-        echo 'Fixing system settings table structure if needed...' &&
+        echo 'Setting up system settings table with fix script first...' &&
         node scripts/docker-fix-system-settings.cjs &&
+        echo 'Now running the standard migration script...' &&
+        node scripts/docker-migrate-system-settings.cjs || echo 'Migration skipped, using the fix script only' &&
         echo 'Setting up site manager notification system...' &&
         node scripts/docker-migrate-site-manager-notifications.cjs &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&

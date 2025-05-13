@@ -1,6 +1,11 @@
 /**
  * Fix for system_settings table missing description column
- * Made compatible with Docker environment
+ * 
+ * This script:
+ * 1. Checks if system_settings table exists
+ * 2. Checks if description column exists
+ * 3. Adds the column if missing
+ * 4. Ensures the siteName setting exists
  */
 
 const { Pool } = require('pg');
