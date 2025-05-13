@@ -4,9 +4,9 @@ FROM node:20.18.1-alpine3.19 AS builder
 
 WORKDIR /app
 
-# Configure Alpine package repositories to use faster mirrors
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories && \
-    echo "https://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories && \
+# Configure Alpine package repositories to use faster mirrors - reliable for most environments
+RUN set -x && \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
     apk update
 
 # Install build dependencies with retry for network resilience
@@ -68,9 +68,9 @@ FROM node:20.18.1-alpine3.19
 
 WORKDIR /app
 
-# Configure Alpine package repositories to use faster mirrors
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories && \
-    echo "https://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories && \
+# Configure Alpine package repositories to use faster mirrors - reliable for most environments
+RUN set -x && \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
     apk update
 
 # Set environment variables

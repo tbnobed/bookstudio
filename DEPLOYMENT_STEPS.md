@@ -128,8 +128,8 @@ cd /opt/bookstudio
 cp Dockerfile.production Dockerfile
 cp docker-compose.production.yml docker-compose.yml
 
-# Build the Docker images with network host mode to avoid connectivity issues
-docker-compose build --network=host
+# Build the Docker images
+docker-compose build
 
 # Start the application in detached mode
 docker-compose up -d

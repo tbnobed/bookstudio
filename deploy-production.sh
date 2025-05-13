@@ -177,7 +177,7 @@ MAX_RETRIES=3
 RETRY_COUNT=0
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if docker-compose build --network=host; then
+    if docker-compose build; then
         echo "Build successful!"
         break
     else
