@@ -93,16 +93,43 @@ echo SESSION_SECRET=$(openssl rand -hex 32) >> .env
 
 ## 5. Build and Deploy with Docker Compose
 
+### Option A: Using the Automated Production Deployment Script (Recommended)
+
+We've created a comprehensive production deployment script that handles common issues automatically:
+
 ```bash
 # Make sure you're in the application directory
 cd /opt/bookstudio
 
-# If you experience build timeouts with Alpine package repositories, 
-# use the optimized Dockerfile that uses faster mirrors:
-cp Dockerfile.optimized Dockerfile
+# Make the deployment script executable if needed
+chmod +x deploy-production.sh
 
-# Build the Docker images
-docker-compose build --no-cache
+# Run the deployment script (requires sudo)
+sudo ./deploy-production.sh
+```
+
+The production deployment script:
+1. Creates backups before deployment
+2. Sets up production-optimized configurations
+3. Ensures all fix scripts are in place
+4. Handles network issues with Alpine package repositories
+5. Uses retry logic for resilient builds
+6. Verifies the deployment after startup
+
+### Option B: Manual Deployment
+
+If you prefer to deploy manually:
+
+```bash
+# Make sure you're in the application directory
+cd /opt/bookstudio
+
+# Use production-optimized configurations
+cp Dockerfile.production Dockerfile
+cp docker-compose.production.yml docker-compose.yml
+
+# Build the Docker images with network host mode to avoid connectivity issues
+docker-compose build --network=host
 
 # Start the application in detached mode
 docker-compose up -d
