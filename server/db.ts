@@ -8,24 +8,45 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Configure connection parameters with better timeouts for Docker environments
+// Configure connection parameters with extended timeouts for improved reliability
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000, // Increased for Docker networking
+  idleTimeoutMillis: 60000,        // Increased from 30000
+  connectionTimeoutMillis: 20000,  // Increased from 5000 to handle slower connections
+  statement_timeout: 60000,        // Add statement timeout to prevent hanging queries
+  query_timeout: 60000,            // Add query timeout
 });
 
-// Log successful connection
-pool.connect()
-  .then(client => {
-    client.release();
-    console.log('Database connection established successfully');
-  })
-  .catch(err => {
-    console.error('Initial database connection failed:', err);
-    // Don't exit the process - let the application continue to retry
-  });
+// Implement connection with retry logic
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 5000;
+
+function connectWithRetry(retries = MAX_RETRIES): Promise<void> {
+  return pool.connect()
+    .then(client => {
+      client.release();
+      console.log('Database connection established successfully');
+    })
+    .catch(err => {
+      console.error(`Database connection attempt failed (${MAX_RETRIES - retries + 1}/${MAX_RETRIES}):`, err);
+      
+      if (retries > 0) {
+        console.log(`Retrying database connection in ${RETRY_DELAY_MS/1000} seconds...`);
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve(connectWithRetry(retries - 1));
+          }, RETRY_DELAY_MS);
+        });
+      } else {
+        console.error('Maximum database connection retries exceeded');
+        // Don't exit the process, the app will still handle API requests that don't require DB
+      }
+    });
+}
+
+// Start connection process with retry
+connectWithRetry();
 
 // Register error handler for unexpected disconnections
 pool.on('error', (err) => {

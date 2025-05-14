@@ -15,6 +15,8 @@ import { calculateStudioStatus, getStudioStatusColor } from '@/lib/studioUtils';
 import { usePublicBookingStudioLinks } from '@/hooks/useBookingStudioLinks';
 import { useDevice } from '@/hooks/use-mobile';
 import { useLocation } from 'wouter';
+// Import isSameDay directly from our dateUtils to use for timezone-aware comparison
+import { isSameDay } from '@/lib/dateUtils';
 
 // Define our own DateRange type since it's not exported from date-fns
 interface DateRange {
@@ -229,8 +231,8 @@ function PublicCalendarPage() {
       
       // For daily view, use isSameDay to ensure correct timezone handling
       if (viewType === 'daily') {
-        // Check if booking date is the same as current date using the facility timezone-aware function
-        const { isSameDay } = require('@/lib/dateUtils');
+        // Use the imported isSameDay function from the top of the file
+        // No need to require it here
         const result = isSameDay(bookingStart, currentDate);
         
         // Log for debugging

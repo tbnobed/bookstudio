@@ -892,34 +892,44 @@ export class DatabaseStorage implements IStorage {
   
   private async initializeData() {
     try {
+      // First check db connection to prevent hanging
+      try {
+        await ensureConnection();
+      } catch (connError) {
+        console.warn('Database connection not ready during initialization. Storage will retry on API calls.');
+        // Return early rather than hanging
+        return;
+      }
+      
       // Check if there are any users already
-      const usersList = await db.select().from(users);
-      if (usersList.length === 0) {
-        console.log("Initializing database with default data...");
-        
-        // Create initial admin user
-        const adminUser: InsertUser = {
-          username: "admin",
-          password: "admin123", // In production, this should be hashed
-          email: "admin@studios.com",
-          name: "Admin User",
-          role: "admin"
-        };
-        await db.insert(users).values(adminUser);
-        
-        // Create producer user
-        const producerUser: InsertUser = {
-          username: "producer",
-          password: "producer123",
-          email: "producer@studios.com",
-          name: "Producer User",
-          role: "producer"
-        };
-        await db.insert(users).values(producerUser);
-        
-        // Create engineer user
-        const engineerUser: InsertUser = {
-          username: "engineer",
+      try {
+        const usersList = await db.select().from(users);
+        if (usersList.length === 0) {
+          console.log("Initializing database with default data...");
+          
+          // Create initial admin user
+          const adminUser: InsertUser = {
+            username: "admin",
+            password: "admin123", // In production, this should be hashed
+            email: "admin@studios.com",
+            name: "Admin User",
+            role: "admin"
+          };
+          await db.insert(users).values(adminUser);
+          
+          // Create producer user
+          const producerUser: InsertUser = {
+            username: "producer",
+            password: "producer123",
+            email: "producer@studios.com",
+            name: "Producer User",
+            role: "producer"
+          };
+          await db.insert(users).values(producerUser);
+          
+          // Create engineer user
+          const engineerUser: InsertUser = {
+            username: "engineer",
           password: "engineer123",
           email: "engineer@studios.com",
           name: "Engineer User",
