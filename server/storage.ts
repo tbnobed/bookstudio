@@ -29,6 +29,7 @@ export interface IStorage {
   getAllStudios(): Promise<Studio[]>;
   createStudio(studio: InsertStudio): Promise<Studio>;
   updateStudioStatus(id: number, status: string): Promise<Studio | undefined>;
+  updateStudio(id: number, data: Partial<InsertStudio>): Promise<Studio | undefined>;
   deleteStudio(id: number): Promise<boolean>;
   
   // PCR Room management
@@ -302,6 +303,15 @@ export class MemStorage implements IStorage {
     if (!studio) return undefined;
     
     const updatedStudio: Studio = { ...studio, status };
+    this.studios.set(id, updatedStudio);
+    return updatedStudio;
+  }
+  
+  async updateStudio(id: number, data: Partial<InsertStudio>): Promise<Studio | undefined> {
+    const studio = await this.getStudio(id);
+    if (!studio) return undefined;
+    
+    const updatedStudio: Studio = { ...studio, ...data };
     this.studios.set(id, updatedStudio);
     return updatedStudio;
   }
@@ -1259,6 +1269,19 @@ export class DatabaseStorage implements IStorage {
       return updatedStudio;
     } catch (error) {
       console.error(`Error updating studio status for ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async updateStudio(id: number, data: Partial<InsertStudio>): Promise<Studio | undefined> {
+    try {
+      const [updatedStudio] = await db.update(studios).set(data).where(eq(studios.id, id)).returning();
+      if (updatedStudio) {
+        this.studios.set(id, updatedStudio);
+      }
+      return updatedStudio;
+    } catch (error) {
+      console.error(`Error updating studio ID ${id}:`, error);
       return undefined;
     }
   }

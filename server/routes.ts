@@ -414,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/studios", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  app.post("/api/studios", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const studioData = insertStudioSchema.parse(req.body);
       const studio = await storage.createStudio(studioData);
@@ -564,7 +564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/pcr-rooms/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  app.delete("/api/pcr-rooms/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
