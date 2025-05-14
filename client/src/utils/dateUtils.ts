@@ -9,26 +9,18 @@
  * @returns Formatted date string in YYYY-MM-DD format
  */
 export function formatDateForForm(date: Date | string): string {
+  // For bookings with early times, we want to preserve the calendar date as seen in the UI
+  // Parse ISO date directly to get the correct date component regardless of time
   const d = date instanceof Date ? date : new Date(date);
+  const dateString = d.toISOString();
   
-  // Format the date in Chicago timezone using Intl.DateTimeFormat
-  // This is more reliable than toLocaleString for timezone handling
-  const formatter = new Intl.DateTimeFormat('en-US', { 
-    timeZone: 'America/Chicago',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
+  // Extract YYYY-MM-DD directly from the ISO string
+  // ISO format: YYYY-MM-DDTHH:mm:ss.sssZ
+  const datePart = dateString.split('T')[0];
   
-  const parts = formatter.formatToParts(d);
-  const month = parts.find(part => part.type === 'month')?.value || '01';
-  const day = parts.find(part => part.type === 'day')?.value || '01';
-  const year = parts.find(part => part.type === 'year')?.value || '2025';
+  console.log(`formatDateForForm: Input date: ${dateString}, extracted date part: ${datePart}`);
   
-  // Format as YYYY-MM-DD
-  console.log(`formatDateForForm: Input date: ${d.toISOString()}, formatted as: ${year}-${month}-${day}`);
-  
-  return `${year}-${month}-${day}`;
+  return datePart;
 }
 
 /**
