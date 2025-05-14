@@ -11,15 +11,22 @@
 export function formatDateForForm(date: Date | string): string {
   const d = date instanceof Date ? date : new Date(date);
   
-  // Format the date in Chicago timezone
-  const chicagoDate = new Date(d.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+  // Format the date in Chicago timezone using Intl.DateTimeFormat
+  // This is more reliable than toLocaleString for timezone handling
+  const formatter = new Intl.DateTimeFormat('en-US', { 
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  
+  const parts = formatter.formatToParts(d);
+  const month = parts.find(part => part.type === 'month')?.value || '01';
+  const day = parts.find(part => part.type === 'day')?.value || '01';
+  const year = parts.find(part => part.type === 'year')?.value || '2025';
   
   // Format as YYYY-MM-DD
-  const year = chicagoDate.getFullYear();
-  const month = String(chicagoDate.getMonth() + 1).padStart(2, '0');
-  const day = String(chicagoDate.getDate()).padStart(2, '0');
-  
-  console.log(`formatDateForForm: Input date: ${date}, Chicago date: ${chicagoDate}, formatted as: ${year}-${month}-${day}`);
+  console.log(`formatDateForForm: Input date: ${d.toISOString()}, formatted as: ${year}-${month}-${day}`);
   
   return `${year}-${month}-${day}`;
 }
