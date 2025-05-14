@@ -774,9 +774,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Only admin, engineers, IT staff, and site managers can create maintenance bookings" });
         }
       } else if (req.body.type === "it_support") {
-        // Only admin and IT staff can create IT support bookings
-        if (!["admin", "it"].includes(user.role)) {
-          return res.status(403).json({ message: "Only admin and IT staff can create IT support bookings" });
+        // Only admin, IT staff, and site managers can create IT support bookings
+        if (!["admin", "it", "site_manager"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin, IT staff, and site managers can create IT support bookings" });
         }
       } else {
         // For regular production bookings, ensure producers and site managers have access
@@ -1071,9 +1071,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Only admin, engineers, IT staff, and site managers can update maintenance bookings" });
         }
       } else if (booking.type === "it_support") {
-        // Only admin and IT staff can update IT support bookings
-        if (!["admin", "it"].includes(user.role)) {
-          return res.status(403).json({ message: "Only admin and IT staff can update IT support bookings" });
+        // Only admin, IT staff, and site managers can update IT support bookings
+        if (!["admin", "it", "site_manager"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin, IT staff, and site managers can update IT support bookings" });
         }
       } else {
         // For regular production bookings, only the creator, admin, producers, or site managers can update
@@ -1287,9 +1287,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Only admin, engineers, IT staff, and site managers can delete maintenance bookings" });
         }
       } else if (booking.type === "it_support") {
-        // Only admin and IT staff can delete IT support bookings
-        if (!["admin", "it"].includes(user.role)) {
-          return res.status(403).json({ message: "Only admin and IT staff can delete IT support bookings" });
+        // Only admin, IT staff, and site managers can delete IT support bookings
+        if (!["admin", "it", "site_manager"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin, IT staff, and site managers can delete IT support bookings" });
         }
       } else {
         // For regular production bookings, only the creator, admin, producers, or site managers can delete
