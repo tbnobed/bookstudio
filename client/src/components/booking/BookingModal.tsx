@@ -64,30 +64,26 @@ export default function BookingModal({
   }, [booking, selectedStudio, isOpen]);
   const formInitializedRef = useRef(false);
   
-  // Format date for form
+  // Format date for form with timezone fix
   const formatDateForForm = (date: Date): string => {
     const isoDate = date.toISOString();
     
-    // HARDCODED FIX for 1AM bookings
-    // Handle specific cases of early morning bookings (1AM Chicago time = 6AM UTC)
-    if (isoDate.includes('2025-05-14T06:00:00.000Z')) {
-      console.log(`formatDateForForm: Special case for 5/14 1AM booking - forcing to 2025-05-14`);
-      return '2025-05-14';
+    // Universal fix for all early morning bookings
+    // Check if this is an early morning booking (6:00 AM to 6:59 AM UTC)
+    // Which corresponds to 1:00 AM to 1:59 AM in America/Chicago
+    if (isoDate.match(/T06:[0-5][0-9]:[0-9]{2}\.[0-9]{3}Z/)) {
+      // Extract the date and adjust it to match the displayed day in Chicago timezone
+      // In Chicago, a 1:00 AM booking should show the date as the current day, not the previous day
+      const correctDate = isoDate.split('T')[0];
+      console.log(`formatDateForForm: Early morning booking detected - using correct date: ${correctDate}`);
+      return correctDate;
     }
     
-    if (isoDate.includes('2025-05-15T06:00:00.000Z')) {
-      console.log(`formatDateForForm: Special case for 5/15 1AM booking - forcing to 2025-05-15`);
-      return '2025-05-15';
-    }
-    
-    if (isoDate.includes('2025-05-13T06:00:00.000Z')) {
-      console.log(`formatDateForForm: Special case for 5/13 1AM booking - forcing to 2025-05-13`);
-      return '2025-05-13';
-    }
-    
-    if (isoDate.includes('2025-05-16T06:00:00.000Z')) {
-      console.log(`formatDateForForm: Special case for 5/16 1AM booking - forcing to 2025-05-16`);
-      return '2025-05-16';
+    // Same fix for 5:30 AM UTC (12:30 AM Chicago)
+    if (isoDate.match(/T05:30:[0-9]{2}\.[0-9]{3}Z/)) {
+      const correctDate = isoDate.split('T')[0];
+      console.log(`formatDateForForm: 12:30 AM booking detected - using correct date: ${correctDate}`);
+      return correctDate;
     }
     
     // Default case: use the date part from ISO string
