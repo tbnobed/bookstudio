@@ -1437,9 +1437,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       
       // Only admins, engineers, and IT can manage notification groups
-      if (!["admin", "engineer", "it"].includes(user.role)) {
+      if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
         return res.status(403).json({ 
-          message: "Only administrators, engineers, and IT support can manage notification groups" 
+          message: "Only administrators, engineers, IT support, and site managers can manage notification groups" 
         });
       }
       
@@ -1463,7 +1463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Only admins, engineers, and IT can manage notification groups
       if (!["admin", "engineer", "it"].includes(user.role)) {
         return res.status(403).json({ 
-          message: "Only administrators, engineers, and IT support can manage notification groups" 
+          message: "Only administrators, engineers, IT support, and site managers can manage notification groups" 
         });
       }
       
