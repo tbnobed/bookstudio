@@ -930,50 +930,54 @@ export class DatabaseStorage implements IStorage {
           // Create engineer user
           const engineerUser: InsertUser = {
             username: "engineer",
-          password: "engineer123",
-          email: "engineer@studios.com",
-          name: "Engineer User",
-          role: "engineer"
-        };
-        await db.insert(users).values(engineerUser);
-        
-        // Create initial studios
-        for (let i = 1; i <= 20; i++) {
-          const studio: InsertStudio = {
-            name: `Studio ${i}`,
-            description: `Television studio ${i} with full production capabilities`,
-            status: "available"
+            password: "engineer123",
+            email: "engineer@studios.com",
+            name: "Engineer User",
+            role: "engineer"
           };
-          await db.insert(studios).values(studio);
+          await db.insert(users).values(engineerUser);
+          
+          // Create initial studios
+          for (let i = 1; i <= 20; i++) {
+            const studio: InsertStudio = {
+              name: `Studio ${i}`,
+              description: `Television studio ${i} with full production capabilities`,
+              status: "available"
+            };
+            await db.insert(studios).values(studio);
+          }
+          
+          console.log("Database initialization complete.");
         }
-        
-        console.log("Database initialization complete.");
+      } catch (err) {
+        console.warn('Error initializing database:', err);
       }
       
-      // Load existing data into memory for faster access
-      const allUsers = await db.select().from(users);
-      allUsers.forEach(user => {
-        this.users.set(user.id, user);
-        this.userIdCounter = Math.max(this.userIdCounter, user.id + 1);
-      });
-      
-      const allStudios = await db.select().from(studios);
-      allStudios.forEach(studio => {
-        this.studios.set(studio.id, studio);
-        this.studioIdCounter = Math.max(this.studioIdCounter, studio.id + 1);
-      });
-      
-      const allTemplates = await db.select().from(templates);
-      allTemplates.forEach(template => {
-        this.templates.set(template.id, template);
-        this.templateIdCounter = Math.max(this.templateIdCounter, template.id + 1);
-      });
-      
-      const allBookings = await db.select().from(bookings);
-      allBookings.forEach(booking => {
-        this.bookings.set(booking.id, booking);
-        this.bookingIdCounter = Math.max(this.bookingIdCounter, booking.id + 1);
-      });
+      try {
+        // Load existing data into memory for faster access
+        const allUsers = await db.select().from(users);
+        allUsers.forEach(user => {
+          this.users.set(user.id, user);
+          this.userIdCounter = Math.max(this.userIdCounter, user.id + 1);
+        });
+        
+        const allStudios = await db.select().from(studios);
+        allStudios.forEach(studio => {
+          this.studios.set(studio.id, studio);
+          this.studioIdCounter = Math.max(this.studioIdCounter, studio.id + 1);
+        });
+        
+        const allTemplates = await db.select().from(templates);
+        allTemplates.forEach(template => {
+          this.templates.set(template.id, template);
+          this.templateIdCounter = Math.max(this.templateIdCounter, template.id + 1);
+        });
+        
+        const allBookings = await db.select().from(bookings);
+        allBookings.forEach(booking => {
+          this.bookings.set(booking.id, booking);
+          this.bookingIdCounter = Math.max(this.bookingIdCounter, booking.id + 1);
+        });
       
       // Load booking-studio links
       try {
