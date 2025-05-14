@@ -1126,7 +1126,6 @@ export class DatabaseStorage implements IStorage {
       }
   }
   
-  // User management
   async getUser(id: number): Promise<User | undefined> {
     // Check memory cache first
     if (this.users.has(id)) {
