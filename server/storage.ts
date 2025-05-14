@@ -979,102 +979,102 @@ export class DatabaseStorage implements IStorage {
           this.bookingIdCounter = Math.max(this.bookingIdCounter, booking.id + 1);
         });
       
-      // Load booking-studio links
-      try {
-        const allBookingStudioLinks = await db.select().from(bookingStudios);
-        allBookingStudioLinks.forEach(link => {
-          this.bookingStudios.set(`${link.bookingId}-${link.studioId}`, link);
-          this.bookingStudioIdCounter = Math.max(this.bookingStudioIdCounter, link.id + 1);
+        // Load booking-studio links
+        try {
+          const allBookingStudioLinks = await db.select().from(bookingStudios);
+          allBookingStudioLinks.forEach(link => {
+            this.bookingStudios.set(`${link.bookingId}-${link.studioId}`, link);
+            this.bookingStudioIdCounter = Math.max(this.bookingStudioIdCounter, link.id + 1);
+          });
+        } catch (error) {
+          console.log("Booking-studio links table might not exist yet. Initializing empty map.");
+          this.bookingStudios = new Map();
+          this.bookingStudioIdCounter = 1;
+        }
+      
+        // Load PCR rooms data
+        try {
+          const allPcrRooms = await db.select().from(pcrRooms);
+          this.pcrRooms = new Map(); // Ensure pcrRooms is initialized
+          allPcrRooms.forEach(pcrRoom => {
+            this.pcrRooms.set(pcrRoom.id, pcrRoom);
+            this.pcrRoomIdCounter = Math.max(this.pcrRoomIdCounter, pcrRoom.id + 1);
+          });
+        } catch (error) {
+          console.log("PCR rooms table might not exist yet. Initializing empty map.");
+          this.pcrRooms = new Map();
+          this.pcrRoomIdCounter = 1;
+        }
+      
+        const allNotifications = await db.select().from(notifications);
+        allNotifications.forEach(notification => {
+          this.notifications.set(notification.id, notification);
+          this.notificationIdCounter = Math.max(this.notificationIdCounter, notification.id + 1);
         });
-      } catch (error) {
-        console.log("Booking-studio links table might not exist yet. Initializing empty map.");
-        this.bookingStudios = new Map();
-        this.bookingStudioIdCounter = 1;
-      }
-      
-      // Load PCR rooms data
-      try {
-        const allPcrRooms = await db.select().from(pcrRooms);
-        this.pcrRooms = new Map(); // Ensure pcrRooms is initialized
-        allPcrRooms.forEach(pcrRoom => {
-          this.pcrRooms.set(pcrRoom.id, pcrRoom);
-          this.pcrRoomIdCounter = Math.max(this.pcrRoomIdCounter, pcrRoom.id + 1);
-        });
-      } catch (error) {
-        console.log("PCR rooms table might not exist yet. Initializing empty map.");
-        this.pcrRooms = new Map();
-        this.pcrRoomIdCounter = 1;
-      }
-      
-      const allNotifications = await db.select().from(notifications);
-      allNotifications.forEach(notification => {
-        this.notifications.set(notification.id, notification);
-        this.notificationIdCounter = Math.max(this.notificationIdCounter, notification.id + 1);
-      });
-      
-      // We'll handle notification groups with in-memory implementation for now
-      // since the table might not exist yet
-      this.notificationGroups = new Map();
-      this.notificationGroupIdCounter = 1;
-      
-      // Set up default notification groups in memory
-      const defaultGroups = [
-        {
-          id: this.notificationGroupIdCounter++,
-          name: "Camera Operators",
-          email: "camera-team@studios.com",
-          groupType: "department",
-          description: "All camera operators and video technicians",
-          enabled: true
-        },
-        {
-          id: this.notificationGroupIdCounter++,
-          name: "Lighting Technicians",
-          email: "lighting@studios.com",
-          groupType: "department",
-          description: "Lighting setup and operation staff",
-          enabled: true
-        },
-        {
-          id: this.notificationGroupIdCounter++,
-          name: "Directors",
-          email: "directors@studios.com",
-          groupType: "department",
-          description: "Program directors and assistant directors",
-          enabled: true
-        },
-        {
-          id: this.notificationGroupIdCounter++,
-          name: "Sound Engineers",
-          email: "sound@studios.com",
-          groupType: "department",
-          description: "Audio and sound personnel",
-          enabled: true
-        },
-        {
-          id: this.notificationGroupIdCounter++,
-          name: "Production Assistants",
-          email: "pa@studios.com",
-          groupType: "department",
-          description: "PAs and floor managers",
-          enabled: true
-        },
-        {
-          id: this.notificationGroupIdCounter++,
-          name: "Engineering",
-          email: "engineering@studios.com",
-          groupType: "department",
-          description: "Engineering and maintenance team",
-          enabled: true
-        },
-        {
-          id: this.notificationGroupIdCounter++,
-          name: "IT Support",
-          email: "it@studios.com",
-          groupType: "department",
-          description: "IT support and network team",
-          enabled: true
-        },
+        
+        // We'll handle notification groups with in-memory implementation for now
+        // since the table might not exist yet
+        this.notificationGroups = new Map();
+        this.notificationGroupIdCounter = 1;
+        
+        // Set up default notification groups in memory
+        const defaultGroups = [
+          {
+            id: this.notificationGroupIdCounter++,
+            name: "Camera Operators",
+            email: "camera-team@studios.com",
+            groupType: "department",
+            description: "All camera operators and video technicians",
+            enabled: true
+          },
+          {
+            id: this.notificationGroupIdCounter++,
+            name: "Lighting Technicians",
+            email: "lighting@studios.com",
+            groupType: "department",
+            description: "Lighting setup and operation staff",
+            enabled: true
+          },
+          {
+            id: this.notificationGroupIdCounter++,
+            name: "Directors",
+            email: "directors@studios.com",
+            groupType: "department",
+            description: "Program directors and assistant directors",
+            enabled: true
+          },
+          {
+            id: this.notificationGroupIdCounter++,
+            name: "Sound Engineers",
+            email: "sound@studios.com",
+            groupType: "department",
+            description: "Audio and sound personnel",
+            enabled: true
+          },
+          {
+            id: this.notificationGroupIdCounter++,
+            name: "Production Assistants",
+            email: "pa@studios.com",
+            groupType: "department",
+            description: "PAs and floor managers",
+            enabled: true
+          },
+          {
+            id: this.notificationGroupIdCounter++,
+            name: "Engineering",
+            email: "engineering@studios.com",
+            groupType: "department",
+            description: "Engineering and maintenance team",
+            enabled: true
+          },
+          {
+            id: this.notificationGroupIdCounter++,
+            name: "IT Support",
+            email: "it@studios.com",
+            groupType: "department",
+            description: "IT support and network team",
+            enabled: true
+          },
         {
           id: this.notificationGroupIdCounter++,
           name: "All Staff",
