@@ -2293,6 +2293,33 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async getStudiosForBooking(bookingId: number): Promise<Studio[]> {
+    try {
+      // Get all studios for this booking using a join
+      const result = await db.select({
+        studio: studios
+      })
+      .from(bookingStudios)
+      .innerJoin(studios, eq(bookingStudios.studioId, studios.id))
+      .where(eq(bookingStudios.bookingId, bookingId));
+      
+      // If no results, check if there's a legacy studioId (before junction table implementation)
+      if (result.length === 0) {
+        const booking = await this.getBooking(bookingId);
+        if (booking && booking.studioId) {
+          const studio = await this.getStudio(booking.studioId);
+          return studio ? [studio] : [];
+        }
+        return [];
+      }
+      
+      return result.map(row => row.studio);
+    } catch (error) {
+      console.error(`Error getting studios for booking ID ${bookingId}:`, error);
+      return [];
+    }
+  }
+  
   async createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]> {
     try {
       if (studioIds.length === 0) {
