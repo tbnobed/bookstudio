@@ -47,8 +47,8 @@ async function migrateSystemSettings() {
       
       // Insert default site name
       await pool.query(`
-        INSERT INTO system_settings (key, value, description)
-        VALUES ('siteName', 'The Plex Studios', 'The name of the facility displayed throughout the application');
+        INSERT INTO system_settings (key, value)
+        VALUES ('siteName', 'The Plex Studios');
       `);
       
       console.log('System settings table created successfully');
@@ -63,8 +63,8 @@ async function migrateSystemSettings() {
       if (siteNameCheck.rows.length === 0) {
         console.log('Adding default site name setting...');
         await pool.query(`
-          INSERT INTO system_settings (key, value, description)
-          VALUES ('siteName', 'The Plex Studios', 'The name of the facility displayed throughout the application');
+          INSERT INTO system_settings (key, value)
+          VALUES ('siteName', 'The Plex Studios');
         `);
         console.log('Default site name added');
       }
