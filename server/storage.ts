@@ -1124,8 +1124,12 @@ export class DatabaseStorage implements IStorage {
       } catch (error) {
         console.error("Error initializing database:", error);
       }
+    } catch (outerError) {
+      console.error("Outer initialization error:", outerError);
     }
+  }
   
+  // User management methods
   async getUser(id: number): Promise<User | undefined> {
     // Check memory cache first
     if (this.users.has(id)) {
