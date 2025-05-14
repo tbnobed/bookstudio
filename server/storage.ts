@@ -444,22 +444,46 @@ export class MemStorage implements IStorage {
   }
 
   async updateBooking(id: number, data: Partial<InsertBooking>, studioIds?: number[]): Promise<Booking | undefined> {
-    const booking = await this.getBooking(id);
-    if (!booking) return undefined;
-    
-    const updatedBooking: Booking = { ...booking, ...data };
-    this.bookings.set(id, updatedBooking);
-    
-    // If studioIds are provided, update the booking-studio links
-    if (studioIds && studioIds.length > 0) {
-      // First, remove all existing links
-      await this.deleteBookingStudioLinks(id);
+    try {
+      const booking = await this.getBooking(id);
+      if (!booking) return undefined;
       
-      // Then, create new links for each studioId
-      await this.createBookingStudioLinks(id, studioIds);
+      // Process dates to ensure they're in the correct format
+      const processedData = { ...data };
+      
+      // Convert string dates to Date objects
+      if (processedData.start && typeof processedData.start === 'string') {
+        processedData.start = new Date(processedData.start);
+      }
+      
+      if (processedData.end && typeof processedData.end === 'string') {
+        processedData.end = new Date(processedData.end);
+      }
+      
+      console.log(`Updating booking ${id} with data:`, processedData);
+      
+      // In MemStorage, we just merge the objects
+      const updatedBooking: Booking = { ...booking, ...processedData };
+      this.bookings.set(id, updatedBooking);
+      
+      // If studioIds are provided, update the booking-studio links
+      if (studioIds && Array.isArray(studioIds)) {
+        console.log(`Updating studio links for booking ${id} with studios:`, studioIds);
+        
+        // First delete any existing links
+        await this.deleteBookingStudioLinks(id);
+        
+        // Then create new links
+        if (studioIds.length > 0) {
+          await this.createBookingStudioLinks(id, studioIds);
+        }
+      }
+      
+      return updatedBooking;
+    } catch (error) {
+      console.error(`Error updating booking with ID ${id}:`, error);
+      return undefined;
     }
-    
-    return updatedBooking;
   }
 
   async deleteBooking(id: number): Promise<boolean> {
@@ -1798,56 +1822,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async updateBooking(id: number, data: Partial<InsertBooking>, studioIds?: number[]): Promise<Booking | undefined> {
-    try {
-      // Process dates to ensure they're in the correct format
-      const processedData = { ...data };
-      
-      // Extract studio IDs if they are present in the data
-      // We don't want to store studioIds in the bookings table itself
-      // They will be stored in the booking_studios junction table
-      
-      // Convert string dates to Date objects
-      if (processedData.start && typeof processedData.start === 'string') {
-        processedData.start = new Date(processedData.start);
-      }
-      
-      if (processedData.end && typeof processedData.end === 'string') {
-        processedData.end = new Date(processedData.end);
-      }
-      
-      console.log(`Updating booking ${id} with data:`, processedData);
-      
-      const [updatedBooking] = await db
-        .update(bookings)
-        .set(processedData)
-        .where(eq(bookings.id, id))
-        .returning();
-        
-      if (updatedBooking) {
-        // Update the cache
-        this.bookings.set(id, updatedBooking);
-        
-        // If studioIds are provided, update the booking-studio links
-        if (studioIds && Array.isArray(studioIds)) {
-          console.log(`Updating studio links for booking ${id} with studios:`, studioIds);
-          
-          // First delete any existing links
-          await this.deleteBookingStudioLinks(id);
-          
-          // Then create new links
-          if (studioIds.length > 0) {
-            await this.createBookingStudioLinks(id, studioIds);
-          }
-        }
-      }
-      
-      return updatedBooking;
-    } catch (error) {
-      console.error(`Error updating booking with ID ${id}:`, error);
-      return undefined;
-    }
-  }
+  // Database version of updateBooking is implemented in the MemStorage class
   
   async deleteBooking(id: number): Promise<boolean> {
     try {
