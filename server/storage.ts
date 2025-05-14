@@ -1124,7 +1124,7 @@ export class DatabaseStorage implements IStorage {
       } catch (error) {
         console.error("Error initializing database:", error);
       }
-  }
+    }
   
   async getUser(id: number): Promise<User | undefined> {
     // Check memory cache first
