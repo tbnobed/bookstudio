@@ -1075,55 +1075,55 @@ export class DatabaseStorage implements IStorage {
             description: "IT support and network team",
             enabled: true
           },
-        {
-          id: this.notificationGroupIdCounter++,
-          name: "All Staff",
-          email: "all-staff@studios.com",
-          groupType: "facility",
-          description: "All facility personnel",
-          enabled: true
-        }
-      ];
-      
-      // Add default groups to our in-memory store
-      for (const group of defaultGroups) {
-        this.notificationGroups.set(group.id, group);
-      }
-      
-      console.log("Default notification groups created in memory.");
-      
-      // Note: We'll need to run the db migration to create the notification_groups table
-      // before we can use the database for notification groups
-      
-      // Load system settings from database
-      try {
-        const allSystemSettings = await db.select().from(systemSettings);
-        this.systemSettings = new Map(); // Ensure systemSettings is initialized
-        allSystemSettings.forEach(setting => {
-          this.systemSettings.set(setting.id, setting);
-          this.systemSettingIdCounter = Math.max(this.systemSettingIdCounter, setting.id + 1);
-        });
+          {
+            id: this.notificationGroupIdCounter++,
+            name: "All Staff",
+            email: "all-staff@studios.com",
+            groupType: "facility",
+            description: "All facility personnel",
+            enabled: true
+          }
+        ];
         
-        // If no site name is set, create default
-        const siteNameSetting = allSystemSettings.find(s => s.key === 'siteName');
-        if (!siteNameSetting) {
-          console.log("Creating default site name setting");
+        // Add default groups to our in-memory store
+        for (const group of defaultGroups) {
+          this.notificationGroups.set(group.id, group);
+        }
+        
+        console.log("Default notification groups created in memory.");
+        
+        // Note: We'll need to run the db migration to create the notification_groups table
+        // before we can use the database for notification groups
+        
+        // Load system settings from database
+        try {
+          const allSystemSettings = await db.select().from(systemSettings);
+          this.systemSettings = new Map(); // Ensure systemSettings is initialized
+          allSystemSettings.forEach(setting => {
+            this.systemSettings.set(setting.id, setting);
+            this.systemSettingIdCounter = Math.max(this.systemSettingIdCounter, setting.id + 1);
+          });
+          
+          // If no site name is set, create default
+          const siteNameSetting = allSystemSettings.find(s => s.key === 'siteName');
+          if (!siteNameSetting) {
+            console.log("Creating default site name setting");
+            await this.setSiteName('BookStud.io');
+          }
+          
+          console.log("System settings loaded from database");
+        } catch (error) {
+          console.log("System settings table might not exist yet. Initializing empty map.");
+          this.systemSettings = new Map();
+          this.systemSettingIdCounter = 1;
+          
+          // Set default site name in memory
           await this.setSiteName('BookStud.io');
         }
         
-        console.log("System settings loaded from database");
       } catch (error) {
-        console.log("System settings table might not exist yet. Initializing empty map.");
-        this.systemSettings = new Map();
-        this.systemSettingIdCounter = 1;
-        
-        // Set default site name in memory
-        await this.setSiteName('BookStud.io');
+        console.error("Error initializing database:", error);
       }
-      
-    } catch (error) {
-      console.error("Error initializing database:", error);
-    }
   }
   
   // User management
