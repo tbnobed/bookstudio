@@ -1292,8 +1292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Only admin and IT staff can delete IT support bookings" });
         }
       } else {
-        // For regular production bookings, only the creator, admin, or producers can delete
-        if (booking.userId !== user.id && user.role !== "admin" && user.role !== "producer") {
+        // For regular production bookings, only the creator, admin, producers, or site managers can delete
+        if (booking.userId !== user.id && user.role !== "admin" && user.role !== "producer" && user.role !== "site_manager") {
           return res.status(403).json({ message: "You don't have permission to delete this booking" });
         }
       }
