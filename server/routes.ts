@@ -982,7 +982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user.role === "admin" || 
         (user.role === "producer" && (originalBooking.userId === user.id || originalBooking.type === "production" || originalBooking.type === "rehearsal")) ||
         (user.role === "engineer" && (originalBooking.type === "maintenance")) ||
-        (user.role === "site_manager" && (originalBooking.type === "maintenance")) ||
+        (user.role === "site_manager") || // Site managers can copy any booking
         (user.role === "it" && (originalBooking.type === "maintenance" || originalBooking.type === "it_support"));
       
       if (!canCopy) {
