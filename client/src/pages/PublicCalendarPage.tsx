@@ -360,12 +360,18 @@ function PublicCalendarPage() {
           {/* Calendar Views */}
           <div className="mt-2">
             {viewType === 'daily' && (
-              <DailyCalendar
-                date={currentDate}
-                studios={filteredStudios}
-                bookings={filteredBookings}
-                readOnly={true}
-              />
+              <>
+                {/* Add debugging info */}
+                <div className="text-xs text-muted-foreground mb-2">
+                  Debug: {currentDate.toISOString()} - Found {filteredBookings.length} bookings for this view
+                </div>
+                <DailyCalendar
+                  date={currentDate}
+                  studios={filteredStudios}
+                  bookings={filteredBookings}
+                  readOnly={true}
+                />
+              </>
             )}
             {viewType === 'weekly' && (
               <WeeklyCalendar

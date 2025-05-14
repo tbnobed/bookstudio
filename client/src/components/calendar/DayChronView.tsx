@@ -31,10 +31,22 @@ export default function DayChronView({
 }: DayChronViewProps) {
   // Get bookings for the selected day
   const dayBookings = useMemo(() => {
-    return bookings.filter(booking => {
+    // First log the incoming date for debugging
+    console.log(`DayChronView - Current date: ${date.toISOString()}, Checking ${bookings.length} bookings`);
+    
+    // Filter bookings for this day
+    const filtered = bookings.filter(booking => {
       // Use facility's isSameDay function which handles timezone correctly
-      return isSameDay(new Date(booking.start), date);
+      const result = isSameDay(new Date(booking.start), date);
+      // Log each booking for debugging
+      if (result) {
+        console.log(`DayChronView - Found matching booking: ${booking.id} - ${booking.title}`);
+      }
+      return result;
     });
+    
+    console.log(`DayChronView - Found ${filtered.length} bookings for ${date.toISOString()}`);
+    return filtered;
   }, [bookings, date]);
 
   // Function to determine if a booking should be treated as an alert
