@@ -73,7 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // User routes
-  app.get("/api/users", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  app.get("/api/users", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -204,16 +204,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const currentUser = req.user as any;
       
-      // Check if the user is updating their own profile or has admin rights
-      if (currentUser.id !== id && currentUser.role !== "admin") {
-        return res.status(403).json({ message: "Forbidden: You can only update your own profile unless you're an admin" });
+      // Check if the user is updating their own profile or has admin/site_manager rights
+      if (currentUser.id !== id && currentUser.role !== "admin" && currentUser.role !== "site_manager") {
+        return res.status(403).json({ message: "Forbidden: You can only update your own profile unless you have management rights" });
       }
       
       // If user is updating password, include it in the update
       let dataToUpdate = {...req.body};
       
-      // Admin can update any field, but regular users can only update certain fields
-      if (currentUser.role !== "admin" && currentUser.id === id) {
+      // Admin and site_manager can update any field, but regular users can only update certain fields
+      if (currentUser.role !== "admin" && currentUser.role !== "site_manager" && currentUser.id === id) {
         // Regular users can only update their own name, email and password
         const { name, email, password } = req.body;
         dataToUpdate = { name, email };
@@ -222,6 +222,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (password) {
           dataToUpdate.password = password;
         }
+      }
+      
+      // Site managers cannot change someone's role to admin
+      if (currentUser.role === "site_manager" && dataToUpdate.role === "admin") {
+        return res.status(403).json({ message: "Forbidden: Site managers cannot assign admin role" });
       }
       
       // Hash the password if it's being updated
@@ -245,13 +250,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/users/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  app.delete("/api/users/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const currentUser = req.user as any;
       
       // Prevent self-deletion
       if (req.user && req.user.id === id) {
         return res.status(400).json({ message: "You cannot delete your own account" });
+      }
+      
+      // Get the user to be deleted to check their role
+      const userToDelete = await storage.getUser(id);
+      
+      // Site managers cannot delete admin users
+      if (currentUser.role === "site_manager" && userToDelete?.role === "admin") {
+        return res.status(403).json({ message: "Forbidden: Site managers cannot delete administrator accounts" });
       }
       
       const deleted = await storage.deleteUser(id);
