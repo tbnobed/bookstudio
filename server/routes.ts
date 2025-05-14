@@ -446,7 +446,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/studios/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  app.patch("/api/studios/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      // Allow updating name, description and status
+      const updateSchema = z.object({
+        name: z.string().optional(),
+        description: z.string().nullable().optional(),
+        status: z.string().optional()
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      
+      const updatedStudio = await storage.updateStudio(id, updateData);
+      if (!updatedStudio) {
+        return res.status(404).json({ message: "Studio not found" });
+      }
+      
+      res.json(updatedStudio);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid studio data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update studio" });
+    }
+  });
+  
+  app.delete("/api/studios/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -480,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/pcr-rooms", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  app.post("/api/pcr-rooms", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const pcrRoomData = insertPcrRoomSchema.parse(req.body);
       const pcrRoom = await storage.createPcrRoom(pcrRoomData);
@@ -512,7 +538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.patch("/api/pcr-rooms/:id", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  app.patch("/api/pcr-rooms/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       // Allow updating name, description and status
