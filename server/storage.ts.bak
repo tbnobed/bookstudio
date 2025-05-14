@@ -2293,6 +2293,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  // Implementation provided elsewhere
+      
+      // Get all studios from the links
+      const studios: Studio[] = [];
+      for (const link of links) {
+        const studio = await this.getStudio(link.studioId);
+        if (studio) {
+          studios.push(studio);
+        }
+      }
+      
+      return studios;
+    }
+  }
+  
   async createBookingStudioLinks(bookingId: number, studioIds: number[]): Promise<BookingStudio[]> {
     try {
       if (studioIds.length === 0) {
