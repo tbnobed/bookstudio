@@ -174,8 +174,8 @@ export default function Settings() {
   
   // No need to initialize timezone data - now using fixed facility timezone
 
-  // For non-admin users, only show the Profile tab
-  if (user?.role !== "admin") {
+  // For regular users (not admins or site managers), only show the Profile tab
+  if (user?.role !== "admin" && user?.role !== "site_manager") {
     return (
       <div className="flex flex-col h-screen">
         <Header

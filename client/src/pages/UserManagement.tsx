@@ -58,7 +58,7 @@ export default function UserManagement() {
   // Fetch users
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
-    enabled: user?.role === "admin",
+    enabled: user?.role === "admin" || user?.role === "site_manager",
   });
 
   // Create user mutation
@@ -257,7 +257,7 @@ export default function UserManagement() {
     }
   };
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "admin" && user?.role !== "site_manager") {
     return (
       <div className="flex flex-col h-screen">
         <Header
@@ -279,7 +279,7 @@ export default function UserManagement() {
                 <h1 className="text-2xl font-bold">Access Denied</h1>
               </div>
               <p className="text-center text-gray-600">
-                You don't have permission to access the User Management page. Only administrators can manage users.
+                You don't have permission to access the User Management page. Only administrators and site managers can manage users.
               </p>
             </CardContent>
           </Card>
