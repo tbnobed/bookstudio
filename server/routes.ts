@@ -779,9 +779,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Only admin and IT staff can create IT support bookings" });
         }
       } else {
-        // For regular production bookings, ensure producers have access
-        if (user.role !== "admin" && user.role !== "producer") {
-          return res.status(403).json({ message: "Only admin and producers can create regular bookings" });
+        // For regular production bookings, ensure producers and site managers have access
+        if (user.role !== "admin" && user.role !== "producer" && user.role !== "site_manager") {
+          return res.status(403).json({ message: "Only admin, producers, and site managers can create regular bookings" });
         }
       }
       
@@ -1075,8 +1075,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Only admin and IT staff can update IT support bookings" });
         }
       } else {
-        // For regular production bookings, only the creator, admin, or producers can update
-        if (booking.userId !== user.id && user.role !== "admin" && user.role !== "producer") {
+        // For regular production bookings, only the creator, admin, producers, or site managers can update
+        if (booking.userId !== user.id && user.role !== "admin" && user.role !== "producer" && user.role !== "site_manager") {
           return res.status(403).json({ message: "You don't have permission to update this booking" });
         }
       }
