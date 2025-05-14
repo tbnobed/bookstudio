@@ -186,9 +186,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/users", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+  app.post("/api/users", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
+      const currentUser = req.user as any;
       const userData = insertUserSchema.parse(req.body);
+      
+      // Site managers cannot create admin users
+      if (currentUser.role === "site_manager" && userData.role === "admin") {
+        return res.status(403).json({ message: "Forbidden: Site managers cannot create administrator accounts" });
+      }
+      
       const user = await storage.createUser(userData);
       res.status(201).json(user);
     } catch (error) {
