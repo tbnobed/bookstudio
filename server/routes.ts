@@ -1594,7 +1594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hasPermission = await fileService.userHasPermission(
         fileId, 
         user.id, 
-        user.role === 'admin' || user.role === 'engineer' || user.role === 'it'
+        user.role === 'admin' || user.role === 'engineer' || user.role === 'it' || user.role === 'site_manager'
       );
       
       if (!hasPermission) {
@@ -1635,7 +1635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hasPermission = await fileService.userHasPermission(
         fileId, 
         user.id, 
-        user.role === 'admin'
+        user.role === 'admin' || user.role === 'site_manager'
       );
       
       if (!hasPermission) {
