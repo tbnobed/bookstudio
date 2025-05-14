@@ -1169,6 +1169,74 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const allUsers = await db.select().from(users);
+      // Update cache
+      allUsers.forEach(user => {
+        this.users.set(user.id, user);
+      });
+      return allUsers;
+    } catch (error) {
+      console.error("Error getting all users:", error);
+      return Array.from(this.users.values());
+    }
+  }
+  
+  async updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined> {
+    try {
+      const user = await this.getUser(id);
+      if (!user) return undefined;
+      
+      const [updatedUser] = await db.update(users)
+        .set(data)
+        .where(eq(users.id, id))
+        .returning();
+        
+      if (updatedUser) {
+        this.users.set(id, updatedUser);
+      }
+      return updatedUser;
+    } catch (error) {
+      console.error(`Error updating user with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(users).where(eq(users.id, id));
+      if (result) {
+        this.users.delete(id);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error(`Error deleting user with ID ${id}:`, error);
+      return false;
+    }
+  }
+  
+  // Studio management
+  async getStudio(id: number): Promise<Studio | undefined> {
+    // Check memory cache first
+    if (this.studios.has(id)) {
+      return this.studios.get(id);
+    }
+    
+    // If not in cache, fetch from database
+    try {
+      const [studio] = await db.select().from(studios).where(eq(studios.id, id));
+      if (studio) {
+        this.studios.set(id, studio);
+      }
+      return studio;
+    } catch (error) {
+      console.error(`Error getting studio with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
   async createUser(user: InsertUser): Promise<User> {
     try {
       const [newUser] = await db.insert(users).values(user).returning();
