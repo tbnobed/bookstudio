@@ -1489,10 +1489,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       const id = parseInt(req.params.id);
       
-      // Only admins, engineers, and IT can manage notification groups
+      // Only admins, engineers, IT, and site managers can manage notification groups
       if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
         return res.status(403).json({ 
-          message: "Only administrators, engineers, and IT support can manage notification groups" 
+          message: "Only administrators, engineers, IT support, and site managers can manage notification groups" 
         });
       }
       
