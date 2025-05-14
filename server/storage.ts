@@ -2464,6 +2464,82 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
+  
+  async checkBookingConflicts(studioId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]> {
+    try {
+      // Get bookings associated with the studio during the specified time range
+      const studioBookings = await db
+        .select({
+          booking: bookings,
+        })
+        .from(bookingStudios)
+        .innerJoin(bookings, eq(bookingStudios.bookingId, bookings.id))
+        .where(
+          and(
+            eq(bookingStudios.studioId, studioId),
+            or(
+              // Case 1: Booking starts during the new booking
+              and(
+                gte(bookings.start, start),
+                lte(bookings.start, end)
+              ),
+              // Case 2: Booking ends during the new booking
+              and(
+                gte(bookings.end, start),
+                lte(bookings.end, end)
+              ),
+              // Case 3: Booking completely overlaps the new booking
+              and(
+                lte(bookings.start, start),
+                gte(bookings.end, end)
+              )
+            ),
+            excludeBookingId ? not(eq(bookings.id, excludeBookingId)) : sql`1=1`
+          )
+        );
+      
+      // Extract and return the bookings
+      const conflictingBookings = studioBookings.map(row => row.booking);
+      return conflictingBookings;
+    } catch (error) {
+      console.error(`Error checking booking conflicts for studio ${studioId}:`, error);
+      return [];
+    }
+  }
+  
+  async getBookingStudios(bookingId: number): Promise<Studio[]> {
+    try {
+      const result = await db
+        .select({
+          studio: studios,
+        })
+        .from(bookingStudios)
+        .innerJoin(studios, eq(bookingStudios.studioId, studios.id))
+        .where(eq(bookingStudios.bookingId, bookingId));
+      
+      return result.map(row => row.studio);
+    } catch (error) {
+      console.error(`Error getting studios for booking ${bookingId}:`, error);
+      return [];
+    }
+  }
+  
+  async linkBookingToStudio(bookingId: number, studioId: number): Promise<BookingStudio> {
+    try {
+      const [link] = await db
+        .insert(bookingStudios)
+        .values({
+          bookingId,
+          studioId,
+        })
+        .returning();
+        
+      return link;
+    } catch (error) {
+      console.error(`Error linking booking ${bookingId} to studio ${studioId}:`, error);
+      throw new Error(`Failed to link booking to studio: ${error}`);
+    }
+  }
 }
 
 // Use the database storage instead of memory storage
