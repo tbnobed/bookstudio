@@ -102,8 +102,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
   console.log("All alerts in AlertsRow: ", JSON.stringify(alerts));
   console.log("Alert IDs in AlertsRow: ", alerts.map(a => a.id).join(', '));
   
-  // Check if user has permission to create alerts (only engineers and admins)
-  const canCreateAlerts = user?.role === "engineer" || user?.role === "admin" || user?.role === "it";
+  // Check if user has permission to create alerts (engineers, admins, IT, and site managers)
+  const canCreateAlerts = user?.role === "engineer" || user?.role === "admin" || user?.role === "it" || user?.role === "site_manager";
 
   // Handle cell click to create a new alert
   const handleCellClick = (date: Date) => {

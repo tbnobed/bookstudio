@@ -427,7 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/studios/:id/status", isAuthenticated, hasRole(["admin", "engineer", "it"]), async (req, res) => {
+  app.patch("/api/studios/:id/status", isAuthenticated, hasRole(["admin", "engineer", "it", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = z.object({ status: z.string() }).parse(req.body);
@@ -493,7 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/pcr-rooms/:id/status", isAuthenticated, hasRole(["admin", "engineer", "it"]), async (req, res) => {
+  app.patch("/api/pcr-rooms/:id/status", isAuthenticated, hasRole(["admin", "engineer", "it", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = z.object({ status: z.string() }).parse(req.body);
@@ -770,7 +770,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check role permissions based on booking types
       if (req.body.type === "maintenance" || req.body.type === "all-day:maintenance") {
         // Only admin, engineers, and IT staff can create maintenance bookings
-        if (!["admin", "engineer", "it"].includes(user.role)) {
+        if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
           return res.status(403).json({ message: "Only admin, engineers, and IT staff can create maintenance bookings" });
         }
       } else if (req.body.type === "it_support") {
@@ -1066,7 +1066,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check permissions based on booking type and role
       if (booking.type === "maintenance" || booking.type === "all-day:maintenance") {
         // Only admin, engineers, and IT staff can update maintenance bookings
-        if (!["admin", "engineer", "it"].includes(user.role)) {
+        if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
           return res.status(403).json({ message: "Only admin, engineers, and IT staff can update maintenance bookings" });
         }
       } else if (booking.type === "it_support") {
@@ -1282,7 +1282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check permissions based on booking type and role
       if (booking.type === "maintenance" || booking.type === "all-day:maintenance") {
         // Only admin, engineers, and IT staff can delete maintenance bookings
-        if (!["admin", "engineer", "it"].includes(user.role)) {
+        if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
           return res.status(403).json({ message: "Only admin, engineers, and IT staff can delete maintenance bookings" });
         }
       } else if (booking.type === "it_support") {
@@ -1461,7 +1461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       
       // Only admins, engineers, and IT can manage notification groups
-      if (!["admin", "engineer", "it"].includes(user.role)) {
+      if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
         return res.status(403).json({ 
           message: "Only administrators, engineers, IT support, and site managers can manage notification groups" 
         });
@@ -1489,7 +1489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       
       // Only admins, engineers, and IT can manage notification groups
-      if (!["admin", "engineer", "it"].includes(user.role)) {
+      if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
         return res.status(403).json({ 
           message: "Only administrators, engineers, and IT support can manage notification groups" 
         });
@@ -1537,7 +1537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Only booking owner, admin, engineer, or IT can add attachments
         if (
           booking.userId !== user.id &&
-          !["admin", "engineer", "it"].includes(user.role)
+          !["admin", "engineer", "it", "site_manager"].includes(user.role)
         ) {
           return res.status(403).json({
             message: "You don't have permission to add attachments to this booking",
