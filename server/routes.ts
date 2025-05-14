@@ -769,9 +769,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check role permissions based on booking types
       if (req.body.type === "maintenance" || req.body.type === "all-day:maintenance") {
-        // Only admin, engineers, and IT staff can create maintenance bookings
+        // Only admin, engineers, IT staff, and site managers can create maintenance bookings
         if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
-          return res.status(403).json({ message: "Only admin, engineers, and IT staff can create maintenance bookings" });
+          return res.status(403).json({ message: "Only admin, engineers, IT staff, and site managers can create maintenance bookings" });
         }
       } else if (req.body.type === "it_support") {
         // Only admin and IT staff can create IT support bookings
@@ -982,6 +982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user.role === "admin" || 
         (user.role === "producer" && (originalBooking.userId === user.id || originalBooking.type === "production" || originalBooking.type === "rehearsal")) ||
         (user.role === "engineer" && (originalBooking.type === "maintenance")) ||
+        (user.role === "site_manager" && (originalBooking.type === "maintenance")) ||
         (user.role === "it" && (originalBooking.type === "maintenance" || originalBooking.type === "it_support"));
       
       if (!canCopy) {
@@ -1065,9 +1066,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check permissions based on booking type and role
       if (booking.type === "maintenance" || booking.type === "all-day:maintenance") {
-        // Only admin, engineers, and IT staff can update maintenance bookings
+        // Only admin, engineers, IT staff, and site managers can update maintenance bookings
         if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
-          return res.status(403).json({ message: "Only admin, engineers, and IT staff can update maintenance bookings" });
+          return res.status(403).json({ message: "Only admin, engineers, IT staff, and site managers can update maintenance bookings" });
         }
       } else if (booking.type === "it_support") {
         // Only admin and IT staff can update IT support bookings
@@ -1281,9 +1282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check permissions based on booking type and role
       if (booking.type === "maintenance" || booking.type === "all-day:maintenance") {
-        // Only admin, engineers, and IT staff can delete maintenance bookings
+        // Only admin, engineers, IT staff, and site managers can delete maintenance bookings
         if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
-          return res.status(403).json({ message: "Only admin, engineers, and IT staff can delete maintenance bookings" });
+          return res.status(403).json({ message: "Only admin, engineers, IT staff, and site managers can delete maintenance bookings" });
         }
       } else if (booking.type === "it_support") {
         // Only admin and IT staff can delete IT support bookings
