@@ -227,12 +227,30 @@ function PublicCalendarPage() {
       const bookingStart = new Date(booking.start);
       const bookingEnd = new Date(booking.end);
       
-      // Check if the booking overlaps with our date range
+      // For daily view, use isSameDay to ensure correct timezone handling
+      if (viewType === 'daily') {
+        // Check if booking date is the same as current date using the facility timezone-aware function
+        const { isSameDay } = require('@/lib/dateUtils');
+        const result = isSameDay(bookingStart, currentDate);
+        
+        // Log for debugging
+        console.log(`Booking ${booking.id} - ${booking.title} (${bookingStart.toISOString()}) on same day as ${currentDate.toISOString()}? ${result}`);
+        
+        return result;
+      }
+      
+      // For weekly and monthly views, check if booking overlaps with date range
       return isWithinInterval(bookingStart, { start: dateRange.start, end: dateRange.end }) ||
              isWithinInterval(bookingEnd, { start: dateRange.start, end: dateRange.end }) ||
              (bookingStart <= dateRange.start && bookingEnd >= dateRange.end);
     })
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+    
+  // Log filtered bookings for debugging
+  console.log(`[PublicCalendarPage] View: ${viewType}, Date: ${currentDate.toISOString()}, Found ${filteredBookings.length} bookings`);
+  if (filteredBookings.length > 0) {
+    console.log(`[PublicCalendarPage] First booking: ${filteredBookings[0].id} - ${filteredBookings[0].title} (${new Date(filteredBookings[0].start).toISOString()})`);
+  }
 
   return (
     <div className="flex h-screen flex-col bg-background">
