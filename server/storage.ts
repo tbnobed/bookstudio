@@ -10,7 +10,7 @@ import {
   systemSettings, type SystemSetting, type InsertSystemSetting
 } from "@shared/schema";
 
-import { db, pool } from "./db";
+import { db, pool, ensureConnection } from "./db";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { eq, and, or, isNull, not, desc, gte, lte, inArray, sql } from "drizzle-orm";
