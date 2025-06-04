@@ -1,11 +1,12 @@
+import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
+import * as path from 'path';
 import { spawn } from 'child_process';
-import { promises as fs } from 'fs';
-import { join } from 'path';
-import cron from 'node-cron';
+import * as cron from 'node-cron';
 
 interface BackupConfig {
   enabled: boolean;
-  schedule: string; // cron format
+  schedule: string;
   retentionDays: number;
   backupPath: string;
 }
@@ -22,15 +23,18 @@ class BackupManager {
   private config: BackupConfig;
   private status: BackupStatus;
   private backupInProgress = false;
+  private statusFilePath: string;
 
   constructor() {
     this.config = {
       enabled: true,
       schedule: '0 2 * * *', // Daily at 2 AM
       retentionDays: 30,
-      backupPath: '/app/backups'
+      backupPath: './backups'
     };
-    
+
+    this.statusFilePath = path.join(this.config.backupPath, 'backup_status.json');
+
     this.status = {
       lastBackup: null,
       lastBackupSize: null,
@@ -45,7 +49,10 @@ class BackupManager {
   private async initializeBackupSystem() {
     try {
       // Ensure backup directory exists
-      await fs.mkdir(this.config.backupPath, { recursive: true });
+      if (!fsSync.existsSync(this.config.backupPath)) {
+        await fs.mkdir(this.config.backupPath, { recursive: true });
+        console.log(`Created backup directory: ${this.config.backupPath}`);
+      }
       
       // Load previous status if available
       await this.loadBackupStatus();
@@ -63,49 +70,46 @@ class BackupManager {
 
   private async loadBackupStatus() {
     try {
-      const statusFile = join(this.config.backupPath, 'backup_status.json');
-      const statusData = await fs.readFile(statusFile, 'utf8');
-      const savedStatus = JSON.parse(statusData);
-      
-      this.status = {
-        ...savedStatus,
-        lastBackup: savedStatus.lastBackup ? new Date(savedStatus.lastBackup) : null,
-        nextScheduledBackup: savedStatus.nextScheduledBackup ? new Date(savedStatus.nextScheduledBackup) : null
-      };
+      if (fsSync.existsSync(this.statusFilePath)) {
+        const data = await fs.readFile(this.statusFilePath, 'utf8');
+        const parsedStatus = JSON.parse(data);
+        this.status = {
+          ...parsedStatus,
+          lastBackup: parsedStatus.lastBackup ? new Date(parsedStatus.lastBackup) : null,
+          nextScheduledBackup: parsedStatus.nextScheduledBackup ? new Date(parsedStatus.nextScheduledBackup) : null
+        };
+      }
     } catch (error) {
-      // Status file doesn't exist yet, use defaults
-      console.log('No previous backup status found, using defaults');
+      console.log('No previous backup status found, starting fresh');
     }
   }
 
   private async saveBackupStatus() {
     try {
-      const statusFile = join(this.config.backupPath, 'backup_status.json');
-      await fs.writeFile(statusFile, JSON.stringify(this.status, null, 2));
+      await fs.writeFile(this.statusFilePath, JSON.stringify(this.status, null, 2));
     } catch (error) {
       console.error('Failed to save backup status:', error);
     }
   }
 
   private scheduleBackups() {
-    console.log(`Scheduling automatic backups with cron: ${this.config.schedule}`);
-    
     cron.schedule(this.config.schedule, async () => {
-      console.log('Starting scheduled backup...');
-      await this.createBackup();
+      if (!this.backupInProgress) {
+        console.log('Starting scheduled backup...');
+        await this.createBackup();
+      }
     });
-    
-    // Calculate next backup time
+
     this.updateNextBackupTime();
   }
 
   private updateNextBackupTime() {
-    // Simple calculation for next 2 AM
+    // Calculate next backup time based on cron schedule
     const now = new Date();
-    const next = new Date(now);
-    next.setDate(next.getDate() + 1);
-    next.setHours(2, 0, 0, 0);
-    this.status.nextScheduledBackup = next;
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(2, 0, 0, 0); // 2:00 AM
+    this.status.nextScheduledBackup = tomorrow;
   }
 
   async createBackup(): Promise<{ success: boolean; message: string; filename?: string }> {
@@ -120,13 +124,14 @@ class BackupManager {
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const filename = `bookstudio_backup_${timestamp}.sql`;
-      const backupPath = join(this.config.backupPath, filename);
+      const backupPath = path.join(this.config.backupPath, filename);
 
       console.log(`Creating database backup: ${filename}`);
 
       const result = await this.executeBackup(backupPath);
-      
+
       if (result.success) {
+        // Get file size
         const stats = await fs.stat(backupPath);
         
         this.status.lastBackup = new Date();
@@ -136,8 +141,6 @@ class BackupManager {
         
         // Clean up old backups
         await this.cleanupOldBackups();
-        
-        console.log(`Backup completed successfully: ${filename} (${this.formatFileSize(stats.size)})`);
         
         await this.saveBackupStatus();
         
@@ -149,13 +152,21 @@ class BackupManager {
       } else {
         this.status.lastBackupStatus = 'failed';
         await this.saveBackupStatus();
-        return { success: false, message: result.error || 'Backup failed' };
+        
+        return { 
+          success: false, 
+          message: result.error || 'Backup failed'
+        };
       }
     } catch (error) {
+      console.error('Backup failed:', error);
       this.status.lastBackupStatus = 'failed';
       await this.saveBackupStatus();
-      console.error('Backup failed:', error);
-      return { success: false, message: `Backup failed: ${error instanceof Error ? error.message : String(error)}` };
+      
+      return { 
+        success: false, 
+        message: `Backup failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
     } finally {
       this.backupInProgress = false;
     }
@@ -163,16 +174,16 @@ class BackupManager {
 
   private executeBackup(backupPath: string): Promise<{ success: boolean; error?: string }> {
     return new Promise((resolve) => {
+      // Use pg_dump to create database backup
       const pgDump = spawn('pg_dump', [
-        '-h', process.env.PGHOST || 'localhost',
-        '-p', process.env.PGPORT || '5432',
-        '-U', process.env.PGUSER || 'postgres',
-        '-d', process.env.PGDATABASE || 'bookstudio',
+        '--host', process.env.PGHOST || 'localhost',
+        '--port', process.env.PGPORT || '5432',
+        '--username', process.env.PGUSER || 'postgres',
         '--no-password',
-        '--verbose',
         '--clean',
-        '--if-exists',
-        '--create'
+        '--create',
+        '--verbose',
+        process.env.PGDATABASE || 'bookstudio'
       ], {
         env: {
           ...process.env,
@@ -180,7 +191,7 @@ class BackupManager {
         }
       });
 
-      const writeStream = fs.createWriteStream(backupPath);
+      const writeStream = fsSync.createWriteStream(backupPath);
       pgDump.stdout.pipe(writeStream);
 
       let errorOutput = '';
@@ -214,7 +225,7 @@ class BackupManager {
       cutoffDate.setDate(cutoffDate.getDate() - this.config.retentionDays);
 
       for (const file of backupFiles) {
-        const filePath = join(this.config.backupPath, file);
+        const filePath = path.join(this.config.backupPath, file);
         const stats = await fs.stat(filePath);
         
         if (stats.mtime < cutoffDate) {
@@ -223,7 +234,7 @@ class BackupManager {
         }
       }
     } catch (error) {
-      console.error('Error cleaning up old backups:', error);
+      console.error('Failed to cleanup old backups:', error);
     }
   }
 
@@ -234,7 +245,7 @@ class BackupManager {
       
       const backups = [];
       for (const file of backupFiles) {
-        const filePath = join(this.config.backupPath, file);
+        const filePath = path.join(this.config.backupPath, file);
         const stats = await fs.stat(filePath);
         backups.push({
           filename: file,
@@ -243,44 +254,49 @@ class BackupManager {
         });
       }
       
+      // Sort by date, newest first
       return backups.sort((a, b) => b.date.getTime() - a.date.getTime());
     } catch (error) {
-      console.error('Error listing backups:', error);
+      console.error('Failed to list backups:', error);
       return [];
     }
   }
 
   async restoreBackup(filename: string): Promise<{ success: boolean; message: string }> {
     try {
-      const backupPath = join(this.config.backupPath, filename);
+      const backupPath = path.join(this.config.backupPath, filename);
       
-      // Verify file exists
-      await fs.access(backupPath);
-      
-      console.log(`Restoring database from backup: ${filename}`);
+      // Check if file exists
+      if (!fsSync.existsSync(backupPath)) {
+        return { success: false, message: 'Backup file not found' };
+      }
+
+      console.log(`Restoring database from: ${filename}`);
       
       const result = await this.executeRestore(backupPath);
       
       if (result.success) {
-        console.log(`Database restored successfully from: ${filename}`);
         return { success: true, message: `Database restored successfully from ${filename}` };
       } else {
         return { success: false, message: result.error || 'Restore failed' };
       }
     } catch (error) {
       console.error('Restore failed:', error);
-      return { success: false, message: `Restore failed: ${error instanceof Error ? error.message : String(error)}` };
+      return { 
+        success: false, 
+        message: `Restore failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
     }
   }
 
   private executeRestore(backupPath: string): Promise<{ success: boolean; error?: string }> {
     return new Promise((resolve) => {
       const psql = spawn('psql', [
-        '-h', process.env.PGHOST || 'localhost',
-        '-p', process.env.PGPORT || '5432',
-        '-U', process.env.PGUSER || 'postgres',
-        '-d', process.env.PGDATABASE || 'bookstudio',
-        '-f', backupPath
+        '--host', process.env.PGHOST || 'localhost',
+        '--port', process.env.PGPORT || '5432',
+        '--username', process.env.PGUSER || 'postgres',
+        '--no-password',
+        '--file', backupPath
       ], {
         env: {
           ...process.env,
@@ -317,11 +333,7 @@ class BackupManager {
 
   updateConfig(newConfig: Partial<BackupConfig>) {
     this.config = { ...this.config, ...newConfig };
-    
-    // Reschedule if schedule changed
-    if (newConfig.schedule) {
-      this.scheduleBackups();
-    }
+    this.saveBackupStatus();
   }
 
   private formatFileSize(bytes: number): string {
