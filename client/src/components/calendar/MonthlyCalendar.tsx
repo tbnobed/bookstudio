@@ -333,7 +333,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
     const isToday = isSameDay(date, new Date());
     
     return cn(
-      "h-auto border p-1 transition-colors duration-200", // Auto height to fill available space
+      "border p-1 transition-colors duration-200",
       isCurrentMonth ? "bg-white" : "bg-gray-50 text-gray-400",
       isToday && "bg-blue-50 border-blue-200",
       readOnly ? "cursor-default" : "cursor-pointer hover:bg-gray-100"
@@ -342,17 +342,17 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
 
   return (
     <>
-      <div className="overflow-hidden h-[calc(100vh-8rem)] flex flex-col">
-        <div className="p-2">
+      <div className="h-[calc(100vh-8rem)] flex flex-col overflow-auto">
+        <div className="p-2 flex-shrink-0">
           {/* Month Header */}
           <h2 className="text-xl font-semibold mb-2">
             {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h2>
         </div>
         
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-auto">
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 flex-1" style={{ minHeight: 'calc(100vh - 10rem)' }}>
+          <div className="grid grid-cols-7 min-h-full" style={{ minHeight: '600px' }}>
             {/* Day names */}
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
               <div key={day} className="text-center font-medium p-2 bg-gray-100 sticky top-0">
@@ -364,7 +364,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
             {monthDays.map((date, i) => (
               <div 
                 key={i} 
-                className={`${getDayClass(date)} flex flex-col h-full`}
+                className={`${getDayClass(date)} flex flex-col min-h-32`}
                 onClick={() => handleDayClick(date)}
               >
                 <div className="flex justify-between items-start p-1 sticky top-0 bg-white z-10">
