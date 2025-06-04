@@ -52,15 +52,15 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
       return data;
     },
     enabled: true,
-    refetchInterval: 3000, // Refetch every 3 seconds to keep UI in sync
     refetchOnWindowFocus: true,
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
   // Fetch user's bookings
   const userBookingsQuery = useQuery<Booking[]>({
     queryKey: ["/api/bookings/user"],
-    refetchInterval: 3000, // Refetch every 3 seconds
     refetchOnWindowFocus: true,
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
   // Fetch templates

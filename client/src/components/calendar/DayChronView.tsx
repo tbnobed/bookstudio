@@ -55,23 +55,26 @@ export default function DayChronView({
     // 1. It has "alert" type, OR
     // 2. It has "Alert" in the title, OR
     // 3. It's an "all-day:maintenance" type booking, OR
-    // 4. It's an "all-day:it_support" type booking
-    // Note: We no longer force critical severity requirement for alerts
+    // 4. It's an "all-day:it_support" type booking, OR
+    // 5. It has "maintenance" or "alert" in the type field
     
-    // Debug logging to help diagnose alert detection
-    console.log(`[ALERT CHECK] Booking ${booking.id} - ${booking.title}`, {
-      type: booking.type, 
-      severity: booking.severity,
-      hasAlertInTitle: booking.title && booking.title.toLowerCase().includes('alert'),
-      isAllDay: booking.type && booking.type.includes('all-day'),
-      isMaintenance: booking.type && booking.type.includes('maintenance'),
-      isItSupport: booking.type && booking.type.includes('it_support')
-    });
-    
-    return booking.type === 'alert' || 
+    const isAlert = booking.type === 'alert' || 
+           booking.type === 'maintenance' ||
            (booking.title && booking.title.toLowerCase().includes('alert')) ||
+           (booking.title && booking.title.toLowerCase().includes('maintenance')) ||
            (booking.type && booking.type.includes('all-day:maintenance')) ||
-           (booking.type && booking.type.includes('all-day:it_support'));
+           (booking.type && booking.type.includes('all-day:it_support')) ||
+           (booking.type && booking.type.includes('maintenance'));
+           
+    // Only log when we detect an alert to reduce console spam
+    if (isAlert) {
+      console.log(`[ALERT DETECTED] Booking ${booking.id} - ${booking.title}`, {
+        type: booking.type, 
+        severity: booking.severity
+      });
+    }
+    
+    return isAlert;
   };
 
   // Separate alerts from regular bookings 
@@ -387,107 +390,100 @@ export default function DayChronView({
         )}
       </div>
       
-      {dayBookings.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-md">
-          <p className="text-gray-500">No bookings for this day</p>
+      {/* ALERTS SECTION - Always shown regardless of other bookings */}
+      <div className={`mb-6 p-4 border-2 border-red-400 bg-red-50 rounded-md shadow-md ${alerts.length === 0 ? 'border-dashed' : ''}`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={20} className="text-red-600" />
+            <h3 className="text-lg font-bold text-red-700">ALERTS & CRITICAL NOTICES</h3>
+          </div>
+          {!readOnly && (
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="gap-1"
+              onClick={() => {
+                // Handle creating a new alert for the current date
+                const alertData = {
+                  type: "alert", // Using simpler alert type
+                  start: date,
+                  studioId: null
+                };
+                onBookingClick(alertData);
+              }}
+            >
+              <AlertTriangle className="h-4 w-4" />
+              <span>Add Alert</span>
+            </Button>
+          )}
+        </div>
+        
+        {alerts.length === 0 ? (
+          <div className="text-center py-3 bg-white rounded-md text-gray-500">
+            <p>No alerts for this day</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {alerts.map(alert => (
+              <div 
+                key={alert.id} 
+                className={cn(
+                  "p-3 rounded-md border-l-4 bg-white shadow-sm cursor-pointer hover:bg-gray-50",
+                  alert.severity === "critical" ? "border-red-500" : 
+                  alert.severity === "high" ? "border-orange-500" : 
+                  alert.severity === "medium" ? "border-amber-500" : 
+                  "border-blue-500"
+                )}
+                onClick={() => onBookingClick(alert)}
+              >
+                <div className={cn(
+                  "font-medium",
+                  alert.severity === "critical" ? "text-red-700" : 
+                  alert.severity === "high" ? "text-orange-700" : 
+                  alert.severity === "medium" ? "text-amber-700" : 
+                  "text-blue-700"
+                )}>
+                  {alert.title}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">
+                  {alert.description && alert.description.substring(0, 100)}
+                  {alert.description && alert.description.length > 100 ? '...' : ''}
+                </div>
+                <div className="mt-2 flex items-center text-xs">
+                  <div className="flex items-center gap-1 text-gray-700">
+                    <Clock size={14} className="flex-shrink-0" />
+                    <span>
+                      {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
+                    </span>
+                  </div>
+                  <span className={cn(
+                    "inline-block px-2 py-1 ml-2 rounded-full text-xs font-semibold",
+                    alert.severity === "critical" ? "bg-red-100 text-red-700" : 
+                    alert.severity === "high" ? "bg-orange-100 text-orange-700" : 
+                    alert.severity === "medium" ? "bg-amber-100 text-amber-700" : 
+                    "bg-blue-100 text-blue-700"
+                  )}>
+                    {alert.severity || 'info'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {/* REGULAR BOOKINGS SECTION */}
+      {regularBookings.length === 0 ? (
+        <div className="text-center py-8 bg-gray-50 rounded-md">
+          <p className="text-gray-500">No regular bookings for this day</p>
         </div>
       ) : (
-        <div>
-          {/* ALERTS SECTION */}
-          <div className={`mb-6 p-4 border-2 border-red-400 bg-red-50 rounded-md shadow-md ${alerts.length === 0 ? 'border-dashed' : ''}`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={20} className="text-red-600" />
-                <h3 className="text-lg font-bold text-red-700">ALERTS & CRITICAL NOTICES</h3>
-              </div>
-              {!readOnly && (
-                <Button 
-                  variant="destructive" 
-                  size="sm" 
-                  className="gap-1"
-                  onClick={() => {
-                    // Handle creating a new alert for the current date
-                    // Create the proper alert type that will be recognized in DailyCalendar
-                    const alertData = {
-                      type: "all-day:maintenance", // Using the correct format for new alerts
-                      start: date,
-                      studioId: null
-                    };
-                    onBookingClick(alertData);
-                  }}
-                >
-                  <AlertTriangle className="h-4 w-4" />
-                  <span>Add Alert</span>
-                </Button>
-              )}
-            </div>
-            
-            {alerts.length === 0 ? (
-              <div className="text-center py-3 bg-white rounded-md text-gray-500">
-                <p>No alerts for this day</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {alerts.map(alert => (
-                  <div 
-                    key={alert.id} 
-                    className={cn(
-                      "p-3 rounded-md border-l-4 bg-white shadow-sm cursor-pointer hover:bg-gray-50",
-                      alert.severity === "critical" ? "border-red-500" : 
-                      alert.severity === "high" ? "border-orange-500" : 
-                      alert.severity === "medium" ? "border-amber-500" : 
-                      "border-blue-500"
-                    )}
-                    onClick={() => onBookingClick(alert)}
-                  >
-                    <div className={cn(
-                      "font-medium",
-                      alert.severity === "critical" ? "text-red-700" : 
-                      alert.severity === "high" ? "text-orange-700" : 
-                      alert.severity === "medium" ? "text-amber-700" : 
-                      "text-blue-700"
-                    )}>
-                      {alert.title}
-                    </div>
-                    <div className="text-sm text-gray-600 mt-1">
-                      {alert.description && alert.description.substring(0, 100)}
-                      {alert.description && alert.description.length > 100 ? '...' : ''}
-                    </div>
-                    <div className="mt-2 flex items-center text-xs">
-                      <div className="flex items-center gap-1 text-gray-700">
-                        <Clock size={14} className="flex-shrink-0" />
-                        <span>
-                          {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
-                        </span>
-                      </div>
-                      <span className={cn(
-                        "inline-block px-2 py-1 ml-2 rounded-full text-xs font-semibold",
-                        alert.severity === "critical" ? "bg-red-100 text-red-700" : 
-                        alert.severity === "high" ? "bg-orange-100 text-orange-700" : 
-                        alert.severity === "medium" ? "bg-amber-100 text-amber-700" : 
-                        "bg-blue-100 text-blue-700"
-                      )}>
-                        {alert.severity}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          {/* REGULAR BOOKINGS SECTION */}
-          <div className="mt-4">
-            {regularBookings.length > 0 && (
-              <>
-                <h3 className="text-lg font-semibold mb-3">Bookings</h3>
-                <div className="space-y-3">
-                  {regularBookings.map(booking => (
-                    <BookingCard key={booking.id} booking={booking} />
-                  ))}
-                </div>
-              </>
-            )}
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold mb-3">Bookings</h3>
+          <div className="space-y-3">
+            {regularBookings.map(booking => (
+              <BookingCard key={booking.id} booking={booking} />
+            ))}
           </div>
         </div>
       )}
