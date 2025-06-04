@@ -24,6 +24,7 @@ import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 import ProfilePanel from "@/components/settings/ProfilePanel";
 import PcrRoomsPanel from "@/components/settings/PcrRoomsPanel";
+import BackupPanel from "@/components/BackupPanel";
 
 // Site Name Form Component
 function SiteNameForm() {
@@ -531,61 +532,7 @@ export default function Settings() {
           </TabsContent>
           
           <TabsContent value="backup">
-            <Card>
-              <CardHeader>
-                <CardTitle>Backup & Restore</CardTitle>
-                <CardDescription>Manage system data</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-md bg-blue-50 p-4 mb-4">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="ml-3 flex-1 md:flex md:justify-between">
-                      <p className="text-sm text-blue-700">
-                        Backup and restore operations are handled automatically through the Docker deployment process. Database backups are managed at the system level.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium mb-2">System Information</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="font-medium text-gray-500">Version</p>
-                        <p>1.3.0</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-500">Database</p>
-                        <p>PostgreSQL</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-500">Last Backup</p>
-                        <p>Managed by Docker</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-500">Status</p>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Operational
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-4">
-                    <h3 className="text-sm font-medium mb-2 text-gray-600">Contact Administrator</h3>
-                    <p className="text-sm text-gray-500 mb-4">
-                      For database maintenance, backup requests, or data restoration, please contact your system administrator.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <BackupPanel />
           </TabsContent>
         </Tabs>
       </div>

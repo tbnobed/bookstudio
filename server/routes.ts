@@ -1737,5 +1737,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Backup Management API routes
+  app.get("/api/backup/status", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const status = backupManager.getStatus();
+      res.json(status);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get backup status" });
+    }
+  });
+
+  app.post("/api/backup/create", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const result = await backupManager.createBackup();
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(500).json(result);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create backup" });
+    }
+  });
+
+  app.get("/api/backup/list", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const backups = await backupManager.listBackups();
+      res.json(backups);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to list backups" });
+    }
+  });
+
+  app.post("/api/backup/restore/:filename", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const { filename } = req.params;
+      const result = await backupManager.restoreBackup(filename);
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(500).json(result);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to restore backup" });
+    }
+  });
+
   return httpServer;
 }
