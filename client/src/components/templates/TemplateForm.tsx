@@ -34,7 +34,14 @@ export default function TemplateForm({
 
   // Set initial form values when editing
   useEffect(() => {
+    console.log("TemplateForm useEffect - template:", template, "isOpen:", isOpen);
     if (template) {
+      console.log("Populating form with template data:", {
+        name: template.name,
+        description: template.description,
+        type: template.type,
+        duration: template.duration
+      });
       setName(template.name || "");
       setDescription(template.description || "");
       setType(template.type || "production");
@@ -75,7 +82,10 @@ export default function TemplateForm({
   // Update template mutation
   const updateTemplate = useMutation({
     mutationFn: async (templateData: Partial<Template>) => {
-      const res = await apiRequest("PATCH", `/api/templates/${template?.id}`, templateData);
+      if (!template?.id) {
+        throw new Error("Template ID is required for updates");
+      }
+      const res = await apiRequest("PATCH", `/api/templates/${template.id}`, templateData);
       return res.json();
     },
     onSuccess: () => {
