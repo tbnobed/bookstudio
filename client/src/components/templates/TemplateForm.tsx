@@ -79,6 +79,30 @@ export default function TemplateForm({
     },
   });
 
+  // Update template mutation
+  const updateTemplate = useMutation({
+    mutationFn: async (templateData: Partial<Template>) => {
+      const res = await apiRequest("PATCH", `/api/templates/${template?.id}`, templateData);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Template updated successfully.",
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      onClose();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update template",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete template mutation
   const deleteTemplate = useMutation({
     mutationFn: async (id: number) => {
@@ -109,17 +133,32 @@ export default function TemplateForm({
     
     if (!user) return;
 
-    const templateData: InsertTemplate = {
-      name,
-      description,
-      type,
-      duration: parseInt(duration),
-      crewRequired,
-      equipment,
-      createdBy: user.id,
-    };
-    
-    createTemplate.mutateAsync(templateData);
+    if (template) {
+      // Update existing template
+      const templateData: Partial<Template> = {
+        name,
+        description,
+        type,
+        duration: parseInt(duration),
+        crewRequired,
+        equipment,
+      };
+      
+      updateTemplate.mutateAsync(templateData);
+    } else {
+      // Create new template
+      const templateData: InsertTemplate = {
+        name,
+        description,
+        type,
+        duration: parseInt(duration),
+        crewRequired,
+        equipment,
+        createdBy: user.id,
+      };
+      
+      createTemplate.mutateAsync(templateData);
+    }
   };
 
   // Toggle crew selection
@@ -256,8 +295,8 @@ export default function TemplateForm({
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createTemplate.isPending}>
-                {createTemplate.isPending ? "Saving..." : (template ? "Update Template" : "Create Template")}
+              <Button type="submit" disabled={createTemplate.isPending || updateTemplate.isPending}>
+                {(createTemplate.isPending || updateTemplate.isPending) ? "Saving..." : (template ? "Update Template" : "Create Template")}
               </Button>
             </div>
           </DialogFooter>

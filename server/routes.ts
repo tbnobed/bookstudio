@@ -643,6 +643,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/templates/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getTemplate(id);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      const user = req.user as any;
+      // Only the creator or admin can update a template
+      if (template.createdBy !== user.id && user.role !== "admin") {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      // Validate the update data
+      const updateData = insertTemplateSchema.partial().parse(req.body);
+      const updatedTemplate = await storage.updateTemplate(id, updateData);
+      
+      if (updatedTemplate) {
+        res.json(updatedTemplate);
+      } else {
+        res.status(500).json({ message: "Failed to update template" });
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid template data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
   app.delete("/api/templates/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
