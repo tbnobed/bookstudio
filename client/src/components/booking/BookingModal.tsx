@@ -390,10 +390,10 @@ export default function BookingModal({
   const handleTemplateChange = (value: string) => {
     updateFormField('templateId', value);
     
-    if (value && value !== "0") {
+    if (value && value !== "0" && value !== "none") {
       const selectedTemplate = templates.find(t => t.id === parseInt(value));
       if (selectedTemplate) {
-        console.log("Selected template:", selectedTemplate);
+        console.log("Applying template:", selectedTemplate);
         
         // Pre-fill form with template data - without overriding title
         // We'll keep the user's title and only provide the template name as a default
@@ -404,6 +404,38 @@ export default function BookingModal({
         updateFormField('description', selectedTemplate.description || "");
         updateFormField('bookingType', selectedTemplate.type);
         
+        // Apply Studios from new schema
+        if (selectedTemplate.studioIds && Array.isArray(selectedTemplate.studioIds)) {
+          const studioIdStrings = selectedTemplate.studioIds.map(id => id.toString());
+          updateFormField('studioIds', studioIdStrings);
+          console.log("Applied template studios:", studioIdStrings);
+        }
+        
+        // Apply PCR Room from new schema
+        if (selectedTemplate.pcrRoomId !== undefined && selectedTemplate.pcrRoomId !== null) {
+          updateFormField('pcrRoomId', selectedTemplate.pcrRoomId.toString());
+          console.log("Applied template PCR room:", selectedTemplate.pcrRoomId);
+        }
+        
+        // Apply Status from new schema
+        if (selectedTemplate.status) {
+          updateFormField('status', selectedTemplate.status);
+          console.log("Applied template status:", selectedTemplate.status);
+        }
+        
+        // Apply Color from new schema
+        if (selectedTemplate.color) {
+          updateFormField('color', selectedTemplate.color);
+          console.log("Applied template color:", selectedTemplate.color);
+        }
+        
+        // Apply Notification Groups from new schema
+        if (selectedTemplate.notifyList && Array.isArray(selectedTemplate.notifyList)) {
+          const notifyIdStrings = selectedTemplate.notifyList.map(id => id.toString());
+          updateFormField('notifyList', notifyIdStrings);
+          console.log("Applied template notification groups:", notifyIdStrings);
+        }
+        
         // Calculate end time based on template duration
         const start = timeToDate(formData.date, formData.startTime);
         const end = new Date(start.getTime() + selectedTemplate.duration * 60000);
@@ -412,37 +444,6 @@ export default function BookingModal({
         let endHour = end.getHours();
         const endMinutes = end.getMinutes();
         const endPeriod = endHour >= 12 ? 'pm' : 'am';
-        
-        // Apply crew/notification groups if they exist
-        if (selectedTemplate.crewRequired && Array.isArray(selectedTemplate.crewRequired)) {
-          updateFormField('notifyList', selectedTemplate.crewRequired.map(id => id.toString()));
-        }
-        
-        // Check for additional template data in the equipment field
-        if (selectedTemplate.equipment && Array.isArray(selectedTemplate.equipment) && selectedTemplate.equipment.length > 0) {
-          const additionalData = selectedTemplate.equipment[0];
-          console.log("Found additional template data:", additionalData);
-          
-          // Apply Studios (if available)
-          if (additionalData.studioIds && Array.isArray(additionalData.studioIds)) {
-            updateFormField('studioIds', additionalData.studioIds.map(id => id.toString()));
-          }
-          
-          // Apply PCR Room (if available)
-          if (additionalData.pcrRoomId !== undefined && additionalData.pcrRoomId !== null) {
-            updateFormField('pcrRoomId', additionalData.pcrRoomId.toString());
-          }
-          
-          // Apply Status (if available)
-          if (additionalData.status) {
-            updateFormField('status', additionalData.status);
-          }
-          
-          // Apply Color (if available)
-          if (additionalData.color) {
-            updateFormField('color', additionalData.color);
-          }
-        }
         
         if (endHour > 12) {
           endHour -= 12;
