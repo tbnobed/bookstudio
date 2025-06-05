@@ -44,6 +44,7 @@ export interface IStorage {
   getAllTemplates(): Promise<Template[]>;
   getTemplatesByUser(userId: number): Promise<Template[]>;
   createTemplate(template: InsertTemplate): Promise<Template>;
+  updateTemplate(id: number, data: Partial<InsertTemplate>): Promise<Template | undefined>;
   deleteTemplate(id: number): Promise<boolean>;
   
   // Booking management
@@ -382,6 +383,15 @@ export class MemStorage implements IStorage {
     const newTemplate: Template = { ...template, id };
     this.templates.set(id, newTemplate);
     return newTemplate;
+  }
+
+  async updateTemplate(id: number, data: Partial<InsertTemplate>): Promise<Template | undefined> {
+    const template = this.templates.get(id);
+    if (!template) return undefined;
+    
+    const updatedTemplate: Template = { ...template, ...data };
+    this.templates.set(id, updatedTemplate);
+    return updatedTemplate;
   }
 
   async deleteTemplate(id: number): Promise<boolean> {
@@ -1624,6 +1634,19 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error creating template:", error);
       throw error;
+    }
+  }
+  
+  async updateTemplate(id: number, data: Partial<InsertTemplate>): Promise<Template | undefined> {
+    try {
+      const [updatedTemplate] = await db.update(templates).set(data).where(eq(templates.id, id)).returning();
+      if (updatedTemplate) {
+        this.templates.set(id, updatedTemplate);
+      }
+      return updatedTemplate;
+    } catch (error) {
+      console.error(`Error updating template ID ${id}:`, error);
+      return undefined;
     }
   }
   
