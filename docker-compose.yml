@@ -36,6 +36,7 @@ services:
     volumes:
       - ./logs:/app/logs
       - file_uploads:/app/uploads
+      - backups:/app/backups
     networks:
       - app-network
     logging:
@@ -187,6 +188,8 @@ services:
         node scripts/docker-fix-system-settings.cjs &&
         echo 'Setting up site manager notification system...' &&
         node scripts/docker-migrate-site-manager-notifications.cjs &&
+        echo 'Adding template time fields support...' &&
+        node scripts/docker-migrate-template-time-fields.cjs &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
         node scripts/docker-init-db.cjs &&
         echo 'Database initialization completed successfully' 

@@ -102,7 +102,9 @@ COPY scripts/docker-migrate-file-attachments.cjs ./scripts/
 COPY scripts/docker-migrate-booking-colors.cjs ./scripts/
 COPY scripts/docker-migrate-booking-status.cjs ./scripts/
 COPY scripts/docker-migrate-system-settings.cjs ./scripts/
+COPY scripts/docker-fix-system-settings.cjs ./scripts/
 COPY scripts/docker-migrate-site-manager-notifications.cjs ./scripts/
+COPY scripts/docker-migrate-template-time-fields.cjs ./scripts/
 
 # Copy other necessary files
 COPY public ./public
