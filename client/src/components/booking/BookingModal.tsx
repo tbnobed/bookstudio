@@ -688,23 +688,17 @@ export default function BookingModal({
     // Convert studioIds from strings to numbers
     const studioIdsAsNumbers = formData.studioIds.map(id => parseInt(id));
     
-    // Prepare the additional template data to be stored in the equipment field
-    // This includes all the fields requested by the user
-    const additionalData = {
-      studioIds: studioIdsAsNumbers,
-      pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "0" ? parseInt(formData.pcrRoomId) : null,
-      status: formData.status, // "confirmed", "tentative", "cancelled"
-      color: formData.color,
-    };
-    
-    // Prepare template data according to the insertTemplateSchema
+    // Prepare template data according to the new comprehensive schema
     const templateData = {
       name: formData.templateName,
       description: formData.description || "",
       type: formData.bookingType,  // Type of booking (production, maintenance, etc.)
       duration: durationMinutes,
-      crewRequired: notifyListAsNumbers, // Store notification groups
-      equipment: [additionalData], // Store additional data in the equipment field
+      studioIds: studioIdsAsNumbers, // Direct field for studio selection
+      pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "0" ? parseInt(formData.pcrRoomId) : null,
+      status: formData.status, // "confirmed", "tentative", "cancelled"
+      color: formData.color,
+      notifyList: notifyListAsNumbers, // Direct field for notification groups
       createdBy: 1, // This will be overridden by the server with the actual user ID
     };
     
