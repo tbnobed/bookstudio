@@ -62,8 +62,11 @@ export const templates = pgTable("templates", {
   description: text("description"),
   type: text("type").notNull(), // production, maintenance, rehearsal, it_support
   duration: integer("duration").notNull(), // in minutes
-  crewRequired: json("crew_required").default([]), // array of crew roles
-  equipment: json("equipment").default([]), // array of equipment needed
+  studioIds: json("studio_ids").default([]), // array of studio IDs to pre-select
+  pcrRoomId: integer("pcr_room_id"), // Production Control Room - optional
+  status: text("status").default("confirmed"), // confirmed, tentative, cancelled
+  color: text("color"), // Custom color for booking (CSS color value)
+  notifyList: json("notify_list").default([]), // array of notification group IDs
   createdBy: integer("created_by").notNull(), // user id
 });
 
