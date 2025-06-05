@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Template, InsertTemplate } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -27,13 +26,11 @@ export default function TemplateForm({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // State for form fields
+  // State for form fields - matching booking form fields
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("production");
   const [duration, setDuration] = useState("60");
-  const [crewRequired, setCrewRequired] = useState<string[]>([]);
-  const [equipment, setEquipment] = useState<string[]>([]);
 
   // Set initial form values when editing
   useEffect(() => {
@@ -42,16 +39,12 @@ export default function TemplateForm({
       setDescription(template.description || "");
       setType(template.type);
       setDuration(template.duration.toString());
-      setCrewRequired(template.crewRequired as string[] || []);
-      setEquipment(template.equipment as string[] || []);
     } else {
       // Reset form when creating a new template
       setName("");
       setDescription("");
       setType("production");
       setDuration("60");
-      setCrewRequired([]);
-      setEquipment([]);
     }
   }, [template, isOpen]);
 
@@ -105,8 +98,8 @@ export default function TemplateForm({
 
   // Delete template mutation
   const deleteTemplate = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/templates/${id}`);
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", `/api/templates/${template?.id}`);
       return res.json();
     },
     onSuccess: () => {
@@ -127,67 +120,45 @@ export default function TemplateForm({
     },
   });
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user) return;
-
+    
+    const templateData: InsertTemplate = {
+      name,
+      description,
+      type,
+      duration: parseInt(duration),
+      crewRequired: [], // Keep as empty array for schema compatibility
+      equipment: [], // Keep as empty array for schema compatibility
+      createdBy: user.id
+    };
+    
     if (template) {
-      // Update existing template
-      const templateData: Partial<Template> = {
-        name,
-        description,
-        type,
-        duration: parseInt(duration),
-        crewRequired,
-        equipment,
-      };
-      
-      updateTemplate.mutateAsync(templateData);
+      updateTemplate.mutate(templateData);
     } else {
-      // Create new template
-      const templateData: InsertTemplate = {
-        name,
-        description,
-        type,
-        duration: parseInt(duration),
-        crewRequired,
-        equipment,
-        createdBy: user.id,
-      };
-      
-      createTemplate.mutateAsync(templateData);
+      createTemplate.mutate(templateData);
     }
   };
 
-  // Toggle crew selection
-  const handleCrewToggle = (crew: string) => {
-    if (crewRequired.includes(crew)) {
-      setCrewRequired(crewRequired.filter(c => c !== crew));
-    } else {
-      setCrewRequired([...crewRequired, crew]);
-    }
-  };
-
-  // Toggle equipment selection
-  const handleEquipmentToggle = (item: string) => {
-    if (equipment.includes(item)) {
-      setEquipment(equipment.filter(e => e !== item));
-    } else {
-      setEquipment([...equipment, item]);
+  const handleDelete = () => {
+    if (template && window.confirm("Are you sure you want to delete this template?")) {
+      deleteTemplate.mutate();
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{template ? "Edit Template" : "Create Template"}</DialogTitle>
+          <DialogTitle>
+            {template ? "Edit Template" : "Create Template"}
+          </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="name">Template Name</Label>
             <Input
               id="name"
@@ -197,37 +168,36 @@ export default function TemplateForm({
               required
             />
           </div>
-          
-          <div>
+
+          <div className="space-y-2">
             <Label htmlFor="type">Template Type</Label>
-            <Select value={type} onValueChange={setType} required>
+            <Select value={type} onValueChange={setType}>
               <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder="Select template type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="production">Production</SelectItem>
                 <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="it_support">IT Support</SelectItem>
                 <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                <SelectItem value="it_support">IT Support</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
-          <div>
+
+          <div className="space-y-2">
             <Label htmlFor="duration">Duration (minutes)</Label>
             <Input
               id="duration"
               type="number"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              placeholder="Enter duration in minutes"
-              min="15"
-              step="15"
+              placeholder="60"
+              min="1"
               required
             />
           </div>
-          
-          <div>
+
+          <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
@@ -237,66 +207,32 @@ export default function TemplateForm({
               rows={3}
             />
           </div>
-          
-          <div>
-            <Label>Required Crew</Label>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors"].map((crew) => (
-                <div key={crew} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`crew-${crew}`}
-                    checked={crewRequired.includes(crew)}
-                    onCheckedChange={() => handleCrewToggle(crew)}
-                  />
-                  <label
-                    htmlFor={`crew-${crew}`}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {crew}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div>
-            <Label>Required Equipment</Label>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {["Cameras", "Microphones", "Lights", "Green Screen", "Teleprompter", "Recording Equipment"].map((item) => (
-                <div key={item} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`equipment-${item}`}
-                    checked={equipment.includes(item)}
-                    onCheckedChange={() => handleEquipmentToggle(item)}
-                  />
-                  <label
-                    htmlFor={`equipment-${item}`}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {item}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-          
+
           <DialogFooter className="flex justify-between">
-            {template && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => template && deleteTemplate.mutateAsync(template.id)}
-                disabled={deleteTemplate.isPending}
-              >
-                {deleteTemplate.isPending ? "Deleting..." : "Delete Template"}
-              </Button>
-            )}
-            <div className="flex gap-2">
+            <div>
+              {template && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={deleteTemplate.isPending}
+                >
+                  {deleteTemplate.isPending ? "Deleting..." : "Delete Template"}
+                </Button>
+              )}
+            </div>
+            <div className="flex space-x-2">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createTemplate.isPending || updateTemplate.isPending}>
-                {(createTemplate.isPending || updateTemplate.isPending) ? "Saving..." : (template ? "Update Template" : "Create Template")}
+              <Button 
+                type="submit" 
+                disabled={createTemplate.isPending || updateTemplate.isPending}
+              >
+                {createTemplate.isPending || updateTemplate.isPending 
+                  ? (template ? "Updating..." : "Creating...") 
+                  : (template ? "Update Template" : "Create Template")
+                }
               </Button>
             </div>
           </DialogFooter>
