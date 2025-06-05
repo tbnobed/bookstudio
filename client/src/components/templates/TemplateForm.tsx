@@ -35,10 +35,10 @@ export default function TemplateForm({
   // Set initial form values when editing
   useEffect(() => {
     if (template) {
-      setName(template.name);
+      setName(template.name || "");
       setDescription(template.description || "");
-      setType(template.type);
-      setDuration(template.duration.toString());
+      setType(template.type || "production");
+      setDuration((template.duration || 60).toString());
     } else {
       // Reset form when creating a new template
       setName("");
