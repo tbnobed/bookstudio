@@ -106,8 +106,16 @@ COPY scripts/docker-fix-system-settings.cjs ./scripts/
 COPY scripts/docker-migrate-site-manager-notifications.cjs ./scripts/
 COPY scripts/docker-migrate-template-time-fields.cjs ./scripts/
 
+# Copy backup and restore scripts
+COPY scripts/production-backup.sh ./scripts/
+COPY scripts/production-restore.sh ./scripts/
+
 # Copy other necessary files
 COPY public ./public
+
+# Make backup scripts executable and create backup directory
+RUN chmod +x /app/scripts/production-backup.sh /app/scripts/production-restore.sh && \
+    mkdir -p /app/backups
 
 # Change ownership to the unprivileged user
 RUN chown -R appuser:appgroup /app

@@ -232,3 +232,5 @@ volumes:
     name: bookstudio_postgres_data
   file_uploads:
     name: bookstudio_file_uploads
+  backups:
+    name: bookstudio_backups
