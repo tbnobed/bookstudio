@@ -436,23 +436,35 @@ export default function BookingModal({
           console.log("Applied template notification groups:", notifyIdStrings);
         }
         
-        // Calculate end time based on template duration
-        const start = timeToDate(formData.date, formData.startTime);
-        const end = new Date(start.getTime() + selectedTemplate.duration * 60000);
-        
-        // Format end time (12-hour format)
-        let endHour = end.getHours();
-        const endMinutes = end.getMinutes();
-        const endPeriod = endHour >= 12 ? 'pm' : 'am';
-        
-        if (endHour > 12) {
-          endHour -= 12;
-        } else if (endHour === 0) {
-          endHour = 12;
+        // Apply Start Time from template if available
+        if (selectedTemplate.startTime) {
+          updateFormField('startTime', selectedTemplate.startTime);
+          console.log("Applied template start time:", selectedTemplate.startTime);
         }
         
-        const newEndTime = `${endHour}:${endMinutes.toString().padStart(2, '0')}${endPeriod}`;
-        updateFormField('endTime', newEndTime);
+        // Apply End Time from template if available, otherwise calculate from duration
+        if (selectedTemplate.endTime) {
+          updateFormField('endTime', selectedTemplate.endTime);
+          console.log("Applied template end time:", selectedTemplate.endTime);
+        } else {
+          // Calculate end time based on template duration
+          const start = timeToDate(formData.date, selectedTemplate.startTime || formData.startTime);
+          const end = new Date(start.getTime() + selectedTemplate.duration * 60000);
+        
+          // Format end time (12-hour format)
+          let endHour = end.getHours();
+          const endMinutes = end.getMinutes();
+          const endPeriod = endHour >= 12 ? 'pm' : 'am';
+          
+          if (endHour > 12) {
+            endHour -= 12;
+          } else if (endHour === 0) {
+            endHour = 12;
+          }
+          
+          const newEndTime = `${endHour}:${endMinutes.toString().padStart(2, '0')}${endPeriod}`;
+          updateFormField('endTime', newEndTime);
+        }
       }
     }
   };
