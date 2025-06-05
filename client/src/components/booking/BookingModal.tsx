@@ -694,6 +694,8 @@ export default function BookingModal({
       description: formData.description || "",
       type: formData.bookingType,  // Type of booking (production, maintenance, etc.)
       duration: durationMinutes,
+      startTime: formData.startTime, // Store the default start time
+      endTime: formData.endTime, // Store the default end time
       studioIds: studioIdsAsNumbers, // Direct field for studio selection
       pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "0" ? parseInt(formData.pcrRoomId) : null,
       status: formData.status, // "confirmed", "tentative", "cancelled"

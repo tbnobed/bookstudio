@@ -62,6 +62,8 @@ export const templates = pgTable("templates", {
   description: text("description"),
   type: text("type").notNull(), // production, maintenance, rehearsal, it_support
   duration: integer("duration").notNull(), // in minutes
+  startTime: text("start_time"), // Default start time in HH:MM format (e.g., "09:00")
+  endTime: text("end_time"), // Default end time in HH:MM format (e.g., "17:00")
   studioIds: json("studio_ids").default([]), // array of studio IDs to pre-select
   pcrRoomId: integer("pcr_room_id"), // Production Control Room - optional
   status: text("status").default("confirmed"), // confirmed, tentative, cancelled
