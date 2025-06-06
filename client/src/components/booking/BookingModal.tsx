@@ -404,17 +404,30 @@ export default function BookingModal({
         updateFormField('description', selectedTemplate.description || "");
         updateFormField('bookingType', selectedTemplate.type);
         
-        // Apply Studios from new schema
-        if (selectedTemplate.studioIds && Array.isArray(selectedTemplate.studioIds)) {
-          const studioIdStrings = selectedTemplate.studioIds.map(id => id.toString());
-          updateFormField('studioIds', studioIdStrings);
-          console.log("Applied template studios:", studioIdStrings);
+        // Apply Studios from new schema (database uses studio_ids, parse JSON string)
+        if (selectedTemplate.studio_ids) {
+          try {
+            let studioIds = [];
+            if (typeof selectedTemplate.studio_ids === 'string') {
+              studioIds = JSON.parse(selectedTemplate.studio_ids);
+            } else if (Array.isArray(selectedTemplate.studio_ids)) {
+              studioIds = selectedTemplate.studio_ids;
+            }
+            
+            if (Array.isArray(studioIds) && studioIds.length > 0) {
+              const studioIdStrings = studioIds.map(id => id.toString());
+              updateFormField('studioIds', studioIdStrings);
+              console.log("Applied template studios:", studioIdStrings);
+            }
+          } catch (error) {
+            console.error("Error parsing template studio_ids:", error);
+          }
         }
         
-        // Apply PCR Room from new schema
-        if (selectedTemplate.pcrRoomId !== undefined && selectedTemplate.pcrRoomId !== null) {
-          updateFormField('pcrRoomId', selectedTemplate.pcrRoomId.toString());
-          console.log("Applied template PCR room:", selectedTemplate.pcrRoomId);
+        // Apply PCR Room from new schema (database uses pcr_room_id)
+        if (selectedTemplate.pcr_room_id !== undefined && selectedTemplate.pcr_room_id !== null) {
+          updateFormField('pcrRoomId', selectedTemplate.pcr_room_id.toString());
+          console.log("Applied template PCR room:", selectedTemplate.pcr_room_id);
         }
         
         // Apply Status from new schema
@@ -429,41 +442,36 @@ export default function BookingModal({
           console.log("Applied template color:", selectedTemplate.color);
         }
         
-        // Apply Notification Groups from new schema
-        if (selectedTemplate.notifyList && Array.isArray(selectedTemplate.notifyList)) {
-          const notifyIdStrings = selectedTemplate.notifyList.map(id => id.toString());
-          updateFormField('notifyList', notifyIdStrings);
-          console.log("Applied template notification groups:", notifyIdStrings);
-        }
-        
-        // Apply Start Time from template if available
-        if (selectedTemplate.startTime) {
-          updateFormField('startTime', selectedTemplate.startTime);
-          console.log("Applied template start time:", selectedTemplate.startTime);
-        }
-        
-        // Apply End Time from template if available, otherwise calculate from duration
-        if (selectedTemplate.endTime) {
-          updateFormField('endTime', selectedTemplate.endTime);
-          console.log("Applied template end time:", selectedTemplate.endTime);
-        } else {
-          // Calculate end time based on template duration
-          const start = timeToDate(formData.date, selectedTemplate.startTime || formData.startTime);
-          const end = new Date(start.getTime() + selectedTemplate.duration * 60000);
-        
-          // Format end time (12-hour format)
-          let endHour = end.getHours();
-          const endMinutes = end.getMinutes();
-          const endPeriod = endHour >= 12 ? 'pm' : 'am';
-          
-          if (endHour > 12) {
-            endHour -= 12;
-          } else if (endHour === 0) {
-            endHour = 12;
+        // Apply Notification Groups from new schema (database uses notify_list)
+        if (selectedTemplate.notify_list) {
+          try {
+            let notifyList = [];
+            if (typeof selectedTemplate.notify_list === 'string') {
+              notifyList = JSON.parse(selectedTemplate.notify_list);
+            } else if (Array.isArray(selectedTemplate.notify_list)) {
+              notifyList = selectedTemplate.notify_list;
+            }
+            
+            if (Array.isArray(notifyList) && notifyList.length > 0) {
+              const notifyIdStrings = notifyList.map(id => id.toString());
+              updateFormField('notifyList', notifyIdStrings);
+              console.log("Applied template notification groups:", notifyIdStrings);
+            }
+          } catch (error) {
+            console.error("Error parsing template notify_list:", error);
           }
-          
-          const newEndTime = `${endHour}:${endMinutes.toString().padStart(2, '0')}${endPeriod}`;
-          updateFormField('endTime', newEndTime);
+        }
+        
+        // Apply Start Time from template if available (database uses start_time)
+        if (selectedTemplate.start_time) {
+          updateFormField('startTime', selectedTemplate.start_time);
+          console.log("Applied template start time:", selectedTemplate.start_time);
+        }
+        
+        // Apply End Time from template if available (database uses end_time)
+        if (selectedTemplate.end_time) {
+          updateFormField('endTime', selectedTemplate.end_time);
+          console.log("Applied template end time:", selectedTemplate.end_time);
         }
       }
     }
