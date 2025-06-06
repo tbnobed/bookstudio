@@ -122,6 +122,90 @@ async function restoreLegacyTemplates() {
       console.log(`- ID: ${template.id}, Name: "${template.name}", Studios: ${template.studio_ids}, Status: ${template.status}`);
     });
 
+    // Convert legacy templates to new format
+    console.log('\nConverting legacy template data to new schema format...');
+    
+    for (const template of templatesResult.rows) {
+      let needsUpdate = false;
+      let updateFields = [];
+      let updateValues = [];
+      let valueIndex = 1;
+      
+      console.log(`Processing template: ${template.name} (ID: ${template.id})`);
+      
+      // Check if studio_ids needs parsing from legacy format
+      if (template.studio_ids && typeof template.studio_ids === 'string') {
+        try {
+          // Try to parse as JSON, if it fails, treat as legacy single studio ID
+          JSON.parse(template.studio_ids);
+          console.log(`  ✓ Studio IDs already in correct format: ${template.studio_ids}`);
+        } catch (e) {
+          // Legacy format - convert single studio ID to array
+          const legacyStudioId = parseInt(template.studio_ids);
+          if (!isNaN(legacyStudioId)) {
+            updateFields.push(`studio_ids = $${valueIndex++}`);
+            updateValues.push(`[${legacyStudioId}]`);
+            needsUpdate = true;
+            console.log(`  → Converting legacy studio ID ${legacyStudioId} to array format`);
+          }
+        }
+      } else if (!template.studio_ids || template.studio_ids === '') {
+        // No studio IDs - set default
+        updateFields.push(`studio_ids = $${valueIndex++}`);
+        updateValues.push('[1]');
+        needsUpdate = true;
+        console.log(`  → Setting default studio ID [1]`);
+      }
+      
+      // Check notify_list format
+      if (!template.notify_list) {
+        updateFields.push(`notify_list = $${valueIndex++}`);
+        updateValues.push('[]');
+        needsUpdate = true;
+        console.log(`  → Setting default empty notify_list`);
+      } else if (typeof template.notify_list === 'string' && template.notify_list !== '[]') {
+        try {
+          JSON.parse(template.notify_list);
+          console.log(`  ✓ Notify list already in correct format`);
+        } catch (e) {
+          updateFields.push(`notify_list = $${valueIndex++}`);
+          updateValues.push('[]');
+          needsUpdate = true;
+          console.log(`  → Fixing invalid notify_list format`);
+        }
+      }
+      
+      // Set defaults for missing fields
+      if (!template.status) {
+        updateFields.push(`status = $${valueIndex++}`);
+        updateValues.push('confirmed');
+        needsUpdate = true;
+        console.log(`  → Setting default status: confirmed`);
+      }
+      
+      if (!template.color) {
+        updateFields.push(`color = $${valueIndex++}`);
+        updateValues.push('#3b82f6');
+        needsUpdate = true;
+        console.log(`  → Setting default color: #3b82f6`);
+      }
+      
+      // Apply updates if needed
+      if (needsUpdate) {
+        const updateQuery = `
+          UPDATE templates 
+          SET ${updateFields.join(', ')}
+          WHERE id = $${valueIndex}
+        `;
+        updateValues.push(template.id);
+        
+        await pool.query(updateQuery, updateValues);
+        console.log(`  ✓ Updated template ${template.name}`);
+      } else {
+        console.log(`  ✓ Template ${template.name} already in correct format`);
+      }
+    }
+
     // If no templates exist, create a default one
     if (templatesResult.rows.length === 0) {
       console.log('\nNo templates found, creating default template...');
@@ -138,6 +222,21 @@ async function restoreLegacyTemplates() {
       `);
       console.log('✓ Created default template');
     }
+
+    // Show final results
+    const finalTemplatesResult = await pool.query(`
+      SELECT id, name, description, studio_ids, start_time, end_time, 
+             pcr_room_id, status, color, notify_list
+      FROM templates 
+      ORDER BY id;
+    `);
+
+    console.log('\nFinal templates after migration:');
+    finalTemplatesResult.rows.forEach(template => {
+      console.log(`- ID: ${template.id}, Name: "${template.name}"`);
+      console.log(`  Studios: ${template.studio_ids}, Status: ${template.status}, Color: ${template.color}`);
+      if (template.start_time) console.log(`  Times: ${template.start_time} - ${template.end_time}`);
+    });
 
     console.log('\nProduction template restoration completed successfully!');
 
