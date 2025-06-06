@@ -388,12 +388,19 @@ export default function BookingModal({
 
   // Handle template selection
   const handleTemplateChange = (value: string) => {
+    console.log("Template selection changed to:", value);
     updateFormField('templateId', value);
     
     if (value && value !== "0" && value !== "none") {
       const selectedTemplate = templates.find(t => t.id === parseInt(value));
       if (selectedTemplate) {
         console.log("Applying template:", selectedTemplate);
+        console.log("Template start_time:", (selectedTemplate as any).start_time);
+        console.log("Template end_time:", (selectedTemplate as any).end_time);
+        console.log("Template startTime:", selectedTemplate.startTime);
+        console.log("Template endTime:", selectedTemplate.endTime);
+        console.log("Template raw object:", selectedTemplate);
+        console.log("Current formData before template application:", formData);
         
         // Pre-fill form with template data - without overriding title
         // We'll keep the user's title and only provide the template name as a default
@@ -404,14 +411,15 @@ export default function BookingModal({
         updateFormField('description', selectedTemplate.description || "");
         updateFormField('bookingType', selectedTemplate.type);
         
-        // Apply Studios from new schema (database uses studio_ids, parse JSON string)
-        if (selectedTemplate.studio_ids) {
+        // Apply Studios from new schema - access as object property with potential underscore or camelCase
+        const studioIdsData = (selectedTemplate as any).studio_ids || selectedTemplate.studioIds;
+        if (studioIdsData) {
           try {
             let studioIds = [];
-            if (typeof selectedTemplate.studio_ids === 'string') {
-              studioIds = JSON.parse(selectedTemplate.studio_ids);
-            } else if (Array.isArray(selectedTemplate.studio_ids)) {
-              studioIds = selectedTemplate.studio_ids;
+            if (typeof studioIdsData === 'string') {
+              studioIds = JSON.parse(studioIdsData);
+            } else if (Array.isArray(studioIdsData)) {
+              studioIds = studioIdsData;
             }
             
             if (Array.isArray(studioIds) && studioIds.length > 0) {
@@ -424,10 +432,11 @@ export default function BookingModal({
           }
         }
         
-        // Apply PCR Room from new schema (database uses pcr_room_id)
-        if (selectedTemplate.pcr_room_id !== undefined && selectedTemplate.pcr_room_id !== null) {
-          updateFormField('pcrRoomId', selectedTemplate.pcr_room_id.toString());
-          console.log("Applied template PCR room:", selectedTemplate.pcr_room_id);
+        // Apply PCR Room from new schema - access with underscore or camelCase
+        const pcrRoomId = (selectedTemplate as any).pcr_room_id || selectedTemplate.pcrRoomId;
+        if (pcrRoomId !== undefined && pcrRoomId !== null) {
+          updateFormField('pcrRoomId', pcrRoomId.toString());
+          console.log("Applied template PCR room:", pcrRoomId);
         }
         
         // Apply Status from new schema
@@ -442,14 +451,15 @@ export default function BookingModal({
           console.log("Applied template color:", selectedTemplate.color);
         }
         
-        // Apply Notification Groups from new schema (database uses notify_list)
-        if (selectedTemplate.notify_list) {
+        // Apply Notification Groups from new schema - access with underscore or camelCase
+        const notifyListData = (selectedTemplate as any).notify_list || selectedTemplate.notifyList;
+        if (notifyListData) {
           try {
             let notifyList = [];
-            if (typeof selectedTemplate.notify_list === 'string') {
-              notifyList = JSON.parse(selectedTemplate.notify_list);
-            } else if (Array.isArray(selectedTemplate.notify_list)) {
-              notifyList = selectedTemplate.notify_list;
+            if (typeof notifyListData === 'string') {
+              notifyList = JSON.parse(notifyListData);
+            } else if (Array.isArray(notifyListData)) {
+              notifyList = notifyListData;
             }
             
             if (Array.isArray(notifyList) && notifyList.length > 0) {
@@ -462,16 +472,18 @@ export default function BookingModal({
           }
         }
         
-        // Apply Start Time from template if available (database uses start_time)
-        if (selectedTemplate.start_time) {
-          updateFormField('startTime', selectedTemplate.start_time);
-          console.log("Applied template start time:", selectedTemplate.start_time);
+        // Apply Start Time from template if available - access with underscore or camelCase
+        const startTime = (selectedTemplate as any).start_time || selectedTemplate.startTime;
+        if (startTime) {
+          updateFormField('startTime', startTime);
+          console.log("Applied template start time:", startTime);
         }
         
-        // Apply End Time from template if available (database uses end_time)
-        if (selectedTemplate.end_time) {
-          updateFormField('endTime', selectedTemplate.end_time);
-          console.log("Applied template end time:", selectedTemplate.end_time);
+        // Apply End Time from template if available - access with underscore or camelCase
+        const endTime = (selectedTemplate as any).end_time || selectedTemplate.endTime;
+        if (endTime) {
+          updateFormField('endTime', endTime);
+          console.log("Applied template end time:", endTime);
         }
       }
     }
