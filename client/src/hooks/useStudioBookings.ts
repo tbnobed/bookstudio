@@ -49,30 +49,6 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
       }
       const data = await response.json();
       console.log(`useStudioBookings - Received ${data.length} bookings`);
-      
-      // Debug all bookings to see the structure
-      console.log(`[useStudioBookings DEBUG] All bookings received:`, data.map((b: any) => ({
-        id: b.id,
-        title: b.title,
-        status: b.status,
-        start: b.start,
-        end: b.end
-      })));
-      
-      // Debug June bookings specifically
-      data.forEach((booking: any) => {
-        if (booking.title && booking.title.includes("News 2")) {
-          console.log(`[useStudioBookings DEBUG] Booking ${booking.id} "${booking.title}" (${booking.status}):`, {
-            originalStart: booking.start,
-            originalEnd: booking.end,
-            startDate: new Date(booking.start),
-            endDate: new Date(booking.end),
-            startInChicago: new Date(booking.start).toLocaleString('en-US', { timeZone: 'America/Chicago' }),
-            endInChicago: new Date(booking.end).toLocaleString('en-US', { timeZone: 'America/Chicago' })
-          });
-        }
-      });
-      
       return data;
     },
     enabled: true,

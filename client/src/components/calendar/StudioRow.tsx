@@ -88,19 +88,6 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
     console.log(`[DEBUG] Total bookings available: ${bookings.length}`);
     console.log(`[DEBUG] Total booking-studio links available: ${bookingStudioLinks.length}`);
     
-    // Debug News 2 bookings specifically
-    if (studio.name === "Studio A" || studio.name === "Studio B") {
-      const news2Bookings = bookings.filter(b => b.title?.includes("News 2"));
-      console.log(`[NEWS 2 DEBUG] Studio ${studio.name} - Found ${news2Bookings.length} News 2 bookings:`, 
-        news2Bookings.map(b => ({id: b.id, title: b.title, status: b.status, start: b.start}))
-      );
-      
-      const studioLinks = bookingStudioLinks.filter(link => link.studioId === studio.id);
-      console.log(`[NEWS 2 DEBUG] Studio ${studio.name} - Has ${studioLinks.length} booking links:`, 
-        studioLinks.map(link => `Booking ${link.bookingId}`)
-      );
-    }
-    
     // IMPORTANT CHANGE: We need to find ALL bookings that are relevant to this studio
     // either through direct studio ID or through the junction table.
     // We shouldn't exclude any booking that has a record in the junction table.
@@ -259,9 +246,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         // Create a defensive copy of the booking.start date and ensure timezones are respected
         const dayBookings = studioBookings.filter(booking => {
           // Log both dates for debugging to trace the timezone comparison issue
-          if (booking.title.includes("News 2")) {
-            console.log(`[NEWS 2 DEBUG] Cell for ${studio.name} - ${date.toDateString()} comparing booking ${booking.id}: ${booking.title} (${booking.status}) start: ${new Date(booking.start).toISOString()}`);
-          }
+          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${new Date(booking.start).toISOString()})`);
           return isSameDay(new Date(booking.start), date);
         });
         
