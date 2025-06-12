@@ -190,8 +190,7 @@ services:
         node scripts/docker-migrate-site-manager-notifications.cjs &&
         echo 'Adding template time fields support...' &&
         node scripts/docker-migrate-template-time-fields.cjs &&
-        echo 'Restoring legacy templates with new schema...' &&
-        node scripts/docker-restore-legacy-templates.cjs &&
+        echo 'Skipping legacy template restoration to preserve production templates...' &&
         echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
         node scripts/docker-init-db.cjs &&
         echo 'Database initialization completed successfully' 
