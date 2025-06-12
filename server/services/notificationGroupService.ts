@@ -237,11 +237,14 @@ export async function sendEmailToGroups(
     const emailPromises = validGroups.map(group => {
       console.log(`Sending email to group: ${group.name} (${group.email})`);
       
+      // Detect if message is HTML (contains HTML tags) or plain text
+      const isHtml = message.includes('<') && message.includes('>');
+      
       return sendEmail({
         to: group.email,
         from: FROM_EMAIL,
         subject,
-        text: message,
+        ...(isHtml ? { html: message } : { text: message }),
       });
     });
     
