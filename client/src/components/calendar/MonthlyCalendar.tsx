@@ -311,12 +311,24 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
       }
     }
     
-    // Style object for custom colors (only apply for non-alerts)
-    const customStyle = !isAlert && booking.color ? {
+    // Handle cancelled status styling first
+    if (booking.status === "cancelled") {
+      colorClass = "bg-red-50 text-red-600 opacity-60";
+      borderStyle = "border border-red-300";
+    }
+    
+    // Style object for custom colors (only apply for non-alerts and non-cancelled)
+    const customStyle = !isAlert && booking.color && booking.status !== "cancelled" ? {
       backgroundColor: `${booking.color}20`,
       color: booking.color,
       borderColor: booking.color,
       border: '1px solid'
+    } : booking.status === "cancelled" ? {
+      backgroundColor: "#fef2f2",
+      color: "#dc2626",
+      borderColor: "#fca5a5",
+      textDecoration: "line-through",
+      opacity: 0.7
     } : {};
     
     // Extract the main part of the booking type (remove "all-day:" prefix)

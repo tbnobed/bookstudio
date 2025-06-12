@@ -338,11 +338,17 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                       className={cn(
                         "border rounded-md px-2 py-1 mb-1 overflow-hidden text-overflow-ellipsis text-xs z-10 transition-all hover:shadow-md",
                         colorClass,
-                        booking.status === "tentative" && "border-dashed opacity-80 bg-gray-100"
+                        booking.status === "tentative" && "border-dashed opacity-80 bg-gray-100",
+                        booking.status === "cancelled" && "opacity-60 bg-red-50 border-red-300 line-through text-red-600"
                       )}
                       style={{
                         minHeight: "38px",
-                        ...(booking.color && booking.status !== "tentative" ? {
+                        ...(booking.status === "cancelled" ? {
+                          backgroundColor: "#fef2f2",
+                          borderColor: "#fca5a5",
+                          color: "#dc2626",
+                          textDecoration: "line-through"
+                        } : booking.color && booking.status !== "tentative" ? {
                           backgroundColor: `${booking.color}20`, // 20 is hex for 12% opacity
                           borderColor: booking.color,
                           color: booking.color
