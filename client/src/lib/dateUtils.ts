@@ -261,13 +261,13 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
   const result = d1Formatted === d2Formatted;
   
   // Log detailed comparison for debugging purposes
-  const debugDate = new Date(2025, 4, 8); // May 8, 2025
+  const debugDate = new Date(2025, 5, 11); // June 11, 2025
   const diffD1 = Math.abs((d1.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
   const diffD2 = Math.abs((d2.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
   
-  // Only log for dates near our problem period (May 2025)
-  if (diffD1 < 30 || diffD2 < 30) {
-    console.log(`isSameDay: Comparing "${d1.toISOString()}" (${d1Month}/${d1Day}/${d1Year}) with "${d2.toISOString()}" (${d2Month}/${d2Day}/${d2Year}) => ${result}`);
+  // Only log for dates near our problem period (June 2025)
+  if (diffD1 < 5 || diffD2 < 5) {
+    console.log(`[TIMEZONE DEBUG] isSameDay: "${d1.toISOString()}" (${d1Month}/${d1Day}/${d1Year}) vs "${d2.toISOString()}" (${d2Month}/${d2Day}/${d2Year}) => ${result}`);
   }
   
   return result;

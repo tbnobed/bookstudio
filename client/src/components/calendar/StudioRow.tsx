@@ -246,7 +246,9 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         // Create a defensive copy of the booking.start date and ensure timezones are respected
         const dayBookings = studioBookings.filter(booking => {
           // Log both dates for debugging to trace the timezone comparison issue
-          console.log(`Cell for ${studio.name} - ${date.toDateString()} comparing booking: ${booking.title} (${new Date(booking.start).toISOString()})`);
+          if (booking.title.includes("News 2")) {
+            console.log(`[NEWS 2 DEBUG] Cell for ${studio.name} - ${date.toDateString()} comparing booking ${booking.id}: ${booking.title} (${booking.status}) start: ${new Date(booking.start).toISOString()}`);
+          }
           return isSameDay(new Date(booking.start), date);
         });
         
