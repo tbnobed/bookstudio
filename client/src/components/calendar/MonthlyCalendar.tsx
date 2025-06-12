@@ -196,6 +196,16 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
       const bookingDate = new Date(booking.start);
       const dateStr = getDateStringInFacilityTimezone(bookingDate);
       
+      // Debug timezone conversion for June 11-12 bookings
+      if (booking.title === "News 2") {
+        console.log(`[TIMEZONE DEBUG] Booking ${booking.id} "${booking.title}" (${booking.status}):`, {
+          originalStart: booking.start,
+          bookingDate: bookingDate.toISOString(),
+          facilityTimezoneDate: dateStr,
+          localTime: bookingDate.toLocaleString()
+        });
+      }
+      
       if (!result.has(dateStr)) {
         result.set(dateStr, []);
       }
