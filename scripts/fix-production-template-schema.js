@@ -51,7 +51,9 @@ async function fixProductionTemplateSchema() {
       { name: 'notifyList', type: 'json', default: "'[]'::json", snakeCase: 'notify_list' },
       { name: 'startTime', type: 'text', default: null, snakeCase: 'start_time' },
       { name: 'endTime', type: 'text', default: null, snakeCase: 'end_time' },
-      { name: 'createdBy', type: 'integer', default: null, snakeCase: 'created_by' }
+      { name: 'createdBy', type: 'integer', default: null, snakeCase: 'created_by' },
+      { name: 'status', type: 'text', default: "'confirmed'::text", snakeCase: null },
+      { name: 'color', type: 'text', default: null, snakeCase: null }
     ];
 
     console.log('\n🔄 Adding missing camelCase columns...');
@@ -66,14 +68,40 @@ async function fixProductionTemplateSchema() {
       }
     }
 
-    // Step 2: Copy data from snake_case columns to camelCase columns
-    console.log('\n📋 Copying data from snake_case to camelCase columns...');
+    // Step 2: Migrate data from old equipment/crew_required columns to new schema
+    console.log('\n📋 Migrating data from old equipment column to new schema...');
     
-    for (const col of requiredColumns) {
-      if (columnNames.includes(col.snakeCase)) {
-        console.log(`  Copying ${col.snakeCase} -> ${col.name}`);
-        await query(`UPDATE templates SET "${col.name}" = ${col.snakeCase} WHERE ${col.snakeCase} IS NOT NULL`);
-      }
+    if (columnNames.includes('equipment') && columnNames.includes('crew_required')) {
+      console.log('  Extracting studio IDs, PCR room IDs, colors, and status from equipment column...');
+      
+      // Extract data from equipment JSON column
+      await query(`
+        UPDATE templates SET 
+          "studioIds" = COALESCE((equipment->0->>'studioIds')::json, '[]'::json),
+          "pcrRoomId" = (equipment->0->>'pcrRoomId')::integer,
+          "color" = equipment->0->>'color',
+          "status" = COALESCE(equipment->0->>'status', 'confirmed'),
+          "notifyList" = COALESCE(crew_required, '[]'::json),
+          "createdBy" = COALESCE(created_by, 1)
+        WHERE equipment IS NOT NULL AND equipment != '[]'::jsonb
+      `);
+      
+      console.log('  Migration from equipment column completed');
+    } else if (columnNames.includes('created_by')) {
+      // Handle case where we only have created_by column
+      console.log('  Copying created_by to createdBy...');
+      await query(`UPDATE templates SET "createdBy" = COALESCE(created_by, 1)`);
+    } else {
+      console.log('  Setting default values for templates without equipment data...');
+      await query(`
+        UPDATE templates SET 
+          "studioIds" = '[]'::json,
+          "color" = '#3B82F6',
+          "status" = 'confirmed',
+          "notifyList" = '[]'::json,
+          "createdBy" = 1
+        WHERE "createdBy" IS NULL
+      `);
     }
 
     // Step 3: Set createdBy to NOT NULL with default value for existing records

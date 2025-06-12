@@ -9,13 +9,15 @@ ALTER TABLE templates ADD COLUMN IF NOT EXISTS "startTime" text;
 ALTER TABLE templates ADD COLUMN IF NOT EXISTS "endTime" text;
 ALTER TABLE templates ADD COLUMN IF NOT EXISTS "createdBy" integer;
 
--- Copy data from snake_case to camelCase columns
-UPDATE templates SET "studioIds" = studio_ids WHERE studio_ids IS NOT NULL;
-UPDATE templates SET "pcrRoomId" = pcr_room_id WHERE pcr_room_id IS NOT NULL;
-UPDATE templates SET "notifyList" = notify_list WHERE notify_list IS NOT NULL;
-UPDATE templates SET "startTime" = start_time WHERE start_time IS NOT NULL;
-UPDATE templates SET "endTime" = end_time WHERE end_time IS NOT NULL;
-UPDATE templates SET "createdBy" = created_by WHERE created_by IS NOT NULL;
+-- Extract data from old equipment/crew_required columns to new schema
+UPDATE templates SET 
+  "studioIds" = COALESCE((equipment->0->>'studioIds')::json, '[]'::json),
+  "pcrRoomId" = (equipment->0->>'pcrRoomId')::integer,
+  "color" = equipment->0->>'color',
+  "status" = COALESCE(equipment->0->>'status', 'confirmed'),
+  "notifyList" = COALESCE(crew_required, '[]'::json),
+  "createdBy" = COALESCE(created_by, 1)
+WHERE equipment IS NOT NULL AND equipment != '[]'::jsonb;
 
 -- Set default createdBy for any NULL values
 UPDATE templates SET "createdBy" = 1 WHERE "createdBy" IS NULL;
