@@ -1642,6 +1642,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       const id = parseInt(req.params.id);
       
+      console.log(`[NotificationGroup] Update request for ID ${id} by user ${user.username}:`, req.body);
+      
       // Only admins, engineers, and IT can manage notification groups
       if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
         return res.status(403).json({ 
@@ -1655,9 +1657,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const updateData = req.body;
+      console.log(`[NotificationGroup] Updating group ${id} with data:`, updateData);
+      
       const updatedGroup = await storage.updateNotificationGroup(id, updateData);
+      console.log(`[NotificationGroup] Update result:`, updatedGroup);
+      
       res.json(updatedGroup);
     } catch (error) {
+      console.error(`[NotificationGroup] Update error for ID ${req.params.id}:`, error);
       if (error instanceof ValidationError || error instanceof ZodError) {
         return res.status(400).json({ message: error.message });
       }
