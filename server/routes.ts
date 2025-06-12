@@ -897,20 +897,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const studioId = parseInt(studioIdStr);
           const existingBookings = await storage.getBookingsByStudio(studioId);
           
+          console.log(`Studio ${studioId} has ${existingBookings.length} existing bookings:`, 
+            existingBookings.map(b => ({ id: b.id, title: b.title, status: b.status, start: b.start, end: b.end })));
+          
           const hasConflict = existingBookings.some(booking => {
+            console.log(`Checking booking ${booking.id} (${booking.title}) status: ${booking.status} in studio ${studioId}`);
+            
             // Skip cancelled bookings - they don't create conflicts
             if (booking.status === 'cancelled') {
+              console.log(`Skipping cancelled booking ${booking.id}`);
               return false;
             }
             
             const bookingStart = new Date(booking.start);
             const bookingEnd = new Date(booking.end);
             
-            return (
+            const overlaps = (
               (start >= bookingStart && start < bookingEnd) ||
               (end > bookingStart && end <= bookingEnd) ||
               (start <= bookingStart && end >= bookingEnd)
             );
+            
+            if (overlaps) {
+              console.log(`CONFLICT: Booking ${booking.id} overlaps with new booking in studio ${studioId}`);
+            }
+            
+            return overlaps;
           });
           
           if (hasConflict) {
