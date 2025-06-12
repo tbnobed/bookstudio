@@ -53,6 +53,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 
 // Email templates
 const FROM_EMAIL = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
+const SITE_MANAGER_EMAIL = process.env.SITE_MANAGER_EMAIL || 'obedtest@tbn.tv';
 const APP_NAME = 'BookStud.io';
 
 // Modern HTML email template base
