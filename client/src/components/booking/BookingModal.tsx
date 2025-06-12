@@ -550,6 +550,7 @@ export default function BookingModal({
       end: endDate,
       notifyList: notifyListAsNumbers,
       color: formData.color,
+      userId: 1, // Default user ID for now
     };
     
     // Set the primary studioId (for backward compatibility)

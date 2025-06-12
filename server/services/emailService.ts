@@ -24,7 +24,7 @@ interface EmailParams {
 
 // Format date for emails in Chicago CDT timezone
 export function formatDate(date: Date): string {
-  return new Date(date).toLocaleString('en-US', {
+  const chicagoDate = new Date(date).toLocaleString('en-US', {
     timeZone: 'America/Chicago',
     weekday: 'long',
     year: 'numeric',
@@ -34,6 +34,9 @@ export function formatDate(date: Date): string {
     minute: '2-digit',
     hour12: true
   });
+  
+  // Add CDT suffix for clarity
+  return `${chicagoDate} CDT`;
 }
 
 // SendGrid email sender

@@ -8,7 +8,7 @@ import { sendEmail } from './emailService';
 
 // Format date helper for Chicago CDT timezone
 function formatDate(date: Date): string {
-  return new Date(date).toLocaleString('en-US', {
+  const chicagoDate = new Date(date).toLocaleString('en-US', {
     timeZone: 'America/Chicago',
     weekday: 'long',
     year: 'numeric',
@@ -18,6 +18,9 @@ function formatDate(date: Date): string {
     minute: '2-digit',
     hour12: true
   });
+  
+  // Add CDT suffix for clarity
+  return `${chicagoDate} CDT`;
 }
 
 // Format file size helper
