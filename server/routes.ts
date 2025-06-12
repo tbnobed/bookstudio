@@ -871,6 +871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("=== BOOKING CREATION DEBUG START ===");
       console.log("Booking request data:", JSON.stringify(req.body));
       console.log("User creating booking:", user.username, "ID:", user.id);
+      console.log("CRITICAL: About to process booking creation - notification debugging enabled");
       
       // Extract studio IDs for conflict checking and junction table
       const studioIds = req.body.studioIds || [];
@@ -993,7 +994,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const studio = await storage.getStudio(booking.studioId);
             if (studio) {
               console.log(`Sending booking confirmation email to user ${user.email} for booking "${booking.title}"`);
-              await sendBookingConfirmation(booking, studio, user);
+              try {
+                await sendBookingConfirmation(booking, studio, user);
+                console.log(`[BookingCreation] Booking confirmation email sent successfully`);
+              } catch (confirmationError) {
+                console.error(`[BookingCreation] Error sending booking confirmation:`, confirmationError);
+                // Continue execution even if confirmation email fails
+              }
               
               // Send notification to notification groups if they exist
               console.log(`[BookingCreation] ===== NOTIFICATION PROCESSING START =====`);
