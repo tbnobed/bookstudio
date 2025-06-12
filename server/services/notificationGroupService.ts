@@ -11,6 +11,15 @@ function formatDate(date: Date): string {
   return format(new Date(date), 'EEEE, MMMM d, yyyy - h:mm a');
 }
 
+// Format file size helper
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 // Constants
 const FROM_EMAIL = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
 const APP_NAME = 'BookStud.io';
@@ -484,4 +493,97 @@ export async function sendCustomNotificationToGroups(
   alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
   return sendEmailToGroups(groupIds, subject, message, alwaysNotifySiteManagers);
+}
+
+/**
+ * Send a file attachment notification to specified notification groups
+ * @param booking The booking the file was attached to
+ * @param fileAttachment The file attachment details
+ * @param uploadedBy The user who uploaded the file
+ * @param groupIds Array of notification group IDs to send to
+ * @param alwaysNotifySiteManagers Whether to always include site managers
+ * @returns Promise<boolean[]> indicating success/failure for each group
+ */
+export async function sendFileAttachmentNotificationToGroups(
+  booking: any,
+  fileAttachment: any,
+  uploadedBy: any,
+  groupIds: number[],
+  alwaysNotifySiteManagers: boolean = true
+): Promise<boolean[]> {
+  const subject = `${APP_NAME} - New File Attached: ${booking.title}`;
+  
+  // Create modern HTML email content
+  const header = `
+    <div class="header">
+      <h1>📎 New File Attachment</h1>
+      <p>A file has been uploaded to a booking</p>
+    </div>
+  `;
+  
+  const content = `
+    ${header}
+    <div class="content">
+      <div class="alert-badge" style="background: #dbeafe; color: #1d4ed8;">
+        FILE ATTACHMENT
+      </div>
+      
+      <div class="booking-card">
+        <div class="booking-title">${booking.title}</div>
+        <div class="booking-details">
+          <div class="detail-row">
+            <div class="detail-label">Type:</div>
+            <div class="detail-value">${booking.type}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Start Time:</div>
+            <div class="detail-value">${formatDate(booking.start)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">End Time:</div>
+            <div class="detail-value">${formatDate(booking.end)}</div>
+          </div>
+          ${booking.description ? `
+          <div class="detail-row">
+            <div class="detail-label">Description:</div>
+            <div class="detail-value">${booking.description}</div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      
+      <div class="booking-card" style="border-left: 4px solid #1d4ed8;">
+        <div class="booking-title" style="color: #1d4ed8;">File Details</div>
+        <div class="booking-details">
+          <div class="detail-row">
+            <div class="detail-label">File Name:</div>
+            <div class="detail-value">${fileAttachment.fileName}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">File Size:</div>
+            <div class="detail-value">${formatFileSize(fileAttachment.fileSize)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Uploaded By:</div>
+            <div class="detail-value">${uploadedBy.name} (${uploadedBy.email})</div>
+          </div>
+          ${fileAttachment.description ? `
+          <div class="detail-row">
+            <div class="detail-label">Description:</div>
+            <div class="detail-value">${fileAttachment.description}</div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      
+      <p class="message-text">
+        <strong>📎 Note:</strong> A new file has been attached to this booking. Team members can access it through the booking details.
+      </p>
+      <p class="message-text">This notification has been sent to your notification group.</p>
+    </div>
+  `;
+  
+  const htmlMessage = createEmailTemplate(content, subject);
+  
+  return sendEmailToGroups(groupIds, subject, htmlMessage, alwaysNotifySiteManagers);
 }

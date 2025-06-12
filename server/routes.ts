@@ -31,7 +31,8 @@ import {
   sendBookingNotificationToGroups,
   sendMaintenanceAlertToGroups,
   sendFacilityAlertToGroups,
-  sendCustomNotificationToGroups
+  sendCustomNotificationToGroups,
+  sendFileAttachmentNotificationToGroups
 } from "./services/notificationGroupService";
 import { 
   generatePasswordResetToken, 
