@@ -97,32 +97,41 @@ export default function DayChronView({
 
   // Fetch all booking-studio links for multiple studio support
   const { data: bookingStudioLinks = [] } = useQuery<any[]>({
-    queryKey: ['/api/booking-studios'],
+    queryKey: ['/api/public/booking-studios'],
   });
 
   // Get studio names for a booking (including all linked studios)
   const getStudiosForBooking = (booking: any) => {
     const studioList: typeof studios = [];
     
+    // Debug logging
+    console.log(`[DEBUG] Getting studios for booking ${booking.id} (${booking.title})`);
+    console.log(`[DEBUG] Booking has studioId: ${booking.studioId}`);
+    console.log(`[DEBUG] Available booking-studio links: ${bookingStudioLinks.length}`);
+    
     // Check direct studio assignment
     if (booking.studioId) {
       const studio = studios.find(s => s.id === booking.studioId);
       if (studio) {
         studioList.push(studio);
+        console.log(`[DEBUG] Added direct studio: ${studio.name} (ID: ${studio.id})`);
       }
     }
     
     // Look through bookingStudioLinks for this booking's ID
     const links = bookingStudioLinks.filter((link: any) => link.bookingId === booking.id);
+    console.log(`[DEBUG] Found ${links.length} booking-studio links for booking ${booking.id}`);
     if (links && links.length > 0) {
       links.forEach((link: any) => {
         const studio = studios.find(s => s.id === link.studioId);
         if (studio && !studioList.some(s => s.id === studio.id)) {
           studioList.push(studio);
+          console.log(`[DEBUG] Added linked studio: ${studio.name} (ID: ${studio.id})`);
         }
       });
     }
     
+    console.log(`[DEBUG] Final studio list for booking ${booking.id}: ${studioList.map(s => s.name).join(', ')}`);
     return studioList;
   };
 

@@ -67,7 +67,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
   
   // Fetch booking-studio links to show all linked studios
   const { data: bookingStudioLinks = [] } = useQuery<any[]>({
-    queryKey: ["/api/booking-studios"],
+    queryKey: ["/api/public/booking-studios"],
   });
   
   // Function to get PCR room name from ID
