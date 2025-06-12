@@ -868,7 +868,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      console.log("=== BOOKING CREATION DEBUG START ===");
       console.log("Booking request data:", JSON.stringify(req.body));
+      console.log("User creating booking:", user.username, "ID:", user.id);
       
       // Extract studio IDs for conflict checking and junction table
       const studioIds = req.body.studioIds || [];
@@ -882,6 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       console.log("Modified request data:", JSON.stringify(requestData));
+      console.log("Extracted notifyList from request:", req.body.notifyList);
       
       const bookingData = insertBookingSchema.parse(requestData);
       
@@ -932,6 +935,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const booking = await storage.createBooking(bookingData);
+      console.log("=== BOOKING CREATED ===");
+      console.log("Created booking:", JSON.stringify(booking));
+      console.log("Booking notifyList after creation:", booking.notifyList);
       
       // Create entries in the junction table for each selected studio
       if (studioIds && studioIds.length > 0) {
