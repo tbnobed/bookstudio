@@ -358,7 +358,7 @@ export default function BookingModal({
           startTime: startTimeStr,
           endTime: endTimeStr,
           templateId: normalizedBooking.templateId ? normalizedBooking.templateId.toString() : "0", // Use "0" as default
-          notifyList: normalizedBooking.notifyList,
+          notifyList: normalizedBooking.notifyList ? normalizedBooking.notifyList.map(id => String(id)) : [],
           saveAsTemplate: false,
           templateName: "",
           severity: normalizedBooking.severity,
