@@ -388,23 +388,22 @@ export default function BookingModal({
 
   // Handle template selection
   const handleTemplateChange = (value: string) => {
-    console.log("🔧 Template selection changed to:", value);
-    console.log("🔧 Available templates:", templates);
+    console.log("🔧 TEMPLATE SELECTION - Value:", value);
+    console.log("🔧 TEMPLATE SELECTION - Available templates:", templates);
     updateFormField('templateId', value);
     
     if (value && value !== "0" && value !== "none") {
       const selectedTemplate = templates.find(t => t.id === parseInt(value));
-      console.log("🔧 Selected template object:", selectedTemplate);
+      console.log("🔧 TEMPLATE SELECTION - Found template:", selectedTemplate);
       
       if (selectedTemplate) {
-        console.log("🔧 Template found, applying data...");
-        console.log("🔧 Template studio_ids:", (selectedTemplate as any).studio_ids);
-        console.log("🔧 Template pcr_room_id:", (selectedTemplate as any).pcr_room_id);
-        console.log("🔧 Template start_time:", (selectedTemplate as any).start_time);
-        console.log("🔧 Template end_time:", (selectedTemplate as any).end_time);
-        console.log("🔧 Template color:", selectedTemplate.color);
-        console.log("🔧 Template status:", selectedTemplate.status);
-        console.log("🔧 Current formData before template application:", formData);
+        console.log("🔧 TEMPLATE APPLICATION - Starting...");
+        console.log("🔧 TEMPLATE APPLICATION - Raw template data:", JSON.stringify(selectedTemplate, null, 2));
+        console.log("🔧 TEMPLATE APPLICATION - studio_ids:", (selectedTemplate as any).studio_ids);
+        console.log("🔧 TEMPLATE APPLICATION - pcr_room_id:", (selectedTemplate as any).pcr_room_id);
+        console.log("🔧 TEMPLATE APPLICATION - color:", selectedTemplate.color);
+        console.log("🔧 TEMPLATE APPLICATION - status:", selectedTemplate.status);
+        console.log("🔧 TEMPLATE APPLICATION - Form data before:", JSON.stringify(formData, null, 2));
         
         // Pre-fill form with template data - without overriding title
         // We'll keep the user's title and only provide the template name as a default
