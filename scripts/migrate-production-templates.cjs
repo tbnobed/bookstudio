@@ -115,10 +115,9 @@ async function migrateProductionTemplates() {
         migrationPlan.notify_list = JSON.stringify(migrationPlan.notify_list);
       }
       
-      // Ensure studio_ids is set (fallback to empty array if nothing found)
+      // Ensure studio_ids is set (fallback to empty array only if truly nothing found)
       if (!migrationPlan.studio_ids) {
         migrationPlan.studio_ids = '[]';
-        needsMigration = true;
       }
       
       if (needsMigration) {
