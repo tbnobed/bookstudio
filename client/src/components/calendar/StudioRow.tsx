@@ -234,7 +234,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                 statusClass = "bg-red-500"; // in-use
               }
               
-              return <div className={`w-3 h-3 rounded-full mr-2 flex-shrink-0 ${statusClass}`}></div>;
+              return <div className={`w-2 h-2 rounded-full mr-2 flex-shrink-0 ${statusClass}`}></div>;
             })()}
             <span className="text-sm font-medium text-gray-700 whitespace-nowrap">{studio.name}</span>
           </div>

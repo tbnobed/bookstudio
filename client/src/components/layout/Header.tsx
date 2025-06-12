@@ -272,7 +272,7 @@ export function Header({
                   )}
                   onClick={() => toggleStudioFilter(studio.id)}
                 >
-                  <span className={cn("w-3 h-3 inline-block rounded-full mr-2 flex-shrink-0", getStudioStatusColor(calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks)))}></span>
+                  <span className={cn("w-2 h-2 inline-block rounded-full mr-2 flex-shrink-0", getStudioStatusColor(calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks)))}></span>
                   {studio.name}
                 </button>
               ))}
