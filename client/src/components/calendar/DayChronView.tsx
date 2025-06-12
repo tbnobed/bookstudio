@@ -198,7 +198,10 @@ export default function DayChronView({
     // Use our shared function to determine if this is an alert booking
     const isAlert = isAlertBooking(booking);
     
-    console.log("[DEBUG] Processing booking:", booking.id, booking.title, "isAlert:", isAlert);
+    // Check if booking is cancelled
+    const isCancelled = booking.status === 'cancelled';
+    
+    console.log("[DEBUG] Processing booking:", booking.id, booking.title, "isAlert:", isAlert, "status:", booking.status);
     
     const typeClass = getTypeClass(booking.type, booking.severity);
     
@@ -217,7 +220,8 @@ export default function DayChronView({
           <div 
             className={cn(
               "border rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors",
-              typeClass
+              typeClass,
+              isCancelled && "opacity-60 bg-gray-100"
             )}
             style={{
               borderLeftColor: severityColor,
@@ -226,12 +230,21 @@ export default function DayChronView({
             onClick={() => onBookingClick(booking)}
           >
             <div className="flex justify-between items-start">
-              <h3 className="text-base font-bold">{booking.title}</h3>
-              <Badge className="ml-2" variant={isAlert && booking.severity === 'critical' ? 'destructive' : 'outline'}>
-                {isAlert && booking.severity 
-                  ? booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1) 
-                  : formatBookingType(booking.type)}
-              </Badge>
+              <h3 className={cn("text-base font-bold", isCancelled && "line-through text-gray-500")}>
+                {booking.title}
+              </h3>
+              <div className="ml-2 flex gap-1">
+                {isCancelled && (
+                  <Badge variant="destructive" className="text-xs">
+                    CANCELLED
+                  </Badge>
+                )}
+                <Badge variant={isAlert && booking.severity === 'critical' ? 'destructive' : 'outline'}>
+                  {isAlert && booking.severity 
+                    ? booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1) 
+                    : formatBookingType(booking.type)}
+                </Badge>
+              </div>
             </div>
             
             <div className="mt-2 text-sm">
