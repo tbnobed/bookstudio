@@ -15,6 +15,154 @@ function formatDate(date: Date): string {
 const FROM_EMAIL = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
 const APP_NAME = 'BookStud.io';
 
+// Helper functions for modern email templates
+function createEmailTemplate(content: string, title: string): string {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title}</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f8fafc;
+                color: #334155;
+            }
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+            }
+            .header {
+                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+                color: white;
+                padding: 32px 24px;
+                text-align: center;
+            }
+            .header h1 {
+                margin: 0;
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: -0.025em;
+            }
+            .header p {
+                margin: 8px 0 0;
+                font-size: 16px;
+                opacity: 0.9;
+            }
+            .content {
+                padding: 32px 24px;
+                line-height: 1.6;
+            }
+            .message-text {
+                font-size: 16px;
+                margin: 16px 0;
+                color: #475569;
+            }
+            .booking-card {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 24px 0;
+            }
+            .booking-title {
+                font-size: 20px;
+                font-weight: 600;
+                color: #1e293b;
+                margin-bottom: 16px;
+            }
+            .booking-details {
+                display: table;
+                width: 100%;
+            }
+            .detail-row {
+                display: table-row;
+            }
+            .detail-label {
+                display: table-cell;
+                font-weight: 600;
+                padding: 4px 16px 4px 0;
+                color: #475569;
+                width: 120px;
+            }
+            .detail-value {
+                display: table-cell;
+                padding: 4px 0;
+                color: #1e293b;
+            }
+            .alert-badge {
+                display: inline-block;
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: 14px;
+                margin-bottom: 20px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .status-tag {
+                display: inline-block;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .status-confirmed { background: #dcfce7; color: #166534; }
+            .status-pending { background: #fef3c7; color: #92400e; }
+            .status-cancelled { background: #fecaca; color: #b91c1c; }
+            .severity-low { background: #dbeafe; color: #1e40af; }
+            .severity-medium { background: #fef3c7; color: #92400e; }
+            .severity-high { background: #fecaca; color: #b91c1c; }
+            .footer {
+                background: #f8fafc;
+                padding: 24px;
+                text-align: center;
+                font-size: 14px;
+                color: #64748b;
+                border-top: 1px solid #e2e8f0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            ${content}
+            <div class="footer">
+                <p>This is an automated notification from ${APP_NAME}</p>
+                <p>Please do not reply to this email.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+}
+
+function formatStudios(studioNames: string[]): string {
+  if (studioNames.length === 0) return 'No studios';
+  if (studioNames.length === 1) return studioNames[0];
+  if (studioNames.length === 2) return studioNames.join(' and ');
+  return studioNames.slice(0, -1).join(', ') + ', and ' + studioNames[studioNames.length - 1];
+}
+
+function createStatusTag(status: string): string {
+  const statusClass = `status-${status.toLowerCase()}`;
+  return `<span class="status-tag ${statusClass}">${status.toUpperCase()}</span>`;
+}
+
+function createSeverityBadge(severity: string): string {
+  const severityClass = `severity-${severity.toLowerCase()}`;
+  return `<span class="status-tag ${severityClass}">${severity.toUpperCase()}</span>`;
+}
+
 /**
  * Get the site management notification group
  * @returns Promise resolving to the site management notification group or null if not found
@@ -125,25 +273,59 @@ export async function sendBookingNotificationToGroups(
   
   const studioName = studio ? studio.name : 'Multiple Studios';
   
-  const message = `
-    BOOKING ${actionText.toUpperCase()}
-    
-    A studio booking has been ${action}:
-    
-    - Studio: ${studioName}
-    - Title: ${booking.title}
-    - From: ${formatDate(booking.start)}
-    - To: ${formatDate(booking.end)}
-    ${booking.description ? `- Description: ${booking.description}` : ''}
-    ${booking.status ? `- Status: ${booking.status}` : ''}
-    
-    This notification has been sent to your notification group.
-    
-    Thank you,
-    BookStud.io
+  // Create modern HTML email content
+  const header = `
+    <div class="header">
+      <h1>Studio Booking ${actionText}</h1>
+      <p>A booking has been ${action} in your facility</p>
+    </div>
   `;
   
-  return sendEmailToGroups(groupIds, subject, message, alwaysNotifySiteManagers);
+  const content = `
+    ${header}
+    <div class="content">
+      <div class="booking-card">
+        <div class="booking-title">${booking.title}</div>
+        <div class="booking-details">
+          <div class="detail-row">
+            <div class="detail-label">Studio:</div>
+            <div class="detail-value">${studioName}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Start Time:</div>
+            <div class="detail-value">${formatDate(booking.start)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">End Time:</div>
+            <div class="detail-value">${formatDate(booking.end)}</div>
+          </div>
+          ${booking.description ? `
+          <div class="detail-row">
+            <div class="detail-label">Description:</div>
+            <div class="detail-value">${booking.description}</div>
+          </div>
+          ` : ''}
+          ${booking.status ? `
+          <div class="detail-row">
+            <div class="detail-label">Status:</div>
+            <div class="detail-value">${createStatusTag(booking.status)}</div>
+          </div>
+          ` : ''}
+          ${booking.severity ? `
+          <div class="detail-row">
+            <div class="detail-label">Severity:</div>
+            <div class="detail-value">${createSeverityBadge(booking.severity)}</div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      <p class="message-text">This notification has been sent to your notification group.</p>
+    </div>
+  `;
+  
+  const htmlMessage = createEmailTemplate(content, subject);
+  
+  return sendEmailToGroups(groupIds, subject, htmlMessage, alwaysNotifySiteManagers);
 }
 
 /**
@@ -160,27 +342,59 @@ export async function sendMaintenanceAlertToGroups(
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - Maintenance Alert`;
   
-  const message = `
-    MAINTENANCE ALERT
-    
-    A maintenance event has been scheduled:
-    
-    - Title: ${booking.title}
-    - Type: Maintenance
-    - Severity: ${booking.severity || 'Medium'}
-    - From: ${formatDate(booking.start)}
-    - To: ${formatDate(booking.end)}
-    ${booking.description ? `- Description: ${booking.description}` : ''}
-    
-    This may affect studio availability. Please plan accordingly.
-    
-    This notification has been sent to your notification group.
-    
-    Thank you,
-    BookStud.io
+  // Create modern HTML email content
+  const header = `
+    <div class="header">
+      <h1>🔧 Maintenance Alert</h1>
+      <p>A maintenance event has been scheduled</p>
+    </div>
   `;
   
-  return sendEmailToGroups(groupIds, subject, message, alwaysNotifySiteManagers);
+  const content = `
+    ${header}
+    <div class="content">
+      <div class="alert-badge" style="background: #fef3c7; color: #92400e;">
+        MAINTENANCE SCHEDULED
+      </div>
+      
+      <div class="booking-card">
+        <div class="booking-title">${booking.title}</div>
+        <div class="booking-details">
+          <div class="detail-row">
+            <div class="detail-label">Type:</div>
+            <div class="detail-value">Maintenance</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Severity:</div>
+            <div class="detail-value">${createSeverityBadge(booking.severity || 'medium')}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Start Time:</div>
+            <div class="detail-value">${formatDate(booking.start)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">End Time:</div>
+            <div class="detail-value">${formatDate(booking.end)}</div>
+          </div>
+          ${booking.description ? `
+          <div class="detail-row">
+            <div class="detail-label">Description:</div>
+            <div class="detail-value">${booking.description}</div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      
+      <p class="message-text">
+        <strong>⚠️ Important:</strong> This maintenance may affect studio availability. Please plan accordingly.
+      </p>
+      <p class="message-text">This notification has been sent to your notification group.</p>
+    </div>
+  `;
+  
+  const htmlMessage = createEmailTemplate(content, subject);
+  
+  return sendEmailToGroups(groupIds, subject, htmlMessage, alwaysNotifySiteManagers);
 }
 
 /**
@@ -197,27 +411,59 @@ export async function sendFacilityAlertToGroups(
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - IMPORTANT: Facility-Wide Alert`;
   
-  const message = `
-    FACILITY-WIDE ALERT
-    
-    An important facility-wide alert has been issued:
-    
-    - Title: ${booking.title}
-    - Type: ${booking.type}
-    - Severity: ${booking.severity || 'High'}
-    - From: ${formatDate(booking.start)}
-    - To: ${formatDate(booking.end)}
-    ${booking.description ? `- Description: ${booking.description}` : ''}
-    
-    This affects all studios and facilities. Please plan accordingly.
-    
-    This notification has been sent to your notification group.
-    
-    Thank you,
-    BookStud.io
+  // Create modern HTML email content
+  const header = `
+    <div class="header">
+      <h1>🚨 Facility-Wide Alert</h1>
+      <p>An important facility-wide alert has been issued</p>
+    </div>
   `;
   
-  return sendEmailToGroups(groupIds, subject, message, alwaysNotifySiteManagers);
+  const content = `
+    ${header}
+    <div class="content">
+      <div class="alert-badge" style="background: #fecaca; color: #b91c1c;">
+        FACILITY-WIDE ALERT
+      </div>
+      
+      <div class="booking-card">
+        <div class="booking-title">${booking.title}</div>
+        <div class="booking-details">
+          <div class="detail-row">
+            <div class="detail-label">Type:</div>
+            <div class="detail-value">${booking.type}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Severity:</div>
+            <div class="detail-value">${createSeverityBadge(booking.severity || 'high')}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Start Time:</div>
+            <div class="detail-value">${formatDate(booking.start)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">End Time:</div>
+            <div class="detail-value">${formatDate(booking.end)}</div>
+          </div>
+          ${booking.description ? `
+          <div class="detail-row">
+            <div class="detail-label">Description:</div>
+            <div class="detail-value">${booking.description}</div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      
+      <p class="message-text">
+        <strong>🚨 Critical:</strong> This alert affects all studios and facilities. Please take appropriate action immediately.
+      </p>
+      <p class="message-text">This notification has been sent to your notification group.</p>
+    </div>
+  `;
+  
+  const htmlMessage = createEmailTemplate(content, subject);
+  
+  return sendEmailToGroups(groupIds, subject, htmlMessage, alwaysNotifySiteManagers);
 }
 
 /**
