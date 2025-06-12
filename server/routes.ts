@@ -1723,6 +1723,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Save the file metadata to database
         const savedFile = await fileService.saveFileMetadata(req.file, bookingId, user.id, description);
 
+        // Send email notifications to distribution groups if booking has notification list
+        try {
+          if (booking.notifyList && Array.isArray(booking.notifyList) && booking.notifyList.length > 0) {
+            await sendFileAttachmentNotificationToGroups(
+              booking,
+              savedFile,
+              user,
+              booking.notifyList,
+              true // Always notify site managers
+            );
+            console.log(`File attachment notifications sent to ${booking.notifyList.length} groups for booking ${bookingId}`);
+          } else {
+            console.log(`No notification groups configured for booking ${bookingId}`);
+          }
+        } catch (emailError) {
+          console.error('Failed to send file attachment notifications:', emailError);
+          // Don't fail the upload if email fails
+        }
+
         res.status(201).json(savedFile);
       } catch (error: any) {
         console.error("Error uploading file:", error);
