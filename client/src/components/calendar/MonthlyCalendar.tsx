@@ -7,24 +7,25 @@ import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag, Tv } from "lucide-react";
 
-// Helper function to extract studios from a booking
-function extractStudiosFromBooking(booking: any, studiosList: any[]): any[] {
+// Helper function to extract studios from a booking using booking-studio links
+function extractStudiosFromBooking(booking: any, studiosList: any[], bookingStudioLinks: any[]): any[] {
   const result: any[] = [];
   
-  // Add direct studio reference if exists
-  if (booking.studioId) {
-    const studio = studiosList.find(s => s.id === booking.studioId);
-    if (studio) result.push(studio);
-  }
-  
-  // Add studios from junction table
-  if (booking.bookingStudios && booking.bookingStudios.length > 0) {
-    booking.bookingStudios.forEach((bs: any) => {
-      const studio = studiosList.find(s => s.id === bs.studioId);
+  // First, check for studios linked via the booking_studios junction table
+  const linkedStudios = bookingStudioLinks.filter(link => link.bookingId === booking.id);
+  if (linkedStudios.length > 0) {
+    linkedStudios.forEach((link: any) => {
+      const studio = studiosList.find(s => s.id === link.studioId);
       if (studio && !result.some(s => s.id === studio.id)) {
         result.push(studio);
       }
     });
+  }
+  
+  // If no linked studios found, fall back to direct studio reference
+  if (result.length === 0 && booking.studioId) {
+    const studio = studiosList.find(s => s.id === booking.studioId);
+    if (studio) result.push(studio);
   }
   
   // Add studios from studioIds array if present (used in some bookings)
@@ -64,6 +65,11 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
     queryKey: ["/api/studios"],
   });
   
+  // Fetch booking-studio links to show all linked studios
+  const { data: bookingStudioLinks = [] } = useQuery<any[]>({
+    queryKey: ["/api/booking-studios"],
+  });
+  
   // Function to get PCR room name from ID
   const getPcrRoomName = (pcrRoomId: number): string => {
     const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
@@ -72,7 +78,10 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
   
   // Function to get studio names for a booking
   const getStudiosForBooking = (booking: any): string => {
-    const bookingStudios = extractStudiosFromBooking(booking, allStudios);
+    // Ensure data is available before processing
+    if (!allStudios || !bookingStudioLinks) return "";
+    
+    const bookingStudios = extractStudiosFromBooking(booking, allStudios, bookingStudioLinks);
     if (bookingStudios.length === 0) return "";
     
     // If there's just one studio, return its name
