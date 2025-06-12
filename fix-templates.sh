@@ -37,7 +37,7 @@ echo "Starting template migration..."
 echo ""
 
 # Run the migration script
-$EXEC_PREFIX node scripts/fix-production-templates.js
+$EXEC_PREFIX node scripts/fix-production-templates.cjs
 
 RESULT=$?
 
