@@ -105,9 +105,9 @@ export default function DayChronView({
     const studioList: typeof studios = [];
     
     // Debug logging
-    console.log(`[DEBUG] Getting studios for booking ${booking.id} (${booking.title})`);
-    console.log(`[DEBUG] Booking has studioId: ${booking.studioId}`);
-    console.log(`[DEBUG] Available booking-studio links: ${bookingStudioLinks.length}`);
+    console.log(`[STUDIO-DEBUG] Getting studios for booking ${booking.id} (${booking.title})`);
+    console.log(`[STUDIO-DEBUG] Booking has studioId: ${booking.studioId}`);
+    console.log(`[STUDIO-DEBUG] Available booking-studio links: ${bookingStudioLinks.length}`);
     
     // Check direct studio assignment
     if (booking.studioId) {
