@@ -23,6 +23,16 @@ export default function TemplatesPage() {
     queryKey: ["/api/templates"],
   });
 
+  // Fetch studios for displaying studio names in templates
+  const { data: studios = [] } = useQuery({
+    queryKey: ["/api/studios"],
+  });
+
+  // Fetch PCR rooms for displaying PCR room names in templates
+  const { data: pcrRooms = [] } = useQuery({
+    queryKey: ["/api/pcr-rooms"],
+  });
+
   // Delete template mutation
   const deleteTemplate = useMutation({
     mutationFn: async (id: number) => {
@@ -142,6 +152,8 @@ export default function TemplatesPage() {
                   <TemplateCard 
                     key={template.id}
                     template={template}
+                    studios={studios}
+                    pcrRooms={pcrRooms}
                     onEdit={(template) => setEditTemplate(template)}
                     onDelete={(template) => handleDeleteTemplate(template)}
                     isEditable={true}
@@ -166,6 +178,8 @@ export default function TemplatesPage() {
                   <TemplateCard 
                     key={template.id}
                     template={template}
+                    studios={studios}
+                    pcrRooms={pcrRooms}
                     onEdit={(template) => setEditTemplate(template)}
                     onDelete={(template) => handleDeleteTemplate(template)}
                     isEditable={user?.role === "admin"}

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 
 interface TemplateCardProps {
   template: Template;
+  studios?: any[];
+  pcrRooms?: any[];
   onEdit?: (template: Template) => void;
   onDelete?: (template: Template) => void;
   isEditable?: boolean;
@@ -13,6 +15,8 @@ interface TemplateCardProps {
 
 export default function TemplateCard({
   template,
+  studios = [],
+  pcrRooms = [],
   onEdit,
   onDelete,
   isEditable = false
@@ -80,12 +84,22 @@ export default function TemplateCard({
       return null;
     }
 
+    // Get studio names from IDs
+    const studioNames = template.studioIds.map(id => {
+      const studio = studios.find(s => s.id === id);
+      return studio ? studio.name : `Studio ${id}`;
+    });
+
     return (
       <div className="mb-3">
         <p className="text-xs font-semibold text-gray-500 mb-1">Studios:</p>
-        <Badge variant="outline" className="text-xs">
-          {template.studioIds.length} studio{template.studioIds.length !== 1 ? 's' : ''} selected
-        </Badge>
+        <div className="flex flex-wrap gap-1">
+          {studioNames.map((name, index) => (
+            <Badge key={index} variant="outline" className="text-xs">
+              {name}
+            </Badge>
+          ))}
+        </div>
       </div>
     );
   };
@@ -94,11 +108,15 @@ export default function TemplateCard({
   const renderPcrRoomInfo = () => {
     if (!template.pcrRoomId) return null;
 
+    // Get PCR room name from ID
+    const pcrRoom = pcrRooms.find(pcr => pcr.id === template.pcrRoomId);
+    const pcrRoomName = pcrRoom ? pcrRoom.name : `PCR Room ${template.pcrRoomId}`;
+
     return (
       <div className="mb-3">
         <p className="text-xs font-semibold text-gray-500 mb-1">PCR Room:</p>
         <Badge variant="outline" className="text-xs">
-          PCR Room {template.pcrRoomId}
+          {pcrRoomName}
         </Badge>
       </div>
     );
