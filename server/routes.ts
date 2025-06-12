@@ -996,26 +996,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
               await sendBookingConfirmation(booking, studio, user);
               
               // Send notification to notification groups if they exist
-              console.log(`[BookingCreation] Checking notification groups - notifyList:`, booking.notifyList);
-              console.log(`[BookingCreation] notifyList type:`, typeof booking.notifyList, 'isArray:', Array.isArray(booking.notifyList));
+              console.log(`[BookingCreation] ===== NOTIFICATION PROCESSING START =====`);
+              console.log(`[BookingCreation] Raw booking.notifyList:`, booking.notifyList);
+              console.log(`[BookingCreation] Type of notifyList:`, typeof booking.notifyList);
+              console.log(`[BookingCreation] Is Array:`, Array.isArray(booking.notifyList));
+              console.log(`[BookingCreation] String value:`, JSON.stringify(booking.notifyList));
               
-              if (booking.notifyList && Array.isArray(booking.notifyList) && booking.notifyList.length > 0) {
+              // Handle different notifyList formats - it might be JSON string or array
+              let notifyGroupIds: number[] = [];
+              
+              if (booking.notifyList) {
+                if (Array.isArray(booking.notifyList)) {
+                  notifyGroupIds = booking.notifyList as number[];
+                } else if (typeof booking.notifyList === 'string') {
+                  try {
+                    const parsed = JSON.parse(booking.notifyList);
+                    if (Array.isArray(parsed)) {
+                      notifyGroupIds = parsed;
+                    }
+                  } catch (parseError) {
+                    console.error(`[BookingCreation] Error parsing notifyList string:`, parseError);
+                  }
+                }
+              }
+              
+              console.log(`[BookingCreation] Final notification group IDs:`, notifyGroupIds);
+              
+              if (notifyGroupIds.length > 0) {
                 try {
-                  console.log(`[BookingCreation] Sending notification to ${booking.notifyList.length} groups:`, booking.notifyList);
-                  await sendBookingNotificationToGroups(
+                  console.log(`[BookingCreation] Sending notification to ${notifyGroupIds.length} groups:`, notifyGroupIds);
+                  const result = await sendBookingNotificationToGroups(
                     booking,
                     studio,
-                    booking.notifyList as number[],
+                    notifyGroupIds,
                     'created'
                   );
-                  console.log(`Notification sent to ${booking.notifyList.length} groups about new booking`);
+                  console.log(`[BookingCreation] Notification result:`, result);
+                  console.log(`Notification sent to ${notifyGroupIds.length} groups about new booking`);
                 } catch (notifyError) {
                   console.error("Error sending notification to groups:", notifyError);
                   // Continue execution even if notification failed
                 }
               } else {
-                console.log(`[BookingCreation] Skipping notification groups - no valid notifyList found`);
+                console.log(`[BookingCreation] Skipping notification groups - no valid notification group IDs found`);
               }
+              console.log(`[BookingCreation] ===== NOTIFICATION PROCESSING END =====`);
             }
           } catch (emailError) {
             console.error("Error sending booking confirmation email:", emailError);

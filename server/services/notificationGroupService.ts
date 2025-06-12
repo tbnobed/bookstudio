@@ -300,6 +300,11 @@ export async function sendBookingNotificationToGroups(
   action: 'created' | 'updated' | 'cancelled',
   alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
+  console.log(`[NotificationGroupService] ===== BOOKING NOTIFICATION START =====`);
+  console.log(`[NotificationGroupService] Booking ID: ${booking.id}, Action: ${action}`);
+  console.log(`[NotificationGroupService] Group IDs to notify:`, groupIds);
+  console.log(`[NotificationGroupService] Studio:`, studio ? studio.name : 'null');
+  console.log(`[NotificationGroupService] Always notify site managers: ${alwaysNotifySiteManagers}`);
   const actionText = action.charAt(0).toUpperCase() + action.slice(1);
   const subject = `${APP_NAME} - Studio Booking ${actionText}`;
   
