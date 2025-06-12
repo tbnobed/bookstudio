@@ -24,9 +24,10 @@ async function restoreOriginalTemplates() {
   try {
     console.log('🔄 Restoring original templates from backup...');
     
-    // First, clear existing templates that were incorrectly migrated
-    await query('DELETE FROM templates');
-    console.log('✅ Cleared existing templates');
+    // First, check which templates exist to avoid foreign key violations
+    const existingTemplates = await query('SELECT id FROM templates');
+    const existingIds = existingTemplates.rows.map(row => row.id);
+    console.log(`📋 Found existing template IDs: [${existingIds.join(', ')}]`);
     
     // Original template data from backup
     const originalTemplates = [
@@ -174,7 +175,7 @@ async function restoreOriginalTemplates() {
     
     console.log(`📋 Restoring ${originalTemplates.length} templates with proper configurations...`);
     
-    // Insert each template with correct new schema structure
+    // Update or insert each template with correct new schema structure
     for (const template of originalTemplates) {
       const equipment = template.equipment[0]; // Get first equipment configuration
       const studioIds = equipment.studioIds || [];
@@ -183,26 +184,60 @@ async function restoreOriginalTemplates() {
       const status = equipment.status;
       const notifyList = template.crew_required || [];
       
-      await query(`
-        INSERT INTO templates (
-          id, name, description, type, duration, created_by,
-          studio_ids, pcr_room_id, color, status, notify_list
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-      `, [
-        template.id,
-        template.name,
-        template.description,
-        template.type,
-        template.duration,
-        template.created_by,
-        JSON.stringify(studioIds),
-        pcrRoomId,
-        color,
-        status,
-        JSON.stringify(notifyList)
-      ]);
+      if (existingIds.includes(template.id)) {
+        // Update existing template
+        await query(`
+          UPDATE templates SET
+            name = $2,
+            description = $3,
+            type = $4,
+            duration = $5,
+            created_by = $6,
+            studio_ids = $7,
+            pcr_room_id = $8,
+            color = $9,
+            status = $10,
+            notify_list = $11
+          WHERE id = $1
+        `, [
+          template.id,
+          template.name,
+          template.description,
+          template.type,
+          template.duration,
+          template.created_by,
+          JSON.stringify(studioIds),
+          pcrRoomId,
+          color,
+          status,
+          JSON.stringify(notifyList)
+        ]);
+        
+        console.log(`  ✅ Updated "${template.name}"`);
+      } else {
+        // Insert new template
+        await query(`
+          INSERT INTO templates (
+            id, name, description, type, duration, created_by,
+            studio_ids, pcr_room_id, color, status, notify_list
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `, [
+          template.id,
+          template.name,
+          template.description,
+          template.type,
+          template.duration,
+          template.created_by,
+          JSON.stringify(studioIds),
+          pcrRoomId,
+          color,
+          status,
+          JSON.stringify(notifyList)
+        ]);
+        
+        console.log(`  ✅ Inserted "${template.name}"`);
+      }
       
-      console.log(`  ✅ Restored "${template.name}"`);
       console.log(`     Studios: [${studioIds.join(', ')}], PCR: ${pcrRoomId || 'None'}, Color: ${color}`);
     }
     
