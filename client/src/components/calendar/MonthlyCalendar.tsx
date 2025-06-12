@@ -84,11 +84,8 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
     const bookingStudios = extractStudiosFromBooking(booking, allStudios, bookingStudioLinks);
     if (bookingStudios.length === 0) return "";
     
-    // If there's just one studio, return its name
-    if (bookingStudios.length === 1) return bookingStudios[0].name;
-    
-    // If there are multiple studios, return a summary
-    return `${bookingStudios[0].name} +${bookingStudios.length - 1}`;
+    // Return all studio names separated by commas
+    return bookingStudios.map(studio => studio.name).join(", ");
   };
 
   // Calculate month days whenever current date changes
