@@ -990,8 +990,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               await sendBookingConfirmation(booking, studio, user);
               
               // Send notification to notification groups if they exist
+              console.log(`[BookingCreation] Checking notification groups - notifyList:`, booking.notifyList);
+              console.log(`[BookingCreation] notifyList type:`, typeof booking.notifyList, 'isArray:', Array.isArray(booking.notifyList));
+              
               if (booking.notifyList && Array.isArray(booking.notifyList) && booking.notifyList.length > 0) {
                 try {
+                  console.log(`[BookingCreation] Sending notification to ${booking.notifyList.length} groups:`, booking.notifyList);
                   await sendBookingNotificationToGroups(
                     booking,
                     studio,
@@ -1003,6 +1007,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   console.error("Error sending notification to groups:", notifyError);
                   // Continue execution even if notification failed
                 }
+              } else {
+                console.log(`[BookingCreation] Skipping notification groups - no valid notifyList found`);
               }
             }
           } catch (emailError) {
