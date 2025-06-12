@@ -54,46 +54,19 @@ export default function TemplateCard({
     }
   };
   
-  // Get correct notification group names
+  // Render notification groups from notifyList
   const renderNotificationGroups = () => {
-    if (!template.crewRequired) {
-      return null;
-    }
-    
-    // Handle different potential types of crewRequired
-    let crewItems: any[] = [];
-    
-    if (Array.isArray(template.crewRequired)) {
-      crewItems = template.crewRequired;
-    } else if (typeof template.crewRequired === 'object') {
-      // Try to convert object to array for rendering
-      try {
-        const crewObj = template.crewRequired as any;
-        if (crewObj.notificationGroups && Array.isArray(crewObj.notificationGroups)) {
-          crewItems = crewObj.notificationGroups;
-        } else {
-          // Fallback - try to display object keys
-          crewItems = Object.keys(crewObj).map(key => ({name: key}));
-        }
-      } catch (e) {
-        console.error("Error processing template notification groups", e);
-        return null;
-      }
-    }
-    
-    if (crewItems.length === 0) {
+    if (!template.notifyList || !Array.isArray(template.notifyList) || template.notifyList.length === 0) {
       return null;
     }
     
     return (
-      <div className="mb-4">
+      <div className="mb-3">
         <p className="text-xs font-semibold text-gray-500 mb-1">Notification Groups:</p>
         <div className="flex flex-wrap gap-1">
-          {crewItems.map((crew, index) => (
+          {template.notifyList.map((groupId, index) => (
             <Badge key={index} variant="secondary" className="text-xs">
-              {typeof crew === 'object' 
-                ? (crew.name || crew.id || JSON.stringify(crew)) 
-                : String(crew)}
+              Group {groupId}
             </Badge>
           ))}
         </div>
@@ -101,47 +74,84 @@ export default function TemplateCard({
     );
   };
 
-  // Check if we have additional template data
-  const hasAdditionalData = () => {
-    return template.equipment && 
-           typeof template.equipment === 'object' && 
-           Array.isArray(template.equipment) && 
-           template.equipment.length > 0 && 
-           typeof template.equipment[0] === 'object';
+  // Render studio information
+  const renderStudioInfo = () => {
+    if (!template.studioIds || !Array.isArray(template.studioIds) || template.studioIds.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-gray-500 mb-1">Studios:</p>
+        <Badge variant="outline" className="text-xs">
+          {template.studioIds.length} studio{template.studioIds.length !== 1 ? 's' : ''} selected
+        </Badge>
+      </div>
+    );
   };
 
-  // Render template configuration details
-  const renderConfigSummary = () => {
-    if (!hasAdditionalData()) return null;
-    
-    // Use type assertion since TypeScript can't know the structure
-    const additionalData = (template.equipment as any)[0];
-    
-    let settings = [];
-    if (additionalData.studioIds && Array.isArray(additionalData.studioIds)) {
-      settings.push(`${additionalData.studioIds.length} studios`);
-    }
-    if (additionalData.pcrRoomId) {
-      settings.push('PCR Room');
-    }
-    if (additionalData.status) {
-      settings.push(`Status: ${additionalData.status}`);
-    }
-    if (additionalData.color) {
-      settings.push('Custom color');
-    }
-    
-    if (settings.length === 0) return null;
-    
+  // Render PCR Room information
+  const renderPcrRoomInfo = () => {
+    if (!template.pcrRoomId) return null;
+
     return (
-      <div className="mb-4">
-        <p className="text-xs font-semibold text-gray-500 mb-1">Template Configuration:</p>
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-gray-500 mb-1">PCR Room:</p>
+        <Badge variant="outline" className="text-xs">
+          PCR Room {template.pcrRoomId}
+        </Badge>
+      </div>
+    );
+  };
+
+  // Render time information
+  const renderTimeInfo = () => {
+    if (!template.startTime && !template.endTime) return null;
+
+    return (
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-gray-500 mb-1">Default Times:</p>
         <div className="flex flex-wrap gap-1">
-          {settings.map((setting, index) => (
-            <Badge key={index} variant="outline" className="text-xs">
-              {setting}
+          {template.startTime && (
+            <Badge variant="outline" className="text-xs">
+              Start: {template.startTime}
             </Badge>
-          ))}
+          )}
+          {template.endTime && (
+            <Badge variant="outline" className="text-xs">
+              End: {template.endTime}
+            </Badge>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Render status and color information
+  const renderStatusInfo = () => {
+    const hasStatus = template.status && template.status !== 'confirmed';
+    const hasColor = template.color;
+    
+    if (!hasStatus && !hasColor) return null;
+
+    return (
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-gray-500 mb-1">Settings:</p>
+        <div className="flex flex-wrap gap-1">
+          {hasStatus && (
+            <Badge variant="outline" className="text-xs">
+              Status: {template.status}
+            </Badge>
+          )}
+          {hasColor && (
+            <Badge variant="outline" className="text-xs flex items-center gap-1">
+              <div 
+                className="w-2 h-2 rounded-full border border-gray-300" 
+                style={{ backgroundColor: template.color || undefined }}
+              ></div>
+              Custom color
+            </Badge>
+          )}
         </div>
       </div>
     );
@@ -173,8 +183,11 @@ export default function TemplateCard({
           <p className="text-sm text-gray-600 mb-4">{template.description}</p>
         )}
         
+        {renderStudioInfo()}
+        {renderPcrRoomInfo()}
+        {renderTimeInfo()}
+        {renderStatusInfo()}
         {renderNotificationGroups()}
-        {renderConfigSummary()}
         
         {isEditable && (
           <div className="flex justify-end space-x-2 mt-4">

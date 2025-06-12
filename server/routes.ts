@@ -1162,8 +1162,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Only admin, IT staff, and site managers can update IT support bookings" });
         }
       } else {
-        // For regular production bookings, only the creator, admin, producers, or site managers can update
-        if (booking.userId !== user.id && user.role !== "admin" && user.role !== "producer" && user.role !== "site_manager") {
+        // For regular production bookings, only the creator, admin, producers, engineers, or site managers can update
+        if (booking.userId !== user.id && user.role !== "admin" && user.role !== "producer" && user.role !== "engineer" && user.role !== "site_manager") {
           return res.status(403).json({ message: "You don't have permission to update this booking" });
         }
       }
