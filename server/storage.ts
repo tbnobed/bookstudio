@@ -1446,7 +1446,10 @@ export class DatabaseStorage implements IStorage {
     try {
       const [template] = await db.select().from(templates).where(eq(templates.id, id));
       if (template) {
-        this.templates.set(id, template);
+        // Parse JSON fields that might be stored as strings
+        const processedTemplate = this.processTemplateJson(template);
+        this.templates.set(id, processedTemplate);
+        return processedTemplate;
       }
       return template;
     } catch (error) {
@@ -1458,10 +1461,11 @@ export class DatabaseStorage implements IStorage {
   async getAllTemplates(): Promise<Template[]> {
     try {
       const allTemplates = await db.select().from(templates);
-      allTemplates.forEach(template => {
+      const processedTemplates = allTemplates.map(template => this.processTemplateJson(template));
+      processedTemplates.forEach(template => {
         this.templates.set(template.id, template);
       });
-      return allTemplates;
+      return processedTemplates;
     } catch (error) {
       console.error("Error getting all templates:", error);
       return Array.from(this.templates.values());
@@ -1471,14 +1475,44 @@ export class DatabaseStorage implements IStorage {
   async getTemplatesByUser(userId: number): Promise<Template[]> {
     try {
       const userTemplates = await db.select().from(templates).where(eq(templates.createdBy, userId));
-      userTemplates.forEach(template => {
+      const processedTemplates = userTemplates.map(template => this.processTemplateJson(template));
+      processedTemplates.forEach(template => {
         this.templates.set(template.id, template);
       });
-      return userTemplates;
+      return processedTemplates;
     } catch (error) {
       console.error(`Error getting templates for user ID ${userId}:`, error);
       return Array.from(this.templates.values()).filter(template => template.createdBy === userId);
     }
+  }
+
+  // Helper method to process JSON fields in templates
+  private processTemplateJson(template: any): Template {
+    const processedTemplate = { ...template };
+    
+    // Parse studioIds if it's a JSON string
+    if (typeof template.studioIds === 'string') {
+      try {
+        processedTemplate.studioIds = JSON.parse(template.studioIds);
+        console.log(`Template ${template.id}: Parsed studioIds from "${template.studioIds}" to`, processedTemplate.studioIds);
+      } catch (error) {
+        console.warn(`Template ${template.id}: Failed to parse studioIds "${template.studioIds}":`, error);
+        processedTemplate.studioIds = [];
+      }
+    }
+    
+    // Parse notifyList if it's a JSON string
+    if (typeof template.notifyList === 'string') {
+      try {
+        processedTemplate.notifyList = JSON.parse(template.notifyList);
+        console.log(`Template ${template.id}: Parsed notifyList from "${template.notifyList}" to`, processedTemplate.notifyList);
+      } catch (error) {
+        console.warn(`Template ${template.id}: Failed to parse notifyList "${template.notifyList}":`, error);
+        processedTemplate.notifyList = [];
+      }
+    }
+    
+    return processedTemplate;
   }
   
   // PCR Room methods
