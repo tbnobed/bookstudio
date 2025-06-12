@@ -265,14 +265,14 @@ export function Header({
                 <button
                   key={studio.id}
                   className={cn(
-                    "px-2 py-1 text-xs font-medium bg-white border rounded-md shadow-sm",
+                    "px-3 py-1.5 text-sm font-medium bg-white border rounded-md shadow-sm whitespace-nowrap",
                     selectedStudioIds.includes(studio.id)
                       ? "border-primary"
                       : "border-gray-300 hover:bg-gray-50"
                   )}
                   onClick={() => toggleStudioFilter(studio.id)}
                 >
-                  <span className={cn("h-2 w-2 inline-block rounded-full mr-1", getStudioStatusColor(calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks)))}></span>
+                  <span className={cn("h-2 w-2 inline-block rounded-full mr-2", getStudioStatusColor(calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks)))}></span>
                   {studio.name}
                 </button>
               ))}
