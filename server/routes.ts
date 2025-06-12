@@ -23,7 +23,8 @@ import {
   sendBookingUpdate, 
   sendBookingCancellation, 
   sendMaintenanceAlert,
-  sendFacilityAlert 
+  sendFacilityAlert,
+  sendSiteManagerNotification
 } from "./services/emailService";
 
 import {
@@ -1033,6 +1034,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Send site manager notification for new booking
+      try {
+        const studios = [];
+        if (studioIds && studioIds.length > 0) {
+          for (const studioIdStr of studioIds) {
+            const studioId = parseInt(studioIdStr);
+            const studio = await storage.getStudio(studioId);
+            if (studio) studios.push(studio);
+          }
+        } else if (booking.studioId) {
+          const studio = await storage.getStudio(booking.studioId);
+          if (studio) studios.push(studio);
+        }
+        
+        if (studios.length > 0) {
+          await sendSiteManagerNotification(booking, studios, user, 'created');
+          console.log(`Site manager notification sent for new booking ${booking.id}`);
+        }
+      } catch (siteManagerError) {
+        console.error("Error sending site manager notification for new booking:", siteManagerError);
+        // Continue execution even if site manager notification fails
+      }
+      
       res.status(201).json(booking);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -1353,6 +1377,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Skipping notification creation - no valid userId found (userId = ${booking.userId})`);
       }
       
+      // Send site manager notification for booking update
+      try {
+        const studios = [];
+        if (parsedStudioIds && parsedStudioIds.length > 0) {
+          for (const studioId of parsedStudioIds) {
+            const studio = await storage.getStudio(studioId);
+            if (studio) studios.push(studio);
+          }
+        } else if (updatedBooking && updatedBooking.studioId) {
+          const studio = await storage.getStudio(updatedBooking.studioId);
+          if (studio) studios.push(studio);
+        }
+        
+        if (studios.length > 0 && updatedBooking) {
+          const bookingUser = booking.userId ? await storage.getUser(booking.userId) : req.user;
+          if (bookingUser) {
+            // Track what was changed for the notification
+            const changes = {};
+            Object.keys(updateData).forEach(key => {
+              if (updateData[key] !== undefined) {
+                changes[key] = updateData[key];
+              }
+            });
+            
+            await sendSiteManagerNotification(updatedBooking, studios, bookingUser, 'updated', changes);
+            console.log(`Site manager notification sent for updated booking ${updatedBooking.id}`);
+          }
+        }
+      } catch (siteManagerError) {
+        console.error("Error sending site manager notification for booking update:", siteManagerError);
+        // Continue execution even if site manager notification fails
+      }
+      
       res.json(updatedBooking);
     } catch (error) {
       res.status(500).json({ message: "Failed to update booking" });
@@ -1446,6 +1503,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error("Error creating notification for deletion:", notificationError);
             // Continue with the response even if notification creation fails
           }
+        }
+        
+        // Send site manager notification for booking deletion
+        try {
+          const studios = [];
+          // Get studio information for the deleted booking
+          if (booking.studioId) {
+            const studio = await storage.getStudio(booking.studioId);
+            if (studio) studios.push(studio);
+          } else {
+            // For multi-studio bookings, get all associated studios
+            try {
+              const bookingStudios = await storage.getStudiosForBooking(booking.id);
+              studios.push(...bookingStudios);
+            } catch (studioError) {
+              console.error("Error getting studios for deleted booking:", studioError);
+            }
+          }
+          
+          if (studios.length > 0) {
+            const deletingUser = user;
+            await sendSiteManagerNotification(booking, studios, deletingUser, 'deleted');
+            console.log(`Site manager notification sent for deleted booking ${booking.id}`);
+          }
+        } catch (siteManagerError) {
+          console.error("Error sending site manager notification for booking deletion:", siteManagerError);
+          // Continue execution even if site manager notification fails
         }
         
         return res.json({ message: "Booking deleted successfully" });

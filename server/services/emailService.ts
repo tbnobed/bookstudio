@@ -966,3 +966,148 @@ export async function sendFacilityAlert(
   
   return Promise.all(userPromises);
 }
+/**
+ * Send comprehensive site manager notification for all booking activities
+ * This ensures the site manager receives notification for every booking operation
+ */
+export async function sendSiteManagerNotification(
+  booking: Booking,
+  studios: Studio[],
+  user: User,
+  action: 'created' | 'updated' | 'cancelled' | 'deleted',
+  changes?: any
+): Promise<boolean> {
+  console.log(`Sending site manager notification for booking ${booking.id} (${action})`);
+  
+  const actionLabels = {
+    created: 'New Booking Created',
+    updated: 'Booking Updated',
+    cancelled: 'Booking Cancelled',
+    deleted: 'Booking Deleted'
+  };
+  
+  const actionColors = {
+    created: '#10b981',
+    updated: '#f59e0b', 
+    cancelled: '#ef4444',
+    deleted: '#dc2626'
+  };
+  
+  const subject = `${actionLabels[action]}: ${booking.title}`;
+  const studioNames = studios.map(s => s.name);
+  
+  // Create HTML content for site manager notification
+  const htmlContent = `
+    <div class="header">
+        <h1>${APP_NAME}</h1>
+        <p>Site Manager Notification - Booking ${actionLabels[action]}</p>
+    </div>
+    <div class="content">
+        <div class="alert-badge" style="background-color: ${actionColors[action]}; color: white;">
+            ${actionLabels[action].toUpperCase()}
+        </div>
+        
+        <p class="message-text"><strong>Action Required:</strong> Site manager notification for booking activity.</p>
+        
+        <div class="booking-card">
+            <div class="booking-title">${booking.title}</div>
+            <div class="booking-details">
+                <div class="detail-row">
+                    <span class="detail-label">Action:</span>
+                    <span class="detail-value">${actionLabels[action]}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Studios:</span>
+                    <span class="detail-value">${formatStudios(studioNames)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Start:</span>
+                    <span class="detail-value">${formatDate(booking.start)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">End:</span>
+                    <span class="detail-value">${formatDate(booking.end)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value">${booking.type}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">${createStatusTag(booking.status || 'pending')}</span>
+                </div>
+                ${booking.severity ? `
+                <div class="detail-row">
+                    <span class="detail-label">Severity:</span>
+                    <span class="detail-value">${createSeverityBadge(booking.severity)}</span>
+                </div>` : ''}
+                <div class="detail-row">
+                    <span class="detail-label">User:</span>
+                    <span class="detail-value">${user.name} (${user.email})</span>
+                </div>
+                ${booking.description ? `
+                <div class="detail-row">
+                    <span class="detail-label">Description:</span>
+                    <span class="detail-value">${booking.description}</span>
+                </div>` : ''}
+            </div>
+        </div>
+        
+        ${changes && action === 'updated' ? `
+        <div class="booking-card">
+            <div class="booking-title">Changes Made</div>
+            <div class="booking-details">
+                ${Object.entries(changes).map(([key, value]) => `
+                <div class="detail-row">
+                    <span class="detail-label">${key}:</span>
+                    <span class="detail-value">${value}</span>
+                </div>`).join('')}
+            </div>
+        </div>` : ''}
+        
+        <p class="message-text">
+          <strong>Site Manager Action:</strong> Please review this booking activity and take any necessary actions 
+          to ensure proper facility coordination and resource management.
+        </p>
+        
+        <p class="message-text">This is an automated notification sent to the site manager for all booking activities.</p>
+    </div>
+  `;
+
+  // Plain text version
+  const textContent = `
+    SITE MANAGER NOTIFICATION - ${actionLabels[action].toUpperCase()}
+    
+    A booking has been ${action} and requires site manager awareness:
+    
+    Booking Details:
+    - Title: ${booking.title}
+    - Studios: ${studioNames.join(', ')}
+    - Start: ${formatDate(booking.start)}
+    - End: ${formatDate(booking.end)}
+    - Type: ${booking.type}
+    - Status: ${booking.status || 'pending'}
+    ${booking.severity ? `- Severity: ${booking.severity}` : ''}
+    - User: ${user.name} (${user.email})
+    ${booking.description ? `- Description: ${booking.description}` : ''}
+    
+    ${changes && action === 'updated' ? `
+    Changes Made:
+    ${Object.entries(changes).map(([key, value]) => `- ${key}: ${value}`).join('\n    ')}
+    ` : ''}
+    
+    Please review this booking activity and take any necessary actions.
+    
+    This is an automated notification sent to the site manager.
+    
+    ${APP_NAME}
+  `;
+
+  return await sendEmail({
+    to: SITE_MANAGER_EMAIL,
+    from: FROM_EMAIL,
+    subject: `[SITE MANAGER] ${subject}`,
+    text: textContent,
+    html: createEmailTemplate(htmlContent, `[SITE MANAGER] ${subject}`),
+  });
+}
