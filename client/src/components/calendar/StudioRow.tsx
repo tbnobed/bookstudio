@@ -236,7 +236,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
               
               return <div className={`w-2 h-2 rounded-full mr-2 ${statusClass}`}></div>;
             })()}
-            <span className="text-xs font-medium text-gray-700 truncate">{studio.name}</span>
+            <span className="text-sm font-medium text-gray-700 whitespace-nowrap">{studio.name}</span>
           </div>
         );
       })()}
