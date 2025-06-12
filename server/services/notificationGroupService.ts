@@ -86,6 +86,37 @@ function createEmailTemplate(content: string, title: string): string {
                 font-size: 16px;
                 margin: 16px 0;
                 color: #475569;
+                background-color: #f8fafc;
+                padding: 16px;
+                border-radius: 8px;
+            }
+            .booking-title {
+                color: #1e40af;
+                font-size: 24px;
+                font-weight: 700;
+                margin: 0 0 24px 0;
+            }
+            .booking-details {
+                margin-bottom: 24px;
+            }
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 12px 0;
+                border-bottom: 1px solid #f1f5f9;
+            }
+            .detail-row:last-child {
+                border-bottom: none;
+            }
+            .label {
+                font-weight: 600;
+                color: #475569;
+                flex: 0 0 120px;
+            }
+            .value {
+                color: #334155;
+                flex: 1;
+                text-align: right;
             }
             .booking-card {
                 background: #ffffff;
@@ -310,46 +341,46 @@ export async function sendBookingNotificationToGroups(
   
   const studioName = studio ? studio.name : 'Multiple Studios';
   
-  // Create content for email template
+  // Create content for email template using proper CSS classes
   const content = `
-    <div class="content">
-      <h2 class="booking-title">${booking.title}</h2>
+    <div class="booking-card">
+      <h3>${booking.title}</h3>
       
-      <div class="booking-details">
-        <div class="detail-row">
-          <span class="label">Studio:</span>
-          <span class="value">${studioName}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">Start Time:</span>
-          <span class="value">${formatDate(booking.start)}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">End Time:</span>
-          <span class="value">${formatDate(booking.end)}</span>
-        </div>
+      <table class="details-table">
+        <tr>
+          <td><strong>Studio:</strong></td>
+          <td>${studioName}</td>
+        </tr>
+        <tr>
+          <td><strong>Start Time:</strong></td>
+          <td>${formatDate(booking.start)}</td>
+        </tr>
+        <tr>
+          <td><strong>End Time:</strong></td>
+          <td>${formatDate(booking.end)}</td>
+        </tr>
         ${booking.description ? `
-        <div class="detail-row">
-          <span class="label">Description:</span>
-          <span class="value">${booking.description}</span>
-        </div>
+        <tr>
+          <td><strong>Description:</strong></td>
+          <td>${booking.description}</td>
+        </tr>
         ` : ''}
         ${booking.status ? `
-        <div class="detail-row">
-          <span class="label">Status:</span>
-          <span class="value">${createStatusTag(booking.status)}</span>
-        </div>
+        <tr>
+          <td><strong>Status:</strong></td>
+          <td>${createStatusTag(booking.status)}</td>
+        </tr>
         ` : ''}
         ${booking.severity ? `
-        <div class="detail-row">
-          <span class="label">Severity:</span>
-          <span class="value">${createSeverityBadge(booking.severity)}</span>
-        </div>
+        <tr>
+          <td><strong>Severity:</strong></td>
+          <td>${createSeverityBadge(booking.severity)}</td>
+        </tr>
         ` : ''}
-      </div>
-      
-      <p class="message-text">A booking has been ${action} in your facility. This notification has been sent to your notification group.</p>
+      </table>
     </div>
+    
+    <p class="message-text">A booking has been ${action} in your facility. This notification has been sent to your notification group.</p>
   `;
   
   const htmlMessage = createEmailTemplate(content, subject);
