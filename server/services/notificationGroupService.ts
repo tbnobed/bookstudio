@@ -6,9 +6,18 @@ import { storage } from '../storage';
 // Use the existing email service functions
 import { sendEmail } from './emailService';
 
-// Format date helper (copied from emailService to avoid circular imports)
+// Format date helper for Chicago CDT timezone
 function formatDate(date: Date): string {
-  return format(new Date(date), 'EEEE, MMMM d, yyyy - h:mm a');
+  return new Date(date).toLocaleString('en-US', {
+    timeZone: 'America/Chicago',
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
 }
 
 // Format file size helper
@@ -76,36 +85,40 @@ function createEmailTemplate(content: string, title: string): string {
                 color: #475569;
             }
             .booking-card {
-                background: #f8fafc;
+                background: #ffffff;
                 border: 1px solid #e2e8f0;
                 border-radius: 8px;
-                padding: 20px;
-                margin: 24px 0;
+                padding: 24px;
+                margin: 20px 0;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             }
             .booking-title {
-                font-size: 20px;
+                font-size: 18px;
                 font-weight: 600;
                 color: #1e293b;
                 margin-bottom: 16px;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 8px;
             }
             .booking-details {
-                display: table;
-                width: 100%;
+                margin-top: 16px;
             }
             .detail-row {
-                display: table-row;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
             }
             .detail-label {
-                display: table-cell;
                 font-weight: 600;
-                padding: 4px 16px 4px 0;
-                color: #475569;
-                width: 120px;
+                color: #64748b;
+                min-width: 100px;
+                margin-right: 12px;
+                font-size: 14px;
             }
             .detail-value {
-                display: table-cell;
-                padding: 4px 0;
                 color: #1e293b;
+                font-size: 14px;
+                flex: 1;
             }
             .alert-badge {
                 display: inline-block;

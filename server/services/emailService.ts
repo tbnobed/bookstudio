@@ -22,9 +22,18 @@ interface EmailParams {
   html?: string;
 }
 
-// Format date for emails
+// Format date for emails in Chicago CDT timezone
 export function formatDate(date: Date): string {
-  return format(new Date(date), 'EEEE, MMMM d, yyyy - h:mm a');
+  return new Date(date).toLocaleString('en-US', {
+    timeZone: 'America/Chicago',
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
 }
 
 // SendGrid email sender
@@ -91,7 +100,7 @@ function createEmailTemplate(content: string, title: string): string {
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
             padding: 32px 24px;
             text-align: center;
         }
@@ -101,13 +110,14 @@ function createEmailTemplate(content: string, title: string): string {
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 8px;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.025em;
         }
         
         .header p {
-            color: #e2e8f0;
+            color: rgba(255, 255, 255, 0.9);
             font-size: 16px;
             font-weight: 400;
+            margin: 0;
         }
         
         .content {
