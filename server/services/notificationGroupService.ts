@@ -426,9 +426,9 @@ export async function sendMaintenanceAlertToGroups(
     </div>
   `;
   
-  const htmlMessage = createEmailTemplate(content, subject);
+  const maintenanceHtmlMessage = createEmailTemplate(content, subject);
   
-  return sendEmailToGroups(groupIds, subject, htmlMessage, alwaysNotifySiteManagers);
+  return sendEmailToGroups(groupIds, subject, maintenanceHtmlMessage, alwaysNotifySiteManagers);
 }
 
 /**
