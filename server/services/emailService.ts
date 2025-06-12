@@ -256,6 +256,31 @@ function createEmailTemplate(content: string, title: string): string {
             text-decoration: none;
         }
         
+        .alert-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .alert-critical {
+            background-color: #dc2626 !important;
+            color: white !important;
+        }
+        
+        ul.message-text {
+            margin: 16px 0;
+            padding-left: 20px;
+        }
+        
+        ul.message-text li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
         @media (max-width: 600px) {
             .email-container {
                 margin: 0;
@@ -687,6 +712,51 @@ export async function sendMaintenanceAlert(
     console.log(`Sending maintenance alert to site management group: ${siteManagementGroup.name}`);
     
     // Send a more detailed message to site managers
+    const siteManagerHtmlContent = `
+      <div class="header">
+          <h1>${APP_NAME}</h1>
+          <p>Maintenance Alert - Site Manager Notification</p>
+      </div>
+      <div class="content">
+          ${createSeverityBadge(booking.severity || 'Medium')}
+          
+          <p class="message-text"><strong>Site Manager Alert</strong></p>
+          <p class="message-text">A maintenance event has been scheduled that requires your attention.</p>
+          
+          <div class="booking-card">
+              <div class="booking-title">${booking.title}</div>
+              <div class="booking-details">
+                  <div class="detail-row">
+                      <span class="detail-label">Type:</span>
+                      <span class="detail-value">Maintenance</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">Start:</span>
+                      <span class="detail-value">${formatDate(booking.start)}</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">End:</span>
+                      <span class="detail-value">${formatDate(booking.end)}</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">Severity:</span>
+                      <span class="detail-value">${booking.severity || 'Medium'}</span>
+                  </div>
+                  ${booking.description ? `
+                  <div class="detail-row">
+                      <span class="detail-label">Description:</span>
+                      <span class="detail-value">${booking.description}</span>
+                  </div>` : ''}
+              </div>
+          </div>
+          
+          <div class="alert-badge alert-high">Management Action Required</div>
+          <p class="message-text">As a site manager, please ensure all affected teams are notified and coordinate with facilities management.</p>
+          
+          <p class="message-text">This is an automated notification sent to all site managers.</p>
+      </div>
+    `;
+
     const siteManagerText = `
       MAINTENANCE ALERT - SITE MANAGER NOTIFICATION
       
@@ -714,6 +784,7 @@ export async function sendMaintenanceAlert(
         from: FROM_EMAIL,
         subject: `${subject} (SITE MANAGER NOTIFICATION)`,
         text: siteManagerText,
+        html: createEmailTemplate(siteManagerHtmlContent, `${subject} (SITE MANAGER NOTIFICATION)`),
       })
     );
   }
@@ -728,6 +799,51 @@ export async function sendFacilityAlert(
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - IMPORTANT: Facility-Wide Alert`;
   
+  const htmlContent = `
+    <div class="header">
+        <h1>${APP_NAME}</h1>
+        <p>IMPORTANT: Facility-Wide Alert</p>
+    </div>
+    <div class="content">
+        ${createSeverityBadge(booking.severity || 'High')}
+        
+        <p class="message-text"><strong>FACILITY-WIDE ALERT</strong></p>
+        <p class="message-text">An important facility-wide alert has been issued that affects all studios and facilities.</p>
+        
+        <div class="booking-card">
+            <div class="booking-title">${booking.title}</div>
+            <div class="booking-details">
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value">${booking.type}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Start:</span>
+                    <span class="detail-value">${formatDate(booking.start)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">End:</span>
+                    <span class="detail-value">${formatDate(booking.end)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Severity:</span>
+                    <span class="detail-value">${booking.severity || 'High'}</span>
+                </div>
+                ${booking.description ? `
+                <div class="detail-row">
+                    <span class="detail-label">Description:</span>
+                    <span class="detail-value">${booking.description}</span>
+                </div>` : ''}
+            </div>
+        </div>
+        
+        <div class="alert-badge alert-high">URGENT: All Facilities Affected</div>
+        <p class="message-text">This alert affects all studio operations. Please review your production schedules and coordinate with the facilities management team immediately.</p>
+        
+        <p class="message-text">Contact the facilities management team if you have any questions or concerns about this alert.</p>
+    </div>
+  `;
+
   const text = `
     FACILITY-WIDE ALERT
     
@@ -755,6 +871,7 @@ export async function sendFacilityAlert(
       from: FROM_EMAIL,
       subject,
       text,
+      html: createEmailTemplate(htmlContent, subject),
     })
   );
   
@@ -763,6 +880,57 @@ export async function sendFacilityAlert(
     console.log(`Sending facility alert to site management group: ${siteManagementGroup.name}`);
     
     // Send a more detailed message to site managers
+    const siteManagerHtmlContent = `
+      <div class="header">
+          <h1>${APP_NAME}</h1>
+          <p>CRITICAL: Facility-Wide Alert - Site Manager Notification</p>
+      </div>
+      <div class="content">
+          ${createSeverityBadge(booking.severity || 'High')}
+          
+          <p class="message-text"><strong>CRITICAL FACILITY-WIDE ALERT</strong></p>
+          <p class="message-text">An urgent facility-wide alert requires immediate site manager attention and action.</p>
+          
+          <div class="booking-card">
+              <div class="booking-title">${booking.title}</div>
+              <div class="booking-details">
+                  <div class="detail-row">
+                      <span class="detail-label">Type:</span>
+                      <span class="detail-value">${booking.type}</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">Start:</span>
+                      <span class="detail-value">${formatDate(booking.start)}</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">End:</span>
+                      <span class="detail-value">${formatDate(booking.end)}</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">Severity:</span>
+                      <span class="detail-value">${booking.severity || 'High'}</span>
+                  </div>
+                  ${booking.description ? `
+                  <div class="detail-row">
+                      <span class="detail-label">Description:</span>
+                      <span class="detail-value">${booking.description}</span>
+                  </div>` : ''}
+              </div>
+          </div>
+          
+          <div class="alert-badge alert-critical">CRITICAL: Site Manager Action Required</div>
+          <p class="message-text">As a site manager, you must:</p>
+          <ul class="message-text">
+              <li>Immediately assess impact on all studio operations</li>
+              <li>Coordinate with all department heads and production teams</li>
+              <li>Implement emergency protocols as necessary</li>
+              <li>Ensure all staff are notified of this facility-wide alert</li>
+          </ul>
+          
+          <p class="message-text">This is an automated notification sent to all site managers.</p>
+      </div>
+    `;
+
     const siteManagerText = `
       FACILITY-WIDE ALERT - SITE MANAGER NOTIFICATION
       
@@ -790,6 +958,7 @@ export async function sendFacilityAlert(
         from: FROM_EMAIL,
         subject: `${subject} (SITE MANAGER NOTIFICATION)`,
         text: siteManagerText,
+        html: createEmailTemplate(siteManagerHtmlContent, `${subject} (SITE MANAGER NOTIFICATION)`),
       })
     );
   }
