@@ -6,7 +6,6 @@
  */
 
 const { Pool } = require('pg');
-require('dotenv').config();
 
 async function migrateProductionTemplates() {
   const pool = new Pool({
