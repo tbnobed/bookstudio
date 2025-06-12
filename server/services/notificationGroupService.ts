@@ -310,54 +310,49 @@ export async function sendBookingNotificationToGroups(
   
   const studioName = studio ? studio.name : 'Multiple Studios';
   
-  // Create simple HTML email content with inline styles
-  const htmlMessage = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h2 style="margin: 0 0 10px 0; color: #333;">Studio Booking ${actionText}</h2>
-        <p style="margin: 0; color: #666;">A booking has been ${action} in your facility</p>
+  // Create content for email template
+  const content = `
+    <div class="content">
+      <h2 class="booking-title">${booking.title}</h2>
+      
+      <div class="booking-details">
+        <div class="detail-row">
+          <span class="label">Studio:</span>
+          <span class="value">${studioName}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Start Time:</span>
+          <span class="value">${formatDate(booking.start)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">End Time:</span>
+          <span class="value">${formatDate(booking.end)}</span>
+        </div>
+        ${booking.description ? `
+        <div class="detail-row">
+          <span class="label">Description:</span>
+          <span class="value">${booking.description}</span>
+        </div>
+        ` : ''}
+        ${booking.status ? `
+        <div class="detail-row">
+          <span class="label">Status:</span>
+          <span class="value">${createStatusTag(booking.status)}</span>
+        </div>
+        ` : ''}
+        ${booking.severity ? `
+        <div class="detail-row">
+          <span class="label">Severity:</span>
+          <span class="value">${createSeverityBadge(booking.severity)}</span>
+        </div>
+        ` : ''}
       </div>
       
-      <div style="background-color: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px;">
-        <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">${booking.title}</h3>
-        
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; font-weight: bold; color: #333;">Studio:</td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; color: #666;">${studioName}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; font-weight: bold; color: #333;">Start Time:</td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; color: #666;">${formatDate(booking.start)}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; font-weight: bold; color: #333;">End Time:</td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; color: #666;">${formatDate(booking.end)}</td>
-          </tr>
-          ${booking.description ? `
-          <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; font-weight: bold; color: #333;">Description:</td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; color: #666;">${booking.description}</td>
-          </tr>
-          ` : ''}
-          ${booking.status ? `
-          <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; font-weight: bold; color: #333;">Status:</td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f1f3f4; color: #666;"><span style="background-color: #e9ecef; padding: 2px 8px; border-radius: 4px; font-size: 12px; text-transform: uppercase;">${booking.status}</span></td>
-          </tr>
-          ` : ''}
-          ${booking.severity ? `
-          <tr>
-            <td style="padding: 8px 0; font-weight: bold; color: #333;">Severity:</td>
-            <td style="padding: 8px 0; color: #666;"><span style="background-color: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 12px; text-transform: uppercase;">${booking.severity}</span></td>
-          </tr>
-          ` : ''}
-        </table>
-        
-        <p style="margin: 20px 0 0 0; color: #666; font-size: 14px;">This notification has been sent to your notification group.</p>
-      </div>
+      <p class="message-text">A booking has been ${action} in your facility. This notification has been sent to your notification group.</p>
     </div>
   `;
+  
+  const htmlMessage = createEmailTemplate(content, subject);
   
   return sendEmailToGroups(groupIds, subject, htmlMessage, alwaysNotifySiteManagers);
 }
@@ -495,9 +490,9 @@ export async function sendFacilityAlertToGroups(
     </div>
   `;
   
-  const htmlMessage = createEmailTemplate(content, subject);
+  const facilityHtmlMessage = createEmailTemplate(content, subject);
   
-  return sendEmailToGroups(groupIds, subject, htmlMessage, alwaysNotifySiteManagers);
+  return sendEmailToGroups(groupIds, subject, facilityHtmlMessage, alwaysNotifySiteManagers);
 }
 
 /**
@@ -605,7 +600,7 @@ export async function sendFileAttachmentNotificationToGroups(
     </div>
   `;
   
-  const htmlMessage = createEmailTemplate(content, subject);
+  const customHtmlMessage = createEmailTemplate(content, subject);
   
-  return sendEmailToGroups(groupIds, subject, htmlMessage, alwaysNotifySiteManagers);
+  return sendEmailToGroups(groupIds, subject, customHtmlMessage, alwaysNotifySiteManagers);
 }
