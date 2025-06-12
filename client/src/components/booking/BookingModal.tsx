@@ -388,19 +388,23 @@ export default function BookingModal({
 
   // Handle template selection
   const handleTemplateChange = (value: string) => {
-    console.log("Template selection changed to:", value);
+    console.log("🔧 Template selection changed to:", value);
+    console.log("🔧 Available templates:", templates);
     updateFormField('templateId', value);
     
     if (value && value !== "0" && value !== "none") {
       const selectedTemplate = templates.find(t => t.id === parseInt(value));
+      console.log("🔧 Selected template object:", selectedTemplate);
+      
       if (selectedTemplate) {
-        console.log("Applying template:", selectedTemplate);
-        console.log("Template start_time:", (selectedTemplate as any).start_time);
-        console.log("Template end_time:", (selectedTemplate as any).end_time);
-        console.log("Template startTime:", selectedTemplate.startTime);
-        console.log("Template endTime:", selectedTemplate.endTime);
-        console.log("Template raw object:", selectedTemplate);
-        console.log("Current formData before template application:", formData);
+        console.log("🔧 Template found, applying data...");
+        console.log("🔧 Template studio_ids:", (selectedTemplate as any).studio_ids);
+        console.log("🔧 Template pcr_room_id:", (selectedTemplate as any).pcr_room_id);
+        console.log("🔧 Template start_time:", (selectedTemplate as any).start_time);
+        console.log("🔧 Template end_time:", (selectedTemplate as any).end_time);
+        console.log("🔧 Template color:", selectedTemplate.color);
+        console.log("🔧 Template status:", selectedTemplate.status);
+        console.log("🔧 Current formData before template application:", formData);
         
         // Pre-fill form with template data - without overriding title
         // We'll keep the user's title and only provide the template name as a default
