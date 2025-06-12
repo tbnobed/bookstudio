@@ -13,7 +13,7 @@ const { Pool } = pg;
 // Use the same DATABASE_URL that the app uses
 const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: false // Disable SSL for local Docker PostgreSQL
 });
 
 async function query(text, params = []) {
