@@ -257,7 +257,7 @@ async function restoreOriginalTemplates() {
     restored.rows.forEach(template => {
       const studios = JSON.parse(template.studio_ids || '[]');
       console.log(`  ${template.id}. ${template.name}`);
-      console.log(`     Studios: [${studios.join(', ')}], PCR: ${template.pcr_room_id || 'None'}`);
+      console.log(`     Studios: [${Array.isArray(studios) ? studios.join(', ') : 'None'}], PCR: ${template.pcr_room_id || 'None'}`);
       console.log(`     Color: ${template.color}, Status: ${template.status}`);
     });
     
