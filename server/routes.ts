@@ -898,6 +898,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const existingBookings = await storage.getBookingsByStudio(studioId);
           
           const hasConflict = existingBookings.some(booking => {
+            // Skip cancelled bookings - they don't create conflicts
+            if (booking.status === 'cancelled') {
+              return false;
+            }
+            
             const bookingStart = new Date(booking.start);
             const bookingEnd = new Date(booking.end);
             
@@ -1196,6 +1201,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           const hasConflict = existingBookings.some(b => {
             if (b.id === id) return false; // Skip the current booking
+            // Skip cancelled bookings - they don't create conflicts
+            if (b.status === 'cancelled') return false;
             
             const bookingStart = new Date(b.start);
             const bookingEnd = new Date(b.end);
@@ -1226,6 +1233,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           const hasConflict = existingBookings.some(b => {
             if (b.id === id) return false; // Skip the current booking
+            // Skip cancelled bookings - they don't create conflicts
+            if (b.status === 'cancelled') return false;
             
             const bookingStart = new Date(b.start);
             const bookingEnd = new Date(b.end);
