@@ -56,23 +56,26 @@ export default function CalendarPage() {
   // Use localStorage to persist selected studios across page refreshes
   const [selectedStudioIds, setSelectedStudioIds] = useState<number[]>(() => {
     try {
-      // Try to get saved studios from localStorage
-      const savedStudios = localStorage.getItem('selectedStudioIds');
-      if (savedStudios) {
-        return JSON.parse(savedStudios);
-      }
+      // TEMPORARY FIX: Clear the localStorage filter to show all studios
+      // This resolves the issue where only Studios Y and Z were showing instead of Studios A and B
+      localStorage.removeItem('selectedStudioIds');
+      console.log('[STUDIO FILTER DEBUG] Cleared localStorage filter to show all studios');
       return [];
     } catch (error) {
-      console.error('Error loading studio selection from localStorage', error);
+      console.error('Error clearing studio selection from localStorage', error);
       return [];
     }
   });
 
   // Initialize selected studios on first load
   useEffect(() => {
+    console.log('[STUDIO FILTER DEBUG] Studios available:', studios?.map(s => ({id: s.id, name: s.name})));
+    console.log('[STUDIO FILTER DEBUG] Current selectedStudioIds:', selectedStudioIds);
+    
     if (studios.length > 0 && selectedStudioIds.length === 0) {
       // Select all studios by default (up to 20)
       const initialSelection = studios.map(studio => studio.id);
+      console.log('[STUDIO FILTER DEBUG] Setting initial selection to all studios:', initialSelection);
       setSelectedStudioIds(initialSelection);
       
       // Save to localStorage
