@@ -1356,19 +1356,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 await sendBookingUpdate(updatedBooking, studio, bookingUser);
                 
                 // Send notification to notification groups if they exist
-                if (updatedBooking.notifyList && Array.isArray(updatedBooking.notifyList) && updatedBooking.notifyList.length > 0) {
+                // Use the notification list from updateData if provided, otherwise use the original booking's list
+                const notifyList = updateData.notifyList !== undefined ? updateData.notifyList : booking.notifyList;
+                console.log(`[BookingUpdate] Checking notification groups - notifyList:`, notifyList);
+                console.log(`[BookingUpdate] notifyList type:`, typeof notifyList, 'isArray:', Array.isArray(notifyList));
+                
+                if (notifyList && Array.isArray(notifyList) && notifyList.length > 0) {
                   try {
+                    console.log(`[BookingUpdate] Sending notification to ${notifyList.length} groups:`, notifyList);
                     await sendBookingNotificationToGroups(
                       updatedBooking,
                       studio,
-                      updatedBooking.notifyList as number[],
+                      notifyList as number[],
                       'updated'
                     );
-                    console.log(`Notification sent to ${updatedBooking.notifyList.length} groups about booking update`);
+                    console.log(`Notification sent to ${notifyList.length} groups about booking update`);
                   } catch (notifyError) {
                     console.error("Error sending notification to groups:", notifyError);
                     // Continue execution even if notification failed
                   }
+                } else {
+                  console.log(`[BookingUpdate] Skipping notification groups - no valid notifyList found`);
                 }
               }
             } catch (emailError) {
