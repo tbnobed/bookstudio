@@ -228,10 +228,14 @@ export async function sendEmailToGroups(
   alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
   try {
+    console.log(`[NotificationGroupService] Attempting to send email to group IDs: ${groupIds.join(', ')}`);
+    
     // Get all notification groups from the provided IDs
     const groups = await Promise.all(
       groupIds.map(id => storage.getNotificationGroup(id))
     );
+    
+    console.log(`[NotificationGroupService] Fetched groups:`, groups.map(g => g ? `${g.name} (${g.email}, enabled: ${g.enabled})` : 'null'));
     
     // Filter out any undefined groups (in case some don't exist)
     let validGroups = groups.filter(group => group && group.enabled) as NotificationGroup[];
