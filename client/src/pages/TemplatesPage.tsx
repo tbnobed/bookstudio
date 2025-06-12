@@ -166,7 +166,9 @@ export default function TemplatesPage() {
                   <TemplateCard 
                     key={template.id}
                     template={template}
-                    isEditable={false}
+                    onEdit={(template) => setEditTemplate(template)}
+                    onDelete={(template) => handleDeleteTemplate(template)}
+                    isEditable={user?.role === "admin"}
                   />
                 ))}
               </div>
