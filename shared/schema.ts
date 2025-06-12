@@ -17,6 +17,10 @@ export const insertNotificationGroupSchema = createInsertSchema(notificationGrou
   id: true,
 });
 
+// Type exports for notification groups
+export type NotificationGroup = typeof notificationGroups.$inferSelect;
+export type InsertNotificationGroup = z.infer<typeof insertNotificationGroupSchema>;
+
 // User schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
