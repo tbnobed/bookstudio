@@ -72,6 +72,11 @@ export default function WeeklyCalendar({
     enabled: !externalStudios // Only run this query if no external studios are provided
   });
   const studios = externalStudios || studiosQuery.data || [];
+  
+  // Debug studios data
+  console.log(`[STUDIOS DEBUG] External studios provided:`, !!externalStudios);
+  console.log(`[STUDIOS DEBUG] Studios query data:`, studiosQuery.data?.map(s => ({id: s.id, name: s.name})));
+  console.log(`[STUDIOS DEBUG] Final studios array:`, studios?.map(s => ({id: s.id, name: s.name})));
 
   // Fetch bookings for the week if not provided externally
   // Move these calculations inside the useEffect to ensure they update with weekDates
@@ -124,9 +129,14 @@ export default function WeeklyCalendar({
   }, [effectiveDate, readOnly]);
 
   // Filter studios if selectedStudioIds is provided
+  console.log(`[STUDIO FILTER DEBUG] selectedStudioIds:`, selectedStudioIds);
+  console.log(`[STUDIO FILTER DEBUG] All studios:`, studios?.map(s => ({id: s.id, name: s.name})));
+  
   const filteredStudios = selectedStudioIds.length > 0
     ? studios.filter((studio) => selectedStudioIds.includes(studio.id))
     : studios;
+    
+  console.log(`[STUDIO FILTER DEBUG] Filtered studios:`, filteredStudios?.map(s => ({id: s.id, name: s.name})));
 
   // Handle booking click for editing (only if not in read-only mode)
   const handleBookingClick = (booking: any) => {
