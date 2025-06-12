@@ -75,13 +75,7 @@ const NotificationGroupDialog: React.FC<{
 }> = ({ group, isOpen, onOpenChange, onSubmit, isSubmitting }) => {
   const form = useForm<NotificationGroupFormValues>({
     resolver: zodResolver(notificationGroupSchema),
-    defaultValues: group ? {
-      name: group.name,
-      email: group.email,
-      groupType: group.groupType,
-      description: group.description || "",
-      enabled: group.enabled !== null ? group.enabled : true
-    } : {
+    defaultValues: {
       name: "",
       email: "",
       groupType: "department",
@@ -90,7 +84,33 @@ const NotificationGroupDialog: React.FC<{
     }
   });
 
+  // Reset form when group changes or dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      if (group) {
+        console.log("Resetting form with group data:", group);
+        form.reset({
+          name: group.name,
+          email: group.email,
+          groupType: group.groupType,
+          description: group.description || "",
+          enabled: group.enabled !== null ? group.enabled : true
+        });
+      } else {
+        console.log("Resetting form for new group");
+        form.reset({
+          name: "",
+          email: "",
+          groupType: "department",
+          description: "",
+          enabled: true
+        });
+      }
+    }
+  }, [group, isOpen, form]);
+
   const handleSubmit = (data: NotificationGroupFormValues) => {
+    console.log("Submitting notification group form data:", data);
     onSubmit(data);
   };
 
