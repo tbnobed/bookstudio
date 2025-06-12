@@ -42,6 +42,7 @@ import {
   verifyInviteToken,
   invalidateInviteToken
 } from "./email";
+import { migrateTemplatesApi } from "./migrate-templates-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
