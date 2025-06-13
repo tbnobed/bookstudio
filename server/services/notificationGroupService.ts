@@ -7,20 +7,33 @@ import { storage } from '../storage';
 import { sendEmail } from './emailService';
 
 // Format date helper for Chicago CDT timezone
-function formatDate(date: Date): string {
-  const chicagoDate = new Date(date).toLocaleString('en-US', {
-    timeZone: 'America/Chicago',
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  });
-  
-  // Add CDT suffix for clarity
-  return `${chicagoDate} CDT`;
+function formatDate(date: Date | string): string {
+  try {
+    // Ensure we have a proper Date object
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid Date';
+    }
+    
+    const chicagoDate = dateObj.toLocaleString('en-US', {
+      timeZone: 'America/Chicago',
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    // Add CDT suffix for clarity
+    return `${chicagoDate} CDT`;
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'Date formatting error';
+  }
 }
 
 // Format file size helper

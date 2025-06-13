@@ -47,6 +47,12 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       return false;
     }
 
+    // Debug email parameters before sending
+    console.log('[EmailService] Sending email to:', params.to);
+    console.log('[EmailService] Subject:', params.subject);
+    console.log('[EmailService] Has HTML:', !!params.html);
+    console.log('[EmailService] Has text:', !!params.text);
+
     await mailService.send({
       to: params.to,
       from: params.from,
