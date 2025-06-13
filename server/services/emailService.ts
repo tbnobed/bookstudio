@@ -53,13 +53,29 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     console.log('[EmailService] Has HTML:', !!params.html);
     console.log('[EmailService] Has text:', !!params.text);
 
-    await mailService.send({
+    // Ensure we have at least one content type for SendGrid
+    const emailData: any = {
       to: params.to,
       from: params.from,
       subject: params.subject,
-      text: params.text || '',
-      html: params.html || params.text || '',
-    });
+    };
+
+    // Add HTML content if available
+    if (params.html) {
+      emailData.html = params.html;
+    }
+
+    // Add text content if available, or generate simple fallback from HTML
+    if (params.text) {
+      emailData.text = params.text;
+    } else if (params.html) {
+      // Generate simple text fallback from HTML for SendGrid compatibility
+      emailData.text = params.html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    } else {
+      emailData.text = 'Email content not available in text format.';
+    }
+
+    await mailService.send(emailData);
     
     console.log(`Email sent successfully to ${params.to}`);
     return true;
