@@ -450,6 +450,36 @@ export class MemStorage implements IStorage {
       createdAt: new Date() 
     };
     this.bookings.set(id, newBooking);
+    
+    // Trigger notification system for notification groups (async, non-blocking)
+    if (newBooking.notifyList && Array.isArray(newBooking.notifyList) && newBooking.notifyList.length > 0) {
+      // Import and call notification system asynchronously
+      setImmediate(async () => {
+        try {
+          console.log(`[Storage] Triggering notifications for booking ${newBooking.id} with groups:`, newBooking.notifyList);
+          
+          // Dynamic import to avoid circular dependencies
+          const { sendBookingNotificationToGroups } = await import('./services/notificationGroupService.js');
+          
+          let studio = null;
+          if (newBooking.studioId) {
+            studio = await this.getStudio(newBooking.studioId);
+          }
+          
+          await sendBookingNotificationToGroups(
+            newBooking,
+            studio,
+            newBooking.notifyList as number[],
+            'created'
+          );
+          
+          console.log(`[Storage] Notifications sent successfully for booking ${newBooking.id}`);
+        } catch (error) {
+          console.error(`[Storage] Error sending notifications for booking ${newBooking.id}:`, error);
+        }
+      });
+    }
+    
     return newBooking;
   }
 
