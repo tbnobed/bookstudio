@@ -326,6 +326,77 @@ export async function sendEmailToGroups(
 }
 
 /**
+ * Send styled HTML emails to notification groups with fallback plain text
+ * @param groupIds Array of notification group IDs
+ * @param subject Email subject
+ * @param htmlContent HTML email content
+ * @param textContent Plain text fallback content
+ * @param alwaysNotifySiteManagers If true, always includes site management group (default: true)
+ * @returns Promise resolving to an array of sending results
+ */
+export async function sendStyledEmailToGroups(
+  groupIds: number[],
+  subject: string,
+  htmlContent: string,
+  textContent: string,
+  alwaysNotifySiteManagers: boolean = true
+): Promise<boolean[]> {
+  try {
+    console.log(`[NotificationGroupService] Sending styled emails to group IDs: ${groupIds.join(', ')}`);
+    
+    // Get all notification groups from the provided IDs
+    const groups = await Promise.all(
+      groupIds.map(id => storage.getNotificationGroup(id))
+    );
+    
+    console.log(`[NotificationGroupService] Fetched groups:`, groups.map(g => g ? `${g.name} (${g.email}, enabled: ${g.enabled})` : 'null'));
+    
+    // Filter out any undefined groups (in case some don't exist)
+    let validGroups = groups.filter(group => group && group.enabled) as NotificationGroup[];
+    
+    // Add site management group if not already included and alwaysNotifySiteManagers is true
+    if (alwaysNotifySiteManagers) {
+      const siteManagementGroup = await getSiteManagementGroup();
+      
+      if (siteManagementGroup) {
+        // Check if site management group is already in the list
+        const alreadyIncluded = validGroups.some(group => group.id === siteManagementGroup.id);
+        
+        if (!alreadyIncluded) {
+          console.log(`Adding site management group '${siteManagementGroup.name}' to notification recipients`);
+          validGroups.push(siteManagementGroup);
+        }
+      }
+    }
+    
+    // Remove any duplicate groups (by ID)
+    validGroups = validGroups.filter((group, index, self) => 
+      index === self.findIndex(g => g.id === group.id)
+    );
+    
+    console.log(`Sending styled emails to ${validGroups.length} notification groups`);
+    
+    // Send emails to each group
+    const emailPromises = validGroups.map(group => {
+      console.log(`Sending styled email to group: ${group.name} (${group.email})`);
+      
+      return sendEmail({
+        to: group.email,
+        from: FROM_EMAIL,
+        subject,
+        text: textContent,
+        html: createEmailTemplate(htmlContent, subject),
+      });
+    });
+    
+    return Promise.all(emailPromises);
+  } catch (error) {
+    console.error('Error sending styled emails to notification groups:', error);
+    return [false]; // Return a failed result
+  }
+}
+
+/**
  * Send a booking notification to specified notification groups
  * @param booking The booking information
  * @param studio The studio information
@@ -352,7 +423,61 @@ export async function sendBookingNotificationToGroups(
   
   const studioName = studio ? studio.name : 'Multiple Studios';
   
-  // Create plain text message for reliable delivery
+  const actionColors = {
+    created: '#10b981',
+    updated: '#f59e0b', 
+    cancelled: '#ef4444'
+  };
+  
+  // Create stylized HTML content like site manager emails
+  const htmlContent = `
+    <div class="header">
+        <h1>${APP_NAME}</h1>
+        <p>Studio Booking ${actionText}</p>
+    </div>
+    <div class="content">
+        <div class="alert-badge" style="background-color: ${actionColors[action]}; color: white;">
+            ${actionText.toUpperCase()}
+        </div>
+        
+        <p class="message-text"><strong>Booking Information:</strong> A studio booking has been ${action}.</p>
+        
+        <div class="booking-card">
+            <div class="booking-title">${booking.title}</div>
+            <div class="booking-details">
+                <div class="detail-row">
+                    <span class="detail-label">Studio:</span>
+                    <span class="detail-value">${studioName}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Start:</span>
+                    <span class="detail-value">${formatDate(booking.start)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">End:</span>
+                    <span class="detail-value">${formatDate(booking.end)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value">${booking.type}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">${createStatusTag(booking.status || 'pending')}</span>
+                </div>
+                ${booking.description ? `
+                <div class="detail-row">
+                    <span class="detail-label">Description:</span>
+                    <span class="detail-value">${booking.description}</span>
+                </div>` : ''}
+            </div>
+        </div>
+        
+        <p class="message-text">This notification has been sent to your notification group.</p>
+    </div>
+  `;
+
+  // Create plain text version for fallback
   const textMessage = `
     Studio Booking ${actionText}
     
@@ -362,8 +487,9 @@ export async function sendBookingNotificationToGroups(
     - Title: ${booking.title}
     - From: ${formatDate(booking.start)}
     - To: ${formatDate(booking.end)}
+    - Type: ${booking.type}
+    - Status: ${booking.status || 'pending'}
     ${booking.description ? `- Description: ${booking.description}` : ''}
-    ${booking.status ? `- Status: ${booking.status}` : ''}
     
     This notification has been sent to your notification group.
     
@@ -371,7 +497,7 @@ export async function sendBookingNotificationToGroups(
     ${APP_NAME}
   `;
   
-  return sendEmailToGroups(groupIds, subject, textMessage, alwaysNotifySiteManagers);
+  return sendStyledEmailToGroups(groupIds, subject, htmlContent, textMessage, alwaysNotifySiteManagers);
 }
 
 /**
@@ -388,59 +514,75 @@ export async function sendMaintenanceAlertToGroups(
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - Maintenance Alert`;
   
-  // Create modern HTML email content
-  const header = `
+  // Create stylized HTML content like site manager emails
+  const htmlContent = `
     <div class="header">
-      <h1>🔧 Maintenance Alert</h1>
-      <p>A maintenance event has been scheduled</p>
+        <h1>${APP_NAME}</h1>
+        <p>Maintenance Alert - Scheduled Event</p>
     </div>
-  `;
-  
-  const content = `
-    ${header}
     <div class="content">
-      <div class="alert-badge" style="background: #fef3c7; color: #92400e;">
-        MAINTENANCE SCHEDULED
-      </div>
-      
-      <div class="booking-card">
-        <div class="booking-title">${booking.title}</div>
-        <div class="booking-details">
-          <div class="detail-row">
-            <div class="detail-label">Type:</div>
-            <div class="detail-value">Maintenance</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Severity:</div>
-            <div class="detail-value">${createSeverityBadge(booking.severity || 'medium')}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Start Time:</div>
-            <div class="detail-value">${formatDate(booking.start)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">End Time:</div>
-            <div class="detail-value">${formatDate(booking.end)}</div>
-          </div>
-          ${booking.description ? `
-          <div class="detail-row">
-            <div class="detail-label">Description:</div>
-            <div class="detail-value">${booking.description}</div>
-          </div>
-          ` : ''}
+        <div class="alert-badge" style="background-color: #f59e0b; color: white;">
+            MAINTENANCE SCHEDULED
         </div>
-      </div>
-      
-      <p class="message-text">
-        <strong>⚠️ Important:</strong> This maintenance may affect studio availability. Please plan accordingly.
-      </p>
-      <p class="message-text">This notification has been sent to your notification group.</p>
+        
+        <p class="message-text"><strong>Maintenance Event:</strong> A maintenance activity has been scheduled that may affect studio operations.</p>
+        
+        <div class="booking-card">
+            <div class="booking-title">${booking.title}</div>
+            <div class="booking-details">
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value">Maintenance</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Severity:</span>
+                    <span class="detail-value">${createSeverityBadge(booking.severity || 'medium')}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Start:</span>
+                    <span class="detail-value">${formatDate(booking.start)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">End:</span>
+                    <span class="detail-value">${formatDate(booking.end)}</span>
+                </div>
+                ${booking.description ? `
+                <div class="detail-row">
+                    <span class="detail-label">Description:</span>
+                    <span class="detail-value">${booking.description}</span>
+                </div>` : ''}
+            </div>
+        </div>
+        
+        <p class="message-text">
+            <strong>⚠️ Important:</strong> This maintenance may affect studio availability. Please plan accordingly.
+        </p>
+        <p class="message-text">This notification has been sent to your notification group.</p>
     </div>
   `;
+
+  // Create plain text version for fallback
+  const textMessage = `
+    Maintenance Alert
+    
+    A maintenance event has been scheduled:
+    
+    - Title: ${booking.title}
+    - Type: Maintenance
+    - Severity: ${booking.severity || 'medium'}
+    - Start: ${formatDate(booking.start)}
+    - End: ${formatDate(booking.end)}
+    ${booking.description ? `- Description: ${booking.description}` : ''}
+    
+    ⚠️ Important: This maintenance may affect studio availability. Please plan accordingly.
+    
+    This notification has been sent to your notification group.
+    
+    Thank you,
+    ${APP_NAME}
+  `;
   
-  const maintenanceHtmlMessage = createEmailTemplate(content, subject);
-  
-  return sendEmailToGroups(groupIds, subject, maintenanceHtmlMessage, alwaysNotifySiteManagers);
+  return sendStyledEmailToGroups(groupIds, subject, htmlContent, textMessage, alwaysNotifySiteManagers);
 }
 
 /**
@@ -457,59 +599,75 @@ export async function sendFacilityAlertToGroups(
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - IMPORTANT: Facility-Wide Alert`;
   
-  // Create modern HTML email content
-  const header = `
+  // Create stylized HTML content like site manager emails
+  const htmlContent = `
     <div class="header">
-      <h1>🚨 Facility-Wide Alert</h1>
-      <p>An important facility-wide alert has been issued</p>
+        <h1>${APP_NAME}</h1>
+        <p>IMPORTANT: Facility-Wide Alert</p>
     </div>
-  `;
-  
-  const content = `
-    ${header}
     <div class="content">
-      <div class="alert-badge" style="background: #fecaca; color: #b91c1c;">
-        FACILITY-WIDE ALERT
-      </div>
-      
-      <div class="booking-card">
-        <div class="booking-title">${booking.title}</div>
-        <div class="booking-details">
-          <div class="detail-row">
-            <div class="detail-label">Type:</div>
-            <div class="detail-value">${booking.type}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Severity:</div>
-            <div class="detail-value">${createSeverityBadge(booking.severity || 'high')}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Start Time:</div>
-            <div class="detail-value">${formatDate(booking.start)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">End Time:</div>
-            <div class="detail-value">${formatDate(booking.end)}</div>
-          </div>
-          ${booking.description ? `
-          <div class="detail-row">
-            <div class="detail-label">Description:</div>
-            <div class="detail-value">${booking.description}</div>
-          </div>
-          ` : ''}
+        <div class="alert-badge" style="background-color: #dc2626; color: white;">
+            FACILITY-WIDE ALERT
         </div>
-      </div>
-      
-      <p class="message-text">
-        <strong>🚨 Critical:</strong> This alert affects all studios and facilities. Please take appropriate action immediately.
-      </p>
-      <p class="message-text">This notification has been sent to your notification group.</p>
+        
+        <p class="message-text"><strong>Critical Alert:</strong> An important facility-wide alert has been issued that affects all studios and operations.</p>
+        
+        <div class="booking-card">
+            <div class="booking-title">${booking.title}</div>
+            <div class="booking-details">
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value">${booking.type}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Severity:</span>
+                    <span class="detail-value">${createSeverityBadge(booking.severity || 'high')}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Start:</span>
+                    <span class="detail-value">${formatDate(booking.start)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">End:</span>
+                    <span class="detail-value">${formatDate(booking.end)}</span>
+                </div>
+                ${booking.description ? `
+                <div class="detail-row">
+                    <span class="detail-label">Description:</span>
+                    <span class="detail-value">${booking.description}</span>
+                </div>` : ''}
+            </div>
+        </div>
+        
+        <p class="message-text">
+            <strong>Critical:</strong> This alert affects all studios and facilities. Please take appropriate action immediately.
+        </p>
+        <p class="message-text">This notification has been sent to your notification group.</p>
     </div>
   `;
+
+  // Create plain text version for fallback
+  const textMessage = `
+    FACILITY-WIDE ALERT
+    
+    An important facility-wide alert has been issued:
+    
+    - Title: ${booking.title}
+    - Type: ${booking.type}
+    - Severity: ${booking.severity || 'high'}
+    - Start: ${formatDate(booking.start)}
+    - End: ${formatDate(booking.end)}
+    ${booking.description ? `- Description: ${booking.description}` : ''}
+    
+    CRITICAL: This alert affects all studios and facilities. Please take appropriate action immediately.
+    
+    This notification has been sent to your notification group.
+    
+    Thank you,
+    ${APP_NAME}
+  `;
   
-  const facilityHtmlMessage = createEmailTemplate(content, subject);
-  
-  return sendEmailToGroups(groupIds, subject, facilityHtmlMessage, alwaysNotifySiteManagers);
+  return sendStyledEmailToGroups(groupIds, subject, htmlContent, textMessage, alwaysNotifySiteManagers);
 }
 
 /**
@@ -526,7 +684,28 @@ export async function sendCustomNotificationToGroups(
   groupIds: number[],
   alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
-  return sendEmailToGroups(groupIds, subject, message, alwaysNotifySiteManagers);
+  // Create stylized HTML content for custom notifications
+  const htmlContent = `
+    <div class="header">
+        <h1>${APP_NAME}</h1>
+        <p>Custom Notification</p>
+    </div>
+    <div class="content">
+        <div class="alert-badge" style="background-color: #3b82f6; color: white;">
+            NOTIFICATION
+        </div>
+        
+        <div class="booking-card">
+            <div class="booking-details">
+                <p class="message-text">${message}</p>
+            </div>
+        </div>
+        
+        <p class="message-text">This notification has been sent to your notification group.</p>
+    </div>
+  `;
+
+  return sendStyledEmailToGroups(groupIds, subject, htmlContent, message, alwaysNotifySiteManagers);
 }
 
 /**
