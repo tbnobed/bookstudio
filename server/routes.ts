@@ -952,28 +952,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Handle facility-wide maintenance alerts (for all users)
+      // Handle facility-wide maintenance alerts (send to ALL notification groups + site managers)
       // These are recognized by null studioId and maintenance or it_support type
       if (booking.studioId === null && (booking.type === "maintenance" || booking.type === "it_support" || 
           booking.type === "all-day:maintenance")) {
         try {
-          console.log(`Processing facility-wide alert: ${booking.title}`);
-          // Get all users to notify
-          const allUsers = await storage.getAllUsers();
+          console.log(`Processing facility-wide maintenance alert: ${booking.title}`);
           
-          // Send email notifications to all users about the facility-wide alert
-          // Use bulk email sending to avoid API rate limits
-          if (allUsers.length > 0) {
+          // Get ALL notification groups for maintenance alerts
+          const allNotificationGroups = await storage.getAllNotificationGroups();
+          const allGroupIds = allNotificationGroups.map(group => group.id);
+          
+          console.log(`Sending maintenance alert to ALL ${allGroupIds.length} notification groups + site managers`);
+          
+          if (allGroupIds.length > 0) {
             try {
-              console.log(`Sending facility alert emails to ${allUsers.length} users`);
-              await sendFacilityAlert(booking, allUsers);
+              // Send maintenance alert to ALL groups + site managers (always true for maintenance)
+              await sendMaintenanceAlertToGroups(booking, allGroupIds, true);
+              console.log(`Maintenance alert sent to all ${allGroupIds.length} notification groups + site managers`);
             } catch (emailError) {
-              console.error("Error sending facility-wide alert emails:", emailError);
+              console.error("Error sending maintenance alert emails:", emailError);
               // Continue even if emails fail
             }
+          } else {
+            console.log("No notification groups found for maintenance alert");
           }
         } catch (error) {
-          console.error("Error processing facility-wide alert:", error);
+          console.error("Error processing facility-wide maintenance alert:", error);
           // Continue with the response even if facility alert processing fails
         }
       }
@@ -1321,27 +1326,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Updated studio links for booking ${id}: ${parsedStudioIds.join(', ')}`);
       }
       
-      // Check if this is a facility-wide alert (null studioId and maintenance/IT related type)
+      // Check if this is a facility-wide maintenance alert (null studioId and maintenance/IT related type)
       if (updatedBooking && updatedBooking.studioId === null && 
           (updatedBooking.type === "maintenance" || updatedBooking.type === "it_support" || 
            updatedBooking.type === "all-day:maintenance")) {
         try {
-          console.log(`Processing updated facility-wide alert: ${updatedBooking.title}`);
-          // Get all users to notify
-          const allUsers = await storage.getAllUsers();
+          console.log(`Processing updated facility-wide maintenance alert: ${updatedBooking.title}`);
           
-          // Send email notifications to all users about the updated facility-wide alert
-          if (allUsers.length > 0) {
+          // Get ALL notification groups for maintenance alerts
+          const allNotificationGroups = await storage.getAllNotificationGroups();
+          const allGroupIds = allNotificationGroups.map(group => group.id);
+          
+          console.log(`Sending updated maintenance alert to ALL ${allGroupIds.length} notification groups + site managers`);
+          
+          if (allGroupIds.length > 0) {
             try {
-              console.log(`Sending updated facility alert emails to ${allUsers.length} users`);
-              await sendMaintenanceAlert(updatedBooking, allUsers);
+              // Send maintenance alert to ALL groups + site managers (always true for maintenance)
+              await sendMaintenanceAlertToGroups(updatedBooking, allGroupIds, true);
+              console.log(`Updated maintenance alert sent to all ${allGroupIds.length} notification groups + site managers`);
             } catch (emailError) {
-              console.error("Error sending updated facility-wide alert emails:", emailError);
+              console.error("Error sending updated maintenance alert emails:", emailError);
               // Continue even if emails fail
             }
+          } else {
+            console.log("No notification groups found for updated maintenance alert");
           }
         } catch (error) {
-          console.error("Error processing updated facility-wide alert:", error);
+          console.error("Error processing updated facility-wide maintenance alert:", error);
           // Continue with the response even if facility alert processing fails
         }
       }
