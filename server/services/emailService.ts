@@ -439,30 +439,10 @@ async function notifySiteManagers(
       </div>
     `;
     
-    const text = `
-      SITE MANAGER NOTIFICATION
-      
-      A studio booking has been ${action}:
-      
-      - Studio: ${studio.name}
-      - Title: ${booking.title}
-      - From: ${formatDate(booking.start)}
-      - To: ${formatDate(booking.end)}
-      ${booking.description ? `- Description: ${booking.description}` : ''}
-      ${booking.status ? `- Status: ${booking.status}` : ''}
-      - User: ${user.name} (${user.email})
-      
-      This is an automated notification sent to all site managers.
-      
-      Thank you,
-      BookStud.io
-    `;
-    
     return sendEmail({
       to: siteManagementGroup.email,
       from: FROM_EMAIL,
       subject,
-      text,
       html: createEmailTemplate(htmlContent, subject),
     });
   } catch (error) {
@@ -1150,39 +1130,10 @@ export async function sendSiteManagerNotification(
     </div>
   `;
 
-  // Plain text version
-  const textContent = `
-    SITE MANAGER NOTIFICATION - ${actionLabels[action].toUpperCase()}
-    
-    A booking has been ${action} and requires site manager awareness:
-    
-    Booking Details:
-    - Title: ${booking.title}
-    - Studios: ${studioNames.join(', ')}
-    - Start: ${formatDate(booking.start)}
-    - End: ${formatDate(booking.end)}
-    - Type: ${booking.type}
-    - Status: ${booking.status || 'pending'}
-    - User: ${user.name} (${user.email})
-    ${booking.description ? `- Description: ${booking.description}` : ''}
-    
-    ${changes && action === 'updated' ? `
-    Changes Made:
-    ${Object.entries(changes).map(([key, value]) => `- ${key}: ${value}`).join('\n    ')}
-    ` : ''}
-    
-    Please review this booking activity and take any necessary actions.
-    
-    This is an automated notification sent to the site manager.
-    
-    ${APP_NAME}
-  `;
-
   return await sendEmail({
     to: SITE_MANAGER_EMAIL,
     from: FROM_EMAIL,
     subject: `[SITE MANAGER] ${subject}`,
-    text: textContent,
     html: createEmailTemplate(htmlContent, `[SITE MANAGER] ${subject}`),
   });
 }
