@@ -381,6 +381,64 @@ async function notifySiteManagers(
     const actionText = action.charAt(0).toUpperCase() + action.slice(1);
     const subject = `${APP_NAME} - Studio Booking ${actionText} (SITE MANAGER NOTIFICATION)`;
     
+    const actionColors = {
+      created: '#10b981',
+      updated: '#f59e0b', 
+      cancelled: '#ef4444'
+    };
+    
+    // Create stylized HTML content for site managers (no severity for regular bookings)
+    const htmlContent = `
+      <div class="header">
+          <h1>${APP_NAME}</h1>
+          <p>Site Manager Notification</p>
+      </div>
+      <div class="content">
+          <div class="alert-badge" style="background-color: ${actionColors[action]}; color: white;">
+              BOOKING ${actionText.toUpperCase()}
+          </div>
+          
+          <p class="message-text"><strong>Site Manager Alert:</strong> A studio booking has been ${action} and requires your attention.</p>
+          
+          <div class="booking-card">
+              <div class="booking-title">${booking.title}</div>
+              <div class="booking-details">
+                  <div class="detail-row">
+                      <span class="detail-label">Studio:</span>
+                      <span class="detail-value">${studio.name}</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">Start:</span>
+                      <span class="detail-value">${formatDate(booking.start)}</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">End:</span>
+                      <span class="detail-value">${formatDate(booking.end)}</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">Type:</span>
+                      <span class="detail-value">${booking.type}</span>
+                  </div>
+                  <div class="detail-row">
+                      <span class="detail-label">Status:</span>
+                      <span class="detail-value">${createStatusTag(booking.status || 'pending')}</span>
+                  </div>
+                  ${booking.description ? `
+                  <div class="detail-row">
+                      <span class="detail-label">Description:</span>
+                      <span class="detail-value">${booking.description}</span>
+                  </div>` : ''}
+                  <div class="detail-row">
+                      <span class="detail-label">User:</span>
+                      <span class="detail-value">${user.name} (${user.email})</span>
+                  </div>
+              </div>
+          </div>
+          
+          <p class="message-text">This automated notification has been sent to all site managers for tracking and coordination purposes.</p>
+      </div>
+    `;
+    
     const text = `
       SITE MANAGER NOTIFICATION
       
@@ -405,6 +463,7 @@ async function notifySiteManagers(
       from: FROM_EMAIL,
       subject,
       text,
+      html: createEmailTemplate(htmlContent, subject),
     });
   } catch (error) {
     console.error('Error sending site manager notification:', error);
