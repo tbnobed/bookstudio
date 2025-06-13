@@ -1079,28 +1079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Send site manager notification for new booking
-      try {
-        const studios = [];
-        if (studioIds && studioIds.length > 0) {
-          for (const studioIdStr of studioIds) {
-            const studioId = parseInt(studioIdStr);
-            const studio = await storage.getStudio(studioId);
-            if (studio) studios.push(studio);
-          }
-        } else if (booking.studioId) {
-          const studio = await storage.getStudio(booking.studioId);
-          if (studio) studios.push(studio);
-        }
-        
-        if (studios.length > 0) {
-          await sendSiteManagerNotification(booking, studios, user, 'created');
-          console.log(`Site manager notification sent for new booking ${booking.id}`);
-        }
-      } catch (siteManagerError) {
-        console.error("Error sending site manager notification for new booking:", siteManagerError);
-        // Continue execution even if site manager notification fails
-      }
+      // Site manager notifications are now handled automatically by the notification group system
       
       res.status(201).json(booking);
     } catch (error) {

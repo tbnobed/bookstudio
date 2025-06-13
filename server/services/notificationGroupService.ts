@@ -241,10 +241,9 @@ export async function getSiteManagementGroup(): Promise<NotificationGroup | null
     // Get all notification groups
     const allGroups = await storage.getAllNotificationGroups();
     
-    // Find the site management group (groupType: 'facility')
+    // Find the site management group
     const siteManagementGroup = allGroups.find(group => 
-      group.groupType === 'facility' && 
-      group.name.toLowerCase().includes('site management') &&
+      (group.groupType === 'site_management' || group.groupType === 'facility') && 
       group.enabled
     );
     
