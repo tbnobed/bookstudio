@@ -1041,7 +1041,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     booking,
                     studio,
                     notifyGroupIds,
-                    'created'
+                    'created',
+                    false  // Disable automatic site manager notifications since notifySiteManagers handles this
                   );
                   console.log(`[BookingCreation] Notification result:`, result);
                   console.log(`Notification sent to ${notifyGroupIds.length} groups about new booking`);
@@ -1396,7 +1397,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       updatedBooking,
                       studio,
                       notifyList as number[],
-                      'updated'
+                      'updated',
+                      false  // Disable automatic site manager notifications since sendSiteManagerNotification handles this
                     );
                     console.log(`Notification sent to ${notifyList.length} groups about booking update`);
                   } catch (notifyError) {
