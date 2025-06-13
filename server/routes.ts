@@ -18,13 +18,11 @@ import { ValidationError } from "zod-validation-error";
 import { ZodError } from "zod";
 import { setupAuth, hashPassword } from "./auth";
 import { backupManager } from "./backup-simple";
-import { sendBookingNotificationToGroups, sendFacilityAlert } from "./services/notificationGroupService";
 import { 
   sendBookingConfirmation, 
   sendBookingUpdate, 
   sendBookingCancellation, 
   sendMaintenanceAlert,
-  sendFacilityAlert,
   sendSiteManagerNotification
 } from "./services/emailService";
 
@@ -33,6 +31,7 @@ import {
   sendMaintenanceAlertToGroups,
   sendFacilityAlertToGroups,
   sendCustomNotificationToGroups,
+
   sendFileAttachmentNotificationToGroups
 } from "./services/notificationGroupService";
 import { 
