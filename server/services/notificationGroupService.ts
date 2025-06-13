@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { storage } from '../storage';
 
 // Use the existing email service functions
-import { sendEmail } from './emailService';
+import { sendEmail, sendBookingConfirmation } from './emailService';
 
 // Format date helper for Chicago CDT timezone
 function formatDate(date: Date | string): string {
@@ -349,56 +349,32 @@ export async function sendBookingNotificationToGroups(
   console.log(`[NotificationGroupService] Group IDs to notify:`, groupIds);
   console.log(`[NotificationGroupService] Studio:`, studio ? studio.name : 'null');
   console.log(`[NotificationGroupService] Always notify site managers: ${alwaysNotifySiteManagers}`);
+  
   const actionText = action.charAt(0).toUpperCase() + action.slice(1);
   const subject = `${APP_NAME} - Studio Booking ${actionText}`;
   
   const studioName = studio ? studio.name : 'Multiple Studios';
   
-  // Create content for email template using proper CSS classes
-  const content = `
-    <div class="booking-card">
-      <h3>${booking.title}</h3>
-      
-      <table class="details-table">
-        <tr>
-          <td><strong>Studio:</strong></td>
-          <td>${studioName}</td>
-        </tr>
-        <tr>
-          <td><strong>Start Time:</strong></td>
-          <td>${formatDate(booking.start)}</td>
-        </tr>
-        <tr>
-          <td><strong>End Time:</strong></td>
-          <td>${formatDate(booking.end)}</td>
-        </tr>
-        ${booking.description ? `
-        <tr>
-          <td><strong>Description:</strong></td>
-          <td>${booking.description}</td>
-        </tr>
-        ` : ''}
-        ${booking.status ? `
-        <tr>
-          <td><strong>Status:</strong></td>
-          <td>${createStatusTag(booking.status)}</td>
-        </tr>
-        ` : ''}
-        ${booking.severity ? `
-        <tr>
-          <td><strong>Severity:</strong></td>
-          <td>${createSeverityBadge(booking.severity)}</td>
-        </tr>
-        ` : ''}
-      </table>
-    </div>
+  // Create plain text message for reliable delivery
+  const textMessage = `
+    Studio Booking ${actionText}
     
-    <p class="message-text">A booking has been ${action} in your facility. This notification has been sent to your notification group.</p>
+    A booking has been ${action}:
+    
+    - Studio: ${studioName}
+    - Title: ${booking.title}
+    - From: ${formatDate(booking.start)}
+    - To: ${formatDate(booking.end)}
+    ${booking.description ? `- Description: ${booking.description}` : ''}
+    ${booking.status ? `- Status: ${booking.status}` : ''}
+    
+    This notification has been sent to your notification group.
+    
+    Thank you,
+    ${APP_NAME}
   `;
   
-  const htmlMessage = createEmailTemplate(content, subject);
-  
-  return sendEmailToGroups(groupIds, subject, htmlMessage, alwaysNotifySiteManagers);
+  return sendEmailToGroups(groupIds, subject, textMessage, alwaysNotifySiteManagers);
 }
 
 /**
