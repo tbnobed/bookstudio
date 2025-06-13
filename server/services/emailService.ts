@@ -1117,11 +1117,6 @@ export async function sendSiteManagerNotification(
                     <span class="detail-label">Status:</span>
                     <span class="detail-value">${createStatusTag(booking.status || 'pending')}</span>
                 </div>
-                ${booking.severity ? `
-                <div class="detail-row">
-                    <span class="detail-label">Severity:</span>
-                    <span class="detail-value">${createSeverityBadge(booking.severity)}</span>
-                </div>` : ''}
                 <div class="detail-row">
                     <span class="detail-label">User:</span>
                     <span class="detail-value">${user.name} (${user.email})</span>
@@ -1168,7 +1163,6 @@ export async function sendSiteManagerNotification(
     - End: ${formatDate(booking.end)}
     - Type: ${booking.type}
     - Status: ${booking.status || 'pending'}
-    ${booking.severity ? `- Severity: ${booking.severity}` : ''}
     - User: ${user.name} (${user.email})
     ${booking.description ? `- Description: ${booking.description}` : ''}
     
