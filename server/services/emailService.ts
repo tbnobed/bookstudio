@@ -768,11 +768,14 @@ export async function sendMaintenanceAlert(
   users: User[]
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - Maintenance Alert`;
+  const appUrl = getApplicationUrl();
+  const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
   const htmlContent = `
     <div class="header">
         <h1>${APP_NAME}</h1>
         <p>Maintenance Alert</p>
+        <a href="${bookingUrl}" class="header-link">View Maintenance Details</a>
     </div>
     <div class="content">
         ${createSeverityBadge(booking.severity || 'Medium')}
@@ -806,6 +809,8 @@ export async function sendMaintenanceAlert(
                 </div>` : ''}
             </div>
         </div>
+        
+        <a href="${bookingUrl}" class="cta-button">View Full Maintenance Details</a>
         
         <p class="message-text">Please plan your production schedules accordingly and contact the facilities team if you have any questions.</p>
     </div>
@@ -851,6 +856,7 @@ export async function sendMaintenanceAlert(
       <div class="header">
           <h1>${APP_NAME}</h1>
           <p>Maintenance Alert - Site Manager Notification</p>
+          <a href="${bookingUrl}" class="header-link">View Maintenance Details</a>
       </div>
       <div class="content">
           ${createSeverityBadge(booking.severity || 'Medium')}
@@ -884,6 +890,8 @@ export async function sendMaintenanceAlert(
                   </div>` : ''}
               </div>
           </div>
+          
+          <a href="${bookingUrl}" class="cta-button">View Full Maintenance Details</a>
           
           <div class="alert-badge alert-high">Management Action Required</div>
           <p class="message-text">As a site manager, please ensure all affected teams are notified and coordinate with facilities management.</p>
@@ -933,11 +941,14 @@ export async function sendFacilityAlert(
   users: User[]
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - IMPORTANT: Facility-Wide Alert`;
+  const appUrl = getApplicationUrl();
+  const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
   const htmlContent = `
     <div class="header">
         <h1>${APP_NAME}</h1>
         <p>IMPORTANT: Facility-Wide Alert</p>
+        <a href="${bookingUrl}" class="header-link">View Alert Details</a>
     </div>
     <div class="content">
         ${createSeverityBadge(booking.severity || 'High')}
@@ -971,6 +982,8 @@ export async function sendFacilityAlert(
                 </div>` : ''}
             </div>
         </div>
+        
+        <a href="${bookingUrl}" class="cta-button">View Full Alert Details</a>
         
         <div class="alert-badge alert-high">URGENT: All Facilities Affected</div>
         <p class="message-text">This alert affects all studio operations. Please review your production schedules and coordinate with the facilities management team immediately.</p>
@@ -1019,6 +1032,7 @@ export async function sendFacilityAlert(
       <div class="header">
           <h1>${APP_NAME}</h1>
           <p>CRITICAL: Facility-Wide Alert - Site Manager Notification</p>
+          <a href="${bookingUrl}" class="header-link">View Alert Details</a>
       </div>
       <div class="content">
           ${createSeverityBadge(booking.severity || 'High')}
@@ -1052,6 +1066,8 @@ export async function sendFacilityAlert(
                   </div>` : ''}
               </div>
           </div>
+          
+          <a href="${bookingUrl}" class="cta-button">View Full Alert Details</a>
           
           <div class="alert-badge alert-critical">CRITICAL: Site Manager Action Required</div>
           <p class="message-text">As a site manager, you must:</p>
@@ -1129,12 +1145,15 @@ export async function sendSiteManagerNotification(
   
   const subject = `${actionLabels[action]}: ${booking.title}`;
   const studioNames = studios.map(s => s.name);
+  const appUrl = getApplicationUrl();
+  const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
   // Create HTML content for site manager notification
   const htmlContent = `
     <div class="header">
         <h1>${APP_NAME}</h1>
         <p>Site Manager Notification - Booking ${actionLabels[action]}</p>
+        <a href="${bookingUrl}" class="header-link">View Booking Details</a>
     </div>
     <div class="content">
         <div class="alert-badge" style="background-color: ${actionColors[action]}; color: white;">
@@ -1181,6 +1200,8 @@ export async function sendSiteManagerNotification(
                 </div>` : ''}
             </div>
         </div>
+        
+        <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
         
         ${changes && action === 'updated' ? `
         <div class="booking-card">
