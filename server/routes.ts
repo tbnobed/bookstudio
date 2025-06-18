@@ -1085,7 +1085,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Site manager notifications are now handled automatically by the notification group system
+      // Send site manager notification for booking creation
+      try {
+        const studios = await storage.getBookingStudios(booking.id);
+        const bookingUser = await storage.getUser(booking.userId);
+        if (bookingUser && studios.length > 0) {
+          console.log(`Sending site manager notification for new booking ${booking.id}`);
+          await sendSiteManagerNotification(booking, studios, bookingUser, 'created');
+        }
+      } catch (siteManagerError) {
+        console.error("Error sending site manager notification:", siteManagerError);
+        // Continue with response even if site manager notification fails
+      }
       
       res.status(201).json(booking);
     } catch (error) {

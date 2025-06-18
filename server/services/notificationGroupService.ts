@@ -429,13 +429,23 @@ export async function sendBookingNotificationToGroups(
     cancelled: '#ef4444'
   };
   
+  // Get application URL for booking links
+  const getApplicationUrl = () => {
+    if (process.env.REPLIT_DEV_DOMAIN) {
+      return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    }
+    if (process.env.APP_DOMAIN) {
+      return process.env.APP_DOMAIN;
+    }
+    const port = process.env.PORT || 5000;
+    return `http://localhost:${port}`;
+  };
+
+  const appUrl = getApplicationUrl();
+  const bookingUrl = `${appUrl}/?booking=${booking.id}`;
+
   // Create stylized HTML content like site manager emails
-  const htmlContent = `
-    <div class="header">
-        <h1>${APP_NAME}</h1>
-        <p>Studio Booking ${actionText}</p>
-    </div>
-    <div class="content">
+  const htmlContent = createEmailTemplate(`
         <div class="alert-badge" style="background-color: ${actionColors[action]}; color: white;">
             ${actionText.toUpperCase()}
         </div>
@@ -473,9 +483,10 @@ export async function sendBookingNotificationToGroups(
             </div>
         </div>
         
+        <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
+        
         <p class="message-text">This notification has been sent to your notification group.</p>
-    </div>
-  `;
+  `, `Studio Booking ${actionText}`, bookingUrl);
 
   // Create plain text version for fallback
   const textMessage = `
