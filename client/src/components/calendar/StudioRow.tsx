@@ -268,8 +268,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         // Use the same calculation as in the header to ensure cells match the row height
         const maxBookingsPerDay = weekDates.map(date => {
           const count = studioBookings.filter(booking => {
-            const bookingStartDate = new Date(booking.start);
-            return isSameDay(bookingStartDate, date);
+            return isSameDay(booking.start, date);
           }).length;
           return { date: date.toDateString(), count };
         });
