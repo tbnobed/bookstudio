@@ -37,7 +37,7 @@ export default function DayChronView({
     // Filter bookings for this day
     const filtered = bookings.filter(booking => {
       // Use facility's isSameDay function which handles timezone correctly
-      const result = isSameDay(new Date(booking.start), date);
+      const result = isSameDay(booking.start, date);
       // Log each booking for debugging
       if (result) {
         console.log(`DayChronView - Found matching booking: ${booking.id} - ${booking.title}`);
