@@ -178,7 +178,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         // Count max bookings for this studio in any day using the combined bookings list
         const maxBookingsPerDay = weekDates.map(date => {
           const count = studioBookings.filter(
-            booking => isSameDay(new Date(booking.start), date)
+            booking => {
+              const bookingStartsOnDate = isSameDay(booking.start, date);
+              return bookingStartsOnDate;
+            }
           ).length;
           
           return { date: date.toDateString(), count };

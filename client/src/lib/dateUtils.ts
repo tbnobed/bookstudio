@@ -139,35 +139,39 @@ export function formatDateTimeRange(start: Date | string, end: Date | string): s
 }
 
 export function getWeekDates(date: Date | null | undefined): Date[] {
-  // Always create a fresh copy of the date to avoid reference issues
+  // Use the current date if none provided
   const safeDate = date ? new Date(date.getTime()) : new Date();
   
-  // Add timestamp for debugging and tracking
-  const timestamp = Date.now();
-  console.log(`getWeekDates - [Timestamp: ${timestamp}] Input date: ${safeDate.toISOString()}`);
+  // Convert to facility timezone for calculations
+  const facilityFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: FACILITY_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  
+  const facilityDateStr = facilityFormatter.format(safeDate);
+  const [year, month, day] = facilityDateStr.split('-').map(Number);
+  
+  // Create a date in facility timezone
+  const facilityDate = new Date(year, month - 1, day);
   
   // Get the day of the week (0-6, where 0 is Sunday)
-  const day = safeDate.getDay();
+  const dayOfWeek = facilityDate.getDay();
   
-  // Calculate the date of Sunday (start of week)
-  const diff = safeDate.getDate() - day;
-  const weekStart = new Date(safeDate.getTime());
-  weekStart.setDate(diff);
-  
-  console.log(`getWeekDates - [Timestamp: ${timestamp}] Calculated week start: ${weekStart.toISOString()}`);
+  // Calculate the start of the week (Sunday)
+  const weekStart = new Date(facilityDate.getTime());
+  weekStart.setDate(facilityDate.getDate() - dayOfWeek);
   
   // Create an array of dates for the week
   const weekDates: Date[] = [];
   
   // Generate 7 days starting from Sunday
   for (let i = 0; i < 7; i++) {
-    // Create a fresh date object for each day to avoid reference issues
     const nextDate = new Date(weekStart.getTime());
     nextDate.setDate(weekStart.getDate() + i);
     weekDates.push(nextDate);
   }
-  
-  console.log(`getWeekDates - [Timestamp: ${timestamp}] First date in array: ${weekDates[0].toISOString()}, Last date: ${weekDates[6].toISOString()}`);
   
   return weekDates;
 }
@@ -231,15 +235,11 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
   const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: FACILITY_TIMEZONE,
     year: 'numeric',
-    month: 'numeric',
-    day: 'numeric'
+    month: '2-digit',
+    day: '2-digit'
   });
   
-  // Get formatted dates in the facility timezone (America/Chicago - Dallas)
-  const d1Formatted = formatter.format(d1);
-  const d2Formatted = formatter.format(d2);
-  
-  // Get the actual date components for better debug info
+  // Get the date parts for comparison
   const d1Parts = formatter.formatToParts(d1);
   const d2Parts = formatter.formatToParts(d2);
   
@@ -249,26 +249,16 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
     return part ? part.value : '';
   };
   
+  const d1Year = getDatePart(d1Parts, 'year');
   const d1Month = getDatePart(d1Parts, 'month');
   const d1Day = getDatePart(d1Parts, 'day');
-  const d1Year = getDatePart(d1Parts, 'year');
   
+  const d2Year = getDatePart(d2Parts, 'year');
   const d2Month = getDatePart(d2Parts, 'month');
   const d2Day = getDatePart(d2Parts, 'day');
-  const d2Year = getDatePart(d2Parts, 'year');
   
-  // Result is true if all date parts match
-  const result = d1Formatted === d2Formatted;
-  
-  // Log detailed comparison for debugging purposes
-  const debugDate = new Date(2025, 4, 8); // May 8, 2025
-  const diffD1 = Math.abs((d1.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
-  const diffD2 = Math.abs((d2.getTime() - debugDate.getTime()) / (1000 * 60 * 60 * 24));
-  
-  // Only log for dates near our problem period (May 2025)
-  if (diffD1 < 30 || diffD2 < 30) {
-    console.log(`isSameDay: Comparing "${d1.toISOString()}" (${d1Month}/${d1Day}/${d1Year}) with "${d2.toISOString()}" (${d2Month}/${d2Day}/${d2Year}) => ${result}`);
-  }
+  // Compare the date components directly
+  const result = d1Year === d2Year && d1Month === d2Month && d1Day === d2Day;
   
   return result;
 }
