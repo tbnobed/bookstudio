@@ -486,7 +486,7 @@ async function notifySiteManagers(
                   </div>` : ''}
                   <div class="detail-row">
                       <span class="detail-label">User:</span>
-                      <span class="detail-value">${user.name} (${user.email})</span>
+                      <span class="detail-value">${user.username}</span>
                   </div>
               </div>
           </div>
