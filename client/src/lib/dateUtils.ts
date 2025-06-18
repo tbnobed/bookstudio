@@ -109,28 +109,25 @@ export function formatDateInFacilityTimezone(date: Date): string {
  * @returns Formatted date string in facility timezone
  */
 export function formatInFacilityTimezone(date: Date, formatStr: string): string {
-  // Create formatter for facility timezone
-  const facilityDate = new Date(date.toLocaleString('en-US', { timeZone: FACILITY_TIMEZONE }));
-  
-  // Basic format string replacement
+  // Basic format string replacement using Intl API for proper timezone handling
   let result = formatStr;
   
   // Days
-  result = result.replace('EEEE', facilityDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace('EEE', facilityDate.toLocaleDateString('en-US', { weekday: 'short', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('EEEE', date.toLocaleDateString('en-US', { weekday: 'long', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('EEE', date.toLocaleDateString('en-US', { weekday: 'short', timeZone: FACILITY_TIMEZONE }));
   
   // Months
-  result = result.replace('MMMM', facilityDate.toLocaleDateString('en-US', { month: 'long', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace('MMM', facilityDate.toLocaleDateString('en-US', { month: 'short', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace('MM', facilityDate.toLocaleDateString('en-US', { month: '2-digit', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('MMMM', date.toLocaleDateString('en-US', { month: 'long', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('MMM', date.toLocaleDateString('en-US', { month: 'short', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('MM', date.toLocaleDateString('en-US', { month: '2-digit', timeZone: FACILITY_TIMEZONE }));
   
   // Days of month  
-  result = result.replace('dd', facilityDate.toLocaleDateString('en-US', { day: '2-digit', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace(/\bd\b/, facilityDate.toLocaleDateString('en-US', { day: 'numeric', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('dd', date.toLocaleDateString('en-US', { day: '2-digit', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace(/\bd\b/, date.toLocaleDateString('en-US', { day: 'numeric', timeZone: FACILITY_TIMEZONE }));
   
   // Years
-  result = result.replace('yyyy', facilityDate.toLocaleDateString('en-US', { year: 'numeric', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace('yy', facilityDate.toLocaleDateString('en-US', { year: '2-digit', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('yyyy', date.toLocaleDateString('en-US', { year: 'numeric', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('yy', date.toLocaleDateString('en-US', { year: '2-digit', timeZone: FACILITY_TIMEZONE }));
   
   return result;
 }
@@ -254,12 +251,12 @@ export function getMonthDays(year: number, month: number): Date[] {
 }
 
 /**
- * Checks if two dates represent the same day in the facility timezone
- * This is critical for ensuring bookings appear on the correct day in all timezones
+ * Checks if two dates represent the same day in the facility timezone (Chicago)
+ * This ensures bookings appear on the correct day regardless of user's local timezone
  * 
  * @param date1 First date to compare
  * @param date2 Second date to compare
- * @returns True if the dates represent the same day in facility timezone
+ * @returns True if the dates represent the same day in Chicago timezone
  */
 export function isSameDay(date1: Date | string, date2: Date | string): boolean {
   // Make defensive copies to ensure we don't modify the inputs

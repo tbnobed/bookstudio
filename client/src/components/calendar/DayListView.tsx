@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { formatTime } from '@/lib/dateUtils';
+import { formatTime, formatInFacilityTimezone } from '@/lib/dateUtils';
 import { Badge } from '@/components/ui/badge';
 import { Tv, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
