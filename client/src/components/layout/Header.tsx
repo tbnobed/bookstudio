@@ -118,10 +118,11 @@ export function Header({
     
     if (view === "day") {
       return currentDate.toLocaleDateString("en-US", { 
-        weekday: "short", 
-        month: "short", 
+        weekday: "long", 
+        month: "long", 
         day: "numeric",
-        year: "numeric"
+        year: "numeric",
+        timeZone: "America/Chicago"
       });
     } else if (view === "week") {
       // Generate fresh week text directly from current date
