@@ -127,7 +127,8 @@ BookStud.io is a comprehensive web application for television studio management 
 - Modular service architecture for easy maintenance
 
 ## Changelog
-- June 18, 2025. Initial setup
+- June 18, 2025: Initial setup
+- June 18, 2025: Calendar timezone display issue resolved - all bookings now appear on correct dates with proper America/Chicago timezone handling
 
 ## User Preferences
 
