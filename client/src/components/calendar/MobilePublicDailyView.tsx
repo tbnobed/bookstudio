@@ -17,7 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
-import { formatDate, isSameDay, formatTimeRange } from "@/lib/dateUtils";
+import { formatDate, isSameDay, formatTimeRange, formatInFacilityTimezone } from "@/lib/dateUtils";
 import { getDayRangeInChicago } from "@/utils/dateUtils";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 
@@ -235,11 +235,8 @@ export default function MobilePublicDailyView({
           
           <div className="flex flex-col items-center">
             <h1 className="text-lg font-bold">
-              {isToday(currentDate) ? "Today" : format(currentDate, "MMM d, yyyy")}
+              {formatInFacilityTimezone(currentDate, "MMM d, yyyy")}
             </h1>
-            <span className="text-sm text-gray-500">
-              {formatDate(currentDate)}
-            </span>
           </div>
           
           <Button variant="ghost" size="icon" onClick={goToNextDay}>
