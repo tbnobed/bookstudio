@@ -100,6 +100,41 @@ export function formatDateInFacilityTimezone(date: Date): string {
   });
 }
 
+/**
+ * Format a date with a custom format string in the facility timezone
+ * This function replaces date-fns format() to ensure proper timezone handling
+ * 
+ * @param date The date to format
+ * @param formatStr Format string (basic patterns like 'EEEE, MMMM d, yyyy')
+ * @returns Formatted date string in facility timezone
+ */
+export function formatInFacilityTimezone(date: Date, formatStr: string): string {
+  // Create formatter for facility timezone
+  const facilityDate = new Date(date.toLocaleString('en-US', { timeZone: FACILITY_TIMEZONE }));
+  
+  // Basic format string replacement
+  let result = formatStr;
+  
+  // Days
+  result = result.replace('EEEE', facilityDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('EEE', facilityDate.toLocaleDateString('en-US', { weekday: 'short', timeZone: FACILITY_TIMEZONE }));
+  
+  // Months
+  result = result.replace('MMMM', facilityDate.toLocaleDateString('en-US', { month: 'long', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('MMM', facilityDate.toLocaleDateString('en-US', { month: 'short', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('MM', facilityDate.toLocaleDateString('en-US', { month: '2-digit', timeZone: FACILITY_TIMEZONE }));
+  
+  // Days of month  
+  result = result.replace('dd', facilityDate.toLocaleDateString('en-US', { day: '2-digit', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace(/\bd\b/, facilityDate.toLocaleDateString('en-US', { day: 'numeric', timeZone: FACILITY_TIMEZONE }));
+  
+  // Years
+  result = result.replace('yyyy', facilityDate.toLocaleDateString('en-US', { year: 'numeric', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('yy', facilityDate.toLocaleDateString('en-US', { year: '2-digit', timeZone: FACILITY_TIMEZONE }));
+  
+  return result;
+}
+
 export function formatTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   // Use facility timezone for all time formatting

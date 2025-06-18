@@ -16,7 +16,7 @@ import { usePublicBookingStudioLinks } from '@/hooks/useBookingStudioLinks';
 import { useDevice } from '@/hooks/use-mobile';
 import { useLocation } from 'wouter';
 // Import isSameDay directly from our dateUtils to use for timezone-aware comparison
-import { isSameDay, formatTimeInFacilityTimezone } from '@/lib/dateUtils';
+import { isSameDay, formatInFacilityTimezone } from '@/lib/dateUtils';
 
 // Define our own DateRange type since it's not exported from date-fns
 interface DateRange {
@@ -186,11 +186,11 @@ function PublicCalendarPage() {
     if (!dateRange.start || !dateRange.end) return '';
     
     if (viewType === 'daily') {
-      return formatTimeInFacilityTimezone(currentDate, 'MMMM d, yyyy');
+      return formatInFacilityTimezone(currentDate, 'MMMM d, yyyy');
     } else if (viewType === 'weekly') {
-      return `${formatTimeInFacilityTimezone(dateRange.start, 'MMM d')} - ${formatTimeInFacilityTimezone(dateRange.end, 'MMM d, yyyy')}`;
+      return `${formatInFacilityTimezone(dateRange.start, 'MMM d')} - ${formatInFacilityTimezone(dateRange.end, 'MMM d, yyyy')}`;
     } else if (viewType === 'monthly') {
-      return formatTimeInFacilityTimezone(currentDate, 'MMMM yyyy');
+      return formatInFacilityTimezone(currentDate, 'MMMM yyyy');
     }
     
     return '';
