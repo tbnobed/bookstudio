@@ -93,6 +93,23 @@ const FROM_EMAIL = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io'
 const SITE_MANAGER_EMAIL = process.env.SITE_MANAGER_EMAIL || 'obedtest@tbn.tv';
 const APP_NAME = 'BookStud.io';
 
+// Function to get the application URL dynamically
+function getApplicationUrl(): string {
+  // Check for Replit deployment domain first
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  
+  // Check for custom domain from environment
+  if (process.env.APP_DOMAIN) {
+    return process.env.APP_DOMAIN;
+  }
+  
+  // Fallback for local development
+  const port = process.env.PORT || 5000;
+  return `http://localhost:${port}`;
+}
+
 // Modern HTML email template base
 function createEmailTemplate(content: string, title: string): string {
   return `
@@ -264,7 +281,7 @@ function createEmailTemplate(content: string, title: string): string {
         .cta-button {
             display: inline-block;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
+            color: #ffffff !important;
             text-decoration: none;
             padding: 12px 24px;
             border-radius: 8px;
@@ -275,6 +292,25 @@ function createEmailTemplate(content: string, title: string): string {
         
         .cta-button:hover {
             transform: translateY(-1px);
+            color: #ffffff !important;
+        }
+        
+        .header-link {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+        
+        .header-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: #ffffff !important;
         }
         
         .footer {
@@ -404,10 +440,14 @@ async function notifySiteManagers(
     };
     
     // Create stylized HTML content for site managers (no severity for regular bookings)
+    const appUrl = getApplicationUrl();
+    const bookingUrl = `${appUrl}/?booking=${booking.id}`;
+    
     const htmlContent = `
       <div class="header">
           <h1>${APP_NAME}</h1>
           <p>Site Manager Notification</p>
+          <a href="${bookingUrl}" class="header-link">View Booking Details</a>
       </div>
       <div class="content">
           <div class="alert-badge" style="background-color: ${actionColors[action]}; color: white;">
@@ -451,6 +491,8 @@ async function notifySiteManagers(
               </div>
           </div>
           
+          <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
+          
           <p class="message-text">This automated notification has been sent to all site managers for tracking and coordination purposes.</p>
       </div>
     `;
@@ -474,11 +516,14 @@ export async function sendBookingConfirmation(
   user: User
 ): Promise<boolean> {
   const subject = `${APP_NAME} - Studio Booking Confirmation`;
+  const appUrl = getApplicationUrl();
+  const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
   const htmlContent = `
     <div class="header">
         <h1>${APP_NAME}</h1>
         <p>Studio Booking Confirmation</p>
+        <a href="${bookingUrl}" class="header-link">View Booking Details</a>
     </div>
     <div class="content">
         <p class="message-text">Hello <strong>${user.name}</strong>,</p>
@@ -510,6 +555,8 @@ export async function sendBookingConfirmation(
                 </div>
             </div>
         </div>
+        
+        <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
         
         <p class="message-text">You can view and manage all your bookings by logging into your ${APP_NAME} account.</p>
         
@@ -555,11 +602,14 @@ export async function sendBookingUpdate(
   user: User
 ): Promise<boolean> {
   const subject = `${APP_NAME} - Studio Booking Updated`;
+  const appUrl = getApplicationUrl();
+  const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
   const htmlContent = `
     <div class="header">
         <h1>${APP_NAME}</h1>
         <p>Studio Booking Updated</p>
+        <a href="${bookingUrl}" class="header-link">View Booking Details</a>
     </div>
     <div class="content">
         <p class="message-text">Hello <strong>${user.name}</strong>,</p>
@@ -591,6 +641,8 @@ export async function sendBookingUpdate(
                 </div>
             </div>
         </div>
+        
+        <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
         
         <p class="message-text">Please review the updated information and ensure it meets your production requirements.</p>
         
@@ -636,11 +688,14 @@ export async function sendBookingCancellation(
   user: User
 ): Promise<boolean> {
   const subject = `${APP_NAME} - Studio Booking Cancelled`;
+  const appUrl = getApplicationUrl();
+  const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
   const htmlContent = `
     <div class="header">
         <h1>${APP_NAME}</h1>
         <p>Studio Booking Cancelled</p>
+        <a href="${bookingUrl}" class="header-link">View Booking Details</a>
     </div>
     <div class="content">
         <p class="message-text">Hello <strong>${user.name}</strong>,</p>
@@ -667,6 +722,8 @@ export async function sendBookingCancellation(
                 </div>
             </div>
         </div>
+        
+        <a href="${bookingUrl}" class="cta-button">View Booking Details</a>
         
         <div class="alert-badge alert-medium">Important Notice</div>
         <p class="message-text">If you did not request this cancellation, please contact the studio management team immediately.</p>
