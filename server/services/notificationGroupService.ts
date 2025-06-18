@@ -444,49 +444,83 @@ export async function sendBookingNotificationToGroups(
   const appUrl = getApplicationUrl();
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
 
-  // Create stylized HTML content like site manager emails
-  const htmlContent = createEmailTemplate(`
-        <div class="alert-badge" style="background-color: ${actionColors[action]}; color: white;">
-            ${actionText.toUpperCase()}
-        </div>
-        
-        <p class="message-text"><strong>Booking Information:</strong> A studio booking has been ${action}.</p>
-        
-        <div class="booking-card">
-            <div class="booking-title">${booking.title}</div>
-            <div class="booking-details">
-                <div class="detail-row">
-                    <span class="detail-label">Studio:</span>
-                    <span class="detail-value">${studioName}</span>
+  // Create stylized HTML content with proper structure
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Studio Booking ${actionText}</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; }
+            .header { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 20px; text-align: center; }
+            .header h1 { margin: 0; font-size: 24px; }
+            .header-link { color: rgba(255,255,255,0.9) !important; text-decoration: none !important; background: rgba(255,255,255,0.2) !important; padding: 8px 16px !important; border-radius: 4px !important; display: inline-block !important; margin-top: 10px !important; }
+            .content { padding: 24px; }
+            .alert-badge { background-color: ${actionColors[action]}; color: white; padding: 8px 16px; border-radius: 4px; display: inline-block; margin-bottom: 16px; font-weight: bold; }
+            .message-text { margin: 16px 0; color: #374151; }
+            .booking-card { background: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0; }
+            .booking-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; color: #1f2937; }
+            .detail-row { display: flex; margin-bottom: 8px; }
+            .detail-label { font-weight: bold; width: 100px; color: #6b7280; }
+            .detail-value { color: #374151; }
+            .cta-button { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; color: white !important; text-decoration: none !important; padding: 12px 24px !important; border-radius: 6px !important; display: inline-block !important; margin: 20px 0 !important; font-weight: bold !important; }
+            .cta-button:hover { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>${APP_NAME}</h1>
+                <p>Studio Booking ${actionText}</p>
+                <a href="${bookingUrl}" class="header-link">View Booking Details</a>
+            </div>
+            <div class="content">
+                <div class="alert-badge">${actionText.toUpperCase()}</div>
+                
+                <p class="message-text"><strong>Booking Information:</strong> A studio booking has been ${action}.</p>
+                
+                <div class="booking-card">
+                    <div class="booking-title">${booking.title}</div>
+                    <div class="booking-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Studio:</span>
+                            <span class="detail-value">${studioName}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Start:</span>
+                            <span class="detail-value">${formatDate(booking.start)}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">End:</span>
+                            <span class="detail-value">${formatDate(booking.end)}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Type:</span>
+                            <span class="detail-value">${booking.type}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value">${createStatusTag(booking.status || 'pending')}</span>
+                        </div>
+                        ${booking.description ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Description:</span>
+                            <span class="detail-value">${booking.description}</span>
+                        </div>` : ''}
+                    </div>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">Start:</span>
-                    <span class="detail-value">${formatDate(booking.start)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">End:</span>
-                    <span class="detail-value">${formatDate(booking.end)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Type:</span>
-                    <span class="detail-value">${booking.type}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="detail-value">${createStatusTag(booking.status || 'pending')}</span>
-                </div>
-                ${booking.description ? `
-                <div class="detail-row">
-                    <span class="detail-label">Description:</span>
-                    <span class="detail-value">${booking.description}</span>
-                </div>` : ''}
+                
+                <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
+                
+                <p class="message-text">This notification has been sent to your notification group.</p>
             </div>
         </div>
-        
-        <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
-        
-        <p class="message-text">This notification has been sent to your notification group.</p>
-  `, `Studio Booking ${actionText}`, bookingUrl);
+    </body>
+    </html>
+  `;
 
   // Create plain text version for fallback
   const textMessage = `
