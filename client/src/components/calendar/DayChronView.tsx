@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { formatTime, isSameDay } from '@/lib/dateUtils';
+import { formatTime, isSameDay, formatTimeInFacilityTimezone } from '@/lib/dateUtils';
 import { Badge } from '@/components/ui/badge';
 import { Tv, Clock, Users, CalendarDays, Bookmark, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -380,7 +380,7 @@ export default function DayChronView({
     <div className="w-full p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">
-          {format(date, 'EEEE, MMMM d, yyyy')}
+          {formatTimeInFacilityTimezone(date, 'EEEE, MMMM d, yyyy')}
         </h2>
         
         {!readOnly && (

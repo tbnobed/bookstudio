@@ -190,7 +190,7 @@ export default function DayListView({
     <div className="w-full p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">
-          {format(date, 'EEEE, MMMM d, yyyy')}
+          {formatTimeInFacilityTimezone(date, 'EEEE, MMMM d, yyyy')}
         </h2>
         
         {!readOnly && (
