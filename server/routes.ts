@@ -1086,23 +1086,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Send site manager notification for booking creation
+      // ALWAYS send site manager notification for ALL booking creation (regardless of notification groups)
       console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION START =====');
       try {
         const studios = await storage.getBookingStudios(booking.id);
         const bookingUser = await storage.getUser(booking.userId);
-        if (bookingUser && studios.length > 0) {
-          console.log(`[BookingCreation] Sending site manager email notification for new booking ${booking.id}`);
+        if (bookingUser) {
+          console.log(`[BookingCreation] ALWAYS sending site manager email notification for new booking ${booking.id}`);
           console.log('[BookingCreation] User for notification:', bookingUser.username, bookingUser.email);
           console.log('[BookingCreation] Studios for notification:', studios.map(s => s.name));
+          console.log('[BookingCreation] Booking details:', {
+            title: booking.title,
+            type: booking.type,
+            start: booking.start,
+            end: booking.end
+          });
           
           const siteManagerResult = await sendSiteManagerNotification(booking, studios, bookingUser, 'created');
           console.log('[BookingCreation] Site manager email notification result:', siteManagerResult);
         } else {
-          console.log('[BookingCreation] Missing user or studios for site manager notification');
+          console.log('[BookingCreation] ERROR: Missing booking user for site manager notification');
         }
       } catch (siteManagerError) {
         console.error('[BookingCreation] ERROR sending site manager email notification:', siteManagerError);
+        console.error('[BookingCreation] Site manager error stack:', siteManagerError.stack);
         // Continue with response even if site manager notification fails
       }
       console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION END =====');
