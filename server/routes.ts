@@ -939,6 +939,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("=== BOOKING CREATED ===");
       console.log("Created booking:", JSON.stringify(booking));
       console.log("Booking notifyList after creation:", booking.notifyList);
+      console.log("[EMAIL DEBUG] About to check if email notifications should be sent...");
       
       // Create entries in the junction table for each selected studio
       if (studioIds && studioIds.length > 0) {
