@@ -292,9 +292,9 @@ export async function sendBookingConfirmation(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Studio Booking Confirmation</p>
-                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Booking Details</a>
+                            <h1 style="color: #ffffff !important; font-size: 28px !important; font-weight: 700 !important; margin: 0 0 8px 0 !important; letter-spacing: -0.025em !important; text-shadow: 3px 3px 6px rgba(0,0,0,0.9) !important; -webkit-text-stroke: 2px rgba(0,0,0,0.4) !important; text-outline: 2px 2px rgba(0,0,0,0.8) !important;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px !important; font-weight: 400 !important; margin: 0 0 12px 0 !important; text-shadow: 3px 3px 6px rgba(0,0,0,0.9) !important; -webkit-text-stroke: 1px rgba(0,0,0,0.4) !important; text-outline: 1px 1px rgba(0,0,0,0.8) !important;">Studio Booking Confirmation</p>
+                            <a href="${bookingUrl}" style="display: inline-block !important; background: #ffffff !important; color: #1f2937 !important; text-decoration: none !important; padding: 8px 16px !important; border-radius: 6px !important; font-weight: 600 !important; font-size: 14px !important; border: 2px solid #1f2937 !important; box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;">View Booking Details</a>
                         </td>
                     </tr>
                     <tr>
@@ -385,49 +385,58 @@ export async function sendBookingUpdate(
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
   const htmlContent = `
-    <div class="header">
-        <h1>${APP_NAME}</h1>
-        <p>Studio Booking Updated</p>
-        <a href="${bookingUrl}" class="header-link">View Booking Details</a>
-    </div>
-    <div class="content">
-        <p class="message-text">Hello <strong>${user.name}</strong>,</p>
-        <p class="message-text">Your studio booking has been updated with new details.</p>
-        
-        <div class="booking-card">
-            <div class="booking-title">${booking.title}</div>
-            <div class="booking-details">
-                <div class="detail-row">
-                    <span class="detail-label">Studio:</span>
-                    <span class="detail-value">${formatStudios([studio.name])}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Start:</span>
-                    <span class="detail-value">${formatDate(booking.start)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">End:</span>
-                    <span class="detail-value">${formatDate(booking.end)}</span>
-                </div>
-                ${booking.description ? `
-                <div class="detail-row">
-                    <span class="detail-label">Description:</span>
-                    <span class="detail-value">${booking.description}</span>
-                </div>` : ''}
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="detail-value">${createStatusTag(booking.status || 'confirmed')}</span>
-                </div>
-            </div>
-        </div>
-        
-        <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
-        
-        <p class="message-text">Please review the updated information and ensure it meets your production requirements.</p>
-        
-        <p class="message-text">You can view and manage all your bookings by logging into your ${APP_NAME} account.</p>
-    </div>
-  `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 32px 24px; text-align: center;">
+                            <h1 style="color: #ffffff !important; font-size: 28px !important; font-weight: 700 !important; margin: 0 0 8px 0 !important; letter-spacing: -0.025em !important; text-shadow: 3px 3px 6px rgba(0,0,0,0.9) !important; -webkit-text-stroke: 2px rgba(0,0,0,0.4) !important; text-outline: 2px 2px rgba(0,0,0,0.8) !important;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px !important; font-weight: 400 !important; margin: 0 0 12px 0 !important; text-shadow: 3px 3px 6px rgba(0,0,0,0.9) !important; -webkit-text-stroke: 1px rgba(0,0,0,0.4) !important; text-outline: 1px 1px rgba(0,0,0,0.8) !important;">Studio Booking Updated</p>
+                            <a href="${bookingUrl}" style="display: inline-block !important; background: #ffffff !important; color: #1f2937 !important; text-decoration: none !important; padding: 8px 16px !important; border-radius: 6px !important; font-weight: 600 !important; font-size: 14px !important; border: 2px solid #1f2937 !important; box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;">View Booking Details</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Hello <strong>${user.username}</strong>,</p>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Your studio booking has been updated with new details.</p>
+                            
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Studio:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; background-color: #ddd6fe; color: #5b21b6; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500;">${studio.name}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
+                                            </tr>
+                                            ${booking.description ? `
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.description}</td>
+                                            </tr>` : ''}
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Status:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; background-color: #fef3c7; color: #d97706;">UPDATED</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
+                            </div>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Please review the updated information and ensure it meets your production requirements.</p>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">You can view and manage all your bookings by logging into your ${APP_NAME} account.</p>
+                        </td>
+                    </tr>`;
 
   const text = `
     Hello ${user.name},
