@@ -41,17 +41,24 @@ export function formatDate(date: Date): string {
 
 // SendGrid email sender
 export async function sendEmail(params: EmailParams): Promise<boolean> {
+  console.log('[EmailService] === EMAIL SEND ATTEMPT ===');
+  console.log('[EmailService] SendGrid API Key present:', !!process.env.SENDGRID_API_KEY);
+  console.log('[EmailService] From address:', params.from);
+  console.log('[EmailService] To address:', params.to);
+  console.log('[EmailService] Subject:', params.subject);
+  
   try {
     if (!process.env.SENDGRID_API_KEY) {
-      console.warn('SendGrid API key not set. Email not sent.');
+      console.error('[EmailService] CRITICAL: SendGrid API key not set. Email not sent.');
       return false;
     }
 
     // Debug email parameters before sending
-    console.log('[EmailService] Sending email to:', params.to);
-    console.log('[EmailService] Subject:', params.subject);
+    console.log('[EmailService] Preparing email data...');
     console.log('[EmailService] Has HTML:', !!params.html);
     console.log('[EmailService] Has text:', !!params.text);
+    console.log('[EmailService] HTML length:', params.html?.length || 0);
+    console.log('[EmailService] Text length:', params.text?.length || 0);
 
     // Ensure we have at least one content type for SendGrid
     const emailData: any = {
@@ -75,14 +82,17 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       emailData.text = 'Email content not available in text format.';
     }
 
+    console.log('[EmailService] Calling SendGrid API...');
     await mailService.send(emailData);
     
-    console.log(`Email sent successfully to ${params.to}`);
+    console.log(`[EmailService] ✓ Email sent successfully to ${params.to}`);
     return true;
   } catch (error: any) {
-    console.error('SendGrid email error:', error);
+    console.error('[EmailService] ✗ SendGrid email error:', error.message);
+    console.error('[EmailService] Error code:', error.code);
+    console.error('[EmailService] Full error object:', error);
     if (error?.response?.body?.errors) {
-      console.error('SendGrid error details:', JSON.stringify(error.response.body.errors, null, 2));
+      console.error('[EmailService] SendGrid error details:', JSON.stringify(error.response.body.errors, null, 2));
     }
     return false;
   }

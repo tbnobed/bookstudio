@@ -303,22 +303,34 @@ export async function sendEmailToGroups(
       index === self.findIndex(g => g.id === group.id)
     );
     
-    console.log(`Sending emails to ${validGroups.length} notification groups`);
+    console.log(`[NotificationService] Sending emails to ${validGroups.length} notification groups`);
     
     // Send emails to each group
     const emailPromises = validGroups.map(group => {
-      console.log(`Sending email to group: ${group.name} (${group.email})`);
+      console.log(`[NotificationService] Preparing email for group: ${group.name} (${group.email})`);
       
       // Always use plain text for notification group emails to avoid SendGrid formatting issues
-      return sendEmail({
+      const emailParams = {
         to: group.email,
         from: FROM_EMAIL,
         subject,
         text: message,
+      };
+      
+      console.log(`[NotificationService] Email params for ${group.name}:`, {
+        to: emailParams.to,
+        from: emailParams.from,
+        subject: emailParams.subject,
+        textLength: emailParams.text?.length
       });
+      
+      return sendEmail(emailParams);
     });
     
-    return Promise.all(emailPromises);
+    console.log(`[NotificationService] Created ${emailPromises.length} email promises`);
+    const results = await Promise.all(emailPromises);
+    console.log(`[NotificationService] Email results:`, results);
+    return results;
   } catch (error) {
     console.error('Error sending emails to notification groups:', error);
     return [false]; // Return a failed result
