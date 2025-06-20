@@ -1086,17 +1086,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Send site manager notification for booking creation
+      console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION START =====');
       try {
         const studios = await storage.getBookingStudios(booking.id);
         const bookingUser = await storage.getUser(booking.userId);
         if (bookingUser && studios.length > 0) {
-          console.log(`Sending site manager notification for new booking ${booking.id}`);
-          await sendSiteManagerNotification(booking, studios, bookingUser, 'created');
+          console.log(`[BookingCreation] Sending site manager email notification for new booking ${booking.id}`);
+          console.log('[BookingCreation] User for notification:', bookingUser.username, bookingUser.email);
+          console.log('[BookingCreation] Studios for notification:', studios.map(s => s.name));
+          
+          const siteManagerResult = await sendSiteManagerNotification(booking, studios, bookingUser, 'created');
+          console.log('[BookingCreation] Site manager email notification result:', siteManagerResult);
+        } else {
+          console.log('[BookingCreation] Missing user or studios for site manager notification');
         }
       } catch (siteManagerError) {
-        console.error("Error sending site manager notification:", siteManagerError);
+        console.error('[BookingCreation] ERROR sending site manager email notification:', siteManagerError);
         // Continue with response even if site manager notification fails
       }
+      console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION END =====');
       
       res.status(201).json(booking);
     } catch (error) {
