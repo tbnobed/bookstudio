@@ -1019,7 +1019,7 @@ export async function sendSiteManagerNotification(
                             </table>
                             
                             <div style="text-align: center; margin: 24px 0;">
-                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
+                                <a href="${bookingUrl}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: 2px solid #1d4ed8;">View Full Booking Details</a>
                             </div>
                             
                             ${changes && action === 'updated' ? `
