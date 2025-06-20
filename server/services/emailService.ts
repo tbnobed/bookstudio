@@ -964,7 +964,7 @@ export async function sendSiteManagerNotification(
                         <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
                             <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
                             <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">Site Manager Notification - Booking ${actionLabels[action]}</p>
-                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Booking Details</a>
+                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.9); color: #1f2937 !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; border: 1px solid #ffffff;">View Booking Details</a>
                         </td>
                     </tr>
                     <tr>
