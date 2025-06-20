@@ -110,7 +110,7 @@ function getApplicationUrl(): string {
   return `http://localhost:${port}`;
 }
 
-// Modern HTML email template base
+// Modern HTML email template base optimized for email clients
 function createEmailTemplate(content: string, title: string): string {
   return `
 <!DOCTYPE html>
@@ -118,275 +118,34 @@ function createEmailTemplate(content: string, title: string): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-apple-disable-message-reformatting">
     <title>${title}</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #1f2937;
-            background-color: #f8fafc;
-        }
-        
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            padding: 32px 24px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            color: #ffffff;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: -0.025em;
-        }
-        
-        .header p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 16px;
-            font-weight: 400;
-            margin: 0;
-        }
-        
-        .content {
-            padding: 32px 24px;
-        }
-        
-        .alert-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 16px;
-            border-radius: 9999px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 24px;
-        }
-        
-        .alert-high {
-            background-color: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-        }
-        
-        .alert-medium {
-            background-color: #fffbeb;
-            color: #d97706;
-            border: 1px solid #fed7aa;
-        }
-        
-        .alert-low {
-            background-color: #f0fdf4;
-            color: #16a34a;
-            border: 1px solid #bbf7d0;
-        }
-        
-        .booking-card {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 24px;
-            margin: 24px 0;
-        }
-        
-        .booking-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 16px;
-        }
-        
-        .booking-details {
-            display: grid;
-            gap: 12px;
-        }
-        
-        .detail-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        
-        .detail-label {
-            font-weight: 500;
-            color: #6b7280;
-            min-width: 80px;
-            flex-shrink: 0;
-        }
-        
-        .detail-value {
-            color: #1f2937;
-            font-weight: 400;
-        }
-        
-        .studio-tag {
-            display: inline-block;
-            background-color: #ddd6fe;
-            color: #5b21b6;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            margin: 2px 4px 2px 0;
-        }
-        
-        .status-tag {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .status-confirmed {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-        
-        .status-cancelled {
-            background-color: #fef2f2;
-            color: #dc2626;
-        }
-        
-        .status-pending {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-        
-        .message-text {
-            font-size: 16px;
-            line-height: 1.7;
-            color: #374151;
-            margin-bottom: 24px;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff !important;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            margin: 24px 0;
-            transition: transform 0.2s ease;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-1px);
-            color: #ffffff !important;
-        }
-        
-        .header-link {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff !important;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            margin-top: 12px;
-        }
-        
-        .header-link:hover {
-            background: rgba(255, 255, 255, 0.3);
-            color: #ffffff !important;
-        }
-        
-        .footer {
-            background-color: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            padding: 24px;
-            text-align: center;
-        }
-        
-        .footer p {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        
-        .footer a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        .alert-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            margin: 10px 0;
-            text-align: center;
-        }
-        
-        .alert-critical {
-            background-color: #dc2626 !important;
-            color: white !important;
-        }
-        
-        ul.message-text {
-            margin: 16px 0;
-            padding-left: 20px;
-        }
-        
-        ul.message-text li {
-            margin: 8px 0;
-            line-height: 1.6;
-        }
-        
-        @media (max-width: 600px) {
-            .email-container {
-                margin: 0;
-                border-radius: 0;
-            }
-            
-            .header,
-            .content,
-            .footer {
-                padding: 24px 16px;
-            }
-            
-            .detail-row {
-                flex-direction: column;
-                gap: 4px;
-            }
-            
-            .detail-label {
-                min-width: auto;
-            }
-        }
-    </style>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
 </head>
-<body>
-    <div class="email-container">
-        ${content}
-        <div class="footer">
-            <p>This email was sent by ${APP_NAME}</p>
-            <p>© ${new Date().getFullYear()} The Plex Studios. All rights reserved.</p>
-        </div>
-    </div>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #1f2937; background-color: #f8fafc;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    ${content}
+                    <tr>
+                        <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 24px; text-align: center;">
+                            <p style="color: #6b7280; font-size: 14px; margin: 0 0 8px 0;">This email was sent by ${APP_NAME}</p>
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">© ${new Date().getFullYear()} The Plex Studios. All rights reserved.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>`;
 }
@@ -394,21 +153,7 @@ function createEmailTemplate(content: string, title: string): string {
 // Helper function to format studios list
 function formatStudios(studioNames: string[]): string {
   if (!studioNames || studioNames.length === 0) return 'No studios assigned';
-  return studioNames.map(name => `<span class="studio-tag">${name}</span>`).join('');
-}
-
-// Helper function to create status tag
-function createStatusTag(status: string): string {
-  const statusClass = status?.toLowerCase() === 'cancelled' ? 'status-cancelled' : 
-                     status?.toLowerCase() === 'pending' ? 'status-pending' : 'status-confirmed';
-  return `<span class="status-tag ${statusClass}">${status || 'Confirmed'}</span>`;
-}
-
-// Helper function to create severity badge
-function createSeverityBadge(severity: string): string {
-  const severityClass = severity?.toLowerCase() === 'high' ? 'alert-high' : 
-                       severity?.toLowerCase() === 'medium' ? 'alert-medium' : 'alert-low';
-  return `<div class="alert-badge ${severityClass}">${severity || 'Medium'} Priority</div>`;
+  return studioNames.map(name => `<span style="display: inline-block; background-color: #ddd6fe; color: #5b21b6; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; margin: 2px 4px 2px 0;">${name}</span>`).join('');
 }
 
 // Import the notification group service to get site management group
@@ -444,58 +189,67 @@ async function notifySiteManagers(
     const bookingUrl = `${appUrl}/?booking=${booking.id}`;
     
     const htmlContent = `
-      <div class="header">
-          <h1>${APP_NAME}</h1>
-          <p>Site Manager Notification</p>
-          <a href="${bookingUrl}" class="header-link">View Booking Details</a>
-      </div>
-      <div class="content">
-          <div class="alert-badge" style="background-color: ${actionColors[action]}; color: white;">
-              BOOKING ${actionText.toUpperCase()}
-          </div>
-          
-          <p class="message-text"><strong>Site Manager Alert:</strong> A studio booking has been ${action} and requires your attention.</p>
-          
-          <div class="booking-card">
-              <div class="booking-title">${booking.title}</div>
-              <div class="booking-details">
-                  <div class="detail-row">
-                      <span class="detail-label">Studio:</span>
-                      <span class="detail-value">${studio.name}</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">Start:</span>
-                      <span class="detail-value">${formatDate(booking.start)}</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">End:</span>
-                      <span class="detail-value">${formatDate(booking.end)}</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">Type:</span>
-                      <span class="detail-value">${booking.type}</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">Status:</span>
-                      <span class="detail-value">${createStatusTag(booking.status || 'pending')}</span>
-                  </div>
-                  ${booking.description ? `
-                  <div class="detail-row">
-                      <span class="detail-label">Description:</span>
-                      <span class="detail-value">${booking.description}</span>
-                  </div>` : ''}
-                  <div class="detail-row">
-                      <span class="detail-label">User:</span>
-                      <span class="detail-value">${user.name} (${user.email})</span>
-                  </div>
-              </div>
-          </div>
-          
-          <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
-          
-          <p class="message-text">This automated notification has been sent to all site managers for tracking and coordination purposes.</p>
-      </div>
-    `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
+                            <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">Site Manager Notification</p>
+                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Booking Details</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: ${actionColors[action]}; color: white;">
+                                BOOKING ${actionText.toUpperCase()}
+                            </div>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>Site Manager Alert:</strong> A studio booking has been ${action} and requires your attention.</p>
+                            
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Studio:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${studio.name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Type:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.type}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Status:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.status || 'pending'}</td>
+                                            </tr>
+                                            ${booking.description ? `
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.description}</td>
+                                            </tr>` : ''}
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">User:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${user.username} (${user.email})</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
+                            </div>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">This automated notification has been sent to all site managers for tracking and coordination purposes.</p>
+                        </td>
+                    </tr>`;
     
     return sendEmail({
       to: siteManagementGroup.email,
@@ -520,49 +274,58 @@ export async function sendBookingConfirmation(
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
   const htmlContent = `
-    <div class="header">
-        <h1>${APP_NAME}</h1>
-        <p>Studio Booking Confirmation</p>
-        <a href="${bookingUrl}" class="header-link">View Booking Details</a>
-    </div>
-    <div class="content">
-        <p class="message-text">Hello <strong>${user.name}</strong>,</p>
-        <p class="message-text">Your studio booking has been confirmed and is ready for production.</p>
-        
-        <div class="booking-card">
-            <div class="booking-title">${booking.title}</div>
-            <div class="booking-details">
-                <div class="detail-row">
-                    <span class="detail-label">Studio:</span>
-                    <span class="detail-value">${formatStudios([studio.name])}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Start:</span>
-                    <span class="detail-value">${formatDate(booking.start)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">End:</span>
-                    <span class="detail-value">${formatDate(booking.end)}</span>
-                </div>
-                ${booking.description ? `
-                <div class="detail-row">
-                    <span class="detail-label">Description:</span>
-                    <span class="detail-value">${booking.description}</span>
-                </div>` : ''}
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="detail-value">${createStatusTag(booking.status || 'confirmed')}</span>
-                </div>
-            </div>
-        </div>
-        
-        <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
-        
-        <p class="message-text">You can view and manage all your bookings by logging into your ${APP_NAME} account.</p>
-        
-        <p class="message-text">If you need to make any changes or have questions about your booking, please contact the studio management team.</p>
-    </div>
-  `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
+                            <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">Studio Booking Confirmation</p>
+                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Booking Details</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Hello <strong>${user.username}</strong>,</p>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Your studio booking has been confirmed and is ready for production.</p>
+                            
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Studio:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; background-color: #ddd6fe; color: #5b21b6; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500;">${studio.name}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
+                                            </tr>
+                                            ${booking.description ? `
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.description}</td>
+                                            </tr>` : ''}
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Status:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; background-color: #dcfce7; color: #166534;">CONFIRMED</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
+                            </div>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">You can view and manage all your bookings by logging into your ${APP_NAME} account.</p>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">If you need to make any changes or have questions about your booking, please contact the studio management team.</p>
+                        </td>
+                    </tr>`;
 
   const text = `
     Hello ${user.name},
@@ -853,52 +616,65 @@ export async function sendMaintenanceAlert(
     
     // Send a more detailed message to site managers
     const siteManagerHtmlContent = `
-      <div class="header">
-          <h1>${APP_NAME}</h1>
-          <p>Maintenance Alert - Site Manager Notification</p>
-          <a href="${bookingUrl}" class="header-link">View Maintenance Details</a>
-      </div>
-      <div class="content">
-          ${createSeverityBadge(booking.severity || 'Medium')}
-          
-          <p class="message-text"><strong>Site Manager Alert</strong></p>
-          <p class="message-text">A maintenance event has been scheduled that requires your attention.</p>
-          
-          <div class="booking-card">
-              <div class="booking-title">${booking.title}</div>
-              <div class="booking-details">
-                  <div class="detail-row">
-                      <span class="detail-label">Type:</span>
-                      <span class="detail-value">Maintenance</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">Start:</span>
-                      <span class="detail-value">${formatDate(booking.start)}</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">End:</span>
-                      <span class="detail-value">${formatDate(booking.end)}</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">Severity:</span>
-                      <span class="detail-value">${booking.severity || 'Medium'}</span>
-                  </div>
-                  ${booking.description ? `
-                  <div class="detail-row">
-                      <span class="detail-label">Description:</span>
-                      <span class="detail-value">${booking.description}</span>
-                  </div>` : ''}
-              </div>
-          </div>
-          
-          <a href="${bookingUrl}" class="cta-button">View Full Maintenance Details</a>
-          
-          <div class="alert-badge alert-high">Management Action Required</div>
-          <p class="message-text">As a site manager, please ensure all affected teams are notified and coordinate with facilities management.</p>
-          
-          <p class="message-text">This is an automated notification sent to all site managers.</p>
-      </div>
-    `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px 24px; text-align: center;">
+                            <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">Maintenance Alert - Site Manager Notification</p>
+                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Maintenance Details</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: ${severityColor}; color: white;">
+                                ${(booking.severity || 'Medium').toUpperCase()} PRIORITY
+                            </div>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>Site Manager Alert</strong></p>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">A maintenance event has been scheduled that requires your attention.</p>
+                            
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Type:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">Maintenance</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Severity:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; background-color: ${severityColor}; color: white;">${booking.severity || 'Medium'}</span></td>
+                                            </tr>
+                                            ${booking.description ? `
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.description}</td>
+                                            </tr>` : ''}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Maintenance Details</a>
+                            </div>
+                            
+                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
+                                Management Action Required
+                            </div>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">As a site manager, please ensure all affected teams are notified and coordinate with facilities management.</p>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">This is an automated notification sent to all site managers.</p>
+                        </td>
+                    </tr>`;
 
     const siteManagerText = `
       MAINTENANCE ALERT - SITE MANAGER NOTIFICATION
@@ -944,53 +720,68 @@ export async function sendFacilityAlert(
   const appUrl = getApplicationUrl();
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
+  const alertSeverityColor = severityColors[booking.severity?.toLowerCase() as keyof typeof severityColors] || '#dc2626';
+  
   const htmlContent = `
-    <div class="header">
-        <h1>${APP_NAME}</h1>
-        <p>IMPORTANT: Facility-Wide Alert</p>
-        <a href="${bookingUrl}" class="header-link">View Alert Details</a>
-    </div>
-    <div class="content">
-        ${createSeverityBadge(booking.severity || 'High')}
-        
-        <p class="message-text"><strong>FACILITY-WIDE ALERT</strong></p>
-        <p class="message-text">An important facility-wide alert has been issued that affects all studios and facilities.</p>
-        
-        <div class="booking-card">
-            <div class="booking-title">${booking.title}</div>
-            <div class="booking-details">
-                <div class="detail-row">
-                    <span class="detail-label">Type:</span>
-                    <span class="detail-value">${booking.type}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Start:</span>
-                    <span class="detail-value">${formatDate(booking.start)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">End:</span>
-                    <span class="detail-value">${formatDate(booking.end)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Severity:</span>
-                    <span class="detail-value">${booking.severity || 'High'}</span>
-                </div>
-                ${booking.description ? `
-                <div class="detail-row">
-                    <span class="detail-label">Description:</span>
-                    <span class="detail-value">${booking.description}</span>
-                </div>` : ''}
-            </div>
-        </div>
-        
-        <a href="${bookingUrl}" class="cta-button">View Full Alert Details</a>
-        
-        <div class="alert-badge alert-high">URGENT: All Facilities Affected</div>
-        <p class="message-text">This alert affects all studio operations. Please review your production schedules and coordinate with the facilities management team immediately.</p>
-        
-        <p class="message-text">Contact the facilities management team if you have any questions or concerns about this alert.</p>
-    </div>
-  `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 32px 24px; text-align: center;">
+                            <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">IMPORTANT: Facility-Wide Alert</p>
+                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Alert Details</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: ${alertSeverityColor}; color: white;">
+                                ${(booking.severity || 'High').toUpperCase()} PRIORITY
+                            </div>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>FACILITY-WIDE ALERT</strong></p>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">An important facility-wide alert has been issued that affects all studios and facilities.</p>
+                            
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Type:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.type}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Severity:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; background-color: ${alertSeverityColor}; color: white;">${booking.severity || 'High'}</span></td>
+                                            </tr>
+                                            ${booking.description ? `
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.description}</td>
+                                            </tr>` : ''}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Alert Details</a>
+                            </div>
+                            
+                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
+                                URGENT: All Facilities Affected
+                            </div>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">This alert affects all studio operations. Please review your production schedules and coordinate with the facilities management team immediately.</p>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">Contact the facilities management team if you have any questions or concerns about this alert.</p>
+                        </td>
+                    </tr>`;
 
   const text = `
     FACILITY-WIDE ALERT
