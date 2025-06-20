@@ -480,6 +480,9 @@ export async function sendBookingCancellation(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px 24px; text-align: center;">
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                            </div>
                             <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
                             <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Booking Cancelled</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: #ffffff; color: #dc2626 !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">View Booking Details</a>
@@ -652,6 +655,9 @@ export async function sendMaintenanceAlert(
     const siteManagerHtmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px 24px; text-align: center;">
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                            </div>
                             <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
                             <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Maintenance Alert - Site Manager Notification</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Maintenance Details</a>
@@ -759,6 +765,9 @@ export async function sendFacilityAlert(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 32px 24px; text-align: center;">
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                            </div>
                             <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
                             <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">IMPORTANT: Facility-Wide Alert</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Alert Details</a>
@@ -854,57 +863,74 @@ export async function sendFacilityAlert(
     
     // Send a more detailed message to site managers
     const siteManagerHtmlContent = `
-      <div class="header">
-          <h1>${APP_NAME}</h1>
-          <p>CRITICAL: Facility-Wide Alert - Site Manager Notification</p>
-          <a href="${bookingUrl}" class="header-link">View Alert Details</a>
-      </div>
-      <div class="content">
-          ${createSeverityBadge(booking.severity || 'High')}
-          
-          <p class="message-text"><strong>CRITICAL FACILITY-WIDE ALERT</strong></p>
-          <p class="message-text">An urgent facility-wide alert requires immediate site manager attention and action.</p>
-          
-          <div class="booking-card">
-              <div class="booking-title">${booking.title}</div>
-              <div class="booking-details">
-                  <div class="detail-row">
-                      <span class="detail-label">Type:</span>
-                      <span class="detail-value">${booking.type}</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">Start:</span>
-                      <span class="detail-value">${formatDate(booking.start)}</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">End:</span>
-                      <span class="detail-value">${formatDate(booking.end)}</span>
-                  </div>
-                  <div class="detail-row">
-                      <span class="detail-label">Severity:</span>
-                      <span class="detail-value">${booking.severity || 'High'}</span>
-                  </div>
-                  ${booking.description ? `
-                  <div class="detail-row">
-                      <span class="detail-label">Description:</span>
-                      <span class="detail-value">${booking.description}</span>
-                  </div>` : ''}
-              </div>
-          </div>
-          
-          <a href="${bookingUrl}" class="cta-button">View Full Alert Details</a>
-          
-          <div class="alert-badge alert-critical">CRITICAL: Site Manager Action Required</div>
-          <p class="message-text">As a site manager, you must:</p>
-          <ul class="message-text">
-              <li>Immediately assess impact on all studio operations</li>
-              <li>Coordinate with all department heads and production teams</li>
-              <li>Implement emergency protocols as necessary</li>
-              <li>Ensure all staff are notified of this facility-wide alert</li>
-          </ul>
-          
-          <p class="message-text">This is an automated notification sent to all site managers.</p>
-      </div>
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 32px 24px; text-align: center;">
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                            </div>
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">CRITICAL: Facility-Wide Alert - Site Manager Notification</p>
+                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Alert Details</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+          <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
+                                ${(booking.severity || 'High').toUpperCase()} PRIORITY
+                            </div>
+            
+            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>CRITICAL FACILITY-WIDE ALERT</strong></p>
+            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">An urgent facility-wide alert requires immediate site manager attention and action.</p>
+            
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                <tr>
+                    <td style="padding: 24px;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <tr>
+                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Type:</td>
+                                <td style="padding: 6px 0; color: #1f2937;">${booking.type}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
+                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
+                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Severity:</td>
+                                <td style="padding: 6px 0; color: #1f2937;">${booking.severity || 'High'}</td>
+                            </tr>
+                            ${booking.description ? `
+                            <tr>
+                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
+                                <td style="padding: 6px 0; color: #1f2937;">${booking.description}</td>
+                            </tr>` : ''}
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="${bookingUrl}" style="display: inline-block; background: #dc2626; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Alert Details</a>
+            </div>
+            
+            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
+                CRITICAL: Site Manager Action Required
+            </div>
+            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">As a site manager, you must:</p>
+            <ul style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 24px;">
+                <li>Immediately assess impact on all studio operations</li>
+                <li>Coordinate with all department heads and production teams</li>
+                <li>Implement emergency protocols as necessary</li>
+                <li>Ensure all staff are notified of this facility-wide alert</li>
+            </ul>
+            
+            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">This is an automated notification sent to all site managers.</p>
+        </td>
+    </tr>
     `;
 
     const siteManagerText = `
