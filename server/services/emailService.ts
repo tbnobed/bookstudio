@@ -196,7 +196,9 @@ async function notifySiteManagers(
     const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <img src="${getApplicationUrl()}/assets/logo.png" alt="BookStud.io Logo" style="width: 80px; height: 80px; margin: 0 0 16px 0; display: block; margin-left: auto; margin-right: auto;" />
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                            </div>
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Site Manager Notification</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
@@ -282,7 +284,9 @@ export async function sendBookingConfirmation(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <img src="${getApplicationUrl()}/assets/logo.png" alt="BookStud.io Logo" style="width: 80px; height: 80px; margin: 0 0 16px 0; display: block; margin-left: auto; margin-right: auto;" />
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                            </div>
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Studio Booking Confirmation</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
@@ -378,7 +382,9 @@ export async function sendBookingUpdate(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 32px 24px; text-align: center;">
-                            <img src="${getApplicationUrl()}/assets/logo.png" alt="BookStud.io Logo" style="width: 80px; height: 80px; margin: 0 0 16px 0; display: block; margin-left: auto; margin-right: auto;" />
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <span style="font-size: 24px; font-weight: bold; color: #f59e0b;">BS</span>
+                            </div>
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Studio Booking Updated</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
@@ -974,7 +980,9 @@ export async function sendSiteManagerNotification(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <img src="${getApplicationUrl()}/assets/logo.png" alt="BookStud.io Logo" style="width: 80px; height: 80px; margin: 0 0 16px 0; display: block; margin-left: auto; margin-right: auto;" />
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                            </div>
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Site Manager Notification - Booking ${actionLabels[action]}</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
