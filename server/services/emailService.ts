@@ -105,7 +105,13 @@ const APP_NAME = 'BookStud.io';
 
 // Function to get the application URL dynamically
 function getApplicationUrl(): string {
-  // Check for Replit deployment domain first
+  // Check for Replit domains first
+  if (process.env.REPLIT_DOMAINS) {
+    const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
+    return `https://${domains[0]}`;
+  }
+  
+  // Check for Replit dev domain
   if (process.env.REPLIT_DEV_DOMAIN) {
     return `https://${process.env.REPLIT_DEV_DOMAIN}`;
   }
@@ -948,6 +954,9 @@ export async function sendSiteManagerNotification(
   const studioNames = studios.map(s => s.name);
   const appUrl = getApplicationUrl();
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
+  
+  console.log(`[EmailService] Site Manager notification - App URL: ${appUrl}`);
+  console.log(`[EmailService] Site Manager notification - Booking URL: ${bookingUrl}`);
   
   // Create modern HTML content for site manager notification
   const htmlContent = `
