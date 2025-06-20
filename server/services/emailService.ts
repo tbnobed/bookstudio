@@ -939,81 +939,94 @@ export async function sendSiteManagerNotification(
   const appUrl = getApplicationUrl();
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
-  // Create HTML content for site manager notification
+  // Create modern HTML content for site manager notification
   const htmlContent = `
-    <div class="header">
-        <h1>${APP_NAME}</h1>
-        <p>Site Manager Notification - Booking ${actionLabels[action]}</p>
-        <a href="${bookingUrl}" class="header-link">View Booking Details</a>
-    </div>
-    <div class="content">
-        <div class="alert-badge" style="background-color: ${actionColors[action]}; color: white;">
-            ${actionLabels[action].toUpperCase()}
-        </div>
-        
-        <p class="message-text"><strong>Action Required:</strong> Site manager notification for booking activity.</p>
-        
-        <div class="booking-card">
-            <div class="booking-title">${booking.title}</div>
-            <div class="booking-details">
-                <div class="detail-row">
-                    <span class="detail-label">Action:</span>
-                    <span class="detail-value">${actionLabels[action]}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Studios:</span>
-                    <span class="detail-value">${formatStudios(studioNames)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Start:</span>
-                    <span class="detail-value">${formatDate(booking.start)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">End:</span>
-                    <span class="detail-value">${formatDate(booking.end)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Type:</span>
-                    <span class="detail-value">${booking.type}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="detail-value">${createStatusTag(booking.status || 'pending')}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">User:</span>
-                    <span class="detail-value">${user.name} (${user.email})</span>
-                </div>
-                ${booking.description ? `
-                <div class="detail-row">
-                    <span class="detail-label">Description:</span>
-                    <span class="detail-value">${booking.description}</span>
-                </div>` : ''}
-            </div>
-        </div>
-        
-        <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
-        
-        ${changes && action === 'updated' ? `
-        <div class="booking-card">
-            <div class="booking-title">Changes Made</div>
-            <div class="booking-details">
-                ${Object.entries(changes).map(([key, value]) => `
-                <div class="detail-row">
-                    <span class="detail-label">${key}:</span>
-                    <span class="detail-value">${value}</span>
-                </div>`).join('')}
-            </div>
-        </div>` : ''}
-        
-        <p class="message-text">
-          <strong>Site Manager Action:</strong> Please review this booking activity and take any necessary actions 
-          to ensure proper facility coordination and resource management.
-        </p>
-        
-        <p class="message-text">This is an automated notification sent to the site manager for all booking activities.</p>
-    </div>
-  `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
+                            <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">Site Manager Notification - Booking ${actionLabels[action]}</p>
+                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Booking Details</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: ${actionColors[action]}; color: white;">
+                                ${actionLabels[action].toUpperCase()}
+                            </div>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>Action Required:</strong> Site manager notification for booking activity.</p>
+                            
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Action:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${actionLabels[action]}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Studios:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatStudios(studioNames)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Type:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.type}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Status:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; text-transform: uppercase; background-color: #e5e7eb; color: #374151;">${booking.status || 'pending'}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">User:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${user.username} (${user.email})</td>
+                                            </tr>
+                                            ${booking.description ? `
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.description}</td>
+                                            </tr>` : ''}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
+                            </div>
+                            
+                            ${changes && action === 'updated' ? `
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">Changes Made</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            ${Object.entries(changes).map(([key, value]) => `
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">${key}:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${value}</td>
+                                            </tr>`).join('')}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>` : ''}
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">
+                              <strong>Site Manager Action:</strong> Please review this booking activity and take any necessary actions 
+                              to ensure proper facility coordination and resource management.
+                            </p>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">This is an automated notification sent to the site manager for all booking activities.</p>
+                        </td>
+                    </tr>`;
 
   return await sendEmail({
     to: SITE_MANAGER_EMAIL,
