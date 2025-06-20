@@ -282,7 +282,7 @@ export async function sendBookingConfirmation(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <img src="${getApplicationUrl()}/favicon.png" alt="BookStud.io Logo" style="width: 60px; height: 60px; margin: 0 0 16px 0; display: block; margin-left: auto; margin-right: auto;" />
+                            <img src="${getApplicationUrl()}/assets/logo.png" alt="BookStud.io Logo" style="width: 80px; height: 80px; margin: 0 0 16px 0; display: block; margin-left: auto; margin-right: auto;" />
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Studio Booking Confirmation</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
