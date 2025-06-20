@@ -207,8 +207,8 @@ async function notifySiteManagers(
     const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">Site Manager Notification</p>
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Site Manager Notification</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Booking Details</a>
                         </td>
                     </tr>
@@ -292,8 +292,8 @@ export async function sendBookingConfirmation(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">Studio Booking Confirmation</p>
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Studio Booking Confirmation</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Booking Details</a>
                         </td>
                     </tr>
@@ -471,45 +471,56 @@ export async function sendBookingCancellation(
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
   
   const htmlContent = `
-    <div class="header">
-        <h1>${APP_NAME}</h1>
-        <p>Studio Booking Cancelled</p>
-        <a href="${bookingUrl}" class="header-link">View Booking Details</a>
-    </div>
-    <div class="content">
-        <p class="message-text">Hello <strong>${user.name}</strong>,</p>
-        <p class="message-text">We're writing to inform you that your studio booking has been cancelled.</p>
-        
-        <div class="booking-card">
-            <div class="booking-title">${booking.title}</div>
-            <div class="booking-details">
-                <div class="detail-row">
-                    <span class="detail-label">Studio:</span>
-                    <span class="detail-value">${formatStudios([studio.name])}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Start:</span>
-                    <span class="detail-value">${formatDate(booking.start)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">End:</span>
-                    <span class="detail-value">${formatDate(booking.end)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="detail-value">${createStatusTag('cancelled')}</span>
-                </div>
-            </div>
-        </div>
-        
-        <a href="${bookingUrl}" class="cta-button">View Booking Details</a>
-        
-        <div class="alert-badge alert-medium">Important Notice</div>
-        <p class="message-text">If you did not request this cancellation, please contact the studio management team immediately.</p>
-        
-        <p class="message-text">You can view all your bookings and create new ones by logging into your ${APP_NAME} account.</p>
-    </div>
-  `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px 24px; text-align: center;">
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Booking Cancelled</p>
+                            <a href="${bookingUrl}" style="display: inline-block; background: #ffffff; color: #dc2626 !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">View Booking Details</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Hello <strong>${user.username}</strong>,</p>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">We're writing to inform you that your studio booking has been cancelled.</p>
+                            
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Studio:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${studio.name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Status:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; background-color: #fee2e2; color: #991b1b;">CANCELLED</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${bookingUrl}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: 2px solid #1d4ed8;">View Full Booking Details</a>
+                            </div>
+                            
+                            <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 24px 0;">
+                                <p style="font-size: 16px; font-weight: 600; color: #92400e; margin: 0 0 8px 0;">Important Notice</p>
+                                <p style="font-size: 16px; line-height: 1.7; color: #92400e; margin: 0;">If you did not request this cancellation, please contact the studio management team immediately.</p>
+                            </div>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">You can view all your bookings and create new ones by logging into your ${APP_NAME} account.</p>
+                        </td>
+                    </tr>`;
 
   const text = `
     Hello ${user.name},
@@ -634,8 +645,8 @@ export async function sendMaintenanceAlert(
     const siteManagerHtmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px 24px; text-align: center;">
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">Maintenance Alert - Site Manager Notification</p>
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Maintenance Alert - Site Manager Notification</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Maintenance Details</a>
                         </td>
                     </tr>
@@ -741,8 +752,8 @@ export async function sendFacilityAlert(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 32px 24px; text-align: center;">
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">IMPORTANT: Facility-Wide Alert</p>
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">IMPORTANT: Facility-Wide Alert</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Alert Details</a>
                         </td>
                     </tr>
@@ -962,8 +973,8 @@ export async function sendSiteManagerNotification(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <h1 class="header-text" style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em;">${APP_NAME}</h1>
-                            <p class="header-text" style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0;">Site Manager Notification - Booking ${actionLabels[action]}</p>
+                            <h1 class="header-text" style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
+                            <p class="header-text" style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Site Manager Notification - Booking ${actionLabels[action]}</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.9); color: #1f2937 !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; border: 1px solid #ffffff;">View Booking Details</a>
                         </td>
                     </tr>
