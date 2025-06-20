@@ -207,9 +207,9 @@ async function notifySiteManagers(
     const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Site Manager Notification</p>
-                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Booking Details</a>
+                            <h1 style="color: #ffffff !important; font-size: 28px !important; font-weight: 700 !important; margin: 0 0 8px 0 !important; letter-spacing: -0.025em !important; text-shadow: 3px 3px 6px rgba(0,0,0,0.9) !important; -webkit-text-stroke: 2px rgba(0,0,0,0.4) !important; text-outline: 2px 2px rgba(0,0,0,0.8) !important;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px !important; font-weight: 400 !important; margin: 0 0 12px 0 !important; text-shadow: 3px 3px 6px rgba(0,0,0,0.9) !important; -webkit-text-stroke: 1px rgba(0,0,0,0.4) !important; text-outline: 1px 1px rgba(0,0,0,0.8) !important;">Site Manager Notification</p>
+                            <a href="${bookingUrl}" style="display: inline-block !important; background: #ffffff !important; color: #1f2937 !important; text-decoration: none !important; padding: 8px 16px !important; border-radius: 6px !important; font-weight: 600 !important; font-size: 14px !important; border: 2px solid #1f2937 !important; box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;">View Booking Details</a>
                         </td>
                     </tr>
                     <tr>
@@ -973,9 +973,9 @@ export async function sendSiteManagerNotification(
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <h1 class="header-text" style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
-                            <p class="header-text" style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Site Manager Notification - Booking ${actionLabels[action]}</p>
-                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.9); color: #1f2937 !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; border: 1px solid #ffffff;">View Booking Details</a>
+                            <h1 style="color: #ffffff !important; font-size: 28px !important; font-weight: 700 !important; margin: 0 0 8px 0 !important; letter-spacing: -0.025em !important; text-shadow: 3px 3px 6px rgba(0,0,0,0.9) !important; -webkit-text-stroke: 2px rgba(0,0,0,0.4) !important; text-outline: 2px 2px rgba(0,0,0,0.8) !important;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px !important; font-weight: 400 !important; margin: 0 0 12px 0 !important; text-shadow: 3px 3px 6px rgba(0,0,0,0.9) !important; -webkit-text-stroke: 1px rgba(0,0,0,0.4) !important; text-outline: 1px 1px rgba(0,0,0,0.8) !important;">Site Manager Notification - Booking ${actionLabels[action]}</p>
+                            <a href="${bookingUrl}" style="display: inline-block !important; background: #ffffff !important; color: #1f2937 !important; text-decoration: none !important; padding: 8px 16px !important; border-radius: 6px !important; font-weight: 600 !important; font-size: 14px !important; border: 2px solid #1f2937 !important; box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;">View Booking Details</a>
                         </td>
                     </tr>
                     <tr>
