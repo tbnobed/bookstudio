@@ -1004,11 +1004,11 @@ export async function sendSiteManagerNotification(
   // Create modern HTML content for site manager notification
   const htmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin: 0 auto 16px auto;" />
-                            <h1 style="background-color: rgba(0,0,0,0.3); color: #ffffff !important; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); -webkit-text-fill-color: #ffffff !important; mso-line-height-rule: exactly; padding: 8px 16px; border-radius: 4px; display: inline-block;">${APP_NAME}</h1>
-                            <p style="background-color: rgba(0,0,0,0.2); color: #ffffff !important; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); -webkit-text-fill-color: #ffffff !important; padding: 6px 12px; border-radius: 4px; display: inline-block;">Site Manager Notification - Booking ${actionLabels[action]}</p>
-                            <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
+                        <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 40px 24px; text-align: center;">
+                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
+                            </div>
+                            <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">View Booking Details</a>
                         </td>
                     </tr>
                     <tr>
