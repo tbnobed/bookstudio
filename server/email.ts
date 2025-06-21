@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import { eq, and } from 'drizzle-orm';
 import { db } from './db';
 import { passwordResetTokens, inviteTokens } from '../shared/schema';
-import { sendEmail, createEmailTemplate } from './services/emailService';
+import { sendEmail } from './services/emailService';
 
 /**
  * Generate a password reset token
@@ -219,25 +219,44 @@ export async function sendInviteEmail(
                             <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This invitation will expire in 7 days for security purposes.</p>
                         </td>
                     </tr>`;
+
+  const text = `
+    You have been invited to join BookStud.io!
+    
+    ${adminName} has invited you to join BookStud.io as a ${role}.
+    
+    BookStud.io is a comprehensive studio booking platform for broadcast facilities.
+    
+    Please click this link to accept your invitation and create your account:
+    ${fullInviteLink}
+    
+    This invitation will expire in 7 days for security purposes.
+    
+    If you believe this was sent in error, you can safely ignore this email.
+    
+    Thank you,
+    BookStud.io Team
+  `;
+
+  const msg = {
+    to: email,
+    from: senderEmail,
+    subject: 'You\'re invited to join BookStud.io',
+    text,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're invited to join BookStud.io</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f8fafc;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc;">
         <tr>
             <td align="center" style="padding: 20px;">
                 <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px;">
-                    <tr>
-                        <td style="padding: 32px 24px; text-align: center;">
-                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 32px 24px;">
-                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>${adminName}</strong> has invited you to join BookStud.io as a <strong>${displayRole}</strong>.</p>
-                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">BookStud.io is a comprehensive studio booking platform for broadcast facilities.</p>
-                            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0;">
-                                <p style="color: #15803d; font-size: 14px; margin: 0; font-weight: 500;">Role: ${displayRole}</p>
-                            </div>
-                            <p style="font-size: 14px; color: #6b7280; margin: 0;">This invitation will expire in 7 days. If you believe this was sent in error, you can safely ignore this email.</p>
-                        </td>
-                    </tr>
+                    ${htmlContent}
                     <tr>
                         <td style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
                             <p style="color: #6b7280; font-size: 14px; margin: 0;">This email was sent by BookStud.io &copy; ${new Date().getFullYear()} The Plex Studios</p>
@@ -248,9 +267,8 @@ export async function sendInviteEmail(
         </tr>
     </table>
 </body>
-</html>
-      `,
-    };
+</html>`,
+  };
     
     try {
       await mailService.send(msg);
@@ -336,7 +354,10 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
                     <tr>
                         <td style="padding: 32px 24px;">
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">You requested a password reset for your BookStud.io account.</p>
-                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Please click the button above to reset your password. This link is valid for 30 minutes.</p>
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${fullResetLink}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">Reset Password</a>
+                            </div>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">This link is valid for 30 minutes.</p>
                             <p style="font-size: 14px; color: #6b7280; margin: 0;">If you didn't request this password reset, you can safely ignore this email.</p>
                         </td>
                     </tr>
