@@ -326,11 +326,11 @@ export async function sendBookingNotificationToGroups(
   // Create modern HTML content for booking notification
   const htmlContent = `
                     <tr>
-                        <td style="background: #2563eb; padding: 40px 24px; text-align: center;">
-                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${bookingUrl}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Booking Details</a>
                             </div>
-                            <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">View Booking Details</a>
                         </td>
                     </tr>
                     <tr>
