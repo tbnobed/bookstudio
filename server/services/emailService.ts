@@ -200,8 +200,8 @@ async function notifySiteManagers(
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
-                            <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
-                            <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Site Manager Notification</p>
+                            <h1 style="color: #ffffff !important; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); -webkit-text-fill-color: #ffffff; mso-line-height-rule: exactly;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); -webkit-text-fill-color: #ffffff;">Site Manager Notification</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
                         </td>
                     </tr>
@@ -288,8 +288,8 @@ export async function sendBookingConfirmation(
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
-                            <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
-                            <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Studio Booking Confirmation</p>
+                            <h1 style="color: #ffffff !important; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); -webkit-text-fill-color: #ffffff; mso-line-height-rule: exactly;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); -webkit-text-fill-color: #ffffff;">Studio Booking Confirmation</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
                         </td>
                     </tr>
@@ -386,8 +386,8 @@ export async function sendBookingUpdate(
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
-                            <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
-                            <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Studio Booking Updated</p>
+                            <h1 style="color: #ffffff !important; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); -webkit-text-fill-color: #ffffff; mso-line-height-rule: exactly;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); -webkit-text-fill-color: #ffffff;">Studio Booking Updated</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
                         </td>
                     </tr>
@@ -489,8 +489,8 @@ export async function sendBookingCancellation(
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Booking Cancelled</p>
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff; mso-line-height-rule: exactly;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff;">Booking Cancelled</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: #ffffff; color: #dc2626 !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">View Booking Details</a>
                         </td>
                     </tr>
@@ -664,8 +664,8 @@ export async function sendMaintenanceAlert(
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Maintenance Alert - Site Manager Notification</p>
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff; mso-line-height-rule: exactly;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff;">Maintenance Alert - Site Manager Notification</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Maintenance Details</a>
                         </td>
                     </tr>
@@ -774,8 +774,8 @@ export async function sendFacilityAlert(
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">IMPORTANT: Facility-Wide Alert</p>
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff; mso-line-height-rule: exactly;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff;">IMPORTANT: Facility-Wide Alert</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Alert Details</a>
                         </td>
                     </tr>
@@ -874,8 +874,8 @@ export async function sendFacilityAlert(
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
-                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
-                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">CRITICAL: Facility-Wide Alert - Site Manager Notification</p>
+                            <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff; mso-line-height-rule: exactly;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff;">CRITICAL: Facility-Wide Alert - Site Manager Notification</p>
                             <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Alert Details</a>
                         </td>
                     </tr>
@@ -1016,8 +1016,8 @@ export async function sendSiteManagerNotification(
                     <tr>
                         <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
                             <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin: 0 auto 16px auto;" />
-                            <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
-                            <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Site Manager Notification - Booking ${actionLabels[action]}</p>
+                            <h1 style="color: #ffffff !important; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); -webkit-text-fill-color: #ffffff; mso-line-height-rule: exactly;">${APP_NAME}</h1>
+                            <p style="color: #ffffff !important; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); -webkit-text-fill-color: #ffffff;">Site Manager Notification - Booking ${actionLabels[action]}</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
                         </td>
                     </tr>
