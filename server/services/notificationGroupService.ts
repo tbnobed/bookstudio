@@ -51,168 +51,32 @@ const APP_NAME = 'BookStud.io';
 
 // Helper functions for modern email templates
 function createEmailTemplate(content: string, title: string): string {
+  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
   return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title}</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                margin: 0;
-                padding: 0;
-                background-color: #f8fafc;
-                color: #334155;
-            }
-            .container {
-                max-width: 600px;
-                margin: 0 auto;
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                overflow: hidden;
-            }
-            .header {
-                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-                color: white;
-                padding: 32px 24px;
-                text-align: center;
-            }
-            .header h1 {
-                margin: 0;
-                font-size: 28px;
-                font-weight: 700;
-                letter-spacing: -0.025em;
-            }
-            .header p {
-                margin: 8px 0 0;
-                font-size: 16px;
-                opacity: 0.9;
-            }
-            .content {
-                padding: 32px 24px;
-                line-height: 1.6;
-            }
-            .message-text {
-                font-size: 16px;
-                margin: 16px 0;
-                color: #475569;
-                background-color: #f8fafc;
-                padding: 16px;
-                border-radius: 8px;
-            }
-            .booking-title {
-                color: #1e40af;
-                font-size: 24px;
-                font-weight: 700;
-                margin: 0 0 24px 0;
-            }
-            .booking-details {
-                margin-bottom: 24px;
-            }
-            .detail-row {
-                display: flex;
-                justify-content: space-between;
-                padding: 12px 0;
-                border-bottom: 1px solid #f1f5f9;
-            }
-            .detail-row:last-child {
-                border-bottom: none;
-            }
-            .label {
-                font-weight: 600;
-                color: #475569;
-                flex: 0 0 120px;
-            }
-            .value {
-                color: #334155;
-                flex: 1;
-                text-align: right;
-            }
-            .booking-card {
-                background: #ffffff;
-                border: 1px solid #e2e8f0;
-                border-radius: 8px;
-                padding: 24px;
-                margin: 20px 0;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }
-            .booking-title {
-                font-size: 18px;
-                font-weight: 600;
-                color: #1e293b;
-                margin-bottom: 16px;
-                border-bottom: 2px solid #e2e8f0;
-                padding-bottom: 8px;
-            }
-            .booking-details {
-                margin-top: 16px;
-            }
-            .detail-row {
-                margin-bottom: 8px;
-                display: flex;
-                align-items: center;
-            }
-            .detail-label {
-                font-weight: 600;
-                color: #64748b;
-                min-width: 100px;
-                margin-right: 12px;
-                font-size: 14px;
-            }
-            .detail-value {
-                color: #1e293b;
-                font-size: 14px;
-                flex: 1;
-            }
-            .alert-badge {
-                display: inline-block;
-                padding: 8px 16px;
-                border-radius: 6px;
-                font-weight: 600;
-                font-size: 14px;
-                margin-bottom: 20px;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }
-            .status-tag {
-                display: inline-block;
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }
-            .status-confirmed { background: #dcfce7; color: #166534; }
-            .status-pending { background: #fef3c7; color: #92400e; }
-            .status-cancelled { background: #fecaca; color: #b91c1c; }
-            .severity-low { background: #dbeafe; color: #1e40af; }
-            .severity-medium { background: #fef3c7; color: #92400e; }
-            .severity-high { background: #fecaca; color: #b91c1c; }
-            .footer {
-                background: #f8fafc;
-                padding: 24px;
-                text-align: center;
-                font-size: 14px;
-                color: #64748b;
-                border-top: 1px solid #e2e8f0;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            ${content}
-            <div class="footer">
-                <p>This is an automated notification from ${APP_NAME}</p>
-                <p>Please do not reply to this email.</p>
-            </div>
-        </div>
-    </body>
-    </html>
-  `;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f8fafc;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc;">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px;">
+                    ${content}
+                    <tr>
+                        <td style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">This email was sent by ${APP_NAME} &copy; ${new Date().getFullYear()} The Plex Studios</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
 }
 
 function formatStudios(studioNames: string[]): string {
@@ -456,83 +320,56 @@ export async function sendBookingNotificationToGroups(
   const appUrl = getApplicationUrl();
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
 
-  // Create stylized HTML content with proper structure
+  // Get logo URL
+  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+
+  // Create modern HTML content for booking notification
   const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Studio Booking ${actionText}</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; }
-            .header { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 20px; text-align: center; }
-            .header h1 { margin: 0; font-size: 24px; }
-            .header-link { color: rgba(255,255,255,0.9) !important; text-decoration: none !important; background: rgba(255,255,255,0.2) !important; padding: 8px 16px !important; border-radius: 4px !important; display: inline-block !important; margin-top: 10px !important; }
-            .content { padding: 24px; }
-            .alert-badge { background-color: ${actionColors[action]}; color: white; padding: 8px 16px; border-radius: 4px; display: inline-block; margin-bottom: 16px; font-weight: bold; }
-            .message-text { margin: 16px 0; color: #374151; }
-            .booking-card { background: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0; }
-            .booking-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; color: #1f2937; }
-            .detail-row { display: flex; margin-bottom: 8px; }
-            .detail-label { font-weight: bold; width: 100px; color: #6b7280; }
-            .detail-value { color: #374151; }
-            .cta-button { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; color: white !important; text-decoration: none !important; padding: 12px 24px !important; border-radius: 6px !important; display: inline-block !important; margin: 20px 0 !important; font-weight: bold !important; }
-            .cta-button:hover { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>${APP_NAME}</h1>
-                <p>Studio Booking ${actionText}</p>
-                <a href="${bookingUrl}" class="header-link">View Booking Details</a>
-            </div>
-            <div class="content">
-                <div class="alert-badge">${actionText.toUpperCase()}</div>
-                
-                <p class="message-text"><strong>Booking Information:</strong> A studio booking has been ${action}.</p>
-                
-                <div class="booking-card">
-                    <div class="booking-title">${booking.title}</div>
-                    <div class="booking-details">
-                        <div class="detail-row">
-                            <span class="detail-label">Studio:</span>
-                            <span class="detail-value">${studioName}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Start:</span>
-                            <span class="detail-value">${formatDate(booking.start)}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">End:</span>
-                            <span class="detail-value">${formatDate(booking.end)}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Type:</span>
-                            <span class="detail-value">${booking.type}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Status:</span>
-                            <span class="detail-value">${createStatusTag(booking.status || 'pending')}</span>
-                        </div>
-                        ${booking.description ? `
-                        <div class="detail-row">
-                            <span class="detail-label">Description:</span>
-                            <span class="detail-value">${booking.description}</span>
-                        </div>` : ''}
-                    </div>
-                </div>
-                
-                <a href="${bookingUrl}" class="cta-button">View Full Booking Details</a>
-                
-                <p class="message-text">This notification has been sent to your notification group.</p>
-            </div>
-        </div>
-    </body>
-    </html>
-  `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 40px 24px; text-align: center;">
+                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
+                            </div>
+                            <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">View Booking Details</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <div style="background-color: ${actionColors[action]}; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">${actionText}</div>
+                            
+                            <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 20px 0;">${booking.title}</h2>
+                            
+                            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Studio:</strong>
+                                    <span style="color: #1f2937;">${studioName}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Start:</strong>
+                                    <span style="color: #1f2937;">${formatDate(booking.start)}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">End:</strong>
+                                    <span style="color: #1f2937;">${formatDate(booking.end)}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Type:</strong>
+                                    <span style="color: #1f2937;">${booking.type}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Status:</strong>
+                                    <span style="color: #1f2937;">${booking.status || 'pending'}</span>
+                                </div>
+                                ${booking.description ? `
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Description:</strong>
+                                    <span style="color: #1f2937;">${booking.description}</span>
+                                </div>` : ''}
+                            </div>
+                            
+                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">A studio booking has been ${action}. This notification has been sent to your notification group.</p>
+                        </td>
+                    </tr>`;
 
   // Create plain text version for fallback
   const textMessage = `
@@ -571,52 +408,52 @@ export async function sendMaintenanceAlertToGroups(
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - Maintenance Alert`;
   
-  // Create stylized HTML content like site manager emails
+  // Get logo URL
+  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+
+  // Create modern HTML content for maintenance alert
   const htmlContent = `
-    <div class="header">
-        <h1>${APP_NAME}</h1>
-        <p>Maintenance Alert - Scheduled Event</p>
-    </div>
-    <div class="content">
-        <div class="alert-badge" style="background-color: #f59e0b; color: white;">
-            MAINTENANCE SCHEDULED
-        </div>
-        
-        <p class="message-text"><strong>Maintenance Event:</strong> A maintenance activity has been scheduled that may affect studio operations.</p>
-        
-        <div class="booking-card">
-            <div class="booking-title">${booking.title}</div>
-            <div class="booking-details">
-                <div class="detail-row">
-                    <span class="detail-label">Type:</span>
-                    <span class="detail-value">Maintenance</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Severity:</span>
-                    <span class="detail-value">${createSeverityBadge(booking.severity || 'medium')}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Start:</span>
-                    <span class="detail-value">${formatDate(booking.start)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">End:</span>
-                    <span class="detail-value">${formatDate(booking.end)}</span>
-                </div>
-                ${booking.description ? `
-                <div class="detail-row">
-                    <span class="detail-label">Description:</span>
-                    <span class="detail-value">${booking.description}</span>
-                </div>` : ''}
-            </div>
-        </div>
-        
-        <p class="message-text">
-            <strong>⚠️ Important:</strong> This maintenance may affect studio availability. Please plan accordingly.
-        </p>
-        <p class="message-text">This notification has been sent to your notification group.</p>
-    </div>
-  `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 24px; text-align: center;">
+                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <div style="background-color: #f59e0b; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">MAINTENANCE SCHEDULED</div>
+                            
+                            <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 20px 0;">${booking.title}</h2>
+                            
+                            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Type:</strong>
+                                    <span style="color: #1f2937;">Maintenance</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Severity:</strong>
+                                    <span style="color: #1f2937;">${booking.severity || 'medium'}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Start:</strong>
+                                    <span style="color: #1f2937;">${formatDate(booking.start)}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">End:</strong>
+                                    <span style="color: #1f2937;">${formatDate(booking.end)}</span>
+                                </div>
+                                ${booking.description ? `
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Description:</strong>
+                                    <span style="color: #1f2937;">${booking.description}</span>
+                                </div>` : ''}
+                            </div>
+                            
+                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;"><strong>⚠️ Important:</strong> This maintenance may affect studio availability. Please plan accordingly.</p>
+                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This notification has been sent to your notification group.</p>
+                        </td>
+                    </tr>`;
 
   // Create plain text version for fallback
   const textMessage = `
@@ -656,52 +493,52 @@ export async function sendFacilityAlertToGroups(
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - IMPORTANT: Facility-Wide Alert`;
   
-  // Create stylized HTML content like site manager emails
+  // Get logo URL
+  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+
+  // Create modern HTML content for facility alert
   const htmlContent = `
-    <div class="header">
-        <h1>${APP_NAME}</h1>
-        <p>IMPORTANT: Facility-Wide Alert</p>
-    </div>
-    <div class="content">
-        <div class="alert-badge" style="background-color: #dc2626; color: white;">
-            FACILITY-WIDE ALERT
-        </div>
-        
-        <p class="message-text"><strong>Critical Alert:</strong> An important facility-wide alert has been issued that affects all studios and operations.</p>
-        
-        <div class="booking-card">
-            <div class="booking-title">${booking.title}</div>
-            <div class="booking-details">
-                <div class="detail-row">
-                    <span class="detail-label">Type:</span>
-                    <span class="detail-value">${booking.type}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Severity:</span>
-                    <span class="detail-value">${createSeverityBadge(booking.severity || 'high')}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Start:</span>
-                    <span class="detail-value">${formatDate(booking.start)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">End:</span>
-                    <span class="detail-value">${formatDate(booking.end)}</span>
-                </div>
-                ${booking.description ? `
-                <div class="detail-row">
-                    <span class="detail-label">Description:</span>
-                    <span class="detail-value">${booking.description}</span>
-                </div>` : ''}
-            </div>
-        </div>
-        
-        <p class="message-text">
-            <strong>Critical:</strong> This alert affects all studios and facilities. Please take appropriate action immediately.
-        </p>
-        <p class="message-text">This notification has been sent to your notification group.</p>
-    </div>
-  `;
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 24px; text-align: center;">
+                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <div style="background-color: #dc2626; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">FACILITY-WIDE ALERT</div>
+                            
+                            <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 20px 0;">${booking.title}</h2>
+                            
+                            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Type:</strong>
+                                    <span style="color: #1f2937;">${booking.type}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Severity:</strong>
+                                    <span style="color: #1f2937;">${booking.severity || 'high'}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Start:</strong>
+                                    <span style="color: #1f2937;">${formatDate(booking.start)}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">End:</strong>
+                                    <span style="color: #1f2937;">${formatDate(booking.end)}</span>
+                                </div>
+                                ${booking.description ? `
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Description:</strong>
+                                    <span style="color: #1f2937;">${booking.description}</span>
+                                </div>` : ''}
+                            </div>
+                            
+                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;"><strong>Critical:</strong> This alert affects all studios and facilities. Please take appropriate action immediately.</p>
+                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This notification has been sent to your notification group.</p>
+                        </td>
+                    </tr>`;
 
   // Create plain text version for fallback
   const textMessage = `
