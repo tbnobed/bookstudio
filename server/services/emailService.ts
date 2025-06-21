@@ -654,13 +654,11 @@ export async function sendMaintenanceAlert(
     // Send a more detailed message to site managers
     const siteManagerHtmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px 24px; text-align: center;">
-                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
+                        <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 24px; text-align: center;">
+                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
                             </div>
-                            <h1 style="background-color: rgba(0,0,0,0.4); color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff !important; mso-line-height-rule: exactly; padding: 8px 16px; border-radius: 4px; display: inline-block;">${APP_NAME}</h1>
-                            <p style="background-color: rgba(0,0,0,0.3); color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff !important; padding: 6px 12px; border-radius: 4px; display: inline-block;">Maintenance Alert - Site Manager Notification</p>
-                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Maintenance Details</a>
+                            <a href="${bookingUrl}" style="display: inline-block; background: #ffffff; color: #dc2626 !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">View Maintenance Details</a>
                         </td>
                     </tr>
                     <tr>
@@ -864,13 +862,11 @@ export async function sendFacilityAlert(
     // Send a more detailed message to site managers
     const siteManagerHtmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 32px 24px; text-align: center;">
-                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
+                        <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 40px 24px; text-align: center;">
+                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
                             </div>
-                            <h1 style="background-color: rgba(0,0,0,0.4); color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff !important; mso-line-height-rule: exactly; padding: 8px 16px; border-radius: 4px; display: inline-block;">${APP_NAME}</h1>
-                            <p style="background-color: rgba(0,0,0,0.3); color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff !important; padding: 6px 12px; border-radius: 4px; display: inline-block;">CRITICAL: Facility-Wide Alert - Site Manager Notification</p>
-                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Alert Details</a>
+                            <a href="${bookingUrl}" style="display: inline-block; background: #ffffff; color: #dc2626 !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">View Alert Details</a>
                         </td>
                     </tr>
                     <tr>

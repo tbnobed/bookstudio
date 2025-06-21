@@ -139,6 +139,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 21, 2025: FINAL email header visibility fix - added semi-transparent black background boxes behind all header text to ensure visibility regardless of email client text color overrides, with inline-block display and padding for perfect contrast
 - June 21, 2025: Applied header visibility fixes to ALL email templates - updated password reset and invitation emails with same background box solution for universal header visibility across all email types
 - June 21, 2025: SIMPLIFIED email templates - removed all header text and kept only BookStud.io logo for clean, universally compatible design across all email clients
+- June 21, 2025: Completed email template simplification - removed ALL remaining header text from maintenance alerts, facility alerts, and site manager notifications. Every email template now uses logo-only design for universal email client compatibility
 
 ## User Preferences
 
