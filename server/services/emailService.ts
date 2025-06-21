@@ -1001,18 +1001,15 @@ export async function sendSiteManagerNotification(
   // Create the logo URL for this function
   const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
   
-  // Create modern HTML content for site manager notification
+  // Create clean HTML content for site manager notification
   const htmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 40px 24px; text-align: center;">
-                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
-                            </div>
-                            <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">View Booking Details</a>
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding: 32px 24px;">
+                        <td style="padding: 0 24px 32px 24px;">
                             <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: ${actionColors[action]}; color: white;">
                                 ${actionLabels[action].toUpperCase()}
                             </div>
