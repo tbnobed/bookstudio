@@ -203,17 +203,49 @@ export async function sendInviteEmail(
       subject: `You're invited to join BookStud.io as a ${displayRole}`,
       text: `${adminName} has invited you to join BookStud.io as a ${displayRole}. Please click the following link to create your account (valid for 7 days): ${fullInviteLink}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">You're invited to join BookStud.io</h2>
-          <p>${adminName} has invited you to join BookStud.io as a <strong>${displayRole}</strong>.</p>
-          <p>BookStud.io is a comprehensive studio booking platform for broadcast facilities.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${fullInviteLink}" style="background-color: #4a7aff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Create Your Account</a>
-          </div>
-          <p>This invitation will expire in 7 days. If you believe this was sent in error, you can safely ignore this email.</p>
-          <hr style="border: 1px solid #eee; margin: 30px 0;" />
-          <p style="color: #777; font-size: 12px;">BookStud.io - Studio Management System</p>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're invited to join BookStud.io</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f8fafc;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc;">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px;">
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px 24px; text-align: center;">
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <img src="https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
+                            </div>
+                            <h1 style="background-color: rgba(0,0,0,0.3); color: #ffffff !important; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); -webkit-text-fill-color: #ffffff !important; mso-line-height-rule: exactly; padding: 8px 16px; border-radius: 4px; display: inline-block;">BookStud.io</h1>
+                            <p style="background-color: rgba(0,0,0,0.2); color: #ffffff !important; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); -webkit-text-fill-color: #ffffff !important; padding: 6px 12px; border-radius: 4px; display: inline-block;">You're Invited</p>
+                            <a href="${fullInviteLink}" style="display: inline-block; background-color: #ffffff; color: #047857; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">Create Your Account</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>${adminName}</strong> has invited you to join BookStud.io as a <strong>${displayRole}</strong>.</p>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">BookStud.io is a comprehensive studio booking platform for broadcast facilities.</p>
+                            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0;">
+                                <p style="color: #15803d; font-size: 14px; margin: 0; font-weight: 500;">Role: ${displayRole}</p>
+                            </div>
+                            <p style="font-size: 14px; color: #6b7280; margin: 0;">This invitation will expire in 7 days. If you believe this was sent in error, you can safely ignore this email.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">This email was sent by BookStud.io &copy; ${new Date().getFullYear()} The Plex Studios</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
       `,
     };
     
@@ -281,17 +313,46 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
       subject: 'Reset your BookStud.io password',
       text: `You requested a password reset for your BookStud.io account. Please click the following link to reset your password (valid for 30 minutes): ${fullResetLink}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">BookStud.io Password Reset</h2>
-          <p>You requested a password reset for your BookStud.io account.</p>
-          <p>Please click the button below to reset your password. This link is valid for 30 minutes.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${fullResetLink}" style="background-color: #4a7aff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
-          </div>
-          <p>If you didn't request this password reset, you can safely ignore this email.</p>
-          <hr style="border: 1px solid #eee; margin: 30px 0;" />
-          <p style="color: #777; font-size: 12px;">BookStud.io - Studio Management System</p>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookStud.io Password Reset</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f8fafc;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc;">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px;">
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
+                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <img src="https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
+                            </div>
+                            <h1 style="background-color: rgba(0,0,0,0.3); color: #ffffff !important; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); -webkit-text-fill-color: #ffffff !important; mso-line-height-rule: exactly; padding: 8px 16px; border-radius: 4px; display: inline-block;">BookStud.io</h1>
+                            <p style="background-color: rgba(0,0,0,0.2); color: #ffffff !important; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); -webkit-text-fill-color: #ffffff !important; padding: 6px 12px; border-radius: 4px; display: inline-block;">Password Reset</p>
+                            <a href="${fullResetLink}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">Reset Password</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">You requested a password reset for your BookStud.io account.</p>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Please click the button above to reset your password. This link is valid for 30 minutes.</p>
+                            <p style="font-size: 14px; color: #6b7280; margin: 0;">If you didn't request this password reset, you can safely ignore this email.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">This email was sent by BookStud.io &copy; ${new Date().getFullYear()} The Plex Studios</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
       `,
     };
     
