@@ -414,10 +414,8 @@ export async function sendMaintenanceAlertToGroups(
   // Create modern HTML content for maintenance alert
   const htmlContent = `
                     <tr>
-                        <td style="background: #2563eb; padding: 40px 24px; text-align: center;">
-                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
-                            </div>
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
@@ -499,10 +497,8 @@ export async function sendFacilityAlertToGroups(
   // Create modern HTML content for facility alert
   const htmlContent = `
                     <tr>
-                        <td style="background: #2563eb; padding: 40px 24px; text-align: center;">
-                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
-                            </div>
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
