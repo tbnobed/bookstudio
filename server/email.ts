@@ -192,7 +192,7 @@ export async function sendInviteEmail(
     // Create modern HTML content for invitation
     const htmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 40px 24px; text-align: center;">
+                        <td style="padding: 32px 24px; text-align: center;">
                             <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
                             </div>
@@ -219,7 +219,6 @@ export async function sendInviteEmail(
                             <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This invitation will expire in 7 days for security purposes.</p>
                         </td>
                     </tr>`;
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f8fafc;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc;">
         <tr>
             <td align="center" style="padding: 20px;">
@@ -227,9 +226,6 @@ export async function sendInviteEmail(
                     <tr>
                         <td style="padding: 32px 24px; text-align: center;">
                             <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
-                                <img src="https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
-                            </div>
-                            <a href="${fullInviteLink}" style="display: inline-block; background-color: #ffffff; color: #047857; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">Create Your Account</a>
                         </td>
                     </tr>
                     <tr>
@@ -335,9 +331,6 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
                     <tr>
                         <td style="padding: 32px 24px; text-align: center;">
                             <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
-                                <img src="https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
-                            </div>
-                            <a href="${fullResetLink}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">Reset Password</a>
                         </td>
                     </tr>
                     <tr>

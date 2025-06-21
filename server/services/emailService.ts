@@ -196,7 +196,7 @@ async function notifySiteManagers(
     
     const htmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 40px 24px; text-align: center;">
+                        <td style="background: #2563eb; padding: 40px 24px; text-align: center;">
                             <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
                             </div>
@@ -251,7 +251,7 @@ async function notifySiteManagers(
                             </table>
                             
                             <div style="text-align: center; margin: 24px 0;">
-                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
+                                <a href="${bookingUrl}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
                             </div>
                             
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">This automated notification has been sent to all site managers for tracking and coordination purposes.</p>
@@ -323,7 +323,7 @@ export async function sendBookingConfirmation(
                             </table>
                             
                             <div style="text-align: center; margin: 24px 0;">
-                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
+                                <a href="${bookingUrl}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
                             </div>
                             
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">You can view and manage all your bookings by logging into your ${APP_NAME} account.</p>
@@ -416,7 +416,7 @@ export async function sendBookingUpdate(
                             </table>
                             
                             <div style="text-align: center; margin: 24px 0;">
-                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
+                                <a href="${bookingUrl}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Booking Details</a>
                             </div>
                             
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Please review the updated information and ensure it meets your production requirements.</p>
@@ -643,7 +643,7 @@ export async function sendMaintenanceAlert(
     // Send a more detailed message to site managers
     const siteManagerHtmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 24px; text-align: center;">
+                        <td style="background: #2563eb; padding: 40px 24px; text-align: center;">
                             <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
                                 <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
                             </div>
