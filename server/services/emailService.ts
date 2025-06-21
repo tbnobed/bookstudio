@@ -875,62 +875,62 @@ export async function sendFacilityAlert(
                     </tr>
                     <tr>
                         <td style="padding: 32px 24px;">
-          <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
+                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
                                 ${(booking.severity || 'High').toUpperCase()} PRIORITY
                             </div>
-            
-            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>CRITICAL FACILITY-WIDE ALERT</strong></p>
-            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">An urgent facility-wide alert requires immediate site manager attention and action.</p>
-            
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
-                <tr>
-                    <td style="padding: 24px;">
-                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                            <tr>
-                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Type:</td>
-                                <td style="padding: 6px 0; color: #1f2937;">${booking.type}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
-                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
-                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Severity:</td>
-                                <td style="padding: 6px 0; color: #1f2937;">${booking.severity || 'High'}</td>
-                            </tr>
-                            ${booking.description ? `
-                            <tr>
-                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
-                                <td style="padding: 6px 0; color: #1f2937;">${booking.description}</td>
-                            </tr>` : ''}
-                        </table>
-                    </td>
-                </tr>
-            </table>
-            
-            <div style="text-align: center; margin: 24px 0;">
-                <a href="${bookingUrl}" style="display: inline-block; background: #dc2626; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Alert Details</a>
-            </div>
-            
-            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
-                CRITICAL: Site Manager Action Required
-            </div>
-            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">As a site manager, you must:</p>
-            <ul style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 24px;">
-                <li>Immediately assess impact on all studio operations</li>
-                <li>Coordinate with all department heads and production teams</li>
-                <li>Implement emergency protocols as necessary</li>
-                <li>Ensure all staff are notified of this facility-wide alert</li>
-            </ul>
-            
-            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">This is an automated notification sent to all site managers.</p>
-        </td>
-    </tr>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>CRITICAL FACILITY-WIDE ALERT</strong></p>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">An urgent facility-wide alert requires immediate site manager attention and action.</p>
+                            
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">${booking.title}</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">Type:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.type}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Start:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.start)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Severity:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.severity || 'High'}</td>
+                                            </tr>
+                                            ${booking.description ? `
+                                            <tr>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${booking.description}</td>
+                                            </tr>` : ''}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${bookingUrl}" style="display: inline-block; background: #dc2626; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Alert Details</a>
+                            </div>
+                            
+                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
+                                CRITICAL: Site Manager Action Required
+                            </div>
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">As a site manager, you must:</p>
+                            <ul style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 24px;">
+                                <li>Immediately assess impact on all studio operations</li>
+                                <li>Coordinate with all department heads and production teams</li>
+                                <li>Implement emergency protocols as necessary</li>
+                                <li>Ensure all staff are notified of this facility-wide alert</li>
+                            </ul>
+                            
+                            <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0;">This is an automated notification sent to all site managers.</p>
+                        </td>
+                    </tr>
     `;
 
     const siteManagerText = `
