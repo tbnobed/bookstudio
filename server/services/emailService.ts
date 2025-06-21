@@ -282,17 +282,12 @@ export async function sendBookingConfirmation(
   
   const htmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
-                            </div>
-                            <h1 style="background-color: rgba(0,0,0,0.3); color: #ffffff !important; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); -webkit-text-fill-color: #ffffff !important; mso-line-height-rule: exactly; padding: 8px 16px; border-radius: 4px; display: inline-block;">${APP_NAME}</h1>
-                            <p style="background-color: rgba(0,0,0,0.2); color: #ffffff !important; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); -webkit-text-fill-color: #ffffff !important; padding: 6px 12px; border-radius: 4px; display: inline-block;">Studio Booking Confirmation</p>
-                            <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding: 32px 24px;">
+                        <td style="padding: 0 24px 32px 24px;">
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Hello <strong>${user.username}</strong>,</p>
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Your studio booking has been confirmed and is ready for production.</p>
                             
@@ -380,15 +375,12 @@ export async function sendBookingUpdate(
   
   const htmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 24px; text-align: center;">
-                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
-                            </div>
-                            <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">View Booking Details</a>
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding: 32px 24px;">
+                        <td style="padding: 0 24px 32px 24px;">
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Hello <strong>${user.username}</strong>,</p>
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Your studio booking has been updated with new details.</p>
                             
@@ -481,15 +473,12 @@ export async function sendBookingCancellation(
   
   const htmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 24px; text-align: center;">
-                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
-                            </div>
-                            <a href="${bookingUrl}" style="display: inline-block; background: #ffffff; color: #dc2626 !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">View Booking Details</a>
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding: 32px 24px;">
+                        <td style="padding: 0 24px 32px 24px;">
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">Hello <strong>${user.username}</strong>,</p>
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;">We're writing to inform you that your studio booking has been cancelled.</p>
                             
@@ -702,7 +691,7 @@ export async function sendMaintenanceAlert(
                             </table>
                             
                             <div style="text-align: center; margin: 24px 0;">
-                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Maintenance Details</a>
+                                <a href="${bookingUrl}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Maintenance Details</a>
                             </div>
                             
                             <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
@@ -762,17 +751,12 @@ export async function sendFacilityAlert(
   
   const htmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 32px 24px; text-align: center;">
-                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
-                            </div>
-                            <h1 style="background-color: rgba(0,0,0,0.4); color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff !important; mso-line-height-rule: exactly; padding: 8px 16px; border-radius: 4px; display: inline-block;">${APP_NAME}</h1>
-                            <p style="background-color: rgba(0,0,0,0.3); color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); -webkit-text-fill-color: #ffffff !important; padding: 6px 12px; border-radius: 4px; display: inline-block;">IMPORTANT: Facility-Wide Alert</p>
-                            <a href="${bookingUrl}" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: #ffffff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.3);">View Alert Details</a>
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding: 32px 24px;">
+                        <td style="padding: 0 24px 32px 24px;">
                             <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: ${alertSeverityColor}; color: white;">
                                 ${(booking.severity || 'High').toUpperCase()} PRIORITY
                             </div>
@@ -812,7 +796,7 @@ export async function sendFacilityAlert(
                             </table>
                             
                             <div style="text-align: center; margin: 24px 0;">
-                                <a href="${bookingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Alert Details</a>
+                                <a href="${bookingUrl}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Full Alert Details</a>
                             </div>
                             
                             <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
@@ -862,11 +846,8 @@ export async function sendFacilityAlert(
     // Send a more detailed message to site managers
     const siteManagerHtmlContent = `
                     <tr>
-                        <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 40px 24px; text-align: center;">
-                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
-                            </div>
-                            <a href="${bookingUrl}" style="display: inline-block; background: #ffffff; color: #dc2626 !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">View Alert Details</a>
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
