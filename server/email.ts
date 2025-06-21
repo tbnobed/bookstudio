@@ -1,19 +1,8 @@
-import { MailService } from '@sendgrid/mail';
 import { randomBytes } from 'crypto';
 import { eq, and } from 'drizzle-orm';
 import { db } from './db';
 import { passwordResetTokens, inviteTokens } from '../shared/schema';
-
-// Initialize SendGrid
-const mailService = new MailService();
-
-// Check if SendGrid API key is available
-if (!process.env.SENDGRID_API_KEY) {
-  console.warn("WARNING: SENDGRID_API_KEY not found. Email functionality will not work properly.");
-} else {
-  mailService.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log("SendGrid email service initialized");
-}
+import { sendEmail, createEmailTemplate } from './services/emailService';
 
 /**
  * Generate a password reset token
@@ -197,18 +186,39 @@ export async function sendInviteEmail(
     const senderEmail = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
     console.log(`Using sender email: ${senderEmail}`);
     
-    const msg = {
-      to,
-      from: senderEmail,
-      subject: `You're invited to join BookStud.io as a ${displayRole}`,
-      text: `${adminName} has invited you to join BookStud.io as a ${displayRole}. Please click the following link to create your account (valid for 7 days): ${fullInviteLink}`,
-      html: `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>You're invited to join BookStud.io</title>
+    // Get logo URL
+    const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+    
+    // Create modern HTML content for invitation
+    const htmlContent = `
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 40px 24px; text-align: center;">
+                            <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
+                            </div>
+                            <a href="${fullInviteLink}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">Accept Invitation</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 20px 0;">You're invited to join BookStud.io</h2>
+                            
+                            <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">${adminName} has invited you to join BookStud.io as a <strong>${displayRole}</strong>.</p>
+                            
+                            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                                <p style="color: #1f2937; font-size: 14px; margin: 0 0 12px 0;"><strong>Role:</strong> ${displayRole}</p>
+                                <p style="color: #1f2937; font-size: 14px; margin: 0 0 12px 0;"><strong>Invited by:</strong> ${adminName}</p>
+                                <p style="color: #1f2937; font-size: 14px; margin: 0;"><strong>Valid for:</strong> 7 days</p>
+                            </div>
+                            
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="${fullInviteLink}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: 2px solid #1d4ed8;">Accept Invitation & Create Account</a>
+                            </div>
+                            
+                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">If you can't click the button above, copy and paste this link into your browser: ${fullInviteLink}</p>
+                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This invitation will expire in 7 days for security purposes.</p>
+                        </td>
+                    </tr>`;
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f8fafc;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc;">
