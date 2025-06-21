@@ -128,6 +128,7 @@ function getApplicationUrl(): string {
 
 // Modern HTML email template base optimized for email clients
 function createEmailTemplate(content: string, title: string): string {
+  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
   return `
 <!DOCTYPE html>
 <html>
@@ -197,7 +198,7 @@ async function notifySiteManagers(
                     <tr>
                         <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Site Manager Notification</p>
@@ -285,7 +286,7 @@ export async function sendBookingConfirmation(
                     <tr>
                         <td style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Studio Booking Confirmation</p>
@@ -383,7 +384,7 @@ export async function sendBookingUpdate(
                     <tr>
                         <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 32px 24px; text-align: center;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <span style="font-size: 24px; font-weight: bold; color: #f59e0b;">BS</span>
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Studio Booking Updated</p>
@@ -481,7 +482,7 @@ export async function sendBookingCancellation(
                     <tr>
                         <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px 24px; text-align: center;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
                             <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
                             <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Booking Cancelled</p>
@@ -656,7 +657,7 @@ export async function sendMaintenanceAlert(
                     <tr>
                         <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px 24px; text-align: center;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
                             <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
                             <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Maintenance Alert - Site Manager Notification</p>
@@ -766,7 +767,7 @@ export async function sendFacilityAlert(
                     <tr>
                         <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 32px 24px; text-align: center;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
                             <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
                             <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">IMPORTANT: Facility-Wide Alert</p>
@@ -866,7 +867,7 @@ export async function sendFacilityAlert(
                     <tr>
                         <td style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 32px 24px; text-align: center;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
                             <h1 style="color: #ffffff !important; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.025em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${APP_NAME}</h1>
                             <p style="color: #ffffff !important; font-size: 16px; font-weight: 400; margin: 0 0 12px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">CRITICAL: Facility-Wide Alert - Site Manager Notification</p>
@@ -1007,7 +1008,7 @@ export async function sendSiteManagerNotification(
                     <tr>
                         <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <span style="font-size: 24px; font-weight: bold; color: #2563eb;">BS</span>
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
                             </div>
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Site Manager Notification - Booking ${actionLabels[action]}</p>
