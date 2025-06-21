@@ -474,6 +474,11 @@ export async function sendBookingCancellation(
   studio: Studio, 
   user: User
 ): Promise<boolean> {
+  console.log('[EmailService] === BOOKING CANCELLATION EMAIL START ===');
+  console.log('[EmailService] Booking ID:', booking.id);
+  console.log('[EmailService] User email:', user.email);
+  console.log('[EmailService] Studio name:', studio.name);
+  
   const subject = `${APP_NAME} - Studio Booking Cancelled`;
   const appUrl = getApplicationUrl();
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
@@ -1003,13 +1008,14 @@ export async function sendSiteManagerNotification(
   console.log(`[EmailService] Site Manager notification - App URL: ${appUrl}`);
   console.log(`[EmailService] Site Manager notification - Booking URL: ${bookingUrl}`);
   
+  // Create the logo URL for this function
+  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+  
   // Create modern HTML content for site manager notification
   const htmlContent = `
                     <tr>
                         <td style="background: linear-gradient(135deg, ${actionColors[action]} 0%, #1e40af 100%); padding: 32px 24px; text-align: center;">
-                            <div style="width: 80px; height: 80px; margin: 0 auto 16px auto; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 60px; width: auto;" />
-                            </div>
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin: 0 auto 16px auto;" />
                             <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0 0 8px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${APP_NAME}</h1>
                             <p style="color: #ffffff; font-size: 18px; margin: 0 0 16px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Site Manager Notification - Booking ${actionLabels[action]}</p>
                             <a href="${bookingUrl}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Booking Details</a>
