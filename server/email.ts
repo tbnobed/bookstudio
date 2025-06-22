@@ -5,6 +5,25 @@ import { passwordResetTokens, inviteTokens } from '../shared/schema';
 import { sendEmail } from './services/emailService';
 
 /**
+ * Get the application URL for email links
+ */
+export function getApplicationUrl(): string {
+  // Check for production domain first (clean domain without port)
+  if (process.env.APP_DOMAIN) {
+    return `https://${process.env.APP_DOMAIN}`;
+  }
+  
+  // For Replit development, use the Replit domain
+  const replitDomain = process.env.REPLIT_DEV_DOMAIN;
+  if (replitDomain) {
+    return `https://${replitDomain}`;
+  }
+  
+  // Fallback to localhost for local development
+  return 'http://localhost:5000';
+}
+
+/**
  * Generate a password reset token
  * @param userId The user ID to associate with the token
  * @param expiresInMinutes How long the token is valid for (default: 30 minutes)
