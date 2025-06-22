@@ -443,45 +443,37 @@ export async function sendMaintenanceAlertToGroups(
 
   // Create modern HTML content for maintenance alert
   const htmlContent = `
-                    <tr>
-                        <td style="padding: 32px 24px; text-align: center;">
-                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 128px; width: auto; margin-bottom: 24px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 32px 24px;">
-                            <div style="background-color: #f59e0b; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">MAINTENANCE SCHEDULED</div>
-                            
-                            <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 20px 0;">${booking.title}</h2>
-                            
-                            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                                <div style="margin-bottom: 12px;">
-                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Type:</strong>
-                                    <span style="color: #1f2937;">Maintenance</span>
-                                </div>
-                                <div style="margin-bottom: 12px;">
-                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Severity:</strong>
-                                    <span style="color: #1f2937;">${booking.severity || 'medium'}</span>
-                                </div>
-                                <div style="margin-bottom: 12px;">
-                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Start:</strong>
-                                    <span style="color: #1f2937;">${formatDate(booking.start)}</span>
-                                </div>
-                                <div style="margin-bottom: 12px;">
-                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">End:</strong>
-                                    <span style="color: #1f2937;">${formatDate(booking.end)}</span>
-                                </div>
-                                ${booking.description ? `
-                                <div style="margin-bottom: 12px;">
-                                    <strong style="color: #4b5563; display: inline-block; width: 100px;">Description:</strong>
-                                    <span style="color: #1f2937;">${booking.description}</span>
-                                </div>` : ''}
-                            </div>
-                            
-                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;"><strong>⚠️ Important:</strong> This maintenance may affect studio availability. Please plan accordingly.</p>
-                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This notification has been sent to your notification group.</p>
-                        </td>
-                    </tr>`;
+    <div style="background-color: #f59e0b; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">MAINTENANCE SCHEDULED</div>
+    
+    <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 20px 0;">${booking.title}</h2>
+    
+    <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <div style="margin-bottom: 12px;">
+            <strong style="color: #4b5563; display: inline-block; width: 100px;">Type:</strong>
+            <span style="color: #1f2937;">Maintenance</span>
+        </div>
+        <div style="margin-bottom: 12px;">
+            <strong style="color: #4b5563; display: inline-block; width: 100px;">Severity:</strong>
+            <span style="color: #1f2937;">${booking.severity || 'medium'}</span>
+        </div>
+        <div style="margin-bottom: 12px;">
+            <strong style="color: #4b5563; display: inline-block; width: 100px;">Start:</strong>
+            <span style="color: #1f2937;">${formatDate(booking.start)}</span>
+        </div>
+        <div style="margin-bottom: 12px;">
+            <strong style="color: #4b5563; display: inline-block; width: 100px;">End:</strong>
+            <span style="color: #1f2937;">${formatDate(booking.end)}</span>
+        </div>
+        ${booking.description ? `
+        <div style="margin-bottom: 12px;">
+            <strong style="color: #4b5563; display: inline-block; width: 100px;">Description:</strong>
+            <span style="color: #1f2937;">${booking.description}</span>
+        </div>` : ''}
+    </div>
+    
+    <p style="color: #6b7280; font-size: 14px; margin: 20px 0;"><strong>⚠️ Important:</strong> This maintenance may affect studio availability. Please plan accordingly.</p>
+    <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This notification has been sent to your notification group.</p>
+  `;
 
   // Create plain text version for fallback
   const textMessage = `
