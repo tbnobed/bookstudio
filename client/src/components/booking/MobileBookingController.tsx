@@ -73,7 +73,7 @@ export function MobileBookingController({
             type: data.type,
             start: new Date(data.start),
             end: new Date(data.end),
-            templateId: data.templateId || 0,
+            templateId: data.templateId || null,
             status: data.status,
             severity: data.severity,
             color: data.color
@@ -111,7 +111,7 @@ export function MobileBookingController({
           type: data.type,
           start: new Date(data.start),
           end: new Date(data.end),
-          templateId: data.templateId || 0,
+          templateId: data.templateId || null,
           status: data.status,
           severity: data.severity,
           color: data.color,

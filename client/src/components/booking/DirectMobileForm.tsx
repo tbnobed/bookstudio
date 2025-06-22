@@ -139,7 +139,7 @@ export function DirectMobileForm({
     type: booking?.type || 'production',
     status: booking?.status || 'draft',
     severity: booking?.severity || 'low',
-    templateId: booking?.templateId || 0,
+    templateId: booking?.templateId || null,
     notifyList: booking?.notifyList || [],
     color: booking?.color || '#3b82f6', // Default blue
     studioIds: initialStudioId ? [initialStudioId] : []

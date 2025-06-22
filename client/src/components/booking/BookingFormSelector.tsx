@@ -68,7 +68,7 @@ export function BookingFormSelector({
     newBooking.type = String(newBooking.type || 'production');
     newBooking.status = String(newBooking.status || 'confirmed');
     newBooking.severity = newBooking.severity || null;
-    newBooking.templateId = Number(newBooking.templateId) || 0;
+    newBooking.templateId = Number(newBooking.templateId) || null;
     
     // Handle notification list correctly
     if (!newBooking.notifyList) {
