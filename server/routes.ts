@@ -890,6 +890,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fix foreign key constraints - set to null if 0 or undefined
       const cleanedData = {
         ...requestData,
+        studioId: requestData.studioId === 0 || requestData.studioId === undefined ? null : requestData.studioId,
         templateId: requestData.templateId === 0 || requestData.templateId === undefined ? null : requestData.templateId,
         pcrRoomId: requestData.pcrRoomId === 0 || requestData.pcrRoomId === undefined ? null : requestData.pcrRoomId
       };

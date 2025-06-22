@@ -293,8 +293,15 @@ export function DirectMobileForm({
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('DirectMobileForm - Submitting:', formData);
-    onSubmit(formData);
+    
+    // Fix studioId constraint - ensure it's never 0
+    const submissionData = {
+      ...formData,
+      studioId: formData.studioId === 0 ? null : formData.studioId
+    };
+    
+    console.log('DirectMobileForm - Submitting:', submissionData);
+    onSubmit(submissionData);
   };
   
   // Auto focus first field when form opens
