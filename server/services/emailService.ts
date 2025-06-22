@@ -105,7 +105,12 @@ const APP_NAME = 'BookStud.io';
 
 // Function to get the application URL dynamically
 function getApplicationUrl(): string {
-  // Check for Replit domains first
+  // Prioritize custom production domain first
+  if (process.env.APP_DOMAIN) {
+    return process.env.APP_DOMAIN;
+  }
+  
+  // Check for Replit domains (development/staging)
   if (process.env.REPLIT_DOMAINS) {
     const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
     return `https://${domains[0]}`;
@@ -114,11 +119,6 @@ function getApplicationUrl(): string {
   // Check for Replit dev domain
   if (process.env.REPLIT_DEV_DOMAIN) {
     return `https://${process.env.REPLIT_DEV_DOMAIN}`;
-  }
-  
-  // Check for custom domain from environment
-  if (process.env.APP_DOMAIN) {
-    return process.env.APP_DOMAIN;
   }
   
   // Fallback for local development

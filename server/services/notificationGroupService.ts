@@ -51,7 +51,22 @@ const APP_NAME = 'BookStud.io';
 
 // Helper functions for modern email templates
 function createEmailTemplate(content: string, title: string): string {
-  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+  // Use consistent domain resolution for logo URL
+  const getApplicationUrl = () => {
+    if (process.env.APP_DOMAIN) {
+      return process.env.APP_DOMAIN;
+    }
+    if (process.env.REPLIT_DOMAINS) {
+      const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
+      return `https://${domains[0]}`;
+    }
+    if (process.env.REPLIT_DEV_DOMAIN) {
+      return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    }
+    const port = process.env.PORT || 5000;
+    return `http://localhost:${port}`;
+  };
+  const logoUrl = `${getApplicationUrl()}/assets/logo.png`;
   return `
 <!DOCTYPE html>
 <html>
