@@ -158,6 +158,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 22, 2025: Removed redundant "Notify Crew" section from maintenance alert modal - since maintenance alerts automatically notify ALL notification groups, the manual crew selection is no longer needed and was causing confusion
 - June 22, 2025: Fixed foreign key constraint error in booking creation - templateId now properly set to null when no template is selected (was causing constraint violations when set to 0)
 - June 22, 2025: COMPLETELY FIXED mobile booking foreign key constraints - resolved both templateId and pcrRoomId constraint violations by updating all mobile form components (SimpleMobileForm, BookingModal, DirectMobileForm, MobileBookingController, BookingFormSelector) to use null instead of 0 for foreign key fields, plus updated server-side validation to handle empty values properly
+- June 22, 2025: Enhanced mobile daily view to display day of the week names - updated the subtitle below the date header to show full day names (Sunday, Monday, etc.) using Chicago timezone for consistency
 
 ## User Preferences
 
