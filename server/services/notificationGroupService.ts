@@ -53,6 +53,7 @@ const APP_NAME = 'BookStud.io';
 function createEmailTemplate(content: string, title: string): string {
   // Use consistent domain resolution for logo URL
   const getApplicationUrl = () => {
+    // Prioritize custom production domain first - clean domain without ports
     if (process.env.APP_DOMAIN) {
       return process.env.APP_DOMAIN;
     }
@@ -63,6 +64,7 @@ function createEmailTemplate(content: string, title: string): string {
     if (process.env.REPLIT_DEV_DOMAIN) {
       return `https://${process.env.REPLIT_DEV_DOMAIN}`;
     }
+    // Fallback for local development only
     const port = process.env.PORT || 5000;
     return `http://localhost:${port}`;
   };

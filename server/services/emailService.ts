@@ -105,7 +105,7 @@ const APP_NAME = 'BookStud.io';
 
 // Function to get the application URL dynamically
 function getApplicationUrl(): string {
-  // Prioritize custom production domain first
+  // Prioritize custom production domain first - clean domain without ports
   if (process.env.APP_DOMAIN) {
     return process.env.APP_DOMAIN;
   }
@@ -121,7 +121,7 @@ function getApplicationUrl(): string {
     return `https://${process.env.REPLIT_DEV_DOMAIN}`;
   }
   
-  // Fallback for local development
+  // Fallback for local development only
   const port = process.env.PORT || 5000;
   return `http://localhost:${port}`;
 }

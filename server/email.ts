@@ -188,6 +188,7 @@ export async function sendInviteEmail(
     
     // Get logo URL using consistent domain resolution
     const getApplicationUrl = () => {
+      // Prioritize custom production domain first - clean domain without ports
       if (process.env.APP_DOMAIN) {
         return process.env.APP_DOMAIN;
       }
@@ -198,6 +199,7 @@ export async function sendInviteEmail(
       if (process.env.REPLIT_DEV_DOMAIN) {
         return `https://${process.env.REPLIT_DEV_DOMAIN}`;
       }
+      // Fallback for local development only
       const port = process.env.PORT || 5000;
       return `http://localhost:${port}`;
     };
