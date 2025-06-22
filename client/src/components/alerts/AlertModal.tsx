@@ -407,26 +407,7 @@ export default function AlertModal({
             />
           </div>
           
-          <div>
-            <Label>Notify Crew</Label>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {["Camera Operators", "Sound Engineers", "Lighting Technicians", "Production Assistants", "Directors", "Engineering"].map((crew) => (
-                <div key={crew} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`crew-${crew}`}
-                    checked={notifyList.includes(crew)}
-                    onCheckedChange={() => handleCrewToggle(crew)}
-                  />
-                  <label
-                    htmlFor={`crew-${crew}`}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {crew}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
+
           
           <DialogFooter className="flex items-center justify-between">
             <div className="flex items-center gap-2">
