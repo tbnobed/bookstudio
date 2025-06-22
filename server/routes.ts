@@ -970,14 +970,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (allGroupIds.length > 0) {
             try {
               // Send maintenance alert to ALL groups + site managers (always true for maintenance)
-              await sendMaintenanceAlertToGroups(booking, allGroupIds, true);
-              console.log(`Maintenance alert sent to all ${allGroupIds.length} notification groups + site managers`);
+              console.log(`[MAINTENANCE ALERT] About to call sendMaintenanceAlertToGroups with group IDs: [${allGroupIds.join(', ')}]`);
+              const emailResults = await sendMaintenanceAlertToGroups(booking, allGroupIds, true);
+              console.log(`[MAINTENANCE ALERT] Email results received:`, emailResults);
+              console.log(`[MAINTENANCE ALERT] Successfully sent maintenance alert to all ${allGroupIds.length} notification groups + site managers`);
             } catch (emailError) {
-              console.error("Error sending maintenance alert emails:", emailError);
+              console.error("[MAINTENANCE ALERT] Error sending maintenance alert emails:", emailError);
               // Continue even if emails fail
             }
           } else {
-            console.log("No notification groups found for maintenance alert");
+            console.log("[MAINTENANCE ALERT] ERROR: No notification groups found for maintenance alert");
           }
         } catch (error) {
           console.error("Error processing facility-wide maintenance alert:", error);
