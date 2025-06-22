@@ -86,6 +86,27 @@ export function formatTimeInFacilityTimezone(date: Date): string {
 }
 
 /**
+ * Format a date as a time string for form inputs (HH:MM) in the facility timezone
+ * 
+ * @param date The date to format
+ * @returns Time string in HH:MM format (e.g. "08:00")
+ */
+export function formatTimeForForm(date: Date): string {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: FACILITY_TIMEZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(date);
+  const hour = parts.find(part => part.type === 'hour')?.value || '00';
+  const minute = parts.find(part => part.type === 'minute')?.value || '00';
+  
+  return `${hour}:${minute}`;
+}
+
+/**
  * Format a date in the facility timezone
  * 
  * @param date The date to format

@@ -251,9 +251,15 @@ export default function SimpleMobileForm({
       // Parse the new time
       const [hours, minutes] = value.split(':').map(Number);
       
-      // Update the time portion of the start date
-      const newStartDate = new Date(formData.start);
-      newStartDate.setHours(hours, minutes);
+      // Create a new date in Chicago timezone
+      const currentDate = new Date(formData.start);
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const day = currentDate.getDate();
+      
+      // Create the date string in Chicago timezone
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+      const newStartDate = new Date(dateStr);
       
       setFormData(prev => ({ ...prev, start: newStartDate }));
       return;
@@ -265,9 +271,15 @@ export default function SimpleMobileForm({
       // Parse the new time
       const [hours, minutes] = value.split(':').map(Number);
       
-      // Update the time portion of the end date
-      const newEndDate = new Date(formData.end);
-      newEndDate.setHours(hours, minutes);
+      // Create a new date in Chicago timezone
+      const currentDate = new Date(formData.end);
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const day = currentDate.getDate();
+      
+      // Create the date string in Chicago timezone
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+      const newEndDate = new Date(dateStr);
       
       setFormData(prev => ({ ...prev, end: newEndDate }));
       return;
