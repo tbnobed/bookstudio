@@ -252,8 +252,8 @@ export default function BookingModal({
       type: alertsOnly ? "maintenance" : "production",
       start: startTime.toISOString(),
       end: endTime.toISOString(),
-      templateId: 0,
-      template_id: 0,
+      templateId: null,
+      template_id: null,
       notifyList: [],
       notify_list: [],
       severity: "medium",
@@ -357,7 +357,7 @@ export default function BookingModal({
           date: dateStr,
           startTime: startTimeStr,
           endTime: endTimeStr,
-          templateId: normalizedBooking.templateId ? normalizedBooking.templateId.toString() : "0", // Use "0" as default
+          templateId: normalizedBooking.templateId ? normalizedBooking.templateId.toString() : "", // Use empty string as default
           notifyList: normalizedBooking.notifyList ? normalizedBooking.notifyList.map(id => String(id)) : [],
           saveAsTemplate: false,
           templateName: "",
@@ -567,7 +567,7 @@ export default function BookingModal({
     }
     
     // Add templateId if selected
-    if (formData.templateId && formData.templateId !== "0") {
+    if (formData.templateId && formData.templateId !== "") {
       bookingData.templateId = parseInt(formData.templateId);
     } else {
       bookingData.templateId = null;
@@ -784,7 +784,7 @@ export default function BookingModal({
       type: data.type || "production",
       start: data.start,
       end: data.end,
-      templateId: data.templateId || 0,
+      templateId: data.templateId || null,
       status: data.status || "confirmed",
       notifyList: Array.isArray(data.notifyList) ? data.notifyList : [],
       severity: data.severity || "medium",

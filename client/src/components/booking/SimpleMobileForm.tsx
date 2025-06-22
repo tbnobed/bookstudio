@@ -14,7 +14,7 @@ interface FormBookingData {
   type: string;
   status: string;
   severity: string | null;
-  templateId: number;
+  templateId: number | null;
   notifyList: string[];
   color: string;
   studioIds: number[];
@@ -84,7 +84,7 @@ export default function SimpleMobileForm({
     type: 'production',
     status: 'draft',
     severity: 'low',
-    templateId: 0,
+    templateId: null,
     notifyList: [],
     color: '#3b82f6',
     studioIds: []
@@ -163,7 +163,7 @@ export default function SimpleMobileForm({
         type: booking.type || 'production',
         status: booking.status || 'confirmed',
         severity: booking.severity || null,
-        templateId: Number(booking.templateId) || 0,
+        templateId: Number(booking.templateId) || null,
         
         // Process notification list properly
         notifyList: Array.isArray(booking.notifyList) ? booking.notifyList : 
@@ -290,7 +290,7 @@ export default function SimpleMobileForm({
   // Handle template selection
   const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const templateId = parseInt(e.target.value);
-    if (templateId === 0) {
+    if (templateId === 0 || templateId === null) {
       // No template selected
       return;
     }
