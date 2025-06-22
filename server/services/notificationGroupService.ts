@@ -205,7 +205,7 @@ export async function sendEmailToGroups(
       const appUrl = getApplicationUrl();
       const logoUrl = `${appUrl}/assets/logo.png`;
 
-      // Create HTML content with logo for notification group emails
+      // Create HTML content with logo for notification group emails (clean design without blue header)
       const htmlContent = `
                     <tr>
                         <td style="padding: 32px 24px; text-align: center;">
@@ -214,8 +214,6 @@ export async function sendEmailToGroups(
                     </tr>
                     <tr>
                         <td style="padding: 32px 24px;">
-                            <div style="background-color: #2563eb; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">NOTIFICATION</div>
-                            
                             <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; white-space: pre-line; color: #1f2937; line-height: 1.6;">${message}</div>
                             
                             <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This notification has been sent to your notification group.</p>
