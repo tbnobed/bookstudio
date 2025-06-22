@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { storage } from '../storage';
 
 // Use the existing email service functions
-import { sendEmail, sendBookingConfirmation, createEmailTemplate } from './emailService';
+import { sendEmail, sendBookingConfirmation } from './emailService';
 
 // Format date helper for Chicago CDT timezone
 function formatDate(date: Date | string): string {
@@ -49,26 +49,8 @@ function formatFileSize(bytes: number): string {
 const FROM_EMAIL = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
 const APP_NAME = 'BookStud.io';
 
-// Helper functions for modern email templates
-function createEmailTemplate(content: string, title: string): string {
-  // Use consistent domain resolution for logo URL
-  const getApplicationUrl = () => {
-    // Prioritize custom production domain first - clean domain without ports
-    if (process.env.APP_DOMAIN) {
-      return process.env.APP_DOMAIN;
-    }
-    if (process.env.REPLIT_DOMAINS) {
-      const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
-      return `https://${domains[0]}`;
-    }
-    if (process.env.REPLIT_DEV_DOMAIN) {
-      return `https://${process.env.REPLIT_DEV_DOMAIN}`;
-    }
-    // Fallback for local development only
-    const port = process.env.PORT || 5000;
-    return `http://localhost:${port}`;
-  };
-  const logoUrl = `${getApplicationUrl()}/assets/logo.png`;
+// Clean email template for notification groups (logo-only design)
+function createCleanEmailTemplate(content: string, title: string): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -225,7 +207,7 @@ export async function sendEmailToGroups(
         from: FROM_EMAIL,
         subject,
         text: message,
-        html: createEmailTemplate(htmlContent, subject),
+        html: createCleanEmailTemplate(htmlContent, subject),
       };
       
       console.log(`[NotificationService] Email params for ${group.name}:`, {
@@ -309,7 +291,7 @@ export async function sendStyledEmailToGroups(
         from: FROM_EMAIL,
         subject,
         text: textContent,
-        html: createEmailTemplate(htmlContent, subject),
+        html: createCleanEmailTemplate(htmlContent, subject),
       });
     });
     
