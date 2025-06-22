@@ -716,7 +716,7 @@ export async function sendFileAttachmentNotificationToGroups(
     </div>
   `;
   
-  const customHtmlMessage = createEmailTemplate(content, subject);
+  const customHtmlMessage = createCleanEmailTemplate(content, subject);
   
   return sendEmailToGroups(groupIds, subject, customHtmlMessage, alwaysNotifySiteManagers);
 }
