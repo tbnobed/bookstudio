@@ -527,7 +527,7 @@ export default function SimpleMobileForm({
               onChange={handleChange}
               className="form-select"
             >
-              <option value="0">None</option>
+              <option value="">None</option>
               {pcrRooms.map(pcr => (
                 <option key={pcr.id} value={pcr.id}>
                   {pcr.name}
