@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { storage } from '../storage';
 
 // Use the existing email service functions
-import { sendEmail, sendBookingConfirmation } from './emailService';
+import { sendEmail, sendBookingConfirmation, createEmailTemplate } from './emailService';
 
 // Format date helper for Chicago CDT timezone
 function formatDate(date: Date | string): string {
@@ -190,19 +190,52 @@ export async function sendEmailToGroups(
     const emailPromises = validGroups.map(group => {
       console.log(`[NotificationService] Preparing email for group: ${group.name} (${group.email})`);
       
-      // Always use plain text for notification group emails to avoid SendGrid formatting issues
+      // Get application URL and logo for HTML template
+      const getApplicationUrl = () => {
+        if (process.env.APP_DOMAIN) {
+          return process.env.APP_DOMAIN;
+        }
+        if (process.env.REPLIT_DEV_DOMAIN) {
+          return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+        }
+        const port = process.env.PORT || 5000;
+        return `http://localhost:${port}`;
+      };
+
+      const appUrl = getApplicationUrl();
+      const logoUrl = `${appUrl}/assets/logo.png`;
+
+      // Create HTML content with logo for notification group emails
+      const htmlContent = `
+                    <tr>
+                        <td style="padding: 32px 24px; text-align: center;">
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <div style="background-color: #2563eb; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">NOTIFICATION</div>
+                            
+                            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; white-space: pre-line; color: #1f2937; line-height: 1.6;">${message}</div>
+                            
+                            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This notification has been sent to your notification group.</p>
+                        </td>
+                    </tr>`;
+      
       const emailParams = {
         to: group.email,
         from: FROM_EMAIL,
         subject,
         text: message,
+        html: createEmailTemplate(htmlContent, subject),
       };
       
       console.log(`[NotificationService] Email params for ${group.name}:`, {
         to: emailParams.to,
         from: emailParams.from,
         subject: emailParams.subject,
-        textLength: emailParams.text?.length
+        textLength: emailParams.text?.length,
+        hasHtml: !!emailParams.html
       });
       
       return sendEmail(emailParams);
