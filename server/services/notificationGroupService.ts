@@ -5,6 +5,7 @@ import { storage } from '../storage';
 
 // Use the existing email service functions
 import { sendEmail, sendBookingConfirmation } from './emailService';
+import { getApplicationUrl } from '../email';
 
 // Format date helper for Chicago CDT timezone
 function formatDate(date: Date | string): string {
