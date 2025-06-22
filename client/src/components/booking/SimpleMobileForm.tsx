@@ -78,7 +78,7 @@ export default function SimpleMobileForm({
     id: 0,
     title: '',
     description: '',
-    studioId: 0,
+    studioId: selectedStudio || 0,
     pcrRoomId: null,
     start: selectedDate,
     end: new Date(selectedDate.getTime() + 60 * 60 * 1000), // 1 hour later
@@ -150,7 +150,7 @@ export default function SimpleMobileForm({
         id: Number(booking.id) || 0,
         title: String(booking.title || ''),
         description: String(booking.description || ''),
-        studioId: Number(booking.studioId) || Number(selectedStudio) || (studios[0]?.id || 0),
+        studioId: Number(booking.studioId) || Number(selectedStudio) || (studios[0]?.id || 1),
         pcrRoomId: booking.pcrRoomId !== undefined ? Number(booking.pcrRoomId) : null,
         
         // Handle the date objects carefully

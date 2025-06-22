@@ -164,6 +164,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 22, 2025: FINAL mobile timezone fix - updated SimpleMobileForm and DirectMobileForm to use createFacilityDate function for proper Chicago timezone handling, ensuring all time selections display and save correctly without conversion errors
 - June 22, 2025: Mobile booking form timezone issues completely resolved - all mobile forms now properly handle time selection in Chicago timezone, verified working correctly with 7:03 AM selections saving as 7:03 AM facility time
 - June 22, 2025: FIXED foreign key constraint error in booking creation - resolved studioId=0 constraint violations by updating server-side validation and all mobile form components (SimpleMobileForm, DirectMobileForm, BookingFormSelector) to use null instead of 0 for invalid studio IDs, preventing database foreign key errors
+- June 22, 2025: Enhanced mobile form studio selection handling - added proper validation for studio dropdown changes in both SimpleMobileForm and DirectMobileForm to ensure selected studios are properly captured and never default to invalid ID 0
 
 ## User Preferences
 

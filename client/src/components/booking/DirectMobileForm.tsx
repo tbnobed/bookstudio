@@ -31,7 +31,7 @@ export function DirectMobileForm({
   const { pcrRooms = [] } = usePcrRooms();
   
   // Initial studio ID from props or booking
-  const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 0);
+  const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 1);
   
   // Debug logging for tracing booking data issues
   useEffect(() => {
@@ -133,7 +133,7 @@ export function DirectMobileForm({
     id: booking?.id || 0,
     title: booking?.title || '',
     description: booking?.description || '',
-    studioId: initialStudioId,
+    studioId: selectedStudio || (studios[0]?.id || 1),
     pcrRoomId: booking?.pcrRoomId || null, 
     start: booking ? new Date(booking.start) : new Date(selectedDate),
     end: booking ? new Date(booking.end) : new Date(new Date(selectedDate).getTime() + 3600000), // Default 1 hour later
@@ -281,6 +281,14 @@ export function DirectMobileForm({
       setFormData(prev => ({
         ...prev,
         end: newEndDate
+      }));
+    } else if (name === 'studioId') {
+      // Handle studio selection specifically to ensure valid ID
+      const studioValue = parseInt(value);
+      console.log(`DirectMobileForm - Studio change: Setting to ${studioValue}`);
+      setFormData(prev => ({
+        ...prev,
+        studioId: studioValue > 0 ? studioValue : null
       }));
     } else {
       setFormData(prev => ({
