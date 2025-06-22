@@ -506,8 +506,8 @@ export async function sendFacilityAlertToGroups(
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - IMPORTANT: Facility-Wide Alert`;
   
-  // Get logo URL
-  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+  // Get logo URL using consistent domain resolution
+  const logoUrl = `${getApplicationUrl()}/assets/logo.png`;
 
   // Create modern HTML content for facility alert
   const htmlContent = `

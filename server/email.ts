@@ -186,8 +186,22 @@ export async function sendInviteEmail(
     const senderEmail = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
     console.log(`Using sender email: ${senderEmail}`);
     
-    // Get logo URL
-    const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+    // Get logo URL using consistent domain resolution
+    const getApplicationUrl = () => {
+      if (process.env.APP_DOMAIN) {
+        return process.env.APP_DOMAIN;
+      }
+      if (process.env.REPLIT_DOMAINS) {
+        const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
+        return `https://${domains[0]}`;
+      }
+      if (process.env.REPLIT_DEV_DOMAIN) {
+        return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+      }
+      const port = process.env.PORT || 5000;
+      return `http://localhost:${port}`;
+    };
+    const logoUrl = `${getApplicationUrl()}/assets/logo.png`;
     
     // Create modern HTML content for invitation
     const htmlContent = `
