@@ -423,8 +423,8 @@ export async function sendMaintenanceAlertToGroups(
 ): Promise<boolean[]> {
   const subject = `${APP_NAME} - Maintenance Alert`;
   
-  // Get logo URL
-  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+  // Get logo URL using consistent domain resolution
+  const logoUrl = `${getApplicationUrl()}/assets/logo.png`;
 
   // Create modern HTML content for maintenance alert
   const htmlContent = `
