@@ -887,7 +887,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Modified request data:", JSON.stringify(requestData));
       console.log("Extracted notifyList from request:", req.body.notifyList);
       
-      const bookingData = insertBookingSchema.parse(requestData);
+      // Fix templateId foreign key constraint - set to null if 0 or undefined
+      const cleanedData = {
+        ...requestData,
+        templateId: requestData.templateId === 0 || requestData.templateId === undefined ? null : requestData.templateId
+      };
+      
+      const bookingData = insertBookingSchema.parse(cleanedData);
       
       // Check for booking conflicts for all studios in the request
       let conflict = false;

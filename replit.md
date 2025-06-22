@@ -156,6 +156,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 22, 2025: Increased email logo size by 60% - updated all email templates across the system to use 128px height (up from 80px) for better visibility and brand presence in notification emails, booking confirmations, and site manager alerts
 - June 22, 2025: COMPLETELY FIXED maintenance alert system - maintenance bookings now properly send "MAINTENANCE SCHEDULED" alerts to ALL notification groups and facility management instead of regular booking notifications. Fixed missing getApplicationUrl import and ensured facility-wide alerts skip duplicate site manager notifications. System now correctly identifies maintenance bookings (studioId: null, type: maintenance) and sends proper orange maintenance alerts to all groups
 - June 22, 2025: Removed redundant "Notify Crew" section from maintenance alert modal - since maintenance alerts automatically notify ALL notification groups, the manual crew selection is no longer needed and was causing confusion
+- June 22, 2025: Fixed foreign key constraint error in booking creation - templateId now properly set to null when no template is selected (was causing constraint violations when set to 0)
 
 ## User Preferences
 
