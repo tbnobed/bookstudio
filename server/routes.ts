@@ -998,7 +998,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         // Send email confirmation if this is a standard booking with a studio
-        if (booking.studioId) {
+        // Skip regular booking notifications for facility-wide maintenance alerts
+        if (booking.studioId && !(booking.type === "maintenance" || booking.type === "it_support" || booking.type === "all-day:maintenance")) {
           try {
             const studio = await storage.getStudio(booking.studioId);
             if (studio) {
@@ -1089,33 +1090,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // ALWAYS send site manager notification for ALL booking creation (regardless of notification groups)
-      console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION START =====');
-      try {
-        const studios = await storage.getBookingStudios(booking.id);
-        const bookingUser = await storage.getUser(booking.userId);
-        if (bookingUser) {
-          console.log(`[BookingCreation] ALWAYS sending site manager email notification for new booking ${booking.id}`);
-          console.log('[BookingCreation] User for notification:', bookingUser.username, bookingUser.email);
-          console.log('[BookingCreation] Studios for notification:', studios.map(s => s.name));
-          console.log('[BookingCreation] Booking details:', {
-            title: booking.title,
-            type: booking.type,
-            start: booking.start,
-            end: booking.end
-          });
-          
-          const siteManagerResult = await sendSiteManagerNotification(booking, studios, bookingUser, 'created');
-          console.log('[BookingCreation] Site manager email notification result:', siteManagerResult);
-        } else {
-          console.log('[BookingCreation] ERROR: Missing booking user for site manager notification');
+      // Send site manager notification for regular bookings ONLY (not for facility-wide maintenance alerts)
+      // Facility-wide maintenance alerts are handled separately above
+      if (!(booking.studioId === null && (booking.type === "maintenance" || booking.type === "it_support" || booking.type === "all-day:maintenance"))) {
+        console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION START =====');
+        try {
+          const studios = await storage.getBookingStudios(booking.id);
+          const bookingUser = await storage.getUser(booking.userId);
+          if (bookingUser) {
+            console.log(`[BookingCreation] Sending site manager email notification for regular booking ${booking.id}`);
+            console.log('[BookingCreation] User for notification:', bookingUser.username, bookingUser.email);
+            console.log('[BookingCreation] Studios for notification:', studios.map(s => s.name));
+            console.log('[BookingCreation] Booking details:', {
+              title: booking.title,
+              type: booking.type,
+              start: booking.start,
+              end: booking.end
+            });
+            
+            const siteManagerResult = await sendSiteManagerNotification(booking, studios, bookingUser, 'created');
+            console.log('[BookingCreation] Site manager email notification result:', siteManagerResult);
+          } else {
+            console.log('[BookingCreation] ERROR: Missing booking user for site manager notification');
+          }
+        } catch (siteManagerError) {
+          console.error('[BookingCreation] ERROR sending site manager email notification:', siteManagerError);
+          console.error('[BookingCreation] Site manager error stack:', siteManagerError.stack);
+          // Continue with response even if site manager notification fails
         }
-      } catch (siteManagerError) {
-        console.error('[BookingCreation] ERROR sending site manager email notification:', siteManagerError);
-        console.error('[BookingCreation] Site manager error stack:', siteManagerError.stack);
-        // Continue with response even if site manager notification fails
+        console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION END =====');
+      } else {
+        console.log('[BookingCreation] Skipping regular site manager notification for facility-wide maintenance alert - handled by maintenance alert system');
       }
-      console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION END =====');
       
       res.status(201).json(booking);
     } catch (error) {
