@@ -1929,6 +1929,12 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`Updating booking ${id} with data:`, processedData);
       
+      // Check if we have any data to update
+      if (Object.keys(processedData).length === 0) {
+        console.log(`No data to update for booking ${id}, returning existing booking`);
+        return existingBooking;
+      }
+      
       const [updatedBooking] = await db
         .update(bookings)
         .set(processedData)

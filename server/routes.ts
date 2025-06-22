@@ -1269,8 +1269,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the update data
       let updateData = { ...req.body };
       
+      // Check if we have any meaningful data to update
+      const hasUpdates = Object.keys(updateData).some(key => 
+        key !== 'studioIds' && updateData[key] !== undefined && updateData[key] !== null
+      );
+      
       // Extract studio IDs for conflict checking and junction table
       const studioIds = updateData.studioIds || [];
+      
+      // If no meaningful updates and no studio changes, return the current booking
+      if (!hasUpdates && studioIds.length === 0) {
+        console.log("No updates provided, returning current booking");
+        return res.json(booking);
+      }
       
       // Convert date strings to Date objects
       if (updateData.start && typeof updateData.start === 'string') {
