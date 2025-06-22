@@ -153,6 +153,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 22, 2025: FINAL removal of blue header from notification group emails - eliminated the remaining blue "NOTIFICATION" header bar from notification group email templates, ensuring ALL email types across the entire system use the same clean logo-only design for universal email client compatibility
 - June 22, 2025: FIXED logo image serving in emails - added Express static file serving to properly serve logo images from /public directory. Email templates now display actual BookStud.io logo image instead of alt text, with correct Content-Type: image/png headers
 - June 22, 2025: FINAL blue header removal from notification group emails - eliminated conflicting createEmailTemplate imports and replaced with createCleanEmailTemplate function that generates logo-only email design without any blue headers. All notification group emails now use consistent clean branding
+- June 22, 2025: Increased email logo size by 60% - updated all email templates across the system to use 128px height (up from 80px) for better visibility and brand presence in notification emails, booking confirmations, and site manager alerts
 
 ## User Preferences
 

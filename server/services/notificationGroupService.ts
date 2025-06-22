@@ -191,7 +191,7 @@ export async function sendEmailToGroups(
       const htmlContent = `
                     <tr>
                         <td style="padding: 32px 24px; text-align: center;">
-                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 128px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
@@ -357,7 +357,7 @@ export async function sendBookingNotificationToGroups(
   const htmlContent = `
                     <tr>
                         <td style="padding: 32px 24px; text-align: center;">
-                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 128px; width: auto; margin-bottom: 24px;" />
                             <div style="text-align: center; margin: 24px 0;">
                                 <a href="${bookingUrl}" style="display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">View Booking Details</a>
                             </div>
@@ -445,7 +445,7 @@ export async function sendMaintenanceAlertToGroups(
   const htmlContent = `
                     <tr>
                         <td style="padding: 32px 24px; text-align: center;">
-                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 128px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
@@ -528,7 +528,7 @@ export async function sendFacilityAlertToGroups(
   const htmlContent = `
                     <tr>
                         <td style="padding: 32px 24px; text-align: center;">
-                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 128px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>

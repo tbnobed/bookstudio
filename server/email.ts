@@ -217,7 +217,7 @@ export async function sendInviteEmail(
                     <tr>
                         <td style="padding: 32px 24px; text-align: center;">
                             <div style="width: 100px; height: 100px; margin: 0 auto 24px auto; background-color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
-                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto;" />
+                                <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 128px; width: auto;" />
                             </div>
                             <a href="${fullInviteLink}" style="display: inline-block; background-color: #ffffff; color: #1f2937; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">Accept Invitation</a>
                         </td>
@@ -377,7 +377,7 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
                 <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px;">
                     <tr>
                         <td style="padding: 32px 24px; text-align: center;">
-                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 80px; width: auto; margin-bottom: 24px;" />
+                            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 128px; width: auto; margin-bottom: 24px;" />
                         </td>
                     </tr>
                     <tr>
