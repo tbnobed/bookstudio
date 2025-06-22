@@ -251,15 +251,14 @@ export default function SimpleMobileForm({
       // Parse the new time
       const [hours, minutes] = value.split(':').map(Number);
       
-      // Create a new date in Chicago timezone
+      // Get the current date components from the form data
       const currentDate = new Date(formData.start);
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
       const day = currentDate.getDate();
       
-      // Create the date string in Chicago timezone
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-      const newStartDate = new Date(dateStr);
+      // Create a new date using the facility timezone function
+      const newStartDate = createFacilityDate(year, month, day, hours, minutes);
       
       setFormData(prev => ({ ...prev, start: newStartDate }));
       return;
@@ -271,15 +270,14 @@ export default function SimpleMobileForm({
       // Parse the new time
       const [hours, minutes] = value.split(':').map(Number);
       
-      // Create a new date in Chicago timezone
+      // Get the current date components from the form data
       const currentDate = new Date(formData.end);
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
       const day = currentDate.getDate();
       
-      // Create the date string in Chicago timezone
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-      const newEndDate = new Date(dateStr);
+      // Create a new date using the facility timezone function
+      const newEndDate = createFacilityDate(year, month, day, hours, minutes);
       
       setFormData(prev => ({ ...prev, end: newEndDate }));
       return;
@@ -478,7 +476,7 @@ export default function SimpleMobileForm({
             <select 
               id="sm-template"
               name="templateId"
-              value={formData.templateId}
+              value={formData.templateId || ""}
               onChange={(e) => {
                 console.log('Template dropdown change detected:', e.target.value);
                 handleTemplateChange(e);
@@ -535,7 +533,7 @@ export default function SimpleMobileForm({
             <select 
               id="sm-pcr"
               name="pcrRoomId"
-              value={formData.pcrRoomId || ""}
+              value={formData.pcrRoomId ?? ""}
               onChange={handleChange}
               className="form-select"
             >

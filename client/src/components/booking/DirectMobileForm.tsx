@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ApiBooking, FormBookingData, BookingType, BookingStatus, BookingSeverity } from '../../types/bookings';
-import { formatDateForForm, formatTimeForForm } from '../../utils/dateUtils';
+import { formatDateForForm, formatTimeForForm, createFacilityDate } from '../../utils/dateUtils';
 import { useTemplates } from '../../hooks/useTemplates';
 import { useStudios } from '../../hooks/useStudios';
 import { usePcrRooms } from '../../hooks/usePcrRooms';
@@ -259,9 +259,8 @@ export function DirectMobileForm({
       const month = currentDate.getMonth();
       const day = currentDate.getDate();
       
-      // Create the date string in Chicago timezone
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-      const newStartDate = new Date(dateStr);
+      // Create a new date using the facility timezone function
+      const newStartDate = createFacilityDate(year, month, day, hours, minutes);
       
       setFormData(prev => ({
         ...prev,
@@ -275,9 +274,8 @@ export function DirectMobileForm({
       const month = currentDate.getMonth();
       const day = currentDate.getDate();
       
-      // Create the date string in Chicago timezone
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-      const newEndDate = new Date(dateStr);
+      // Create a new date using the facility timezone function
+      const newEndDate = createFacilityDate(year, month, day, hours, minutes);
       
       setFormData(prev => ({
         ...prev,
@@ -347,7 +345,7 @@ export function DirectMobileForm({
             <select 
               id="dm-template"
               name="templateId"
-              value={formData.templateId}
+              value={formData.templateId || ""}
               onChange={handleChange}
               className="dm-form-select"
             >
