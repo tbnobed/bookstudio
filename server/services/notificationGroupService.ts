@@ -103,18 +103,26 @@ export async function getSiteManagementGroup(): Promise<NotificationGroup | null
   try {
     // Get all notification groups
     const allGroups = await storage.getAllNotificationGroups();
+    console.log(`[getSiteManagementGroup] Found ${allGroups.length} total notification groups`);
     
     // Find the site management group
     const siteManagementGroup = allGroups.find(group => 
-      (group.groupType === 'site_management' || group.groupType === 'facility') && 
-      group.enabled
+      group.groupType === 'site_management' || 
+      group.name.toLowerCase().includes('site') ||
+      group.name.toLowerCase().includes('management') ||
+      group.name.toLowerCase().includes('admin') ||
+      group.name.toLowerCase().includes('facility')
     );
     
-    console.log('Site management group found:', siteManagementGroup?.name || 'Not found');
+    if (siteManagementGroup) {
+      console.log(`[getSiteManagementGroup] Found site management group: ${siteManagementGroup.name} (${siteManagementGroup.email}, enabled: ${siteManagementGroup.enabled})`);
+    } else {
+      console.log(`[getSiteManagementGroup] No site management group found. Available groups:`, allGroups.map(g => `${g.name} (${g.groupType}, enabled: ${g.enabled})`));
+    }
     
     return siteManagementGroup || null;
   } catch (error) {
-    console.error('Error fetching site management group:', error);
+    console.error('Error getting site management group:', error);
     return null;
   }
 }
@@ -248,14 +256,15 @@ export async function sendStyledEmailToGroups(
   alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
   try {
-    console.log(`[NotificationGroupService] Sending styled emails to group IDs: ${groupIds.join(', ')}`);
+    console.log(`[sendStyledEmailToGroups] Sending styled emails to group IDs: ${groupIds.join(', ')}`);
+    console.log(`[sendStyledEmailToGroups] Always notify site managers: ${alwaysNotifySiteManagers}`);
     
     // Get all notification groups from the provided IDs
     const groups = await Promise.all(
       groupIds.map(id => storage.getNotificationGroup(id))
     );
     
-    console.log(`[NotificationGroupService] Fetched groups:`, groups.map(g => g ? `${g.name} (${g.email}, enabled: ${g.enabled})` : 'null'));
+    console.log(`[sendStyledEmailToGroups] Fetched groups:`, groups.map(g => g ? `${g.name} (${g.email}, enabled: ${g.enabled})` : 'null'));
     
     // Filter out any undefined groups (in case some don't exist)
     let validGroups = groups.filter(group => group && group.enabled) as NotificationGroup[];
@@ -280,7 +289,8 @@ export async function sendStyledEmailToGroups(
       index === self.findIndex(g => g.id === group.id)
     );
     
-    console.log(`Sending styled emails to ${validGroups.length} notification groups`);
+    console.log(`[sendStyledEmailToGroups] Final recipient list: ${validGroups.length} notification groups`);
+    console.log(`[sendStyledEmailToGroups] Recipients:`, validGroups.map(g => `${g.name} (${g.email})`));
     
     // Send emails to each group
     const emailPromises = validGroups.map(group => {
@@ -436,6 +446,10 @@ export async function sendMaintenanceAlertToGroups(
   groupIds: number[],
   alwaysNotifySiteManagers: boolean = true
 ): Promise<boolean[]> {
+  console.log(`[sendMaintenanceAlertToGroups] Starting maintenance alert for booking: ${booking.title}`);
+  console.log(`[sendMaintenanceAlertToGroups] Group IDs received: [${groupIds.join(', ')}]`);
+  console.log(`[sendMaintenanceAlertToGroups] Always notify site managers: ${alwaysNotifySiteManagers}`);
+  
   const subject = `${APP_NAME} - Maintenance Alert`;
   
   // Get logo URL using consistent domain resolution

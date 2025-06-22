@@ -964,7 +964,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const allNotificationGroups = await storage.getAllNotificationGroups();
           const allGroupIds = allNotificationGroups.map(group => group.id);
           
-          console.log(`Sending maintenance alert to ALL ${allGroupIds.length} notification groups + site managers`);
+          console.log(`[MAINTENANCE ALERT] Found ${allNotificationGroups.length} notification groups:`, allNotificationGroups.map(g => `${g.name} (${g.email}, enabled: ${g.enabled})`));
+          console.log(`[MAINTENANCE ALERT] Sending maintenance alert to ALL ${allGroupIds.length} notification groups + site managers`);
           
           if (allGroupIds.length > 0) {
             try {
