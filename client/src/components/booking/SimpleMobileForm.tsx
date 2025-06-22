@@ -273,12 +273,12 @@ export default function SimpleMobileForm({
       return;
     }
     
-    // Handle pcrRoomId to convert "0" to null
+    // Handle pcrRoomId to convert empty string to null
     if (name === 'pcrRoomId') {
-      const pcrValue = parseInt(value);
+      const pcrValue = value === "" ? null : parseInt(value);
       setFormData(prev => ({ 
         ...prev, 
-        [name]: pcrValue === 0 ? null : pcrValue 
+        [name]: pcrValue 
       }));
       return;
     }

@@ -66,7 +66,7 @@ export function DirectMobileForm({
         type: booking.type || 'production',
         status: booking.status || 'confirmed',
         severity: booking.severity || null,
-        templateId: booking.templateId || 0,
+        templateId: booking.templateId || null,
         notifyList: booking.notifyList || [],
         color: booking.color || '#3b82f6',
         // Make sure studioIds is properly initialized
@@ -116,7 +116,7 @@ export function DirectMobileForm({
         type: booking.type || 'production',
         status: booking.status || 'confirmed',
         severity: booking.severity || null,
-        templateId: booking.templateId || 0,
+        templateId: booking.templateId || null,
         notifyList: booking.notifyList || [],
         color: booking.color || '#3b82f6',
         studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
@@ -231,11 +231,11 @@ export function DirectMobileForm({
         studioIds: studioId ? [studioId] : []
       }));
     } else if (name === 'pcrRoomId') {
-      // Parse pcrRoomId as number, but allow null (0 = null)
-      const pcrRoomId = parseInt(value, 10);
+      // Parse pcrRoomId as number, but allow null (empty = null)
+      const pcrRoomId = value === "" ? null : parseInt(value, 10);
       setFormData(prev => ({
         ...prev,
-        pcrRoomId: pcrRoomId || null
+        pcrRoomId: pcrRoomId
       }));
     } else if (name === 'startDate') {
       const [currentDate, currentTime] = formData.start.toISOString().split('T');
