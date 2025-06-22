@@ -143,7 +143,7 @@ export default function BookingModal({
     description: "",
     studioId: studioIdStr, // Keep for backward compatibility
     studioIds: studioIdsArray, // Array for multiple studios
-    pcrRoomId: "0",
+    pcrRoomId: "",
     bookingType: alertsOnly ? "maintenance" : "production",
     status: "confirmed", // confirmed, tentative, cancelled
     date: formatDateForForm(selectedDate),
@@ -247,8 +247,8 @@ export default function BookingModal({
       description: "",
       studioId: effectiveStudioForDummy,
       studio_id: effectiveStudioForDummy,
-      pcrRoomId: 0,
-      pcr_room_id: 0,
+      pcrRoomId: null,
+      pcr_room_id: null,
       type: alertsOnly ? "maintenance" : "production",
       start: startTime.toISOString(),
       end: endTime.toISOString(),
@@ -351,7 +351,7 @@ export default function BookingModal({
           description: normalizedBooking.description,
           studioId: normalizedBooking.studioId ? normalizedBooking.studioId.toString() : "",
           studioIds: studioIds.length > 0 ? studioIds : [], 
-          pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "0", // Use "0" as default
+          pcrRoomId: normalizedBooking.pcrRoomId ? normalizedBooking.pcrRoomId.toString() : "", // Use empty string as default
           bookingType,
           status: normalizedBooking.status || "confirmed",
           date: dateStr,
@@ -574,7 +574,7 @@ export default function BookingModal({
     }
     
     // Add pcrRoomId if selected
-    if (formData.pcrRoomId && formData.pcrRoomId !== "0") {
+    if (formData.pcrRoomId && formData.pcrRoomId !== "") {
       bookingData.pcrRoomId = parseInt(formData.pcrRoomId);
     } else {
       bookingData.pcrRoomId = null;
@@ -635,7 +635,7 @@ export default function BookingModal({
           // This includes all the fields requested by the user
           const additionalData = {
             studioIds: studioIdsAsNumbers,
-            pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "0" ? parseInt(formData.pcrRoomId) : null,
+            pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "" ? parseInt(formData.pcrRoomId) : null,
             status: formData.status, // "confirmed", "tentative", "cancelled"
             color: formData.color,
           };
@@ -733,7 +733,7 @@ export default function BookingModal({
       startTime: formData.startTime, // Store the default start time
       endTime: formData.endTime, // Store the default end time
       studioIds: studioIdsAsNumbers, // Direct field for studio selection
-      pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "0" ? parseInt(formData.pcrRoomId) : null,
+      pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "" ? parseInt(formData.pcrRoomId) : null,
       status: formData.status, // "confirmed", "tentative", "cancelled"
       color: formData.color,
       notifyList: notifyListAsNumbers, // Direct field for notification groups
@@ -780,7 +780,7 @@ export default function BookingModal({
       title: data.title || "",
       description: data.description || "",
       studioId: data.studioId,
-      pcrRoomId: data.pcrRoomId || 0,
+      pcrRoomId: data.pcrRoomId || null,
       type: data.type || "production",
       start: data.start,
       end: data.end,

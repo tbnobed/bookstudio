@@ -523,7 +523,7 @@ export default function SimpleMobileForm({
             <select 
               id="sm-pcr"
               name="pcrRoomId"
-              value={formData.pcrRoomId || 0}
+              value={formData.pcrRoomId || ""}
               onChange={handleChange}
               className="form-select"
             >

@@ -133,7 +133,7 @@ export function DirectMobileForm({
     title: booking?.title || '',
     description: booking?.description || '',
     studioId: initialStudioId,
-    pcrRoomId: booking?.pcrRoomId || 0, 
+    pcrRoomId: booking?.pcrRoomId || null, 
     start: booking ? new Date(booking.start) : new Date(selectedDate),
     end: booking ? new Date(booking.end) : new Date(new Date(selectedDate).getTime() + 3600000), // Default 1 hour later
     type: booking?.type || 'production',

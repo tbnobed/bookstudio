@@ -887,10 +887,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Modified request data:", JSON.stringify(requestData));
       console.log("Extracted notifyList from request:", req.body.notifyList);
       
-      // Fix templateId foreign key constraint - set to null if 0 or undefined
+      // Fix foreign key constraints - set to null if 0 or undefined
       const cleanedData = {
         ...requestData,
-        templateId: requestData.templateId === 0 || requestData.templateId === undefined ? null : requestData.templateId
+        templateId: requestData.templateId === 0 || requestData.templateId === undefined ? null : requestData.templateId,
+        pcrRoomId: requestData.pcrRoomId === 0 || requestData.pcrRoomId === undefined ? null : requestData.pcrRoomId
       };
       
       const bookingData = insertBookingSchema.parse(cleanedData);
