@@ -335,8 +335,8 @@ export async function sendBookingNotificationToGroups(
   const appUrl = getApplicationUrl();
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
 
-  // Get logo URL
-  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+  // Get logo URL using consistent domain resolution
+  const logoUrl = `${appUrl}/assets/logo.png`;
 
   // Create modern HTML content for booking notification
   const htmlContent = `
