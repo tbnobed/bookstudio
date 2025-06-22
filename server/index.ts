@@ -36,6 +36,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Serve static files from public directory
+import path from "path";
+app.use(express.static(path.resolve(process.cwd(), "public")));
+
 (async () => {
   const server = await registerRoutes(app);
 
