@@ -284,6 +284,18 @@ export default function SimpleMobileForm({
       return;
     }
     
+    // Special handling for studio selection to ensure valid ID
+    if (name === 'studioId') {
+      const studioValue = parseInt(value);
+      console.log(`Studio change: Setting to ${studioValue}`);
+      setFormData(prev => ({ 
+        ...prev, 
+        studioId: studioValue > 0 ? studioValue : null,
+        studioIds: studioValue > 0 ? [studioValue] : []
+      }));
+      return;
+    }
+    
     // Handle pcrRoomId to convert empty string to null
     if (name === 'pcrRoomId') {
       const pcrValue = value === "" ? null : parseInt(value);
@@ -405,15 +417,14 @@ export default function SimpleMobileForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate that at least one studio is selected
-    if (!formData.studioIds || formData.studioIds.length === 0) {
-      console.log('SimpleMobileForm - Validation failed: No studios selected');
-      // Don't submit - just let the error hint display
-      return;
-    }
+    // Fix studioId constraint - ensure it's never 0
+    const submissionData = {
+      ...formData,
+      studioId: formData.studioId === 0 ? null : formData.studioId
+    };
     
-    console.log('SimpleMobileForm - Submitting:', formData);
-    onSubmit(formData);
+    console.log('SimpleMobileForm - Final form data:', submissionData);
+    onSubmit(submissionData);
   };
   
   // Auto focus first field when form opens
