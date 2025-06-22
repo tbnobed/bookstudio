@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './simple-mobile.css';
 import { BookingType, BookingSeverity, BookingStatus } from '@/types/bookings';
 import { formatDateForForm, formatTimeForForm } from '@/utils/dateUtils';
+import { createFacilityDate } from '@/lib/dateUtils';
 
 interface FormBookingData {
   id: number;

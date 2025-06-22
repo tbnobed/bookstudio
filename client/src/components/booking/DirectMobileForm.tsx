@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ApiBooking, FormBookingData, BookingType, BookingStatus, BookingSeverity } from '../../types/bookings';
-import { formatDateForForm, formatTimeForForm, createFacilityDate } from '../../utils/dateUtils';
+import { formatDateForForm, formatTimeForForm } from '../../utils/dateUtils';
+import { createFacilityDate } from '../../lib/dateUtils';
 import { useTemplates } from '../../hooks/useTemplates';
 import { useStudios } from '../../hooks/useStudios';
 import { usePcrRooms } from '../../hooks/usePcrRooms';

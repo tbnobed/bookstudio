@@ -161,6 +161,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 22, 2025: Enhanced mobile daily view to display day of the week names - updated the subtitle below the date header to show full day names (Sunday, Monday, etc.) using Chicago timezone for consistency
 - June 22, 2025: FIXED mobile timezone conversion issue - resolved timezone shifting where 8:00 AM selections displayed as 10:00 AM in forms by implementing proper Chicago timezone handling in SimpleMobileForm and DirectMobileForm time input processing, ensuring all mobile booking times display and save correctly in facility timezone
 - June 22, 2025: Fixed React null value warnings in mobile forms - updated SimpleMobileForm and DirectMobileForm to handle null templateId and pcrRoomId values properly, eliminating console warnings and runtime errors
+- June 22, 2025: FINAL mobile timezone fix - updated SimpleMobileForm and DirectMobileForm to use createFacilityDate function for proper Chicago timezone handling, ensuring all time selections display and save correctly without conversion errors
 
 ## User Preferences
 
