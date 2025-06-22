@@ -210,7 +210,7 @@ export async function sendInviteEmail(
       const port = process.env.PORT || 5000;
       return `http://localhost:${port}`;
     };
-    const logoUrl = `${getApplicationUrl()}/bookstudio-logo.png`;
+    const logoUrl = `${getApplicationUrl()}/assets/logo.png`;
     
     // Create modern HTML content for invitation
     const htmlContent = `

@@ -203,7 +203,7 @@ export async function sendEmailToGroups(
       };
 
       const appUrl = getApplicationUrl();
-      const logoUrl = `${appUrl}/bookstudio-logo.png`;
+      const logoUrl = `${appUrl}/assets/logo.png`;
 
       // Create HTML content with logo for notification group emails (clean design without blue header)
       const htmlContent = `
@@ -369,7 +369,7 @@ export async function sendBookingNotificationToGroups(
   const bookingUrl = `${appUrl}/?booking=${booking.id}`;
 
   // Get logo URL using consistent domain resolution
-  const logoUrl = `${appUrl}/bookstudio-logo.png`;
+  const logoUrl = `${appUrl}/assets/logo.png`;
 
   // Create modern HTML content for booking notification
   const htmlContent = `
