@@ -510,7 +510,10 @@ export async function sendMaintenanceAlertToGroups(
     ${APP_NAME}
   `;
   
-  return sendStyledEmailToGroups(groupIds, subject, htmlContent, textMessage, alwaysNotifySiteManagers);
+  console.log(`[sendMaintenanceAlertToGroups] Calling sendStyledEmailToGroups with ${groupIds.length} groups`);
+  const results = await sendStyledEmailToGroups(groupIds, subject, htmlContent, textMessage, alwaysNotifySiteManagers);
+  console.log(`[sendMaintenanceAlertToGroups] Email sending results:`, results);
+  return results;
 }
 
 /**
