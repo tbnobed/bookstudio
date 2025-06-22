@@ -128,7 +128,7 @@ function getApplicationUrl(): string {
 
 // Modern HTML email template base optimized for email clients
 function createEmailTemplate(content: string, title: string): string {
-  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+  const logoUrl = `${getApplicationUrl()}/assets/logo.png`;
   return `
 <!DOCTYPE html>
 <html>
@@ -979,8 +979,8 @@ export async function sendSiteManagerNotification(
   console.log(`[EmailService] Site Manager notification - App URL: ${appUrl}`);
   console.log(`[EmailService] Site Manager notification - Booking URL: ${bookingUrl}`);
   
-  // Create the logo URL for this function
-  const logoUrl = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:3000'}/assets/logo.png`;
+  // Create the logo URL for this function using consistent domain resolution
+  const logoUrl = `${appUrl}/assets/logo.png`;
   
   // Create clean HTML content for site manager notification
   const htmlContent = `
