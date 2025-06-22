@@ -151,6 +151,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 22, 2025: FINAL email logo fix completed - fixed missing logos in notification group emails by updating sendEmailToGroups function to use HTML templates with BookStud.io logo instead of plain text. All email types now consistently display the authentic BookStud.io logo across all email clients
 - June 22, 2025: VERIFIED notification group email logo fix - confirmed sendEmailToGroups function properly generates HTML templates with logo URLs using getApplicationUrl() for dynamic domain resolution. All notification group emails now include BookStud.io logo for consistent branding
 - June 22, 2025: FINAL removal of blue header from notification group emails - eliminated the remaining blue "NOTIFICATION" header bar from notification group email templates, ensuring ALL email types across the entire system use the same clean logo-only design for universal email client compatibility
+- June 22, 2025: FIXED logo image serving in emails - added Express static file serving to properly serve logo images from /public directory. Email templates now display actual BookStud.io logo image instead of alt text, with correct Content-Type: image/png headers
 
 ## User Preferences
 
