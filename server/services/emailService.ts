@@ -128,7 +128,7 @@ function getApplicationUrl(): string {
 
 // Modern HTML email template base optimized for email clients
 function createEmailTemplate(content: string, title: string): string {
-  const logoUrl = `${getApplicationUrl()}/assets/logo.png`;
+  const logoUrl = `${getApplicationUrl()}/bookstudio-logo.png`;
   return `
 <!DOCTYPE html>
 <html>
@@ -980,7 +980,7 @@ export async function sendSiteManagerNotification(
   console.log(`[EmailService] Site Manager notification - Booking URL: ${bookingUrl}`);
   
   // Create the logo URL for this function using consistent domain resolution
-  const logoUrl = `${appUrl}/assets/logo.png`;
+  const logoUrl = `${appUrl}/bookstudio-logo.png`;
   
   // Create clean HTML content for site manager notification
   const htmlContent = `
