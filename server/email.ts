@@ -162,10 +162,17 @@ export async function sendInviteEmail(
   adminName: string,
   clientOrigin?: string
 ): Promise<boolean> {
-  // Get the appropriate origin (client-provided or fallback)
-  const origin = clientOrigin || (process.env.REPL_SLUG 
-    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
-    : 'http://localhost:5000');
+  // Use production-safe domain resolution
+  const getApplicationUrl = () => {
+    if (process.env.APP_DOMAIN) return process.env.APP_DOMAIN;
+    if (process.env.REPLIT_DOMAINS) {
+      const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
+      return `https://${domains[0]}`;
+    }
+    if (process.env.REPLIT_DEV_DOMAIN) return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    return `http://localhost:${process.env.PORT || 5000}`;
+  };
+  const origin = clientOrigin || getApplicationUrl();
   
   const fullInviteLink = `${origin}${invitePath}`;
   
@@ -323,11 +330,17 @@ export async function sendInviteEmail(
  * @returns A promise that resolves when the email is sent
  */
 export async function sendPasswordResetEmail(to: string, resetPath: string, clientOrigin?: string): Promise<boolean> {
-  // Log the reset link info regardless of environment
-  // Get the appropriate origin (client-provided or fallback)
-  const origin = clientOrigin || (process.env.REPL_SLUG 
-    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
-    : 'http://localhost:5000');
+  // Use production-safe domain resolution
+  const getApplicationUrl = () => {
+    if (process.env.APP_DOMAIN) return process.env.APP_DOMAIN;
+    if (process.env.REPLIT_DOMAINS) {
+      const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
+      return `https://${domains[0]}`;
+    }
+    if (process.env.REPLIT_DEV_DOMAIN) return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    return `http://localhost:${process.env.PORT || 5000}`;
+  };
+  const origin = clientOrigin || getApplicationUrl();
   
   const fullResetLink = `${origin}${resetPath}`;
   
