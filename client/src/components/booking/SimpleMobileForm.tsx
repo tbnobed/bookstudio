@@ -553,6 +553,12 @@ export default function SimpleMobileForm({
     // EMERGENCY DEBUG: Log the exact function being called
     console.log('[EMERGENCY] onSubmit function source code preview:', onSubmit.toString().substring(0, 500));
     
+    // CRITICAL DEBUG: Test if the issue is with the onSubmit function
+    console.log('[EMERGENCY] About to call onSubmit with submissionData containing studioIds:', submissionData.studioIds);
+    console.log('[EMERGENCY] submissionData object keys:', Object.keys(submissionData));
+    console.log('[EMERGENCY] submissionData.studioIds exists?', 'studioIds' in submissionData);
+    console.log('[EMERGENCY] submissionData.studioIds value before call:', JSON.stringify(submissionData.studioIds));
+    
     onSubmit(submissionData);
   };
   
