@@ -469,13 +469,15 @@ export default function SimpleMobileForm({
       return;
     }
     
+    // CRITICAL: Debug formData before processing
+    console.log('[CRITICAL] Form data before processing:', JSON.stringify(formData));
+    console.log('[CRITICAL] Form data studioIds before processing:', formData.studioIds);
+    
     // Prepare submission data with proper multi-studio support
     const submissionData = {
       ...formData,
-      // CRITICAL: Ensure we have a studioIds array for multi-studio support
-      studioIds: formData.studioIds && formData.studioIds.length > 0 
-        ? formData.studioIds 
-        : (formData.studioId && formData.studioId !== 0 ? [formData.studioId] : []),
+      // CRITICAL: Preserve the exact studioIds array from formData - DO NOT OVERRIDE IF EXISTS
+      studioIds: formData.studioIds || (formData.studioId && formData.studioId !== 0 ? [formData.studioId] : []),
       // Set primary studioId for backwards compatibility
       studioId: formData.studioIds && formData.studioIds.length > 0 
         ? formData.studioIds[0] 
@@ -484,6 +486,9 @@ export default function SimpleMobileForm({
       start: formData.start instanceof Date ? formData.start.toISOString() : formData.start,
       end: formData.end instanceof Date ? formData.end.toISOString() : formData.end
     };
+    
+    console.log('[CRITICAL] Form data after processing:', JSON.stringify(submissionData));
+    console.log('[CRITICAL] Final studioIds array:', submissionData.studioIds);
     
     console.log('[SUBMIT] SimpleMobileForm - Final form data with multi-studio support:', submissionData);
     console.log('[SUBMIT] SimpleMobileForm - Studios selected:', submissionData.studioIds);
