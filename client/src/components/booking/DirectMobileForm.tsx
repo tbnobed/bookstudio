@@ -513,6 +513,8 @@ export function DirectMobileForm({
                             variant: "default"
                           });
                           onClose();
+                          // Force immediate UI refresh
+                          window.location.reload();
                         },
                         onError: (error: any) => {
                           toast({
