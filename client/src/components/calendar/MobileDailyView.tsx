@@ -238,9 +238,21 @@ export default function MobileDailyView({
     if (isMaintenanceOrAlert) {
       // Open alert modal for maintenance/alert bookings
       console.log("MobileDailyView - Opening AlertModal for maintenance booking");
+      
+      // Prepare the booking data for the alert modal
+      const alertData = {
+        id: booking.id,
+        title: booking.title || '',
+        description: booking.description || '',
+        start: booking.start,
+        end: booking.end,
+        type: booking.type || 'maintenance',
+        severity: booking.severity || 'low',
+        notifyList: booking.notifyList || []
+      };
+      
+      setEditBooking(alertData);
       setIsNewAlertModalOpen(true);
-      // Set the alert data for the modal to edit
-      // We'll need to pass the booking data to AlertModal
       return;
     }
     
@@ -806,7 +818,10 @@ export default function MobileDailyView({
       {/* New Alert Modal */}
       <AlertModal
         isOpen={isNewAlertModalOpen}
-        onClose={() => setIsNewAlertModalOpen(false)}
+        onClose={() => {
+          setIsNewAlertModalOpen(false);
+          setEditBooking(null);
+        }}
         selectedDate={selectedDate || currentDate}
         alert={editBooking && (editBooking.type === 'maintenance' || editBooking.type === 'alert' || editBooking.type === 'it_support') ? editBooking : undefined}
       />
