@@ -57,7 +57,14 @@ export function MobileBookingController({
   
   // Handle form submission
   const handleFormSubmit = (data: FormBookingData) => {
-    console.log("Mobile form submission:", data);
+    console.log("[MOBILE CONTROLLER] Form submission:", data);
+    console.log("[MOBILE CONTROLLER] Studio data check:", {
+      studioId: data.studioId,
+      studioIds: data.studioIds,
+      studioIdsLength: data.studioIds?.length,
+      studioIdsType: typeof data.studioIds,
+      isArray: Array.isArray(data.studioIds)
+    });
     
     // Create or update booking
     if (booking && booking.id > 0) {
@@ -69,6 +76,7 @@ export function MobileBookingController({
             title: data.title,
             description: data.description,
             studioId: data.studioId,
+            studioIds: data.studioIds || (data.studioId ? [data.studioId] : []), // Include studioIds for updates
             pcrRoomId: data.pcrRoomId || null,
             type: data.type,
             start: new Date(data.start),
