@@ -471,11 +471,23 @@ export default function SimpleMobileForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('=== MOBILE FORM SUBMISSION STARTED ===');
+    console.log('[SUBMIT] Current formData state:', formData);
+    console.log('[SUBMIT] Current studioIds:', formData.studioIds);
+    console.log('[SUBMIT] Current studioId:', formData.studioId);
+    
     // Validate that at least one studio is selected (check both legacy studioId and new studioIds array)
     const hasStudioSelected = (formData.studioIds && formData.studioIds.length > 0) || 
                               (formData.studioId && formData.studioId !== 0);
     
+    console.log('[SUBMIT] Studio validation:', {
+      hasStudioSelected,
+      studioIdsLength: formData.studioIds?.length,
+      studioId: formData.studioId
+    });
+    
     if (!hasStudioSelected) {
+      console.log('[SUBMIT] VALIDATION FAILED: No studios selected');
       alert('Please select at least one studio before creating the booking');
       return;
     }
@@ -514,6 +526,7 @@ export default function SimpleMobileForm({
     // CRITICAL: Ensure studioIds is always included in submission
     console.log('[CRITICAL] About to call onSubmit with studioIds:', submissionData.studioIds);
     console.log('[CRITICAL] Calling onSubmit with data:', JSON.stringify(submissionData));
+    console.log('=== CALLING onSubmit FUNCTION ===');
     onSubmit(submissionData);
   };
   
