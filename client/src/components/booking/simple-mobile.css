@@ -185,6 +185,8 @@
   justify-content: space-between;
   align-items: center;
   margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
   gap: 12px;
 }
 
@@ -196,61 +198,77 @@
 .form-actions-right {
   display: flex;
   gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .cancel-button,
-.submit-button {
-  padding: 10px 20px;
-  border-radius: 4px;
+.submit-button,
+.delete-button {
+  padding: 12px 24px;
+  border-radius: 8px;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  border: none;
+  text-transform: none;
+  min-width: 80px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cancel-button {
-  background-color: #fff;
-  border: 1px solid #ced4da;
-  color: #495057;
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
 }
 
 .cancel-button:hover {
-  background-color: #f8f9fa;
+  background-color: #e9ecef;
+  color: #495057;
+  border-color: #ced4da;
 }
 
 .submit-button {
-  background-color: #0d6efd;
-  border: 1px solid #0d6efd;
-  color: #fff;
+  background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
   flex: 1;
+  min-width: 100px;
 }
 
 .submit-button:hover {
-  background-color: #0b5ed7;
-  border-color: #0a58ca;
+  background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+  transform: translateY(-1px);
 }
 
 .delete-button {
-  padding: 10px 20px;
+  background-color: #fff;
+  color: #dc3545;
   border: 1px solid #dc3545;
-  background: #f8f9fa;
-  color: #6c757d;
-  border-radius: 4px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+  min-width: 80px;
 }
 
 .delete-button:hover {
-  background: #dc3545;
+  background-color: #dc3545;
   color: white;
   border-color: #dc3545;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+  transform: translateY(-1px);
 }
 
 .delete-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+.delete-button:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* Styles for smaller screens */
