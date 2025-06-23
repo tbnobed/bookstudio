@@ -496,18 +496,17 @@ export default function SimpleMobileForm({
     console.log('[CRITICAL] Form data before processing:', JSON.stringify(formData));
     console.log('[CRITICAL] Form data studioIds before processing:', formData.studioIds);
     
-    // CRITICAL FIX: Use the actual studioIds state variable that tracks selected studios
-    console.log('[CRITICAL FIX] Using studioIds state variable:', studioIds);
-    console.log('[CRITICAL FIX] NOT using formData.studioIds:', formData.studioIds);
+    // CRITICAL FIX: Use formData.studioIds which is properly maintained by the checkbox handlers
+    console.log('[CRITICAL FIX] Using formData.studioIds:', formData.studioIds);
     
     // Prepare submission data with proper multi-studio support
     const submissionData = {
       ...formData,
-      // CRITICAL FIX: Use the studioIds state variable, NOT formData.studioIds
-      studioIds: studioIds, // This is the state variable that tracks checkbox selections
+      // CRITICAL FIX: Use formData.studioIds which is properly maintained by the checkbox handlers
+      studioIds: formData.studioIds || [], // This contains the actual selected studios
       // Set primary studioId for backwards compatibility
-      studioId: studioIds && studioIds.length > 0 
-        ? studioIds[0] 
+      studioId: formData.studioIds && formData.studioIds.length > 0 
+        ? formData.studioIds[0] 
         : formData.studioId,
       // Ensure dates are properly formatted
       start: formData.start instanceof Date ? formData.start.toISOString() : formData.start,
@@ -516,6 +515,17 @@ export default function SimpleMobileForm({
     
     console.log('[CRITICAL] Form data after processing:', JSON.stringify(submissionData));
     console.log('[CRITICAL] Final studioIds array:', submissionData.studioIds);
+    console.log('[CRITICAL] VERIFICATION: studioIds length before submission:', submissionData.studioIds?.length);
+    console.log('[CRITICAL] VERIFICATION: studioIds content before submission:', submissionData.studioIds);
+    
+    // FINAL VERIFICATION: Ensure we're not losing data
+    if (!submissionData.studioIds || submissionData.studioIds.length === 0) {
+      console.error('[CRITICAL ERROR] studioIds is empty or null before submission!');
+      console.error('[CRITICAL ERROR] formData.studioIds:', formData.studioIds);
+      // Use formData.studioIds as fallback
+      submissionData.studioIds = formData.studioIds || [];
+      console.log('[CRITICAL FIX] Applied fallback studioIds:', submissionData.studioIds);
+    }
     
     console.log('[SUBMIT] SimpleMobileForm - Final form data with multi-studio support:', submissionData);
     console.log('[SUBMIT] SimpleMobileForm - Studios selected:', submissionData.studioIds);
@@ -534,7 +544,8 @@ export default function SimpleMobileForm({
     
     // DEBUGGING: Log the exact onSubmit function being called
     console.log('[CRITICAL] onSubmit function type:', typeof onSubmit);
-    console.log('[CRITICAL] onSubmit function:', onSubmit.toString().substring(0, 200));
+    console.log('[CRITICAL] FINAL submissionData being sent:', JSON.stringify(submissionData));
+    console.log('[CRITICAL] FINAL submissionData.studioIds:', submissionData.studioIds);
     
     onSubmit(submissionData);
   };
