@@ -218,100 +218,93 @@ export default function MobileDailyView({
   };
 
   // Handle booking/slot click - differentiate between regular bookings and maintenance/alerts
-  const handleBookingClick = (booking: Booking) => {
+  const handleBookingClick = (booking: any) => {
+    if (!booking) return;
+    
     console.log("MobileDailyView - handleBookingClick - Original booking:", booking);
     
-    // Check if this is a maintenance/alert booking
-    const isMaintenanceOrAlert = booking.type === 'maintenance' || 
-                                 booking.type === 'alert' || 
-                                 booking.type === 'it_support' ||
-                                 booking.studioId === null;
-    
-    console.log("MobileDailyView - Booking type check:", {
-      bookingId: booking.id,
-      title: booking.title,
-      type: booking.type,
-      studioId: booking.studioId,
-      isMaintenanceOrAlert
-    });
-    
-    if (isMaintenanceOrAlert) {
-      // Open alert modal for maintenance/alert bookings
-      console.log("MobileDailyView - Opening AlertModal for maintenance booking");
+    try {
+      // Check if this is a maintenance/alert booking
+      const isMaintenanceOrAlert = booking.type === 'maintenance' || 
+                                   booking.type === 'alert' || 
+                                   booking.type === 'it_support' ||
+                                   booking.studioId === null;
       
-      // Prepare the booking data for the alert modal
-      const alertData = {
+      console.log("MobileDailyView - Booking type check:", {
+        bookingId: booking.id,
+        title: booking.title,
+        type: booking.type,
+        studioId: booking.studioId,
+        isMaintenanceOrAlert
+      });
+      
+      if (isMaintenanceOrAlert) {
+        // Open alert modal for maintenance/alert bookings
+        console.log("MobileDailyView - Opening AlertModal for maintenance booking");
+        
+        // Prepare the booking data for the alert modal
+        const alertData = {
+          id: booking.id,
+          title: booking.title || '',
+          description: booking.description || '',
+          start: booking.start,
+          end: booking.end,
+          type: booking.type || 'maintenance',
+          severity: booking.severity || 'low',
+          notifyList: booking.notifyList || []
+        };
+        
+        setEditBooking(alertData);
+        setIsNewAlertModalOpen(true);
+        return;
+      }
+      
+      // Regular booking processing for studio bookings
+      const linkedStudioNames = getLinkedStudiosForBooking ? getLinkedStudiosForBooking(booking) : [];
+      
+      // Get linked studio IDs by looking up each studio by name
+      const linkedStudioIds = linkedStudioNames
+        .map((name: string) => {
+          const studio = studios.find(s => s.name === name);
+          return studio ? studio.id : null;
+        })
+        .filter((id: number | null) => id !== null);
+      
+      console.log("MobileDailyView - handleBookingClick - Linked studios:", {
+        linkedStudioNames,
+        linkedStudioIds
+      });
+      
+      // Enhanced booking cleanup and preparation
+      const cleanBooking: any = {
         id: booking.id,
         title: booking.title || '',
         description: booking.description || '',
+        studioId: booking.studioId || null,
+        pcrRoomId: booking.pcrRoomId || null,
         start: booking.start,
         end: booking.end,
-        type: booking.type || 'maintenance',
-        severity: booking.severity || 'low',
-        notifyList: booking.notifyList || []
+        _startDate: new Date(booking.start),
+        _endDate: new Date(booking.end),
+        type: booking.type || 'production',
+        status: booking.status || 'confirmed',
+        severity: booking.severity || null,
+        templateId: booking.templateId || null,
+        notifyList: booking.notifyList || [],
+        color: booking.color || '#3b82f6',
+        studioIds: linkedStudioIds.length > 0 ? linkedStudioIds : (booking.studioId ? [booking.studioId] : [])
       };
       
-      setEditBooking(alertData);
-      setIsNewAlertModalOpen(true);
-      return;
-    }
-    
-    // Regular booking processing for studio bookings
-    const linkedStudioNames = getLinkedStudiosForBooking(booking);
-    
-    // Get linked studio IDs by looking up each studio by name
-    const linkedStudioIds = linkedStudioNames
-      .map(name => {
-        const studio = studios.find(s => s.name === name);
-        return studio ? studio.id : null;
-      })
-      .filter(id => id !== null);
-    
-    console.log("MobileDailyView - handleBookingClick - Linked studios:", {
-      linkedStudioNames,
-      linkedStudioIds
-    });
-    
-    // Enhanced booking cleanup and preparation
-    // This creates a clean booking object with all required props explicitly
-    const cleanBooking: any = {
-      id: booking.id,
-      title: booking.title || '',
-      description: booking.description || '',
-      studioId: booking.studioId || null,
-      pcrRoomId: booking.pcrRoomId || null,
-      // Keep original string dates for API compatibility
-      start: booking.start,
-      end: booking.end,
-      // Store Date objects explicitly in special properties
-      _startDate: new Date(booking.start),
-      _endDate: new Date(booking.end),
-      type: booking.type || 'production',
-      status: booking.status || 'confirmed',
-      severity: booking.severity || null,
-      templateId: booking.templateId || 0,
-      notifyList: booking.notifyList || [],
-      color: booking.color || '#3b82f6',
-      // Use the linked studios we fetched
-      studioIds: linkedStudioIds.length > 0 ? linkedStudioIds : (booking.studioId ? [booking.studioId] : [])
-    };
-    
-    // Add any missing fields that might be needed by the form
-    cleanBooking.userId = booking.userId || 1; // Default to admin
-    
-    console.log("MobileDailyView - handleBookingClick - Enhanced booking:", cleanBooking);
-    
-    // Force a delay to ensure booking data is set before modal opens
-    setTimeout(() => {
+      cleanBooking.userId = booking.userId || 1;
+      
+      console.log("MobileDailyView - handleBookingClick - Enhanced booking:", cleanBooking);
+      
+      // Set booking data and open modal
       setEditBooking(cleanBooking);
       setIsEditModalOpen(true);
-      console.log("MobileDailyView - Edit Modal Opening:", {
-        bookingId: cleanBooking.id,
-        bookingTitle: cleanBooking.title,
-        editModalIsOpen: true,
-        editBookingData: cleanBooking
-      });
-    }, 50); // Increased timeout for more reliable state updates
+    } catch (error) {
+      console.error("Error in handleBookingClick:", error);
+    }
   };
 
   // Get all studios with their current status
