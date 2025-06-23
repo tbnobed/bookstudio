@@ -236,9 +236,33 @@ export default function AlertModal({
     if (alert) {
       try {
         await deleteBooking.mutateAsync(alert.id);
-        // Invalidate queries to ensure data is refreshed immediately
+        
+        // Comprehensive cache invalidation for mobile view
         queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/bookings/user'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/booking-studios'] });
+        
+        // Invalidate date-specific queries
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        
+        // Clear multiple date ranges to ensure mobile calendar updates
+        [yesterday, today, tomorrow].forEach(date => {
+          const startOfDay = new Date(date);
+          startOfDay.setHours(0, 0, 0, 0);
+          const endOfDay = new Date(date);
+          endOfDay.setHours(23, 59, 59, 999);
+          
+          queryClient.invalidateQueries({ 
+            queryKey: [`/api/bookings?start=${startOfDay.toISOString()}&end=${endOfDay.toISOString()}`] 
+          });
+        });
+        
         onClose();
+        setIsDeleteDialogOpen(false);
       } catch (error) {
         console.error("Error deleting alert:", error);
       }

@@ -719,14 +719,36 @@ export default function SimpleMobileForm({
                     if (confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
                       deleteBooking.mutate(booking.id, {
                         onSuccess: () => {
+                          // Comprehensive cache invalidation for mobile view
+                          queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+                          queryClient.invalidateQueries({ queryKey: ['/api/bookings/user'] });
+                          queryClient.invalidateQueries({ queryKey: ['/api/booking-studios'] });
+                          
+                          // Invalidate date-specific queries
+                          const today = new Date();
+                          const tomorrow = new Date(today);
+                          tomorrow.setDate(today.getDate() + 1);
+                          const yesterday = new Date(today);
+                          yesterday.setDate(today.getDate() - 1);
+                          
+                          // Clear multiple date ranges to ensure mobile calendar updates
+                          [yesterday, today, tomorrow].forEach(date => {
+                            const startOfDay = new Date(date);
+                            startOfDay.setHours(0, 0, 0, 0);
+                            const endOfDay = new Date(date);
+                            endOfDay.setHours(23, 59, 59, 999);
+                            
+                            queryClient.invalidateQueries({ 
+                              queryKey: [`/api/bookings?start=${startOfDay.toISOString()}&end=${endOfDay.toISOString()}`] 
+                            });
+                          });
+                          
                           toast({
                             title: "Success",
                             description: "Booking deleted successfully",
                             variant: "default"
                           });
                           onClose();
-                          // Force immediate UI refresh
-                          window.location.reload();
                         },
                         onError: (error: any) => {
                           toast({
