@@ -483,6 +483,18 @@ export default function SimpleMobileForm({
     const hasStudioSelected = (formData.studioIds && formData.studioIds.length > 0) || 
                               (formData.studioId && formData.studioId !== null && formData.studioId !== 0);
     
+    console.log('[SUBMIT] ===== VALIDATION PASSED - PROCEEDING =====');
+    console.log('[SUBMIT] Validation result:', hasStudioSelected);
+    console.log('[SUBMIT] studioIds:', formData.studioIds);
+    console.log('[SUBMIT] studioId:', formData.studioId);
+    
+    // IMMEDIATE TEST: Log validation details before the check
+    console.log('[VALIDATION TEST] Before validation check:');
+    console.log('[VALIDATION TEST] formData.studioIds:', formData.studioIds);
+    console.log('[VALIDATION TEST] formData.studioIds.length:', formData.studioIds?.length);
+    console.log('[VALIDATION TEST] formData.studioId:', formData.studioId);
+    console.log('[VALIDATION TEST] hasStudioSelected result:', hasStudioSelected);
+    
     console.log('[SUBMIT] Studio validation:', {
       hasStudioSelected,
       studioIdsLength: formData.studioIds?.length,
