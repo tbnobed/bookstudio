@@ -174,6 +174,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 23, 2025: Fixed mobile form deletion UI refresh - resolved issue where deleted bookings didn't disappear from the calendar view without manual page refresh by improving React Query cache invalidation and adding immediate page reload for reliable UI updates
 - June 23, 2025: FIXED maintenance booking modal routing - resolved issue where maintenance bookings were opening regular booking edit modal instead of maintenance/alert modal in mobile daily view by implementing proper booking type detection and modal routing based on booking type and studioId
 - June 23, 2025: FIXED mobile deletion cache refresh issue - eliminated window.location.reload() calls and implemented comprehensive React Query cache invalidation across all mobile forms (SimpleMobileForm, DirectMobileForm, AlertModal) to ensure deleted bookings and maintenance alerts disappear immediately without manual page refresh
+- June 23, 2025: FIXED template studio selection validation - resolved issue where loading templates with selected studios would fail validation by automatically setting primary studioId to first studio from template studioIds array, ensuring mobile forms work seamlessly with template-based booking creation
 
 ## User Preferences
 

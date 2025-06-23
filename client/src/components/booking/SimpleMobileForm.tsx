@@ -324,6 +324,8 @@ export default function SimpleMobileForm({
   // Handle template selection
   const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const templateId = parseInt(e.target.value);
+    console.log('Template dropdown change detected:', e.target.value);
+    
     if (templateId === 0 || templateId === null) {
       // No template selected
       return;
@@ -332,6 +334,8 @@ export default function SimpleMobileForm({
     // Find the selected template
     const selectedTemplate = templates.find(t => t.id === templateId);
     if (!selectedTemplate) return;
+    
+    console.log('Selected template:', selectedTemplate);
     
     // Use template values for the form
     setFormData(prev => {
@@ -353,6 +357,11 @@ export default function SimpleMobileForm({
       // If the template has studioIds property, use it
       if ('studioIds' in selectedTemplate && Array.isArray(selectedTemplate.studioIds)) {
         updatedFormData.studioIds = [...selectedTemplate.studioIds];
+        // Also set the primary studioId to the first studio for form validation
+        if (selectedTemplate.studioIds.length > 0) {
+          updatedFormData.studioId = selectedTemplate.studioIds[0];
+          console.log('Set primary studioId from template:', selectedTemplate.studioIds[0]);
+        }
       }
       
       // If the template has status, use it
@@ -378,6 +387,7 @@ export default function SimpleMobileForm({
         updatedFormData.notifyList = [...selectedTemplate.notifyList];
       }
       
+      console.log('Updated form data with template:', updatedFormData);
       return updatedFormData;
     });
   };
