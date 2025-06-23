@@ -57,13 +57,15 @@ export function MobileBookingController({
   
   // Handle form submission
   const handleFormSubmit = (data: FormBookingData) => {
-    console.log("[MOBILE CONTROLLER] Form submission:", data);
+    console.log("[MOBILE CONTROLLER] ===== FORM SUBMISSION RECEIVED =====");
+    console.log("[MOBILE CONTROLLER] Raw data received:", JSON.stringify(data));
     console.log("[MOBILE CONTROLLER] Studio data check:", {
       studioId: data.studioId,
       studioIds: data.studioIds,
       studioIdsLength: data.studioIds?.length,
       studioIdsType: typeof data.studioIds,
-      isArray: Array.isArray(data.studioIds)
+      isArray: Array.isArray(data.studioIds),
+      rawStudioIds: data.studioIds
     });
     
     // Create or update booking

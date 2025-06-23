@@ -547,6 +547,9 @@ export default function SimpleMobileForm({
     console.log('[CRITICAL] FINAL submissionData being sent:', JSON.stringify(submissionData));
     console.log('[CRITICAL] FINAL submissionData.studioIds:', submissionData.studioIds);
     
+    // EMERGENCY DEBUG: Log the exact function being called
+    console.log('[EMERGENCY] onSubmit function source code preview:', onSubmit.toString().substring(0, 500));
+    
     onSubmit(submissionData);
   };
   
