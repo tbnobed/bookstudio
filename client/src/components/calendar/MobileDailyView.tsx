@@ -217,11 +217,34 @@ export default function MobileDailyView({
     onViewChange("week");
   };
 
-  // Handle booking/slot click
+  // Handle booking/slot click - differentiate between regular bookings and maintenance/alerts
   const handleBookingClick = (booking: Booking) => {
     console.log("MobileDailyView - handleBookingClick - Original booking:", booking);
     
-    // Get all linked studio names for this booking first
+    // Check if this is a maintenance/alert booking
+    const isMaintenanceOrAlert = booking.type === 'maintenance' || 
+                                 booking.type === 'alert' || 
+                                 booking.type === 'it_support' ||
+                                 booking.studioId === null;
+    
+    console.log("MobileDailyView - Booking type check:", {
+      bookingId: booking.id,
+      title: booking.title,
+      type: booking.type,
+      studioId: booking.studioId,
+      isMaintenanceOrAlert
+    });
+    
+    if (isMaintenanceOrAlert) {
+      // Open alert modal for maintenance/alert bookings
+      console.log("MobileDailyView - Opening AlertModal for maintenance booking");
+      setIsNewAlertModalOpen(true);
+      // Set the alert data for the modal to edit
+      // We'll need to pass the booking data to AlertModal
+      return;
+    }
+    
+    // Regular booking processing for studio bookings
     const linkedStudioNames = getLinkedStudiosForBooking(booking);
     
     // Get linked studio IDs by looking up each studio by name
@@ -785,6 +808,7 @@ export default function MobileDailyView({
         isOpen={isNewAlertModalOpen}
         onClose={() => setIsNewAlertModalOpen(false)}
         selectedDate={selectedDate || currentDate}
+        alert={editBooking && (editBooking.type === 'maintenance' || editBooking.type === 'alert' || editBooking.type === 'it_support') ? editBooking : undefined}
       />
     </div>
   );
