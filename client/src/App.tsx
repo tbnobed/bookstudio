@@ -40,6 +40,7 @@ function Router() {
       <Route path="/reset-password/:token" component={ResetPasswordPage} />
       <Route path="/public-calendar" component={PublicCalendarPage} />
       <Route path="/public-calendar/mobile" component={MobilePublicCalendarPage} />
+      <Route path="/test-mobile" component={() => import("@/components/calendar/SimpleMobileTest")} />
       <ProtectedRoute path="/" component={CalendarComponent} />
       <ProtectedRoute path="/calendar" component={CalendarComponent} />
       <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
