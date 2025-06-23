@@ -12,6 +12,19 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // CRITICAL DEBUG: Log booking creation requests
+  if (data && url.includes('/api/bookings') && method === 'POST') {
+    console.log("[apiRequest] CRITICAL - Booking creation request:", {
+      url,
+      method,
+      dataKeys: data ? Object.keys(data as any) : [],
+      studioIds: (data as any)?.studioIds,
+      studioIdsType: typeof (data as any)?.studioIds,
+      studioIdsLength: (data as any)?.studioIds?.length,
+      dataStringified: JSON.stringify(data)
+    });
+  }
+
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
