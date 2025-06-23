@@ -121,6 +121,8 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional().nullable()
     .or(z.literal('')) // Allow empty string
     .describe("HEX color value (e.g., #FF5733)"),
+  // Add studioIds for multi-studio booking support
+  studioIds: z.array(z.number()).optional(),
 });
 
 // Notifications schema

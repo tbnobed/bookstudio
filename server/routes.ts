@@ -877,13 +877,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const studioIds = req.body.studioIds || [];
       const mainStudioId = typeof req.body.studioId === 'string' ? parseInt(req.body.studioId) : req.body.studioId;
       
+      // Enhanced multi-studio debugging with body inspection
+      const bodyKeys = Object.keys(req.body || {});
+      console.log("[MULTI-STUDIO DEBUG] Request body keys:", bodyKeys);
       console.log(`[MULTI-STUDIO DEBUG] Raw request data:`, {
         studioIds: req.body.studioIds,
         studioId: req.body.studioId,
         extractedStudioIds: studioIds,
         extractedMainStudioId: mainStudioId,
         studioIdsType: typeof req.body.studioIds,
-        studioIdsLength: studioIds?.length
+        studioIdsLength: studioIds?.length,
+        hasStudioIdsProperty: 'studioIds' in req.body,
+        bodyString: JSON.stringify(req.body)
       });
       
       // Ensure studioId is a number and proper date formats
