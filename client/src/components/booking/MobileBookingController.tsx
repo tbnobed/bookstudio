@@ -76,7 +76,6 @@ export function MobileBookingController({
             title: data.title,
             description: data.description,
             studioId: data.studioId,
-            studioIds: data.studioIds || (data.studioId ? [data.studioId] : []), // Include studioIds for updates
             pcrRoomId: data.pcrRoomId || null,
             type: data.type,
             start: new Date(data.start),
@@ -86,7 +85,7 @@ export function MobileBookingController({
             severity: data.severity,
             color: data.color
           },
-          studioIds: data.studioIds || (data.studioId ? [data.studioId] : []) // Use actual studioIds array
+          studioIds: data.studioIds || (data.studioId ? [data.studioId] : []) // CRITICAL: Pass studioIds array for multi-studio support
         },
         {
           onSuccess: () => {
@@ -140,20 +139,22 @@ export function MobileBookingController({
       
       createBooking.mutate(createData,
         {
-          onSuccess: () => {
+          onSuccess: (result) => {
+            console.log("[MOBILE CONTROLLER] Booking creation successful:", result);
             toast({
               title: 'Success',
-              description: 'Booking created successfully',
+              description: `Booking created successfully${createData.studioIds?.length > 1 ? ` across ${createData.studioIds.length} studios` : ''}`,
               variant: 'default'
             });
             onSuccess?.();
             onClose();
           },
           onError: (error) => {
-            console.error('Error creating booking:', error);
+            console.error('[MOBILE CONTROLLER] Error creating booking:', error);
+            console.error('[MOBILE CONTROLLER] Full error details:', JSON.stringify(error));
             toast({
               title: 'Error',
-              description: 'Failed to create booking',
+              description: error?.message || 'Failed to create booking',
               variant: 'destructive'
             });
           }
