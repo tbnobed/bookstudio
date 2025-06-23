@@ -18,6 +18,7 @@ import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import MobilePublicCalendarPage from "@/pages/MobilePublicCalendarPage";
 import InvitePage from "@/pages/InvitePage";
+import EmergencyAuth from "@/pages/emergency-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { CalendarProvider } from "@/contexts/CalendarContext";
@@ -36,6 +37,7 @@ function Router() {
     <Switch>
       <Route path="/auth" component={AuthPage} />
       <Route path="/login" component={AuthPage} />
+      <Route path="/emergency-login" component={EmergencyAuth} />
       <Route path="/invite/:token" component={InvitePage} />
       <Route path="/reset-password/:token" component={ResetPasswordPage} />
       <Route path="/public-calendar" component={PublicCalendarPage} />
