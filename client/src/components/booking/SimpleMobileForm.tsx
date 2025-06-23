@@ -730,28 +730,31 @@ export default function SimpleMobileForm({
                     if (confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
                       deleteBooking.mutate(booking.id, {
                         onSuccess: () => {
-                          // Comprehensive cache invalidation for mobile view
+                          // Comprehensive cache invalidation to refresh ALL mobile views
+                          // Invalidate all booking-related queries with pattern matching
+                          queryClient.invalidateQueries({ 
+                            predicate: (query) => {
+                              const key = query.queryKey[0];
+                              return typeof key === 'string' && (
+                                key.includes('/api/bookings') || 
+                                key.includes('/api/booking-studios') ||
+                                key.includes('/api/public/booking-studios')
+                              );
+                            }
+                          });
+                          
+                          // Also invalidate the specific patterns used by mobile calendar
                           queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
                           queryClient.invalidateQueries({ queryKey: ['/api/bookings/user'] });
                           queryClient.invalidateQueries({ queryKey: ['/api/booking-studios'] });
+                          queryClient.invalidateQueries({ queryKey: ['/api/public/booking-studios'] });
                           
-                          // Invalidate date-specific queries
-                          const today = new Date();
-                          const tomorrow = new Date(today);
-                          tomorrow.setDate(today.getDate() + 1);
-                          const yesterday = new Date(today);
-                          yesterday.setDate(today.getDate() - 1);
-                          
-                          // Clear multiple date ranges to ensure mobile calendar updates
-                          [yesterday, today, tomorrow].forEach(date => {
-                            const startOfDay = new Date(date);
-                            startOfDay.setHours(0, 0, 0, 0);
-                            const endOfDay = new Date(date);
-                            endOfDay.setHours(23, 59, 59, 999);
-                            
-                            queryClient.invalidateQueries({ 
-                              queryKey: [`/api/bookings?start=${startOfDay.toISOString()}&end=${endOfDay.toISOString()}`] 
-                            });
+                          // Force refetch of all data to ensure mobile view updates
+                          queryClient.refetchQueries({ 
+                            predicate: (query) => {
+                              const key = query.queryKey[0];
+                              return typeof key === 'string' && key.includes('/api/bookings');
+                            }
                           });
                           
                           toast({

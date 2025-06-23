@@ -81,8 +81,24 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
         description: "Your booking has been created successfully.",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings/user"] });
+      // Comprehensive cache invalidation for all mobile views
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && (
+            key.includes('/api/bookings') || 
+            key.includes('/api/booking-studios') ||
+            key.includes('/api/public/booking-studios')
+          );
+        }
+      });
+      // Force refetch to ensure immediate updates
+      queryClient.refetchQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key.includes('/api/bookings');
+        }
+      });
     },
     onError: (error: any) => {
       toast({
@@ -130,8 +146,24 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
         description: "Your booking has been updated successfully.",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings/user"] });
+      // Comprehensive cache invalidation for all mobile views
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && (
+            key.includes('/api/bookings') || 
+            key.includes('/api/booking-studios') ||
+            key.includes('/api/public/booking-studios')
+          );
+        }
+      });
+      // Force refetch to ensure immediate updates
+      queryClient.refetchQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key.includes('/api/bookings');
+        }
+      });
     },
     onError: (error: any) => {
       toast({
@@ -154,8 +186,24 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
         description: "Your booking has been deleted successfully.",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings/user"] });
+      // Comprehensive cache invalidation for all mobile views
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && (
+            key.includes('/api/bookings') || 
+            key.includes('/api/booking-studios') ||
+            key.includes('/api/public/booking-studios')
+          );
+        }
+      });
+      // Force refetch to ensure immediate updates
+      queryClient.refetchQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key.includes('/api/bookings');
+        }
+      });
     },
     onError: (error: any) => {
       toast({
