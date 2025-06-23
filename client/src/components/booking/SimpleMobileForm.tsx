@@ -472,9 +472,12 @@ export default function SimpleMobileForm({
     e.preventDefault();
     
     console.log('=== MOBILE FORM SUBMISSION STARTED ===');
-    console.log('[SUBMIT] Current formData state:', formData);
+    console.log('[SUBMIT] Current formData state:', JSON.stringify(formData, null, 2));
     console.log('[SUBMIT] Current studioIds:', formData.studioIds);
     console.log('[SUBMIT] Current studioId:', formData.studioId);
+    console.log('[SUBMIT] StudioIds type:', typeof formData.studioIds);
+    console.log('[SUBMIT] StudioIds length:', formData.studioIds?.length);
+    console.log('[SUBMIT] StudioIds isArray:', Array.isArray(formData.studioIds));
     
     // Validate that at least one studio is selected (check both legacy studioId and new studioIds array)
     const hasStudioSelected = (formData.studioIds && formData.studioIds.length > 0) || 

@@ -98,7 +98,16 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
       console.log("[useStudioBookings] CRITICAL: Final data being sent to API:", JSON.stringify(finalBookingData));
       console.log("[useStudioBookings] CRITICAL: Final studioIds in API data:", finalBookingData.studioIds);
       
+      // FINAL CHECK: Log exactly what's being sent to the API
+      console.log("[useStudioBookings] ===== FINAL API CALL =====");
+      console.log("[useStudioBookings] About to call apiRequest with URL: /api/bookings");
+      console.log("[useStudioBookings] About to call apiRequest with data:", JSON.stringify(finalBookingData));
+      console.log("[useStudioBookings] finalBookingData.studioIds before API call:", finalBookingData.studioIds);
+      
       const res = await apiRequest("POST", "/api/bookings", finalBookingData);
+      
+      console.log("[useStudioBookings] API call completed, response status:", res.status);
+      
       return res.json();
     },
     onSuccess: () => {

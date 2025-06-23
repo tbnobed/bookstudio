@@ -111,10 +111,12 @@ export function MobileBookingController({
       );
     } else {
       // Create new booking with multi-studio support
-      console.log('[MOBILE CONTROLLER] Raw data received:', data);
+      console.log('[MOBILE CONTROLLER] ===== CREATE BOOKING DEBUG =====');
+      console.log('[MOBILE CONTROLLER] Raw data received:', JSON.stringify(data, null, 2));
       console.log('[MOBILE CONTROLLER] Raw data.studioIds:', data.studioIds);
       console.log('[MOBILE CONTROLLER] Raw data.studioIds type:', typeof data.studioIds);
       console.log('[MOBILE CONTROLLER] Raw data.studioIds length:', data.studioIds?.length);
+      console.log('[MOBILE CONTROLLER] Raw data.studioIds isArray:', Array.isArray(data.studioIds));
       
       const createData = {
         title: data.title,
@@ -131,13 +133,12 @@ export function MobileBookingController({
         color: data.color
       };
       
-      console.log('[MOBILE CONTROLLER] After processing - createData.studioIds:', createData.studioIds);
-      
-      console.log("[MOBILE CONTROLLER] Final create data:", createData);
-      console.log("[MOBILE CONTROLLER] Calling createBooking.mutate with studioIds:", createData.studioIds);
-      console.log("[MOBILE CONTROLLER] CRITICAL - createData stringified:", JSON.stringify(createData));
-      console.log("[MOBILE CONTROLLER] CRITICAL - createData.studioIds type:", typeof createData.studioIds);
-      console.log("[MOBILE CONTROLLER] CRITICAL - createData.studioIds length:", createData.studioIds?.length);
+      console.log('[MOBILE CONTROLLER] ===== CREATE DATA PREPARED =====');
+      console.log('[MOBILE CONTROLLER] Create data being sent:', JSON.stringify(createData, null, 2));
+      console.log('[MOBILE CONTROLLER] Create data studioIds:', createData.studioIds);
+      console.log('[MOBILE CONTROLLER] Create data studioIds type:', typeof createData.studioIds);
+      console.log('[MOBILE CONTROLLER] Create data studioIds length:', createData.studioIds?.length);
+      console.log('[MOBILE CONTROLLER] Create data studioIds isArray:', Array.isArray(createData.studioIds));
       
       createBooking.mutate(createData,
         {
