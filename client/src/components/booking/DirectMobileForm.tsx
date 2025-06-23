@@ -7,6 +7,7 @@ import { useStudios } from '../../hooks/useStudios';
 import { usePcrRooms } from '../../hooks/usePcrRooms';
 import { useStudioBookings } from '../../hooks/useStudioBookings';
 import { useToast } from '../../hooks/use-toast';
+import { queryClient } from '../../lib/queryClient';
 import './direct-mobile.css';
 
 // Ultra-lightweight form for low-end mobile devices with minimal features

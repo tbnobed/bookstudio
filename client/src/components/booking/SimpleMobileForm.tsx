@@ -9,6 +9,7 @@ import { useTemplates } from '@/hooks/useTemplates';
 import { useNotificationGroups } from '@/hooks/useNotificationGroups';
 import { useStudioBookings } from '@/hooks/useStudioBookings';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
 interface FormBookingData {
   id: number;
