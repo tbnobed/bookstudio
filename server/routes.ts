@@ -877,6 +877,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const studioIds = req.body.studioIds || [];
       const mainStudioId = typeof req.body.studioId === 'string' ? parseInt(req.body.studioId) : req.body.studioId;
       
+      console.log(`[MULTI-STUDIO DEBUG] Raw request data:`, {
+        studioIds: req.body.studioIds,
+        studioId: req.body.studioId,
+        extractedStudioIds: studioIds,
+        extractedMainStudioId: mainStudioId,
+        studioIdsType: typeof req.body.studioIds,
+        studioIdsLength: studioIds?.length
+      });
+      
       // Ensure studioId is a number and proper date formats
       const requestData = {
         ...req.body,
@@ -974,7 +983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Continue with the response even if junction table entries fail
         }
       } else {
-        console.log(`[MULTI-STUDIO DEBUG] No studioIds provided or empty array. studioIds:`, studioIds);
+        console.log(`[MULTI-STUDIO DEBUG] No studioIds provided or empty array. studioIds:`, studioIds, `Length: ${studioIds?.length}, Type: ${typeof studioIds}`);
       }
       
       // Handle facility-wide maintenance alerts (send to ALL notification groups + site managers)
