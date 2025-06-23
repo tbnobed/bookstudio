@@ -481,7 +481,7 @@ export default function SimpleMobileForm({
     
     // Validate that at least one studio is selected (check both legacy studioId and new studioIds array)
     const hasStudioSelected = (formData.studioIds && formData.studioIds.length > 0) || 
-                              (formData.studioId && formData.studioId !== 0);
+                              (formData.studioId && formData.studioId !== null && formData.studioId !== 0);
     
     console.log('[SUBMIT] Studio validation:', {
       hasStudioSelected,
@@ -491,9 +491,16 @@ export default function SimpleMobileForm({
     
     if (!hasStudioSelected) {
       console.log('[SUBMIT] VALIDATION FAILED: No studios selected');
+      console.log('[SUBMIT] VALIDATION DEBUG:', {
+        formDataStudioIds: formData.studioIds,
+        formDataStudioId: formData.studioId,
+        hasStudioSelected: hasStudioSelected
+      });
       alert('Please select at least one studio before creating the booking');
       return;
     }
+    
+    console.log('[SUBMIT] ===== VALIDATION PASSED - PROCEEDING =====');
     
     // CRITICAL: Debug formData before processing
     console.log('[CRITICAL] Form data before processing:', JSON.stringify(formData));
