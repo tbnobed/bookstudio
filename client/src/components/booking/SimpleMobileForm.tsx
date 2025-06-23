@@ -498,6 +498,10 @@ export default function SimpleMobileForm({
     // CRITICAL: Debug formData before processing
     console.log('[CRITICAL] Form data before processing:', JSON.stringify(formData));
     console.log('[CRITICAL] Form data studioIds before processing:', formData.studioIds);
+    console.log('[CRITICAL] studioIds type:', typeof formData.studioIds);
+    console.log('[CRITICAL] studioIds isArray:', Array.isArray(formData.studioIds));
+    console.log('[CRITICAL] studioIds length:', formData.studioIds?.length);
+    console.log('[CRITICAL] studioIds content:', formData.studioIds);
     
     // CRITICAL FIX: Use formData.studioIds which is properly maintained by the checkbox handlers
     console.log('[CRITICAL FIX] Using formData.studioIds:', formData.studioIds);
@@ -518,6 +522,13 @@ export default function SimpleMobileForm({
     
     console.log('[CRITICAL] Form data after processing:', JSON.stringify(submissionData));
     console.log('[CRITICAL] Final studioIds array:', submissionData.studioIds);
+    console.log('[CRITICAL] Final studioIds type:', typeof submissionData.studioIds);
+    console.log('[CRITICAL] Final studioIds isArray:', Array.isArray(submissionData.studioIds));
+    console.log('[CRITICAL] Final studioIds length:', submissionData.studioIds?.length);
+    
+    // ULTRA CRITICAL: Test JSON.stringify on just the studioIds
+    console.log('[ULTRA CRITICAL] JSON.stringify(submissionData.studioIds):', JSON.stringify(submissionData.studioIds));
+    console.log('[ULTRA CRITICAL] JSON.stringify(submissionData):', JSON.stringify(submissionData));
     console.log('[CRITICAL] VERIFICATION: studioIds length before submission:', submissionData.studioIds?.length);
     console.log('[CRITICAL] VERIFICATION: studioIds content before submission:', submissionData.studioIds);
     
