@@ -74,6 +74,12 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
     mutationFn: async (booking: InsertBooking & { studioIds?: number[] }) => {
       console.log("[useStudioBookings] Creating booking with data:", booking);
       console.log("[useStudioBookings] studioIds in request:", booking.studioIds);
+      console.log("[useStudioBookings] CRITICAL: Verifying studioIds array:", {
+        studioIds: booking.studioIds,
+        length: booking.studioIds?.length,
+        type: typeof booking.studioIds,
+        isArray: Array.isArray(booking.studioIds)
+      });
       const res = await apiRequest("POST", "/api/bookings", booking);
       return res.json();
     },

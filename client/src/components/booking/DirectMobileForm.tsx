@@ -320,14 +320,17 @@ export function DirectMobileForm({
     // Prepare submission data with proper multi-studio support
     const submissionData = {
       ...formData,
-      // Ensure we have a studioIds array for multi-studio support
+      // CRITICAL: Ensure we have a studioIds array for multi-studio support
       studioIds: formData.studioIds && formData.studioIds.length > 0 
         ? formData.studioIds 
         : (formData.studioId && formData.studioId !== 0 ? [formData.studioId] : []),
       // Set primary studioId for backwards compatibility
       studioId: formData.studioIds && formData.studioIds.length > 0 
         ? formData.studioIds[0] 
-        : formData.studioId
+        : formData.studioId,
+      // Ensure dates are properly formatted
+      start: formData.start instanceof Date ? formData.start.toISOString() : formData.start,
+      end: formData.end instanceof Date ? formData.end.toISOString() : formData.end
     };
     
     console.log('DirectMobileForm - Final form data with multi-studio support:', submissionData);
