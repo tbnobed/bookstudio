@@ -64,6 +64,9 @@ export default function MobileDailyView({
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
+  // Add debug logging for interactions
+  console.log("MobileDailyView - Component rendered, interactions should work");
+  
   // Get date from context as well as props
   const { selectedDate, setSelectedDate } = useCalendarContext();
   
@@ -188,27 +191,42 @@ export default function MobileDailyView({
 
   // Navigate to previous/next day
   const goToPreviousDay = () => {
-    const prevDay = new Date(currentDate);
-    prevDay.setDate(prevDay.getDate() - 1);
-    // Update both the prop callback and the context
-    onDateChange(prevDay);
-    setSelectedDate(prevDay);
+    console.log("goToPreviousDay called");
+    try {
+      const prevDay = new Date(currentDate);
+      prevDay.setDate(prevDay.getDate() - 1);
+      // Update both the prop callback and the context
+      onDateChange(prevDay);
+      setSelectedDate(prevDay);
+    } catch (error) {
+      console.error("Error in goToPreviousDay:", error);
+    }
   };
 
   const goToNextDay = () => {
-    const nextDay = new Date(currentDate);
-    nextDay.setDate(nextDay.getDate() + 1);
-    // Update both the prop callback and the context
-    onDateChange(nextDay);
-    setSelectedDate(nextDay);
+    console.log("goToNextDay called");
+    try {
+      const nextDay = new Date(currentDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      // Update both the prop callback and the context
+      onDateChange(nextDay);
+      setSelectedDate(nextDay);
+    } catch (error) {
+      console.error("Error in goToNextDay:", error);
+    }
   };
   
   // Navigate to today
   const goToToday = () => {
-    const today = new Date();
-    // Update both the prop callback and the context
-    onDateChange(today);
-    setSelectedDate(today);
+    console.log("goToToday called");
+    try {
+      const today = new Date();
+      // Update both the prop callback and the context
+      onDateChange(today);
+      setSelectedDate(today);
+    } catch (error) {
+      console.error("Error in goToToday:", error);
+    }
   };
 
   // Switch to weekly view
@@ -395,7 +413,14 @@ export default function MobileDailyView({
       <div className="border-b p-4 bg-white sticky top-0 z-10">
         {/* Date navigation buttons */}
         <div className="flex justify-between items-center mb-2">
-          <Button variant="ghost" size="icon" onClick={goToPreviousDay}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => {
+              console.log("Previous day button clicked");
+              goToPreviousDay();
+            }}
+          >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -410,7 +435,14 @@ export default function MobileDailyView({
             </span>
           </div>
           
-          <Button variant="ghost" size="icon" onClick={goToNextDay}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => {
+              console.log("Next day button clicked");
+              goToNextDay();
+            }}
+          >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18l6-6-6-6" />
             </svg>
@@ -424,7 +456,10 @@ export default function MobileDailyView({
               variant="outline" 
               size="sm"
               className="text-blue-600 border-blue-300 hover:bg-blue-50"
-              onClick={goToToday}
+              onClick={() => {
+                console.log("Today button clicked");
+                goToToday();
+              }}
             >
               <Calendar className="h-4 w-4 mr-1" /> Today
             </Button>
