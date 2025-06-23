@@ -497,6 +497,7 @@ export default function SimpleMobileForm({
     
     // CRITICAL: Ensure studioIds is always included in submission
     console.log('[CRITICAL] About to call onSubmit with studioIds:', submissionData.studioIds);
+    console.log('[CRITICAL] Calling onSubmit with data:', JSON.stringify(submissionData));
     onSubmit(submissionData);
   };
   

@@ -127,6 +127,9 @@ export function MobileBookingController({
       
       console.log("[MOBILE CONTROLLER] Final create data:", createData);
       console.log("[MOBILE CONTROLLER] Calling createBooking.mutate with studioIds:", createData.studioIds);
+      console.log("[MOBILE CONTROLLER] CRITICAL - createData stringified:", JSON.stringify(createData));
+      console.log("[MOBILE CONTROLLER] CRITICAL - createData.studioIds type:", typeof createData.studioIds);
+      console.log("[MOBILE CONTROLLER] CRITICAL - createData.studioIds length:", createData.studioIds?.length);
       
       createBooking.mutate(createData,
         {
