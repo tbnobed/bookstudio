@@ -438,19 +438,30 @@ export default function SimpleMobileForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate that a studio is selected
-    if (!formData.studioId || formData.studioId === 0) {
-      alert('Please select a studio before creating the booking');
+    // Validate that at least one studio is selected (check both legacy studioId and new studioIds array)
+    const hasStudioSelected = (formData.studioIds && formData.studioIds.length > 0) || 
+                              (formData.studioId && formData.studioId !== 0);
+    
+    if (!hasStudioSelected) {
+      alert('Please select at least one studio before creating the booking');
       return;
     }
     
-    // Fix studioId constraint - ensure it's never 0 (this check is redundant after validation above but kept for safety)
+    // Prepare submission data with proper multi-studio support
     const submissionData = {
       ...formData,
-      studioId: formData.studioId
+      // Ensure we have a studioIds array for multi-studio support
+      studioIds: formData.studioIds && formData.studioIds.length > 0 
+        ? formData.studioIds 
+        : (formData.studioId && formData.studioId !== 0 ? [formData.studioId] : []),
+      // Set primary studioId for backwards compatibility
+      studioId: formData.studioIds && formData.studioIds.length > 0 
+        ? formData.studioIds[0] 
+        : formData.studioId
     };
     
-    console.log('SimpleMobileForm - Final form data:', submissionData);
+    console.log('SimpleMobileForm - Final form data with multi-studio support:', submissionData);
+    console.log('SimpleMobileForm - Studios selected:', submissionData.studioIds);
     onSubmit(submissionData);
   };
   
