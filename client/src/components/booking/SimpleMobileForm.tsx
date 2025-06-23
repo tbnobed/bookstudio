@@ -527,6 +527,11 @@ export default function SimpleMobileForm({
     console.log('[CRITICAL] About to call onSubmit with studioIds:', submissionData.studioIds);
     console.log('[CRITICAL] Calling onSubmit with data:', JSON.stringify(submissionData));
     console.log('=== CALLING onSubmit FUNCTION ===');
+    
+    // DEBUGGING: Log the exact onSubmit function being called
+    console.log('[CRITICAL] onSubmit function type:', typeof onSubmit);
+    console.log('[CRITICAL] onSubmit function:', onSubmit.toString().substring(0, 200));
+    
     onSubmit(submissionData);
   };
   

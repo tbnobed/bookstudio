@@ -110,6 +110,11 @@ export function MobileBookingController({
       );
     } else {
       // Create new booking with multi-studio support
+      console.log('[MOBILE CONTROLLER] Raw data received:', data);
+      console.log('[MOBILE CONTROLLER] Raw data.studioIds:', data.studioIds);
+      console.log('[MOBILE CONTROLLER] Raw data.studioIds type:', typeof data.studioIds);
+      console.log('[MOBILE CONTROLLER] Raw data.studioIds length:', data.studioIds?.length);
+      
       const createData = {
         title: data.title,
         description: data.description,
@@ -124,6 +129,8 @@ export function MobileBookingController({
         severity: data.severity,
         color: data.color
       };
+      
+      console.log('[MOBILE CONTROLLER] After processing - createData.studioIds:', createData.studioIds);
       
       console.log("[MOBILE CONTROLLER] Final create data:", createData);
       console.log("[MOBILE CONTROLLER] Calling createBooking.mutate with studioIds:", createData.studioIds);
