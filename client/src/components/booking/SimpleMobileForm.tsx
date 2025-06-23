@@ -482,8 +482,15 @@ export default function SimpleMobileForm({
         : formData.studioId
     };
     
-    console.log('SimpleMobileForm - Final form data with multi-studio support:', submissionData);
-    console.log('SimpleMobileForm - Studios selected:', submissionData.studioIds);
+    console.log('[SUBMIT] SimpleMobileForm - Final form data with multi-studio support:', submissionData);
+    console.log('[SUBMIT] SimpleMobileForm - Studios selected:', submissionData.studioIds);
+    console.log('[SUBMIT] Studio data validation:', {
+      studioId: submissionData.studioId,
+      studioIds: submissionData.studioIds,
+      studioIdsLength: submissionData.studioIds?.length,
+      studioIdsType: typeof submissionData.studioIds,
+      isArray: Array.isArray(submissionData.studioIds)
+    });
     onSubmit(submissionData);
   };
   
