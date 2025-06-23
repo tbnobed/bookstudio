@@ -7,6 +7,8 @@ import { useStudios } from '@/hooks/useStudios';
 import { usePcrRooms } from '@/hooks/usePcrRooms';
 import { useTemplates } from '@/hooks/useTemplates';
 import { useNotificationGroups } from '@/hooks/useNotificationGroups';
+import { useStudioBookings } from '@/hooks/useStudioBookings';
+import { useToast } from '@/hooks/use-toast';
 
 interface FormBookingData {
   id: number;
