@@ -111,18 +111,27 @@ export default function SimpleMobileForm({
   }, [booking, selectedStudio, isOpen]);
 
   // Load data from API hooks (more efficient than manual fetching)
-  const { data: studiosData = [] } = useStudios();
-  const { data: pcrRoomsData = [] } = usePcrRooms();
-  const { data: templatesData = [] } = useTemplates();
-  const { data: notificationGroupsData = [] } = useNotificationGroups();
+  const { studios: studiosData = [] } = useStudios();
+  const { pcrRooms: pcrRoomsData = [] } = usePcrRooms();
+  const { templates: templatesData = [] } = useTemplates();
+  const { notificationGroups: notificationGroupsData = [] } = useNotificationGroups();
   
-  // Update local state when hook data changes
+  // Update local state when hook data changes (only when data actually changes)
   useEffect(() => {
-    setStudios(studiosData);
-    setPcrRooms(pcrRoomsData);
-    setTemplates(templatesData);
-    setNotificationGroups(notificationGroupsData);
-  }, [studiosData, pcrRoomsData, templatesData, notificationGroupsData]);
+    if (studiosData.length > 0) setStudios(studiosData);
+  }, [studiosData]);
+  
+  useEffect(() => {
+    if (pcrRoomsData.length > 0) setPcrRooms(pcrRoomsData);
+  }, [pcrRoomsData]);
+  
+  useEffect(() => {
+    if (templatesData.length > 0) setTemplates(templatesData);
+  }, [templatesData]);
+  
+  useEffect(() => {
+    if (notificationGroupsData.length > 0) setNotificationGroups(notificationGroupsData);
+  }, [notificationGroupsData]);
   
   // Initialize form with selected date
   useEffect(() => {
