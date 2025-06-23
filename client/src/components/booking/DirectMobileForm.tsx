@@ -302,6 +302,12 @@ export function DirectMobileForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate that a studio is selected
+    if (!formData.studioId || formData.studioId === 0) {
+      alert('Please select a studio before creating the booking');
+      return;
+    }
+    
     // Fix studioId constraint - ensure it's never 0
     const submissionData = {
       ...formData,

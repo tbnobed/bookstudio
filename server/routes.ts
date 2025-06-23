@@ -895,6 +895,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pcrRoomId: requestData.pcrRoomId === 0 || requestData.pcrRoomId === undefined ? null : requestData.pcrRoomId
       };
       
+      // Validate studio selection for regular bookings (not maintenance alerts)
+      if (cleanedData.type !== "maintenance" && cleanedData.type !== "all-day:maintenance" && 
+          (!cleanedData.studioId && (!studioIds || studioIds.length === 0))) {
+        return res.status(400).json({ 
+          message: "Studio selection is required for regular bookings" 
+        });
+      }
+      
       const bookingData = insertBookingSchema.parse(cleanedData);
       
       // Check for booking conflicts for all studios in the request

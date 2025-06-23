@@ -167,6 +167,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 22, 2025: Enhanced mobile form studio selection handling - added proper validation for studio dropdown changes in both SimpleMobileForm and DirectMobileForm to ensure selected studios are properly captured and never default to invalid ID 0
 - June 22, 2025: RESOLVED mobile form syntax error - fixed JavaScript runtime error in SimpleMobileForm handleSubmit function and ensured all mobile booking forms work correctly with proper studio selection validation
 - June 22, 2025: FIXED booking update JSON parsing error - resolved "Unexpected end of JSON input" error caused by empty update data by adding proper validation in both routes and storage layers to handle empty requests gracefully
+- June 23, 2025: FIXED studio selection validation regression - added mandatory studio selection validation to both mobile forms (SimpleMobileForm and DirectMobileForm) and server-side validation to prevent booking creation without studio selection, ensuring business requirements are enforced
 
 ## User Preferences
 
