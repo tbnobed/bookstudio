@@ -496,14 +496,18 @@ export default function SimpleMobileForm({
     console.log('[CRITICAL] Form data before processing:', JSON.stringify(formData));
     console.log('[CRITICAL] Form data studioIds before processing:', formData.studioIds);
     
+    // CRITICAL FIX: Use the actual studioIds state variable that tracks selected studios
+    console.log('[CRITICAL FIX] Using studioIds state variable:', studioIds);
+    console.log('[CRITICAL FIX] NOT using formData.studioIds:', formData.studioIds);
+    
     // Prepare submission data with proper multi-studio support
     const submissionData = {
       ...formData,
-      // CRITICAL: Preserve the exact studioIds array from formData - DO NOT OVERRIDE IF EXISTS
-      studioIds: formData.studioIds || (formData.studioId && formData.studioId !== 0 ? [formData.studioId] : []),
+      // CRITICAL FIX: Use the studioIds state variable, NOT formData.studioIds
+      studioIds: studioIds, // This is the state variable that tracks checkbox selections
       // Set primary studioId for backwards compatibility
-      studioId: formData.studioIds && formData.studioIds.length > 0 
-        ? formData.studioIds[0] 
+      studioId: studioIds && studioIds.length > 0 
+        ? studioIds[0] 
         : formData.studioId,
       // Ensure dates are properly formatted
       start: formData.start instanceof Date ? formData.start.toISOString() : formData.start,
