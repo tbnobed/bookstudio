@@ -80,7 +80,18 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
         type: typeof booking.studioIds,
         isArray: Array.isArray(booking.studioIds)
       });
-      const res = await apiRequest("POST", "/api/bookings", booking);
+      console.log("[useStudioBookings] CRITICAL: Booking data keys before API call:", Object.keys(booking));
+      console.log("[useStudioBookings] CRITICAL: Full booking data stringified:", JSON.stringify(booking));
+      
+      // CRITICAL: Ensure studioIds is preserved for API call
+      const finalBookingData = {
+        ...booking,
+        studioIds: booking.studioIds || []
+      };
+      
+      console.log("[useStudioBookings] CRITICAL: Final data being sent to API:", JSON.stringify(finalBookingData));
+      
+      const res = await apiRequest("POST", "/api/bookings", finalBookingData);
       return res.json();
     },
     onSuccess: () => {
