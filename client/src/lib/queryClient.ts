@@ -25,10 +25,19 @@ export async function apiRequest(
     });
   }
 
+  const requestBody = data ? JSON.stringify(data) : undefined;
+  
+  if (method === "POST" || method === "PUT" || method === "PATCH") {
+    console.log("[apiRequest] ===== FINAL REQUEST BODY =====");
+    console.log("[apiRequest] Final request body string:", requestBody);
+    console.log("[apiRequest] Request body contains studioIds?:", requestBody?.includes('studioIds'));
+    console.log("[apiRequest] Request body studioIds value:", requestBody?.match(/"studioIds":\[[^\]]*\]/)?.[0]);
+  }
+
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    body: requestBody,
     credentials: "include",
   });
 
