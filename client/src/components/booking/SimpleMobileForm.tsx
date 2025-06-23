@@ -161,7 +161,7 @@ export default function SimpleMobileForm({
         id: Number(booking.id) || 0,
         title: String(booking.title || ''),
         description: String(booking.description || ''),
-        studioId: Number(booking.studioId) || Number(selectedStudio) || (studios[0]?.id || 1),
+        studioId: booking.studioId || selectedStudio || (studios[0]?.id || null),
         pcrRoomId: booking.pcrRoomId !== undefined ? Number(booking.pcrRoomId) : null,
         
         // Handle the date objects carefully
@@ -175,7 +175,7 @@ export default function SimpleMobileForm({
         type: booking.type || 'production',
         status: booking.status || 'confirmed',
         severity: booking.severity || null,
-        templateId: Number(booking.templateId) || null,
+        templateId: booking.templateId || null,
         
         // Process notification list properly
         notifyList: Array.isArray(booking.notifyList) ? booking.notifyList : 

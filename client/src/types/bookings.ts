@@ -36,13 +36,13 @@ export interface FormBookingData {
   id: number;
   title: string;
   description: string;
-  studioId: number;
+  studioId: number | null;
   studioIds: number[]; // Multiple studio selection
   pcrRoomId: number | null;
   start: Date;
   end: Date;
   type: BookingType;
-  templateId: number;
+  templateId: number | null;
   status: BookingStatus;
   severity: BookingSeverity;
   color: string;

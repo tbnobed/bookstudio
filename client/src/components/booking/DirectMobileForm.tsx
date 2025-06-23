@@ -126,7 +126,7 @@ export function DirectMobileForm({
         templateId: booking.templateId || null,
         notifyList: booking.notifyList || [],
         color: booking.color || '#3b82f6',
-        studioIds: booking.studioIds || (booking.studioId ? [booking.studioId] : [])
+        studioIds: Array.isArray(booking.studioIds) ? booking.studioIds : (booking.studioId ? [booking.studioId] : [])
       };
       
       console.log("DirectMobileForm - Setting form data to:", updatedFormData);
