@@ -412,29 +412,40 @@ export default function SimpleMobileForm({
   
   // Handle studio selection/deselection
   const handleStudioSelect = (studioId: number) => {
+    console.log('[HANDLE STUDIO SELECT] Function called with studioId:', studioId);
+    console.log('[HANDLE STUDIO SELECT] Current formData.studioIds:', formData.studioIds);
+    
     setFormData(prev => {
-      const studioIds = [...(prev.studioIds || [])];
+      const currentStudioIds = prev.studioIds || [];
+      console.log('[HANDLE STUDIO SELECT] Current studioIds from prev:', currentStudioIds);
       
-      console.log(`[MULTI-STUDIO] Toggling studio ${studioId}, current studioIds:`, studioIds);
+      let updatedStudioIds;
+      const index = currentStudioIds.indexOf(studioId);
       
-      // Toggle the studio - if it's already in the list, remove it, otherwise add it
-      const index = studioIds.indexOf(studioId);
       if (index !== -1) {
-        studioIds.splice(index, 1);
+        // Remove studio
+        updatedStudioIds = currentStudioIds.filter(id => id !== studioId);
+        console.log('[HANDLE STUDIO SELECT] REMOVING studio:', studioId);
       } else {
-        studioIds.push(studioId);
+        // Add studio
+        updatedStudioIds = [...currentStudioIds, studioId];
+        console.log('[HANDLE STUDIO SELECT] ADDING studio:', studioId);
       }
       
       // Set the first studio as the studioId for backwards compatibility
-      const primaryStudioId = studioIds.length > 0 ? studioIds[0] : null;
+      const primaryStudioId = updatedStudioIds.length > 0 ? updatedStudioIds[0] : null;
       
-      console.log(`[MULTI-STUDIO] Updated studioIds:`, studioIds, `primaryStudioId:`, primaryStudioId);
+      console.log('[HANDLE STUDIO SELECT] Final updatedStudioIds:', updatedStudioIds);
+      console.log('[HANDLE STUDIO SELECT] Final primaryStudioId:', primaryStudioId);
       
-      return { 
+      const newFormData = { 
         ...prev, 
-        studioIds,
+        studioIds: updatedStudioIds,
         studioId: primaryStudioId
       };
+      
+      console.log('[HANDLE STUDIO SELECT] Complete new form data:', newFormData);
+      return newFormData;
     });
   };
   
@@ -600,7 +611,7 @@ export default function SimpleMobileForm({
           </div>
           
           <div className="form-group">
-            <label>Studios*</label>
+            <label>Studios* (Selected: {(formData.studioIds || []).length})</label>
             <div className="studio-multi-select">
               {studios.map(studio => (
                 <div key={studio.id} className="checkbox-item">
@@ -608,15 +619,27 @@ export default function SimpleMobileForm({
                     type="checkbox"
                     id={`studio-${studio.id}`}
                     checked={(formData.studioIds || []).includes(studio.id)}
-                    onChange={() => handleStudioSelect(studio.id)}
+                    onChange={() => {
+                      console.log('[STUDIO CHECKBOX] Studio checkbox clicked:', studio.id);
+                      console.log('[STUDIO CHECKBOX] Current studioIds before click:', formData.studioIds);
+                      handleStudioSelect(studio.id);
+                    }}
                   />
-                  <label htmlFor={`studio-${studio.id}`}>{studio.name}</label>
+                  <label htmlFor={`studio-${studio.id}`}>
+                    {studio.name} 
+                    {(formData.studioIds || []).includes(studio.id) ? ' ✓' : ''}
+                  </label>
                 </div>
               ))}
             </div>
             {(formData.studioIds || []).length === 0 && (
               <div className="error-hint">Please select at least one studio</div>
             )}
+            
+            {/* Debug information */}
+            <div style={{ fontSize: '10px', color: '#666', marginTop: '8px' }}>
+              Debug: studioIds = [{(formData.studioIds || []).join(', ')}]
+            </div>
           </div>
           
           <div className="form-group">
