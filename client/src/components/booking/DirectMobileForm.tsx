@@ -5,6 +5,8 @@ import { createFacilityDate } from '../../lib/dateUtils';
 import { useTemplates } from '../../hooks/useTemplates';
 import { useStudios } from '../../hooks/useStudios';
 import { usePcrRooms } from '../../hooks/usePcrRooms';
+import { useStudioBookings } from '../../hooks/useStudioBookings';
+import { useToast } from '../../hooks/use-toast';
 import './direct-mobile.css';
 
 // Ultra-lightweight form for low-end mobile devices with minimal features
@@ -25,6 +27,9 @@ export function DirectMobileForm({
   selectedStudio = null,
   selectedDate = new Date()
 }: DirectMobileFormProps) {
+  const { toast } = useToast();
+  const { deleteBooking } = useStudioBookings();
+  
   // Get data from hooks
   const { studios = [] } = useStudios();
   const { templates = [] } = useTemplates();
@@ -494,12 +499,46 @@ export function DirectMobileForm({
           </div>
           
           <div className="dm-form-actions">
-            <button type="button" className="dm-cancel-button" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="dm-submit-button">
-              {booking ? 'Update' : 'Create'}
-            </button>
+            <div className="dm-actions-left">
+              {booking && (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
+                      deleteBooking.mutate(booking.id, {
+                        onSuccess: () => {
+                          toast({
+                            title: "Success",
+                            description: "Booking deleted successfully",
+                            variant: "default"
+                          });
+                          onClose();
+                        },
+                        onError: (error: any) => {
+                          toast({
+                            title: "Error",
+                            description: error.message || "Failed to delete booking",
+                            variant: "destructive"
+                          });
+                        }
+                      });
+                    }
+                  }}
+                  className="dm-delete-button"
+                  disabled={deleteBooking.isPending}
+                >
+                  {deleteBooking.isPending ? 'Deleting...' : 'Delete'}
+                </button>
+              )}
+            </div>
+            <div className="dm-actions-right">
+              <button type="button" className="dm-cancel-button" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" className="dm-submit-button">
+                {booking ? 'Update' : 'Create'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

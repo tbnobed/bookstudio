@@ -76,6 +76,8 @@ export default function SimpleMobileForm({
   selectedDate = new Date(),
   selectedStudio
 }: SimpleMobileFormProps) {
+  const { toast } = useToast();
+  const { deleteBooking } = useStudioBookings();
   const [studios, setStudios] = useState<Studio[]>([]);
   const [pcrRooms, setPcrRooms] = useState<PcrRoom[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -709,12 +711,46 @@ export default function SimpleMobileForm({
           </div>
           
           <div className="form-actions">
-            <button type="button" className="cancel-button" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="submit-button">
-              {booking ? 'Update' : 'Create'}
-            </button>
+            <div className="form-actions-left">
+              {booking && (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
+                      deleteBooking.mutate(booking.id, {
+                        onSuccess: () => {
+                          toast({
+                            title: "Success",
+                            description: "Booking deleted successfully",
+                            variant: "default"
+                          });
+                          onClose();
+                        },
+                        onError: (error: any) => {
+                          toast({
+                            title: "Error",
+                            description: error.message || "Failed to delete booking",
+                            variant: "destructive"
+                          });
+                        }
+                      });
+                    }
+                  }}
+                  className="delete-button"
+                  disabled={deleteBooking.isPending}
+                >
+                  {deleteBooking.isPending ? 'Deleting...' : 'Delete'}
+                </button>
+              )}
+            </div>
+            <div className="form-actions-right">
+              <button type="button" className="cancel-button" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" className="submit-button">
+                {booking ? 'Update' : 'Create'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

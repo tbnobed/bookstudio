@@ -183,7 +183,18 @@
 .form-actions {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-top: 24px;
+  gap: 12px;
+}
+
+.form-actions-left {
+  display: flex;
+  gap: 8px;
+}
+
+.form-actions-right {
+  display: flex;
   gap: 12px;
 }
 
