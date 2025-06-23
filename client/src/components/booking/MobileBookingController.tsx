@@ -86,7 +86,7 @@ export function MobileBookingController({
             severity: data.severity,
             color: data.color
           },
-          studioIds: [data.studioId] // For now just use single studio
+          studioIds: data.studioIds || (data.studioId ? [data.studioId] : []) // Use actual studioIds array
         },
         {
           onSuccess: () => {
@@ -109,22 +109,26 @@ export function MobileBookingController({
         }
       );
     } else {
-      // Create a new booking
-      createBooking.mutate(
-        {
-          title: data.title,
-          description: data.description,
-          studioId: data.studioId,
-          pcrRoomId: data.pcrRoomId || null,
-          type: data.type,
-          start: new Date(data.start),
-          end: new Date(data.end),
-          templateId: data.templateId || null,
-          status: data.status,
-          severity: data.severity,
-          color: data.color,
-          studioIds: [data.studioId] // For now just use single studio
-        },
+      // Create new booking with multi-studio support
+      const createData = {
+        title: data.title,
+        description: data.description,
+        studioId: data.studioId,
+        studioIds: data.studioIds || (data.studioId ? [data.studioId] : []), // Use actual studioIds array
+        pcrRoomId: data.pcrRoomId || null,
+        type: data.type,
+        start: new Date(data.start),
+        end: new Date(data.end),
+        templateId: data.templateId || null,
+        status: data.status,
+        severity: data.severity,
+        color: data.color
+      };
+      
+      console.log("[MOBILE CONTROLLER] Final create data:", createData);
+      console.log("[MOBILE CONTROLLER] Calling createBooking.mutate with studioIds:", createData.studioIds);
+      
+      createBooking.mutate(createData,
         {
           onSuccess: () => {
             toast({
