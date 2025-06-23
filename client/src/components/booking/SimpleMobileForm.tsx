@@ -299,11 +299,29 @@ export default function SimpleMobileForm({
     if (name === 'studioId') {
       const studioValue = parseInt(value);
       console.log(`Studio change: Setting to ${studioValue}`);
-      setFormData(prev => ({ 
-        ...prev, 
-        studioId: studioValue > 0 ? studioValue : null,
-        studioIds: studioValue > 0 ? [studioValue] : []
-      }));
+      setFormData(prev => {
+        const currentStudioIds = prev.studioIds || [];
+        
+        // If selecting a studio and it's not already in the list, add it
+        if (studioValue > 0) {
+          const updatedStudioIds = currentStudioIds.includes(studioValue) 
+            ? currentStudioIds 
+            : [...currentStudioIds, studioValue];
+            
+          return {
+            ...prev, 
+            studioId: studioValue,
+            studioIds: updatedStudioIds
+          };
+        } else {
+          // If clearing selection, keep existing studioIds but clear primary studioId
+          return {
+            ...prev,
+            studioId: null,
+            studioIds: currentStudioIds
+          };
+        }
+      });
       return;
     }
     
@@ -397,6 +415,8 @@ export default function SimpleMobileForm({
     setFormData(prev => {
       const studioIds = [...(prev.studioIds || [])];
       
+      console.log(`[MULTI-STUDIO] Toggling studio ${studioId}, current studioIds:`, studioIds);
+      
       // Toggle the studio - if it's already in the list, remove it, otherwise add it
       const index = studioIds.indexOf(studioId);
       if (index !== -1) {
@@ -406,7 +426,9 @@ export default function SimpleMobileForm({
       }
       
       // Set the first studio as the studioId for backwards compatibility
-      const primaryStudioId = studioIds.length > 0 ? studioIds[0] : 0;
+      const primaryStudioId = studioIds.length > 0 ? studioIds[0] : null;
+      
+      console.log(`[MULTI-STUDIO] Updated studioIds:`, studioIds, `primaryStudioId:`, primaryStudioId);
       
       return { 
         ...prev, 
