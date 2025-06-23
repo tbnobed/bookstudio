@@ -95,8 +95,19 @@
 .dm-form-actions {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-top: 16px;
   gap: 10px;
+}
+
+.dm-actions-left {
+  display: flex;
+  gap: 8px;
+}
+
+.dm-actions-right {
+  display: flex;
+  gap: 12px;
 }
 
 .dm-cancel-button,
@@ -126,12 +137,12 @@
 }
 
 .dm-delete-button {
-  padding: 8px 14px;
+  padding: 8px 16px;
   border: 1px solid #dc3545;
-  background: transparent;
-  color: #dc3545;
-  border-radius: 3px;
-  font-size: 0.85rem;
+  background: #f8f9fa;
+  color: #6c757d;
+  border-radius: 4px;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -140,6 +151,7 @@
 .dm-delete-button:hover {
   background: #dc3545;
   color: white;
+  border-color: #dc3545;
 }
 
 .dm-delete-button:disabled {

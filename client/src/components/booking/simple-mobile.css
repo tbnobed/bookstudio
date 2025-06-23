@@ -230,6 +230,29 @@
   border-color: #0a58ca;
 }
 
+.delete-button {
+  padding: 10px 20px;
+  border: 1px solid #dc3545;
+  background: #f8f9fa;
+  color: #6c757d;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-button:hover {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Styles for smaller screens */
 @media (max-width: 480px) {
   .simple-mobile-form-container {
