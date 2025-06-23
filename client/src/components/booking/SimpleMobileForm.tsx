@@ -510,7 +510,7 @@ export default function SimpleMobileForm({
       // Set primary studioId for backwards compatibility
       studioId: formData.studioIds && formData.studioIds.length > 0 
         ? formData.studioIds[0] 
-        : formData.studioId,
+        : null,
       // Ensure dates are properly formatted
       start: formData.start instanceof Date ? formData.start.toISOString() : formData.start,
       end: formData.end instanceof Date ? formData.end.toISOString() : formData.end
