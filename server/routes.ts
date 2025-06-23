@@ -961,12 +961,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (studioIds && studioIds.length > 0) {
         try {
           const parsedStudioIds = studioIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          await storage.createBookingStudioLinks(booking.id, parsedStudioIds);
-          console.log(`Created ${parsedStudioIds.length} studio links for booking ${booking.id}`);
+          console.log(`[MULTI-STUDIO DEBUG] Creating studio links for booking ${booking.id} with studios:`, parsedStudioIds);
+          const createdLinks = await storage.createBookingStudioLinks(booking.id, parsedStudioIds);
+          console.log(`[MULTI-STUDIO DEBUG] Successfully created ${createdLinks.length} studio links:`, createdLinks);
+          
+          // Verify the links were created by fetching them back
+          const verificationLinks = await storage.getBookingStudioLinks(booking.id);
+          console.log(`[MULTI-STUDIO DEBUG] Verification - fetched ${verificationLinks.length} links for booking ${booking.id}:`, verificationLinks);
         } catch (error) {
-          console.error("Error creating studio links:", error);
+          console.error("[MULTI-STUDIO DEBUG] Error creating studio links:", error);
+          console.error("[MULTI-STUDIO DEBUG] Error stack:", error.stack);
           // Continue with the response even if junction table entries fail
         }
+      } else {
+        console.log(`[MULTI-STUDIO DEBUG] No studioIds provided or empty array. studioIds:`, studioIds);
       }
       
       // Handle facility-wide maintenance alerts (send to ALL notification groups + site managers)
