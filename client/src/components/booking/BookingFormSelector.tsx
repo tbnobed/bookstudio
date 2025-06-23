@@ -63,9 +63,9 @@ export function BookingFormSelector({
     newBooking.id = Number(newBooking.id) || 0;
     newBooking.title = String(newBooking.title || '');
     newBooking.description = String(newBooking.description || '');
-    // Fix studioId - ensure it's never 0, use null instead
-    const studioIdValue = Number(newBooking.studioId) || Number(selectedStudio);
-    newBooking.studioId = (studioIdValue > 0) ? studioIdValue : null;
+    // Fix studioId - use selectedStudio if booking has null/0 studioId
+    const studioIdValue = newBooking.studioId || selectedStudio;
+    newBooking.studioId = (studioIdValue && studioIdValue > 0) ? studioIdValue : null;
     newBooking.pcrRoomId = newBooking.pcrRoomId !== undefined ? Number(newBooking.pcrRoomId) : null;
     newBooking.type = String(newBooking.type || 'production');
     newBooking.status = String(newBooking.status || 'confirmed');

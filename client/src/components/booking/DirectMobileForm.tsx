@@ -31,7 +31,7 @@ export function DirectMobileForm({
   const { pcrRooms = [] } = usePcrRooms();
   
   // Initial studio ID from props or booking
-  const initialStudioId = selectedStudio || booking?.studioId || (studios[0]?.id || 1);
+  const initialStudioId = selectedStudio || booking?.studioId || studios[0]?.id || null;
   
   // Debug logging for tracing booking data issues
   useEffect(() => {
@@ -133,7 +133,7 @@ export function DirectMobileForm({
     id: booking?.id || 0,
     title: booking?.title || '',
     description: booking?.description || '',
-    studioId: selectedStudio || (studios[0]?.id || 1),
+    studioId: selectedStudio || studios[0]?.id || 0,
     pcrRoomId: booking?.pcrRoomId || null, 
     start: booking ? new Date(booking.start) : new Date(selectedDate),
     end: booking ? new Date(booking.end) : new Date(new Date(selectedDate).getTime() + 3600000), // Default 1 hour later
@@ -308,10 +308,10 @@ export function DirectMobileForm({
       return;
     }
     
-    // Fix studioId constraint - ensure it's never 0
+    // Fix studioId constraint - ensure it's never 0 (this check is redundant after validation above but kept for safety)
     const submissionData = {
       ...formData,
-      studioId: formData.studioId === 0 ? null : formData.studioId
+      studioId: formData.studioId
     };
     
     console.log('DirectMobileForm - Submitting:', submissionData);

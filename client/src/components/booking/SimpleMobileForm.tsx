@@ -3,6 +3,10 @@ import './simple-mobile.css';
 import { BookingType, BookingSeverity, BookingStatus } from '@/types/bookings';
 import { formatDateForForm, formatTimeForForm } from '@/utils/dateUtils';
 import { createFacilityDate } from '@/lib/dateUtils';
+import { useStudios } from '@/hooks/useStudios';
+import { usePcrRooms } from '@/hooks/usePcrRooms';
+import { useTemplates } from '@/hooks/useTemplates';
+import { useNotificationGroups } from '@/hooks/useNotificationGroups';
 
 interface FormBookingData {
   id: number;
@@ -106,26 +110,19 @@ export default function SimpleMobileForm({
     });
   }, [booking, selectedStudio, isOpen]);
 
-  // Load data from API
+  // Load data from API hooks (more efficient than manual fetching)
+  const { data: studiosData = [] } = useStudios();
+  const { data: pcrRoomsData = [] } = usePcrRooms();
+  const { data: templatesData = [] } = useTemplates();
+  const { data: notificationGroupsData = [] } = useNotificationGroups();
+  
+  // Update local state when hook data changes
   useEffect(() => {
-    if (isOpen) {
-      // Fetch all needed data in parallel
-      Promise.all([
-        fetch('/api/studios').then(res => res.json()),
-        fetch('/api/pcr-rooms').then(res => res.json()),
-        fetch('/api/templates').then(res => res.json()),
-        fetch('/api/notification-groups').then(res => res.json())
-      ]).then(([studiosData, pcrRoomsData, templatesData, groupsData]) => {
-        setStudios(studiosData);
-        setPcrRooms(pcrRoomsData);
-        setTemplates(templatesData);
-        console.log("SimpleMobileForm - Templates loaded:", templatesData);
-        setNotificationGroups(groupsData);
-      }).catch(error => {
-        console.error('Error loading form data:', error);
-      });
-    }
-  }, [isOpen]);
+    setStudios(studiosData);
+    setPcrRooms(pcrRoomsData);
+    setTemplates(templatesData);
+    setNotificationGroups(notificationGroupsData);
+  }, [studiosData, pcrRoomsData, templatesData, notificationGroupsData]);
   
   // Initialize form with selected date
   useEffect(() => {
@@ -423,10 +420,10 @@ export default function SimpleMobileForm({
       return;
     }
     
-    // Fix studioId constraint - ensure it's never 0
+    // Fix studioId constraint - ensure it's never 0 (this check is redundant after validation above but kept for safety)
     const submissionData = {
       ...formData,
-      studioId: formData.studioId === 0 ? null : formData.studioId
+      studioId: formData.studioId
     };
     
     console.log('SimpleMobileForm - Final form data:', submissionData);
