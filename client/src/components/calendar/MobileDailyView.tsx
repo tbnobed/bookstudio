@@ -64,9 +64,6 @@ export default function MobileDailyView({
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
-  // Add debug logging for interactions
-  console.log("MobileDailyView - Component rendered, interactions should work");
-  
   // Get date from context as well as props
   const { selectedDate, setSelectedDate } = useCalendarContext();
   
@@ -191,42 +188,27 @@ export default function MobileDailyView({
 
   // Navigate to previous/next day
   const goToPreviousDay = () => {
-    console.log("goToPreviousDay called");
-    try {
-      const prevDay = new Date(currentDate);
-      prevDay.setDate(prevDay.getDate() - 1);
-      // Update both the prop callback and the context
-      onDateChange(prevDay);
-      setSelectedDate(prevDay);
-    } catch (error) {
-      console.error("Error in goToPreviousDay:", error);
-    }
+    const prevDay = new Date(currentDate);
+    prevDay.setDate(prevDay.getDate() - 1);
+    // Update both the prop callback and the context
+    onDateChange(prevDay);
+    setSelectedDate(prevDay);
   };
 
   const goToNextDay = () => {
-    console.log("goToNextDay called");
-    try {
-      const nextDay = new Date(currentDate);
-      nextDay.setDate(nextDay.getDate() + 1);
-      // Update both the prop callback and the context
-      onDateChange(nextDay);
-      setSelectedDate(nextDay);
-    } catch (error) {
-      console.error("Error in goToNextDay:", error);
-    }
+    const nextDay = new Date(currentDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    // Update both the prop callback and the context
+    onDateChange(nextDay);
+    setSelectedDate(nextDay);
   };
   
   // Navigate to today
   const goToToday = () => {
-    console.log("goToToday called");
-    try {
-      const today = new Date();
-      // Update both the prop callback and the context
-      onDateChange(today);
-      setSelectedDate(today);
-    } catch (error) {
-      console.error("Error in goToToday:", error);
-    }
+    const today = new Date();
+    // Update both the prop callback and the context
+    onDateChange(today);
+    setSelectedDate(today);
   };
 
   // Switch to weekly view
@@ -236,93 +218,100 @@ export default function MobileDailyView({
   };
 
   // Handle booking/slot click - differentiate between regular bookings and maintenance/alerts
-  const handleBookingClick = (booking: any) => {
-    if (!booking) return;
-    
+  const handleBookingClick = (booking: Booking) => {
     console.log("MobileDailyView - handleBookingClick - Original booking:", booking);
     
-    try {
-      // Check if this is a maintenance/alert booking
-      const isMaintenanceOrAlert = booking.type === 'maintenance' || 
-                                   booking.type === 'alert' || 
-                                   booking.type === 'it_support' ||
-                                   booking.studioId === null;
+    // Check if this is a maintenance/alert booking
+    const isMaintenanceOrAlert = booking.type === 'maintenance' || 
+                                 booking.type === 'alert' || 
+                                 booking.type === 'it_support' ||
+                                 booking.studioId === null;
+    
+    console.log("MobileDailyView - Booking type check:", {
+      bookingId: booking.id,
+      title: booking.title,
+      type: booking.type,
+      studioId: booking.studioId,
+      isMaintenanceOrAlert
+    });
+    
+    if (isMaintenanceOrAlert) {
+      // Open alert modal for maintenance/alert bookings
+      console.log("MobileDailyView - Opening AlertModal for maintenance booking");
       
-      console.log("MobileDailyView - Booking type check:", {
-        bookingId: booking.id,
-        title: booking.title,
-        type: booking.type,
-        studioId: booking.studioId,
-        isMaintenanceOrAlert
-      });
-      
-      if (isMaintenanceOrAlert) {
-        // Open alert modal for maintenance/alert bookings
-        console.log("MobileDailyView - Opening AlertModal for maintenance booking");
-        
-        // Prepare the booking data for the alert modal
-        const alertData = {
-          id: booking.id,
-          title: booking.title || '',
-          description: booking.description || '',
-          start: booking.start,
-          end: booking.end,
-          type: booking.type || 'maintenance',
-          severity: booking.severity || 'low',
-          notifyList: booking.notifyList || []
-        };
-        
-        setEditBooking(alertData);
-        setIsNewAlertModalOpen(true);
-        return;
-      }
-      
-      // Regular booking processing for studio bookings
-      const linkedStudioNames = getLinkedStudiosForBooking ? getLinkedStudiosForBooking(booking) : [];
-      
-      // Get linked studio IDs by looking up each studio by name
-      const linkedStudioIds = linkedStudioNames
-        .map((name: string) => {
-          const studio = studios.find(s => s.name === name);
-          return studio ? studio.id : null;
-        })
-        .filter((id: number | null) => id !== null);
-      
-      console.log("MobileDailyView - handleBookingClick - Linked studios:", {
-        linkedStudioNames,
-        linkedStudioIds
-      });
-      
-      // Enhanced booking cleanup and preparation
-      const cleanBooking: any = {
+      // Prepare the booking data for the alert modal
+      const alertData = {
         id: booking.id,
         title: booking.title || '',
         description: booking.description || '',
-        studioId: booking.studioId || null,
-        pcrRoomId: booking.pcrRoomId || null,
         start: booking.start,
         end: booking.end,
-        _startDate: new Date(booking.start),
-        _endDate: new Date(booking.end),
-        type: booking.type || 'production',
-        status: booking.status || 'confirmed',
-        severity: booking.severity || null,
-        templateId: booking.templateId || null,
-        notifyList: booking.notifyList || [],
-        color: booking.color || '#3b82f6',
-        studioIds: linkedStudioIds.length > 0 ? linkedStudioIds : (booking.studioId ? [booking.studioId] : [])
+        type: booking.type || 'maintenance',
+        severity: booking.severity || 'low',
+        notifyList: booking.notifyList || []
       };
       
-      cleanBooking.userId = booking.userId || 1;
-      
-      console.log("MobileDailyView - handleBookingClick - Enhanced booking:", cleanBooking);
-      
-      // Set booking data and open modal
+      setEditBooking(alertData);
+      setIsNewAlertModalOpen(true);
+      return;
+    }
+    
+    // Regular booking processing for studio bookings
+    const linkedStudioNames = getLinkedStudiosForBooking(booking);
+    
+    // Get linked studio IDs by looking up each studio by name
+    const linkedStudioIds = linkedStudioNames
+      .map(name => {
+        const studio = studios.find(s => s.name === name);
+        return studio ? studio.id : null;
+      })
+      .filter(id => id !== null);
+    
+    console.log("MobileDailyView - handleBookingClick - Linked studios:", {
+      linkedStudioNames,
+      linkedStudioIds
+    });
+    
+    // Enhanced booking cleanup and preparation
+    // This creates a clean booking object with all required props explicitly
+    const cleanBooking: any = {
+      id: booking.id,
+      title: booking.title || '',
+      description: booking.description || '',
+      studioId: booking.studioId || null,
+      pcrRoomId: booking.pcrRoomId || null,
+      // Keep original string dates for API compatibility
+      start: booking.start,
+      end: booking.end,
+      // Store Date objects explicitly in special properties
+      _startDate: new Date(booking.start),
+      _endDate: new Date(booking.end),
+      type: booking.type || 'production',
+      status: booking.status || 'confirmed',
+      severity: booking.severity || null,
+      templateId: booking.templateId || 0,
+      notifyList: booking.notifyList || [],
+      color: booking.color || '#3b82f6',
+      // Use the linked studios we fetched
+      studioIds: linkedStudioIds.length > 0 ? linkedStudioIds : (booking.studioId ? [booking.studioId] : [])
+    };
+    
+    // Add any missing fields that might be needed by the form
+    cleanBooking.userId = booking.userId || 1; // Default to admin
+    
+    console.log("MobileDailyView - handleBookingClick - Enhanced booking:", cleanBooking);
+    
+    // Force a delay to ensure booking data is set before modal opens
+    setTimeout(() => {
       setEditBooking(cleanBooking);
       setIsEditModalOpen(true);
-    } catch (error) {
-      console.error("Error in handleBookingClick:", error);
-    }
+      console.log("MobileDailyView - Edit Modal Opening:", {
+        bookingId: cleanBooking.id,
+        bookingTitle: cleanBooking.title,
+        editModalIsOpen: true,
+        editBookingData: cleanBooking
+      });
+    }, 50); // Increased timeout for more reliable state updates
   };
 
   // Get all studios with their current status
@@ -413,14 +402,7 @@ export default function MobileDailyView({
       <div className="border-b p-4 bg-white sticky top-0 z-10">
         {/* Date navigation buttons */}
         <div className="flex justify-between items-center mb-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => {
-              console.log("Previous day button clicked");
-              goToPreviousDay();
-            }}
-          >
+          <Button variant="ghost" size="icon" onClick={goToPreviousDay}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -435,14 +417,7 @@ export default function MobileDailyView({
             </span>
           </div>
           
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => {
-              console.log("Next day button clicked");
-              goToNextDay();
-            }}
-          >
+          <Button variant="ghost" size="icon" onClick={goToNextDay}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18l6-6-6-6" />
             </svg>
@@ -456,10 +431,7 @@ export default function MobileDailyView({
               variant="outline" 
               size="sm"
               className="text-blue-600 border-blue-300 hover:bg-blue-50"
-              onClick={() => {
-                console.log("Today button clicked");
-                goToToday();
-              }}
+              onClick={goToToday}
             >
               <Calendar className="h-4 w-4 mr-1" /> Today
             </Button>

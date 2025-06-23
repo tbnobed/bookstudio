@@ -18,9 +18,6 @@ import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import MobilePublicCalendarPage from "@/pages/MobilePublicCalendarPage";
 import InvitePage from "@/pages/InvitePage";
-import EmergencyAuth from "@/pages/emergency-auth";
-import EmergencyTest from "@/pages/emergency-test";
-import ClickTest from "@/components/debug/ClickTest";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { CalendarProvider } from "@/contexts/CalendarContext";
@@ -39,13 +36,10 @@ function Router() {
     <Switch>
       <Route path="/auth" component={AuthPage} />
       <Route path="/login" component={AuthPage} />
-      <Route path="/emergency-login" component={EmergencyAuth} />
-      <Route path="/emergency-test" component={EmergencyTest} />
       <Route path="/invite/:token" component={InvitePage} />
       <Route path="/reset-password/:token" component={ResetPasswordPage} />
       <Route path="/public-calendar" component={PublicCalendarPage} />
       <Route path="/public-calendar/mobile" component={MobilePublicCalendarPage} />
-      <Route path="/test-mobile" component={() => import("@/components/calendar/SimpleMobileTest")} />
       <ProtectedRoute path="/" component={CalendarComponent} />
       <ProtectedRoute path="/calendar" component={CalendarComponent} />
       <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
