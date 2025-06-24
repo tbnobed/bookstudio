@@ -138,25 +138,44 @@ export default function SignagePage() {
           return;
         }
 
-        // Use OpenWeatherMap Current Weather API (free tier) for Dallas area
+        // Dallas coordinates: 32.7767, -96.7970
+        const lat = 32.7767;
+        const lon = -96.7970;
+        
+        // Use OpenWeatherMap One Call API 3.0 with paid subscription
         const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
+          `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial&exclude=minutely,daily,alerts`
         );
         
         if (response.ok) {
           const data = await response.json();
           console.log('Weather data received:', data);
           setWeather({
-            temperature: Math.round(data.main.temp),
-            condition: data.weather[0].description,
-            humidity: data.main.humidity,
-            windSpeed: Math.round(data.wind.speed),
-            icon: data.weather[0].icon,
-            location: data.name
+            temperature: Math.round(data.current.temp),
+            condition: data.current.weather[0].description,
+            humidity: data.current.humidity,
+            windSpeed: Math.round(data.current.wind_speed),
+            icon: data.current.weather[0].icon,
+            location: 'Dallas, TX'
           });
         } else {
           const errorText = await response.text();
           console.log('Weather API error:', response.status, errorText);
+          // Fall back to free API if One Call 3.0 fails
+          const fallbackResponse = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
+          );
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            setWeather({
+              temperature: Math.round(fallbackData.main.temp),
+              condition: fallbackData.weather[0].description,
+              humidity: fallbackData.main.humidity,
+              windSpeed: Math.round(fallbackData.wind.speed),
+              icon: fallbackData.weather[0].icon,
+              location: fallbackData.name
+            });
+          }
         }
       } catch (error) {
         console.log('Weather data unavailable');
