@@ -223,8 +223,9 @@ export default function DayChronView({
     // Use our shared function to determine if this is an alert booking
     const isAlert = isAlertBooking(booking);
     
-    // Check if booking is cancelled
+    // Check if booking is cancelled or tentative
     const isCancelled = booking.status === 'cancelled';
+    const isTentative = booking.status === 'tentative';
     
     console.log("[DEBUG] Processing booking:", booking.id, booking.title, "isAlert:", isAlert, "status:", booking.status);
     
@@ -246,11 +247,15 @@ export default function DayChronView({
             className={cn(
               "border rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors",
               typeClass,
+              isTentative && "border-dashed opacity-80 bg-gray-100",
               isCancelled && "opacity-60 bg-gray-100"
             )}
             style={{
               borderLeftColor: severityColor,
-              borderLeftWidth: '4px'
+              borderLeftWidth: '4px',
+              ...(isTentative ? {
+                borderColor: booking.color || "#666"
+              } : {})
             }}
             onClick={() => onBookingClick(booking)}
           >
