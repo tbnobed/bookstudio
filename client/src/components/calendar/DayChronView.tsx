@@ -881,21 +881,37 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="p-3 rounded-md border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-300 hover:shadow-md cursor-pointer transition-all duration-300 group"
+                    className="p-3 rounded-md border border-gray-200 bg-white cursor-pointer transition-all duration-200 hover:bg-blue-50 hover:border-blue-300 hover:shadow-lg hover:scale-[1.02]"
+                    style={{
+                      backgroundColor: 'white',
+                      transition: 'all 0.2s ease-in-out'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#eff6ff';
+                      e.currentTarget.style.borderColor = '#93c5fd';
+                      e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
                     onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className={cn(
-                          "w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all duration-300",
-                          booking.status === 'confirmed' ? 'bg-green-500 group-hover:bg-green-600 group-hover:scale-110' :
-                          booking.status === 'tentative' ? 'bg-yellow-500 group-hover:bg-yellow-600 group-hover:scale-110' : 'bg-red-500 group-hover:bg-red-600 group-hover:scale-110'
+                          "w-2.5 h-2.5 rounded-full flex-shrink-0",
+                          booking.status === 'confirmed' ? 'bg-green-500' :
+                          booking.status === 'tentative' ? 'bg-yellow-500' : 'bg-red-500'
                         )} />
-                        <span className="text-sm font-medium truncate group-hover:text-blue-700 group-hover:font-semibold transition-all duration-300">{booking.title}</span>
-                        {isToday && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full group-hover:bg-blue-200 group-hover:text-blue-800 transition-all duration-300">Today</span>}
+                        <span className="text-sm font-medium truncate">{booking.title}</span>
+                        {isToday && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Today</span>}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1.5 group-hover:text-gray-700 transition-all duration-300">
+                    <div className="text-xs text-gray-500 mt-1.5">
                       {formatInFacilityTimezone(new Date(booking.start), 'MMM d')} • Created {formatInFacilityTimezone(createdDate, 'MMM d')}
                     </div>
                   </div>
