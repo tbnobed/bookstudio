@@ -182,6 +182,7 @@ const NotificationGroupDialog: React.FC<{
                     <SelectContent>
                       <SelectItem value="department">Department</SelectItem>
                       <SelectItem value="facility">Facility-wide</SelectItem>
+                      <SelectItem value="site_management">Site Management</SelectItem>
                       <SelectItem value="custom">Custom</SelectItem>
                     </SelectContent>
                   </Select>
