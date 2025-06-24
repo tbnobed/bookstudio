@@ -166,7 +166,27 @@ export default function UserManagement() {
             variant: "destructive",
           });
         }
-      } catch {
+      } catch (parseError) {
+        // If we can't parse the error, check if it contains force delete hints
+        const errorMessage = error.message || "";
+        if (errorMessage.includes("canForceDelete") || errorMessage.includes("forceDeleteHint")) {
+          // Extract the error data from the raw message
+          try {
+            const match = errorMessage.match(/\{.*\}/);
+            if (match) {
+              const errorData = JSON.parse(match[0]);
+              if (errorData.canForceDelete) {
+                setForceDeleteError(errorData);
+                setShowForceDeleteDialog(true);
+                setIsDeleteUserOpen(false);
+                return;
+              }
+            }
+          } catch (extractError) {
+            console.log("Failed to extract error data:", extractError);
+          }
+        }
+        
         toast({
           title: "Error",
           description: error.message || "Failed to delete user",

@@ -60,8 +60,13 @@ export default function TemplatesPage() {
       setSelectedTemplate(null);
     },
     onError: (error: any) => {
+      console.log("Template delete error:", error);
+      console.log("Error message:", error.message);
+      
       try {
         const errorData = JSON.parse(error.message);
+        console.log("Parsed error data:", errorData);
+        
         if (errorData.canForceDelete) {
           // Show force delete option
           setForceDeleteError(errorData);
@@ -73,7 +78,28 @@ export default function TemplatesPage() {
             variant: "destructive",
           });
         }
-      } catch {
+      } catch (parseError) {
+        console.log("Parse error:", parseError);
+        
+        // If we can't parse the error, check if it contains force delete hints
+        const errorMessage = error.message || "";
+        if (errorMessage.includes("canForceDelete") || errorMessage.includes("forceDeleteHint")) {
+          // Extract the error data from the raw message
+          try {
+            const match = errorMessage.match(/\{.*\}/);
+            if (match) {
+              const errorData = JSON.parse(match[0]);
+              if (errorData.canForceDelete) {
+                setForceDeleteError(errorData);
+                setShowForceDeleteDialog(true);
+                return;
+              }
+            }
+          } catch (extractError) {
+            console.log("Failed to extract error data:", extractError);
+          }
+        }
+        
         toast({
           title: "Error",
           description: error.message || "Failed to delete template",
