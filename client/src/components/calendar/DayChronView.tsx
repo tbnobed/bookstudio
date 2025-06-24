@@ -881,22 +881,21 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="p-3 rounded-md border border-gray-200 bg-white cursor-pointer transition-all duration-200 hover:bg-blue-50 hover:border-blue-300 hover:shadow-lg hover:scale-[1.02]"
+                    className="p-3 rounded-md border border-gray-200 bg-white cursor-pointer transition-all duration-200"
                     style={{
                       backgroundColor: 'white',
+                      borderColor: '#e5e7eb',
                       transition: 'all 0.2s ease-in-out'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#eff6ff';
-                      e.currentTarget.style.borderColor = '#93c5fd';
-                      e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
-                      e.currentTarget.style.transform = 'scale(1.02)';
+                      e.currentTarget.style.backgroundColor = '#dbeafe';
+                      e.currentTarget.style.borderColor = '#3b82f6';
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = 'white';
                       e.currentTarget.style.borderColor = '#e5e7eb';
                       e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.transform = 'scale(1)';
                     }}
                     onClick={() => onBookingClick(booking)}
                   >
