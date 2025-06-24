@@ -917,7 +917,7 @@ export default function DayChronView({
                         <Clock className="h-3 w-3" />
                         <span className="font-medium">Time:</span>
                         <span>
-                          {formatInFacilityTimezone(new Date(booking.start), 'h:mm a')} - {formatInFacilityTimezone(new Date(booking.end), 'h:mm a')}
+                          {formatTime(booking.start)} - {formatTime(booking.end)}
                         </span>
                       </div>
                     </div>
