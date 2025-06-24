@@ -864,7 +864,6 @@ export default function DayChronView({
           </div>
           
           <div className="space-y-2 flex-1 overflow-y-auto min-h-0">
-
             {bookings
               .filter(booking => {
                 // Show bookings from the last 3 days
@@ -882,8 +881,27 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer mb-2 transition-all duration-200 hover:bg-blue-50 hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5"
-
+                    className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer mb-2 transition-all duration-200"
+                    style={{
+                      ':hover': {
+                        backgroundColor: '#dbeafe',
+                        borderColor: '#93c5fd',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        transform: 'translateY(-1px)'
+                      }
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#dbeafe';
+                      e.currentTarget.style.borderColor = '#93c5fd';
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      e.currentTarget.style.boxShadow = '';
+                      e.currentTarget.style.transform = '';
+                    }}
                     onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
