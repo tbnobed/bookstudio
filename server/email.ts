@@ -313,7 +313,7 @@ export async function sendInviteEmail(
   };
     
     try {
-      const emailSent = await sendEmail(senderEmail, {
+      const emailSent = await sendEmail({
         to: to,
         from: senderEmail,
         subject: msg.subject,
@@ -438,7 +438,7 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
     };
     
     try {
-      const emailSent = await sendEmail(senderEmail, {
+      const emailSent = await sendEmail({
         to: to,
         from: senderEmail,
         subject: msg.subject,
