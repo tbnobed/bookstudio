@@ -16,6 +16,7 @@ import ToastNotification from "@/components/ui/toast-notification";
 import AuthPage from "@/pages/auth-page";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import PublicCalendarPage from "@/pages/PublicCalendarPage";
+import SignagePage from "@/pages/signage-page";
 import MobilePublicCalendarPage from "@/pages/MobilePublicCalendarPage";
 import InvitePage from "@/pages/InvitePage";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/reset-password/:token" component={ResetPasswordPage} />
       <Route path="/public-calendar" component={PublicCalendarPage} />
       <Route path="/public-calendar/mobile" component={MobilePublicCalendarPage} />
+      <Route path="/signage" component={SignagePage} />
       <ProtectedRoute path="/" component={CalendarComponent} />
       <ProtectedRoute path="/calendar" component={CalendarComponent} />
       <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
@@ -65,6 +67,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                      location === "/login" || 
                      location === "/public-calendar" || 
                      location === "/public-calendar/mobile" ||
+                     location === "/signage" ||
                      location.startsWith("/reset-password/") ||
                      location.startsWith("/invite/");
   
