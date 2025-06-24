@@ -97,35 +97,44 @@ function createSeverityBadge(severity: string): string {
 }
 
 /**
- * Get the site management notification group
- * @returns Promise resolving to the site management notification group or null if not found
+ * Get all site management notification groups
+ * @returns Promise resolving to array of site management notification groups
  */
-export async function getSiteManagementGroup(): Promise<NotificationGroup | null> {
+export async function getAllSiteManagementGroups(): Promise<NotificationGroup[]> {
   try {
     // Get all notification groups
     const allGroups = await storage.getAllNotificationGroups();
-    console.log(`[getSiteManagementGroup] Found ${allGroups.length} total notification groups`);
+    console.log(`[getAllSiteManagementGroups] Found ${allGroups.length} total notification groups`);
     
-    // Find the site management group
-    const siteManagementGroup = allGroups.find(group => 
-      group.groupType === 'site_management' || 
-      group.name.toLowerCase().includes('site') ||
-      group.name.toLowerCase().includes('management') ||
-      group.name.toLowerCase().includes('admin') ||
-      group.name.toLowerCase().includes('facility')
+    // Find ALL site management groups
+    const siteManagementGroups = allGroups.filter(group => 
+      group.enabled && (
+        group.groupType === 'site_management' || 
+        group.groupType === 'facility' ||
+        group.name.toLowerCase().includes('site') ||
+        group.name.toLowerCase().includes('management') ||
+        group.name.toLowerCase().includes('admin') ||
+        group.name.toLowerCase().includes('facility')
+      )
     );
     
-    if (siteManagementGroup) {
-      console.log(`[getSiteManagementGroup] Found site management group: ${siteManagementGroup.name} (${siteManagementGroup.email}, enabled: ${siteManagementGroup.enabled})`);
-    } else {
-      console.log(`[getSiteManagementGroup] No site management group found. Available groups:`, allGroups.map(g => `${g.name} (${g.groupType}, enabled: ${g.enabled})`));
-    }
+    console.log(`[getAllSiteManagementGroups] Found ${siteManagementGroups.length} site management groups:`, 
+      siteManagementGroups.map(g => `${g.name} (${g.email}, type: ${g.groupType})`));
     
-    return siteManagementGroup || null;
+    return siteManagementGroups;
   } catch (error) {
-    console.error('Error getting site management group:', error);
-    return null;
+    console.error('Error getting site management groups:', error);
+    return [];
   }
+}
+
+/**
+ * Get the site management notification group (legacy function - returns first match)
+ * @returns Promise resolving to the site management notification group or null if not found
+ */
+export async function getSiteManagementGroup(): Promise<NotificationGroup | null> {
+  const groups = await getAllSiteManagementGroups();
+  return groups.length > 0 ? groups[0] : null;
 }
 
 /**

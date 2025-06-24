@@ -163,7 +163,7 @@ function formatStudios(studioNames: string[]): string {
 }
 
 // Import the notification group service to get site management group
-import { getSiteManagementGroup } from './notificationGroupService';
+import { getSiteManagementGroup, getAllSiteManagementGroups } from './notificationGroupService';
 
 // Send site manager notification for any booking activity
 async function notifySiteManagers(
@@ -1069,10 +1069,40 @@ export async function sendSiteManagerNotification(
                         </td>
                     </tr>`;
 
-  return await sendEmail({
-    to: SITE_MANAGER_EMAIL,
-    from: FROM_EMAIL,
-    subject: `[SITE MANAGER] ${subject}`,
-    html: createEmailTemplate(htmlContent, `[SITE MANAGER] ${subject}`),
-  });
+  // Send to ALL site management groups instead of just one
+  const siteManagementGroups = await getAllSiteManagementGroups();
+  
+  if (siteManagementGroups.length === 0) {
+    console.error('No site management groups found for notification');
+    return false;
+  }
+
+  console.log(`[EmailService] Sending site manager notifications to ${siteManagementGroups.length} groups:`, 
+    siteManagementGroups.map(g => `${g.name} (${g.email})`));
+
+  // Send email to ALL site management groups
+  let allSuccessful = true;
+  for (const group of siteManagementGroups) {
+    try {
+      console.log(`[EmailService] Sending to ${group.name} (${group.email})`);
+      const success = await sendEmail({
+        to: group.email,
+        from: FROM_EMAIL,
+        subject: `[SITE MANAGER] ${subject}`,
+        html: createEmailTemplate(htmlContent, `[SITE MANAGER] ${subject}`),
+      });
+      
+      if (!success) {
+        console.error(`[EmailService] Failed to send to ${group.email}`);
+        allSuccessful = false;
+      } else {
+        console.log(`[EmailService] ✓ Successfully sent to ${group.email}`);
+      }
+    } catch (error) {
+      console.error(`[EmailService] Error sending to ${group.email}:`, error);
+      allSuccessful = false;
+    }
+  }
+  
+  return allSuccessful;
 }
