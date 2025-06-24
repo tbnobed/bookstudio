@@ -69,20 +69,23 @@ async function migrateDb() {
     `);
     console.log('Studios table created successfully!');
     
-    // Create templates table
+    // Create templates table with complete current schema
     console.log('Creating templates table...');
     await db.execute(`
       CREATE TABLE IF NOT EXISTS templates (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT,
-        type TEXT NOT NULL,
-        duration INTEGER NOT NULL,
-        crew_required JSONB DEFAULT '[]',
-        equipment JSONB DEFAULT '[]',
-        created_by INTEGER NOT NULL,
-        user_id INTEGER REFERENCES users(id),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        type TEXT NOT NULL DEFAULT 'production',
+        duration INTEGER NOT NULL DEFAULT 120,
+        start_time TEXT,
+        end_time TEXT,
+        studio_ids JSONB DEFAULT '[]',
+        pcr_room_id INTEGER,
+        status TEXT DEFAULT 'confirmed',
+        color TEXT,
+        notify_list JSONB DEFAULT '[]',
+        created_by INTEGER NOT NULL DEFAULT 1
       );
     `);
     console.log('Templates table created successfully!');
