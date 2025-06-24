@@ -252,10 +252,32 @@ export default function DayChronView({
             }}
             onClick={() => onBookingClick(booking)}
           >
-            <div className="flex justify-between items-start">
-              <h3 className={cn("text-base font-bold", isCancelled && "line-through text-gray-500")}>
-                {booking.title}
-              </h3>
+            {/* Header with title and status */}
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1">
+                <h3 className={cn("text-base font-bold", isCancelled && "line-through text-gray-500")}>
+                  {booking.title}
+                </h3>
+                <div className="flex items-center gap-2 mt-1">
+                  {/* Status indicator with icon */}
+                  <div className="flex items-center gap-1">
+                    {booking.status === 'confirmed' && <CheckCircle className="h-3 w-3 text-green-600" />}
+                    {booking.status === 'tentative' && <AlertCircle className="h-3 w-3 text-yellow-600" />}
+                    {booking.status === 'cancelled' && <XCircle className="h-3 w-3 text-red-600" />}
+                    <span className="text-xs font-medium capitalize text-gray-600">{booking.status}</span>
+                  </div>
+                  {/* Color indicator */}
+                  {!isAlert && booking.color && (
+                    <div className="flex items-center gap-1">
+                      <div 
+                        className="w-3 h-3 rounded border border-gray-300"
+                        style={{ backgroundColor: booking.color }}
+                      />
+                      <span className="text-xs text-gray-500">{booking.color}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="ml-2 flex gap-1">
                 {isCancelled && (
                   <Badge variant="destructive" className="text-xs">
@@ -270,19 +292,29 @@ export default function DayChronView({
               </div>
             </div>
             
-            <div className="mt-2 text-sm">
+            {/* Description */}
+            {booking.description && (
+              <div className="mb-3 text-sm text-gray-600">
+                {booking.description.length > 120 
+                  ? `${booking.description.substring(0, 120)}...` 
+                  : booking.description}
+              </div>
+            )}
+            
+            {/* Main information grid */}
+            <div className="grid grid-cols-1 gap-2 text-sm">
               {/* Time */}
-              <div className="flex items-center gap-1 text-gray-700">
+              <div className="flex items-center gap-2 text-gray-700">
                 <Clock size={14} className="flex-shrink-0" />
-                <span>
+                <span className="font-medium">
                   {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
                 </span>
               </div>
               
               {/* Studios - only show for non-alerts */}
               {!isAlert && studiosList.length > 0 && (
-                <div className="flex items-center gap-1 text-gray-700 mt-1">
-                  <Users size={14} className="flex-shrink-0" />
+                <div className="flex items-start gap-2 text-gray-700">
+                  <Users size={14} className="flex-shrink-0 mt-0.5" />
                   <div className="flex flex-wrap gap-1">
                     {studiosList.map(studio => (
                       <Badge 
@@ -299,19 +331,41 @@ export default function DayChronView({
               
               {/* PCR room - only show for non-alerts */}
               {!isAlert && pcrRoom && (
-                <div className="flex items-center gap-1 text-gray-700 mt-1">
+                <div className="flex items-center gap-2 text-gray-700">
                   <Tv size={14} className="flex-shrink-0" />
-                  <span>{pcrRoom.name}</span>
+                  <span className="font-medium">{pcrRoom.name}</span>
                 </div>
               )}
               
-              {/* Description preview for alerts */}
-              {isAlert && booking.description && (
-                <div className="mt-1 text-gray-600 line-clamp-2">
-                  {booking.description}
+              {/* Notification Groups */}
+              {Array.isArray(booking.notifyList) && booking.notifyList.length > 0 && (
+                <div className="flex items-start gap-2 text-gray-700">
+                  <User size={14} className="flex-shrink-0 mt-0.5" />
+                  <div className="flex flex-wrap gap-1">
+                    {booking.notifyList.slice(0, 3).map((groupId: string | number, i: number) => {
+                      const group = notificationGroups.find(g => g.id.toString() === groupId.toString());
+                      return (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {group ? group.name : `Group ${groupId}`}
+                        </Badge>
+                      );
+                    })}
+                    {booking.notifyList.length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{booking.notifyList.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
+            
+            {/* Footer with creation date */}
+            {booking.createdAt && (
+              <div className="mt-3 pt-2 border-t border-gray-200 text-xs text-gray-500">
+                Created {format(new Date(booking.createdAt), 'MMM d, yyyy HH:mm')}
+              </div>
+            )}
           </div>
         </HoverCardTrigger>
         
