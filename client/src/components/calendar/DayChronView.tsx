@@ -533,7 +533,7 @@ export default function DayChronView({
       </div>
       
       {/* ALERTS SECTION - Always shown regardless of other bookings */}
-      <div className={`mb-6 p-4 border-2 border-red-400 bg-red-50 rounded-md shadow-md ${alerts.length === 0 ? 'border-dashed' : ''}`}>
+      <div className="mb-6 p-4 border-2 border-red-400 bg-red-50 rounded-md shadow-md">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <AlertTriangle size={20} className="text-red-600" />
