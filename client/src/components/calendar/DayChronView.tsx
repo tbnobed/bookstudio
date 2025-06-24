@@ -881,21 +881,21 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="p-2 rounded border border-gray-100 hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm cursor-pointer transition-all duration-200 group"
+                    className="p-3 rounded-md border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-300 hover:shadow-md cursor-pointer transition-all duration-300 group"
                     onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className={cn(
-                          "w-2 h-2 rounded-full flex-shrink-0 transition-all duration-200",
-                          booking.status === 'confirmed' ? 'bg-green-500 group-hover:bg-green-600' :
-                          booking.status === 'tentative' ? 'bg-yellow-500 group-hover:bg-yellow-600' : 'bg-red-500 group-hover:bg-red-600'
+                          "w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all duration-300",
+                          booking.status === 'confirmed' ? 'bg-green-500 group-hover:bg-green-600 group-hover:scale-110' :
+                          booking.status === 'tentative' ? 'bg-yellow-500 group-hover:bg-yellow-600 group-hover:scale-110' : 'bg-red-500 group-hover:bg-red-600 group-hover:scale-110'
                         )} />
-                        <span className="text-sm font-medium truncate group-hover:text-blue-700 transition-colors duration-200">{booking.title}</span>
-                        {isToday && <span className="text-xs bg-blue-100 text-blue-700 px-1 rounded group-hover:bg-blue-200 transition-colors duration-200">Today</span>}
+                        <span className="text-sm font-medium truncate group-hover:text-blue-700 group-hover:font-semibold transition-all duration-300">{booking.title}</span>
+                        {isToday && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full group-hover:bg-blue-200 group-hover:text-blue-800 transition-all duration-300">Today</span>}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
+                    <div className="text-xs text-gray-500 mt-1.5 group-hover:text-gray-700 transition-all duration-300">
                       {formatInFacilityTimezone(new Date(booking.start), 'MMM d')} • Created {formatInFacilityTimezone(createdDate, 'MMM d')}
                     </div>
                   </div>
