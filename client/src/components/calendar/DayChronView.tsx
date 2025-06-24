@@ -857,13 +857,13 @@ export default function DayChronView({
         </div>
 
         {/* Recent Updates - Expanded Height */}
-<div className="bg-white border rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col" style={{ pointerEvents: 'auto', position: 'relative' }}>
+        <div className="bg-white border rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
             <Activity className="h-5 w-5 text-indigo-600" />
             <h3 className="font-semibold text-gray-900">Recent Updates</h3>
           </div>
           
-          <div className="space-y-2 flex-1 overflow-y-auto min-h-0" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}>
+          <div className="space-y-2 flex-1 overflow-y-auto min-h-0">
 
             {bookings
               .filter(booking => {
@@ -889,11 +889,7 @@ export default function DayChronView({
                       borderRadius: '6px',
                       padding: '12px',
                       cursor: 'pointer',
-                      transition: 'all 0.2s ease-in-out',
-                      marginBottom: '8px',
-                      position: 'relative',
-                      zIndex: 50,
-                      pointerEvents: 'auto'
+                      marginBottom: '8px'
                     }}
 
                     onClick={() => onBookingClick(booking)}

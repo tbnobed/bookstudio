@@ -5,6 +5,10 @@
 @tailwind utilities;
 
 /* Custom styles for bookstud.io */
+.recent-booking-item {
+  transition: all 0.2s ease-in-out;
+}
+
 .recent-booking-item:hover {
   background-color: #dbeafe !important;
   border-color: #3b82f6 !important;
