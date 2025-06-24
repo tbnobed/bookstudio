@@ -1359,7 +1359,22 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
       
-      // Delete the user
+      // Check for existing bookings that reference this user
+      const userBookings = await db.select().from(bookings).where(eq(bookings.userId, id));
+      
+      if (userBookings.length > 0) {
+        console.error(`Cannot delete user with ID ${id}: User has ${userBookings.length} associated bookings.`);
+        throw new Error(`Cannot delete user: User has ${userBookings.length} associated bookings. Please delete or reassign these bookings first.`);
+      }
+      
+      // Also check for templates created by this user
+      const userTemplates = await db.select().from(templates).where(eq(templates.createdBy, id));
+      if (userTemplates.length > 0) {
+        console.error(`Cannot delete user with ID ${id}: User has ${userTemplates.length} associated templates.`);
+        throw new Error(`Cannot delete user: User has ${userTemplates.length} associated templates. Please delete or reassign these templates first.`);
+      }
+      
+      // If no dependencies found, proceed with deletion
       const [deletedUser] = await db.delete(users).where(eq(users.id, id)).returning();
       
       if (deletedUser) {
@@ -1371,7 +1386,7 @@ export class DatabaseStorage implements IStorage {
       return false;
     } catch (error) {
       console.error(`Error deleting user with ID ${id}:`, error);
-      return false;
+      throw error; // Re-throw to let the API layer handle the error properly
     }
   }
   
