@@ -39,6 +39,20 @@ interface WeatherData {
   location: string;
 }
 
+interface ForecastDay {
+  date: string;
+  temperature: {
+    min: number;
+    max: number;
+  };
+  condition: string;
+  icon: string;
+}
+
+interface WeatherForecast {
+  forecast: ForecastDay[];
+}
+
 const FACILITY_TIMEZONE = 'America/Chicago';
 
 function getChicagoTime() {
@@ -117,6 +131,7 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
 export default function SignagePage() {
   const [currentTime, setCurrentTime] = useState(getCurrentChicagoTime());
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [forecast, setForecast] = useState<WeatherForecast | null>(null);
   
   // Auto-refresh time every 30 seconds
   useEffect(() => {
@@ -127,9 +142,9 @@ export default function SignagePage() {
     return () => clearInterval(timer);
   }, []);
   
-  // Fetch weather data
+  // Fetch weather data and forecast
   useEffect(() => {
-    const fetchWeather = async () => {
+    const fetchWeatherData = async () => {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
         
@@ -137,20 +152,54 @@ export default function SignagePage() {
           return;
         }
 
-        const response = await fetch(
+        // Fetch current weather
+        const currentResponse = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
         );
         
-        if (response.ok) {
-          const data = await response.json();
+        if (currentResponse.ok) {
+          const currentData = await currentResponse.json();
           setWeather({
-            temperature: Math.round(data.main.temp),
-            condition: data.weather[0].description,
-            humidity: data.main.humidity,
-            windSpeed: Math.round(data.wind.speed),
-            icon: data.weather[0].icon,
-            location: data.name
+            temperature: Math.round(currentData.main.temp),
+            condition: currentData.weather[0].description,
+            humidity: currentData.main.humidity,
+            windSpeed: Math.round(currentData.wind.speed),
+            icon: currentData.weather[0].icon,
+            location: currentData.name
           });
+        }
+
+        // Fetch 7-day forecast
+        const forecastResponse = await fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
+        );
+        
+        if (forecastResponse.ok) {
+          const forecastData = await forecastResponse.json();
+          
+          // Process forecast data - get daily forecasts
+          const dailyForecasts: ForecastDay[] = [];
+          const processedDates = new Set<string>();
+          
+          forecastData.list.forEach((item: any) => {
+            const date = new Date(item.dt * 1000);
+            const dateString = format(date, 'yyyy-MM-dd');
+            
+            if (!processedDates.has(dateString) && dailyForecasts.length < 7) {
+              dailyForecasts.push({
+                date: dateString,
+                temperature: {
+                  min: Math.round(item.main.temp_min),
+                  max: Math.round(item.main.temp_max)
+                },
+                condition: item.weather[0].description,
+                icon: item.weather[0].icon
+              });
+              processedDates.add(dateString);
+            }
+          });
+          
+          setForecast({ forecast: dailyForecasts });
         }
       } catch (error) {
         // Continue without weather data if API unavailable
@@ -158,8 +207,8 @@ export default function SignagePage() {
     };
 
     // Try immediately and retry every 5 minutes
-    fetchWeather();
-    const weatherTimer = setInterval(fetchWeather, 300000);
+    fetchWeatherData();
+    const weatherTimer = setInterval(fetchWeatherData, 300000);
     return () => clearInterval(weatherTimer);
   }, []);
   
@@ -393,19 +442,38 @@ export default function SignagePage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-7 gap-2">
-                {weeklyBookings.map(({ date, bookings }, index) => (
-                  <div key={index} className="text-center">
-                    <div className={`text-sm font-medium mb-2 ${
-                      index === 0 ? 'text-blue-400' : 'text-slate-300'
-                    }`}>
-                      {formatChicagoTime(date, 'EEE')}
-                    </div>
-                    <div className={`text-lg font-bold mb-2 ${
-                      index === 0 ? 'text-blue-400' : 'text-white'
-                    }`}>
-                      {formatChicagoTime(date, 'd')}
-                    </div>
-                    <div className="space-y-1">
+                {weeklyBookings.map(({ date, bookings }, index) => {
+                  const dateString = format(date, 'yyyy-MM-dd');
+                  const dayForecast = forecast?.forecast.find(f => f.date === dateString);
+                  
+                  return (
+                    <div key={index} className="text-center">
+                      <div className={`text-sm font-medium mb-1 ${
+                        index === 0 ? 'text-blue-400' : 'text-slate-300'
+                      }`}>
+                        {formatChicagoTime(date, 'EEE')}
+                      </div>
+                      <div className={`text-lg font-bold mb-1 ${
+                        index === 0 ? 'text-blue-400' : 'text-white'
+                      }`}>
+                        {formatChicagoTime(date, 'd')}
+                      </div>
+                      
+                      {/* Weather forecast for the day */}
+                      {dayForecast && (
+                        <div className="mb-2 flex flex-col items-center">
+                          <img 
+                            src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
+                            alt={dayForecast.condition}
+                            className="w-8 h-8 mb-1"
+                          />
+                          <div className="text-xs text-slate-300">
+                            {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-1">
                       {bookings.map((booking) => {
                         const isAlert = booking.type === 'maintenance' || 
                                        booking.type === 'all-day:maintenance' ||
@@ -443,7 +511,8 @@ export default function SignagePage() {
                       })}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
