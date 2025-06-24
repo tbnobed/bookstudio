@@ -16,7 +16,13 @@ import {
   XCircle,
   AlertCircle,
   Camera,
-  Video
+  Video,
+  Building,
+  Activity,
+  BarChart3,
+  TrendingUp,
+  Settings,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from "@tanstack/react-query";
@@ -496,41 +502,89 @@ export default function DayChronView({
     );
   };
 
+  // Calculate studio utilization for the day
+  const studioUtilization = useMemo(() => {
+    return studios.map(studio => {
+      const studioBookings = regularBookings.filter(booking => {
+        // Check both direct studio assignment and multi-studio links
+        const hasDirectLink = booking.studioId === studio.id;
+        // We'd need booking-studio links data for multi-studio check
+        return hasDirectLink;
+      });
+      
+      const totalHours = studioBookings.reduce((acc, booking) => {
+        const start = new Date(booking.start);
+        const end = new Date(booking.end);
+        return acc + ((end.getTime() - start.getTime()) / (1000 * 60 * 60));
+      }, 0);
+      
+      const utilizationPercent = Math.min((totalHours / 24) * 100, 100);
+      
+      return {
+        studio,
+        bookings: studioBookings.length,
+        hours: totalHours,
+        utilization: utilizationPercent
+      };
+    }).sort((a, b) => b.utilization - a.utilization);
+  }, [studios, regularBookings]);
+
+  // Calculate day statistics
+  const dayStats = useMemo(() => {
+    const totalBookings = regularBookings.length;
+    const totalAlerts = alerts.length;
+    const confirmedBookings = regularBookings.filter(b => b.status === 'confirmed').length;
+    const tentativeBookings = regularBookings.filter(b => b.status === 'tentative').length;
+    const cancelledBookings = regularBookings.filter(b => b.status === 'cancelled').length;
+    
+    return {
+      totalBookings,
+      totalAlerts,
+      confirmedBookings,
+      tentativeBookings,
+      cancelledBookings,
+      activeStudios: studioUtilization.filter(s => s.bookings > 0).length,
+      totalStudios: studios.length
+    };
+  }, [regularBookings, alerts, studioUtilization, studios.length]);
+
   return (
-    <div className="w-full p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">
-          {formatInFacilityTimezone(date, 'EEEE, MMMM d, yyyy')}
-        </h2>
-        
-        {!readOnly && (
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="ml-auto"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (studios.length > 0) {
-                // Create proper Date objects for start and end times
-                const startDate = new Date(date);
-                startDate.setHours(9, 0, 0, 0);
-                
-                const endDate = new Date(date);
-                endDate.setHours(10, 0, 0, 0);
-                
-                onBookingClick({
-                  isNew: true,
-                  start: startDate,
-                  end: endDate,
-                  studioId: studios[0]?.id // Default to first studio
-                });
-              }
-            }}
-          >
-            + New Booking
-          </Button>
-        )}
-      </div>
+    <div className="w-full h-full flex gap-6 p-4">
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">
+            {formatInFacilityTimezone(date, 'EEEE, MMMM d, yyyy')}
+          </h2>
+          
+          {!readOnly && (
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="ml-auto"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (studios.length > 0) {
+                  // Create proper Date objects for start and end times
+                  const startDate = new Date(date);
+                  startDate.setHours(9, 0, 0, 0);
+                  
+                  const endDate = new Date(date);
+                  endDate.setHours(10, 0, 0, 0);
+                  
+                  onBookingClick({
+                    isNew: true,
+                    start: startDate,
+                    end: endDate,
+                    studioId: studios[0]?.id // Default to first studio
+                  });
+                }
+              }}
+            >
+              + New Booking
+            </Button>
+          )}
+        </div>
       
       {/* ALERTS SECTION - Always shown regardless of other bookings */}
       <div className="mb-6 p-4 border-2 border-red-400 bg-red-50 rounded-md shadow-md">
@@ -629,6 +683,203 @@ export default function DayChronView({
           </div>
         </div>
       )}
+      </div>
+      
+      {/* Right Sidebar with Day Analytics */}
+      <div className="w-80 flex-shrink-0 space-y-4">
+        {/* Day Statistics Card */}
+        <div className="bg-white border rounded-lg p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart3 className="h-5 w-5 text-blue-600" />
+            <h3 className="font-semibold text-gray-900">Day Overview</h3>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Total Bookings</span>
+              <span className="font-semibold text-lg">{dayStats.totalBookings}</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Active Studios</span>
+              <span className="font-semibold">{dayStats.activeStudios}/{dayStats.totalStudios}</span>
+            </div>
+            
+            {dayStats.totalAlerts > 0 && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-red-600">Active Alerts</span>
+                <span className="font-semibold text-red-600">{dayStats.totalAlerts}</span>
+              </div>
+            )}
+            
+            <div className="pt-2 border-t border-gray-100">
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="text-center">
+                  <div className="font-semibold text-green-600">{dayStats.confirmedBookings}</div>
+                  <div className="text-gray-500">Confirmed</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-yellow-600">{dayStats.tentativeBookings}</div>
+                  <div className="text-gray-500">Tentative</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-red-600">{dayStats.cancelledBookings}</div>
+                  <div className="text-gray-500">Cancelled</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Studio Utilization Card */}
+        <div className="bg-white border rounded-lg p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="h-5 w-5 text-green-600" />
+            <h3 className="font-semibold text-gray-900">Studio Utilization</h3>
+          </div>
+          
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {studioUtilization.map((item, index) => (
+              <div key={item.studio.id} className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <Camera className="h-3 w-3 text-gray-500" />
+                    <span className="text-sm font-medium truncate">{item.studio.name}</span>
+                  </div>
+                  <span className="text-xs text-gray-500">{item.bookings} bookings</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={cn(
+                        "h-2 rounded-full transition-all",
+                        item.utilization > 80 ? "bg-red-500" :
+                        item.utilization > 60 ? "bg-orange-500" :
+                        item.utilization > 30 ? "bg-yellow-500" : 
+                        item.utilization > 0 ? "bg-green-500" : "bg-gray-300"
+                      )}
+                      style={{ width: `${item.utilization}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-gray-600 w-10 text-right">
+                    {item.utilization.toFixed(0)}%
+                  </span>
+                </div>
+                
+                <div className="text-xs text-gray-500">
+                  {item.hours.toFixed(1)} hours booked
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Actions Card */}
+        <div className="bg-white border rounded-lg p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="h-5 w-5 text-purple-600" />
+            <h3 className="font-semibold text-gray-900">Quick Actions</h3>
+          </div>
+          
+          <div className="space-y-2">
+            {!readOnly && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start gap-2"
+                  onClick={() => {
+                    if (studios.length > 0) {
+                      const startDate = new Date(date);
+                      startDate.setHours(9, 0, 0, 0);
+                      const endDate = new Date(date);
+                      endDate.setHours(10, 0, 0, 0);
+                      
+                      onBookingClick({
+                        isNew: true,
+                        start: startDate,
+                        end: endDate,
+                        studioId: studios[0]?.id
+                      });
+                    }
+                  }}
+                >
+                  <Camera className="h-4 w-4" />
+                  Quick Booking
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start gap-2"
+                  onClick={() => {
+                    const alertData = {
+                      type: "maintenance",
+                      start: date,
+                      studioId: null
+                    };
+                    onBookingClick(alertData);
+                  }}
+                >
+                  <Settings className="h-4 w-4" />
+                  Schedule Maintenance
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start gap-2"
+                  onClick={() => {
+                    const alertData = {
+                      type: "alert",
+                      start: date,
+                      studioId: null
+                    };
+                    onBookingClick(alertData);
+                  }}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  Create Alert
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Studio Status Overview */}
+        <div className="bg-white border rounded-lg p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Building className="h-5 w-5 text-indigo-600" />
+            <h3 className="font-semibold text-gray-900">Studio Status</h3>
+          </div>
+          
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {studios.map((studio) => {
+              const isActive = studioUtilization.find(s => s.studio.id === studio.id)?.bookings > 0;
+              const statusColor = studio.status === 'available' ? 'green' : 
+                                 studio.status === 'maintenance' ? 'orange' : 'red';
+              
+              return (
+                <div key={studio.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full",
+                      statusColor === 'green' ? 'bg-green-500' :
+                      statusColor === 'orange' ? 'bg-orange-500' : 'bg-red-500'
+                    )} />
+                    <span className="text-sm truncate">{studio.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {isActive && <Activity className="h-3 w-3 text-blue-500" />}
+                    <span className="text-xs text-gray-500 capitalize">{studio.status}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
