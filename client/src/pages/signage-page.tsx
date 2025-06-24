@@ -461,18 +461,20 @@ export default function SignagePage() {
                     ))
                   }
                   
-                  {/* Show upcoming maintenance (next 24 hours) */}
-                  {maintenanceAlerts.slice(0, 3).map(alert => (
-                    <div key={`upcoming-${alert.id}`} className="p-2 rounded bg-orange-800/30 border border-orange-600">
-                      <div className="text-sm font-medium text-orange-200">UPCOMING: {alert.title}</div>
-                      <div className="text-xs text-orange-300">
-                        {formatChicagoTime(alert.start, 'MMM d, h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
+                  {/* Show upcoming maintenance (next 7 days) */}
+                  {maintenanceAlerts
+                    .slice(0, 3)
+                    .map(alert => (
+                      <div key={`upcoming-${alert.id}`} className="p-2 rounded bg-orange-800/30 border border-orange-600">
+                        <div className="text-sm font-medium text-orange-200">UPCOMING: {alert.title}</div>
+                        <div className="text-xs text-orange-300">
+                          {formatChicagoTime(alert.start, 'MMM d, h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
+                        </div>
+                        <div className="text-xs text-orange-400">
+                          {getStudioNames(alert, studios, bookingStudioLinks)}
+                        </div>
                       </div>
-                      <div className="text-xs text-orange-400">
-                        {getStudioNames(alert, studios, bookingStudioLinks)}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               ) : (
                 <div className="text-center py-4">
