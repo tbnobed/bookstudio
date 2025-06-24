@@ -881,28 +881,7 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="p-3 rounded-md border cursor-pointer"
-                    style={{
-                      backgroundColor: 'white',
-                      borderColor: '#e5e7eb',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      transition: 'all 0.2s ease-in-out',
-                      position: 'relative',
-                      zIndex: 1
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.setProperty('background-color', '#dbeafe', 'important');
-                      e.currentTarget.style.setProperty('border-color', '#3b82f6', 'important');
-                      e.currentTarget.style.setProperty('box-shadow', '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 'important');
-                      e.currentTarget.style.setProperty('transform', 'translateY(-1px)', 'important');
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.setProperty('background-color', 'white', 'important');
-                      e.currentTarget.style.setProperty('border-color', '#e5e7eb', 'important');
-                      e.currentTarget.style.setProperty('box-shadow', 'none', 'important');
-                      e.currentTarget.style.setProperty('transform', 'translateY(0px)', 'important');
-                    }}
+                    className="recent-update-item"
                     onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
