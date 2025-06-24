@@ -127,18 +127,16 @@ export default function SignagePage() {
     return () => clearInterval(timer);
   }, []);
   
-  // Fetch weather data when proper API key is available
+  // Fetch weather data
   useEffect(() => {
     const fetchWeather = async () => {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
         
-        if (!apiKey || apiKey === '0f647b5591a3b8ab30cf838f8abdf403') {
-          console.log('Valid weather API key needed from OpenWeatherMap account');
+        if (!apiKey) {
           return;
         }
 
-        // Use OpenWeatherMap Current Weather API (free tier)
         const response = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
         );
@@ -155,12 +153,13 @@ export default function SignagePage() {
           });
         }
       } catch (error) {
-        // Gracefully continue without weather data
+        // Continue without weather data if API unavailable
       }
     };
 
+    // Try immediately and retry every 5 minutes
     fetchWeather();
-    const weatherTimer = setInterval(fetchWeather, 600000);
+    const weatherTimer = setInterval(fetchWeather, 300000);
     return () => clearInterval(weatherTimer);
   }, []);
   
