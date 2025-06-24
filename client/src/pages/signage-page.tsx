@@ -456,45 +456,60 @@ export default function SignagePage() {
             </Card>
           )}
 
-          {/* Weather Details & Auto-refresh Indicator */}
-          {weather && (
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-white text-lg">Weather Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Humidity:</span>
-                  <span className="text-white">{weather.humidity}%</span>
+          {/* Active Site Alerts */}
+          <Card className="bg-red-900/50 border-red-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-red-200 text-lg">
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Active Site Alerts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Check for any active facility alerts */}
+              {maintenanceAlerts.length > 0 || todaysBookings.some(b => b.type === 'maintenance') ? (
+                <div className="space-y-2">
+                  {/* Show maintenance bookings as alerts */}
+                  {todaysBookings
+                    .filter(booking => booking.type === 'maintenance' && isBookingActive(booking, currentTime))
+                    .map(alert => (
+                      <div key={alert.id} className="p-2 rounded bg-red-800/30 border border-red-600">
+                        <div className="text-sm font-medium text-red-200">{alert.title}</div>
+                        <div className="text-xs text-red-300">
+                          {formatChicagoTime(alert.start, 'h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
+                        </div>
+                        <div className="text-xs text-red-400">
+                          {getStudioNames(alert, studios, bookingStudioLinks)}
+                        </div>
+                      </div>
+                    ))
+                  }
+                  
+                  {/* Show upcoming maintenance */}
+                  {maintenanceAlerts.slice(0, 2).map(alert => (
+                    <div key={alert.id} className="p-2 rounded bg-orange-800/30 border border-orange-600">
+                      <div className="text-sm font-medium text-orange-200">Upcoming: {alert.title}</div>
+                      <div className="text-xs text-orange-300">
+                        {formatChicagoTime(alert.start, 'MMM d, h:mm a')}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Wind:</span>
-                  <span className="text-white">{weather.windSpeed} mph</span>
+              ) : (
+                <div className="text-center py-4">
+                  <div className="text-green-400 text-sm">No Active Alerts</div>
+                  <div className="text-slate-400 text-xs mt-1">All systems operational</div>
                 </div>
-                <div className="text-center text-slate-400 pt-2 border-t border-slate-600">
-                  <div className="flex items-center justify-center space-x-2 mb-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-xs">Auto-updating</span>
-                  </div>
-                  <div className="text-xs">Weather: 10min • Data: 2min</div>
+              )}
+              
+              {/* Auto-refresh indicator */}
+              <div className="text-center text-slate-400 pt-3 mt-3 border-t border-slate-600">
+                <div className="flex items-center justify-center space-x-2 mb-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-xs">Auto-updating every 2 minutes</span>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {!weather && (
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardContent className="pt-6">
-                <div className="text-center text-slate-400">
-                  <div className="flex items-center justify-center space-x-2 mb-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-sm">Auto-refreshing</span>
-                  </div>
-                  <div className="text-xs">Data updates every 2 minutes</div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
