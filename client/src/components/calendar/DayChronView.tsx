@@ -881,7 +881,31 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="recent-update-item"
+                    style={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '6px',
+                      padding: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease-in-out',
+                      marginBottom: '8px'
+                    }}
+                    onMouseEnter={(e) => {
+                      console.log('HOVER ENTER:', booking.title);
+                      const element = e.currentTarget;
+                      element.style.backgroundColor = '#dbeafe';
+                      element.style.borderColor = '#3b82f6';
+                      element.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                      element.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      console.log('HOVER LEAVE:', booking.title);
+                      const element = e.currentTarget;
+                      element.style.backgroundColor = 'white';
+                      element.style.borderColor = '#e5e7eb';
+                      element.style.boxShadow = 'none';
+                      element.style.transform = 'translateY(0px)';
+                    }}
                     onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
