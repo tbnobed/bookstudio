@@ -973,7 +973,9 @@ export default function BookingModal({
                             </p>
                           ) : (
                             <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
-                              {notificationGroups.map((group: NotificationGroup) => (
+                              {notificationGroups
+                                .filter((group: NotificationGroup) => group.groupType !== 'site_management')
+                                .map((group: NotificationGroup) => (
                                 <div key={group.id} className="flex items-center justify-between">
                                   <div className="flex items-center">
                                     {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
@@ -1445,7 +1447,9 @@ export default function BookingModal({
                         </p>
                       ) : (
                         <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
-                          {notificationGroups.map((group: NotificationGroup) => (
+                          {notificationGroups
+                            .filter((group: NotificationGroup) => group.groupType !== 'site_management')
+                            .map((group: NotificationGroup) => (
                             <div key={group.id} className="flex items-center justify-between">
                               <div className="flex items-center">
                                 {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
