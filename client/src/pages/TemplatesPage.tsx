@@ -132,9 +132,7 @@ export default function TemplatesPage() {
   // Handle delete template
   const handleDeleteTemplate = (template: Template) => {
     setSelectedTemplate(template);
-    if (confirm("Are you sure you want to delete this template?")) {
-      deleteTemplate.mutate({ id: template.id, force: false });
-    }
+    deleteTemplate.mutate({ id: template.id, force: false });
   };
 
   // Handle force delete confirmation

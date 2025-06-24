@@ -158,6 +158,7 @@ export default function UserManagement() {
           // Show force delete option
           setForceDeleteError(errorData);
           setShowForceDeleteDialog(true);
+          setIsDeleteUserOpen(false); // Close the regular delete dialog
         } else {
           toast({
             title: "Error",
@@ -247,7 +248,7 @@ export default function UserManagement() {
   // Confirm user deletion
   const confirmDeleteUser = (force = false) => {
     if (selectedUser) {
-      deleteUser.mutateAsync({ id: selectedUser.id, force });
+      deleteUser.mutate({ id: selectedUser.id, force });
     }
   };
 
