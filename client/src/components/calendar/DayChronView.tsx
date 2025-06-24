@@ -881,26 +881,27 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer mb-2 transition-all duration-200"
+                    className="rounded-lg p-3 cursor-pointer mb-2"
                     style={{
-                      ':hover': {
-                        backgroundColor: '#dbeafe',
-                        borderColor: '#93c5fd',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                        transform: 'translateY(-1px)'
-                      }
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      transition: 'all 0.2s ease-in-out'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#dbeafe';
-                      e.currentTarget.style.borderColor = '#93c5fd';
-                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      const element = e.currentTarget;
+                      element.style.backgroundColor = '#dbeafe';
+                      element.style.borderColor = '#93c5fd';
+                      element.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                      element.style.transform = 'translateY(-1px)';
+                      console.log('HOVER ENTER - Styles applied');
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'white';
-                      e.currentTarget.style.borderColor = '#e5e7eb';
-                      e.currentTarget.style.boxShadow = '';
-                      e.currentTarget.style.transform = '';
+                      const element = e.currentTarget;
+                      element.style.backgroundColor = 'white';
+                      element.style.borderColor = '#e5e7eb';
+                      element.style.boxShadow = '';
+                      element.style.transform = '';
+                      console.log('HOVER LEAVE - Styles reset');
                     }}
                     onClick={() => onBookingClick(booking)}
                   >
