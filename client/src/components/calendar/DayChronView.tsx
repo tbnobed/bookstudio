@@ -53,6 +53,25 @@ export default function DayChronView({
 }: DayChronViewProps) {
   const { notificationGroups } = useNotificationGroups();
   const { data: bookingStudios = [] } = useBookingStudioLinks();
+
+  // Helper function to format time ago
+  const formatTimeAgo = (date: Date): string => {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+    
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+      return diffInMinutes < 1 ? 'Just now' : `${diffInMinutes}m ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    } else if (diffInDays < 7) {
+      return `${diffInDays}d ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
   // Get bookings for the selected day
   const dayBookings = useMemo(() => {
     // First log the incoming date for debugging
@@ -837,36 +856,61 @@ export default function DayChronView({
           </div>
         </div>
 
-        {/* Studio Status Overview */}
+        {/* Recent Updates */}
         <div className="bg-white border rounded-lg p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <Building className="h-5 w-5 text-indigo-600" />
-            <h3 className="font-semibold text-gray-900">Studio Status</h3>
+            <Activity className="h-5 w-5 text-indigo-600" />
+            <h3 className="font-semibold text-gray-900">Recent Updates</h3>
           </div>
           
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {studios.map((studio) => {
-              const isActive = studioUtilization.find(s => s.studio.id === studio.id)?.bookings > 0;
-              const statusColor = studio.status === 'available' ? 'green' : 
-                                 studio.status === 'maintenance' ? 'orange' : 'red';
-              
-              return (
-                <div key={studio.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-2 h-2 rounded-full",
-                      statusColor === 'green' ? 'bg-green-500' :
-                      statusColor === 'orange' ? 'bg-orange-500' : 'bg-red-500'
-                    )} />
-                    <span className="text-sm truncate">{studio.name}</span>
+            {bookings
+              .filter(booking => {
+                // Show bookings from the last 3 days
+                const threeDaysAgo = new Date();
+                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+                const createdAt = new Date(booking.createdAt);
+                return createdAt >= threeDaysAgo;
+              })
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .slice(0, 5)
+              .map((booking) => {
+                const isToday = isSameDay(new Date(booking.start), date);
+                const createdDate = new Date(booking.createdAt);
+                
+                return (
+                  <div 
+                    key={booking.id} 
+                    className="p-2 rounded border border-gray-100 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => onBookingClick(booking)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full flex-shrink-0",
+                          booking.status === 'confirmed' ? 'bg-green-500' :
+                          booking.status === 'tentative' ? 'bg-yellow-500' : 'bg-red-500'
+                        )} />
+                        <span className="text-sm font-medium truncate">{booking.title}</span>
+                        {isToday && <span className="text-xs bg-blue-100 text-blue-700 px-1 rounded">Today</span>}
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {formatInFacilityTimezone(new Date(booking.start), 'MMM d')} • Created {formatInFacilityTimezone(createdDate, 'MMM d')}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {isActive && <Activity className="h-3 w-3 text-blue-500" />}
-                    <span className="text-xs text-gray-500 capitalize">{studio.status}</span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            
+            {bookings.filter(booking => {
+              const threeDaysAgo = new Date();
+              threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+              return new Date(booking.createdAt) >= threeDaysAgo;
+            }).length === 0 && (
+              <div className="text-center py-3 text-gray-500 text-sm">
+                No recent updates
+              </div>
+            )}
           </div>
         </div>
       </div>
