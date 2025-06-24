@@ -313,9 +313,9 @@ export async function sendInviteEmail(
   };
     
     try {
-      const emailSent = await sendEmail(msg.from, {
-        to: msg.to,
-        from: msg.from,
+      const emailSent = await sendEmail(senderEmail, {
+        to: to,
+        from: senderEmail,
         subject: msg.subject,
         text: msg.text,
         html: msg.html
@@ -438,9 +438,9 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
     };
     
     try {
-      const emailSent = await sendEmail(msg.from, {
-        to: msg.to,
-        from: msg.from,
+      const emailSent = await sendEmail(senderEmail, {
+        to: to,
+        from: senderEmail,
         subject: msg.subject,
         text: msg.text,
         html: msg.html
