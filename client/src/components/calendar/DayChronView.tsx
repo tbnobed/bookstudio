@@ -864,6 +864,15 @@ export default function DayChronView({
           </div>
           
           <div className="space-y-2 flex-1 overflow-y-auto min-h-0">
+            {/* Test hover element */}
+            <div 
+              className="test-hover-element p-2 mb-2 bg-red-100 border border-red-300 rounded cursor-pointer"
+              onMouseEnter={() => console.log('TEST HOVER ENTER')}
+              onMouseLeave={() => console.log('TEST HOVER LEAVE')}
+              onClick={() => console.log('TEST CLICK')}
+            >
+              TEST HOVER ELEMENT
+            </div>
             {bookings
               .filter(booking => {
                 // Show bookings from the last 3 days
@@ -881,6 +890,7 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
+                    className="recent-booking-item"
                     style={{
                       backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
@@ -888,25 +898,17 @@ export default function DayChronView({
                       padding: '12px',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease-in-out',
-                      marginBottom: '8px'
+                      marginBottom: '8px',
+                      position: 'relative',
+                      zIndex: 1,
+                      pointerEvents: 'auto'
                     }}
-                    onMouseEnter={(e) => {
-                      console.log('HOVER ENTER:', booking.title);
-                      const element = e.currentTarget;
-                      element.style.backgroundColor = '#dbeafe';
-                      element.style.borderColor = '#3b82f6';
-                      element.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-                      element.style.transform = 'translateY(-1px)';
+                    onMouseEnter={() => console.log('JS HOVER ENTER:', booking.title)}
+                    onMouseLeave={() => console.log('JS HOVER LEAVE:', booking.title)}
+                    onClick={(e) => {
+                      console.log('CLICK FIRED:', booking.title);
+                      onBookingClick(booking);
                     }}
-                    onMouseLeave={(e) => {
-                      console.log('HOVER LEAVE:', booking.title);
-                      const element = e.currentTarget;
-                      element.style.backgroundColor = 'white';
-                      element.style.borderColor = '#e5e7eb';
-                      element.style.boxShadow = 'none';
-                      element.style.transform = 'translateY(0px)';
-                    }}
-                    onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
