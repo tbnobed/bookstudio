@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar, Radio, AlertTriangle } from "lucide-react";
 import { format, isWithinInterval, addDays, startOfDay, endOfDay, parseISO } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
 interface Booking {
   id: number;
@@ -30,14 +30,30 @@ interface BookingStudioLink {
   studioId: number;
 }
 
+interface WeatherData {
+  temperature: number;
+  condition: string;
+  humidity: number;
+  windSpeed: number;
+  icon: string;
+  location: string;
+}
+
 const FACILITY_TIMEZONE = 'America/Chicago';
 
 function getChicagoTime() {
-  return toZonedTime(new Date(), FACILITY_TIMEZONE);
+  // Get current time in Chicago timezone
+  const now = new Date();
+  return toZonedTime(now, FACILITY_TIMEZONE);
 }
 
 function formatChicagoTime(date: Date | string, formatStr: string) {
-  const chicagoDate = typeof date === 'string' ? toZonedTime(parseISO(date), FACILITY_TIMEZONE) : toZonedTime(date, FACILITY_TIMEZONE);
+  let chicagoDate;
+  if (typeof date === 'string') {
+    chicagoDate = toZonedTime(parseISO(date), FACILITY_TIMEZONE);
+  } else {
+    chicagoDate = toZonedTime(date, FACILITY_TIMEZONE);
+  }
   return format(chicagoDate, formatStr);
 }
 
@@ -91,14 +107,48 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
 
 export default function SignagePage() {
   const [currentTime, setCurrentTime] = useState(getChicagoTime());
+  const [weather, setWeather] = useState<WeatherData | null>(null);
   
-  // Auto-refresh every 30 seconds
+  // Auto-refresh time every 30 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(getChicagoTime());
     }, 30000);
     
     return () => clearInterval(timer);
+  }, []);
+  
+  // Fetch weather data
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        // Use OpenWeatherMap API for Dallas area (closest major city to facility)
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${import.meta.env.VITE_OPENWEATHER_API_KEY}&units=imperial`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          setWeather({
+            temperature: Math.round(data.main.temp),
+            condition: data.weather[0].description,
+            humidity: data.main.humidity,
+            windSpeed: Math.round(data.wind.speed),
+            icon: data.weather[0].icon,
+            location: data.name
+          });
+        }
+      } catch (error) {
+        console.log('Weather data not available');
+        // Gracefully continue without weather data
+      }
+    };
+
+    fetchWeather();
+    // Refresh weather every 10 minutes
+    const weatherTimer = setInterval(fetchWeather, 600000);
+    
+    return () => clearInterval(weatherTimer);
   }, []);
   
   // Auto-refresh data every 2 minutes
@@ -180,13 +230,34 @@ export default function SignagePage() {
           </Badge>
         </div>
         <div className="text-right text-white">
-          <div className="text-3xl font-bold">
-            {formatChicagoTime(currentTime, 'h:mm a')}
+          <div className="flex items-center justify-end space-x-6">
+            {/* Weather Info */}
+            {weather && (
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-2 mb-1">
+                  <img 
+                    src={`https://openweathermap.org/img/w/${weather.icon}.png`}
+                    alt={weather.condition}
+                    className="w-12 h-12"
+                  />
+                  <div className="text-2xl font-bold">{weather.temperature}°F</div>
+                </div>
+                <div className="text-sm text-slate-300 capitalize">{weather.condition}</div>
+                <div className="text-xs text-slate-400">{weather.location}</div>
+              </div>
+            )}
+            
+            {/* Time Info */}
+            <div>
+              <div className="text-3xl font-bold">
+                {formatChicagoTime(currentTime, 'h:mm a')}
+              </div>
+              <div className="text-lg text-slate-300">
+                {formatChicagoTime(currentTime, 'EEEE, MMMM d, yyyy')}
+              </div>
+              <div className="text-sm text-slate-400">Central Time</div>
+            </div>
           </div>
-          <div className="text-lg text-slate-300">
-            {formatChicagoTime(currentTime, 'EEEE, MMMM d, yyyy')}
-          </div>
-          <div className="text-sm text-slate-400">Central Time</div>
         </div>
       </div>
 
@@ -362,18 +433,45 @@ export default function SignagePage() {
             </Card>
           )}
 
-          {/* Auto-refresh Indicator */}
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardContent className="pt-6">
-              <div className="text-center text-slate-400">
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-sm">Auto-refreshing</span>
+          {/* Weather Details & Auto-refresh Indicator */}
+          {weather && (
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white text-lg">Weather Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Humidity:</span>
+                  <span className="text-white">{weather.humidity}%</span>
                 </div>
-                <div className="text-xs">Data updates every 2 minutes</div>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Wind:</span>
+                  <span className="text-white">{weather.windSpeed} mph</span>
+                </div>
+                <div className="text-center text-slate-400 pt-2 border-t border-slate-600">
+                  <div className="flex items-center justify-center space-x-2 mb-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-xs">Auto-updating</span>
+                  </div>
+                  <div className="text-xs">Weather: 10min • Data: 2min</div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {!weather && (
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardContent className="pt-6">
+                <div className="text-center text-slate-400">
+                  <div className="flex items-center justify-center space-x-2 mb-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-sm">Auto-refreshing</span>
+                  </div>
+                  <div className="text-xs">Data updates every 2 minutes</div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
