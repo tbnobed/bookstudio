@@ -857,22 +857,14 @@ export default function DayChronView({
         </div>
 
         {/* Recent Updates - Expanded Height */}
-        <div className="bg-white border rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col">
+<div className="bg-white border rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col" style={{ pointerEvents: 'auto', position: 'relative' }}>
           <div className="flex items-center gap-2 mb-3">
             <Activity className="h-5 w-5 text-indigo-600" />
             <h3 className="font-semibold text-gray-900">Recent Updates</h3>
           </div>
           
-          <div className="space-y-2 flex-1 overflow-y-auto min-h-0">
-            {/* Test hover element */}
-            <div 
-              className="test-hover-element p-2 mb-2 bg-red-100 border border-red-300 rounded cursor-pointer"
-              onMouseEnter={() => console.log('TEST HOVER ENTER')}
-              onMouseLeave={() => console.log('TEST HOVER LEAVE')}
-              onClick={() => console.log('TEST CLICK')}
-            >
-              TEST HOVER ELEMENT
-            </div>
+          <div className="space-y-2 flex-1 overflow-y-auto min-h-0" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}>
+
             {bookings
               .filter(booking => {
                 // Show bookings from the last 3 days
@@ -900,15 +892,11 @@ export default function DayChronView({
                       transition: 'all 0.2s ease-in-out',
                       marginBottom: '8px',
                       position: 'relative',
-                      zIndex: 1,
+                      zIndex: 50,
                       pointerEvents: 'auto'
                     }}
-                    onMouseEnter={() => console.log('JS HOVER ENTER:', booking.title)}
-                    onMouseLeave={() => console.log('JS HOVER LEAVE:', booking.title)}
-                    onClick={(e) => {
-                      console.log('CLICK FIRED:', booking.title);
-                      onBookingClick(booking);
-                    }}
+
+                    onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">

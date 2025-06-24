@@ -12,11 +12,7 @@
   transform: translateY(-1px) !important;
 }
 
-.test-hover-element:hover {
-  background-color: #fee2e2 !important;
-  border-color: #dc2626 !important;
-  transform: scale(1.05) !important;
-}
+
 
 .booking-card {
   transition: all 0.3s ease;
