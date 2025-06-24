@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useQuery } from "@tanstack/react-query";
 import { useNotificationGroups } from "@/hooks/useNotificationGroups";
+import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
 import { 
   HoverCard,
   HoverCardContent,
@@ -51,6 +52,7 @@ export default function DayChronView({
   readOnly = false,
 }: DayChronViewProps) {
   const { notificationGroups } = useNotificationGroups();
+  const { data: bookingStudios = [] } = useBookingStudioLinks();
   // Get bookings for the selected day
   const dayBookings = useMemo(() => {
     // First log the incoming date for debugging
@@ -508,8 +510,13 @@ export default function DayChronView({
       const studioBookings = regularBookings.filter(booking => {
         // Check both direct studio assignment and multi-studio links
         const hasDirectLink = booking.studioId === studio.id;
-        // We'd need booking-studio links data for multi-studio check
-        return hasDirectLink;
+        
+        // Check multi-studio links via booking-studio junction table
+        const hasLinkedAccess = bookingStudios.some(link => 
+          link.bookingId === booking.id && link.studioId === studio.id
+        );
+        
+        return hasDirectLink || hasLinkedAccess;
       });
       
       const totalHours = studioBookings.reduce((acc, booking) => {
@@ -527,7 +534,7 @@ export default function DayChronView({
         utilization: utilizationPercent
       };
     }).sort((a, b) => b.utilization - a.utilization);
-  }, [studios, regularBookings]);
+  }, [studios, regularBookings, bookingStudios]);
 
   // Calculate day statistics
   const dayStats = useMemo(() => {
@@ -807,23 +814,6 @@ export default function DayChronView({
                 >
                   <Camera className="h-4 w-4" />
                   Quick Booking
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start gap-2"
-                  onClick={() => {
-                    const alertData = {
-                      type: "maintenance",
-                      start: date,
-                      studioId: null
-                    };
-                    onBookingClick(alertData);
-                  }}
-                >
-                  <Settings className="h-4 w-4" />
-                  Schedule Maintenance
                 </Button>
                 
                 <Button 
