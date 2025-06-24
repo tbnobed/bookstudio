@@ -192,13 +192,15 @@ export default function SignagePage() {
   const todayEnd = endOfDay(currentTime);
   const todaysBookings = bookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
-    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && booking.type !== 'maintenance';
+    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
+    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && !isMaintenanceType;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
   // Get today's site alerts (maintenance type bookings)
   const todaysAlerts = bookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
-    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && booking.type === 'maintenance';
+    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
+    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && isMaintenanceType;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
   // Get weekly overview (next 7 days)
@@ -231,11 +233,12 @@ export default function SignagePage() {
   });
 
   // Get maintenance alerts
-  const maintenanceAlerts = bookings.filter(booking => 
-    booking.type === 'maintenance' && 
-    parseISO(booking.start) >= today &&
-    parseISO(booking.start) <= addDays(today, 7)
-  );
+  const maintenanceAlerts = bookings.filter(booking => {
+    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
+    return isMaintenanceType && 
+           parseISO(booking.start) >= today &&
+           parseISO(booking.start) <= addDays(today, 7);
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
