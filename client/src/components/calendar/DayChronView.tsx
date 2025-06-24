@@ -712,7 +712,7 @@ export default function DayChronView({
       </div>
       
       {/* Right Sidebar with Day Analytics */}
-      <div className="w-80 flex-shrink-0 space-y-4">
+      <div className="w-80 flex-shrink-0 flex flex-col space-y-4 h-full">
         {/* Day Statistics Card */}
         <div className="bg-white border rounded-lg p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
@@ -757,51 +757,7 @@ export default function DayChronView({
           </div>
         </div>
 
-        {/* Studio Utilization Card */}
-        <div className="bg-white border rounded-lg p-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="h-5 w-5 text-green-600" />
-            <h3 className="font-semibold text-gray-900">Studio Utilization</h3>
-          </div>
-          
-          <div className="space-y-3 max-h-64 overflow-y-auto">
-            {studioUtilization.map((item, index) => (
-              <div key={item.studio.id} className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Camera className="h-3 w-3 text-gray-500" />
-                    <span className="text-sm font-medium truncate">{item.studio.name}</span>
-                  </div>
-                  <span className="text-xs text-gray-500">{item.bookings} bookings</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={cn(
-                        "h-2 rounded-full transition-all",
-                        item.utilization > 80 ? "bg-red-500" :
-                        item.utilization > 60 ? "bg-orange-500" :
-                        item.utilization > 30 ? "bg-yellow-500" : 
-                        item.utilization > 0 ? "bg-green-500" : "bg-gray-300"
-                      )}
-                      style={{ width: `${item.utilization}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-medium text-gray-600 w-10 text-right">
-                    {item.utilization.toFixed(0)}%
-                  </span>
-                </div>
-                
-                <div className="text-xs text-gray-500">
-                  {item.hours.toFixed(1)} hours booked
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Actions Card */}
+        {/* Quick Actions Card - Moved to Top */}
         <div className="bg-white border rounded-lg p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <Zap className="h-5 w-5 text-purple-600" />
@@ -856,14 +812,58 @@ export default function DayChronView({
           </div>
         </div>
 
-        {/* Recent Updates */}
-        <div className="bg-white border rounded-lg p-4 shadow-sm">
+        {/* Studio Utilization Card - Expanded Height */}
+        <div className="bg-white border rounded-lg p-4 shadow-sm flex-1 min-h-0">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="h-5 w-5 text-green-600" />
+            <h3 className="font-semibold text-gray-900">Studio Utilization</h3>
+          </div>
+          
+          <div className="space-y-3 h-full overflow-y-auto">
+            {studioUtilization.map((item, index) => (
+              <div key={item.studio.id} className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <Camera className="h-3 w-3 text-gray-500" />
+                    <span className="text-sm font-medium truncate">{item.studio.name}</span>
+                  </div>
+                  <span className="text-xs text-gray-500">{item.bookings} bookings</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={cn(
+                        "h-2 rounded-full transition-all",
+                        item.utilization > 80 ? "bg-red-500" :
+                        item.utilization > 60 ? "bg-orange-500" :
+                        item.utilization > 30 ? "bg-yellow-500" : 
+                        item.utilization > 0 ? "bg-green-500" : "bg-gray-300"
+                      )}
+                      style={{ width: `${item.utilization}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-gray-600 w-10 text-right">
+                    {item.utilization.toFixed(0)}%
+                  </span>
+                </div>
+                
+                <div className="text-xs text-gray-500">
+                  {item.hours.toFixed(1)} hours booked
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Updates - Expanded Height */}
+        <div className="bg-white border rounded-lg p-4 shadow-sm flex-1 min-h-0">
           <div className="flex items-center gap-2 mb-3">
             <Activity className="h-5 w-5 text-indigo-600" />
             <h3 className="font-semibold text-gray-900">Recent Updates</h3>
           </div>
           
-          <div className="space-y-2 max-h-48 overflow-y-auto">
+          <div className="space-y-2 h-full overflow-y-auto">
             {bookings
               .filter(booking => {
                 // Show bookings from the last 3 days
