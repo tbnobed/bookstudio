@@ -902,7 +902,7 @@ export default function DayChronView({
                       <div className="flex items-center gap-1 text-xs text-gray-600">
                         <Camera className="h-3 w-3" />
                         <span className="font-medium">Studios:</span>
-                        <span>{getStudiosForBooking(booking).join(', ')}</span>
+                        <span>{getStudiosForBooking(booking).map(studio => typeof studio === 'string' ? studio : studio.name || studio).join(', ')}</span>
                       </div>
                       
                       {booking.pcrRoomId && (
