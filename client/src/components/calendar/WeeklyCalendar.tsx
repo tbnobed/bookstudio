@@ -290,13 +290,13 @@ export default function WeeklyCalendar({
       <div className="overflow-auto h-[calc(100vh-8rem)]">
         <div className="min-w-[1000px]">
           {/* Calendar Days Header - Using default height */}
-          <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-10">
-            <div className="h-12 border-b border-r bg-gray-50"></div>
+          <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-30 bg-white shadow-sm">
+            <div className="h-12 border-b border-r bg-gray-50 z-30"></div>
             {weekDates.map((date, index) => (
               <div 
                 key={index} 
                 className={cn(
-                  "h-12 border-b text-center flex flex-col justify-center",
+                  "h-12 border-b text-center flex flex-col justify-center z-30",
                   isWeekend(date) ? "bg-gray-50" : "bg-white",
                   new Date().toDateString() === date.toDateString() && "bg-blue-50 border-blue-200"
                 )}
