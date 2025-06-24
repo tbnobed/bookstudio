@@ -19,6 +19,7 @@ import {
   Video,
   Building,
   Activity,
+  MonitorSpeaker,
   BarChart3,
   TrendingUp,
   Settings,
@@ -881,28 +882,7 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="rounded-lg p-3 cursor-pointer mb-2"
-                    style={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      transition: 'all 0.2s ease-in-out'
-                    }}
-                    onMouseEnter={(e) => {
-                      const element = e.currentTarget;
-                      element.style.setProperty('background-color', '#dbeafe', 'important');
-                      element.style.setProperty('border-color', '#93c5fd', 'important');
-                      element.style.setProperty('box-shadow', '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 'important');
-                      element.style.setProperty('transform', 'translateY(-1px)', 'important');
-                      console.log('HOVER ENTER - Styles applied with !important');
-                    }}
-                    onMouseLeave={(e) => {
-                      const element = e.currentTarget;
-                      element.style.setProperty('background-color', 'white', 'important');
-                      element.style.setProperty('border-color', '#e5e7eb', 'important');
-                      element.style.setProperty('box-shadow', '', 'important');
-                      element.style.setProperty('transform', '', 'important');
-                      console.log('HOVER LEAVE - Styles reset with !important');
-                    }}
+                    className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer mb-2 hover:bg-gray-50"
                     onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
@@ -916,7 +896,33 @@ export default function DayChronView({
                         {isToday && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Today</span>}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1.5">
+                    
+                    {/* Studios and PCR Information */}
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <Camera className="h-3 w-3" />
+                        <span className="font-medium">Studios:</span>
+                        <span>{getStudiosForBooking(booking).join(', ')}</span>
+                      </div>
+                      
+                      {booking.pcrRoomId && (
+                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                          <MonitorSpeaker className="h-3 w-3" />
+                          <span className="font-medium">PCR:</span>
+                          <span>{pcrRooms.find(pcr => pcr.id === booking.pcrRoomId)?.name || `PCR ${booking.pcrRoomId}`}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <Clock className="h-3 w-3" />
+                        <span className="font-medium">Time:</span>
+                        <span>
+                          {formatInFacilityTimezone(new Date(booking.start), 'h:mm a')} - {formatInFacilityTimezone(new Date(booking.end), 'h:mm a')}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
                       {formatInFacilityTimezone(new Date(booking.start), 'MMM d')} • Created {formatInFacilityTimezone(createdDate, 'MMM d')}
                     </div>
                   </div>
