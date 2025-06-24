@@ -889,19 +889,19 @@ export default function DayChronView({
                     }}
                     onMouseEnter={(e) => {
                       const element = e.currentTarget;
-                      element.style.backgroundColor = '#dbeafe';
-                      element.style.borderColor = '#93c5fd';
-                      element.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-                      element.style.transform = 'translateY(-1px)';
-                      console.log('HOVER ENTER - Styles applied');
+                      element.style.setProperty('background-color', '#dbeafe', 'important');
+                      element.style.setProperty('border-color', '#93c5fd', 'important');
+                      element.style.setProperty('box-shadow', '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 'important');
+                      element.style.setProperty('transform', 'translateY(-1px)', 'important');
+                      console.log('HOVER ENTER - Styles applied with !important');
                     }}
                     onMouseLeave={(e) => {
                       const element = e.currentTarget;
-                      element.style.backgroundColor = 'white';
-                      element.style.borderColor = '#e5e7eb';
-                      element.style.boxShadow = '';
-                      element.style.transform = '';
-                      console.log('HOVER LEAVE - Styles reset');
+                      element.style.setProperty('background-color', 'white', 'important');
+                      element.style.setProperty('border-color', '#e5e7eb', 'important');
+                      element.style.setProperty('box-shadow', '', 'important');
+                      element.style.setProperty('transform', '', 'important');
+                      console.log('HOVER LEAVE - Styles reset with !important');
                     }}
                     onClick={() => onBookingClick(booking)}
                   >
