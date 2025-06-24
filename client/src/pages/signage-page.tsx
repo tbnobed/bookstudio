@@ -196,11 +196,19 @@ export default function SignagePage() {
     return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && !isMaintenanceType;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-  // Get today's site alerts (maintenance type bookings)
+  // Get today's site alerts (maintenance type bookings and alert keywords)
   const todaysAlerts = bookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
-    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
-    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && isMaintenanceType;
+    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance' || booking.type === 'alert';
+    const hasAlertKeyword = booking.title && (
+      booking.title.toLowerCase().includes('alert') ||
+      booking.title.toLowerCase().includes('outage') ||
+      booking.title.toLowerCase().includes('emergency') ||
+      booking.title.toLowerCase().includes('maintenance') ||
+      booking.title.toLowerCase().includes('notice') ||
+      booking.title.toLowerCase().includes('warning')
+    );
+    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && (isMaintenanceType || hasAlertKeyword);
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
   // Get weekly overview (next 7 days)
@@ -313,9 +321,15 @@ export default function SignagePage() {
                 todaysBookings.map((booking) => {
                   const isAlert = booking.type === 'maintenance' || 
                                  booking.type === 'all-day:maintenance' ||
-                                 (booking.title && booking.title.toLowerCase().includes('alert')) ||
-                                 (booking.title && booking.title.toLowerCase().includes('outage')) ||
-                                 booking.type === 'alert';
+                                 booking.type === 'alert' ||
+                                 (booking.title && (
+                                   booking.title.toLowerCase().includes('alert') ||
+                                   booking.title.toLowerCase().includes('outage') ||
+                                   booking.title.toLowerCase().includes('emergency') ||
+                                   booking.title.toLowerCase().includes('maintenance') ||
+                                   booking.title.toLowerCase().includes('notice') ||
+                                   booking.title.toLowerCase().includes('warning')
+                                 ));
                   
                   return (
                     <div
@@ -395,9 +409,15 @@ export default function SignagePage() {
                       {bookings.map((booking) => {
                         const isAlert = booking.type === 'maintenance' || 
                                        booking.type === 'all-day:maintenance' ||
-                                       (booking.title && booking.title.toLowerCase().includes('alert')) ||
-                                       (booking.title && booking.title.toLowerCase().includes('outage')) ||
-                                       booking.type === 'alert';
+                                       booking.type === 'alert' ||
+                                       (booking.title && (
+                                         booking.title.toLowerCase().includes('alert') ||
+                                         booking.title.toLowerCase().includes('outage') ||
+                                         booking.title.toLowerCase().includes('emergency') ||
+                                         booking.title.toLowerCase().includes('maintenance') ||
+                                         booking.title.toLowerCase().includes('notice') ||
+                                         booking.title.toLowerCase().includes('warning')
+                                       ));
                         
                         return (
                           <div

@@ -789,6 +789,8 @@ export default function SimpleMobileForm({
               >
                 <option value="production">Production</option>
                 <option value="rehearsal">Rehearsal</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="alert">Alert</option>
               </select>
             </div>
             
