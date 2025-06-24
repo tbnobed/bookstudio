@@ -288,10 +288,10 @@ export default function WeeklyCalendar({
   return (
     <>
       <div className="overflow-auto h-[calc(100vh-8rem)]">
-        <div className="min-w-[800px]">
+        <div className="min-w-[1000px]">
           {/* Calendar Days Header - Using default height */}
-          <div className="grid grid-cols-[140px_repeat(7,1fr)] sticky top-0 z-10">
-            <div className="h-12 border-b bg-white"></div>
+          <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-10">
+            <div className="h-12 border-b border-r bg-gray-50"></div>
             {weekDates.map((date, index) => (
               <div 
                 key={index} 
@@ -315,7 +315,7 @@ export default function WeeklyCalendar({
           {/* Calendar Time Grid */}
           <div className="relative">
             {/* Calendar Grid */}
-            <div className="grid grid-cols-[140px_repeat(7,1fr)]">
+            <div className="grid grid-cols-[160px_repeat(7,1fr)]">
               {/* Alerts Row - First row of the grid */}
               <div className="contents">
                 <AlertsRow

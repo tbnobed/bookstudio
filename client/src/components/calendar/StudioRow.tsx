@@ -206,7 +206,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         
         return (
           <div 
-            className="border-b flex items-center px-2 sticky left-0 z-10 bg-white w-[140px] min-w-[140px] max-w-[140px] overflow-hidden" 
+            className="border-b border-r flex items-center px-3 sticky left-0 z-10 bg-gray-50 w-[160px] min-w-[160px] max-w-[160px] overflow-hidden" 
             style={{ height: `${rowHeight}px` }}
           >
             {/* Studio status indicator */}
