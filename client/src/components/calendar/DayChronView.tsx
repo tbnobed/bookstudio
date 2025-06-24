@@ -882,15 +882,7 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="recent-booking-item"
-                    style={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
-                      padding: '12px',
-                      cursor: 'pointer',
-                      marginBottom: '8px'
-                    }}
+                    className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer mb-2 transition-all duration-200 hover:bg-blue-50 hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5"
 
                     onClick={() => onBookingClick(booking)}
                   >
