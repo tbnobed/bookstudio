@@ -405,29 +405,29 @@ export default function SignagePage() {
                 Studio Status
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {studioStatus.map((studio) => (
-                <div key={studio.id} className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30">
-                  <div>
-                    <div className="font-medium text-white">{studio.name}</div>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-2">
+                {studioStatus.map((studio) => (
+                  <div key={studio.id} className="flex flex-col p-2 rounded-lg bg-slate-700/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="font-medium text-white text-sm truncate">{studio.name}</div>
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                        studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
+                      }`} />
+                    </div>
                     {studio.currentBooking ? (
-                      <div className="text-sm text-slate-400">
+                      <div className="text-xs text-slate-400 truncate">
                         {studio.currentBooking.title}
                       </div>
                     ) : (
-                      <div className="text-sm text-green-400">Available</div>
+                      <div className="text-xs text-green-400">Available</div>
                     )}
-                  </div>
-                  <div className="text-right">
-                    <div className={`w-3 h-3 rounded-full mb-1 ${
-                      studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
-                    }`} />
-                    <div className="text-xs text-slate-400">
-                      {studio.currentBooking ? `Until ${studio.nextAvailable}` : 'Available'}
+                    <div className="text-xs text-slate-500 mt-1">
+                      {studio.currentBooking ? `Until ${studio.nextAvailable}` : 'Ready'}
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
 
