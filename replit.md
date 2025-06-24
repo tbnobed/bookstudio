@@ -126,6 +126,14 @@ BookStud.io is a comprehensive web application for television studio management 
 - Static asset optimization and caching
 - Modular service architecture for easy maintenance
 
+## Production Deployment
+
+### Environment Configuration
+- Weather API integration requires VITE_OPENWEATHER_API_KEY in production .env
+- Location can be configured via VITE_WEATHER_LOCATION or coordinates
+- Docker environment includes all necessary weather variables
+- See PRODUCTION_WEATHER_SETUP.md for detailed setup instructions
+
 ## Changelog
 - June 18, 2025: Initial setup
 - June 18, 2025: Calendar timezone display issue resolved - all bookings now appear on correct dates with proper America/Chicago timezone handling

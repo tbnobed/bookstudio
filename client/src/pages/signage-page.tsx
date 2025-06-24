@@ -557,9 +557,9 @@ export default function SignagePage() {
 
 
           {/* Active Site Alerts */}
-          <Card className="bg-red-900/50 border-red-700">
+          <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center text-red-200 text-lg">
+              <CardTitle className="flex items-center text-white text-lg">
                 <AlertTriangle className="mr-2 h-4 w-4" />
                 Active Site Alerts
               </CardTitle>
