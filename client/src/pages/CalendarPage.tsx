@@ -31,16 +31,13 @@ export default function CalendarPage() {
   // Persist current date and view in localStorage
   const [currentDate, setCurrentDate] = useState(() => {
     try {
-      // Clear localStorage to force reset - this fixes the date mismatch issue
-      localStorage.removeItem('currentDate');
-      
-      // Force navigate to June 19th since that's where the bookings are
-      const june19 = new Date(2025, 5, 19); // Month is 0-indexed, so 5 = June
-      console.log(`CalendarPage - Forcing navigation to June 19th: ${june19.toISOString()}`);
-      return june19;
+      // Always start with today's date
+      const today = new Date();
+      console.log(`CalendarPage - Initializing with today's date: ${today.toISOString()}`);
+      return today;
     } catch (error) {
       console.error('Error setting initial date', error);
-      return new Date(2025, 5, 19); // Fallback to June 19th
+      return new Date(); // Fallback to today
     }
   });
   

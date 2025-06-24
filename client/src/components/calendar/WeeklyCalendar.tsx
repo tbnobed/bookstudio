@@ -26,8 +26,14 @@ export default function WeeklyCalendar({
   readOnly = false,
   selectedStudioIds = [] 
 }: WeeklyCalendarProps) {
-  // Use startDate if provided (for public calendar), fall back to currentDate
-  const [effectiveDate, setEffectiveDate] = useState(startDate || currentDate || new Date());
+  // Use startDate if provided (for public calendar), fall back to currentDate, or today
+  const [effectiveDate, setEffectiveDate] = useState(() => {
+    // Always use a fresh date to ensure we're starting with today's date
+    const today = new Date();
+    const targetDate = startDate || currentDate || today;
+    console.log(`WeeklyCalendar - Initializing with date: ${targetDate.toISOString()}`);
+    return targetDate;
+  });
   const [weekDates, setWeekDates] = useState<Date[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -39,8 +45,8 @@ export default function WeeklyCalendar({
   // Update effectiveDate when props change with guaranteed fresh Date object
   useEffect(() => {
     // Always create a new Date object to ensure we break any reference issues
-    if (startDate || currentDate) {
-      const sourceDate = startDate || currentDate || new Date();
+    const sourceDate = startDate || currentDate;
+    if (sourceDate) {
       const newDate = new Date(sourceDate.getTime());
       
       // Add timestamp to ensure unique logging and force re-renders
@@ -55,7 +61,7 @@ export default function WeeklyCalendar({
         console.log(`WeeklyCalendar - [Timestamp: ${timestamp}] Date unchanged, skipping update`);
       }
     }
-  }, [startDate, currentDate, effectiveDate]);
+  }, [startDate, currentDate]);
   
   // Calculate week dates whenever effective date changes
   useEffect(() => {
