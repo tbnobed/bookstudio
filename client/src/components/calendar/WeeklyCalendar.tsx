@@ -291,7 +291,7 @@ export default function WeeklyCalendar({
         <div className="min-w-[1000px]">
           {/* Calendar Days Header - Using default height */}
           <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-30 bg-white shadow-sm">
-            <div className="h-12 border-b border-r bg-gray-50 z-30"></div>
+            <div className="h-12 border-b border-r bg-white z-30"></div>
             {weekDates.map((date, index) => (
               <div 
                 key={index} 

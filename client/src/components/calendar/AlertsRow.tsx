@@ -154,7 +154,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
   return (
     <>
       <div 
-        className="border-b border-r bg-gray-100 flex items-center sticky left-0 top-0 z-20 w-[160px] min-w-[160px] max-w-[160px] overflow-hidden"
+        className="border-b border-r bg-white flex items-center sticky left-0 top-0 z-20 w-[160px] min-w-[160px] max-w-[160px] overflow-hidden"
         style={{ height: `${rowHeight}px` }}
       >
         <div className="text-center w-full px-2">
