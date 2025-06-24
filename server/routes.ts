@@ -274,8 +274,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the user to be deleted to check their role
       const userToDelete = await storage.getUser(id);
       
+      if (!userToDelete) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       // Site managers cannot delete admin users
-      if (currentUser.role === "site_manager" && userToDelete?.role === "admin") {
+      if (currentUser.role === "site_manager" && userToDelete.role === "admin") {
         return res.status(403).json({ message: "Forbidden: Site managers cannot delete administrator accounts" });
       }
       
@@ -286,7 +290,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(200).json({ message: "User deleted successfully" });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      if (error.message && error.message.includes("associated bookings")) {
+        return res.status(400).json({ message: error.message });
+      }
+      if (error.message && error.message.includes("associated templates")) {
+        return res.status(400).json({ message: error.message });
+      }
       res.status(500).json({ message: "Failed to delete user" });
     }
   });
@@ -699,7 +710,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         return res.status(500).json({ message: "Failed to delete template" });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error deleting template:", error);
+      if (error.message && error.message.includes("associated bookings")) {
+        return res.status(400).json({ message: error.message });
+      }
       res.status(500).json({ message: "Failed to delete template" });
     }
   });

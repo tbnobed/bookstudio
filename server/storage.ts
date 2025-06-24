@@ -1741,15 +1741,33 @@ export class DatabaseStorage implements IStorage {
   
   async deleteTemplate(id: number): Promise<boolean> {
     try {
-      const result = await db.delete(templates).where(eq(templates.id, id));
-      if (result.rowCount > 0) {
+      // First check if template exists
+      const template = await this.getTemplate(id);
+      if (!template) {
+        return false;
+      }
+      
+      // Check for existing bookings that reference this template
+      const templateBookings = await db.select().from(bookings).where(eq(bookings.templateId, id));
+      
+      if (templateBookings.length > 0) {
+        console.error(`Cannot delete template with ID ${id}: Template has ${templateBookings.length} associated bookings.`);
+        throw new Error(`Cannot delete template: Template has ${templateBookings.length} associated bookings. Please delete or reassign these bookings first.`);
+      }
+      
+      // If no dependencies found, proceed with deletion
+      const [deletedTemplate] = await db.delete(templates).where(eq(templates.id, id)).returning();
+      
+      if (deletedTemplate) {
+        // Remove from cache
         this.templates.delete(id);
         return true;
       }
+      
       return false;
     } catch (error) {
       console.error(`Error deleting template with ID ${id}:`, error);
-      return false;
+      throw error; // Re-throw to let the API layer handle the error properly
     }
   }
   
