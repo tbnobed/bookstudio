@@ -381,7 +381,7 @@ export default function SignagePage() {
                       {formatChicagoTime(date, 'd')}
                     </div>
                     <div className="space-y-1">
-                      {bookings.slice(0, 3).map((booking) => (
+                      {bookings.map((booking) => (
                         <div
                           key={booking.id}
                           className="text-xs p-1 rounded text-white truncate"
@@ -391,11 +391,6 @@ export default function SignagePage() {
                           {booking.title}
                         </div>
                       ))}
-                      {bookings.length > 3 && (
-                        <div className="text-xs text-slate-400">
-                          +{bookings.length - 3} more
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -458,12 +453,16 @@ export default function SignagePage() {
                   {todaysAlerts
                     .filter(alert => isBookingActive(alert, currentTime))
                     .map(alert => (
-                      <div key={`active-${alert.id}`} className="p-2 rounded bg-red-800/30 border border-red-600">
-                        <div className="text-sm font-medium text-red-200">ACTIVE: {alert.title}</div>
-                        <div className="text-xs text-red-300">
+                      <div key={`active-${alert.id}`} className="p-3 rounded-lg bg-red-900/60 border-2 border-red-500 shadow-lg animate-pulse">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="h-4 w-4 text-red-300 animate-bounce" />
+                          <div className="text-sm font-bold text-red-100 uppercase tracking-wide">ACTIVE ALERT</div>
+                        </div>
+                        <div className="text-lg font-semibold text-red-50 mb-1">{alert.title}</div>
+                        <div className="text-sm text-red-200">
                           {formatChicagoTime(alert.start, 'h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
                         </div>
-                        <div className="text-xs text-red-400">
+                        <div className="text-sm text-red-300">
                           {getStudioNames(alert, studios, bookingStudioLinks)}
                         </div>
                       </div>
@@ -474,12 +473,16 @@ export default function SignagePage() {
                   {todaysAlerts
                     .filter(alert => !isBookingActive(alert, currentTime) && parseISO(alert.start) > currentTime)
                     .map(alert => (
-                      <div key={`today-${alert.id}`} className="p-2 rounded bg-orange-800/30 border border-orange-600">
-                        <div className="text-sm font-medium text-orange-200">TODAY: {alert.title}</div>
-                        <div className="text-xs text-orange-300">
+                      <div key={`today-${alert.id}`} className="p-3 rounded-lg bg-orange-900/50 border-2 border-orange-500 shadow-md">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="h-4 w-4 text-orange-300" />
+                          <div className="text-sm font-bold text-orange-100 uppercase tracking-wide">Today</div>
+                        </div>
+                        <div className="text-lg font-semibold text-orange-50 mb-1">{alert.title}</div>
+                        <div className="text-sm text-orange-200">
                           {formatChicagoTime(alert.start, 'h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
                         </div>
-                        <div className="text-xs text-orange-400">
+                        <div className="text-sm text-orange-300">
                           {getStudioNames(alert, studios, bookingStudioLinks)}
                         </div>
                       </div>
@@ -491,12 +494,16 @@ export default function SignagePage() {
                     .filter(alert => !isSameDay(parseISO(alert.start), today))
                     .slice(0, 2)
                     .map(alert => (
-                      <div key={`upcoming-${alert.id}`} className="p-2 rounded bg-yellow-800/30 border border-yellow-600">
-                        <div className="text-sm font-medium text-yellow-200">UPCOMING: {alert.title}</div>
-                        <div className="text-xs text-yellow-300">
+                      <div key={`upcoming-${alert.id}`} className="p-3 rounded-lg bg-yellow-900/40 border border-yellow-500 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="h-4 w-4 text-yellow-300" />
+                          <div className="text-sm font-bold text-yellow-100 uppercase tracking-wide">Upcoming</div>
+                        </div>
+                        <div className="text-base font-semibold text-yellow-50 mb-1">{alert.title}</div>
+                        <div className="text-sm text-yellow-200">
                           {formatChicagoTime(alert.start, 'MMM d, h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
                         </div>
-                        <div className="text-xs text-yellow-400">
+                        <div className="text-sm text-yellow-300">
                           {getStudioNames(alert, studios, bookingStudioLinks)}
                         </div>
                       </div>
