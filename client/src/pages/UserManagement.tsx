@@ -33,6 +33,8 @@ export default function UserManagement() {
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showForceDeleteDialog, setShowForceDeleteDialog] = useState(false);
+  const [forceDeleteError, setForceDeleteError] = useState<any>(null);
   
   // New user form state
   const [newUser, setNewUser] = useState({

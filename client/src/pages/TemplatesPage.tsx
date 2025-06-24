@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export default function TemplatesPage() {
   const { user } = useAuth();
@@ -17,6 +18,9 @@ export default function TemplatesPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editTemplate, setEditTemplate] = useState<Template | null>(null);
+  const [showForceDeleteDialog, setShowForceDeleteDialog] = useState(false);
+  const [forceDeleteError, setForceDeleteError] = useState<any>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   
   // Fetch templates
   const { data: templates = [], isLoading } = useQuery<Template[]>({
@@ -35,24 +39,47 @@ export default function TemplatesPage() {
 
   // Delete template mutation
   const deleteTemplate = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/templates/${id}`);
+    mutationFn: async ({ id, force = false }: { id: number; force?: boolean }) => {
+      const url = force ? `/api/templates/${id}?force=true` : `/api/templates/${id}`;
+      const res = await apiRequest("DELETE", url);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(JSON.stringify(errorData));
+      }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       toast({
         title: "Success!",
-        description: "Template deleted successfully.",
+        description: variables.force 
+          ? "Template deleted successfully (removed from associated bookings)."
+          : "Template deleted successfully.",
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      setSelectedTemplate(null);
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete template",
-        variant: "destructive",
-      });
+      try {
+        const errorData = JSON.parse(error.message);
+        if (errorData.canForceDelete) {
+          // Show force delete option
+          setForceDeleteError(errorData);
+          setShowForceDeleteDialog(true);
+        } else {
+          toast({
+            title: "Error",
+            description: errorData.message || "Failed to delete template",
+            variant: "destructive",
+          });
+        }
+      } catch {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to delete template",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -104,8 +131,17 @@ export default function TemplatesPage() {
 
   // Handle delete template
   const handleDeleteTemplate = (template: Template) => {
+    setSelectedTemplate(template);
     if (confirm("Are you sure you want to delete this template?")) {
-      deleteTemplate.mutate(template.id);
+      deleteTemplate.mutate({ id: template.id, force: false });
+    }
+  };
+
+  // Handle force delete confirmation
+  const handleForceDelete = () => {
+    setShowForceDeleteDialog(false);
+    if (selectedTemplate) {
+      deleteTemplate.mutate({ id: selectedTemplate.id, force: true });
     }
   };
 
@@ -205,6 +241,64 @@ export default function TemplatesPage() {
           template={editTemplate}
         />
       )}
+
+      {/* Force Delete Confirmation Dialog */}
+      <Dialog open={showForceDeleteDialog} onOpenChange={setShowForceDeleteDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-orange-600">Force Delete Template</DialogTitle>
+            <DialogDescription className="pt-2">
+              This template has associated data that prevents normal deletion.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <p className="text-sm text-orange-800 font-medium mb-2">
+                Dependency Warning:
+              </p>
+              <p className="text-sm text-orange-700">
+                {forceDeleteError?.message}
+              </p>
+            </div>
+            
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 font-medium mb-2">
+                Force deletion will:
+              </p>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                <li>• Remove template reference from all associated bookings</li>
+                <li>• Permanently delete the template</li>
+                <li>• Associated bookings will remain but no longer reference this template</li>
+              </ul>
+            </div>
+
+            <p className="text-sm text-gray-600">
+              Are you sure you want to force delete template <strong>{selectedTemplate?.name}</strong>?
+            </p>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setShowForceDeleteDialog(false)}
+              disabled={deleteTemplate.isPending}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={handleForceDelete}
+              disabled={deleteTemplate.isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {deleteTemplate.isPending ? "Force Deleting..." : "Force Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
