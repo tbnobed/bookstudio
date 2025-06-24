@@ -127,66 +127,40 @@ export default function SignagePage() {
     return () => clearInterval(timer);
   }, []);
   
-  // Fetch weather data
+  // Fetch weather data when proper API key is available
   useEffect(() => {
     const fetchWeather = async () => {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
         
-        if (!apiKey || apiKey.length < 20) {
-          console.log('Weather API key not properly configured');
+        if (!apiKey || apiKey === '0f647b5591a3b8ab30cf838f8abdf403') {
+          console.log('Valid weather API key needed from OpenWeatherMap account');
           return;
         }
 
-        // Dallas coordinates: 32.7767, -96.7970
-        const lat = 32.7767;
-        const lon = -96.7970;
-        
-        // Use OpenWeatherMap One Call API 3.0 with paid subscription
+        // Use OpenWeatherMap Current Weather API (free tier)
         const response = await fetch(
-          `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial&exclude=minutely,daily,alerts`
+          `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
         );
         
         if (response.ok) {
           const data = await response.json();
-          console.log('Weather data received:', data);
           setWeather({
-            temperature: Math.round(data.current.temp),
-            condition: data.current.weather[0].description,
-            humidity: data.current.humidity,
-            windSpeed: Math.round(data.current.wind_speed),
-            icon: data.current.weather[0].icon,
-            location: 'Dallas, TX'
+            temperature: Math.round(data.main.temp),
+            condition: data.weather[0].description,
+            humidity: data.main.humidity,
+            windSpeed: Math.round(data.wind.speed),
+            icon: data.weather[0].icon,
+            location: data.name
           });
-        } else {
-          const errorText = await response.text();
-          console.log('Weather API error:', response.status, errorText);
-          // Fall back to free API if One Call 3.0 fails
-          const fallbackResponse = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
-          );
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            setWeather({
-              temperature: Math.round(fallbackData.main.temp),
-              condition: fallbackData.weather[0].description,
-              humidity: fallbackData.main.humidity,
-              windSpeed: Math.round(fallbackData.wind.speed),
-              icon: fallbackData.weather[0].icon,
-              location: fallbackData.name
-            });
-          }
         }
       } catch (error) {
-        console.log('Weather data unavailable');
         // Gracefully continue without weather data
       }
     };
 
     fetchWeather();
-    // Refresh weather every 10 minutes
     const weatherTimer = setInterval(fetchWeather, 600000);
-    
     return () => clearInterval(weatherTimer);
   }, []);
   
