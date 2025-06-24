@@ -442,46 +442,14 @@ export default function SignagePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Check for any active or upcoming facility alerts */}
-              {maintenanceAlerts.length > 0 || todaysBookings.some(b => b.type === 'maintenance') ? (
-                <div className="space-y-2">
-                  {/* Show active maintenance bookings */}
-                  {todaysBookings
-                    .filter(booking => booking.type === 'maintenance' && isBookingActive(booking, currentTime))
-                    .map(alert => (
-                      <div key={`active-${alert.id}`} className="p-2 rounded bg-red-800/30 border border-red-600">
-                        <div className="text-sm font-medium text-red-200">ACTIVE: {alert.title}</div>
-                        <div className="text-xs text-red-300">
-                          {formatChicagoTime(alert.start, 'h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
-                        </div>
-                        <div className="text-xs text-red-400">
-                          {getStudioNames(alert, studios, bookingStudioLinks)}
-                        </div>
-                      </div>
-                    ))
-                  }
-                  
-                  {/* Show upcoming maintenance (next 7 days) */}
-                  {maintenanceAlerts
-                    .slice(0, 3)
-                    .map(alert => (
-                      <div key={`upcoming-${alert.id}`} className="p-2 rounded bg-orange-800/30 border border-orange-600">
-                        <div className="text-sm font-medium text-orange-200">UPCOMING: {alert.title}</div>
-                        <div className="text-xs text-orange-300">
-                          {formatChicagoTime(alert.start, 'MMM d, h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
-                        </div>
-                        <div className="text-xs text-orange-400">
-                          {getStudioNames(alert, studios, bookingStudioLinks)}
-                        </div>
-                      </div>
-                    ))}
+              {/* This section is for facility-wide alerts only, not scheduled maintenance bookings */}
+              <div className="text-center py-4">
+                <div className="text-green-400 text-sm">No Active Alerts</div>
+                <div className="text-slate-400 text-xs mt-1">All systems operational</div>
+                <div className="text-slate-500 text-xs mt-2">
+                  Scheduled maintenance appears in Today's Schedule
                 </div>
-              ) : (
-                <div className="text-center py-4">
-                  <div className="text-green-400 text-sm">No Active Alerts</div>
-                  <div className="text-slate-400 text-xs mt-1">All systems operational</div>
-                </div>
-              )}
+              </div>
               
               {/* Auto-refresh indicator */}
               <div className="text-center text-slate-400 pt-3 mt-3 border-t border-slate-600">
