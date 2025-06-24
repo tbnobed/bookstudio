@@ -1269,15 +1269,40 @@ export class DatabaseStorage implements IStorage {
   
   async deleteUser(id: number): Promise<boolean> {
     try {
-      const result = await db.delete(users).where(eq(users.id, id));
-      if (result) {
+      // First check if user exists
+      const user = await this.getUser(id);
+      if (!user) {
+        return false;
+      }
+      
+      // Check for existing bookings that reference this user
+      const userBookings = await db.select().from(bookings).where(eq(bookings.userId, id));
+      
+      if (userBookings.length > 0) {
+        console.error(`Cannot delete user with ID ${id}: User has ${userBookings.length} associated bookings. Delete bookings first or reassign them to another user.`);
+        throw new Error(`Cannot delete user: User has ${userBookings.length} associated bookings. Please delete or reassign these bookings first.`);
+      }
+      
+      // Also check for other references like templates, tokens, etc.
+      const userTemplates = await db.select().from(templates).where(eq(templates.createdBy, id));
+      if (userTemplates.length > 0) {
+        console.error(`Cannot delete user with ID ${id}: User has ${userTemplates.length} associated templates.`);
+        throw new Error(`Cannot delete user: User has ${userTemplates.length} associated templates. Please delete or reassign these templates first.`);
+      }
+      
+      // If no dependencies found, proceed with deletion
+      const [deletedUser] = await db.delete(users).where(eq(users.id, id)).returning();
+      
+      if (deletedUser) {
+        // Remove from cache
         this.users.delete(id);
         return true;
       }
+      
       return false;
     } catch (error) {
       console.error(`Error deleting user with ID ${id}:`, error);
-      return false;
+      throw error; // Re-throw to let the API layer handle the error properly
     }
   }
   
