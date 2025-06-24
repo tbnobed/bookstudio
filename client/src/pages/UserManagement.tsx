@@ -152,8 +152,14 @@ export default function UserManagement() {
       setSelectedUser(null);
     },
     onError: (error: any) => {
+      console.log("User delete error:", error);
+      console.log("Error message:", error.message);
+      console.log("Error type:", typeof error.message);
+      
       try {
         const errorData = JSON.parse(error.message);
+        console.log("Parsed error data:", errorData);
+        
         if (errorData.canForceDelete) {
           // Show force delete option
           setForceDeleteError(errorData);
@@ -167,6 +173,8 @@ export default function UserManagement() {
           });
         }
       } catch (parseError) {
+        console.log("Parse error:", parseError);
+        
         // If we can't parse the error, check if it contains force delete hints
         const errorMessage = error.message || "";
         if (errorMessage.includes("canForceDelete") || errorMessage.includes("forceDeleteHint")) {
