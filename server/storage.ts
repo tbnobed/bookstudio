@@ -1384,6 +1384,13 @@ export class DatabaseStorage implements IStorage {
             .where(eq(templates.createdBy, id));
           console.log(`Reassigned ${userTemplates.length} templates from user ${id} to admin user ${adminUserId}`);
         }
+        
+        // Delete all notifications for this user
+        const userNotifications = await db.select().from(notifications).where(eq(notifications.userId, id));
+        if (userNotifications.length > 0) {
+          await db.delete(notifications).where(eq(notifications.userId, id));
+          console.log(`Deleted ${userNotifications.length} notifications for user ${id}`);
+        }
       } else {
         // Regular deletion: check for dependencies
         const userBookings = await db.select().from(bookings).where(eq(bookings.userId, id));

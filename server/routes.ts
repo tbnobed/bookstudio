@@ -297,20 +297,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ message });
     } catch (error: any) {
       console.error("Error deleting user:", error);
-      if (error.message && error.message.includes("associated bookings")) {
+      
+      // Handle dependency-related errors that can be resolved with force delete
+      const errorMessage = error.message || "";
+      const isConstraintError = error.code === '23503' || errorMessage.includes("foreign key constraint");
+      const isDependencyError = errorMessage.includes("associated bookings") || 
+                               errorMessage.includes("associated templates") || 
+                               errorMessage.includes("notifications_user_id_fkey");
+      
+      if (isDependencyError || isConstraintError) {
         return res.status(400).json({ 
-          message: error.message,
+          message: errorMessage.includes("associated") ? errorMessage : "Cannot delete user: User has associated data that must be reassigned first.",
           canForceDelete: true,
           forceDeleteHint: "Add ?force=true to reassign associated data and force delete"
         });
       }
-      if (error.message && error.message.includes("associated templates")) {
-        return res.status(400).json({ 
-          message: error.message,
-          canForceDelete: true,
-          forceDeleteHint: "Add ?force=true to reassign associated data and force delete"
-        });
-      }
+      
       res.status(500).json({ message: "Failed to delete user" });
     }
   });
