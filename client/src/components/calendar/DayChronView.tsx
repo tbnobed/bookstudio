@@ -268,16 +268,6 @@ export default function DayChronView({
                     {booking.status === 'cancelled' && <XCircle className="h-3 w-3 text-red-600" />}
                     <span className="text-xs font-medium capitalize text-gray-600">{booking.status}</span>
                   </div>
-                  {/* Color indicator */}
-                  {!isAlert && booking.color && (
-                    <div className="flex items-center gap-1">
-                      <div 
-                        className="w-3 h-3 rounded border border-gray-300"
-                        style={{ backgroundColor: booking.color }}
-                      />
-                      <span className="text-xs text-gray-500">{booking.color}</span>
-                    </div>
-                  )}
                 </div>
               </div>
               <div className="ml-2 flex gap-1">
@@ -486,19 +476,7 @@ export default function DayChronView({
             </div>
           )}
           
-          {/* Color indicator for non-alerts */}
-          {!isAlert && booking.color && (
-            <div className="mt-3">
-              <h5 className="text-xs font-medium mb-1">Color</h5>
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-4 h-4 rounded border border-gray-300"
-                  style={{ backgroundColor: booking.color }}
-                />
-                <span className="text-xs text-gray-600">{booking.color}</span>
-              </div>
-            </div>
-          )}
+
           
           {/* Created date */}
           {booking.createdAt && (
