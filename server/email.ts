@@ -313,13 +313,14 @@ export async function sendInviteEmail(
   };
     
     try {
-      const emailSent = await sendEmail({
+      const emailParams = {
         to: to,
         from: senderEmail,
         subject: msg.subject,
         text: msg.text,
         html: msg.html
-      });
+      };
+      const emailSent = await sendEmail(emailParams);
       
       if (emailSent) {
         console.log('Invitation email sent successfully');
@@ -438,13 +439,14 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
     };
     
     try {
-      const emailSent = await sendEmail({
+      const emailParams = {
         to: to,
         from: senderEmail,
         subject: msg.subject,
         text: msg.text,
         html: msg.html
-      });
+      };
+      const emailSent = await sendEmail(emailParams);
       
       if (emailSent) {
         console.log('Password reset email sent successfully');
