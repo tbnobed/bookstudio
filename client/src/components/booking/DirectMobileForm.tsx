@@ -27,7 +27,8 @@ export function DirectMobileForm({
   onSubmit,
   booking = null,
   selectedStudio = null,
-  selectedDate = new Date()
+  selectedDate = new Date(),
+  alertMode = false
 }: DirectMobileFormProps) {
   const { toast } = useToast();
   const { deleteBooking } = useStudioBookings();

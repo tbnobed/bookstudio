@@ -22,6 +22,7 @@ interface MobileBookingControllerProps {
   selectedDate?: Date;
   selectedStudio?: number | null;
   alertsOnly?: boolean;
+  alertMode?: boolean;
   onSuccess?: () => void;
 }
 
@@ -182,6 +183,7 @@ export function MobileBookingController({
         booking={booking}
         selectedStudio={selectedStudio}
         selectedDate={selectedDate}
+        alertMode={alertMode || alertsOnly}
       />
     );
   }

@@ -18,6 +18,7 @@ interface BookingFormSelectorProps {
   selectedStudio?: number | null;
   forceSimpleMode?: boolean;
   selectedDate?: Date;
+  alertMode?: boolean;
 }
 
 export function BookingFormSelector({
@@ -27,7 +28,8 @@ export function BookingFormSelector({
   booking = null,
   selectedStudio = null,
   forceSimpleMode = false,
-  selectedDate = new Date()
+  selectedDate = new Date(),
+  alertMode = false
 }: BookingFormSelectorProps) {
   // Clean and prepare booking data to ensure proper form population
   const processedBooking = React.useMemo(() => {
@@ -181,7 +183,7 @@ export function BookingFormSelector({
       isOpen={isOpen}
       onClose={onClose}
       onSubmit={onSubmit}
-      booking={processedBooking} // Use the processed booking
+      booking={processedBooking}
       selectedStudio={selectedStudio}
       selectedDate={selectedDate}
       alertMode={alertMode}
