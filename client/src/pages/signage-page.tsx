@@ -44,6 +44,7 @@ const FACILITY_TIMEZONE = 'America/Chicago';
 function getChicagoTime() {
   // Get current time in Chicago timezone
   const now = new Date();
+  // Convert UTC time to Chicago time
   return toZonedTime(now, FACILITY_TIMEZONE);
 }
 
@@ -54,7 +55,15 @@ function formatChicagoTime(date: Date | string, formatStr: string) {
   } else {
     chicagoDate = toZonedTime(date, FACILITY_TIMEZONE);
   }
-  return format(chicagoDate, formatStr);
+  return format(chicagoDate, formatStr, { timeZone: FACILITY_TIMEZONE });
+}
+
+function getCurrentChicagoTime() {
+  // Get current time and create a proper Chicago timezone date
+  const now = new Date();
+  // This creates a new Date object representing the current time in Chicago
+  const chicagoTime = new Date(now.toLocaleString("en-US", { timeZone: FACILITY_TIMEZONE }));
+  return chicagoTime;
 }
 
 function getStudioNames(booking: Booking, studios: Studio[], bookingStudioLinks: BookingStudioLink[]) {
@@ -106,13 +115,13 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
 }
 
 export default function SignagePage() {
-  const [currentTime, setCurrentTime] = useState(getChicagoTime());
+  const [currentTime, setCurrentTime] = useState(getCurrentChicagoTime());
   const [weather, setWeather] = useState<WeatherData | null>(null);
   
   // Auto-refresh time every 30 seconds
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(getChicagoTime());
+      setCurrentTime(getCurrentChicagoTime());
     }, 30000);
     
     return () => clearInterval(timer);
@@ -122,9 +131,16 @@ export default function SignagePage() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
+        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        
+        if (!apiKey || apiKey.length < 20) {
+          console.log('Weather API key not properly configured');
+          return;
+        }
+
         // Use OpenWeatherMap API for Dallas area (closest major city to facility)
         const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${import.meta.env.VITE_OPENWEATHER_API_KEY}&units=imperial`
+          `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
         );
         
         if (response.ok) {
@@ -137,9 +153,11 @@ export default function SignagePage() {
             icon: data.weather[0].icon,
             location: data.name
           });
+        } else {
+          console.log('Weather API returned error status:', response.status);
         }
       } catch (error) {
-        console.log('Weather data not available');
+        console.log('Weather data unavailable');
         // Gracefully continue without weather data
       }
     };
@@ -250,10 +268,21 @@ export default function SignagePage() {
             {/* Time Info */}
             <div>
               <div className="text-3xl font-bold">
-                {formatChicagoTime(currentTime, 'h:mm a')}
+                {new Date().toLocaleTimeString('en-US', { 
+                  timeZone: FACILITY_TIMEZONE,
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                })}
               </div>
               <div className="text-lg text-slate-300">
-                {formatChicagoTime(currentTime, 'EEEE, MMMM d, yyyy')}
+                {new Date().toLocaleDateString('en-US', {
+                  timeZone: FACILITY_TIMEZONE,
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
               </div>
               <div className="text-sm text-slate-400">Central Time</div>
             </div>
