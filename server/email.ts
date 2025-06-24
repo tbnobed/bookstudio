@@ -313,9 +313,20 @@ export async function sendInviteEmail(
   };
     
     try {
-      await mailService.send(msg);
-      console.log('Invitation email sent successfully');
-      return true;
+      const emailSent = await sendEmail(msg.from, {
+        to: msg.to,
+        from: msg.from,
+        subject: msg.subject,
+        text: msg.text,
+        html: msg.html
+      });
+      
+      if (emailSent) {
+        console.log('Invitation email sent successfully');
+        return true;
+      } else {
+        throw new Error('Email service returned false');
+      }
     } catch (sendGridError: any) {
       console.error('SendGrid error sending invitation email:', sendGridError);
       
@@ -427,9 +438,20 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
     };
     
     try {
-      await mailService.send(msg);
-      console.log('Password reset email sent successfully');
-      return true;
+      const emailSent = await sendEmail(msg.from, {
+        to: msg.to,
+        from: msg.from,
+        subject: msg.subject,
+        text: msg.text,
+        html: msg.html
+      });
+      
+      if (emailSent) {
+        console.log('Password reset email sent successfully');
+        return true;
+      } else {
+        throw new Error('Email service returned false');
+      }
     } catch (sendGridError: any) {
       console.error('SendGrid error sending password reset email:', sendGridError);
       
