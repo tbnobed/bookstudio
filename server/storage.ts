@@ -1351,7 +1351,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async deleteUser(id: number): Promise<boolean> {
+  async deleteUser(id: number, force: boolean = false): Promise<boolean> {
     try {
       // First check if user exists
       const user = await this.getUser(id);
@@ -1359,27 +1359,53 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
       
-      // Check for existing bookings that reference this user
-      const userBookings = await db.select().from(bookings).where(eq(bookings.userId, id));
-      
-      if (userBookings.length > 0) {
-        console.error(`Cannot delete user with ID ${id}: User has ${userBookings.length} associated bookings.`);
-        throw new Error(`Cannot delete user: User has ${userBookings.length} associated bookings. Please delete or reassign these bookings first.`);
+      if (force) {
+        // Force deletion: reassign or delete associated data
+        console.log(`Force deleting user with ID ${id} - reassigning associated data...`);
+        
+        // Get admin user ID (usually ID 1) to reassign bookings and templates
+        const adminUsers = await db.select().from(users).where(eq(users.role, 'admin')).limit(1);
+        const adminUserId = adminUsers.length > 0 ? adminUsers[0].id : 1;
+        
+        // Reassign all bookings to admin user
+        const userBookings = await db.select().from(bookings).where(eq(bookings.userId, id));
+        if (userBookings.length > 0) {
+          await db.update(bookings)
+            .set({ userId: adminUserId })
+            .where(eq(bookings.userId, id));
+          console.log(`Reassigned ${userBookings.length} bookings from user ${id} to admin user ${adminUserId}`);
+        }
+        
+        // Reassign all templates to admin user
+        const userTemplates = await db.select().from(templates).where(eq(templates.createdBy, id));
+        if (userTemplates.length > 0) {
+          await db.update(templates)
+            .set({ createdBy: adminUserId })
+            .where(eq(templates.createdBy, id));
+          console.log(`Reassigned ${userTemplates.length} templates from user ${id} to admin user ${adminUserId}`);
+        }
+      } else {
+        // Regular deletion: check for dependencies
+        const userBookings = await db.select().from(bookings).where(eq(bookings.userId, id));
+        if (userBookings.length > 0) {
+          console.error(`Cannot delete user with ID ${id}: User has ${userBookings.length} associated bookings.`);
+          throw new Error(`Cannot delete user: User has ${userBookings.length} associated bookings. Please delete or reassign these bookings first.`);
+        }
+        
+        const userTemplates = await db.select().from(templates).where(eq(templates.createdBy, id));
+        if (userTemplates.length > 0) {
+          console.error(`Cannot delete user with ID ${id}: User has ${userTemplates.length} associated templates.`);
+          throw new Error(`Cannot delete user: User has ${userTemplates.length} associated templates. Please delete or reassign these templates first.`);
+        }
       }
       
-      // Also check for templates created by this user
-      const userTemplates = await db.select().from(templates).where(eq(templates.createdBy, id));
-      if (userTemplates.length > 0) {
-        console.error(`Cannot delete user with ID ${id}: User has ${userTemplates.length} associated templates.`);
-        throw new Error(`Cannot delete user: User has ${userTemplates.length} associated templates. Please delete or reassign these templates first.`);
-      }
-      
-      // If no dependencies found, proceed with deletion
+      // Proceed with user deletion
       const [deletedUser] = await db.delete(users).where(eq(users.id, id)).returning();
       
       if (deletedUser) {
         // Remove from cache
         this.users.delete(id);
+        console.log(`Successfully deleted user ${id}${force ? ' (with force)' : ''}`);
         return true;
       }
       
@@ -1754,7 +1780,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async deleteTemplate(id: number): Promise<boolean> {
+  async deleteTemplate(id: number, force: boolean = false): Promise<boolean> {
     try {
       // First check if template exists
       const template = await this.getTemplate(id);
@@ -1762,20 +1788,33 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
       
-      // Check for existing bookings that reference this template
-      const templateBookings = await db.select().from(bookings).where(eq(bookings.templateId, id));
-      
-      if (templateBookings.length > 0) {
-        console.error(`Cannot delete template with ID ${id}: Template has ${templateBookings.length} associated bookings.`);
-        throw new Error(`Cannot delete template: Template has ${templateBookings.length} associated bookings. Please delete or reassign these bookings first.`);
+      if (force) {
+        // Force deletion: remove template reference from associated bookings
+        console.log(`Force deleting template with ID ${id} - removing template references...`);
+        
+        const templateBookings = await db.select().from(bookings).where(eq(bookings.templateId, id));
+        if (templateBookings.length > 0) {
+          await db.update(bookings)
+            .set({ templateId: null })
+            .where(eq(bookings.templateId, id));
+          console.log(`Removed template reference from ${templateBookings.length} bookings`);
+        }
+      } else {
+        // Regular deletion: check for dependencies
+        const templateBookings = await db.select().from(bookings).where(eq(bookings.templateId, id));
+        if (templateBookings.length > 0) {
+          console.error(`Cannot delete template with ID ${id}: Template has ${templateBookings.length} associated bookings.`);
+          throw new Error(`Cannot delete template: Template has ${templateBookings.length} associated bookings. Please delete or reassign these bookings first.`);
+        }
       }
       
-      // If no dependencies found, proceed with deletion
+      // Proceed with template deletion
       const [deletedTemplate] = await db.delete(templates).where(eq(templates.id, id)).returning();
       
       if (deletedTemplate) {
         // Remove from cache
         this.templates.delete(id);
+        console.log(`Successfully deleted template ${id}${force ? ' (with force)' : ''}`);
         return true;
       }
       

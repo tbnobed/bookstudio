@@ -128,18 +128,21 @@ export default function UserManagement() {
   
   // Delete user mutation
   const deleteUser = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/users/${id}`);
+    mutationFn: async ({ id, force = false }: { id: number; force?: boolean }) => {
+      const url = force ? `/api/users/${id}?force=true` : `/api/users/${id}`;
+      const res = await apiRequest("DELETE", url);
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to delete user");
+        throw new Error(JSON.stringify(errorData));
       }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       toast({
         title: "Success!",
-        description: "User deleted successfully.",
+        description: variables.force 
+          ? "User deleted successfully (associated data reassigned to admin)."
+          : "User deleted successfully.",
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
@@ -147,11 +150,26 @@ export default function UserManagement() {
       setSelectedUser(null);
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete user",
-        variant: "destructive",
-      });
+      try {
+        const errorData = JSON.parse(error.message);
+        if (errorData.canForceDelete) {
+          // Show force delete option
+          setForceDeleteError(errorData);
+          setShowForceDeleteDialog(true);
+        } else {
+          toast({
+            title: "Error",
+            description: errorData.message || "Failed to delete user",
+            variant: "destructive",
+          });
+        }
+      } catch {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to delete user",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -225,9 +243,17 @@ export default function UserManagement() {
   };
   
   // Confirm user deletion
-  const confirmDeleteUser = () => {
+  const confirmDeleteUser = (force = false) => {
     if (selectedUser) {
-      deleteUser.mutateAsync(selectedUser.id);
+      deleteUser.mutateAsync({ id: selectedUser.id, force });
+    }
+  };
+
+  // Handle force delete confirmation
+  const handleForceDelete = () => {
+    setShowForceDeleteDialog(false);
+    if (selectedUser) {
+      deleteUser.mutateAsync({ id: selectedUser.id, force: true });
     }
   };
 
@@ -599,10 +625,68 @@ export default function UserManagement() {
             <Button 
               type="button" 
               variant="destructive" 
-              onClick={confirmDeleteUser}
+              onClick={() => confirmDeleteUser(false)}
               disabled={deleteUser.isPending}
             >
               {deleteUser.isPending ? "Deleting..." : "Delete User"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Force Delete Confirmation Dialog */}
+      <Dialog open={showForceDeleteDialog} onOpenChange={setShowForceDeleteDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-orange-600">Force Delete User</DialogTitle>
+            <DialogDescription className="pt-2">
+              This user has associated data that prevents normal deletion.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <p className="text-sm text-orange-800 font-medium mb-2">
+                Dependency Warning:
+              </p>
+              <p className="text-sm text-orange-700">
+                {forceDeleteError?.message}
+              </p>
+            </div>
+            
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 font-medium mb-2">
+                Force deletion will:
+              </p>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                <li>• Reassign all user's bookings to the admin user</li>
+                <li>• Reassign all user's templates to the admin user</li>
+                <li>• Permanently delete the user account</li>
+              </ul>
+            </div>
+
+            <p className="text-sm text-gray-600">
+              Are you sure you want to force delete <strong>{selectedUser?.name}</strong>?
+            </p>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setShowForceDeleteDialog(false)}
+              disabled={deleteUser.isPending}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={handleForceDelete}
+              disabled={deleteUser.isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {deleteUser.isPending ? "Force Deleting..." : "Force Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

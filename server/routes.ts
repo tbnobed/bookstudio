@@ -265,6 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const currentUser = req.user as any;
+      const force = req.query.force === 'true'; // Allow force deletion via query parameter
       
       // Prevent self-deletion
       if (req.user && req.user.id === id) {
@@ -283,20 +284,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden: Site managers cannot delete administrator accounts" });
       }
       
-      const deleted = await storage.deleteUser(id);
+      const deleted = await storage.deleteUser(id, force);
       
       if (!deleted) {
         return res.status(404).json({ message: "User not found or could not be deleted" });
       }
       
-      res.status(200).json({ message: "User deleted successfully" });
+      const message = force 
+        ? "User deleted successfully (associated bookings and templates reassigned to admin)"
+        : "User deleted successfully";
+      
+      res.status(200).json({ message });
     } catch (error: any) {
       console.error("Error deleting user:", error);
       if (error.message && error.message.includes("associated bookings")) {
-        return res.status(400).json({ message: error.message });
+        return res.status(400).json({ 
+          message: error.message,
+          canForceDelete: true,
+          forceDeleteHint: "Add ?force=true to reassign associated data and force delete"
+        });
       }
       if (error.message && error.message.includes("associated templates")) {
-        return res.status(400).json({ message: error.message });
+        return res.status(400).json({ 
+          message: error.message,
+          canForceDelete: true,
+          forceDeleteHint: "Add ?force=true to reassign associated data and force delete"
+        });
       }
       res.status(500).json({ message: "Failed to delete user" });
     }
@@ -692,6 +705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/templates/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const force = req.query.force === 'true'; // Allow force deletion via query parameter
       const template = await storage.getTemplate(id);
       
       if (!template) {
@@ -704,16 +718,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
       
-      const success = await storage.deleteTemplate(id);
+      const success = await storage.deleteTemplate(id, force);
       if (success) {
-        return res.json({ message: "Template deleted successfully" });
+        const message = force 
+          ? "Template deleted successfully (removed from associated bookings)"
+          : "Template deleted successfully";
+        return res.json({ message });
       } else {
         return res.status(500).json({ message: "Failed to delete template" });
       }
     } catch (error: any) {
       console.error("Error deleting template:", error);
       if (error.message && error.message.includes("associated bookings")) {
-        return res.status(400).json({ message: error.message });
+        return res.status(400).json({ 
+          message: error.message,
+          canForceDelete: true,
+          forceDeleteHint: "Add ?force=true to remove template from bookings and force delete"
+        });
       }
       res.status(500).json({ message: "Failed to delete template" });
     }
