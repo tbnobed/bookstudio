@@ -111,7 +111,7 @@ export default function SignagePage() {
   }, []);
 
   const { data: bookings = [] } = useQuery<Booking[]>({
-    queryKey: ['/api/bookings'],
+    queryKey: ['/api/public/bookings'],
     refetchInterval: 60000, // Refetch every minute
   });
 
