@@ -310,21 +310,31 @@ export default function SignagePage() {
                   <p className="text-xl">No bookings scheduled for today</p>
                 </div>
               ) : (
-                todaysBookings.map((booking) => (
-                  <div
-                    key={booking.id}
-                    className={`p-4 rounded-lg border-l-4 ${
-                      isBookingActive(booking, currentTime)
-                        ? 'bg-green-500/20 border-green-400'
-                        : parseISO(booking.start) > currentTime
-                        ? 'bg-slate-700/50 border-slate-500'
-                        : 'bg-slate-600/30 border-slate-600'
-                    }`}
-                  >
+                todaysBookings.map((booking) => {
+                  const isAlert = booking.type === 'maintenance' || 
+                                 booking.type === 'all-day:maintenance' ||
+                                 (booking.title && booking.title.toLowerCase().includes('alert')) ||
+                                 (booking.title && booking.title.toLowerCase().includes('outage')) ||
+                                 booking.type === 'alert';
+                  
+                  return (
+                    <div
+                      key={booking.id}
+                      className={`p-4 rounded-lg border-l-4 ${
+                        isAlert 
+                          ? 'bg-red-900/40 border-red-500 shadow-lg animate-pulse' 
+                          : isBookingActive(booking, currentTime)
+                          ? 'bg-green-500/20 border-green-400'
+                          : parseISO(booking.start) > currentTime
+                          ? 'bg-slate-700/50 border-slate-500'
+                          : 'bg-slate-600/30 border-slate-600'
+                      }`}
+                    >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <h3 className="text-lg font-semibold text-white">
+                            {isAlert && <span className="mr-2 text-red-300">⚠️</span>}
                             {booking.title}
                           </h3>
                           {isBookingActive(booking, currentTime) && (
@@ -353,7 +363,8 @@ export default function SignagePage() {
                       />
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>
@@ -381,16 +392,35 @@ export default function SignagePage() {
                       {formatChicagoTime(date, 'd')}
                     </div>
                     <div className="space-y-1">
-                      {bookings.map((booking) => (
-                        <div
-                          key={booking.id}
-                          className="text-xs p-1 rounded text-white truncate"
-                          style={{ backgroundColor: booking.color }}
-                          title={booking.title}
-                        >
-                          {booking.title}
-                        </div>
-                      ))}
+                      {bookings.map((booking) => {
+                        const isAlert = booking.type === 'maintenance' || 
+                                       booking.type === 'all-day:maintenance' ||
+                                       (booking.title && booking.title.toLowerCase().includes('alert')) ||
+                                       (booking.title && booking.title.toLowerCase().includes('outage')) ||
+                                       booking.type === 'alert';
+                        
+                        return (
+                          <div
+                            key={booking.id}
+                            className={`text-xs p-1 rounded text-white truncate ${
+                              isAlert 
+                                ? 'animate-pulse border border-red-400 shadow-md' 
+                                : ''
+                            }`}
+                            style={{ 
+                              backgroundColor: isAlert 
+                                ? (booking.severity === 'critical' ? '#dc2626' : '#ea580c')
+                                : booking.color 
+                            }}
+                            title={booking.title}
+                          >
+                            {isAlert && (
+                              <span className="mr-1">⚠️</span>
+                            )}
+                            {booking.title}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
