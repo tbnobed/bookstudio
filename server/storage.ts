@@ -1391,6 +1391,15 @@ export class DatabaseStorage implements IStorage {
           await db.delete(notifications).where(eq(notifications.userId, id));
           console.log(`Deleted ${userNotifications.length} notifications for user ${id}`);
         }
+        
+        // Reassign file attachments to admin user
+        const userFileAttachments = await db.select().from(fileAttachments).where(eq(fileAttachments.uploadedBy, id));
+        if (userFileAttachments.length > 0) {
+          await db.update(fileAttachments)
+            .set({ uploadedBy: adminUserId })
+            .where(eq(fileAttachments.uploadedBy, id));
+          console.log(`Reassigned ${userFileAttachments.length} file attachments from user ${id} to admin user ${adminUserId}`);
+        }
       } else {
         // Regular deletion: check for dependencies
         const userBookings = await db.select().from(bookings).where(eq(bookings.userId, id));

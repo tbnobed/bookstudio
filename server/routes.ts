@@ -303,7 +303,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isConstraintError = error.code === '23503' || errorMessage.includes("foreign key constraint");
       const isDependencyError = errorMessage.includes("associated bookings") || 
                                errorMessage.includes("associated templates") || 
-                               errorMessage.includes("notifications_user_id_fkey");
+                               errorMessage.includes("notifications_user_id_fkey") ||
+                               errorMessage.includes("file_attachments_uploaded_by_fkey");
       
       if (isDependencyError || isConstraintError) {
         return res.status(400).json({ 
