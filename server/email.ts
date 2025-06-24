@@ -281,7 +281,7 @@ export async function sendInviteEmail(
   `;
 
   const msg = {
-    to: email,
+    to: to,
     from: senderEmail,
     subject: 'You\'re invited to join BookStud.io',
     text,
