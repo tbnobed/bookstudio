@@ -14,7 +14,9 @@ import {
   Tag,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Camera,
+  Video
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from "@tanstack/react-query";
@@ -314,7 +316,7 @@ export default function DayChronView({
               {/* Studios - only show for non-alerts */}
               {!isAlert && studiosList.length > 0 && (
                 <div className="flex items-start gap-2 text-gray-700">
-                  <Users size={14} className="flex-shrink-0 mt-0.5" />
+                  <Camera size={14} className="flex-shrink-0 mt-0.5" />
                   <div className="flex flex-wrap gap-1">
                     {studiosList.map(studio => (
                       <Badge 
@@ -440,7 +442,7 @@ export default function DayChronView({
               <>
                 <div className="col-span-2">
                   <h5 className="text-xs font-medium mb-1 flex items-center gap-1">
-                    <Users className="h-3 w-3" />
+                    <Camera className="h-3 w-3" />
                     Studios
                   </h5>
                   <div className="flex flex-wrap gap-1">
