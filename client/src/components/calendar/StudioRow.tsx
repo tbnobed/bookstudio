@@ -5,6 +5,7 @@ import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } fro
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
+import { useNotificationGroups } from "@/hooks/useNotificationGroups";
 import { useQuery } from "@tanstack/react-query";
 
 interface StudioRowProps {
@@ -69,6 +70,9 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
   // Fetch all booking-studio links to determine which bookings are associated with this studio via junction table
   // Use public endpoint if in readOnly mode (public calendar view)
   const { data: bookingStudioLinks = [] } = useBookingStudioLinks(undefined, readOnly);
+  
+  // Fetch notification groups to display names instead of IDs
+  const { notificationGroups } = useNotificationGroups();
   
   // Fetch PCR rooms to display names instead of IDs
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
@@ -450,12 +454,15 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                           <div className="mt-2">
                             <div className="text-xs font-medium mb-1">Notifying:</div>
                             <div className="flex flex-wrap gap-1">
-                              {booking.notifyList.map((crew: string, i: number) => (
-                                <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
-                                  <User className="mr-1 h-3 w-3" />
-                                  {crew}
-                                </span>
-                              ))}
+                              {booking.notifyList.map((groupId: string | number, i: number) => {
+                                const group = notificationGroups.find(g => g.id.toString() === groupId.toString());
+                                return (
+                                  <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
+                                    <User className="mr-1 h-3 w-3" />
+                                    {group ? group.name : `Group ${groupId}`}
+                                  </span>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
