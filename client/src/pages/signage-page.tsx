@@ -138,13 +138,14 @@ export default function SignagePage() {
           return;
         }
 
-        // Use OpenWeatherMap API for Dallas area (closest major city to facility)
+        // Use OpenWeatherMap Current Weather API (free tier) for Dallas area
         const response = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
         );
         
         if (response.ok) {
           const data = await response.json();
+          console.log('Weather data received:', data);
           setWeather({
             temperature: Math.round(data.main.temp),
             condition: data.weather[0].description,
@@ -154,7 +155,8 @@ export default function SignagePage() {
             location: data.name
           });
         } else {
-          console.log('Weather API returned error status:', response.status);
+          const errorText = await response.text();
+          console.log('Weather API error:', response.status, errorText);
         }
       } catch (error) {
         console.log('Weather data unavailable');
