@@ -174,6 +174,7 @@ export function BookingFormSelector({
       booking={processedBooking} // Use the processed booking
       selectedStudio={selectedStudio}
       selectedDate={selectedDate}
+      alertMode={alertMode}
     />
   ) : (
     <SimpleMobileForm 
@@ -183,6 +184,7 @@ export function BookingFormSelector({
       booking={processedBooking} // Use the processed booking
       selectedStudio={selectedStudio}
       selectedDate={selectedDate}
+      alertMode={alertMode}
     />
   );
 }

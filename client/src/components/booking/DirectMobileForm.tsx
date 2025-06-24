@@ -18,6 +18,7 @@ interface DirectMobileFormProps {
   booking?: ApiBooking | null;
   selectedStudio?: number | null;
   selectedDate?: Date;
+  alertMode?: boolean;
 }
 
 export function DirectMobileForm({
@@ -143,7 +144,7 @@ export function DirectMobileForm({
     pcrRoomId: booking?.pcrRoomId || null, 
     start: booking ? new Date(booking.start) : new Date(selectedDate),
     end: booking ? new Date(booking.end) : new Date(new Date(selectedDate).getTime() + 3600000), // Default 1 hour later
-    type: booking?.type || 'production',
+    type: booking?.type || (alertMode ? 'alert' : 'production'),
     status: booking?.status || 'draft',
     severity: booking?.severity || 'low',
     templateId: booking?.templateId || null,

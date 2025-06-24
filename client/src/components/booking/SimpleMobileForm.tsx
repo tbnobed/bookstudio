@@ -67,6 +67,7 @@ interface SimpleMobileFormProps {
   booking?: any;
   selectedDate?: Date;
   selectedStudio?: number;
+  alertMode?: boolean;
 }
 
 export default function SimpleMobileForm({
@@ -75,7 +76,8 @@ export default function SimpleMobileForm({
   onSubmit,
   booking,
   selectedDate = new Date(),
-  selectedStudio
+  selectedStudio,
+  alertMode = false
 }: SimpleMobileFormProps) {
   const { toast } = useToast();
   const { deleteBooking } = useStudioBookings();
@@ -91,7 +93,7 @@ export default function SimpleMobileForm({
     pcrRoomId: null,
     start: selectedDate,
     end: new Date(selectedDate.getTime() + 60 * 60 * 1000), // 1 hour later
-    type: 'production',
+    type: alertMode ? 'alert' : 'production',
     status: 'draft',
     severity: 'low',
     templateId: null,
