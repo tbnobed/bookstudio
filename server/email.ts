@@ -376,6 +376,9 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
     const senderEmail = process.env.SENDGRID_VERIFIED_SENDER || 'noreply@bookstud.io';
     console.log(`Using sender email for password reset: ${senderEmail}`);
     
+    // Get logo URL using consistent domain resolution
+    const logoUrl = `${origin}/assets/logo.png`;
+    
     const msg = {
       to,
       from: senderEmail,
