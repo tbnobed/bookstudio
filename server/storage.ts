@@ -7,7 +7,8 @@ import {
   notificationGroups, type NotificationGroup, type InsertNotificationGroup,
   pcrRooms, type PcrRoom, type InsertPcrRoom,
   bookingStudios, type BookingStudio, type InsertBookingStudio,
-  systemSettings, type SystemSetting, type InsertSystemSetting
+  systemSettings, type SystemSetting, type InsertSystemSetting,
+  fileAttachments, type FileAttachment, type InsertFileAttachment
 } from "@shared/schema";
 
 import { db, pool, ensureConnection } from "./db";
