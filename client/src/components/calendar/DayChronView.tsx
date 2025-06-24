@@ -881,21 +881,21 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="p-2 rounded border border-gray-100 hover:bg-gray-50 cursor-pointer"
+                    className="p-2 rounded border border-gray-100 hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm cursor-pointer transition-all duration-200 group"
                     onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className={cn(
-                          "w-2 h-2 rounded-full flex-shrink-0",
-                          booking.status === 'confirmed' ? 'bg-green-500' :
-                          booking.status === 'tentative' ? 'bg-yellow-500' : 'bg-red-500'
+                          "w-2 h-2 rounded-full flex-shrink-0 transition-all duration-200",
+                          booking.status === 'confirmed' ? 'bg-green-500 group-hover:bg-green-600' :
+                          booking.status === 'tentative' ? 'bg-yellow-500 group-hover:bg-yellow-600' : 'bg-red-500 group-hover:bg-red-600'
                         )} />
-                        <span className="text-sm font-medium truncate">{booking.title}</span>
-                        {isToday && <span className="text-xs bg-blue-100 text-blue-700 px-1 rounded">Today</span>}
+                        <span className="text-sm font-medium truncate group-hover:text-blue-700 transition-colors duration-200">{booking.title}</span>
+                        {isToday && <span className="text-xs bg-blue-100 text-blue-700 px-1 rounded group-hover:bg-blue-200 transition-colors duration-200">Today</span>}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
                       {formatInFacilityTimezone(new Date(booking.start), 'MMM d')} • Created {formatInFacilityTimezone(createdDate, 'MMM d')}
                     </div>
                   </div>
