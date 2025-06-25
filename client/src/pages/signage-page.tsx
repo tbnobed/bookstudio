@@ -146,13 +146,15 @@ export default function SignagePage() {
   useEffect(() => {
     const fetchWeatherData = async () => {
       try {
-        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        // Debug: Log API key status for troubleshooting
-        console.log("Weather API Key status:", apiKey ? "Available" : "Missing");
+        // TEMPORARY: Hardcoded API key to test if env var is the issue
+        const apiKey = "0f647b5591a3b8ab30cf838f8abdf403";
+        // const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        
+        console.log("Weather API Key (hardcoded test):", apiKey ? "Available" : "Missing");
         console.log("All VITE env vars:", Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
         
         if (!apiKey) {
-          console.warn("Weather integration disabled: VITE_OPENWEATHER_API_KEY not found");
+          console.warn("Weather integration disabled: API key not found");
           return;
         }
 
