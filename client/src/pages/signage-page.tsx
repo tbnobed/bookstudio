@@ -148,8 +148,16 @@ export default function SignagePage() {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
         console.log("Weather API Key status:", apiKey ? "Available" : "Missing");
+        // Fetch current weather
+        const weatherLocation = import.meta.env.VITE_WEATHER_LOCATION;
+        const weatherLat = import.meta.env.VITE_WEATHER_LAT;
+        const weatherLon = import.meta.env.VITE_WEATHER_LON;
+        
         console.log("Weather Location:", weatherLocation || "Not configured");
+        console.log("Weather Lat:", weatherLat || "Not configured");
+        console.log("Weather Lon:", weatherLon || "Not configured");
         console.log("All VITE env vars:", Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
+        console.log("Full env object:", import.meta.env);
         
         if (!apiKey) {
           console.warn("Weather integration disabled: API key not found");
@@ -161,8 +169,7 @@ export default function SignagePage() {
           return;
         }
 
-        // Fetch current weather
-        const weatherLocation = import.meta.env.VITE_WEATHER_LOCATION;
+
         const currentResponse = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${apiKey}&units=imperial`
         );
