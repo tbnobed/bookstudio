@@ -36,10 +36,13 @@ VITE_WEATHER_LON=-96.7970
 ## Production Deployment Checklist
 
 - [ ] OpenWeatherMap API key added to `.env` file
-- [ ] Weather location configured in `.env` file
-- [ ] Docker containers rebuilt with new environment variables
+- [ ] Weather location configured in `.env` file  
+- [ ] **CRITICAL**: `.env` file exists before running `docker-compose up -d --build`
+- [ ] Docker containers rebuilt with Vite embedding weather variables
 - [ ] Signage page tested with weather display
 - [ ] Weather forecast appears in "Week at a Glance" view
+
+**Important**: Vite embeds `VITE_*` environment variables at build time, not runtime. The `.env` file must exist when Docker builds the frontend, or weather functionality will be missing from production.
 
 ## Features Enabled
 

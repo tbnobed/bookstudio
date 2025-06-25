@@ -28,8 +28,10 @@
 
 ### 4. Docker Deployment
 ```bash
-# IMPORTANT: Ensure .env file exists before building
-# Vite needs VITE_* variables at build time for frontend
+# CRITICAL: Ensure .env file with weather API key exists before building
+# Vite embeds VITE_* variables at build time, not runtime
+ls -la .env  # Verify .env file exists
+
 docker-compose up -d --build
 
 # Verify services are running
@@ -41,8 +43,9 @@ docker-compose logs app
 # Check database logs
 docker-compose logs db
 
-# Verify weather environment variables are loaded
-docker-compose exec app env | grep VITE_OPENWEATHER
+# Test weather functionality
+# Visit: http://your-server:5000/signage
+# Weather should appear in header and forecast section
 ```
 
 ### 5. Post-Deployment Verification
