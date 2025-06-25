@@ -199,11 +199,10 @@ export default function SignagePage() {
             }
           });
           
-          console.log("Weather debug - Forecast data:", dailyForecasts.length + " days");
           setForecast({ forecast: dailyForecasts });
         }
       } catch (error) {
-        console.error("Weather debug - Error:", error);
+        console.error("Error fetching weather data:", error);
         // Continue without weather data if API unavailable
       }
     };
