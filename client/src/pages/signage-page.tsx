@@ -155,8 +155,13 @@ export default function SignagePage() {
           return;
         }
 
+        if (!weatherLocation) {
+          console.warn("Weather integration disabled: Location not configured");
+          return;
+        }
+
         // Fetch current weather
-        const weatherLocation = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX,US';
+        const weatherLocation = import.meta.env.VITE_WEATHER_LOCATION;
         const currentResponse = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${apiKey}&units=imperial`
         );

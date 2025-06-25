@@ -8,9 +8,9 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
-        - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION:-Hendersonville,TN,US}
-        - VITE_WEATHER_LAT=${VITE_WEATHER_LAT:-36.3048}
-        - VITE_WEATHER_LON=${VITE_WEATHER_LON:--86.6200}
+        - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}
+        - VITE_WEATHER_LAT=${VITE_WEATHER_LAT}
+        - VITE_WEATHER_LON=${VITE_WEATHER_LON}
     image: bookstudio:${VERSION:-latest}
     restart: always
     ports:
@@ -38,7 +38,7 @@ services:
       - TZ=America/Chicago
       - FACILITY_TIMEZONE=America/Chicago
       - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
-      - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION:-Hendersonville,TN,US}
+      - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}
     depends_on:
       db:
         condition: service_healthy
@@ -155,9 +155,9 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
-        - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION:-Hendersonville,TN,US}
-        - VITE_WEATHER_LAT=${VITE_WEATHER_LAT:-36.3048}
-        - VITE_WEATHER_LON=${VITE_WEATHER_LON:--86.6200}
+        - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}
+        - VITE_WEATHER_LAT=${VITE_WEATHER_LAT}
+        - VITE_WEATHER_LON=${VITE_WEATHER_LON}
     image: bookstudio:${VERSION:-latest}
     depends_on:
       db:
