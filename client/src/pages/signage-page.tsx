@@ -147,8 +147,11 @@ export default function SignagePage() {
     const fetchWeatherData = async () => {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        console.log("Weather API Debug - Key present:", !!apiKey);
+        console.log("Weather API Debug - Environment:", import.meta.env.MODE);
         
         if (!apiKey) {
+          console.log("Weather API Debug - No API key found");
           return;
         }
 
