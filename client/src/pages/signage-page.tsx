@@ -271,7 +271,7 @@ export default function SignagePage() {
     const dayBookings = bookings.filter(booking => {
       const bookingStart = parseISO(booking.start);
       return isWithinInterval(bookingStart, { start: date, end: dayEnd });
-    });
+    }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
     return {
       date,
       bookings: dayBookings,
