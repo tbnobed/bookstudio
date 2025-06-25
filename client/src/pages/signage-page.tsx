@@ -147,10 +147,16 @@ export default function SignagePage() {
     const fetchWeatherData = async () => {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        console.log("Production weather debug - API key exists:", !!apiKey);
+        console.log("Production weather debug - API key value:", apiKey ? "***" + apiKey.slice(-4) : "none");
         
         if (!apiKey) {
+          console.log("Production weather debug - No API key, skipping weather fetch");
           return;
         }
+
+        console.log("Production weather debug - Starting weather fetch...");
+        console.log("Production weather debug - Using environment:", import.meta.env.MODE);
 
         // Fetch current weather
         const currentResponse = await fetch(
@@ -159,6 +165,7 @@ export default function SignagePage() {
         
         if (currentResponse.ok) {
           const currentData = await currentResponse.json();
+          console.log("Production weather debug - Current weather data received:", currentData.name, currentData.main.temp);
           setWeather({
             temperature: Math.round(currentData.main.temp),
             condition: currentData.weather[0].description,
@@ -167,6 +174,8 @@ export default function SignagePage() {
             icon: currentData.weather[0].icon,
             location: currentData.name
           });
+        } else {
+          console.log("Production weather debug - Current weather API failed:", currentResponse.status, currentResponse.statusText);
         }
 
         // Fetch 7-day forecast
