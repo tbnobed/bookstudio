@@ -26,7 +26,9 @@ COPY .env* ./
 
 # Build the application directly in the Dockerfile
 # Client build (Vite will read VITE_* variables from .env)
-RUN npm run build
+RUN echo "Building with environment variables..." && \
+    if [ -f .env ]; then echo "Found .env file"; cat .env | grep VITE_ || echo "No VITE_ vars found"; else echo "No .env file found"; fi && \
+    npm run build
 # Create a production-ready server file
 RUN echo "import express from 'express';" > server-prod.js && \
     echo "import { registerRoutes } from './server/routes.js';" >> server-prod.js && \

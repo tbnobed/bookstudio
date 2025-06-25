@@ -147,21 +147,16 @@ export default function SignagePage() {
     const fetchWeatherData = async () => {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        console.log("Weather API Debug - Key present:", !!apiKey);
-        console.log("Weather API Debug - Environment:", import.meta.env.MODE);
-        console.log("Weather API Debug - About to make API call to OpenWeatherMap...");
+        // Weather functionality loads silently in production
         
         if (!apiKey) {
-          console.log("Weather API Debug - No API key found");
           return;
         }
 
         // Fetch current weather
-        console.log("Weather API Debug - Making current weather request...");
         const currentResponse = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
         );
-        console.log("Weather API Debug - Current weather response status:", currentResponse.status);
         
         if (currentResponse.ok) {
           const currentData = await currentResponse.json();
@@ -208,8 +203,7 @@ export default function SignagePage() {
           setForecast({ forecast: dailyForecasts });
         }
       } catch (error) {
-        console.error("Weather API Debug - Error details:", error);
-        console.error("Weather API Debug - Error message:", error.message);
+        console.error("Weather API error:", error);
         // Continue without weather data if API unavailable
       }
     };
