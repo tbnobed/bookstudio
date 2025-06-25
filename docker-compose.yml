@@ -32,6 +32,8 @@ services:
       - SUPPORT_SITE_MANAGER_ROLE=true
       - TZ=America/Chicago
       - FACILITY_TIMEZONE=America/Chicago
+      - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
+      - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION:-Dallas,TX,US}
     depends_on:
       db:
         condition: service_healthy

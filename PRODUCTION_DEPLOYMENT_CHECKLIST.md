@@ -28,7 +28,7 @@
 
 ### 4. Docker Deployment
 ```bash
-# Build and start services
+# Build and start services (includes weather API variables)
 docker-compose up -d --build
 
 # Verify services are running
@@ -39,6 +39,9 @@ docker-compose logs app
 
 # Check database logs
 docker-compose logs db
+
+# Verify weather environment variables are loaded
+docker-compose exec app env | grep WEATHER
 ```
 
 ### 5. Post-Deployment Verification
