@@ -36,6 +36,14 @@ ENV VITE_WEATHER_LON=$VITE_WEATHER_LON
 
 RUN echo "=== Building with environment variables ===" && \
     echo "VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}" && \
+    echo "VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}" && \
+    echo "VITE_WEATHER_LAT=${VITE_WEATHER_LAT}" && \
+    echo "VITE_WEATHER_LON=${VITE_WEATHER_LON}" && \
+    echo "=== Creating client .env for Vite ===" && \
+    echo "VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}" > client/.env && \
+    echo "VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}" >> client/.env && \
+    echo "VITE_WEATHER_LAT=${VITE_WEATHER_LAT}" >> client/.env && \
+    echo "VITE_WEATHER_LON=${VITE_WEATHER_LON}" >> client/.env && \
     echo "=== Starting Vite build ===" && \
     npm run build
 # Create a production-ready server file
