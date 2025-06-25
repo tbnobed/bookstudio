@@ -180,26 +180,42 @@ export default function SignagePage() {
         if (forecastResponse.ok) {
           const forecastData = await forecastResponse.json();
           
-          // Process forecast data - get daily forecasts
-          const dailyForecasts: ForecastDay[] = [];
-          const processedDates = new Set<string>();
+          // Process forecast data - get daily forecasts by grouping hourly data
+          const dailyData = new Map<string, any[]>();
           
           forecastData.list.forEach((item: any) => {
             const date = new Date(item.dt * 1000);
             const dateString = format(date, 'yyyy-MM-dd');
             
-            if (!processedDates.has(dateString) && dailyForecasts.length < 7) {
-              dailyForecasts.push({
-                date: dateString,
-                temperature: {
-                  min: Math.round(item.main.temp_min),
-                  max: Math.round(item.main.temp_max)
-                },
-                condition: item.weather[0].description,
-                icon: item.weather[0].icon
-              });
-              processedDates.add(dateString);
+            if (!dailyData.has(dateString)) {
+              dailyData.set(dateString, []);
             }
+            dailyData.get(dateString)!.push(item);
+          });
+          
+          // Create daily forecasts with proper min/max calculations
+          const dailyForecasts: ForecastDay[] = [];
+          
+          Array.from(dailyData.entries()).slice(0, 7).forEach(([dateString, dayData]) => {
+            const temps = dayData.map(item => item.main.temp);
+            const minTemp = Math.min(...temps);
+            const maxTemp = Math.max(...temps);
+            
+            // Use midday data for condition and icon (around noon)
+            const middayData = dayData.find(item => {
+              const hour = new Date(item.dt * 1000).getHours();
+              return hour >= 11 && hour <= 13;
+            }) || dayData[Math.floor(dayData.length / 2)];
+            
+            dailyForecasts.push({
+              date: dateString,
+              temperature: {
+                min: Math.round(minTemp),
+                max: Math.round(maxTemp)
+              },
+              condition: middayData.weather[0].description,
+              icon: middayData.weather[0].icon
+            });
           });
           
           setForecast({ forecast: dailyForecasts });
@@ -464,18 +480,29 @@ export default function SignagePage() {
                       </div>
                       
                       {/* Weather forecast for the day */}
-                      {dayForecast && (
-                        <div className="mb-2 flex flex-col items-center">
-                          <img 
-                            src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
-                            alt={dayForecast.condition}
-                            className="w-8 h-8 mb-1"
-                          />
-                          <div className="text-xs text-slate-300">
-                            {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
-                          </div>
-                        </div>
-                      )}
+                      <div className="mb-2 flex flex-col items-center">
+                        {dayForecast ? (
+                          <>
+                            <img 
+                              src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
+                              alt={dayForecast.condition}
+                              className="w-8 h-8 mb-1"
+                            />
+                            <div className="text-xs text-slate-300">
+                              {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-8 h-8 mb-1 flex items-center justify-center">
+                              <span className="text-slate-500 text-lg">☁</span>
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              --/--
+                            </div>
+                          </>
+                        )}
+                      </div>
                       
                       <div className="space-y-1">
                       {bookings.map((booking) => {
