@@ -394,74 +394,81 @@ export default function SignagePage() {
                 Today's Schedule
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               {todaysBookings.length === 0 ? (
                 <div className="text-center py-12 text-slate-400">
                   <Calendar className="mx-auto h-16 w-16 mb-4 opacity-50" />
                   <p className="text-xl">No bookings scheduled for today</p>
                 </div>
               ) : (
-                todaysBookings.map((booking) => {
-                  const isAlert = booking.type === 'maintenance' || 
-                                 booking.type === 'all-day:maintenance' ||
-                                 booking.type === 'alert' ||
-                                 (booking.title && (
-                                   booking.title.toLowerCase().includes('alert') ||
-                                   booking.title.toLowerCase().includes('outage') ||
-                                   booking.title.toLowerCase().includes('emergency') ||
-                                   booking.title.toLowerCase().includes('maintenance') ||
-                                   booking.title.toLowerCase().includes('notice') ||
-                                   booking.title.toLowerCase().includes('warning')
-                                 ));
-                  
-                  return (
-                    <div
-                      key={booking.id}
-                      className={`p-4 rounded-lg border-l-4 ${
-                        isAlert 
-                          ? 'bg-red-900/40 border-red-500 shadow-lg animate-pulse' 
-                          : isBookingActive(booking, currentTime)
-                          ? 'bg-green-500/20 border-green-400'
-                          : parseISO(booking.start) > currentTime
-                          ? 'bg-slate-700/50 border-slate-500'
-                          : 'bg-slate-600/30 border-slate-600'
-                      }`}
-                    >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-white">
-                            {isAlert && <span className="mr-2 text-red-300">⚠️</span>}
-                            {booking.title}
-                          </h3>
-                          {isBookingActive(booking, currentTime) && (
-                            <Badge className="bg-red-500 text-white animate-pulse">
-                              <Radio className="w-3 h-3 mr-1" />
-                              LIVE
+                <div className="grid grid-cols-4 gap-4">
+                  {todaysBookings.map((booking) => {
+                    const isAlert = booking.type === 'maintenance' || 
+                                   booking.type === 'all-day:maintenance' ||
+                                   booking.type === 'alert' ||
+                                   (booking.title && (
+                                     booking.title.toLowerCase().includes('alert') ||
+                                     booking.title.toLowerCase().includes('outage') ||
+                                     booking.title.toLowerCase().includes('emergency') ||
+                                     booking.title.toLowerCase().includes('maintenance') ||
+                                     booking.title.toLowerCase().includes('notice') ||
+                                     booking.title.toLowerCase().includes('warning')
+                                   ));
+                    
+                    return (
+                      <div
+                        key={booking.id}
+                        className={`p-3 rounded-lg border-l-4 ${
+                          isAlert 
+                            ? 'bg-red-900/40 border-red-500 shadow-lg animate-pulse' 
+                            : isBookingActive(booking, currentTime)
+                            ? 'bg-green-500/20 border-green-400'
+                            : parseISO(booking.start) > currentTime
+                            ? 'bg-slate-700/50 border-slate-500'
+                            : 'bg-slate-600/30 border-slate-600'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h3 className="text-sm font-semibold text-white truncate">
+                                {isAlert && <span className="mr-1 text-red-300">⚠️</span>}
+                                {booking.title}
+                              </h3>
+                              {isBookingActive(booking, currentTime) && (
+                                <Badge className="bg-red-500 text-white animate-pulse text-xs px-1 py-0">
+                                  <Radio className="w-2 h-2 mr-1" />
+                                  LIVE
+                                </Badge>
+                              )}
+                            </div>
+                            <Badge 
+                              variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
+                              className={`text-xs ${booking.status === 'confirmed' ? 'bg-green-600' : ''}`}
+                            >
+                              {booking.status.toUpperCase()}
                             </Badge>
-                          )}
-                          <Badge 
-                            variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
-                            className={booking.status === 'confirmed' ? 'bg-green-600' : ''}
-                          >
-                            {booking.status.toUpperCase()}
-                          </Badge>
+                          </div>
+                          <div 
+                            className="w-3 h-12 rounded ml-2 flex-shrink-0"
+                            style={{ backgroundColor: booking.color }}
+                          />
                         </div>
-                        <div className="text-slate-300 mb-2">
+                        <div className="text-xs text-slate-300 mb-1 truncate">
                           {getStudioNames(booking, studios, bookingStudioLinks)}
                         </div>
-                        <div className="text-slate-400">
+                        <div className="text-xs text-slate-400">
                           {formatChicagoTime(booking.start, 'h:mm a')} - {formatChicagoTime(booking.end, 'h:mm a')}
                         </div>
+                        {booking.description && booking.description.trim() && (
+                          <div className="text-xs text-slate-500 mt-1 truncate" title={booking.description}>
+                            {booking.description}
+                          </div>
+                        )}
                       </div>
-                      <div 
-                        className="w-4 h-16 rounded"
-                        style={{ backgroundColor: booking.color }}
-                      />
-                    </div>
-                  </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
             </CardContent>
           </Card>
