@@ -156,8 +156,9 @@ export default function SignagePage() {
         }
 
         // Fetch current weather
+        const weatherLocation = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX,US';
         const currentResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
+          `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${apiKey}&units=imperial`
         );
         
         if (currentResponse.ok) {
@@ -174,7 +175,7 @@ export default function SignagePage() {
 
         // Fetch 7-day forecast
         const forecastResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=Dallas,TX,US&appid=${apiKey}&units=imperial`
+          `https://api.openweathermap.org/data/2.5/forecast?q=${weatherLocation}&appid=${apiKey}&units=imperial`
         );
         
         if (forecastResponse.ok) {
