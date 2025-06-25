@@ -28,7 +28,8 @@
 
 ### 4. Docker Deployment
 ```bash
-# Build and start services (includes weather API variables)
+# IMPORTANT: Ensure .env file exists before building
+# Vite needs VITE_* variables at build time for frontend
 docker-compose up -d --build
 
 # Verify services are running

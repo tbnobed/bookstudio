@@ -21,8 +21,11 @@ COPY *.ts ./
 COPY *.js ./
 COPY *.json ./
 
+# Copy .env file for build-time environment variables
+COPY .env* ./
+
 # Build the application directly in the Dockerfile
-# Client build
+# Client build (Vite will read VITE_* variables from .env)
 RUN npm run build
 # Create a production-ready server file
 RUN echo "import express from 'express';" > server-prod.js && \
