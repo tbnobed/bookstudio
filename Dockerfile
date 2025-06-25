@@ -24,9 +24,18 @@ COPY *.json ./
 # Copy .env file for build-time environment variables
 COPY .env* ./
 
-# Build with embedded environment variables
+# Build with embedded environment variables using ARG and ENV
+ARG VITE_OPENWEATHER_API_KEY
+ARG VITE_WEATHER_LOCATION
+ARG VITE_WEATHER_LAT
+ARG VITE_WEATHER_LON
+ENV VITE_OPENWEATHER_API_KEY=$VITE_OPENWEATHER_API_KEY
+ENV VITE_WEATHER_LOCATION=$VITE_WEATHER_LOCATION
+ENV VITE_WEATHER_LAT=$VITE_WEATHER_LAT
+ENV VITE_WEATHER_LON=$VITE_WEATHER_LON
+
 RUN echo "=== Building with environment variables ===" && \
-    cat .env && \
+    echo "VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}" && \
     echo "=== Starting Vite build ===" && \
     npm run build
 # Create a production-ready server file

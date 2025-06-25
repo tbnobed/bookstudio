@@ -6,6 +6,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
+        - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION:-Dallas,TX,US}
+        - VITE_WEATHER_LAT=${VITE_WEATHER_LAT:-32.7767}
+        - VITE_WEATHER_LON=${VITE_WEATHER_LON=-96.7970}
     image: bookstudio:${VERSION:-latest}
     restart: always
     ports:
@@ -148,6 +153,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
+        - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION:-Dallas,TX,US}
+        - VITE_WEATHER_LAT=${VITE_WEATHER_LAT:-32.7767}
+        - VITE_WEATHER_LON=${VITE_WEATHER_LON=-96.7970}
     image: bookstudio:${VERSION:-latest}
     depends_on:
       db:

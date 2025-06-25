@@ -7,9 +7,9 @@ Weather API integration works perfectly when the API key is hardcoded, but fails
 Vite embeds VITE_* environment variables at build time, not runtime. The Docker build process wasn't properly reading the .env file during the frontend build step.
 
 ## Solution Applied
-1. Fixed Dockerfile to properly copy .env file before build
-2. Enhanced build step to show .env contents during Docker build
-3. Streamlined environment variable handling
+1. Fixed Dockerfile to use ARG and ENV for proper build-time variable embedding
+2. Updated docker-compose.yml to pass environment variables as build arguments
+3. Ensured VITE_ variables are available during both build and runtime
 
 ## Production Deployment Steps
 
@@ -32,6 +32,16 @@ docker-compose build --no-cache
 
 # Start containers
 docker-compose up -d
+```
+
+### 3. Alternative: Direct Build Arguments
+If .env file issues persist, you can pass variables directly:
+```bash
+docker-compose build --no-cache \
+  --build-arg VITE_OPENWEATHER_API_KEY=0f647b5591a3b8ab30cf838f8abdf403 \
+  --build-arg VITE_WEATHER_LOCATION=Dallas,TX,US \
+  --build-arg VITE_WEATHER_LAT=32.7767 \
+  --build-arg VITE_WEATHER_LON=-96.7970
 ```
 
 ### 3. Verify Weather Integration
