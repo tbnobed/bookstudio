@@ -104,7 +104,7 @@
         .booking-row {
             display: table;
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             table-layout: fixed;
         }
         
@@ -113,9 +113,9 @@
             width: 24%;
             margin-right: 1%;
             background: rgba(51, 65, 85, 0.6);
-            border-radius: 8px;
-            border-left: 4px solid #3b82f6;
-            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+            padding: 8px;
             vertical-align: top;
         }
         
@@ -131,21 +131,22 @@
         }
         
         .booking-title {
-            font-size: 14px;
+            font-size: 11px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            line-height: 1.2;
         }
         
         .booking-status {
             display: inline-block;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 8px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         
         .status-confirmed {
@@ -164,12 +165,13 @@
         }
         
         .booking-details {
-            font-size: 12px;
+            font-size: 9px;
             color: #94a3b8;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            line-height: 1.2;
         }
         
         .live-indicator {
@@ -308,23 +310,22 @@
         
         .studio-item {
             display: table-cell;
-            width: 24%;
-            margin-right: 1%;
+            width: 49%;
+            margin-right: 2%;
             background: rgba(51, 65, 85, 0.3);
-            border-radius: 6px;
-            padding: 6px;
-            vertical-align: top;
+            border-radius: 8px;
+            padding: 8px;
         }
         
         .studio-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
         
         .studio-name {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: bold;
             white-space: nowrap;
             overflow: hidden;
@@ -334,8 +335,8 @@
         
         .status-dot {
             display: inline-block;
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             flex-shrink: 0;
         }
@@ -349,12 +350,11 @@
         }
         
         .studio-current {
-            font-size: 8px;
+            font-size: 10px;
             color: #94a3b8;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1.2;
         }
         
         .studio-available {
@@ -362,10 +362,9 @@
         }
         
         .studio-until {
-            font-size: 8px;
+            font-size: 10px;
             color: #64748b;
             margin-top: 2px;
-            line-height: 1.2;
         }
         
         /* Active Site Alerts */
@@ -830,9 +829,9 @@
             }
             
             var html = '<div class="studio-grid">';
-            for (var i = 0; i < currentData.studios.length; i += 4) {
+            for (var i = 0; i < currentData.studios.length; i += 2) {
                 html += '<div class="studio-row">';
-                for (var j = 0; j < 4 && (i + j) < currentData.studios.length; j++) {
+                for (var j = 0; j < 2 && (i + j) < currentData.studios.length; j++) {
                     var studio = currentData.studios[i + j];
                     
                     // Find current booking for this studio
