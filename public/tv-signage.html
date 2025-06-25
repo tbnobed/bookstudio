@@ -308,22 +308,23 @@
         
         .studio-item {
             display: table-cell;
-            width: 49%;
-            margin-right: 2%;
+            width: 24%;
+            margin-right: 1%;
             background: rgba(51, 65, 85, 0.3);
-            border-radius: 8px;
-            padding: 8px;
+            border-radius: 6px;
+            padding: 6px;
+            vertical-align: top;
         }
         
         .studio-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
         
         .studio-name {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
             white-space: nowrap;
             overflow: hidden;
@@ -333,8 +334,8 @@
         
         .status-dot {
             display: inline-block;
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             flex-shrink: 0;
         }
@@ -348,11 +349,12 @@
         }
         
         .studio-current {
-            font-size: 10px;
+            font-size: 8px;
             color: #94a3b8;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            line-height: 1.2;
         }
         
         .studio-available {
@@ -360,9 +362,10 @@
         }
         
         .studio-until {
-            font-size: 10px;
+            font-size: 8px;
             color: #64748b;
             margin-top: 2px;
+            line-height: 1.2;
         }
         
         /* Active Site Alerts */
@@ -827,9 +830,9 @@
             }
             
             var html = '<div class="studio-grid">';
-            for (var i = 0; i < currentData.studios.length; i += 2) {
+            for (var i = 0; i < currentData.studios.length; i += 4) {
                 html += '<div class="studio-row">';
-                for (var j = 0; j < 2 && (i + j) < currentData.studios.length; j++) {
+                for (var j = 0; j < 4 && (i + j) < currentData.studios.length; j++) {
                     var studio = currentData.studios[i + j];
                     
                     // Find current booking for this studio
