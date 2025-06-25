@@ -103,7 +103,7 @@ services:
                     if (constraintQuery.rows.length > 0) {
                       const pkConstraint = constraintQuery.rows[0].constraint_name;
                       // Drop the primary key constraint
-                      await pool.query(`ALTER TABLE system_settings DROP CONSTRAINT "${pkConstraint}";`);
+                      await pool.query('ALTER TABLE system_settings DROP CONSTRAINT \\\"' + pkConstraint + '\\\";');
                       console.log('Dropped old primary key constraint');
                     }
                     
