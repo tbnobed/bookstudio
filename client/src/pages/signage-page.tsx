@@ -146,11 +146,8 @@ export default function SignagePage() {
   useEffect(() => {
     const fetchWeatherData = async () => {
       try {
-        // TEMPORARY: Hardcoded API key to test if env var is the issue
-        const apiKey = "0f647b5591a3b8ab30cf838f8abdf403";
-        // const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        
-        console.log("Weather API Key (hardcoded test):", apiKey ? "Available" : "Missing");
+        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        console.log("Weather API Key status:", apiKey ? "Available" : "Missing");
         console.log("All VITE env vars:", Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
         
         if (!apiKey) {
@@ -497,7 +494,7 @@ export default function SignagePage() {
                         return (
                           <div
                             key={booking.id}
-                            className={`text-xs p-1 rounded text-white truncate ${
+                            className={`text-xs p-2 rounded text-white ${
                               isAlert 
                                 ? 'animate-pulse border border-red-400 shadow-md' 
                                 : ''
@@ -507,12 +504,43 @@ export default function SignagePage() {
                                 ? (booking.severity === 'critical' ? '#dc2626' : '#ea580c')
                                 : booking.color 
                             }}
-                            title={booking.title}
+                            title={`${booking.title} - ${formatChicagoTime(booking.start, 'h:mm a')} to ${formatChicagoTime(booking.end, 'h:mm a')}`}
                           >
-                            {isAlert && (
-                              <span className="mr-1">⚠️</span>
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="font-medium truncate flex-1">
+                                {isAlert && (
+                                  <span className="mr-1">⚠️</span>
+                                )}
+                                {booking.title}
+                              </div>
+                              <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
+                                {booking.status === 'confirmed' && (
+                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Confirmed" />
+                                )}
+                                {booking.status === 'tentative' && (
+                                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full" title="Tentative" />
+                                )}
+                                {booking.status === 'cancelled' && (
+                                  <div className="w-1.5 h-1.5 bg-red-400 rounded-full" title="Cancelled" />
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between text-xs opacity-90">
+                              <div className="flex items-center space-x-2">
+                                <span>{formatChicagoTime(booking.start, 'h:mm a')}-{formatChicagoTime(booking.end, 'h:mm a')}</span>
+                                {booking.type === 'maintenance' && (
+                                  <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
+                                )}
+                              </div>
+                              <div className="text-xs opacity-75 truncate ml-2">
+                                {getStudioNames(booking, studios, bookingStudioLinks)}
+                              </div>
+                            </div>
+                            {booking.description && booking.description.trim() && (
+                              <div className="text-xs opacity-80 mt-1 truncate">
+                                {booking.description}
+                              </div>
                             )}
-                            {booking.title}
                           </div>
                         );
                       })}
