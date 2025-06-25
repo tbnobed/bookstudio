@@ -41,7 +41,7 @@ docker-compose logs app
 docker-compose logs db
 
 # Verify weather environment variables are loaded
-docker-compose exec app env | grep WEATHER
+docker-compose exec app env | grep VITE_OPENWEATHER
 ```
 
 ### 5. Post-Deployment Verification
