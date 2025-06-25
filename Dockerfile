@@ -24,11 +24,18 @@ COPY *.json ./
 # Copy .env file for build-time environment variables
 COPY .env* ./
 
-# Build the application directly in the Dockerfile
-# Client build (Vite will read VITE_* variables from .env)
-RUN echo "Building with environment variables..." && \
-    if [ -f .env ]; then echo "Found .env file"; cat .env | grep VITE_ || echo "No VITE_ vars found"; else echo "No .env file found"; fi && \
-    npm run build
+# Debug environment variables before build
+RUN echo "=== Pre-build Environment Debug ===" && \
+    pwd && \
+    ls -la .env* 2>/dev/null || echo "No .env files found" && \
+    echo "=== Current environment ===" && \
+    env | grep VITE_ || echo "No VITE_ env vars found" && \
+    echo "=== .env file contents ===" && \
+    cat .env 2>/dev/null || echo "Cannot read .env file" && \
+    echo "=== Building application ===" && \
+    npm run build && \
+    echo "=== Build complete, checking dist folder ===" && \
+    ls -la dist/
 # Create a production-ready server file
 RUN echo "import express from 'express';" > server-prod.js && \
     echo "import { registerRoutes } from './server/routes.js';" >> server-prod.js && \
