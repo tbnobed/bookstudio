@@ -148,6 +148,7 @@ export default function SignagePage() {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
         console.log("Weather API Key status:", apiKey ? "Available" : "Missing");
+        console.log("Weather Location:", weatherLocation || "Not configured");
         console.log("All VITE env vars:", Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
         
         if (!apiKey) {
