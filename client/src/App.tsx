@@ -19,6 +19,7 @@ import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import SignagePage from "@/pages/signage-page";
 import MobilePublicCalendarPage from "@/pages/MobilePublicCalendarPage";
 import InvitePage from "@/pages/InvitePage";
+import EngineeringPage from "@/pages/engineering-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { CalendarProvider } from "@/contexts/CalendarContext";
