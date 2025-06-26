@@ -1004,6 +1004,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Check for PCR room conflicts if a PCR room is assigned
+      if (bookingData.pcrRoomId) {
+        const start = new Date(bookingData.start);
+        const end = new Date(bookingData.end);
+        
+        const pcrConflicts = await storage.checkPcrRoomConflicts(bookingData.pcrRoomId, start, end, null);
+        
+        if (pcrConflicts.length > 0) {
+          // Get the PCR room name for better error message
+          const pcrRoom = await storage.getPcrRoom(bookingData.pcrRoomId);
+          return res.status(409).json({ 
+            message: `There is a PCR room conflict for ${pcrRoom ? pcrRoom.name : `PCR room ID ${bookingData.pcrRoomId}`} during this time slot`
+          });
+        }
+      }
+      
       const booking = await storage.createBooking(bookingData);
       console.log("=== BOOKING CREATED ===");
       console.log("Created booking:", JSON.stringify(booking));
@@ -1437,6 +1453,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ 
           message: `There is a booking conflict for ${studio ? studio.name : `studio ID ${conflictingStudio}`} during this time slot`
         });
+      }
+      
+      // Check for PCR room conflicts if a PCR room is assigned and dates are changing
+      if ((updateData.pcrRoomId !== undefined || booking.pcrRoomId) && (updateData.start || updateData.end)) {
+        const start = updateData.start || new Date(booking.start);
+        const end = updateData.end || new Date(booking.end);
+        const pcrRoomId = updateData.pcrRoomId !== undefined ? updateData.pcrRoomId : booking.pcrRoomId;
+        
+        if (pcrRoomId) {
+          const pcrConflicts = await storage.checkPcrRoomConflicts(pcrRoomId, start, end, id);
+          
+          if (pcrConflicts.length > 0) {
+            // Get the PCR room name for better error message
+            const pcrRoom = await storage.getPcrRoom(pcrRoomId);
+            return res.status(409).json({ 
+              message: `There is a PCR room conflict for ${pcrRoom ? pcrRoom.name : `PCR room ID ${pcrRoomId}`} during this time slot`
+            });
+          }
+        }
       }
       
       // Parse studioIds to ensure they're all numbers

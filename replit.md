@@ -236,6 +236,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 23, 2025: FIXED multi-studio template booking creation - updated both SimpleMobileForm and DirectMobileForm to properly pass studioIds array to booking creation API, ensuring templates with multiple studios create bookings on ALL selected studios instead of just the first one
 - June 23, 2025: DEBUGGING multi-studio mobile submission - enhanced MobileBookingController and useStudioBookings hook to properly pass studioIds array through the complete submission chain, added comprehensive debug logging to track data flow from mobile form to server API, identified that studioIds array needs to be preserved in booking creation mutation
 - June 23, 2025: CONFIRMED multi-studio bug - booking 173 "Test Studio A and F" created with only Studio A link despite user selecting both studios, no entries in booking_studios table proving studioIds array not reaching server, enhanced debug logging in submission chain to track exact data flow issue
+- June 26, 2025: IMPLEMENTED PCR room conflict validation - added checkPcrRoomConflicts method to both MemStorage and DatabaseStorage classes, integrated PCR room conflict checking into booking creation (POST /api/bookings) and update (PATCH /api/bookings/:id) API routes to prevent double-booking of PCR rooms during overlapping time periods, ensuring production facility resource integrity
 
 ## User Preferences
 
