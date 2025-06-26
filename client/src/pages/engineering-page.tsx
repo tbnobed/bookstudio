@@ -411,10 +411,10 @@ export default function EngineeringPage() {
               return (
                 <div
                   key={day.fullDate}
-                  className="flex-1 min-w-[140px] border-r border-orange-200 min-h-[80px] relative"
+                  className="flex-1 min-w-[140px] border-r border-orange-200 min-h-[80px] relative p-3"
                 >
                   {dayAlerts.length > 0 ? (
-                    <div className="p-2 space-y-1">
+                    <div className="space-y-1">
                       {dayAlerts.map((alert) => {
                         const severityStyle = getSeverityStyle(alert);
                         const startTime = toZonedTime(parseISO(alert.start), FACILITY_TIMEZONE);
@@ -462,7 +462,7 @@ export default function EngineeringPage() {
                       })}
                     </div>
                   ) : (
-                    <div className="p-2 text-xs text-orange-400 italic text-center">No alerts</div>
+                    <div className="text-xs text-orange-400 italic text-center">No alerts</div>
                   )}
                 </div>
               );
