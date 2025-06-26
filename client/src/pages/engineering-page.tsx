@@ -6,6 +6,12 @@ import { ChevronLeft, ChevronRight, Settings, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const FACILITY_TIMEZONE = "America/Chicago";
 
@@ -209,7 +215,8 @@ export default function EngineeringPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <TooltipProvider>
+      <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -342,42 +349,90 @@ export default function EngineeringPage() {
                         const pcrRoom = getPcrRoomName(booking.pcrRoomId);
 
                         return (
-                          <div
-                            key={booking.id}
-                            className="absolute rounded text-white text-xs p-1 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden"
-                            style={{
-                              ...style,
-                              marginLeft: '2px',
-                              marginRight: '2px'
-                            }}
-                          >
-                            <div className="font-semibold truncate">
-                              {booking.title}
-                            </div>
-                            
-                            {studios.length > 0 && (
-                              <div className="truncate text-xs opacity-90">
-                                {studios.join(', ')}
-                              </div>
-                            )}
-                            
-                            {pcrRoom && (
-                              <div className="truncate text-xs opacity-90">
-                                {pcrRoom}
-                              </div>
-                            )}
-                            
-                            <div className="text-xs opacity-75">
-                              {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - 
-                              {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
-                            </div>
+                          <Tooltip key={booking.id}>
+                            <TooltipTrigger asChild>
+                              <div
+                                className="absolute rounded text-white text-xs p-1 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden"
+                                style={{
+                                  ...style,
+                                  marginLeft: '2px',
+                                  marginRight: '2px'
+                                }}
+                              >
+                                <div className="font-semibold truncate">
+                                  {booking.title}
+                                </div>
+                                
+                                {studios.length > 0 && (
+                                  <div className="truncate text-xs opacity-90">
+                                    {studios.join(', ')}
+                                  </div>
+                                )}
+                                
+                                {pcrRoom && (
+                                  <div className="truncate text-xs opacity-90">
+                                    {pcrRoom}
+                                  </div>
+                                )}
+                                
+                                <div className="text-xs opacity-75">
+                                  {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - 
+                                  {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
+                                </div>
 
-                            {booking.status && booking.status !== 'confirmed' && (
-                              <div className="text-xs opacity-90 font-medium">
-                                {booking.status.toUpperCase()}
+                                {booking.status && booking.status !== 'confirmed' && (
+                                  <div className="text-xs opacity-90 font-medium">
+                                    {booking.status.toUpperCase()}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-sm p-4 bg-white border border-gray-200 shadow-lg">
+                              <div className="space-y-2">
+                                <div className="font-semibold text-base text-gray-900">
+                                  {booking.title}
+                                </div>
+                                
+                                {booking.description && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Description:</strong> {booking.description}
+                                  </div>
+                                )}
+                                
+                                <div className="text-sm text-gray-700">
+                                  <strong>Time:</strong> {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'MMM d, yyyy h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
+                                </div>
+                                
+                                {studios.length > 0 && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Studios:</strong> {studios.join(', ')}
+                                  </div>
+                                )}
+                                
+                                {pcrRoom && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>PCR Room:</strong> {pcrRoom}
+                                  </div>
+                                )}
+                                
+                                <div className="text-sm text-gray-700">
+                                  <strong>Type:</strong> {booking.type.charAt(0).toUpperCase() + booking.type.slice(1)}
+                                </div>
+                                
+                                {booking.status && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Status:</strong> {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                                  </div>
+                                )}
+                                
+                                {booking.severity && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Severity:</strong> {booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1)}
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
                         );
                       })}
                     </div>
@@ -389,5 +444,6 @@ export default function EngineeringPage() {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
