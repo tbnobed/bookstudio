@@ -25,7 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { useNotification } from "@/hooks/use-notification";
 import { FileAttachmentList } from "./FileAttachmentList";
 import CopyBookingModal from "./CopyBookingModal";
 import { BookingFormSelector } from "./BookingFormSelector";
@@ -47,7 +47,7 @@ export default function BookingModal({
   selectedStudio,
   alertsOnly = false
 }: BookingModalProps) {
-  const { toast } = useToast();
+  const { showNotification } = useNotification();
   
   // Debug logging to track booking data
   useEffect(() => {
@@ -652,17 +652,17 @@ export default function BookingModal({
           
           try {
             await createTemplate.mutateAsync(templateData);
-            toast({
+            showNotification({
+              type: "success",
               title: "Success",
-              description: "Template saved successfully",
-              variant: "default"
+              message: "Template saved successfully"
             });
           } catch (templateError) {
             console.error("Error saving template:", templateError);
-            toast({
+            showNotification({
+              type: "warning",
               title: "Warning",
-              description: "Booking was created but template could not be saved",
-              variant: "destructive"
+              message: "Booking was created but template could not be saved"
             });
           }
         }

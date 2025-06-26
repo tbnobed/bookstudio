@@ -25,6 +25,7 @@ import { CalendarProvider } from "@/contexts/CalendarContext";
 import { useDevice } from "@/hooks/use-mobile";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { DocumentTitle } from "@/components/global/DocumentTitle";
+import { NotificationProvider } from "@/hooks/use-notification";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -120,15 +121,17 @@ function App() {
   return (
     <TimezoneProvider>
       <CalendarProvider>
-        <TooltipProvider>
-          {/* Add DocumentTitle to update the title when siteName changes */}
-          <DocumentTitle />
-          <AppLayout>
-            <Router />
-          </AppLayout>
-          <Toaster />
-          <ToastNotification />
-        </TooltipProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            {/* Add DocumentTitle to update the title when siteName changes */}
+            <DocumentTitle />
+            <AppLayout>
+              <Router />
+            </AppLayout>
+            <Toaster />
+            <ToastNotification />
+          </TooltipProvider>
+        </NotificationProvider>
       </CalendarProvider>
     </TimezoneProvider>
   );
