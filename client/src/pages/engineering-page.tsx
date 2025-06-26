@@ -396,12 +396,12 @@ export default function EngineeringPage() {
           
           {/* Day-by-day alerts grid */}
           <div className="flex">
-            {/* Time column spacer */}
+            {/* Time column spacer - exact match with calendar grid */}
             <div className="w-16 border-r border-orange-200 bg-orange-100 flex items-center justify-center py-4">
               <AlertTriangle className="w-4 h-4 text-orange-600" />
             </div>
             
-            {/* Day columns for alerts */}
+            {/* Day columns for alerts - exact match with calendar structure */}
             {weekDays.map((day) => {
               const dayAlerts = alertBookings.filter(alert => {
                 const alertDate = toZonedTime(parseISO(alert.start), FACILITY_TIMEZONE);
@@ -411,10 +411,10 @@ export default function EngineeringPage() {
               return (
                 <div
                   key={day.fullDate}
-                  className="flex-1 min-w-[140px] border-r border-orange-200 p-2 min-h-[80px]"
+                  className="flex-1 min-w-[140px] border-r border-orange-200 min-h-[80px] relative"
                 >
                   {dayAlerts.length > 0 ? (
-                    <div className="space-y-1">
+                    <div className="p-2 space-y-1">
                       {dayAlerts.map((alert) => {
                         const severityStyle = getSeverityStyle(alert);
                         const startTime = toZonedTime(parseISO(alert.start), FACILITY_TIMEZONE);
@@ -462,7 +462,7 @@ export default function EngineeringPage() {
                       })}
                     </div>
                   ) : (
-                    <div className="text-xs text-orange-400 italic text-center py-4">No alerts</div>
+                    <div className="p-2 text-xs text-orange-400 italic text-center">No alerts</div>
                   )}
                 </div>
               );
