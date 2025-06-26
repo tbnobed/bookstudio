@@ -243,6 +243,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 26, 2025: IMPLEMENTED severity-based alert styling in engineering view - added color-coded backgrounds (yellow/orange/red) based on severity levels (low/medium/high/critical), distinctive alert badges with warning icons and severity indicators, enhanced borders and contrast for maintenance/alert bookings, ensuring immediate visual identification of critical facility issues
 - June 26, 2025: FIXED all-day maintenance display issue - resolved problem where all-day maintenance events (like "Coms Outage") only showed as tiny segments by implementing proper cross-midnight span detection and full-day height calculation, all-day alerts now properly span entire 24-hour day in engineering calendar view for maximum visibility
 - June 26, 2025: ADDED current time indicator line to engineering calendar - implemented real-time red line that tracks current Chicago/Dallas time position across the 24-hour schedule, updates every minute, includes time label and visual indicators, only displays when current day is visible in week view for immediate schedule awareness
+- June 26, 2025: IMPLEMENTED dedicated alerts row in engineering view - added prominent alerts section at top of page showing all maintenance and site alerts with severity-based coloring, separated alerts from time-based schedule similar to calendar week view, includes alert count badge and comprehensive hover tooltips for quick facility issue assessment
 
 ## User Preferences
 

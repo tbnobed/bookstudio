@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
-import { ChevronLeft, ChevronRight, Settings, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Settings, Calendar, AlertTriangle, Camera, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -293,6 +293,15 @@ export default function EngineeringPage() {
     return weekDays.some(day => isSameDay(day.date, today));
   };
 
+  // Separate alerts from regular bookings
+  const alertBookings = weekBookings.filter(booking => 
+    booking.type === 'maintenance' || booking.type === 'site_alert' || booking.type === 'all_day_maintenance'
+  );
+
+  const regularBookings = weekBookings.filter(booking => 
+    booking.type !== 'maintenance' && booking.type !== 'site_alert' && booking.type !== 'all_day_maintenance'
+  );
+
   return (
     <TooltipProvider>
       <div className="h-screen flex flex-col bg-gray-50">
@@ -344,6 +353,81 @@ export default function EngineeringPage() {
           </div>
         </div>
       </div>
+
+      {/* Alerts Row */}
+      {alertBookings.length > 0 && (
+        <div className="bg-orange-50 border-b border-orange-200 px-6 py-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-orange-900 flex items-center space-x-2">
+              <AlertTriangle className="w-4 h-4" />
+              <span>Active Alerts & Maintenance</span>
+            </h2>
+            <span className="text-xs text-orange-700 bg-orange-200 px-2 py-1 rounded-full">
+              {alertBookings.length} Alert{alertBookings.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          
+          <div className="mt-3 flex flex-wrap gap-2">
+            {alertBookings.map((alert) => {
+              const studios = getBookingStudios(alert.id);
+              const pcrRoom = getPcrRoomName(alert.pcrRoomId);
+              const severityStyle = getSeverityStyle(alert);
+              const startTime = toZonedTime(parseISO(alert.start), FACILITY_TIMEZONE);
+              const endTime = toZonedTime(parseISO(alert.end), FACILITY_TIMEZONE);
+              
+              return (
+                <Tooltip key={alert.id}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`px-3 py-2 rounded-lg text-sm font-medium cursor-pointer hover:shadow-md transition-shadow ${
+                        severityStyle 
+                          ? `bg-${severityStyle.backgroundColor} border-${severityStyle.borderColor} text-${severityStyle.color}` 
+                          : 'bg-orange-100 border-orange-300 text-orange-800'
+                      } border flex items-center space-x-2`}
+                      style={{
+                        backgroundColor: severityStyle?.backgroundColor || '#fed7aa',
+                        borderColor: severityStyle?.borderColor || '#fdba74',
+                        color: severityStyle?.color || '#9a3412'
+                      }}
+                    >
+                      <AlertTriangle className="w-4 h-4" />
+                      <span className="font-semibold">{alert.title}</span>
+                      {alert.severity && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-black bg-opacity-20 font-bold">
+                          {alert.severity.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-sm space-y-1">
+                      <div className="font-semibold">{alert.title}</div>
+                      {alert.description && <div>{alert.description}</div>}
+                      <div className="text-xs opacity-75">
+                        {format(startTime, 'MMM d, h:mm a')} - {format(endTime, 'MMM d, h:mm a')}
+                      </div>
+                      {studios.length > 0 && (
+                        <div className="text-xs opacity-75 flex items-center space-x-1">
+                          <Camera className="w-3 h-3" />
+                          <span>{studios.join(', ')}</span>
+                        </div>
+                      )}
+                      {pcrRoom && (
+                        <div className="text-xs opacity-75 flex items-center space-x-1">
+                          <Monitor className="w-3 h-3" />
+                          <span>{pcrRoom}</span>
+                        </div>
+                      )}
+                      <div className="text-xs opacity-75">Type: {alert.type}</div>
+                      <div className="text-xs opacity-75">Status: {alert.status}</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Calendar Grid */}
       <div className="flex-1 overflow-hidden">
@@ -397,7 +481,7 @@ export default function EngineeringPage() {
 
                 {/* Day columns */}
                 {weekDays.map((day) => {
-                  const dayBookings = weekBookings.filter(booking => {
+                  const dayBookings = regularBookings.filter(booking => {
                     const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
                     return isSameDay(bookingDate, day.date);
                   });
