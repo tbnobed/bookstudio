@@ -380,75 +380,92 @@ export default function EngineeringPage() {
         </div>
       </div>
 
-      {/* Alerts Row */}
+      {/* Alerts Row - Day by Day */}
       {alertBookings.length > 0 && (
-        <div className="bg-orange-50 border-b border-orange-200 px-6 py-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-orange-900 flex items-center space-x-2">
-              <AlertTriangle className="w-4 h-4" />
-              <span>Active Alerts & Maintenance</span>
-            </h2>
-            <span className="text-xs text-orange-700 bg-orange-200 px-2 py-1 rounded-full">
-              {alertBookings.length} Alert{alertBookings.length !== 1 ? 's' : ''}
-            </span>
+        <div className="bg-orange-50 border-b border-orange-200">
+          <div className="px-6 py-3 border-b border-orange-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-orange-900 flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4" />
+                <span>Active Alerts & Maintenance</span>
+              </h2>
+              <span className="text-xs text-orange-700 bg-orange-200 px-2 py-1 rounded-full">
+                {alertBookings.length} Alert{alertBookings.length !== 1 ? 's' : ''}
+              </span>
+            </div>
           </div>
           
-          <div className="mt-3 flex flex-wrap gap-2">
-            {alertBookings.map((alert) => {
-              const studios = getBookingStudios(alert.id);
-              const pcrRoom = getPcrRoomName(alert.pcrRoomId);
-              const severityStyle = getSeverityStyle(alert);
-              const startTime = toZonedTime(parseISO(alert.start), FACILITY_TIMEZONE);
-              const endTime = toZonedTime(parseISO(alert.end), FACILITY_TIMEZONE);
-              
+          {/* Day-by-day alerts grid */}
+          <div className="flex">
+            {/* Time column spacer */}
+            <div className="w-16 border-r border-orange-200 bg-orange-100 flex items-center justify-center py-4">
+              <AlertTriangle className="w-4 h-4 text-orange-600" />
+            </div>
+            
+            {/* Day columns for alerts */}
+            {weekDays.map((day) => {
+              const dayAlerts = alertBookings.filter(alert => {
+                const alertDate = toZonedTime(parseISO(alert.start), FACILITY_TIMEZONE);
+                return isSameDay(alertDate, day.date);
+              });
+
               return (
-                <Tooltip key={alert.id}>
-                  <TooltipTrigger asChild>
-                    <div
-                      className={`px-3 py-2 rounded-lg text-sm font-medium cursor-pointer hover:shadow-md transition-shadow ${
-                        severityStyle 
-                          ? `bg-${severityStyle.backgroundColor} border-${severityStyle.borderColor} text-${severityStyle.color}` 
-                          : 'bg-orange-100 border-orange-300 text-orange-800'
-                      } border flex items-center space-x-2`}
-                      style={{
-                        backgroundColor: severityStyle?.backgroundColor || '#fed7aa',
-                        borderColor: severityStyle?.borderColor || '#fdba74',
-                        color: severityStyle?.color || '#9a3412'
-                      }}
-                    >
-                      <AlertTriangle className="w-4 h-4" />
-                      <span className="font-semibold">{alert.title}</span>
-                      {alert.severity && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-black bg-opacity-20 font-bold">
-                          {alert.severity.toUpperCase()}
-                        </span>
-                      )}
+                <div
+                  key={day.fullDate}
+                  className="flex-1 min-w-[140px] border-r border-orange-200 p-2 min-h-[80px]"
+                >
+                  {dayAlerts.length > 0 ? (
+                    <div className="space-y-1">
+                      {dayAlerts.map((alert) => {
+                        const severityStyle = getSeverityStyle(alert);
+                        const startTime = toZonedTime(parseISO(alert.start), FACILITY_TIMEZONE);
+                        const endTime = toZonedTime(parseISO(alert.end), FACILITY_TIMEZONE);
+                        
+                        return (
+                          <Tooltip key={alert.id}>
+                            <TooltipTrigger asChild>
+                              <div
+                                className="p-2 rounded text-xs cursor-pointer transition-all duration-200 hover:shadow-sm border"
+                                style={{
+                                  backgroundColor: severityStyle?.backgroundColor || '#fed7aa',
+                                  borderColor: severityStyle?.borderColor || '#fdba74',
+                                  color: severityStyle?.color || '#9a3412'
+                                }}
+                              >
+                                <div className="flex items-center gap-1 mb-1">
+                                  <AlertTriangle className="w-3 h-3" />
+                                  <span className="font-medium truncate">{alert.title}</span>
+                                </div>
+                                <div className="text-xs opacity-75">
+                                  {format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}
+                                </div>
+                                {alert.severity && (
+                                  <div className="text-xs font-bold mt-1 px-1 py-0.5 rounded bg-black bg-opacity-20">
+                                    {alert.severity.toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="text-sm space-y-1">
+                                <div className="font-semibold">{alert.title}</div>
+                                {alert.description && <div>{alert.description}</div>}
+                                <div className="text-xs opacity-75">
+                                  {format(startTime, 'MMM d, h:mm a')} - {format(endTime, 'MMM d, h:mm a')}
+                                </div>
+                                <div className="text-xs opacity-75">Type: {alert.type}</div>
+                                <div className="text-xs opacity-75">Status: {alert.status}</div>
+                                {alert.severity && <div className="text-xs opacity-75">Severity: {alert.severity}</div>}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
                     </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="text-sm space-y-1">
-                      <div className="font-semibold">{alert.title}</div>
-                      {alert.description && <div>{alert.description}</div>}
-                      <div className="text-xs opacity-75">
-                        {format(startTime, 'MMM d, h:mm a')} - {format(endTime, 'MMM d, h:mm a')}
-                      </div>
-                      {studios.length > 0 && (
-                        <div className="text-xs opacity-75 flex items-center space-x-1">
-                          <Camera className="w-3 h-3" />
-                          <span>{studios.join(', ')}</span>
-                        </div>
-                      )}
-                      {pcrRoom && (
-                        <div className="text-xs opacity-75 flex items-center space-x-1">
-                          <Monitor className="w-3 h-3" />
-                          <span>{pcrRoom}</span>
-                        </div>
-                      )}
-                      <div className="text-xs opacity-75">Type: {alert.type}</div>
-                      <div className="text-xs opacity-75">Status: {alert.status}</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
+                  ) : (
+                    <div className="text-xs text-orange-400 italic text-center py-4">No alerts</div>
+                  )}
+                </div>
               );
             })}
           </div>
