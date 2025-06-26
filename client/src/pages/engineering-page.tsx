@@ -130,8 +130,7 @@ export default function EngineeringPage() {
   // Generate time slots for full 24-hour view
   const timeSlots = Array.from({ length: 24 }, (_, i) => {
     const hour = i; // Start from midnight (0)
-    const time12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const ampm = hour < 12 ? 'AM' : 'PM';
     const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
     return {
       hour24: hour,
