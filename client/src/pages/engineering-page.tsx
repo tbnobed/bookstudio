@@ -15,6 +15,42 @@ import {
 
 const FACILITY_TIMEZONE = "America/Chicago";
 
+// Get severity-based styling for alerts and maintenance bookings
+function getSeverityStyle(booking: BookingData) {
+  if (!booking.severity || (!booking.type.includes('maintenance') && booking.type !== 'all_day_maintenance')) {
+    return null;
+  }
+
+  const severityStyles = {
+    low: {
+      backgroundColor: '#FEF3C7', // yellow-100
+      borderColor: '#F59E0B', // yellow-500
+      color: '#92400E', // yellow-800
+      pattern: 'none'
+    },
+    medium: {
+      backgroundColor: '#FED7AA', // orange-200
+      borderColor: '#EA580C', // orange-600
+      color: '#9A3412', // orange-800
+      pattern: 'diagonal-stripes'
+    },
+    high: {
+      backgroundColor: '#FECACA', // red-200
+      borderColor: '#DC2626', // red-600
+      color: '#991B1B', // red-800
+      pattern: 'diagonal-stripes'
+    },
+    critical: {
+      backgroundColor: '#FCA5A5', // red-300
+      borderColor: '#B91C1C', // red-700
+      color: '#7F1D1D', // red-900
+      pattern: 'crosshatch'
+    }
+  };
+
+  return severityStyles[booking.severity as keyof typeof severityStyles] || severityStyles.medium;
+}
+
 interface BookingData {
   id: number;
   title: string;
@@ -344,41 +380,63 @@ export default function EngineeringPage() {
                         const style = getBookingStyle(booking, column, totalColumns);
                         const studios = getBookingStudios(booking.id);
                         const pcrRoom = getPcrRoomName(booking.pcrRoomId);
+                        const severityStyle = getSeverityStyle(booking);
+                        
+                        // Apply severity styling for alerts/maintenance, otherwise use default booking style
+                        const finalStyle = severityStyle 
+                          ? {
+                              ...style,
+                              backgroundColor: severityStyle.backgroundColor,
+                              border: `2px solid ${severityStyle.borderColor}`,
+                              color: severityStyle.color,
+                              marginLeft: '2px',
+                              marginRight: '2px'
+                            }
+                          : {
+                              ...style,
+                              marginLeft: '2px',
+                              marginRight: '2px'
+                            };
 
                         return (
                           <Tooltip key={booking.id}>
                             <TooltipTrigger asChild>
                               <div
-                                className="absolute rounded text-white text-xs p-1 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden"
-                                style={{
-                                  ...style,
-                                  marginLeft: '2px',
-                                  marginRight: '2px'
-                                }}
+                                className={`absolute rounded text-xs p-1 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden ${
+                                  severityStyle ? 'font-semibold' : 'text-white'
+                                } ${
+                                  severityStyle && severityStyle.pattern === 'diagonal-stripes' ? 'bg-stripe-pattern' : ''
+                                }`}
+                                style={finalStyle}
                               >
-                                <div className="font-semibold truncate">
-                                  {booking.title}
+                                <div className="font-semibold truncate flex items-center gap-1">
+                                  {severityStyle && (
+                                    <span className="text-xs px-1 py-0.5 rounded bg-black bg-opacity-20 font-bold">
+                                      ⚠ {booking.severity?.toUpperCase()}
+                                    </span>
+                                  )}
+                                  <span className="truncate">{booking.title}</span>
                                 </div>
                                 
                                 {studios.length > 0 && (
-                                  <div className="truncate text-xs opacity-90">
+                                  <div className={`truncate text-xs ${severityStyle ? 'opacity-80' : 'opacity-90'}`}>
                                     {studios.join(', ')}
                                   </div>
                                 )}
                                 
                                 {pcrRoom && (
-                                  <div className="truncate text-xs opacity-90">
+                                  <div className={`truncate text-xs ${severityStyle ? 'opacity-80' : 'opacity-90'}`}>
                                     {pcrRoom}
                                   </div>
                                 )}
                                 
-                                <div className="text-xs opacity-75">
+                                <div className={`text-xs ${severityStyle ? 'opacity-75 font-medium' : 'opacity-75'}`}>
                                   {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - 
                                   {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                                 </div>
 
                                 {booking.status && booking.status !== 'confirmed' && (
-                                  <div className="text-xs opacity-90 font-medium">
+                                  <div className={`text-xs font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
                                     {booking.status.toUpperCase()}
                                   </div>
                                 )}
