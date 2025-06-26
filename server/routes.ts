@@ -1009,7 +1009,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const start = new Date(bookingData.start);
         const end = new Date(bookingData.end);
         
+        console.log(`Checking PCR room conflicts for room ${bookingData.pcrRoomId} from ${start.toISOString()} to ${end.toISOString()}`);
+        
         const pcrConflicts = await storage.checkPcrRoomConflicts(bookingData.pcrRoomId, start, end, null);
+        
+        console.log(`Found ${pcrConflicts.length} PCR room conflicts:`, pcrConflicts.map(b => ({ id: b.id, title: b.title, start: b.start, end: b.end })));
         
         if (pcrConflicts.length > 0) {
           // Get the PCR room name for better error message

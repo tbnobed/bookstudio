@@ -2808,35 +2808,41 @@ export class DatabaseStorage implements IStorage {
   
   async checkPcrRoomConflicts(pcrRoomId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]> {
     try {
-      // Get bookings that use the same PCR room during the specified time range
-      const pcrBookings = await db
+      console.log(`[PCR Conflicts DB] Checking PCR room ${pcrRoomId} from ${start.toISOString()} to ${end.toISOString()}, excluding booking ${excludeBookingId}`);
+      
+      // Get all bookings that use the same PCR room
+      const allPcrBookings = await db
         .select()
         .from(bookings)
         .where(
           and(
             eq(bookings.pcrRoomId, pcrRoomId),
-            or(
-              // Case 1: Booking starts during the new booking
-              and(
-                gte(bookings.start, start),
-                lte(bookings.start, end)
-              ),
-              // Case 2: Booking ends during the new booking
-              and(
-                gte(bookings.end, start),
-                lte(bookings.end, end)
-              ),
-              // Case 3: Booking completely overlaps the new booking
-              and(
-                lte(bookings.start, start),
-                gte(bookings.end, end)
-              )
-            ),
             excludeBookingId ? not(eq(bookings.id, excludeBookingId)) : sql`1=1`
           )
         );
       
-      return pcrBookings;
+      console.log(`[PCR Conflicts DB] Found ${allPcrBookings.length} bookings with PCR room ${pcrRoomId}`);
+      
+      // Filter for conflicts using JavaScript logic for better debugging
+      const conflicts = allPcrBookings.filter(booking => {
+        const bookingStart = new Date(booking.start);
+        const bookingEnd = new Date(booking.end);
+        
+        const hasConflict = (
+          (start >= bookingStart && start < bookingEnd) ||  // new booking starts during existing
+          (end > bookingStart && end <= bookingEnd) ||      // new booking ends during existing
+          (start <= bookingStart && end >= bookingEnd)      // new booking spans existing
+        );
+        
+        if (hasConflict) {
+          console.log(`[PCR Conflicts DB] CONFLICT: Booking ${booking.id} "${booking.title}" (${bookingStart.toISOString()} - ${bookingEnd.toISOString()}) conflicts with new booking (${start.toISOString()} - ${end.toISOString()})`);
+        }
+        
+        return hasConflict;
+      });
+      
+      console.log(`[PCR Conflicts DB] Found ${conflicts.length} conflicts for PCR room ${pcrRoomId}`);
+      return conflicts;
     } catch (error) {
       console.error(`Error checking PCR room conflicts for room ${pcrRoomId}:`, error);
       return [];
