@@ -70,14 +70,15 @@ export default function EngineeringPage() {
     queryKey: ["/api/pcr-rooms"],
   });
 
-  // Generate time slots (6 AM to 11 PM)
-  const timeSlots = Array.from({ length: 17 }, (_, i) => {
-    const hour = i + 6;
+  // Generate time slots for full 24-hour view
+  const timeSlots = Array.from({ length: 24 }, (_, i) => {
+    const hour = i; // Start from midnight (0)
     const time12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
     const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
     return {
       hour24: hour,
-      label: `${time12} ${ampm}`,
+      label: `${displayHour} ${ampm}`,
       value: hour
     };
   });
@@ -166,8 +167,8 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
-    // Calculate position relative to 6 AM start
-    const topPosition = Math.max(0, (startHour - 6) * 60); // 60px per hour
+    // Calculate position relative to midnight (0) start
+    const topPosition = Math.max(0, startHour * 60); // 60px per hour
     const height = Math.max(30, (endHour - startHour) * 60); // Minimum 30px height
     
     // Calculate width and left position for side-by-side layout
