@@ -488,17 +488,19 @@ export default function EngineeringPage() {
                   return (
                     <div
                       key={day.fullDate}
-                      className={`flex-1 min-w-[140px] p-3 text-center border-r border-gray-200 ${
+                      className={`flex-1 min-w-[140px] border-r border-gray-200 ${
                         isToday ? 'bg-blue-50' : 'bg-white'
                       }`}
                     >
-                      <div className="text-xs font-medium text-gray-500 mb-1">
-                        {day.dayName}
-                      </div>
-                      <div className={`text-lg font-semibold ${
-                        isToday ? 'text-blue-600' : 'text-gray-900'
-                      }`}>
-                        {day.dayNumber}
+                      <div className="p-3 text-center">
+                        <div className="text-xs font-medium text-gray-500 mb-1">
+                          {day.dayName}
+                        </div>
+                        <div className={`text-lg font-semibold ${
+                          isToday ? 'text-blue-600' : 'text-gray-900'
+                        }`}>
+                          {day.dayNumber}
+                        </div>
                       </div>
                     </div>
                   );
