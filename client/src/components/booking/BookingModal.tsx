@@ -517,10 +517,10 @@ export default function BookingModal({
     
     // Studio validation
     if (formData.studioIds.length === 0 && (!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support"))) {
-      toast({
+      showNotification({
+        type: "error",
         title: "Error",
-        description: "At least one studio must be selected for this booking type",
-        variant: "destructive"
+        message: "At least one studio must be selected for this booking type"
       });
       return;
     }
@@ -595,12 +595,12 @@ export default function BookingModal({
           studioIds: studioIds
         });
         
-        toast({
+        showNotification({
+          type: "success",
           title: "Success",
-          description: studioIds.length > 1 
+          message: studioIds.length > 1 
             ? `Booking updated successfully across ${studioIds.length} studios` 
-            : "Booking updated successfully",
-          variant: "default"
+            : "Booking updated successfully"
         });
       } else {
         // Create new booking
@@ -611,12 +611,12 @@ export default function BookingModal({
           studioIds: studioIds
         });
         
-        toast({
+        showNotification({
+          type: "success",
           title: "Success", 
-          description: studioIds.length > 1 
+          message: studioIds.length > 1 
             ? `Booking created successfully across ${studioIds.length} studios` 
-            : "Booking created successfully",
-          variant: "default"
+            : "Booking created successfully"
         });
         
         // Save as template if requested
@@ -683,10 +683,10 @@ export default function BookingModal({
       }
       
       // Display the detailed error message
-      toast({
+      showNotification({
+        type: "error",
         title: "Error",
-        description: errorMsg,
-        variant: "destructive"
+        message: errorMsg
       });
     }
   };
@@ -704,10 +704,10 @@ export default function BookingModal({
   // Save booking as template
   const handleSaveAsTemplate = async () => {
     if (!formData.templateName) {
-      toast({
+      showNotification({
+        type: "error",
         title: "Error",
-        description: "Please enter a template name",
-        variant: "destructive"
+        message: "Please enter a template name"
       });
       return;
     }
@@ -742,17 +742,17 @@ export default function BookingModal({
     
     try {
       await createTemplate.mutateAsync(templateData);
-      toast({
+      showNotification({
+        type: "success",
         title: "Success",
-        description: "Template saved successfully",
-        variant: "default"
+        message: "Template saved successfully"
       });
     } catch (error) {
       console.error("Error saving template:", error);
-      toast({
+      showNotification({
+        type: "error",
         title: "Error",
-        description: "Failed to save template",
-        variant: "destructive"
+        message: "Failed to save template"
       });
     }
   };
@@ -1213,18 +1213,18 @@ export default function BookingModal({
                                 onClick={() => {
                                   deleteBooking.mutate(booking.id, {
                                     onSuccess: () => {
-                                      toast({
+                                      showNotification({
+                                        type: "success",
                                         title: "Success",
-                                        description: "Booking deleted successfully",
-                                        variant: "default"
+                                        message: "Booking deleted successfully"
                                       });
                                       onClose();
                                     },
                                     onError: (error) => {
-                                      toast({
+                                      showNotification({
+                                        type: "error",
                                         title: "Error",
-                                        description: "Failed to delete booking",
-                                        variant: "destructive"
+                                        message: "Failed to delete booking"
                                       });
                                     }
                                   });
