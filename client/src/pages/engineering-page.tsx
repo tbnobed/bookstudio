@@ -209,9 +209,25 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
-    // Calculate position relative to midnight (0) start
-    const topPosition = Math.max(0, startHour * 60); // 60px per hour
-    const height = Math.max(30, (endHour - startHour) * 60); // Minimum 30px height
+    // Check if this is an all-day event or spans across midnight
+    const isAllDay = booking.type === 'all_day_maintenance' || 
+                     (endHour < startHour && Math.abs(endHour - startHour) > 12);
+    
+    let topPosition, height;
+    
+    if (isAllDay) {
+      // For all-day events, span the entire day
+      topPosition = 0;
+      height = 24 * 60; // Full 24 hours
+    } else if (endHour < startHour) {
+      // Event spans midnight - show from start to end of day
+      topPosition = startHour * 60;
+      height = (24 - startHour) * 60;
+    } else {
+      // Normal event within same day
+      topPosition = Math.max(0, startHour * 60);
+      height = Math.max(30, (endHour - startHour) * 60);
+    }
     
     // Calculate width and left position for side-by-side layout
     const columnWidth = 100 / totalColumns;
