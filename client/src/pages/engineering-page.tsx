@@ -293,14 +293,46 @@ export default function EngineeringPage() {
     return weekDays.some(day => isSameDay(day.date, today));
   };
 
-  // Separate alerts from regular bookings
-  const alertBookings = weekBookings.filter(booking => 
-    booking.type === 'maintenance' || booking.type === 'site_alert' || booking.type === 'all_day_maintenance'
-  );
+  // Function to determine if a booking is an alert/maintenance
+  const isAlertBooking = (booking: BookingData) => {
+    // Consider a booking an alert if:
+    // 1. It has "maintenance" type, OR
+    // 2. It has "alert" type, OR  
+    // 3. It has "Alert" in the title, OR
+    // 4. It's an "all_day_maintenance" type booking, OR
+    // 5. It has "site_alert" type, OR
+    // 6. It has "outage" in the title, OR
+    // 7. It has maintenance keywords in title
+    
+    const isMaintenanceType = booking.type === 'maintenance' || 
+                             booking.type === 'all_day_maintenance' ||
+                             booking.type === 'site_alert' ||
+                             booking.type === 'alert';
+                             
+    const hasAlertKeywords = booking.title && (
+      booking.title.toLowerCase().includes('alert') ||
+      booking.title.toLowerCase().includes('outage') ||
+      booking.title.toLowerCase().includes('emergency') ||
+      booking.title.toLowerCase().includes('maintenance') ||
+      booking.title.toLowerCase().includes('notice') ||
+      booking.title.toLowerCase().includes('warning')
+    );
+    
+    return isMaintenanceType || hasAlertKeywords;
+  };
 
-  const regularBookings = weekBookings.filter(booking => 
-    booking.type !== 'maintenance' && booking.type !== 'site_alert' && booking.type !== 'all_day_maintenance'
-  );
+  // Separate alerts from regular bookings
+  const alertBookings = weekBookings.filter(booking => {
+    const isAlert = isAlertBooking(booking);
+    if (isAlert) {
+      console.log(`[ALERT DETECTED] Engineering page - ${booking.title} (${booking.type})`);
+    }
+    return isAlert;
+  });
+  const regularBookings = weekBookings.filter(booking => !isAlertBooking(booking));
+  
+  console.log(`[ENGINEERING] Current week: ${format(currentWeek, 'MMM d')} - ${format(addDays(currentWeek, 6), 'MMM d')}`);
+  console.log(`[ENGINEERING] Total bookings: ${weekBookings.length}, Alerts: ${alertBookings.length}, Regular: ${regularBookings.length}`);
 
   return (
     <TooltipProvider>
