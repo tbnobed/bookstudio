@@ -397,7 +397,7 @@ export default function EngineeringPage() {
           {/* Day-by-day alerts grid */}
           <div className="flex">
             {/* Time column spacer - exact match with calendar grid */}
-            <div className="w-16 border-r border-orange-200 bg-orange-100 flex items-center justify-center py-4">
+            <div className="w-16 border-r border-gray-200 bg-gray-50 flex items-center justify-center py-4">
               <AlertTriangle className="w-4 h-4 text-orange-600" />
             </div>
             
@@ -411,7 +411,7 @@ export default function EngineeringPage() {
               return (
                 <div
                   key={day.fullDate}
-                  className="flex-1 min-w-[140px] border-r border-orange-200 min-h-[80px] relative"
+                  className="flex-1 min-w-[140px] border-r border-gray-200 min-h-[80px] relative"
                 >
                   {dayAlerts.length > 0 ? (
                     <div className="p-2 space-y-1">
