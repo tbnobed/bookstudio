@@ -606,8 +606,8 @@ export default function SignagePage() {
           {/* Studio Status */}
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center text-white text-xl">
-                <Radio className="mr-3 h-5 w-5" />
+              <CardTitle className="flex items-center text-white text-2xl">
+                <Radio className="mr-4 h-6 w-6" />
                 Studio Status
               </CardTitle>
             </CardHeader>
@@ -616,19 +616,19 @@ export default function SignagePage() {
                 {studioStatus.map((studio) => (
                   <div key={studio.id} className="flex flex-col p-2 rounded-lg bg-slate-700/30">
                     <div className="flex items-center justify-between mb-1">
-                      <div className="font-medium text-white text-sm truncate">{studio.name}</div>
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                      <div className="font-medium text-white text-lg truncate">{studio.name}</div>
+                      <div className={`w-4 h-4 rounded-full flex-shrink-0 ${
                         studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
                       }`} />
                     </div>
                     {studio.currentBooking ? (
-                      <div className="text-xs text-slate-400 truncate">
+                      <div className="text-base text-slate-400 truncate">
                         {studio.currentBooking.title}
                       </div>
                     ) : (
-                      <div className="text-xs text-green-400">Available</div>
+                      <div className="text-base text-green-400">Available</div>
                     )}
-                    <div className="text-xs text-slate-500 mt-1">
+                    <div className="text-sm text-slate-500 mt-1">
                       {studio.currentBooking ? `Until ${studio.nextAvailable}` : 'Ready'}
                     </div>
                   </div>
@@ -642,8 +642,8 @@ export default function SignagePage() {
           {/* Active Site Alerts */}
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center text-white text-lg">
-                <AlertTriangle className="mr-2 h-4 w-4" />
+              <CardTitle className="flex items-center text-white text-2xl">
+                <AlertTriangle className="mr-4 h-6 w-6" />
                 Active Site Alerts
               </CardTitle>
             </CardHeader>
