@@ -92,6 +92,21 @@ export default function EngineeringPage() {
     return startOfWeek(chicagoTime, { weekStartsOn: 1 }); // Start on Monday
   });
 
+  const [currentTime, setCurrentTime] = useState(() => {
+    const now = new Date();
+    return toZonedTime(now, FACILITY_TIMEZONE);
+  });
+
+  // Update current time every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(toZonedTime(now, FACILITY_TIMEZONE));
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Fetch bookings
   const { data: bookings = [] } = useQuery<BookingData[]>({
     queryKey: ["/api/bookings"],
@@ -266,6 +281,18 @@ export default function EngineeringPage() {
     setCurrentWeek(startOfWeek(chicagoTime, { weekStartsOn: 1 }));
   };
 
+  // Helper function to calculate current time indicator position
+  const getCurrentTimePosition = () => {
+    const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
+    return currentHour * 60; // 60px per hour
+  };
+
+  // Check if current time should be shown (current day is in view)
+  const shouldShowCurrentTimeIndicator = () => {
+    const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
+    return weekDays.some(day => isSameDay(day.date, today));
+  };
+
   return (
     <TooltipProvider>
       <div className="h-screen flex flex-col bg-gray-50">
@@ -390,6 +417,32 @@ export default function EngineeringPage() {
                           className="h-[60px] border-b border-gray-100"
                         />
                       ))}
+
+                      {/* Current time indicator line */}
+                      {shouldShowCurrentTimeIndicator() && isSameDay(day.date, toZonedTime(new Date(), FACILITY_TIMEZONE)) && (
+                        <div
+                          className="absolute left-0 right-0 z-30 pointer-events-none"
+                          style={{
+                            top: `${getCurrentTimePosition()}px`,
+                            height: '2px',
+                            backgroundColor: '#ef4444', // red-500
+                            boxShadow: '0 0 4px rgba(239, 68, 68, 0.6)',
+                          }}
+                        >
+                          {/* Time label */}
+                          <div
+                            className="absolute -left-2 -top-3 px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded-full shadow-lg whitespace-nowrap"
+                            style={{ transform: 'translateX(-100%)' }}
+                          >
+                            {format(currentTime, 'h:mm a')}
+                          </div>
+                          {/* Arrow pointing to the line */}
+                          <div
+                            className="absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full shadow-lg"
+                            style={{ transform: 'translateX(-50%) translateY(-50%)' }}
+                          />
+                        </div>
+                      )}
 
                       {/* Bookings arranged in columns */}
                       {arrangedBookings.map(({ booking, column, totalColumns }) => {
