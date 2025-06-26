@@ -321,15 +321,8 @@ export default function EngineeringPage() {
     return isMaintenanceType || hasAlertKeywords;
   };
 
-  // Separate alerts from regular bookings
-  const alertBookings = weekBookings.filter(booking => {
-    const isAlert = isAlertBooking(booking);
-    if (isAlert) {
-      console.log(`[ALERT DETECTED] Engineering page - ${booking.title} (${booking.type})`);
-    }
-    return isAlert;
-  });
-  const regularBookings = weekBookings.filter(booking => !isAlertBooking(booking));
+  // All bookings will appear in the time grid on their scheduled days
+  // No separation needed - alerts and regular bookings show where scheduled
   
   // console.log(`[ENGINEERING] Current week: ${format(currentWeek, 'MMM d')} - ${format(addDays(currentWeek, 6), 'MMM d')}`);
   // console.log(`[ENGINEERING] Total bookings: ${weekBookings.length}, Alerts: ${alertBookings.length}, Regular: ${regularBookings.length}`);
