@@ -53,6 +53,7 @@ function Router() {
       <ProtectedRoute path="/reports" component={ReportsPage} />
       <ProtectedRoute path="/users" component={UserManagement} />
       <ProtectedRoute path="/producer-management" component={SiteManagerUserPage} />
+      <ProtectedRoute path="/engineering" component={EngineeringPage} />
       <ProtectedRoute path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>

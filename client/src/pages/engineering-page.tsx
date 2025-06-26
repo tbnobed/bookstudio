@@ -218,7 +218,7 @@ export default function EngineeringPage() {
                 
                 {/* Day headers */}
                 {weekDays.map((day) => {
-                  const isToday = isSameDay(day.date, utcToZonedTime(new Date(), FACILITY_TIMEZONE));
+                  const isToday = isSameDay(day.date, toZonedTime(new Date(), FACILITY_TIMEZONE));
                   
                   return (
                     <div
@@ -259,7 +259,7 @@ export default function EngineeringPage() {
                 {/* Day columns */}
                 {weekDays.map((day) => {
                   const dayBookings = weekBookings.filter(booking => {
-                    const bookingDate = utcToZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
+                    const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
                     return isSameDay(bookingDate, day.date);
                   });
 
@@ -305,8 +305,8 @@ export default function EngineeringPage() {
                             )}
                             
                             <div className="text-xs opacity-75">
-                              {format(utcToZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - 
-                              {format(utcToZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
+                              {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - 
+                              {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                             </div>
 
                             {booking.status && booking.status !== 'confirmed' && (
