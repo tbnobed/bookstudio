@@ -222,9 +222,6 @@ export default function EngineeringPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold text-gray-900">Engineering Schedule</h1>
-            <Badge variant="outline" className="bg-blue-50 text-blue-700">
-              Google Calendar Style View
-            </Badge>
           </div>
           
           <div className="flex items-center space-x-3">

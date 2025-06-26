@@ -239,6 +239,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 26, 2025: IMPLEMENTED PCR room conflict validation - added checkPcrRoomConflicts method to both MemStorage and DatabaseStorage classes, integrated PCR room conflict checking into booking creation (POST /api/bookings) and update (PATCH /api/bookings/:id) API routes to prevent double-booking of PCR rooms during overlapping time periods, ensuring production facility resource integrity
 - June 26, 2025: MIGRATED BookingModal to professional notification system - replaced all toast messages with professional modal-based notifications using NotificationModal component and useNotification hook, providing better user experience with proper error handling, success confirmations, and warning messages for booking operations including creation, updates, deletion, and template saving
 - June 26, 2025: ENHANCED engineering page with complete 24-hour view and hover tooltips - expanded time display from 6 AM-10 PM to full midnight-11:59 PM view for complete daily visibility, added comprehensive hover tooltips to all booking entries showing title, description, time, studios, PCR room, type, and status, severity field now only displays for maintenance/site alert bookings to reduce clutter on regular production bookings
+- June 26, 2025: CLEANED UP engineering page header - removed unnecessary "Google Calendar Style View" badge from page header for cleaner, more professional appearance
 
 ## User Preferences
 
