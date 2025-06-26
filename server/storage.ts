@@ -39,6 +39,7 @@ export interface IStorage {
   createPcrRoom(pcrRoom: InsertPcrRoom): Promise<PcrRoom>;
   updatePcrRoomStatus(id: number, status: string): Promise<PcrRoom | undefined>;
   deletePcrRoom(id: number): Promise<boolean>;
+  checkPcrRoomConflicts(pcrRoomId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]>;
   
   // Template management
   getTemplate(id: number): Promise<Template | undefined>;
@@ -629,6 +630,32 @@ export class MemStorage implements IStorage {
     const otherBookings = excludeBookingId 
       ? studioBookings.filter(booking => booking.id !== excludeBookingId) 
       : studioBookings;
+    
+    // Find conflicts
+    const startTime = start.getTime();
+    const endTime = end.getTime();
+    
+    return otherBookings.filter(booking => {
+      const bookingStart = new Date(booking.start).getTime();
+      const bookingEnd = new Date(booking.end).getTime();
+      
+      return (
+        (startTime >= bookingStart && startTime < bookingEnd) || // new booking starts during existing booking
+        (endTime > bookingStart && endTime <= bookingEnd) ||    // new booking ends during existing booking
+        (startTime <= bookingStart && endTime >= bookingEnd)    // new booking spans existing booking
+      );
+    });
+  }
+
+  async checkPcrRoomConflicts(pcrRoomId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]> {
+    // Get all bookings that use the same PCR room
+    const allBookings = Array.from(this.bookings.values());
+    const pcrBookings = allBookings.filter(booking => booking.pcrRoomId === pcrRoomId);
+    
+    // Filter out the booking being updated if excludeBookingId is provided
+    const otherBookings = excludeBookingId 
+      ? pcrBookings.filter(booking => booking.id !== excludeBookingId) 
+      : pcrBookings;
     
     // Find conflicts
     const startTime = start.getTime();
@@ -2775,6 +2802,43 @@ export class DatabaseStorage implements IStorage {
       return conflictingBookings;
     } catch (error) {
       console.error(`Error checking booking conflicts for studio ${studioId}:`, error);
+      return [];
+    }
+  }
+  
+  async checkPcrRoomConflicts(pcrRoomId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]> {
+    try {
+      // Get bookings that use the same PCR room during the specified time range
+      const pcrBookings = await db
+        .select()
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.pcrRoomId, pcrRoomId),
+            or(
+              // Case 1: Booking starts during the new booking
+              and(
+                gte(bookings.start, start),
+                lte(bookings.start, end)
+              ),
+              // Case 2: Booking ends during the new booking
+              and(
+                gte(bookings.end, start),
+                lte(bookings.end, end)
+              ),
+              // Case 3: Booking completely overlaps the new booking
+              and(
+                lte(bookings.start, start),
+                gte(bookings.end, end)
+              )
+            ),
+            excludeBookingId ? not(eq(bookings.id, excludeBookingId)) : sql`1=1`
+          )
+        );
+      
+      return pcrBookings;
+    } catch (error) {
+      console.error(`Error checking PCR room conflicts for room ${pcrRoomId}:`, error);
       return [];
     }
   }
