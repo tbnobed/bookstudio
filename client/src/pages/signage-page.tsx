@@ -332,12 +332,12 @@ export default function SignagePage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center space-x-4">
-          <div className="text-4xl font-bold text-white">The Plex Studios</div>
-          <Badge variant="outline" className="text-lg px-4 py-2 bg-blue-500/20 text-blue-300 border-blue-400">
+      <div className="flex justify-between items-center mb-10">
+        <div className="flex items-center space-x-6">
+          <div className="text-6xl font-bold text-white drop-shadow-lg">The Plex Studios</div>
+          <Badge variant="outline" className="text-xl px-6 py-3 bg-blue-500/20 text-blue-300 border-blue-400 font-semibold">
             LIVE DISPLAY
           </Badge>
         </div>
@@ -352,16 +352,16 @@ export default function SignagePage() {
                     alt={weather.condition}
                     className="w-12 h-12"
                   />
-                  <div className="text-2xl font-bold">{weather.temperature}°F</div>
+                  <div className="text-3xl font-bold">{weather.temperature}°F</div>
                 </div>
-                <div className="text-sm text-slate-300 capitalize">{weather.condition}</div>
-                <div className="text-xs text-slate-400">{weather.location}</div>
+                <div className="text-lg text-slate-300 capitalize">{weather.condition}</div>
+                <div className="text-base text-slate-400">{weather.location}</div>
               </div>
             )}
             
             {/* Time Info */}
             <div>
-              <div className="text-3xl font-bold">
+              <div className="text-4xl font-bold">
                 {new Date().toLocaleTimeString('en-US', { 
                   timeZone: FACILITY_TIMEZONE,
                   hour: 'numeric',
@@ -369,7 +369,7 @@ export default function SignagePage() {
                   hour12: true
                 })}
               </div>
-              <div className="text-lg text-slate-300">
+              <div className="text-xl text-slate-300">
                 {new Date().toLocaleDateString('en-US', {
                   timeZone: FACILITY_TIMEZONE,
                   weekday: 'long',
@@ -378,7 +378,7 @@ export default function SignagePage() {
                   day: 'numeric'
                 })}
               </div>
-              <div className="text-sm text-slate-400">Central Time</div>
+              <div className="text-lg text-slate-400">Central Time</div>
             </div>
           </div>
         </div>
@@ -389,8 +389,8 @@ export default function SignagePage() {
         <div className="xl:col-span-2">
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center text-white text-2xl">
-                <Calendar className="mr-3 h-6 w-6" />
+              <CardTitle className="flex items-center text-white text-3xl">
+                <Calendar className="mr-4 h-8 w-8" />
                 Today's Schedule
               </CardTitle>
             </CardHeader>
@@ -431,7 +431,7 @@ export default function SignagePage() {
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-1">
-                              <h3 className="text-sm font-semibold text-white truncate">
+                              <h3 className="text-lg font-semibold text-white truncate">
                                 {isAlert && <span className="mr-1 text-red-300">⚠️</span>}
                                 {booking.title}
                               </h3>
@@ -454,14 +454,14 @@ export default function SignagePage() {
                             style={{ backgroundColor: booking.color }}
                           />
                         </div>
-                        <div className="text-xs text-slate-300 mb-1 truncate">
+                        <div className="text-base text-slate-300 mb-1 truncate">
                           {getStudioNames(booking, studios, bookingStudioLinks)}
                         </div>
-                        <div className="text-xs text-slate-400">
+                        <div className="text-base text-slate-400">
                           {formatChicagoTime(booking.start, 'h:mm a')} - {formatChicagoTime(booking.end, 'h:mm a')}
                         </div>
                         {booking.description && booking.description.trim() && (
-                          <div className="text-xs text-slate-500 mt-1 truncate" title={booking.description}>
+                          <div className="text-sm text-slate-500 mt-1 truncate" title={booking.description}>
                             {booking.description}
                           </div>
                         )}
@@ -476,8 +476,8 @@ export default function SignagePage() {
           {/* Weekly Overview */}
           <Card className="bg-slate-800/50 border-slate-700 mt-6">
             <CardHeader>
-              <CardTitle className="flex items-center text-white text-2xl">
-                <Clock className="mr-3 h-6 w-6" />
+              <CardTitle className="flex items-center text-white text-3xl">
+                <Clock className="mr-4 h-8 w-8" />
                 Week at a Glance
               </CardTitle>
             </CardHeader>
@@ -489,12 +489,12 @@ export default function SignagePage() {
                   
                   return (
                     <div key={index} className="text-center">
-                      <div className={`text-sm font-medium mb-1 ${
+                      <div className={`text-lg font-medium mb-1 ${
                         index === 0 ? 'text-blue-400' : 'text-slate-300'
                       }`}>
                         {formatChicagoTime(date, 'EEE')}
                       </div>
-                      <div className={`text-lg font-bold mb-1 ${
+                      <div className={`text-2xl font-bold mb-1 ${
                         index === 0 ? 'text-blue-400' : 'text-white'
                       }`}>
                         {formatChicagoTime(date, 'd')}
