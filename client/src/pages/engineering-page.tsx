@@ -109,8 +109,57 @@ export default function EngineeringPage() {
     return pcrRoom?.name || `PCR ${pcrRoomId}`;
   };
 
-  // Helper function to calculate booking position and height
-  const getBookingStyle = (booking: BookingData) => {
+  // Helper function to check if two bookings overlap
+  const bookingsOverlap = (booking1: BookingData, booking2: BookingData) => {
+    const start1 = new Date(booking1.start).getTime();
+    const end1 = new Date(booking1.end).getTime();
+    const start2 = new Date(booking2.start).getTime();
+    const end2 = new Date(booking2.end).getTime();
+    
+    return start1 < end2 && start2 < end1;
+  };
+
+  // Helper function to arrange overlapping bookings in columns
+  const arrangeBookingsInColumns = (dayBookings: BookingData[]) => {
+    const arranged: Array<{ booking: BookingData; column: number; totalColumns: number }> = [];
+    
+    // Sort bookings by start time
+    const sortedBookings = [...dayBookings].sort((a, b) => 
+      new Date(a.start).getTime() - new Date(b.start).getTime()
+    );
+    
+    sortedBookings.forEach(booking => {
+      // Find all bookings that overlap with this one
+      const overlapping = arranged.filter(item => 
+        bookingsOverlap(item.booking, booking)
+      );
+      
+      // Find the first available column
+      const usedColumns = overlapping.map(item => item.column);
+      let column = 0;
+      while (usedColumns.includes(column)) {
+        column++;
+      }
+      
+      // Add this booking to the arrangement
+      arranged.push({ booking, column, totalColumns: 1 });
+      
+      // Update total columns for all overlapping bookings
+      const allOverlapping = arranged.filter(item => 
+        bookingsOverlap(item.booking, booking) || item.booking.id === booking.id
+      );
+      
+      const maxColumn = Math.max(...allOverlapping.map(item => item.column));
+      allOverlapping.forEach(item => {
+        item.totalColumns = maxColumn + 1;
+      });
+    });
+    
+    return arranged;
+  };
+
+  // Helper function to calculate booking position and height with column support
+  const getBookingStyle = (booking: BookingData, column: number, totalColumns: number) => {
     const startTime = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
     const endTime = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
     
@@ -121,9 +170,15 @@ export default function EngineeringPage() {
     const topPosition = Math.max(0, (startHour - 6) * 60); // 60px per hour
     const height = Math.max(30, (endHour - startHour) * 60); // Minimum 30px height
     
+    // Calculate width and left position for side-by-side layout
+    const columnWidth = 100 / totalColumns;
+    const leftPosition = (column * columnWidth);
+    
     return {
       top: `${topPosition}px`,
       height: `${height}px`,
+      left: `${leftPosition}%`,
+      width: `${columnWidth}%`,
       backgroundColor: booking.color || '#3B82F6',
       opacity: booking.status === 'cancelled' ? 0.5 : 1,
       border: booking.status === 'tentative' ? '2px dashed #666' : 'none'
@@ -263,6 +318,9 @@ export default function EngineeringPage() {
                     return isSameDay(bookingDate, day.date);
                   });
 
+                  // Arrange bookings in columns for side-by-side display
+                  const arrangedBookings = arrangeBookingsInColumns(dayBookings);
+
                   return (
                     <div
                       key={day.fullDate}
@@ -276,17 +334,21 @@ export default function EngineeringPage() {
                         />
                       ))}
 
-                      {/* Bookings */}
-                      {dayBookings.map((booking) => {
-                        const style = getBookingStyle(booking);
+                      {/* Bookings arranged in columns */}
+                      {arrangedBookings.map(({ booking, column, totalColumns }) => {
+                        const style = getBookingStyle(booking, column, totalColumns);
                         const studios = getBookingStudios(booking.id);
                         const pcrRoom = getPcrRoomName(booking.pcrRoomId);
 
                         return (
                           <div
                             key={booking.id}
-                            className="absolute left-1 right-1 rounded text-white text-xs p-1 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden"
-                            style={style}
+                            className="absolute rounded text-white text-xs p-1 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden"
+                            style={{
+                              ...style,
+                              marginLeft: '2px',
+                              marginRight: '2px'
+                            }}
                           >
                             <div className="font-semibold truncate">
                               {booking.title}
