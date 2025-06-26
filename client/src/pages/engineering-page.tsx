@@ -425,7 +425,7 @@ export default function EngineeringPage() {
                                   </div>
                                 )}
                                 
-                                {booking.severity && booking.type === 'maintenance' && (
+                                {booking.severity && (booking.type === 'maintenance' || booking.type === 'all_day_maintenance' || booking.type.includes('maintenance')) && (
                                   <div className="text-sm text-gray-700">
                                     <strong>Severity:</strong> {booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1)}
                                   </div>
