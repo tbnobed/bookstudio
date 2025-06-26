@@ -331,8 +331,8 @@ export default function EngineeringPage() {
   });
   const regularBookings = weekBookings.filter(booking => !isAlertBooking(booking));
   
-  console.log(`[ENGINEERING] Current week: ${format(currentWeek, 'MMM d')} - ${format(addDays(currentWeek, 6), 'MMM d')}`);
-  console.log(`[ENGINEERING] Total bookings: ${weekBookings.length}, Alerts: ${alertBookings.length}, Regular: ${regularBookings.length}`);
+  // console.log(`[ENGINEERING] Current week: ${format(currentWeek, 'MMM d')} - ${format(addDays(currentWeek, 6), 'MMM d')}`);
+  // console.log(`[ENGINEERING] Total bookings: ${weekBookings.length}, Alerts: ${alertBookings.length}, Regular: ${regularBookings.length}`);
 
   return (
     <TooltipProvider>
@@ -515,7 +515,11 @@ export default function EngineeringPage() {
                 {weekDays.map((day) => {
                   const dayBookings = regularBookings.filter(booking => {
                     const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
-                    return isSameDay(bookingDate, day.date);
+                    const sameDay = isSameDay(bookingDate, day.date);
+                    if (sameDay) {
+                      console.log(`[TIME GRID] ${day.fullDate}: ${booking.title} (${booking.type})`);
+                    }
+                    return sameDay;
                   });
 
                   // Arrange bookings in columns for side-by-side display
