@@ -657,13 +657,20 @@ export class MemStorage implements IStorage {
       ? pcrBookings.filter(booking => booking.id !== excludeBookingId) 
       : pcrBookings;
     
-    // Find conflicts
+    // Find conflicts with cross-midnight handling
     const startTime = start.getTime();
     const endTime = end.getTime();
     
     return otherBookings.filter(booking => {
-      const bookingStart = new Date(booking.start).getTime();
-      const bookingEnd = new Date(booking.end).getTime();
+      let bookingStart = new Date(booking.start).getTime();
+      let bookingEnd = new Date(booking.end).getTime();
+      
+      // Handle cross-midnight bookings where end time appears before start time
+      const isCrossMidnight = bookingEnd <= bookingStart;
+      if (isCrossMidnight) {
+        // Add 24 hours to the end time to represent next day
+        bookingEnd = bookingEnd + 24 * 60 * 60 * 1000;
+      }
       
       return (
         (startTime >= bookingStart && startTime < bookingEnd) || // new booking starts during existing booking
@@ -2823,10 +2830,18 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`[PCR Conflicts DB] Found ${allPcrBookings.length} bookings with PCR room ${pcrRoomId}`);
       
-      // Filter for conflicts using JavaScript logic for better debugging
+      // Filter for conflicts using JavaScript logic with cross-midnight handling
       const conflicts = allPcrBookings.filter(booking => {
-        const bookingStart = new Date(booking.start);
-        const bookingEnd = new Date(booking.end);
+        let bookingStart = new Date(booking.start);
+        let bookingEnd = new Date(booking.end);
+        
+        // Handle cross-midnight bookings where end time appears before start time
+        const isCrossMidnight = bookingEnd <= bookingStart;
+        if (isCrossMidnight) {
+          // Add 24 hours to the end time to represent next day
+          bookingEnd = new Date(bookingEnd.getTime() + 24 * 60 * 60 * 1000);
+          console.log(`[PCR Conflicts DB] Cross-midnight booking detected: ${booking.id} "${booking.title}" adjusted to ${bookingStart.toISOString()} - ${bookingEnd.toISOString()}`);
+        }
         
         const hasConflict = (
           (start >= bookingStart && start < bookingEnd) ||  // new booking starts during existing
@@ -2836,6 +2851,8 @@ export class DatabaseStorage implements IStorage {
         
         if (hasConflict) {
           console.log(`[PCR Conflicts DB] CONFLICT: Booking ${booking.id} "${booking.title}" (${bookingStart.toISOString()} - ${bookingEnd.toISOString()}) conflicts with new booking (${start.toISOString()} - ${end.toISOString()})`);
+        } else if (isCrossMidnight) {
+          console.log(`[PCR Conflicts DB] Cross-midnight booking ${booking.id} "${booking.title}" does NOT conflict with new booking`);
         }
         
         return hasConflict;
