@@ -174,9 +174,17 @@ export default function EngineeringPage() {
   // Helper function to check if two bookings overlap
   const bookingsOverlap = (booking1: BookingData, booking2: BookingData) => {
     const start1 = new Date(booking1.start).getTime();
-    const end1 = new Date(booking1.end).getTime();
+    let end1 = new Date(booking1.end).getTime();
     const start2 = new Date(booking2.start).getTime();
-    const end2 = new Date(booking2.end).getTime();
+    let end2 = new Date(booking2.end).getTime();
+    
+    // Handle cross-midnight bookings by adding 24 hours to end time if it's before start
+    if (end1 <= start1) {
+      end1 += 24 * 60 * 60 * 1000; // Add 24 hours
+    }
+    if (end2 <= start2) {
+      end2 += 24 * 60 * 60 * 1000; // Add 24 hours
+    }
     
     return start1 < end2 && start2 < end1;
   };
@@ -242,21 +250,7 @@ export default function EngineeringPage() {
     
     let topPosition, height;
     
-    if (booking.title.includes("Test 5pm to 12am")) {
-      console.log("[BOOKING STYLE DEBUG]", {
-        title: booking.title,
-        start: booking.start,
-        end: booking.end,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
-        startHour,
-        endHour,
-        isCrossMidnight,
-        spansMultipleDays,
-        isToMidnight,
-        isAllDay
-      });
-    }
+
     
     if (isAllDay) {
       // For all-day events, span the entire day
@@ -266,9 +260,7 @@ export default function EngineeringPage() {
       // Cross-midnight booking: display from start time until end of day (midnight)
       topPosition = startHour * 60;
       height = (24 - startHour) * 60; // From start hour to midnight
-      if (booking.title === "Test 5pm to 12am next day") {
-        console.log("[CROSS-MIDNIGHT FIX]", { topPosition, height, calculation: `(24 - ${startHour}) * 60 = ${height}` });
-      }
+
     } else if (isToMidnight) {
       // Event ends at midnight (00:00) - show from start to end of day (24:00)
       topPosition = startHour * 60;

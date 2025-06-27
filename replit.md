@@ -252,6 +252,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 27, 2025: COMPLETELY FIXED cross-midnight booking conflict detection - added proper 24-hour time correction logic to all storage classes (MemStorage and DatabaseStorage) and API routes (3 locations in server/routes.ts) to handle bookings where end time appears before start time in UTC, ensuring accurate conflict detection for overnight bookings like "11 PM to 1 AM"
 - June 27, 2025: FIXED engineering view cross-midnight time display - updated tooltip time formatting logic to properly detect cross-midnight bookings and display both start and end dates (e.g., "Jun 25, 2025 5:00 PM - Jun 26, 2025 12:00 AM") instead of showing confusing same-day format for overnight bookings
 - June 27, 2025: FIXED engineering view booking card cross-midnight display - updated booking card time display (lines 657-675) to include date for cross-midnight bookings, showing "5:00 PM - Jun 26 12:00 AM" instead of confusing "5:00 PM - 12:00 AM" format, ensuring both card and tooltip consistently display overnight bookings correctly
+- June 27, 2025: COMPLETELY FIXED engineering view cross-midnight booking visual layout - resolved overlap detection logic in bookingsOverlap function to handle cross-midnight bookings by adding 24 hours to end times when they precede start times, ensuring cross-midnight bookings display as proper 7-hour blocks instead of tiny slivers in the engineering calendar view
 
 ## User Preferences
 
