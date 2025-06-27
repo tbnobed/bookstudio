@@ -251,6 +251,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 27, 2025: IMPLEMENTED comprehensive time validation across ALL booking forms - added real-time validation to prevent end times from being earlier than start times in SimpleMobileForm, DirectMobileForm, and BookingModal with user-friendly notification messages, ensuring data integrity and preventing invalid booking time ranges throughout the entire application
 - June 27, 2025: ENHANCED calendar booking overlap display - replaced equal-division algorithm with minimum readable width (40%) approach, implemented controlled overlap positioning with 15% offset, added shadows and z-index layering for visual separation, improved day filtering logic to prevent bookings appearing on incorrect days, added overflow containment to day columns for clean visual boundaries
 - June 27, 2025: IMPROVED time indicator visibility - increased time label size from text-xs to text-sm with font-bold styling, enhanced padding from px-2 py-1 to px-3 py-2, improved positioning with -top-5 offset for better readability and prominence in engineering calendar view
+- June 27, 2025: ENHANCED booking text readability in engineering view - added text shadows (1px 1px 2px rgba) for better contrast on colored backgrounds, upgraded all text from font-semibold to font-bold/font-semibold for stronger visibility, increased opacity levels from 75-80% to 85-95%, enhanced severity badge contrast with darker background opacity for optimal readability across all booking card colors
 
 ## User Preferences
 
