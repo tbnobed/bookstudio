@@ -110,8 +110,9 @@ export default function EngineeringPage() {
   // Fetch bookings with refetch interval to ensure fresh data
   const { data: bookings = [], refetch: refetchBookings } = useQuery<BookingData[]>({
     queryKey: ["/api/bookings"],
-    refetchInterval: 30000, // Refetch every 30 seconds to keep data fresh
+    refetchInterval: 5000, // Refetch every 5 seconds for immediate updates
     refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Always refetch when component mounts
   });
 
   // Fetch studios
