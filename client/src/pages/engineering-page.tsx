@@ -242,7 +242,7 @@ export default function EngineeringPage() {
     
     let topPosition, height;
     
-    if (booking.title === "Test 5pm to 12am next day") {
+    if (booking.title.includes("Test 5pm to 12am")) {
       console.log("[BOOKING STYLE DEBUG]", {
         title: booking.title,
         start: booking.start,
@@ -681,8 +681,8 @@ export default function EngineeringPage() {
                                   </div>
                                 )}
                                 
-                                <div className={`text-xs font-bold bg-yellow-200 text-black p-1 rounded ${severityStyle ? 'opacity-75 font-medium' : 'opacity-75'}`}>
-                                  TIME: {(() => {
+                                <div className={`text-xs ${severityStyle ? 'opacity-75 font-medium' : 'opacity-75'}`}>
+                                  {(() => {
                                     const startTime = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
                                     const endTime = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
                                     
