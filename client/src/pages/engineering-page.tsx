@@ -324,9 +324,7 @@ export default function EngineeringPage() {
   // Check if current time should be shown (current day is in view)
   const shouldShowCurrentTimeIndicator = () => {
     const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
-    const todayInWeek = weekDays.some(day => isSameDay(day.date, today));
-    console.log('[TIME INDICATOR DEBUG] Should show indicator:', todayInWeek, 'Today:', format(today, 'MMM dd, yyyy'));
-    return todayInWeek;
+    return weekDays.some(day => isSameDay(day.date, today));
   };
 
   // Function to determine if a booking is an alert/maintenance
@@ -601,13 +599,7 @@ export default function EngineeringPage() {
                       ))}
 
                       {/* Current time indicator line */}
-                      {(() => {
-                        const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
-                        const isToday = isSameDay(day.date, today);
-                        const shouldShow = shouldShowCurrentTimeIndicator();
-                        console.log(`[TIME INDICATOR] Day: ${format(day.date, 'MMM dd')}, isToday: ${isToday}, shouldShow: ${shouldShow}`);
-                        return shouldShow && isToday;
-                      })() && (
+                      {shouldShowCurrentTimeIndicator() && isSameDay(day.date, toZonedTime(new Date(), FACILITY_TIMEZONE)) && (
                         <div
                           className="absolute left-0 right-0 z-30 pointer-events-none"
                           style={{
@@ -619,7 +611,7 @@ export default function EngineeringPage() {
                         >
                           {/* Time label */}
                           <div
-                            className="absolute -left-2 -top-3 px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded-full shadow-lg whitespace-nowrap"
+                            className="absolute -left-2 -top-3 px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded shadow-lg whitespace-nowrap z-50"
                             style={{ transform: 'translateX(-100%)' }}
                           >
                             {format(currentTime, 'h:mm a')}
