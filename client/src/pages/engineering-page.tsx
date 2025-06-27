@@ -223,6 +223,20 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
+    // Debug logging for the problematic booking
+    if (booking.title.includes('Test Y and Z')) {
+      console.log(`[BOOKING STYLE DEBUG] ${booking.title}:`, {
+        start: booking.start,
+        end: booking.end,
+        startTime: startTime.toString(),
+        endTime: endTime.toString(),
+        startHour,
+        endHour,
+        column,
+        totalColumns
+      });
+    }
+    
     // Check if this is an all-day event or spans across midnight
     const isAllDay = booking.type === 'all_day_maintenance' || 
                      (endHour < startHour && Math.abs(endHour - startHour) > 12);
@@ -233,14 +247,24 @@ export default function EngineeringPage() {
       // For all-day events, span the entire day
       topPosition = 0;
       height = 24 * 60; // Full 24 hours
+      if (booking.title.includes('Test Y and Z')) {
+        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - All day event`);
+      }
     } else if (endHour < startHour) {
       // Event spans midnight - show from start to end of day
       topPosition = startHour * 60;
       height = (24 - startHour) * 60;
+      if (booking.title.includes('Test Y and Z')) {
+        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - Spans midnight: top=${topPosition}px, height=${height}px`);
+      }
     } else {
       // Normal event within same day
       topPosition = Math.max(0, startHour * 60);
       height = Math.max(30, (endHour - startHour) * 60);
+      
+      if (booking.title.includes('Test Y and Z')) {
+        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - Normal event: top=${topPosition}px, height=${height}px, startHour=${startHour}, endHour=${endHour}`);
+      }
     }
     
     // Calculate width and left position for side-by-side layout
