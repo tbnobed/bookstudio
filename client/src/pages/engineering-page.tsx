@@ -653,8 +653,8 @@ export default function EngineeringPage() {
                                   </div>
                                 )}
                                 
-                                <div className={`text-xs ${severityStyle ? 'opacity-75 font-medium' : 'opacity-75'}`}>
-                                  {(() => {
+                                <div className={`text-xs font-bold bg-yellow-200 text-black p-1 rounded ${severityStyle ? 'opacity-75 font-medium' : 'opacity-75'}`}>
+                                  TIME: {(() => {
                                     const startTime = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
                                     const endTime = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
                                     
