@@ -406,27 +406,20 @@ export function isWeekend(date: Date): boolean {
 export function generateTimeOptions(): string[] {
   const timeOptions: string[] = [];
   
-  // Generate all time options including the full 24 hours
-  for (let hour = 0; hour <= 24; hour++) {
+  // Generate time options for 24 hours (0-23) plus midnight next day
+  for (let hour = 0; hour < 24; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
-      // Special handling for hour 24 (midnight the next day) - only include 0 minutes
-      if (hour === 24 && minute > 0) break;
-      
       // Convert to 12-hour format
       let displayHour = hour % 12;
       if (displayHour === 0) displayHour = 12;
       
       const period = hour < 12 ? "am" : "pm";
-      
-      // Special case for exactly 24:00 (midnight next day)
-      if (hour === 24) {
-        timeOptions.push("12:00am");
-        break;
-      } else {
-        timeOptions.push(`${displayHour}:${minute.toString().padStart(2, "0")}${period}`);
-      }
+      timeOptions.push(`${displayHour}:${minute.toString().padStart(2, "0")}${period}`);
     }
   }
+  
+  // Add midnight next day as final option (for end times that go to next day)
+  timeOptions.push("12:00am (next day)");
   
   return timeOptions;
 }
@@ -448,8 +441,8 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
     
     console.log(`timeToDate - Attempting to parse date=${dateStr}, time=${timeStr}`);
     
-    // Extract hours and minutes from timeStr (format: "1:30pm", "12:00am", etc.)
-    const timeParts = timeStr.match(/^(\d+):(\d+)([ap]m)$/i);
+    // Extract hours and minutes from timeStr (format: "1:30pm", "12:00am", "12:00am (next day)", etc.)
+    const timeParts = timeStr.match(/^(\d+):(\d+)([ap]m)(?:\s*\(next day\))?$/i);
     if (!timeParts) {
       console.error(`Invalid time format: "${timeStr}"`);
       throw new Error(`Invalid time format: "${timeStr}". Expected format like "1:30pm" or "12:00am".`);
@@ -458,6 +451,7 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
     let [_, hours, minutes, period] = timeParts;
     let hourNum = parseInt(hours);
     const minuteNum = parseInt(minutes);
+    const isNextDay = timeStr.includes("(next day)");
     
     // Validate parsed time components
     if (isNaN(hourNum) || isNaN(minuteNum)) {
@@ -496,6 +490,12 @@ export function timeToDate(dateStr: string, timeStr: string): Date {
     // This ensures the date is explicitly created in the facility's timezone
     // Note: month in createFacilityDate is 0-based, but the parsed month from dateStr is 1-based
     const dateObj = createFacilityDate(year, month - 1, day, hourNum, minuteNum);
+    
+    // If this is a "next day" time (like "12:00am (next day)"), add one day
+    if (isNextDay) {
+      dateObj.setDate(dateObj.getDate() + 1);
+      console.log(`Next day time detected: adjusted to ${dateObj.toISOString()}`);
+    }
     
     // Validate the created date object
     if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
