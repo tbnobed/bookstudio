@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { ChevronLeft, ChevronRight, Settings, Calendar, AlertTriangle, Camera, Monitor } from "lucide-react";
@@ -86,6 +86,8 @@ interface PcrRoom {
 }
 
 export default function EngineeringPage() {
+  const queryClient = useQueryClient();
+  
   const [currentWeek, setCurrentWeek] = useState(() => {
     const now = new Date();
     const chicagoTime = toZonedTime(now, FACILITY_TIMEZONE);
@@ -378,7 +380,12 @@ export default function EngineeringPage() {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => refetchBookings()}
+              onClick={() => {
+                console.log("Manual refresh clicked - clearing cache and refetching");
+                queryClient.clear();
+                refetchBookings();
+                window.location.reload();
+              }}
               title="Refresh data"
             >
               <Settings className="w-4 h-4" />
