@@ -678,7 +678,24 @@ export default function EngineeringPage() {
                                 )}
                                 
                                 <div className="text-sm text-gray-700">
-                                  <strong>Time:</strong> {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'MMM d, yyyy h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
+                                  <strong>Time:</strong> {(() => {
+                                    const startTime = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
+                                    const endTime = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
+                                    
+                                    // Check if this is a cross-midnight booking by comparing the raw dates
+                                    const rawStart = parseISO(booking.start);
+                                    const rawEnd = parseISO(booking.end);
+                                    const isCrossMidnight = rawEnd <= rawStart;
+                                    
+                                    if (isCrossMidnight) {
+                                      // For cross-midnight bookings, show both dates
+                                      const nextDayEnd = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
+                                      return `${format(startTime, 'MMM d, yyyy h:mm a')} - ${format(nextDayEnd, 'MMM d, yyyy h:mm a')}`;
+                                    } else {
+                                      // Normal booking - same day
+                                      return `${format(startTime, 'MMM d, yyyy h:mm a')} - ${format(endTime, 'h:mm a')}`;
+                                    }
+                                  })()}
                                 </div>
                                 
                                 {studios.length > 0 && (
