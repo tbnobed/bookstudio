@@ -1040,6 +1040,8 @@ export async function sendSiteManagerNotification(
   changes?: any
 ): Promise<boolean> {
   console.log(`Sending site manager notification for booking ${booking.id} (${action})`);
+  console.log('Changes object received:', changes);
+  console.log('Studios for formatting:', studios);
   
   const actionLabels = {
     created: 'New Booking Created',
