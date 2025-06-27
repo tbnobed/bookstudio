@@ -107,9 +107,11 @@ export default function EngineeringPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch bookings
-  const { data: bookings = [] } = useQuery<BookingData[]>({
+  // Fetch bookings with refetch interval to ensure fresh data
+  const { data: bookings = [], refetch: refetchBookings } = useQuery<BookingData[]>({
     queryKey: ["/api/bookings"],
+    refetchInterval: 30000, // Refetch every 30 seconds to keep data fresh
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   // Fetch studios
@@ -372,7 +374,12 @@ export default function EngineeringPage() {
               </Button>
             </div>
             
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => refetchBookings()}
+              title="Refresh data"
+            >
               <Settings className="w-4 h-4" />
             </Button>
           </div>
