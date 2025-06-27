@@ -150,6 +150,12 @@ export default function EngineeringPage() {
     };
   });
 
+  // Debug: Log the current week range and days
+  console.log(`[WEEK DEBUG] Current week start: ${format(currentWeek, 'yyyy-MM-dd')} (${format(currentWeek, 'EEE')})`);
+  console.log(`[WEEK DEBUG] Week days:`, weekDays.map(day => `${day.fullDate} (${day.dayName})`));
+  console.log(`[WEEK DEBUG] Total bookings loaded: ${bookings.length}`);
+  console.log(`[WEEK DEBUG] June 29th bookings in dataset:`, bookings.filter(b => b.start.includes('2025-06-29')).map(b => b.title));
+
   // Helper function to get studios for a booking
   const getBookingStudios = (bookingId: number) => {
     const studioLinks = bookingStudios.filter(link => link.bookingId === bookingId);
@@ -288,7 +294,14 @@ export default function EngineeringPage() {
     const weekStart = currentWeek;
     const weekEnd = addDays(currentWeek, 6);
     
-    return bookingDate >= weekStart && bookingDate <= weekEnd;
+    const inWeek = bookingDate >= weekStart && bookingDate <= weekEnd;
+    
+    // Debug: Log Sunday bookings specifically
+    if (booking.start.includes('2025-06-29') || booking.title.toLowerCase().includes('sunday')) {
+      console.log(`[SUNDAY BOOKING DEBUG] ${booking.title}: start=${booking.start}, inWeek=${inWeek}, bookingDate=${bookingDate}, weekStart=${weekStart}, weekEnd=${weekEnd}`);
+    }
+    
+    return inWeek;
   });
 
   const goToPreviousWeek = () => {
