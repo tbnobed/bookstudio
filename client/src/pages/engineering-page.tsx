@@ -228,9 +228,12 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
-    // Check if this is an all-day event or spans across midnight
-    const isAllDay = booking.type === 'all_day_maintenance' || 
-                     (endHour < startHour && Math.abs(endHour - startHour) > 12);
+    // Check if this is an all-day event
+    const isAllDay = booking.type === 'all_day_maintenance';
+    
+    // Check if this spans multiple days
+    const spansMultipleDays = startTime.getDate() !== endTime.getDate();
+    const isToMidnight = endHour === 0 && spansMultipleDays;
     
     let topPosition, height;
     
@@ -238,8 +241,12 @@ export default function EngineeringPage() {
       // For all-day events, span the entire day
       topPosition = 0;
       height = 24 * 60; // Full 24 hours
-    } else if (endHour < startHour) {
-      // Event spans midnight - show from start to end of day
+    } else if (isToMidnight) {
+      // Event ends at midnight (00:00) - show from start to end of day (24:00)
+      topPosition = startHour * 60;
+      height = (24 - startHour) * 60;
+    } else if (spansMultipleDays && endHour > 0) {
+      // Event truly spans midnight into next day with non-zero end time
       topPosition = startHour * 60;
       height = (24 - startHour) * 60;
     } else {
