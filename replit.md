@@ -251,6 +251,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 27, 2025: RESOLVED engineering view cache refresh issue - implemented aggressive React Query cache invalidation with 5-second automatic refresh intervals, added manual refresh button with cache clearing and page reload functionality, ensuring booking updates appear immediately in engineering calendar view without requiring manual page refresh
 - June 27, 2025: COMPLETELY FIXED cross-midnight booking conflict detection - added proper 24-hour time correction logic to all storage classes (MemStorage and DatabaseStorage) and API routes (3 locations in server/routes.ts) to handle bookings where end time appears before start time in UTC, ensuring accurate conflict detection for overnight bookings like "11 PM to 1 AM"
 - June 27, 2025: FIXED engineering view cross-midnight time display - updated tooltip time formatting logic to properly detect cross-midnight bookings and display both start and end dates (e.g., "Jun 25, 2025 5:00 PM - Jun 26, 2025 12:00 AM") instead of showing confusing same-day format for overnight bookings
+- June 27, 2025: FIXED engineering view booking card cross-midnight display - updated booking card time display (lines 657-675) to include date for cross-midnight bookings, showing "5:00 PM - Jun 26 12:00 AM" instead of confusing "5:00 PM - 12:00 AM" format, ensuring both card and tooltip consistently display overnight bookings correctly
 
 ## User Preferences
 
