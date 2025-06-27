@@ -282,15 +282,15 @@ export default function EngineeringPage() {
     };
   };
 
-  // Filter bookings for current week
+  // Filter bookings for current week (including bookings that span into displayed days)
   const weekBookings = bookings.filter(booking => {
-    const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
+    const bookingStartDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
+    const bookingEndDate = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
     const weekStart = currentWeek;
     const weekEnd = addDays(currentWeek, 6);
     
-
-    
-    return bookingDate >= weekStart && bookingDate <= weekEnd;
+    // Include bookings that start, end, or span into the displayed week
+    return (bookingStartDate <= weekEnd && bookingEndDate >= weekStart);
   });
 
   const goToPreviousWeek = () => {
@@ -565,11 +565,6 @@ export default function EngineeringPage() {
                     
                     if (showOnThisDay) {
                       console.log(`[TIME GRID] ${day.fullDate}: ${booking.title} (${booking.type}) - starts: ${startsOnDay}, ends: ${endsOnDay}, spans: ${spansIntoDay}`);
-                    }
-                    
-                    // Special debug for Sunday (June 29th)
-                    if (day.fullDate === '2025-06-29') {
-                      console.log(`[SUNDAY DEBUG] Checking booking: ${booking.title}, start: ${booking.start}, end: ${booking.end}, startsOnDay: ${startsOnDay}, endsOnDay: ${endsOnDay}, spansIntoDay: ${spansIntoDay}, showOnThisDay: ${showOnThisDay}`);
                     }
                     
                     return showOnThisDay;
