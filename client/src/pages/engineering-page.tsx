@@ -269,18 +269,22 @@ export default function EngineeringPage() {
       }
     }
     
-    // Calculate width and left position for side-by-side layout
-    const columnWidth = 100 / totalColumns;
-    const leftPosition = (column * columnWidth);
+    // Calculate width and left position with minimum readable width
+    // Instead of dividing equally, use a minimum width approach with controlled overlap
+    const minReadableWidth = Math.max(40, 100 / Math.min(totalColumns, 3)); // Minimum 40% width, max 3 visible columns
+    const overlapOffset = totalColumns > 3 ? 15 : 25; // Reduce spacing when many bookings overlap
+    const leftPosition = column * overlapOffset;
     
     return {
       top: `${topPosition}px`,
       height: `${height}px`,
       left: `${leftPosition}%`,
-      width: `${columnWidth}%`,
+      width: `${minReadableWidth}%`,
       backgroundColor: booking.color || '#3B82F6',
       opacity: booking.status === 'cancelled' ? 0.5 : 1,
-      border: booking.status === 'tentative' ? '2px dashed #666' : 'none'
+      border: booking.status === 'tentative' ? '2px dashed #666' : 'none',
+      zIndex: 10 + column, // Higher z-index for later columns to ensure visibility
+      boxShadow: totalColumns > 2 ? '0 1px 3px rgba(0,0,0,0.2)' : 'none' // Add shadow for better separation when overlapping
     };
   };
 
