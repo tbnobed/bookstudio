@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { ChevronLeft, ChevronRight, Settings, Calendar, AlertTriangle, Camera, Monitor } from "lucide-react";
@@ -86,8 +86,6 @@ interface PcrRoom {
 }
 
 export default function EngineeringPage() {
-  const queryClient = useQueryClient();
-  
   const [currentWeek, setCurrentWeek] = useState(() => {
     const now = new Date();
     const chicagoTime = toZonedTime(now, FACILITY_TIMEZONE);
@@ -109,12 +107,9 @@ export default function EngineeringPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch bookings with refetch interval to ensure fresh data
-  const { data: bookings = [], refetch: refetchBookings } = useQuery<BookingData[]>({
+  // Fetch bookings
+  const { data: bookings = [] } = useQuery<BookingData[]>({
     queryKey: ["/api/bookings"],
-    refetchInterval: 5000, // Refetch every 5 seconds for immediate updates
-    refetchOnWindowFocus: true, // Refetch when window gains focus
-    refetchOnMount: true, // Always refetch when component mounts
   });
 
   // Fetch studios
@@ -174,17 +169,9 @@ export default function EngineeringPage() {
   // Helper function to check if two bookings overlap
   const bookingsOverlap = (booking1: BookingData, booking2: BookingData) => {
     const start1 = new Date(booking1.start).getTime();
-    let end1 = new Date(booking1.end).getTime();
+    const end1 = new Date(booking1.end).getTime();
     const start2 = new Date(booking2.start).getTime();
-    let end2 = new Date(booking2.end).getTime();
-    
-    // Handle cross-midnight bookings by adding 24 hours to end time if it's before start
-    if (end1 <= start1) {
-      end1 += 24 * 60 * 60 * 1000; // Add 24 hours
-    }
-    if (end2 <= start2) {
-      end2 += 24 * 60 * 60 * 1000; // Add 24 hours
-    }
+    const end2 = new Date(booking2.end).getTime();
     
     return start1 < end2 && start2 < end1;
   };
@@ -236,37 +223,18 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
-    // Check for cross-midnight bookings by comparing raw UTC times
-    const rawStart = parseISO(booking.start);
-    const rawEnd = parseISO(booking.end);
-    const isCrossMidnight = rawEnd <= rawStart;
-    
-    // Check if this is an all-day event
-    const isAllDay = booking.type === 'all_day_maintenance';
-    
-    // Check if this spans multiple days
-    const spansMultipleDays = startTime.getDate() !== endTime.getDate();
-    const isToMidnight = endHour === 0 && spansMultipleDays;
+    // Check if this is an all-day event or spans across midnight
+    const isAllDay = booking.type === 'all_day_maintenance' || 
+                     (endHour < startHour && Math.abs(endHour - startHour) > 12);
     
     let topPosition, height;
-    
-
     
     if (isAllDay) {
       // For all-day events, span the entire day
       topPosition = 0;
       height = 24 * 60; // Full 24 hours
-    } else if (isCrossMidnight) {
-      // Cross-midnight booking: display from start time until end of day (midnight)
-      topPosition = startHour * 60;
-      height = (24 - startHour) * 60; // From start hour to midnight
-
-    } else if (isToMidnight) {
-      // Event ends at midnight (00:00) - show from start to end of day (24:00)
-      topPosition = startHour * 60;
-      height = (24 - startHour) * 60;
-    } else if (spansMultipleDays && endHour > 0) {
-      // Event truly spans midnight into next day with non-zero end time
+    } else if (endHour < startHour) {
+      // Event spans midnight - show from start to end of day
       topPosition = startHour * 60;
       height = (24 - startHour) * 60;
     } else {
@@ -404,17 +372,7 @@ export default function EngineeringPage() {
               </Button>
             </div>
             
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                console.log("Manual refresh clicked - clearing cache and refetching");
-                queryClient.clear();
-                refetchBookings();
-                window.location.reload();
-              }}
-              title="Refresh data"
-            >
+            <Button variant="outline" size="sm">
               <Settings className="w-4 h-4" />
             </Button>
           </div>
@@ -674,24 +632,8 @@ export default function EngineeringPage() {
                                 )}
                                 
                                 <div className={`text-xs ${severityStyle ? 'opacity-75 font-medium' : 'opacity-75'}`}>
-                                  {(() => {
-                                    const startTime = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
-                                    const endTime = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
-                                    
-                                    // Check if this is a cross-midnight booking by comparing the raw dates
-                                    const rawStart = parseISO(booking.start);
-                                    const rawEnd = parseISO(booking.end);
-                                    const isCrossMidnight = rawEnd <= rawStart;
-                                    
-                                    if (isCrossMidnight) {
-                                      // For cross-midnight bookings, show date for end time
-                                      const nextDayEnd = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
-                                      return `${format(startTime, 'h:mm a')} - ${format(nextDayEnd, 'MMM d h:mm a')}`;
-                                    } else {
-                                      // Normal booking - same day
-                                      return `${format(startTime, 'h:mm a')} - ${format(endTime, 'h:mm a')}`;
-                                    }
-                                  })()}
+                                  {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - 
+                                  {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                                 </div>
 
                                 {booking.status && booking.status !== 'confirmed' && (
@@ -714,24 +656,7 @@ export default function EngineeringPage() {
                                 )}
                                 
                                 <div className="text-sm text-gray-700">
-                                  <strong>Time:</strong> {(() => {
-                                    const startTime = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
-                                    const endTime = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
-                                    
-                                    // Check if this is a cross-midnight booking by comparing the raw dates
-                                    const rawStart = parseISO(booking.start);
-                                    const rawEnd = parseISO(booking.end);
-                                    const isCrossMidnight = rawEnd <= rawStart;
-                                    
-                                    if (isCrossMidnight) {
-                                      // For cross-midnight bookings, show both dates
-                                      const nextDayEnd = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
-                                      return `${format(startTime, 'MMM d, yyyy h:mm a')} - ${format(nextDayEnd, 'MMM d, yyyy h:mm a')}`;
-                                    } else {
-                                      // Normal booking - same day
-                                      return `${format(startTime, 'MMM d, yyyy h:mm a')} - ${format(endTime, 'h:mm a')}`;
-                                    }
-                                  })()}
+                                  <strong>Time:</strong> {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'MMM d, yyyy h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                                 </div>
                                 
                                 {studios.length > 0 && (
