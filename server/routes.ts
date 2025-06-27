@@ -978,8 +978,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return false;
             }
             
-            const bookingStart = new Date(booking.start);
-            const bookingEnd = new Date(booking.end);
+            let bookingStart = new Date(booking.start);
+            let bookingEnd = new Date(booking.end);
+            
+            // Handle cross-midnight bookings where end time appears before start time
+            const isCrossMidnight = bookingEnd <= bookingStart;
+            if (isCrossMidnight) {
+              // Add 24 hours to the end time to represent next day
+              bookingEnd = new Date(bookingEnd.getTime() + 24 * 60 * 60 * 1000);
+            }
             
             return (
               (start >= bookingStart && start < bookingEnd) ||
@@ -1402,8 +1409,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Skip cancelled bookings - they don't create conflicts
             if (b.status === 'cancelled') return false;
             
-            const bookingStart = new Date(b.start);
-            const bookingEnd = new Date(b.end);
+            let bookingStart = new Date(b.start);
+            let bookingEnd = new Date(b.end);
+            
+            // Handle cross-midnight bookings where end time appears before start time
+            const isCrossMidnight = bookingEnd <= bookingStart;
+            if (isCrossMidnight) {
+              // Add 24 hours to the end time to represent next day
+              bookingEnd = new Date(bookingEnd.getTime() + 24 * 60 * 60 * 1000);
+            }
             
             return (
               (start >= bookingStart && start < bookingEnd) ||
@@ -1434,8 +1448,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Skip cancelled bookings - they don't create conflicts
             if (b.status === 'cancelled') return false;
             
-            const bookingStart = new Date(b.start);
-            const bookingEnd = new Date(b.end);
+            let bookingStart = new Date(b.start);
+            let bookingEnd = new Date(b.end);
+            
+            // Handle cross-midnight bookings where end time appears before start time
+            const isCrossMidnight = bookingEnd <= bookingStart;
+            if (isCrossMidnight) {
+              // Add 24 hours to the end time to represent next day
+              bookingEnd = new Date(bookingEnd.getTime() + 24 * 60 * 60 * 1000);
+            }
             
             return (
               (start >= bookingStart && start < bookingEnd) ||
