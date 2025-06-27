@@ -287,6 +287,9 @@ export default function EngineeringPage() {
     const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
     const weekStart = currentWeek;
     const weekEnd = addDays(currentWeek, 6);
+    
+
+    
     return bookingDate >= weekStart && bookingDate <= weekEnd;
   });
 
@@ -550,12 +553,26 @@ export default function EngineeringPage() {
                 {/* Day columns */}
                 {weekDays.map((day) => {
                   const dayBookings = regularBookings.filter(booking => {
-                    const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
-                    const sameDay = isSameDay(bookingDate, day.date);
-                    if (sameDay) {
-                      console.log(`[TIME GRID] ${day.fullDate}: ${booking.title} (${booking.type})`);
+                    const bookingStartDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
+                    const bookingEndDate = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
+                    
+                    // Check if booking starts on this day OR spans into this day
+                    const startsOnDay = isSameDay(bookingStartDate, day.date);
+                    const endsOnDay = isSameDay(bookingEndDate, day.date);
+                    const spansIntoDay = bookingStartDate < day.date && bookingEndDate > day.date;
+                    
+                    const showOnThisDay = startsOnDay || endsOnDay || spansIntoDay;
+                    
+                    if (showOnThisDay) {
+                      console.log(`[TIME GRID] ${day.fullDate}: ${booking.title} (${booking.type}) - starts: ${startsOnDay}, ends: ${endsOnDay}, spans: ${spansIntoDay}`);
                     }
-                    return sameDay;
+                    
+                    // Special debug for Sunday (June 29th)
+                    if (day.fullDate === '2025-06-29') {
+                      console.log(`[SUNDAY DEBUG] Checking booking: ${booking.title}, start: ${booking.start}, end: ${booking.end}, startsOnDay: ${startsOnDay}, endsOnDay: ${endsOnDay}, spansIntoDay: ${spansIntoDay}, showOnThisDay: ${showOnThisDay}`);
+                    }
+                    
+                    return showOnThisDay;
                   });
 
                   // Arrange bookings in columns for side-by-side display
