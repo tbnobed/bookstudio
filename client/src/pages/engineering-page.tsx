@@ -282,15 +282,13 @@ export default function EngineeringPage() {
     };
   };
 
-  // Filter bookings for current week (including bookings that span into displayed days)
+  // Filter bookings for current week
   const weekBookings = bookings.filter(booking => {
-    const bookingStartDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
-    const bookingEndDate = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
+    const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
     const weekStart = currentWeek;
     const weekEnd = addDays(currentWeek, 6);
     
-    // Include bookings that start, end, or span into the displayed week
-    return (bookingStartDate <= weekEnd && bookingEndDate >= weekStart);
+    return bookingDate >= weekStart && bookingDate <= weekEnd;
   });
 
   const goToPreviousWeek = () => {
