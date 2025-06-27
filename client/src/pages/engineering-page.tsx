@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from "date-fns";
+import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO, endOfDay } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { ChevronLeft, ChevronRight, Settings, Calendar, AlertTriangle, Camera, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -150,11 +150,7 @@ export default function EngineeringPage() {
     };
   });
 
-  // Debug: Log the current week range and days
-  console.log(`[WEEK DEBUG] Current week start: ${format(currentWeek, 'yyyy-MM-dd')} (${format(currentWeek, 'EEE')})`);
-  console.log(`[WEEK DEBUG] Week days:`, weekDays.map(day => `${day.fullDate} (${day.dayName})`));
-  console.log(`[WEEK DEBUG] Total bookings loaded: ${bookings.length}`);
-  console.log(`[WEEK DEBUG] June 29th bookings in dataset:`, bookings.filter(b => b.start.includes('2025-06-29')).map(b => b.title));
+
 
   // Helper function to get studios for a booking
   const getBookingStudios = (bookingId: number) => {
@@ -292,14 +288,11 @@ export default function EngineeringPage() {
   const weekBookings = bookings.filter(booking => {
     const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
     const weekStart = currentWeek;
-    const weekEnd = addDays(currentWeek, 6);
+    const weekEnd = endOfDay(addDays(currentWeek, 6)); // End of Sunday, not start of Sunday
     
     const inWeek = bookingDate >= weekStart && bookingDate <= weekEnd;
     
-    // Debug: Log Sunday bookings specifically
-    if (booking.start.includes('2025-06-29') || booking.title.toLowerCase().includes('sunday')) {
-      console.log(`[SUNDAY BOOKING DEBUG] ${booking.title}: start=${booking.start}, inWeek=${inWeek}, bookingDate=${bookingDate}, weekStart=${weekStart}, weekEnd=${weekEnd}`);
-    }
+
     
     return inWeek;
   });
@@ -574,9 +567,7 @@ export default function EngineeringPage() {
                     
                     const showOnThisDay = startsOnDay || endsOnDay || spansIntoDay;
                     
-                    if (showOnThisDay) {
-                      console.log(`[TIME GRID] ${day.fullDate}: ${booking.title} (${booking.type}) - starts: ${startsOnDay}, ends: ${endsOnDay}, spans: ${spansIntoDay}`);
-                    }
+
                     
                     return showOnThisDay;
                   });

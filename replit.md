@@ -247,6 +247,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 26, 2025: COMPLETED day-by-day alerts grid layout - transformed alerts row to show alerts organized by their scheduled days in column format, with "No alerts" display for empty days, matching engineering calendar layout for optimal visual consistency
 - June 26, 2025: FIXED time display format in engineering view - corrected 12-hour time conversion logic to properly show 12:00 AM to 11:59 PM instead of incorrect 2:00 AM to 1:59 AM format, ensuring standard time display throughout the facility schedule
 - June 27, 2025: COMPLETELY FIXED booking update email template "Changes Made" section - replaced raw database field output with professional formatting that matches the original booking information section, including proper field labels (Title, Start, End, Studios, Status, PCR Room), formatted dates in Chicago timezone, uppercase status values, and clean studio name display instead of technical field names like "studioIds: 5,6"
+- June 27, 2025: FIXED Sunday booking display issue in engineering calendar view - resolved critical bug where bookings scheduled on Sunday weren't appearing by updating week filtering logic to use endOfDay() for week end calculation, ensuring Sunday bookings throughout the entire day (not just midnight) are properly included in the weekly view
 
 ## User Preferences
 
