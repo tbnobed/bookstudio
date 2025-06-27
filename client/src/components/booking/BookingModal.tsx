@@ -383,6 +383,35 @@ export default function BookingModal({
 
   // Handle form field changes
   const updateFormField = (field: string, value: any) => {
+    // Special handling for time fields to prevent invalid time ranges
+    if (field === 'startTime') {
+      // Convert current endTime for comparison
+      const currentEndDate = timeToDate(formData.date, formData.endTime);
+      const newStartDate = timeToDate(formData.date, value);
+      
+      if (newStartDate >= currentEndDate) {
+        showNotification({
+          type: "error",
+          title: "Invalid Time",
+          message: "Start time cannot be later than or equal to end time. Please select an earlier time."
+        });
+        return; // Don't update the form data
+      }
+    } else if (field === 'endTime') {
+      // Convert current startTime for comparison
+      const currentStartDate = timeToDate(formData.date, formData.startTime);
+      const newEndDate = timeToDate(formData.date, value);
+      
+      if (newEndDate <= currentStartDate) {
+        showNotification({
+          type: "error",
+          title: "Invalid Time",
+          message: "End time cannot be earlier than or equal to start time. Please select a later time."
+        });
+        return; // Don't update the form data
+      }
+    }
+    
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

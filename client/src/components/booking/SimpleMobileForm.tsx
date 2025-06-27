@@ -274,6 +274,12 @@ export default function SimpleMobileForm({
       // Create a new date using the facility timezone function
       const newStartDate = createFacilityDate(year, month, day, hours, minutes);
       
+      // Validate that start time is not later than end time
+      if (newStartDate >= formData.end) {
+        alert('Start time cannot be later than or equal to end time. Please select an earlier time.');
+        return; // Don't update the form data
+      }
+      
       setFormData(prev => ({ ...prev, start: newStartDate }));
       return;
     }
@@ -292,6 +298,12 @@ export default function SimpleMobileForm({
       
       // Create a new date using the facility timezone function
       const newEndDate = createFacilityDate(year, month, day, hours, minutes);
+      
+      // Validate that end time is not earlier than start time
+      if (newEndDate <= formData.start) {
+        alert('End time cannot be earlier than or equal to start time. Please select a later time.');
+        return; // Don't update the form data
+      }
       
       setFormData(prev => ({ ...prev, end: newEndDate }));
       return;
