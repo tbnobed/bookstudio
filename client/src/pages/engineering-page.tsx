@@ -272,8 +272,8 @@ export default function EngineeringPage() {
     // Calculate width and left position with minimum readable width
     // Instead of dividing equally, use a minimum width approach with controlled overlap
     const minReadableWidth = Math.max(40, 100 / Math.min(totalColumns, 3)); // Minimum 40% width, max 3 visible columns
-    const overlapOffset = totalColumns > 3 ? 15 : 25; // Reduce spacing when many bookings overlap
-    const leftPosition = column * overlapOffset;
+    const overlapOffset = totalColumns > 1 ? 15 : 0; // Small offset for overlapping bookings
+    const leftPosition = Math.min(column * overlapOffset, 60); // Cap maximum left position to prevent overflow
     
     return {
       top: `${topPosition}px`,
@@ -564,14 +564,20 @@ export default function EngineeringPage() {
                     const bookingStartDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
                     const bookingEndDate = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
                     
-                    // Check if booking starts on this day OR spans into this day
+                    // Only show booking on the day it starts, unless it truly spans multiple days
                     const startsOnDay = isSameDay(bookingStartDate, day.date);
-                    const endsOnDay = isSameDay(bookingEndDate, day.date);
-                    const spansIntoDay = bookingStartDate < day.date && bookingEndDate > day.date;
                     
-                    const showOnThisDay = startsOnDay || endsOnDay || spansIntoDay;
+                    // For genuine multi-day bookings, check if this day falls within the booking period
+                    const dayStart = new Date(day.date);
+                    dayStart.setHours(0, 0, 0, 0);
+                    const dayEnd = new Date(day.date);
+                    dayEnd.setHours(23, 59, 59, 999);
                     
-
+                    const bookingSpansMultipleDays = !isSameDay(bookingStartDate, bookingEndDate);
+                    const bookingOverlapsThisDay = bookingStartDate <= dayEnd && bookingEndDate >= dayStart;
+                    
+                    // Show booking if it starts on this day OR if it's a genuine multi-day booking that overlaps this day
+                    const showOnThisDay = startsOnDay || (bookingSpansMultipleDays && bookingOverlapsThisDay);
                     
                     return showOnThisDay;
                   });
@@ -582,7 +588,7 @@ export default function EngineeringPage() {
                   return (
                     <div
                       key={day.fullDate}
-                      className="flex-1 min-w-[140px] border-r border-gray-200 relative"
+                      className="flex-1 min-w-[140px] border-r border-gray-200 relative overflow-hidden"
                     >
                       {/* Hour grid lines */}
                       {timeSlots.map((slot) => (
