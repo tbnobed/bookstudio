@@ -611,8 +611,7 @@ export default function EngineeringPage() {
                         >
                           {/* Time label */}
                           <div
-                            className="absolute -left-2 -top-3 px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded shadow-lg whitespace-nowrap z-50"
-                            style={{ transform: 'translateX(-100%)' }}
+                            className="absolute left-4 -top-5 px-3 py-2 bg-red-500 text-white text-sm font-bold rounded shadow-lg whitespace-nowrap z-50"
                           >
                             {format(currentTime, 'h:mm a')}
                           </div>

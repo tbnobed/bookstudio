@@ -250,6 +250,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 27, 2025: FIXED Sunday booking display issue in engineering calendar view - resolved critical bug where bookings scheduled on Sunday weren't appearing by updating week filtering logic to use endOfDay() for week end calculation, ensuring Sunday bookings throughout the entire day (not just midnight) are properly included in the weekly view
 - June 27, 2025: IMPLEMENTED comprehensive time validation across ALL booking forms - added real-time validation to prevent end times from being earlier than start times in SimpleMobileForm, DirectMobileForm, and BookingModal with user-friendly notification messages, ensuring data integrity and preventing invalid booking time ranges throughout the entire application
 - June 27, 2025: ENHANCED calendar booking overlap display - replaced equal-division algorithm with minimum readable width (40%) approach, implemented controlled overlap positioning with 15% offset, added shadows and z-index layering for visual separation, improved day filtering logic to prevent bookings appearing on incorrect days, added overflow containment to day columns for clean visual boundaries
+- June 27, 2025: IMPROVED time indicator visibility - increased time label size from text-xs to text-sm with font-bold styling, enhanced padding from px-2 py-1 to px-3 py-2, improved positioning with -top-5 offset for better readability and prominence in engineering calendar view
 
 ## User Preferences
 
