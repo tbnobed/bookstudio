@@ -228,6 +228,11 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
+    // Check for cross-midnight bookings by comparing raw UTC times
+    const rawStart = parseISO(booking.start);
+    const rawEnd = parseISO(booking.end);
+    const isCrossMidnight = rawEnd <= rawStart;
+    
     // Check if this is an all-day event
     const isAllDay = booking.type === 'all_day_maintenance';
     
@@ -237,10 +242,33 @@ export default function EngineeringPage() {
     
     let topPosition, height;
     
+    if (booking.title === "Test 5pm to 12am next day") {
+      console.log("[BOOKING STYLE DEBUG]", {
+        title: booking.title,
+        start: booking.start,
+        end: booking.end,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        startHour,
+        endHour,
+        isCrossMidnight,
+        spansMultipleDays,
+        isToMidnight,
+        isAllDay
+      });
+    }
+    
     if (isAllDay) {
       // For all-day events, span the entire day
       topPosition = 0;
       height = 24 * 60; // Full 24 hours
+    } else if (isCrossMidnight) {
+      // Cross-midnight booking: display from start time until end of day (midnight)
+      topPosition = startHour * 60;
+      height = (24 - startHour) * 60; // From start hour to midnight
+      if (booking.title === "Test 5pm to 12am next day") {
+        console.log("[CROSS-MIDNIGHT FIX]", { topPosition, height, calculation: `(24 - ${startHour}) * 60 = ${height}` });
+      }
     } else if (isToMidnight) {
       // Event ends at midnight (00:00) - show from start to end of day (24:00)
       topPosition = startHour * 60;
