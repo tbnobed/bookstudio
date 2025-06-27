@@ -162,6 +162,90 @@ function formatStudios(studioNames: string[]): string {
   return studioNames.map(name => `<span style="display: inline-block; background-color: #ddd6fe; color: #5b21b6; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; margin: 2px 4px 2px 0;">${name}</span>`).join('');
 }
 
+// Format changes for display in email
+function formatChanges(changes: any, studios: Studio[]): Array<{label: string, value: string}> {
+  const formattedChanges: Array<{label: string, value: string}> = [];
+  
+  for (const [key, value] of Object.entries(changes)) {
+    let label = key;
+    let formattedValue = String(value);
+    
+    // Format specific fields to match the main booking display
+    switch (key) {
+      case 'title':
+        label = 'Title';
+        break;
+      case 'description':
+        label = 'Description';
+        break;
+      case 'type':
+        label = 'Type';
+        break;
+      case 'status':
+        label = 'Status';
+        formattedValue = String(value).toUpperCase();
+        break;
+      case 'start':
+        label = 'Start';
+        formattedValue = formatDate(new Date(String(value)));
+        break;
+      case 'end':
+        label = 'End';
+        formattedValue = formatDate(new Date(String(value)));
+        break;
+      case 'studioIds':
+        label = 'Studios';
+        if (Array.isArray(value)) {
+          const studioNames = value.map(id => {
+            const studio = studios.find(s => s.id === id);
+            return studio ? studio.name : `Studio ${id}`;
+          });
+          formattedValue = studioNames.join(', ') || 'No studios assigned';
+        }
+        break;
+      case 'pcrRoomId':
+        label = 'PCR Room';
+        if (value === null || value === undefined) {
+          formattedValue = 'None';
+        } else {
+          formattedValue = `PCR ${value}`;
+        }
+        break;
+      case 'color':
+        label = 'Color';
+        if (value) {
+          formattedValue = String(value);
+        }
+        break;
+      case 'notifyList':
+        label = 'Notification Groups';
+        if (Array.isArray(value)) {
+          formattedValue = value.length > 0 ? `${value.length} groups` : 'None';
+        }
+        break;
+      case 'severity':
+        label = 'Severity';
+        if (value) {
+          formattedValue = String(value).toLowerCase();
+        }
+        break;
+      // Skip internal fields that users don't need to see
+      case 'userId':
+      case 'studioId':
+      case 'templateId':
+        continue;
+      default:
+        // Capitalize first letter for unknown fields
+        label = key.charAt(0).toUpperCase() + key.slice(1);
+        break;
+    }
+    
+    formattedChanges.push({ label, value: formattedValue });
+  }
+  
+  return formattedChanges;
+}
+
 // Import the notification group service to get site management group
 import { getSiteManagementGroup, getAllSiteManagementGroups } from './notificationGroupService';
 
@@ -1050,10 +1134,10 @@ export async function sendSiteManagerNotification(
                                     <td style="padding: 24px;">
                                         <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">Changes Made</h3>
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                            ${Object.entries(changes).map(([key, value]) => `
+                                            ${formatChanges(changes, studios).map(change => `
                                             <tr>
-                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">${key}:</td>
-                                                <td style="padding: 6px 0; color: #1f2937;">${value}</td>
+                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 80px;">${change.label}:</td>
+                                                <td style="padding: 6px 0; color: #1f2937;">${change.value}</td>
                                             </tr>`).join('')}
                                         </table>
                                     </td>
