@@ -324,7 +324,9 @@ export default function EngineeringPage() {
   // Check if current time should be shown (current day is in view)
   const shouldShowCurrentTimeIndicator = () => {
     const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
-    return weekDays.some(day => isSameDay(day.date, today));
+    const todayInWeek = weekDays.some(day => isSameDay(day.date, today));
+    console.log('[TIME INDICATOR DEBUG] Should show indicator:', todayInWeek, 'Today:', format(today, 'MMM dd, yyyy'));
+    return todayInWeek;
   };
 
   // Function to determine if a booking is an alert/maintenance
@@ -599,7 +601,13 @@ export default function EngineeringPage() {
                       ))}
 
                       {/* Current time indicator line */}
-                      {shouldShowCurrentTimeIndicator() && isSameDay(day.date, toZonedTime(new Date(), FACILITY_TIMEZONE)) && (
+                      {(() => {
+                        const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
+                        const isToday = isSameDay(day.date, today);
+                        const shouldShow = shouldShowCurrentTimeIndicator();
+                        console.log(`[TIME INDICATOR] Day: ${format(day.date, 'MMM dd')}, isToday: ${isToday}, shouldShow: ${shouldShow}`);
+                        return shouldShow && isToday;
+                      })() && (
                         <div
                           className="absolute left-0 right-0 z-30 pointer-events-none"
                           style={{
