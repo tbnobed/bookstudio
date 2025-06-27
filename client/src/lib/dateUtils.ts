@@ -405,13 +405,29 @@ export function isWeekend(date: Date): boolean {
 
 export function generateTimeOptions(): string[] {
   const timeOptions: string[] = [];
-  for (let hour = 0; hour < 24; hour++) {
+  
+  // Generate all time options including the full 24 hours
+  for (let hour = 0; hour <= 24; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
-      const h = hour % 12 || 12;
+      // Special handling for hour 24 (midnight the next day) - only include 0 minutes
+      if (hour === 24 && minute > 0) break;
+      
+      // Convert to 12-hour format
+      let displayHour = hour % 12;
+      if (displayHour === 0) displayHour = 12;
+      
       const period = hour < 12 ? "am" : "pm";
-      timeOptions.push(`${h}:${minute.toString().padStart(2, "0")}${period}`);
+      
+      // Special case for exactly 24:00 (midnight next day)
+      if (hour === 24) {
+        timeOptions.push("12:00am");
+        break;
+      } else {
+        timeOptions.push(`${displayHour}:${minute.toString().padStart(2, "0")}${period}`);
+      }
     }
   }
+  
   return timeOptions;
 }
 
