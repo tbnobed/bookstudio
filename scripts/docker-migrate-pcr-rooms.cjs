@@ -40,16 +40,8 @@ async function migratePcrRooms() {
     `);
     console.log("Added pcrRoomId column to bookings table");
 
-    // Create some initial PCR rooms
-    await pool.query(`
-      INSERT INTO "pcr_rooms" ("name", "description", "status")
-      VALUES 
-        ('PCR 1', 'Main Production Control Room', 'available'),
-        ('PCR 2', 'Secondary Production Control Room', 'available'),
-        ('PCR 3', 'Tertiary Production Control Room', 'available')
-      ON CONFLICT ("name") DO NOTHING;
-    `);
-    console.log("Added initial PCR rooms data");
+    // PCR rooms table is ready for manual configuration
+    console.log("PCR rooms table ready for manual configuration");
 
     console.log("PCR rooms migration completed successfully!");
   } catch (error) {

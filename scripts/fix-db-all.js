@@ -260,33 +260,11 @@ async function ensurePcrRoomsTable() {
         )
       `);
       
-      // Add default PCR rooms
-      await query(`
-        INSERT INTO pcr_rooms (name, description, status)
-        VALUES
-          ('PCR 1', 'Main Production Control Room', 'available'),
-          ('PCR 2', 'Secondary Production Control Room', 'available'),
-          ('PCR 3', 'Tertiary Production Control Room', 'available')
-      `);
-      
-      console.log('pcr_rooms table created successfully with default rooms');
+      console.log('pcr_rooms table created successfully - ready for manual configuration');
     } else {
       console.log('pcr_rooms table already exists');
       
-      // Check if we have any PCR rooms, if not add the defaults
-      const roomCount = await query(`SELECT COUNT(*) as count FROM pcr_rooms`);
-      
-      if (parseInt(roomCount.rows[0].count) === 0) {
-        console.log('Adding default PCR rooms...');
-        await query(`
-          INSERT INTO pcr_rooms (name, description, status)
-          VALUES
-            ('PCR 1', 'Main Production Control Room', 'available'),
-            ('PCR 2', 'Secondary Production Control Room', 'available'),
-            ('PCR 3', 'Tertiary Production Control Room', 'available')
-        `);
-        console.log('Default PCR rooms added');
-      }
+      console.log('pcr_rooms table ready for manual configuration');
     }
   } catch (error) {
     console.error('Error ensuring pcr_rooms table:', error);

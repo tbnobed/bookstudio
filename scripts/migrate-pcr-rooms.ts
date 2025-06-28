@@ -41,16 +41,8 @@ async function migratePcrRooms() {
     `);
     console.log("Added pcrRoomId column to bookings table");
 
-    // Create some initial PCR rooms
-    await db.execute(sql`
-      INSERT INTO "pcr_rooms" ("name", "description", "status")
-      VALUES 
-        ('PCR 1', 'Main Production Control Room', 'available'),
-        ('PCR 2', 'Secondary Production Control Room', 'available'),
-        ('PCR 3', 'Tertiary Production Control Room', 'available')
-      ON CONFLICT ("name") DO NOTHING;
-    `);
-    console.log("Added initial PCR rooms data");
+    // PCR rooms table is ready - no default PCR rooms created
+    console.log("PCR rooms table ready for manual configuration");
     
     // Reset the sequence to the correct value based on existing data
     // This ensures PCR room IDs will increment correctly
