@@ -480,7 +480,7 @@ export default function MobileDailyView({
             <Activity size={16} />
             Real-Time Studio Status
           </h2>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-transparent">
+          <div className="flex flex-wrap gap-2">
             {studiosWithStatus.map(studio => {
               const { statusInfo } = studio;
               return (
@@ -491,7 +491,7 @@ export default function MobileDailyView({
                     statusInfo.status === 'maintenance' ? 'outline' :
                     statusInfo.status === 'upcoming' ? 'secondary' : 'default'
                   }
-                  className="flex items-center gap-1 flex-shrink-0"
+                  className="flex items-center gap-1"
                 >
                   <div className={`w-2 h-2 rounded-full ${statusInfo.color}`}></div>
                   <span>{studio.name}</span>
