@@ -259,6 +259,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 28, 2025: FIXED Docker auto-creation of PCR rooms - eliminated automatic creation of PCR 1, 2, 3 during Docker build/rebuild process by removing default PCR room creation from scripts/migrate-pcr-rooms.ts, scripts/fix-db-all.js, and scripts/docker-migrate-pcr-rooms.cjs, ensuring PCR rooms are only created manually when needed
 - June 28, 2025: FIXED engineering calendar booking readability - removed all visual icons that were cluttering the display, implemented clean layout with proper spacing using space-y-1, organized information hierarchy with large bold titles and clearly labeled details (Studios:, PCR:, Status:), added word wrapping for long titles, improved line spacing with leading-tight and leading-relaxed for optimal readability without visual clutter
 - June 28, 2025: OPTIMIZED engineering calendar time range - changed from full 24-hour view to practical business hours (5 AM to 2 AM next day), eliminating 3+ hours of empty space from midnight to 5 AM, updated booking positioning logic and current time indicator to work with new time range, improved calendar efficiency while maintaining all functionality
+- June 28, 2025: INTEGRATED weather forecasts into Engineering view - added WeatherForecastCell components to day column headers showing temperature ranges and weather icons for each day of the week, ensuring consistent weather integration across all calendar views (daily, weekly, monthly, engineering, and public calendar views)
 
 ## User Preferences
 

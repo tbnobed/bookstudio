@@ -549,7 +549,7 @@ export default function EngineeringPage() {
                         <div className="mt-2">
                           <WeatherForecastCell 
                             date={day.date} 
-                            forecast={forecast} 
+                            forecast={forecast?.forecast.find(f => f.date === day.fullDate) || null} 
                             size="small"
                           />
                         </div>
