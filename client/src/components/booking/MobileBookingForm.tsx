@@ -210,9 +210,27 @@ export default function MobileBookingForm({
     }
   };
 
+  // Convert time string to minutes for comparison
+  const timeToMinutes = (timeStr: string): number => {
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})(am|pm)$/);
+    if (!match) return 0;
+    
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const period = match[3];
+    
+    if (period === 'am' && hours === 12) hours = 0;
+    if (period === 'pm' && hours !== 12) hours += 12;
+    
+    return hours * 60 + minutes;
+  };
+
   // Time validation
   const validateTimes = () => {
-    if (formData.startTime >= formData.endTime) {
+    const startMinutes = timeToMinutes(formData.startTime);
+    const endMinutes = timeToMinutes(formData.endTime);
+    
+    if (startMinutes >= endMinutes) {
       showNotification({
         type: "error",
         title: "Invalid Time Range",
