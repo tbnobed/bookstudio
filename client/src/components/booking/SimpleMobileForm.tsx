@@ -15,10 +15,10 @@ interface FormBookingData {
   id: number;
   title: string;
   description: string;
-  studioId: number;
+  studioId: number | null;
   pcrRoomId: number | null;
-  start: Date;
-  end: Date;
+  start: Date | string;
+  end: Date | string;
   type: string;
   status: string;
   severity: string | null;
@@ -31,25 +31,29 @@ interface FormBookingData {
 interface Studio {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   status: string;
 }
 
 interface PcrRoom {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   status: string;
 }
 
 interface Template {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   type: string;
   duration: number;
-  crewRequired: any[];
-  equipment: any[];
+  studioIds?: number[];
+  pcrRoomId?: number | null;
+  color?: string;
+  status?: string;
+  severity?: string;
+  notifyList?: string[];
   createdBy: number;
 }
 
@@ -57,7 +61,8 @@ interface NotificationGroup {
   id: number;
   name: string;
   email: string;
-  description: string;
+  groupType: string;
+  description: string | null;
 }
 
 interface SimpleMobileFormProps {

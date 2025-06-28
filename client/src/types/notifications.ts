@@ -8,8 +8,10 @@
 export interface NotificationGroup {
   id: number;
   name: string;
+  email: string;
+  groupType: string;
   description?: string;
-  emails: string[];
+  enabled?: boolean;
 }
 
 /**
