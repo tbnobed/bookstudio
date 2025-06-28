@@ -19,6 +19,8 @@ import { useStudioStatus } from "@/hooks/use-studio-status";
 import { formatTime, formatDate, isSameDay, formatTimeRange } from "@/lib/dateUtils";
 import { useCalendarContext } from "@/contexts/CalendarContext";
 import { getDayRangeInChicago } from "@/utils/dateUtils";
+import { useWeatherForecast } from "@/hooks/useWeatherForecast";
+import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 
 // Helper function to extract studios from a booking
 function extractStudiosFromBooking(booking: any, studiosList: any[]): any[] {
@@ -128,6 +130,9 @@ export default function MobileDailyView({
   const { data: pcrRooms = [] } = useQuery<any[]>({
     queryKey: ['/api/pcr-rooms'],
   });
+
+  // Weather forecast hook
+  const { forecast } = useWeatherForecast();
   
   // Merge booking-studios data into the bookings
   const bookingsWithStudios = useMemo<BookingWithStudios[]>(() => {
@@ -422,6 +427,11 @@ export default function MobileDailyView({
             <span className="text-sm text-gray-500">
               {currentDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/Chicago' })}
             </span>
+            <WeatherForecastCell 
+              date={currentDate} 
+              weatherData={weatherData}
+              className="mt-1"
+            />
           </div>
           
           <Button variant="ghost" size="icon" onClick={goToNextDay}>
@@ -503,7 +513,7 @@ export default function MobileDailyView({
 
       {/* Main content - Studios and bookings */}
       <Tabs defaultValue="studios" className="flex-1 overflow-hidden flex flex-col">
-        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10">
+        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10 bg-white/90 backdrop-blur-sm">
           <TabsTrigger value="studios">Studios Status</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
