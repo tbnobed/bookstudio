@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import CalendarHeader from "@/components/calendar/CalendarHeader";
+import { useState } from "react";
+import { Header } from "@/components/layout/Header";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
@@ -11,42 +11,20 @@ import BookingModal from "@/components/booking/BookingModal";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export default function MyBookingsPage() {
   const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view] = useState<"day" | "week" | "month">("week");
-  const [selectedStudioIds, setSelectedStudioIds] = useState<number[]>([]);
   const { userBookings, isLoading, deleteBooking } = useStudioBookings();
   const [editBookingId, setEditBookingId] = useState<number | null>(null);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
-
-  // Calendar header handlers
-  const handleStudioFilterChange = (studioIds: number[]) => {
-    setSelectedStudioIds(studioIds);
-  };
-
-  const handleDateChange = (date: Date) => {
-    setCurrentDate(date);
-  };
-
-  const handleViewChange = (newView: "day" | "week" | "month") => {
-    // Not needed for My Bookings, but required by CalendarHeader
-  };
+  const { siteName } = useSiteSettings();
   
-  // Fetch studios to display names and for filtering
+  // Fetch studios to display names
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
   });
-
-  // Initialize selected studios on first load (similar to CalendarPage)
-  useEffect(() => {
-    if (studios.length > 0 && selectedStudioIds.length === 0) {
-      // Select all studios by default
-      const initialSelection = studios.map(studio => studio.id);
-      setSelectedStudioIds(initialSelection);
-    }
-  }, [studios, selectedStudioIds]);
 
   // Get studio name by ID
   const getStudioName = (studioId: number) => {
@@ -109,14 +87,20 @@ export default function MyBookingsPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <CalendarHeader
+      <Header
         currentDate={currentDate}
-        onDateChange={handleDateChange}
-        view={view}
-        onViewChange={handleViewChange}
-        selectedStudioIds={selectedStudioIds}
-        onStudioFilterChange={handleStudioFilterChange}
+        onDateChange={setCurrentDate}
+        view="week"
+        onViewChange={() => {}}
+        title="My Bookings"
       />
+      
+      {/* Site Name Banner */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 shadow-sm">
+        <div className="container mx-auto">
+          <h2 className="text-lg font-semibold">{siteName}</h2>
+        </div>
+      </div>
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm p-6 mb-6">
