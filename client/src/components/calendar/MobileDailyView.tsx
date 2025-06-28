@@ -429,8 +429,10 @@ export default function MobileDailyView({
             </span>
             <WeatherForecastCell 
               date={currentDate} 
-              weatherData={weatherData}
-              className="mt-1"
+              forecast={forecast?.forecast.find(day => 
+                new Date(day.date).toDateString() === currentDate.toDateString()
+              ) || null}
+              size="small"
             />
           </div>
           
