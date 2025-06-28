@@ -103,6 +103,7 @@ export default function MyBookingsPage() {
         view="week"
         onViewChange={() => {}}
         title="My Bookings"
+        showViewToggle={false}
       />
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">

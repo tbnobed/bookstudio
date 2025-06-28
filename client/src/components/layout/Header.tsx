@@ -20,6 +20,7 @@ type HeaderProps = {
   onStudioFilterChange?: (studioIds: number[]) => void;
   selectedStudioIds?: number[];
   title?: string;
+  showViewToggle?: boolean;
 };
 
 export function Header({
@@ -29,7 +30,8 @@ export function Header({
   onViewChange,
   onStudioFilterChange,
   selectedStudioIds = [],
-  title = "Calendar"
+  title = "Calendar",
+  showViewToggle = true
 }: HeaderProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showAllStudios, setShowAllStudios] = useState(false);
@@ -205,42 +207,44 @@ export function Header({
             <WeatherWidget size="compact" />
           </div>
           
-          {/* Calendar View Options */}
-          <div className="hidden lg:flex items-center shadow-sm rounded-md overflow-hidden">
-            <button 
-              className={cn(
-                "px-2 py-1.5 text-xs font-medium border",
-                view === "day" 
-                  ? "bg-primary text-white border-primary" 
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-              )}
-              onClick={() => onViewChange("day")}
-            >
-              Day
-            </button>
-            <button 
-              className={cn(
-                "px-2 py-1.5 text-xs font-medium border",
-                view === "week" 
-                  ? "bg-primary text-white border-primary" 
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-              )}
-              onClick={() => onViewChange("week")}
-            >
-              Week
-            </button>
-            <button 
-              className={cn(
-                "px-2 py-1.5 text-xs font-medium border",
-                view === "month" 
-                  ? "bg-primary text-white border-primary" 
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-              )}
-              onClick={() => onViewChange("month")}
-            >
-              Month
-            </button>
-          </div>
+          {/* Calendar View Options - Only show on calendar pages */}
+          {showViewToggle && (
+            <div className="hidden lg:flex items-center shadow-sm rounded-md overflow-hidden">
+              <button 
+                className={cn(
+                  "px-2 py-1.5 text-xs font-medium border",
+                  view === "day" 
+                    ? "bg-primary text-white border-primary" 
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                )}
+                onClick={() => onViewChange("day")}
+              >
+                Day
+              </button>
+              <button 
+                className={cn(
+                  "px-2 py-1.5 text-xs font-medium border",
+                  view === "week" 
+                    ? "bg-primary text-white border-primary" 
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                )}
+                onClick={() => onViewChange("week")}
+              >
+                Week
+              </button>
+              <button 
+                className={cn(
+                  "px-2 py-1.5 text-xs font-medium border",
+                  view === "month" 
+                    ? "bg-primary text-white border-primary" 
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                )}
+                onClick={() => onViewChange("month")}
+              >
+                Month
+              </button>
+            </div>
+          )}
           
           {/* New Booking Button */}
           <div className="flex-shrink-0">
