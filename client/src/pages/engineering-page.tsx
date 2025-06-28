@@ -650,7 +650,7 @@ export default function EngineeringPage() {
                           <Tooltip key={booking.id}>
                             <TooltipTrigger asChild>
                               <div
-                                className={`absolute rounded text-sm p-2 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden ${
+                                className={`absolute rounded text-base p-3 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden ${
                                   severityStyle ? 'font-semibold' : 'text-white'
                                 } ${
                                   severityStyle && severityStyle.pattern === 'diagonal-stripes' ? 'bg-stripe-pattern' : ''
@@ -660,7 +660,7 @@ export default function EngineeringPage() {
                                   textShadow: severityStyle ? '1px 1px 1px rgba(0,0,0,0.6)' : '1px 1px 1px rgba(0,0,0,0.5)'
                                 }}
                               >
-                                <div className="font-semibold truncate flex items-center gap-1 text-base">
+                                <div className="font-bold truncate flex items-center gap-1 text-lg">
                                   {severityStyle && (
                                     <span className="text-sm px-1 py-0.5 rounded bg-black bg-opacity-20 font-bold">
                                       ⚠ {booking.severity?.toUpperCase()}
@@ -670,25 +670,25 @@ export default function EngineeringPage() {
                                 </div>
                                 
                                 {studios.length > 0 && (
-                                  <div className={`truncate text-sm ${severityStyle ? 'opacity-80' : 'opacity-85'}`}>
-                                    {studios.join(', ')}
+                                  <div className={`truncate text-base font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
+                                    📹 {studios.join(', ')}
                                   </div>
                                 )}
                                 
                                 {pcrRoom && (
-                                  <div className={`truncate text-sm ${severityStyle ? 'opacity-80' : 'opacity-85'}`}>
-                                    {pcrRoom}
+                                  <div className={`truncate text-base font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
+                                    🖥️ {pcrRoom}
                                   </div>
                                 )}
                                 
-                                <div className={`text-sm ${severityStyle ? 'opacity-75' : 'opacity-80'}`}>
-                                  {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - 
+                                <div className={`text-base font-medium ${severityStyle ? 'opacity-80' : 'opacity-85'}`}>
+                                  🕐 {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - 
                                   {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                                 </div>
 
                                 {booking.status && booking.status !== 'confirmed' && (
-                                  <div className={`text-sm font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
-                                    {booking.status.toUpperCase()}
+                                  <div className={`text-base font-bold ${severityStyle ? 'opacity-90' : 'opacity-95'}`}>
+                                    📋 {booking.status.toUpperCase()}
                                   </div>
                                 )}
                               </div>
