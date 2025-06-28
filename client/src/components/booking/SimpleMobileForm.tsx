@@ -774,7 +774,21 @@ export default function SimpleMobileForm({
               <label htmlFor="sm-start-time">Start Time*</label>
               <Select 
                 value={formatTimeForForm(formData.start)} 
-                onValueChange={(value) => handleChange({ target: { name: 'startTime', value } } as any)} 
+                onValueChange={(value) => {
+                  const [hours, minutes] = value.split(':').map(Number);
+                  const currentDate = new Date(formData.start);
+                  const year = currentDate.getFullYear();
+                  const month = currentDate.getMonth();
+                  const day = currentDate.getDate();
+                  const newStartDate = createFacilityDate(year, month, day, hours, minutes);
+                  
+                  if (newStartDate >= formData.end) {
+                    alert('Start time cannot be later than or equal to end time. Please select an earlier time.');
+                    return;
+                  }
+                  
+                  setFormData(prev => ({ ...prev, start: newStartDate }));
+                }}
               >
                 <SelectTrigger id="sm-start-time" className="form-input">
                   <SelectValue placeholder="Select start time" />
