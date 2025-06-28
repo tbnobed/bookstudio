@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Calendar, BookOpen, ListTodo, Settings, Menu, X, PlusCircle, Bell, BarChart } from "lucide-react";
+import { Calendar, BookOpen, ListTodo, Settings, Menu, X, PlusCircle, Bell, BarChart, Tv } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -68,13 +68,13 @@ export default function MobileNavbar() {
             </button>
           </div>
           
-          {/* Add Alert */}
+          {/* Studios */}
           <button 
-            onClick={() => setIsNewAlertModalOpen(true)}
-            className="flex flex-col items-center justify-center w-full h-full text-gray-600"
+            onClick={navigateTo("/studios")}
+            className={`flex flex-col items-center justify-center w-full h-full ${location === "/studios" ? "text-blue-600" : "text-gray-600"}`}
           >
-            <Bell size={20} />
-            <span className="text-xs mt-1">Alert</span>
+            <Tv size={20} />
+            <span className="text-xs mt-1">Studios</span>
           </button>
           
           {/* Menu */}

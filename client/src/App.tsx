@@ -11,6 +11,7 @@ import ReportsPage from "@/pages/ReportsPage";
 import UserManagement from "@/pages/UserManagement";
 import SiteManagerUserPage from "@/pages/SiteManagerUserPage";
 import Settings from "@/pages/Settings";
+import StudiosPage from "@/pages/StudiosPage";
 import { useEffect, useState } from "react";
 import ToastNotification from "@/components/ui/toast-notification";
 import AuthPage from "@/pages/auth-page";
@@ -54,6 +55,7 @@ function Router() {
       <ProtectedRoute path="/users" component={UserManagement} />
       <ProtectedRoute path="/producer-management" component={SiteManagerUserPage} />
       <ProtectedRoute path="/engineering" component={EngineeringPage} />
+      <ProtectedRoute path="/studios" component={StudiosPage} />
       <ProtectedRoute path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
