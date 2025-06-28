@@ -45,15 +45,16 @@ interface PcrRoom {
 interface Template {
   id: number;
   name: string;
-  description: string | null;
+  description?: string | null;
   type: string;
   duration: number;
-  studioIds?: number[];
+  startTime?: string | null;
+  endTime?: string | null;
+  studioIds?: number[] | null;
   pcrRoomId?: number | null;
-  color?: string;
-  status?: string;
-  severity?: string;
-  notifyList?: string[];
+  status?: string | null;
+  color?: string | null;
+  notifyList?: string[] | null;
   createdBy: number;
 }
 
@@ -62,7 +63,7 @@ interface NotificationGroup {
   name: string;
   email: string;
   groupType: string;
-  description: string | null;
+  description?: string;
 }
 
 interface SimpleMobileFormProps {
@@ -402,17 +403,12 @@ export default function SimpleMobileForm({
       }
       
       // If the template has status, use it
-      if ('status' in selectedTemplate && selectedTemplate.status) {
+      if (selectedTemplate.status && typeof selectedTemplate.status === 'string') {
         updatedFormData.status = selectedTemplate.status;
       }
       
-      // If the template has severity, use it
-      if ('severity' in selectedTemplate && selectedTemplate.severity) {
-        updatedFormData.severity = selectedTemplate.severity;
-      }
-      
-      // If the template has other properties, handle them here
-      if ('pcrRoomId' in selectedTemplate) {
+      // Handle PCR room assignment from template
+      if (selectedTemplate.pcrRoomId !== undefined && selectedTemplate.pcrRoomId !== null) {
         updatedFormData.pcrRoomId = selectedTemplate.pcrRoomId;
       }
       

@@ -10,7 +10,7 @@ export interface NotificationGroup {
   name: string;
   email: string;
   groupType: string;
-  description?: string;
+  description?: string | null;
   enabled?: boolean;
 }
 
