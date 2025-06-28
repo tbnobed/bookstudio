@@ -193,9 +193,18 @@ export default function SimpleMobileForm({
     }
   };
 
-  // Time validation
+  // Time validation - convert time strings to comparable format
   const validateTimes = () => {
-    if (formData.startTime >= formData.endTime) {
+    // Convert time strings to minutes for proper comparison
+    const timeToMinutes = (timeStr: string) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const startMinutes = timeToMinutes(formData.startTime);
+    const endMinutes = timeToMinutes(formData.endTime);
+
+    if (startMinutes >= endMinutes) {
       showNotification({
         type: "error",
         title: "Invalid Time Range",
