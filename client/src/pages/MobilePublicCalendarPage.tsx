@@ -46,9 +46,9 @@ export default function MobilePublicCalendarPage() {
   const siteName = siteSettings?.siteName || 'BookStud.io';
 
   return (
-    <div className="flex flex-col h-screen bg-white">
-      {/* Custom header bar */}
-      <header className="bg-blue-900 text-white p-3 flex justify-center items-center h-14 shadow-md">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Custom header bar with gradient */}
+      <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-3 flex justify-center items-center h-14 shadow-lg">
         <h1 className="text-xl font-bold">{siteName}</h1>
       </header>
       

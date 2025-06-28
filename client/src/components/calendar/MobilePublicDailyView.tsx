@@ -227,9 +227,9 @@ export default function MobilePublicDailyView({
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-white">
+    <div className="flex flex-col h-full overflow-hidden bg-transparent">
       {/* Header with date navigation */}
-      <div className="border-b p-4 bg-white sticky top-0 z-10">
+      <div className="border-b p-4 bg-white/90 backdrop-blur-sm sticky top-0 z-10">
         {/* Date navigation buttons */}
         <div className="flex justify-between items-center mb-2">
           <Button variant="ghost" size="icon" onClick={goToPreviousDay}>
@@ -278,7 +278,7 @@ export default function MobilePublicDailyView({
       </div>
 
       {/* Real-Time Studio Status */}
-      <div className="p-4 bg-blue-50">
+      <div className="p-4 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 backdrop-blur-sm">
         <div className="flex items-center text-blue-600 font-medium mb-2">
           <Activity className="h-5 w-5 mr-1.5" /> Real-Time Studio Status
         </div>
@@ -433,7 +433,7 @@ export default function MobilePublicDailyView({
                       <div 
                         key={booking.id} 
                         className={cn(
-                          "rounded-lg border shadow-sm overflow-hidden",
+                          "rounded-xl border shadow-lg overflow-hidden backdrop-blur-sm",
                           booking.status === "confirmed" ? "border-l-4 border-l-green-500" :
                           booking.status === "tentative" ? "border-l-4 border-l-orange-500" :
                           booking.status === "cancelled" ? "border-l-4 border-l-red-500" :
