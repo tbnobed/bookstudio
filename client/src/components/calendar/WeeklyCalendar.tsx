@@ -5,9 +5,11 @@ import { Studio, Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import StudioRow from "./StudioRow";
 import AlertsRow from "./AlertsRow";
+import WeatherForecastCell from "./WeatherForecastCell";
 import { ResponsiveBookingModal } from "@/components/booking";
 import AlertModal from "../alerts/AlertModal";
 import { useStudioBookings } from "../../hooks/useStudioBookings";
+import { useWeatherForecast } from "../../hooks/useWeatherForecast";
 
 interface WeeklyCalendarProps {
   currentDate?: Date;
@@ -41,6 +43,9 @@ export default function WeeklyCalendar({
   const [newBookingStudio, setNewBookingStudio] = useState<number | null>(null);
   const [newBookingDate, setNewBookingDate] = useState<Date | null>(null);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
+  
+  // Fetch weather forecast data
+  const { forecast } = useWeatherForecast();
   
   // Update effectiveDate when props change with guaranteed fresh Date object
   useEffect(() => {
@@ -289,27 +294,37 @@ export default function WeeklyCalendar({
     <>
       <div className="overflow-auto h-[calc(100vh-8rem)]">
         <div className="min-w-[1000px]">
-          {/* Calendar Days Header - Using default height */}
+          {/* Calendar Days Header with Weather Forecast */}
           <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-30 bg-white shadow-sm">
-            <div className="h-12 border-b border-r bg-white z-30"></div>
-            {weekDates.map((date, index) => (
-              <div 
-                key={index} 
-                className={cn(
-                  "h-12 border-b text-center flex flex-col justify-center z-30",
-                  isWeekend(date) ? "bg-gray-50" : "bg-white",
-                  new Date().toDateString() === date.toDateString() && "bg-blue-50 border-blue-200"
-                )}
-              >
-                <div className="text-sm font-medium">{SHORT_DAY_NAMES[date.getDay()]}</div>
-                <div className={cn(
-                  "text-lg font-semibold",
-                  new Date().toDateString() === date.toDateString() && "text-blue-600 rounded-full w-8 h-8 mx-auto flex items-center justify-center bg-blue-100"
-                )}>
-                  {date.getDate()}
+            <div className="h-20 border-b border-r bg-white z-30"></div>
+            {weekDates.map((date, index) => {
+              const dateString = date.toISOString().split('T')[0];
+              const dayForecast = forecast?.forecast.find(f => f.date === dateString);
+              
+              return (
+                <div 
+                  key={index} 
+                  className={cn(
+                    "h-20 border-b text-center flex flex-col justify-center z-30 p-1",
+                    isWeekend(date) ? "bg-gray-50" : "bg-white",
+                    new Date().toDateString() === date.toDateString() && "bg-blue-50 border-blue-200"
+                  )}
+                >
+                  <div className="text-sm font-medium">{SHORT_DAY_NAMES[date.getDay()]}</div>
+                  <div className={cn(
+                    "text-lg font-semibold mb-1",
+                    new Date().toDateString() === date.toDateString() && "text-blue-600 rounded-full w-8 h-8 mx-auto flex items-center justify-center bg-blue-100"
+                  )}>
+                    {date.getDate()}
+                  </div>
+                  <WeatherForecastCell 
+                    date={date} 
+                    forecast={dayForecast || null} 
+                    size="small" 
+                  />
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Calendar Time Grid */}
