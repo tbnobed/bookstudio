@@ -397,6 +397,11 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                   )}>
                     {date.getDate()}
                   </span>
+                  <WeatherForecastCell 
+                    date={date} 
+                    forecast={forecast?.forecast.find(f => f.date === date.toISOString().split('T')[0]) || null} 
+                    size="small" 
+                  />
                 </div>
                 
                 <div className="flex-1 overflow-y-auto space-y-1 text-xs" style={{ minHeight: '120px' }}>
