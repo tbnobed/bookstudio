@@ -568,10 +568,9 @@ export default function DayChronView({
   const dayStats = useMemo(() => {
     const totalBookings = regularBookings.length;
     const totalAlerts = alerts.length;
-    
-    const confirmedBookings = regularBookings.filter(booking => booking.status === 'confirmed').length;
-    const tentativeBookings = regularBookings.filter(booking => booking.status === 'tentative').length;
-    const cancelledBookings = regularBookings.filter(booking => booking.status === 'cancelled').length;
+    const confirmedBookings = regularBookings.filter(b => b.status === 'confirmed').length;
+    const tentativeBookings = regularBookings.filter(b => b.status === 'tentative').length;
+    const cancelledBookings = regularBookings.filter(b => b.status === 'cancelled').length;
     
     return {
       totalBookings,
@@ -583,8 +582,6 @@ export default function DayChronView({
       totalStudios: studios.length
     };
   }, [regularBookings, alerts, studioUtilization, studios.length]);
-
-
 
   return (
     <div className="w-full h-full flex gap-6 p-4">
