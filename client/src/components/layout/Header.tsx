@@ -196,7 +196,6 @@ export function Header({
 
           <div className="hidden lg:flex items-center">
             <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
-            <TimezoneDisplay />
           </div>
         </div>
         

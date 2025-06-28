@@ -87,6 +87,13 @@ export default function MyBookingsPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      {/* Site Name Banner */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 shadow-sm">
+        <div className="container mx-auto">
+          <h2 className="text-lg font-semibold">{siteName}</h2>
+        </div>
+      </div>
+      
       <Header
         currentDate={currentDate}
         onDateChange={setCurrentDate}
@@ -94,13 +101,6 @@ export default function MyBookingsPage() {
         onViewChange={() => {}}
         title="My Bookings"
       />
-      
-      {/* Site Name Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 shadow-sm">
-        <div className="container mx-auto">
-          <h2 className="text-lg font-semibold">{siteName}</h2>
-        </div>
-      </div>
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm p-6 mb-6">
