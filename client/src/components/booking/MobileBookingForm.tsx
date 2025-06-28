@@ -139,7 +139,7 @@ export default function MobileBookingForm({
   const handleTemplateChange = (templateId: string) => {
     updateFormField('templateId', templateId);
     
-    if (templateId) {
+    if (templateId && templateId !== "none") {
       const selectedTemplate = templates.find(t => t.id.toString() === templateId);
       if (selectedTemplate) {
         // Apply template data using the same logic as desktop
@@ -258,7 +258,7 @@ export default function MobileBookingForm({
     bookingData.severity = formData.severity;
     
     // Add templateId if selected (same as desktop)
-    if (formData.templateId && formData.templateId !== "") {
+    if (formData.templateId && formData.templateId !== "" && formData.templateId !== "none") {
       bookingData.templateId = parseInt(formData.templateId);
     } else {
       bookingData.templateId = null;
@@ -474,7 +474,7 @@ export default function MobileBookingForm({
                 <SelectValue placeholder="Select template" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No template</SelectItem>
+                <SelectItem value="none">No template</SelectItem>
                 {templates.map((template) => (
                   <SelectItem key={template.id} value={template.id.toString()}>
                     {template.name}
