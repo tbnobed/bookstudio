@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useQuery } from "@tanstack/react-query";
-import { Studio, Template, PcrRoom, InsertBooking, NotificationGroup, Booking } from "@shared/schema";
-import { useStudioBookings } from "@/hooks/useStudioBookings";
-import { formatTime, generateTimeOptions, timeToDate, formatDateForForm } from "@/lib/dateUtils";
-import { Camera, Monitor, Trash2 } from "lucide-react";
-import { useNotification } from "@/hooks/use-notification";
+import './simple-mobile.css';
+import { BookingType, BookingSeverity, BookingStatus } from '@/types/bookings';
+import { formatDateForForm, formatTimeForForm } from '@/utils/dateUtils';
+import { createFacilityDate, generateTimeOptions, formatTime } from '@/lib/dateUtils';
+import { useStudios } from '@/hooks/useStudios';
+import { usePcrRooms } from '@/hooks/usePcrRooms';
+import { useTemplates } from '@/hooks/useTemplates';
+import { useNotificationGroups } from '@/hooks/useNotificationGroups';
+import { useStudioBookings } from '@/hooks/useStudioBookings';
+import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
+import { NotificationGroup } from '@/types/notifications';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SimpleMobileFormProps {
   isOpen: boolean;
