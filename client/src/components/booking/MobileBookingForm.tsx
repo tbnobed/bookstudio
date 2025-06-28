@@ -136,7 +136,11 @@ export default function MobileBookingForm({
         templateId: booking.templateId?.toString() || "",
         templateName: "",
         pcrRoomId: booking.pcrRoomId?.toString() || "none",
-        studioIds: booking.studioId ? [booking.studioId.toString()] : [],
+        studioIds: booking.studioIds && Array.isArray(booking.studioIds) 
+          ? booking.studioIds.map(id => id.toString()) 
+          : booking.studioId 
+            ? [booking.studioId.toString()] 
+            : [],
         notifyList: Array.isArray(booking.notifyList) ? booking.notifyList.map((id: any) => id.toString()) : [],
         saveAsTemplate: false,
       });
