@@ -94,20 +94,11 @@ export default function MyBookingsPage() {
       />
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">My Bookings</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Showing bookings for week of {format(weekStart, "MMM d")} - {format(weekEnd, "MMM d, yyyy")}
-            </p>
-          </div>
-          <Button onClick={() => setIsNewBookingModalOpen(true)}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            New Booking
-          </Button>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">My Bookings</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Showing bookings for week of {format(weekStart, "MMM d")} - {format(weekEnd, "MMM d, yyyy")}
+          </p>
         </div>
 
         <Tabs defaultValue="upcoming" className="w-full">
