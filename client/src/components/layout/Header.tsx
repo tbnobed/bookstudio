@@ -215,26 +215,28 @@ export function Header({
           </div>
           
           {/* Date Selector */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             <button 
-              className="p-1 rounded-full hover:bg-gray-100"
+              className="p-2 hover:bg-gray-50 transition-colors border-r border-gray-200"
               onClick={navigatePrevious}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
             </button>
-            <span className="text-sm font-medium">{getDateDisplayText()}</span>
+            <div className="px-4 py-2 min-w-[180px] text-center">
+              <span className="text-sm font-medium text-gray-800">{getDateDisplayText()}</span>
+            </div>
             <button 
-              className="p-1 rounded-full hover:bg-gray-100"
+              className="p-2 hover:bg-gray-50 transition-colors border-l border-gray-200"
               onClick={navigateNext}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
             </button>
             <button 
-              className="ml-2 px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="ml-0 px-3 py-2 text-sm bg-gray-50 text-gray-700 border-l border-gray-200 hover:bg-gray-100 transition-colors font-medium"
               onClick={goToToday}
             >
               Today
