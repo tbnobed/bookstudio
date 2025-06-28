@@ -244,11 +244,18 @@ export default function MobileDailyView({
         id: booking.id,
         title: booking.title || '',
         description: booking.description || '',
+        studioId: booking.studioId || null,
+        pcrRoomId: booking.pcrRoomId || null,
+        userId: booking.userId || 1,
         start: booking.start,
         end: booking.end,
         type: booking.type || 'maintenance',
+        status: booking.status || 'confirmed',
         severity: booking.severity || 'low',
-        notifyList: booking.notifyList || []
+        templateId: booking.templateId || null,
+        notifyList: booking.notifyList || [],
+        color: booking.color || '#ff6b35',
+        createdAt: booking.createdAt || new Date()
       };
       
       setEditBooking(alertData);
