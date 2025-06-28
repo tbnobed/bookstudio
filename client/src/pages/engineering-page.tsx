@@ -180,6 +180,11 @@ export default function EngineeringPage() {
 
   // Helper function to arrange overlapping bookings in columns
   const arrangeBookingsInColumns = (dayBookings: BookingData[]) => {
+    // If no bookings or only one booking, no need for complex arrangement
+    if (dayBookings.length <= 1) {
+      return dayBookings.map(booking => ({ booking, column: 0, totalColumns: 1 }));
+    }
+
     const arranged: Array<{ booking: BookingData; column: number; totalColumns: number }> = [];
     
     // Sort bookings by start time
@@ -188,30 +193,35 @@ export default function EngineeringPage() {
     );
     
     sortedBookings.forEach(booking => {
-      // Find all bookings that overlap with this one
+      // Find overlapping bookings that are already arranged
       const overlapping = arranged.filter(item => 
         bookingsOverlap(item.booking, booking)
       );
       
-      // Find the first available column
-      const usedColumns = overlapping.map(item => item.column);
-      let column = 0;
-      while (usedColumns.includes(column)) {
-        column++;
+      if (overlapping.length === 0) {
+        // No overlap - this booking gets its own full width
+        arranged.push({ booking, column: 0, totalColumns: 1 });
+      } else {
+        // Find the first available column among overlapping bookings
+        const usedColumns = overlapping.map(item => item.column);
+        let column = 0;
+        while (usedColumns.includes(column)) {
+          column++;
+        }
+        
+        // Add this booking to the arrangement
+        arranged.push({ booking, column, totalColumns: 1 });
+        
+        // Update total columns for all overlapping bookings including this one
+        const allOverlapping = arranged.filter(item => 
+          bookingsOverlap(item.booking, booking) || item.booking.id === booking.id
+        );
+        
+        const maxColumn = Math.max(...allOverlapping.map(item => item.column));
+        allOverlapping.forEach(item => {
+          item.totalColumns = maxColumn + 1;
+        });
       }
-      
-      // Add this booking to the arrangement
-      arranged.push({ booking, column, totalColumns: 1 });
-      
-      // Update total columns for all overlapping bookings
-      const allOverlapping = arranged.filter(item => 
-        bookingsOverlap(item.booking, booking) || item.booking.id === booking.id
-      );
-      
-      const maxColumn = Math.max(...allOverlapping.map(item => item.column));
-      allOverlapping.forEach(item => {
-        item.totalColumns = maxColumn + 1;
-      });
     });
     
     return arranged;
@@ -260,9 +270,10 @@ export default function EngineeringPage() {
       width = 100;
       leftPosition = 0;
     } else {
-      // Multiple bookings - divide width equally
-      width = Math.floor(100 / totalColumns);
-      leftPosition = column * width;
+      // Multiple overlapping bookings - use overlapping layout with minimum readable width
+      const minWidth = Math.max(60, 100 / totalColumns); // Minimum 60% width for readability
+      width = minWidth;
+      leftPosition = column * 20; // 20% offset for each column
     }
     
     return {
