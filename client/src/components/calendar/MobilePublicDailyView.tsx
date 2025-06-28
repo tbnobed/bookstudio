@@ -298,14 +298,14 @@ export default function MobilePublicDailyView({
       </div>
 
       {/* Main content - Studios and bookings */}
-      <Tabs defaultValue="studios" className="flex-1 overflow-hidden flex flex-col">
-        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10">
+      <Tabs defaultValue="studios" className="flex-1 overflow-hidden flex flex-col bg-transparent">
+        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10 bg-white/80 backdrop-blur-sm">
           <TabsTrigger value="studios">Studios Status</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
         
         {/* Studios Status Tab */}
-        <TabsContent value="studios" className="flex-1 overflow-auto pb-20 -mx-1 px-1 overscroll-contain">
+        <TabsContent value="studios" className="flex-1 overflow-auto pb-20 -mx-1 px-1 overscroll-contain bg-transparent">
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <div className="animate-spin h-6 w-6 border-t-2 border-blue-500 rounded-full"></div>
@@ -322,8 +322,8 @@ export default function MobilePublicDailyView({
                 const statusColor = getStudioStatusColor(studioStatus || {});
                 
                 return (
-                  <div key={studio.id} className="bg-white rounded-lg border shadow-sm overflow-hidden touch-pan-y">
-                    <div className="flex items-center p-4 border-b sticky top-0 bg-white">
+                  <div key={studio.id} className="bg-white/90 backdrop-blur-sm rounded-xl border shadow-lg overflow-hidden touch-pan-y">
+                    <div className="flex items-center p-4 border-b sticky top-0 bg-white/80 backdrop-blur-sm">
                       <div className={`w-3 h-3 rounded-full mr-2 ${statusColor}`}></div>
                       <h3 className="font-medium flex-1">{studio.name}</h3>
                     </div>
@@ -402,7 +402,7 @@ export default function MobilePublicDailyView({
           )}
         </TabsContent>
         
-        <TabsContent value="timeline" className="flex-1 overflow-auto pb-20">
+        <TabsContent value="timeline" className="flex-1 overflow-auto pb-20 bg-transparent">
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <div className="animate-spin h-6 w-6 border-t-2 border-blue-500 rounded-full"></div>
