@@ -10,6 +10,7 @@ import { useNotificationGroups } from '@/hooks/useNotificationGroups';
 import { useStudioBookings } from '@/hooks/useStudioBookings';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
+import { NotificationGroup } from '@/types/notifications';
 
 interface FormBookingData {
   id: number;
@@ -58,13 +59,7 @@ interface Template {
   createdBy: number;
 }
 
-interface NotificationGroup {
-  id: number;
-  name: string;
-  email: string;
-  groupType: string;
-  description?: string;
-}
+// Use NotificationGroup from shared types instead of local interface
 
 interface SimpleMobileFormProps {
   isOpen: boolean;
@@ -90,7 +85,7 @@ export default function SimpleMobileForm({
   const [studios, setStudios] = useState<Studio[]>([]);
   const [pcrRooms, setPcrRooms] = useState<PcrRoom[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [notificationGroups, setNotificationGroups] = useState<NotificationGroup[]>([]);
+  const [notificationGroups, setNotificationGroups] = useState<any[]>([]);
   const [formData, setFormData] = useState<FormBookingData>({
     id: 0,
     title: '',
