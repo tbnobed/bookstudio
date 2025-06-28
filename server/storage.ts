@@ -1630,8 +1630,18 @@ export class DatabaseStorage implements IStorage {
   private processTemplateJson(template: any): Template {
     const processedTemplate = { ...template };
     
-    // Parse studioIds if it's a JSON string
-    if (typeof template.studioIds === 'string') {
+    // Parse studio_ids (database field) and convert to studioIds (API field)
+    if (typeof template.studio_ids === 'string') {
+      try {
+        processedTemplate.studioIds = JSON.parse(template.studio_ids);
+        processedTemplate.studio_ids = processedTemplate.studioIds; // Keep both for compatibility
+        console.log(`Template ${template.id}: Parsed studio_ids from "${template.studio_ids}" to`, processedTemplate.studioIds);
+      } catch (error) {
+        console.warn(`Template ${template.id}: Failed to parse studio_ids "${template.studio_ids}":`, error);
+        processedTemplate.studioIds = [];
+        processedTemplate.studio_ids = [];
+      }
+    } else if (typeof template.studioIds === 'string') {
       try {
         processedTemplate.studioIds = JSON.parse(template.studioIds);
         console.log(`Template ${template.id}: Parsed studioIds from "${template.studioIds}" to`, processedTemplate.studioIds);
@@ -1641,8 +1651,18 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Parse notifyList if it's a JSON string
-    if (typeof template.notifyList === 'string') {
+    // Parse notify_list (database field) and convert to notifyList (API field)
+    if (typeof template.notify_list === 'string') {
+      try {
+        processedTemplate.notifyList = JSON.parse(template.notify_list);
+        processedTemplate.notify_list = processedTemplate.notifyList; // Keep both for compatibility
+        console.log(`Template ${template.id}: Parsed notify_list from "${template.notify_list}" to`, processedTemplate.notifyList);
+      } catch (error) {
+        console.warn(`Template ${template.id}: Failed to parse notify_list "${template.notify_list}":`, error);
+        processedTemplate.notifyList = [];
+        processedTemplate.notify_list = [];
+      }
+    } else if (typeof template.notifyList === 'string') {
       try {
         processedTemplate.notifyList = JSON.parse(template.notifyList);
         console.log(`Template ${template.id}: Parsed notifyList from "${template.notifyList}" to`, processedTemplate.notifyList);
