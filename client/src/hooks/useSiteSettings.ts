@@ -6,29 +6,15 @@ export function useSiteSettings() {
   const { toast } = useToast();
   
   const {
-    data: siteName = "BookStud.io",
+    data: siteData,
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<{ siteName: string }>({
     queryKey: ["/api/system/site-name"],
-    queryFn: async () => {
-      try {
-        const res = await fetch("/api/system/site-name");
-        if (!res.ok) {
-          throw new Error("Failed to fetch site name");
-        }
-        const data = await res.json();
-        return data.siteName;
-      } catch (error) {
-        console.error("Error fetching site name:", error);
-        return "BookStud.io";
-      }
-    },
-    // Set staleTime to 0 to always fetch the latest data
-    staleTime: 0,
-    // Refresh the data when the window regains focus
-    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
+
+  const siteName = siteData?.siteName || "BookStud.io";
 
   const updateSiteNameMutation = useMutation({
     mutationFn: async (newSiteName: string) => {

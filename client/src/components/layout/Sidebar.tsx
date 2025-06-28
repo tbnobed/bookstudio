@@ -16,7 +16,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   
   // Debug log to track user changes in sidebar
   console.log("Sidebar rendering with user:", user);
-  console.log("Sidebar siteName type:", typeof siteName, "value:", siteName);
   
   const handleLogout = async () => {
     try {
