@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { subtractDays, addDays, formatWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
 import TimezoneTestModal from "@/components/TimezoneTestModal";
-import TimezoneDisplay from "@/components/TimezoneDisplay";
+
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, BookingStudio } from "@shared/schema";
@@ -259,10 +259,7 @@ export function Header({
         </div>
       </div>
       
-      {/* Mobile Timezone Display - shown on smaller screens */}
-      <div className="lg:hidden flex justify-center px-4 py-1 bg-gray-50 border-t">
-        <TimezoneDisplay />
-      </div>
+
       
       {/* Studios Filter */}
       {onStudioFilterChange && (
