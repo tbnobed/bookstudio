@@ -1,420 +1,634 @@
 import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Studio, Template, PcrRoom, NotificationGroup } from "@shared/schema";
-import { generateTimeOptions } from "@/lib/dateUtils";
-import { BellRing, Tag } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import "./mobile-styles.css";
-import "./mobile-fixes.css"; // Import additional emergency fixes
+import { useQuery } from "@tanstack/react-query";
+import { Studio, Template, PcrRoom, InsertBooking, NotificationGroup, Booking } from "@shared/schema";
+import { useStudioBookings } from "@/hooks/useStudioBookings";
+import { formatTime, generateTimeOptions, timeToDate, createFacilityDate } from "@/lib/dateUtils";
+import { Camera, Monitor, Trash2 } from "lucide-react";
+import { useNotification } from "@/hooks/use-notification";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-// Add styles to prevent horizontal scrolling
-import { useEffect as useLayoutEffect } from "react";
-
-// This will help ensure no horizontal scrolling on the mobile form
-
-// Interface must match the expected props from BookingModal
 interface MobileBookingFormProps {
-  formData: any;
-  updateFormField: (field: string, value: any) => void;
-  handleCrewToggle: (groupId: string) => void;
-  studios: Studio[];
-  templates: Template[];
-  pcrRooms: PcrRoom[];
-  notificationGroups: NotificationGroup[];
-  isSaving: boolean;
-  onSubmit: (e: React.FormEvent) => void;
-  alertsOnly: boolean;
-  handleLoadTemplate: (templateId: number) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  booking?: Booking | null;
+  selectedDate?: Date;
+  selectedStudio?: number;
 }
 
-export default function MobileBookingForm({
-  formData,
-  updateFormField,
-  handleCrewToggle,
-  studios,
-  templates,
-  pcrRooms,
-  notificationGroups,
-  isSaving,
-  onSubmit,
-  alertsOnly,
-  handleLoadTemplate
+interface FormData {
+  title: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  bookingType: string;
+  status: string;
+  severity: string;
+  color: string;
+  templateId: string;
+  templateName: string;
+  pcrRoomId: string;
+  studioIds: string[];
+  notifyList: string[];
+  saveAsTemplate: boolean;
+}
+
+export default function MobileBookingForm({ 
+  isOpen, 
+  onClose, 
+  booking,
+  selectedDate = new Date(),
+  selectedStudio
 }: MobileBookingFormProps) {
-  // Add effect to prevent horizontal scroll
-  useLayoutEffect(() => {
-    // Prevent horizontal scroll when dialog is open
-    document.body.style.overflow = 'hidden';
+  const { showNotification } = useNotification();
+  const { createBooking, updateBooking, deleteBooking, createTemplate } = useStudioBookings();
+  
+  // Fetch data using the same queries as desktop
+  const { data: studios = [] } = useQuery<Studio[]>({ queryKey: ["/api/studios"] });
+  const { data: templates = [] } = useQuery<Template[]>({ queryKey: ["/api/templates"] });
+  const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({ queryKey: ["/api/pcr-rooms"] });
+  const { data: notificationGroups = [] } = useQuery<NotificationGroup[]>({ queryKey: ["/api/notification-groups"] });
+
+  // Format date for form (same logic as desktop)
+  const formatDateForForm = (date: Date): string => {
+    const isoDate = date.toISOString();
+    if (isoDate.match(/T06:[0-5][0-9]:[0-9]{2}\.[0-9]{3}Z/)) {
+      const correctDate = isoDate.split('T')[0];
+      return correctDate;
+    }
+    if (isoDate.match(/T05:30:[0-9]{2}\.[0-9]{3}Z/)) {
+      const correctDate = isoDate.split('T')[0];
+      return correctDate;
+    }
+    return isoDate.split('T')[0];
+  };
+
+  // Default form values (same as desktop)
+  const getDefaultFormData = (): FormData => ({
+    title: "",
+    description: "",
+    date: formatDateForForm(selectedDate),
+    startTime: "09:00",
+    endTime: "10:00",
+    bookingType: "production",
+    status: "confirmed",
+    severity: "low",
+    color: "#3b82f6",
+    templateId: "",
+    templateName: "",
+    pcrRoomId: "",
+    studioIds: selectedStudio ? [selectedStudio.toString()] : [],
+    notifyList: [],
+    saveAsTemplate: false,
+  });
+
+  const [formData, setFormData] = useState<FormData>(getDefaultFormData());
+
+  // Update form field helper
+  const updateFormField = (field: keyof FormData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Initialize form data when booking changes (same logic as desktop)
+  useEffect(() => {
+    if (booking && booking.id && booking.id !== 0) {
+      // Convert existing booking data to form format
+      const startTime = formatTime(new Date(booking.start));
+      const endTime = formatTime(new Date(booking.end));
+      
+      setFormData({
+        title: booking.title || "",
+        description: booking.description || "",
+        date: formatDateForForm(new Date(booking.start)),
+        startTime,
+        endTime,
+        bookingType: booking.type || "production",
+        status: booking.status || "confirmed",
+        severity: booking.severity || "low",
+        color: booking.color || "#3b82f6",
+        templateId: booking.templateId?.toString() || "",
+        templateName: "",
+        pcrRoomId: booking.pcrRoomId?.toString() || "",
+        studioIds: [booking.studioId?.toString()].filter(Boolean) || [],
+        notifyList: booking.notifyList?.map((id: any) => id.toString()) || [],
+        saveAsTemplate: false,
+      });
+    } else {
+      setFormData(getDefaultFormData());
+    }
+  }, [booking, selectedDate, selectedStudio]);
+
+  // Apply template (same logic as desktop)
+  const handleTemplateChange = (templateId: string) => {
+    updateFormField('templateId', templateId);
     
-    return () => {
-      document.body.style.overflow = '';
+    if (templateId) {
+      const selectedTemplate = templates.find(t => t.id.toString() === templateId);
+      if (selectedTemplate) {
+        // Apply template data using the same logic as desktop
+        updateFormField('title', selectedTemplate.name);
+        updateFormField('description', selectedTemplate.description || "");
+        updateFormField('bookingType', selectedTemplate.type || "production");
+        updateFormField('color', selectedTemplate.color || "#3b82f6");
+        
+        // Apply studio IDs (checking both formats like desktop)
+        const studioIds = (selectedTemplate as any).studio_ids || selectedTemplate.studioIds || [];
+        if (Array.isArray(studioIds) && studioIds.length > 0) {
+          updateFormField('studioIds', studioIds.map(id => id.toString()));
+        }
+        
+        // Apply PCR room
+        const pcrRoomId = (selectedTemplate as any).pcr_room_id || selectedTemplate.pcrRoomId;
+        if (pcrRoomId) {
+          updateFormField('pcrRoomId', pcrRoomId.toString());
+        }
+        
+        // Apply notification groups
+        const notifyList = (selectedTemplate as any).notify_list || selectedTemplate.notifyList || [];
+        if (Array.isArray(notifyList) && notifyList.length > 0) {
+          updateFormField('notifyList', notifyList.map(id => id.toString()));
+        }
+        
+        // Apply times if available
+        const startTime = (selectedTemplate as any).start_time || selectedTemplate.startTime;
+        if (startTime) {
+          updateFormField('startTime', startTime);
+        }
+        
+        const endTime = (selectedTemplate as any).end_time || selectedTemplate.endTime;
+        if (endTime) {
+          updateFormField('endTime', endTime);
+        }
+      }
+    }
+  };
+
+  // Toggle studio selection
+  const handleStudioToggle = (studioId: string) => {
+    const currentStudios = [...formData.studioIds];
+    if (currentStudios.includes(studioId)) {
+      updateFormField('studioIds', currentStudios.filter(id => id !== studioId));
+    } else {
+      updateFormField('studioIds', [...currentStudios, studioId]);
+    }
+  };
+
+  // Toggle notification group
+  const handleCrewToggle = (crewId: string) => {
+    const currentNotifyList = [...formData.notifyList];
+    if (currentNotifyList.includes(crewId)) {
+      updateFormField('notifyList', currentNotifyList.filter(id => id !== crewId));
+    } else {
+      updateFormField('notifyList', [...currentNotifyList, crewId]);
+    }
+  };
+
+  // Time validation
+  const validateTimes = () => {
+    if (formData.startTime >= formData.endTime) {
+      showNotification({
+        type: "error",
+        title: "Invalid Time Range",
+        message: "End time must be later than start time"
+      });
+      return false;
+    }
+    return true;
+  };
+
+  // Form submission (EXACT same logic as desktop BookingModal)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateTimes()) return;
+    
+    // Studio validation (same as desktop)
+    if (formData.studioIds.length === 0) {
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: "At least one studio must be selected"
+      });
+      return;
+    }
+    
+    // Convert times to dates (same as desktop)
+    const startDate = timeToDate(formData.date, formData.startTime);
+    const endDate = timeToDate(formData.date, formData.endTime);
+    
+    // Convert notification group IDs from strings to numbers (same as desktop)
+    const notifyListAsNumbers = formData.notifyList.map(id => parseInt(id));
+    
+    // Prepare booking data (EXACT same structure as desktop)
+    const bookingData: Partial<InsertBooking> = {
+      title: formData.title,
+      description: formData.description,
+      type: formData.bookingType,
+      status: formData.status,
+      start: startDate,
+      end: endDate,
+      notifyList: notifyListAsNumbers,
+      color: formData.color,
+      userId: 1,
     };
-  }, []);
-  
-  // Define normal form width to make content visible
-  const formWidth = '100%';
-  
-  // Let's stop direct DOM manipulation as it's hiding content
-  useLayoutEffect(() => {
-    // Just prevent body scroll
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
+    
+    // Set the primary studioId (same as desktop)
+    if (formData.studioIds.length > 0) {
+      bookingData.studioId = parseInt(formData.studioIds[0]);
+    }
+    
+    // Add severity
+    bookingData.severity = formData.severity;
+    
+    // Add templateId if selected (same as desktop)
+    if (formData.templateId && formData.templateId !== "") {
+      bookingData.templateId = parseInt(formData.templateId);
+    } else {
+      bookingData.templateId = null;
+    }
+    
+    // Add pcrRoomId if selected (same as desktop)
+    if (formData.pcrRoomId && formData.pcrRoomId !== "") {
+      bookingData.pcrRoomId = parseInt(formData.pcrRoomId);
+    } else {
+      bookingData.pcrRoomId = null;
+    }
+    
+    // Convert studioIds from strings to numbers (same as desktop)
+    const studioIds = formData.studioIds.map(id => parseInt(id));
+    
+    try {
+      if (booking && booking.id && booking.id !== 0) {
+        // Update existing booking (EXACT same call as desktop)
+        await updateBooking.mutateAsync({ 
+          id: booking.id, 
+          data: bookingData,
+          studioIds: studioIds
+        });
+        
+        showNotification({
+          type: "success",
+          title: "Success",
+          message: studioIds.length > 1 
+            ? `Booking updated successfully across ${studioIds.length} studios` 
+            : "Booking updated successfully"
+        });
+      } else {
+        // Create new booking (EXACT same call as desktop)
+        const newBooking = await createBooking.mutateAsync({
+          ...bookingData as InsertBooking,
+          studioIds: studioIds
+        });
+        
+        showNotification({
+          type: "success",
+          title: "Success", 
+          message: studioIds.length > 1 
+            ? `Booking created successfully across ${studioIds.length} studios` 
+            : "Booking created successfully"
+        });
+        
+        // Save as template if requested (same as desktop)
+        if (formData.saveAsTemplate && formData.templateName) {
+          const durationMs = endDate.getTime() - startDate.getTime();
+          const durationMinutes = Math.floor(durationMs / 60000);
+          const crewRequiredAsNumbers = formData.notifyList.map(id => parseInt(id));
+          const studioIdsAsNumbers = formData.studioIds.map(id => parseInt(id));
+          
+          const additionalData = {
+            studioIds: studioIdsAsNumbers,
+            pcrRoomId: formData.pcrRoomId && formData.pcrRoomId !== "" ? parseInt(formData.pcrRoomId) : null,
+            status: formData.status,
+            color: formData.color,
+          };
+          
+          const templateData = {
+            name: formData.templateName,
+            description: formData.description || "",
+            type: formData.bookingType,
+            duration: durationMinutes,
+            crewRequired: crewRequiredAsNumbers,
+            equipment: [additionalData],
+            createdBy: 1
+          };
+          
+          try {
+            await createTemplate.mutateAsync(templateData);
+            showNotification({
+              type: "success",
+              title: "Success",
+              message: "Template saved successfully"
+            });
+          } catch (templateError) {
+            showNotification({
+              type: "warning",
+              title: "Warning",
+              message: "Booking was created but template could not be saved"
+            });
+          }
+        }
+      }
+      
+      // Reset form and close
+      setFormData(getDefaultFormData());
+      onClose();
+    } catch (error) {
+      console.error("Error saving booking:", error);
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: `Failed to ${booking ? 'update' : 'create'} booking`
+      });
+    }
+  };
+
+  // Delete booking handler
+  const handleDelete = async () => {
+    if (!booking?.id) return;
+    
+    try {
+      await deleteBooking.mutateAsync(booking.id);
+      showNotification({
+        type: "success",
+        title: "Success",
+        message: "Booking deleted successfully"
+      });
+      onClose();
+    } catch (error) {
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: "Failed to delete booking"
+      });
+    }
+  };
+
+  // Filter notification groups (same as desktop)
+  const filteredNotificationGroups = notificationGroups.filter(group => 
+    group.groupType !== 'site_management'
+  );
 
   return (
-    <form 
-      onSubmit={onSubmit} 
-      className="mobile-booking-form space-y-4" 
-      style={{ 
-        width: '90%', 
-        maxWidth: '90%',
-        margin: '0 auto',
-        overflowX: 'hidden',
-        padding: '10px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        boxSizing: 'border-box'
-      }}
-    >
-      <div className="space-y-4" style={{ 
-        width: '90%', 
-        maxWidth: '90%',
-        margin: '0 auto',
-        overflowX: 'hidden' 
-      }}>
-        {/* Title and description section */}
-        <div className="form-item">
-          <Label htmlFor="title" className="text-base font-medium">Title</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => updateFormField('title', e.target.value)}
-            placeholder="Enter booking title"
-            className="mt-1"
-            required
-          />
-        </div>
-        
-        <div className="form-item">
-          <Label htmlFor="description" className="text-base font-medium">Description</Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => updateFormField('description', e.target.value)}
-            placeholder="Enter booking details"
-            className="mt-1"
-            rows={3}
-          />
-        </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-semibold">
+            {booking?.id ? "Edit Booking" : "Create Booking"}
+          </DialogTitle>
+        </DialogHeader>
 
-        {/* Accordion for sections */}
-        <Accordion type="single" collapsible className="w-full mobile-accordion">
-          {/* Date and Time Section */}
-          <AccordionItem value="date-time">
-            <AccordionTrigger className="text-base font-medium">Date & Time</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-3 date-time-container">
-                <div className="form-item">
-                  <Label htmlFor="date">Date</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => updateFormField('date', e.target.value)}
-                    required
-                    className="mt-1"
-                  />
-                </div>
-                
-                <div className="form-item">
-                  <Label htmlFor="start-time">Start Time</Label>
-                  <Select 
-                    value={formData.startTime} 
-                    onValueChange={(value) => updateFormField('startTime', value)} 
-                    required
-                  >
-                    <SelectTrigger id="start-time" className="mt-1">
-                      <SelectValue placeholder="Select start time" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
-                      {generateTimeOptions().map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="form-item">
-                  <Label htmlFor="end-time">End Time</Label>
-                  <Select 
-                    value={formData.endTime} 
-                    onValueChange={(value) => updateFormField('endTime', value)} 
-                    required
-                  >
-                    <SelectTrigger id="end-time" className="mt-1">
-                      <SelectValue placeholder="Select end time" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
-                      {generateTimeOptions().map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Basic Info */}
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="title" className="text-sm font-medium">Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => updateFormField('title', e.target.value)}
+                placeholder="Booking title"
+                required
+                className="mt-1"
+              />
+            </div>
 
-          {/* Studio Selection Section */}
-          {!alertsOnly && (
-            <AccordionItem value="studios">
-              <AccordionTrigger className="text-base font-medium">Studios</AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-2">
-                  {/* Studio selection */}
-                  <div className="space-y-1 border rounded-md p-2 max-h-[200px] overflow-y-auto">
-                    {studios.map((studio) => (
-                      <div key={studio.id} className="flex items-center space-x-2 py-1">
-                        <Checkbox
-                          id={`studio-${studio.id}`}
-                          checked={formData.studioIds.includes(studio.id.toString())}
-                          onCheckedChange={(checked) => {
-                            const currentStudioIds = [...formData.studioIds];
-                            if (checked) {
-                              if (!currentStudioIds.includes(studio.id.toString())) {
-                                currentStudioIds.push(studio.id.toString());
-                              }
-                            } else {
-                              const index = currentStudioIds.indexOf(studio.id.toString());
-                              if (index !== -1) {
-                                currentStudioIds.splice(index, 1);
-                              }
-                            }
-                            updateFormField('studioIds', currentStudioIds);
-                          }}
-                        />
-                        <Label
-                          htmlFor={`studio-${studio.id}`}
-                          className="cursor-pointer"
-                        >
-                          {studio.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {formData.studioIds.length === 0 && (
-                    <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
-                  )}
+            <div>
+              <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => updateFormField('description', e.target.value)}
+                placeholder="Booking description"
+                className="mt-1 min-h-[60px]"
+              />
+            </div>
+          </div>
 
-                  {/* PCR Room Selection */}
-                  <div className="mt-3 form-item">
-                    <Label htmlFor="pcr-room">PCR Room</Label>
-                    <Select 
-                      value={formData.pcrRoomId?.toString() || ""} 
-                      onValueChange={(value) => updateFormField('pcrRoomId', value ? parseInt(value) : null)}
-                    >
-                      <SelectTrigger id="pcr-room" className="mt-1">
-                        <SelectValue placeholder="Select PCR room (optional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">None</SelectItem>
-                        {pcrRooms.map((room) => (
-                          <SelectItem key={room.id} value={room.id.toString()}>
-                            {room.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          )}
+          {/* Date and Time */}
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="date" className="text-sm font-medium">Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => updateFormField('date', e.target.value)}
+                required
+                className="mt-1"
+              />
+            </div>
 
-          {/* Notification Groups Section */}
-          <AccordionItem value="notifications">
-            <AccordionTrigger className="text-base font-medium">Notifications</AccordionTrigger>
-            <AccordionContent>
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="flex items-center mb-1">
-                  <BellRing className="h-4 w-4 mr-1 text-primary" />
-                  <Label>Notification Groups</Label>
-                </div>
-                
-                {notificationGroups.length === 0 ? (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    No notification groups available
-                  </p>
-                ) : (
-                  <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
-                    {notificationGroups.map((group: NotificationGroup) => (
-                      <div key={group.id} className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
-                          {group.groupType === 'lighting' && <Tag className="h-3.5 w-3.5 mr-1 text-yellow-500" />}
-                          {group.groupType === 'sound' && <Tag className="h-3.5 w-3.5 mr-1 text-green-500" />}
-                          {group.groupType === 'directors' && <Tag className="h-3.5 w-3.5 mr-1 text-purple-500" />}
-                          {group.groupType === 'production' && <Tag className="h-3.5 w-3.5 mr-1 text-red-500" />}
-                          {group.groupType === 'engineering' && <Tag className="h-3.5 w-3.5 mr-1 text-orange-500" />}
-                          <span className="text-xs">{group.name}</span>
-                        </div>
-                        <Checkbox
-                          id={`notify-group-${group.id}`}
-                          checked={formData.notifyList.includes(group.id.toString())}
-                          onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
-                          className="h-4 w-4"
-                        />
-                      </div>
+                <Label htmlFor="startTime" className="text-sm font-medium">Start Time</Label>
+                <Select value={formData.startTime} onValueChange={(value) => updateFormField('startTime', value)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generateTimeOptions().map((time) => (
+                      <SelectItem key={time} value={time}>{time}</SelectItem>
                     ))}
-                  </div>
-                )}
-                
-                {formData.notifyList.length > 0 && (
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {formData.notifyList.map((groupId: string) => {
-                      const group = notificationGroups.find((g: NotificationGroup) => g.id.toString() === groupId);
-                      if (!group) return null;
-                      return (
-                        <Badge key={groupId} variant="outline" className="flex items-center gap-1 text-xs py-0">
-                          <span>{group.name}</span>
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                )}
+                  </SelectContent>
+                </Select>
               </div>
-            </AccordionContent>
-          </AccordionItem>
 
-          {/* Additional Options Section */}
-          <AccordionItem value="additional">
-            <AccordionTrigger className="text-base font-medium">Additional Options</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-3">
-                {/* Templates */}
-                {!alertsOnly && templates.length > 0 && (
-                  <div>
-                    <Label htmlFor="template">Load from Template</Label>
-                    <Select onValueChange={(value) => handleLoadTemplate(parseInt(value))}>
-                      <SelectTrigger id="template" className="mt-1">
-                        <SelectValue placeholder="Select a template" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {templates.map((template) => (
-                          <SelectItem key={template.id} value={template.id.toString()}>
-                            {template.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                
-                {/* Color picker */}
-                {!alertsOnly && (
-                  <div>
-                    <Label htmlFor="color">Booking Color</Label>
-                    <div className="flex items-center mt-1.5">
-                      <Input
-                        id="color"
-                        type="color"
-                        value={formData.color}
-                        onChange={(e) => updateFormField('color', e.target.value)}
-                        className="w-16 h-8 p-1 mr-2"
-                      />
-                      <span className="text-xs text-muted-foreground">
-                        Custom color for calendar display
-                      </span>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Severity for alerts */}
-                {alertsOnly && (
-                  <div>
-                    <Label htmlFor="severity">Severity</Label>
-                    <Select 
-                      value={formData.severity} 
-                      onValueChange={(value) => updateFormField('severity', value)} 
-                      required
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select severity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                
-                {/* Save as template option */}
-                {!alertsOnly && (
-                  <div className="flex flex-row items-start space-x-2 pt-2">
-                    <Checkbox
-                      id="save-template"
-                      checked={formData.saveAsTemplate}
-                      onCheckedChange={(checked) => updateFormField('saveAsTemplate', checked)}
-                    />
-                    <Label
-                      htmlFor="save-template"
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      Save as template for future bookings
-                    </Label>
-                  </div>
-                )}
-                
-                {/* Template name if saving */}
-                {formData.saveAsTemplate && (
-                  <div>
-                    <Label htmlFor="template-name">Template Name</Label>
-                    <Input
-                      id="template-name"
-                      value={formData.templateName}
-                      onChange={(e) => updateFormField('templateName', e.target.value)}
-                      placeholder="Enter a name for this template"
-                      required={formData.saveAsTemplate}
-                      className="mt-1"
-                    />
-                  </div>
-                )}
+              <div>
+                <Label htmlFor="endTime" className="text-sm font-medium">End Time</Label>
+                <Select value={formData.endTime} onValueChange={(value) => updateFormField('endTime', value)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generateTimeOptions().map((time) => (
+                      <SelectItem key={time} value={time}>{time}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
+            </div>
+          </div>
 
-      {/* Submit Button */}
-      <div className="pt-4">
-        <Button
-          type="submit"
-          disabled={isSaving}
-          className="w-full mobile-submit-btn"
-        >
-          {isSaving ? (
-            <span>Creating...</span>
-          ) : (
-            <span>{alertsOnly ? "Create Alert" : "Create Booking"}</span>
+          {/* Template Selection */}
+          <div>
+            <Label htmlFor="template" className="text-sm font-medium">Template (Optional)</Label>
+            <Select value={formData.templateId} onValueChange={handleTemplateChange}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select template" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">No template</SelectItem>
+                {templates.map((template) => (
+                  <SelectItem key={template.id} value={template.id.toString()}>
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Studios */}
+          <div>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Camera className="w-4 h-4" />
+              Studios
+            </Label>
+            <div className="grid grid-cols-2 gap-2 mt-2 max-h-32 overflow-y-auto">
+              {studios.map((studio) => (
+                <div key={studio.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`studio-${studio.id}`}
+                    checked={formData.studioIds.includes(studio.id.toString())}
+                    onCheckedChange={() => handleStudioToggle(studio.id.toString())}
+                  />
+                  <Label htmlFor={`studio-${studio.id}`} className="text-sm">{studio.name}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* PCR Room */}
+          <div>
+            <Label htmlFor="pcrRoom" className="text-sm font-medium flex items-center gap-2">
+              <Monitor className="w-4 h-4" />
+              PCR Room
+            </Label>
+            <Select value={formData.pcrRoomId} onValueChange={(value) => updateFormField('pcrRoomId', value)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select PCR room" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">No PCR room</SelectItem>
+                {pcrRooms.map((room) => (
+                  <SelectItem key={room.id} value={room.id.toString()}>{room.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Booking Type and Status */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="type" className="text-sm font-medium">Type</Label>
+              <Select value={formData.bookingType} onValueChange={(value) => updateFormField('bookingType', value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="production">Production</SelectItem>
+                  <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="setup">Setup</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="status" className="text-sm font-medium">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => updateFormField('status', value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="tentative">Tentative</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Notification Groups */}
+          <div>
+            <Label className="text-sm font-medium">Notify Groups</Label>
+            <div className="space-y-2 mt-2 max-h-32 overflow-y-auto">
+              {filteredNotificationGroups.map((group) => (
+                <div key={group.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`group-${group.id}`}
+                    checked={formData.notifyList.includes(group.id.toString())}
+                    onCheckedChange={() => handleCrewToggle(group.id.toString())}
+                  />
+                  <Label htmlFor={`group-${group.id}`} className="text-sm">{group.name}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Save as Template */}
+          {!booking?.id && (
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="saveAsTemplate"
+                  checked={formData.saveAsTemplate}
+                  onCheckedChange={(checked) => updateFormField('saveAsTemplate', checked)}
+                />
+                <Label htmlFor="saveAsTemplate" className="text-sm">Save as template</Label>
+              </div>
+              {formData.saveAsTemplate && (
+                <Input
+                  placeholder="Template name"
+                  value={formData.templateName}
+                  onChange={(e) => updateFormField('templateName', e.target.value)}
+                  className="mt-1"
+                />
+              )}
+            </div>
           )}
-        </Button>
-      </div>
-    </form>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2 pt-4">
+            <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-2 rounded-lg transition-all duration-200">
+              {booking?.id ? "Update Booking" : "Create Booking"}
+            </Button>
+            
+            {booking?.id && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Booking
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this booking? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            
+            <Button type="button" variant="outline" onClick={onClose} className="w-full">
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
