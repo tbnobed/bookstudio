@@ -57,6 +57,8 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
         
+        console.log("WeatherWidget: Checking API key availability...", !!apiKey);
+        
         if (!apiKey) {
           console.warn("Weather integration disabled: API key not found");
           setLoading(false);
@@ -181,7 +183,13 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
   }
 
   if (!weather) {
-    return null;
+    // Show a fallback when weather data is not available
+    return (
+      <div className={`flex items-center space-x-2 text-gray-500 ${className}`}>
+        <Cloud className="h-4 w-4" />
+        <span className="text-xs">Weather unavailable</span>
+      </div>
+    );
   }
 
   const WeatherIcon = getWeatherIcon(weather.icon);
