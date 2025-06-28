@@ -7,6 +7,19 @@
 /* Custom styles for bookstud.io */
 /* Removed custom hover styles - using Tailwind classes instead */
 
+/* Mobile gradient background */
+.mobile-gradient-bg {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 30%, #ede9fe 70%, #f3e8ff 100%) !important;
+  min-height: 100vh !important;
+  background-attachment: fixed !important;
+}
+
+/* Force gradient on mobile routes */
+body.mobile-page {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 30%, #ede9fe 70%, #f3e8ff 100%) !important;
+  background-attachment: fixed !important;
+}
+
 
 
 .booking-card {
