@@ -175,122 +175,33 @@ export default function SimpleMobileForm({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div 
-      className="simple-mobile-form open"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-    >
-      <div 
-        className="simple-mobile-overlay" 
-        onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)'
-        }}
-      ></div>
-      <div 
-        className="simple-mobile-content"
-        style={{
-          position: 'relative',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          maxWidth: '400px',
-          width: '90%',
-          maxHeight: '90vh',
-          overflow: 'auto'
-        }}
-      >
-        <form onSubmit={handleSubmit}>
-          <div 
-            className="form-header"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '20px',
-              borderBottom: '1px solid #e0e0e0',
-              paddingBottom: '10px'
-            }}
-          >
-            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
-              {booking ? 'Edit Booking' : 'New Booking'}
-            </h2>
-            <button 
-              type="button" 
-              onClick={onClose}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer',
-                padding: '0',
-                width: '30px',
-                height: '30px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >×</button>
-          </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{booking ? 'Edit Booking' : 'New Booking'}</DialogTitle>
+        </DialogHeader>
+        <form id="booking-form" onSubmit={handleSubmit} className="space-y-4">
 
           {/* Title */}
-          <div 
-            className="form-group"
-            style={{ marginBottom: '15px' }}
-          >
-            <label 
-              htmlFor="title"
-              style={{ 
-                display: 'block', 
-                marginBottom: '5px', 
-                fontWeight: '500',
-                fontSize: '14px'
-              }}
-            >
-              Title*
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="title">Title*</Label>
+            <Input
               id="title"
               type="text"
               value={formData.title}
               onChange={(e) => updateFormField('title', e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                fontSize: '14px',
-                boxSizing: 'border-box'
-              }}
               required
             />
           </div>
 
           {/* Description */}
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => updateFormField('description', e.target.value)}
-              className="form-input"
               rows={3}
             />
           </div>
@@ -411,52 +322,16 @@ export default function SimpleMobileForm({
             </Select>
           </div>
 
-          {/* Action Buttons */}
-          <div 
-            className="form-actions"
-            style={{
-              display: 'flex',
-              gap: '10px',
-              marginTop: '20px',
-              paddingTop: '20px',
-              borderTop: '1px solid #e0e0e0'
-            }}
-          >
-            <button 
-              type="button" 
-              onClick={onClose}
-              style={{
-                flex: 1,
-                padding: '10px 15px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                backgroundColor: 'white',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer'
-              }}
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit"
-              style={{
-                flex: 1,
-                padding: '10px 15px',
-                border: 'none',
-                borderRadius: '4px',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer'
-              }}
-            >
-              {booking ? 'Update' : 'Create'} Booking
-            </button>
-          </div>
         </form>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" form="booking-form">
+            {booking ? 'Update' : 'Create'} Booking
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
