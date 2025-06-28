@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './simple-mobile.css';
 import { BookingType, BookingSeverity, BookingStatus } from '@/types/bookings';
 import { formatDateForForm, formatTimeForForm } from '@/utils/dateUtils';
-import { createFacilityDate } from '@/lib/dateUtils';
+import { createFacilityDate, generateTimeOptions } from '@/lib/dateUtils';
 import { useStudios } from '@/hooks/useStudios';
 import { usePcrRooms } from '@/hooks/usePcrRooms';
 import { useTemplates } from '@/hooks/useTemplates';
@@ -11,6 +11,7 @@ import { useStudioBookings } from '@/hooks/useStudioBookings';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 import { NotificationGroup } from '@/types/notifications';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FormBookingData {
   id: number;
@@ -771,29 +772,37 @@ export default function SimpleMobileForm({
             
             <div className="form-group">
               <label htmlFor="sm-start-time">Start Time*</label>
-              <input 
-                type="time"
-                id="sm-start-time"
-                name="startTime"
-                value={formatTimeForForm(formData.start)}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
+              <Select 
+                value={formatTimeForForm(formData.start)} 
+                onValueChange={(value) => handleChange({ target: { name: 'startTime', value } } as any)} 
+              >
+                <SelectTrigger id="sm-start-time" className="form-input">
+                  <SelectValue placeholder="Select start time" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {generateTimeOptions().map((time: string) => (
+                    <SelectItem key={time} value={time}>{time}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           
           <div className="form-group">
             <label htmlFor="sm-end-time">End Time*</label>
-            <input 
-              type="time"
-              id="sm-end-time"
-              name="endTime"
-              value={formatTimeForForm(formData.end)}
-              onChange={handleChange}
-              required
-              className="form-input"
-            />
+            <Select 
+              value={formatTimeForForm(formData.end)} 
+              onValueChange={(value) => handleChange({ target: { name: 'endTime', value } })} 
+            >
+              <SelectTrigger id="sm-end-time" className="form-input">
+                <SelectValue placeholder="Select end time" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px]">
+                {generateTimeOptions().map((time) => (
+                  <SelectItem key={time} value={time}>{time}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="form-row">
