@@ -106,12 +106,22 @@ export default function MobileBookingForm({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Convert time to dropdown format (matches generateTimeOptions format)
+  const formatTimeForDropdown = (date: Date): string => {
+    const facilityTime = new Date(date.toLocaleString("en-US", { timeZone: "America/Chicago" }));
+    const hour = facilityTime.getHours();
+    const minute = facilityTime.getMinutes();
+    const h = hour % 12 || 12;
+    const period = hour < 12 ? "am" : "pm";
+    return `${h}:${minute.toString().padStart(2, "0")}${period}`;
+  };
+
   // Initialize form data when booking changes (same logic as desktop)
   useEffect(() => {
     if (booking && booking.id && booking.id !== 0) {
       // Convert existing booking data to form format
-      const startTime = formatTime(new Date(booking.start));
-      const endTime = formatTime(new Date(booking.end));
+      const startTime = formatTimeForDropdown(new Date(booking.start));
+      const endTime = formatTimeForDropdown(new Date(booking.end));
       
       setFormData({
         title: booking.title || "",
@@ -126,8 +136,8 @@ export default function MobileBookingForm({
         templateId: booking.templateId?.toString() || "",
         templateName: "",
         pcrRoomId: booking.pcrRoomId?.toString() || "none",
-        studioIds: [booking.studioId?.toString()].filter(Boolean) || [],
-        notifyList: booking.notifyList?.map((id: any) => id.toString()) || [],
+        studioIds: booking.studioId ? [booking.studioId.toString()] : [],
+        notifyList: Array.isArray(booking.notifyList) ? booking.notifyList.map((id: any) => id.toString()) : [],
         saveAsTemplate: false,
       });
     } else {
