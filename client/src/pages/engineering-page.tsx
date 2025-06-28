@@ -660,37 +660,38 @@ export default function EngineeringPage() {
                                   textShadow: severityStyle ? '1px 1px 1px rgba(0,0,0,0.6)' : '1px 1px 1px rgba(0,0,0,0.5)'
                                 }}
                               >
-                                <div className="font-bold truncate flex items-center gap-1 text-lg">
+                                <div className="font-bold text-lg mb-1 leading-tight">
                                   {severityStyle && (
-                                    <span className="text-sm px-1 py-0.5 rounded bg-black bg-opacity-20 font-bold">
+                                    <span className="text-xs px-1 py-0.5 rounded bg-black bg-opacity-20 font-bold mr-1">
                                       ⚠ {booking.severity?.toUpperCase()}
                                     </span>
                                   )}
-                                  <span className="truncate">{booking.title}</span>
+                                  <span className="break-words">{booking.title}</span>
                                 </div>
                                 
-                                {studios.length > 0 && (
-                                  <div className={`truncate text-base font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
-                                    📹 {studios.join(', ')}
+                                <div className="space-y-1 text-sm leading-relaxed">
+                                  <div className={`font-medium ${severityStyle ? 'opacity-90' : 'opacity-95'}`}>
+                                    {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                                   </div>
-                                )}
-                                
-                                {pcrRoom && (
-                                  <div className={`truncate text-base font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
-                                    🖥️ {pcrRoom}
-                                  </div>
-                                )}
-                                
-                                <div className={`text-base font-medium ${severityStyle ? 'opacity-80' : 'opacity-85'}`}>
-                                  🕐 {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - 
-                                  {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
-                                </div>
+                                  
+                                  {studios.length > 0 && (
+                                    <div className={`font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
+                                      Studios: {studios.join(', ')}
+                                    </div>
+                                  )}
+                                  
+                                  {pcrRoom && (
+                                    <div className={`font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
+                                      PCR: {pcrRoom}
+                                    </div>
+                                  )}
 
-                                {booking.status && booking.status !== 'confirmed' && (
-                                  <div className={`text-base font-bold ${severityStyle ? 'opacity-90' : 'opacity-95'}`}>
-                                    📋 {booking.status.toUpperCase()}
-                                  </div>
-                                )}
+                                  {booking.status && booking.status !== 'confirmed' && (
+                                    <div className={`font-bold text-xs uppercase ${severityStyle ? 'opacity-90' : 'opacity-95'}`}>
+                                      Status: {booking.status}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-sm p-4 bg-white border border-gray-200 shadow-lg">
