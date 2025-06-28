@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { ApiBooking, FormBookingData } from '../../types/bookings';
 import SimpleMobileForm from './SimpleMobileForm-new';
-import { DirectMobileForm } from './DirectMobileForm';
 
 // Device capability thresholds
 const LOW_END_DEVICE_THRESHOLD = {
@@ -167,18 +166,8 @@ export function BookingFormSelector({
     });
   }, [booking, processedBooking, isOpen, selectedDate]);
   
-  // Render the appropriate form based on device capability
-  return isLowEndDevice ? (
-    <DirectMobileForm
-      isOpen={isOpen}
-      onClose={onClose}
-      onSubmit={onSubmit}
-      booking={processedBooking} // Use the processed booking
-      selectedStudio={selectedStudio}
-      selectedDate={selectedDate}
-      alertMode={alertMode}
-    />
-  ) : (
+  // Always use SimpleMobileForm for all mobile devices
+  return (
     <SimpleMobileForm 
       isOpen={isOpen}
       onClose={onClose}
