@@ -230,21 +230,7 @@ export default function EngineeringPage() {
     const adjustedStartHour = startHour >= viewStartHour ? startHour - viewStartHour : startHour + 24 - viewStartHour;
     const adjustedEndHour = endHour >= viewStartHour ? endHour - viewStartHour : endHour + 24 - viewStartHour;
     
-    // Debug logging for the problematic booking
-    if (booking.title.includes('Test Y and Z')) {
-      console.log(`[BOOKING STYLE DEBUG] ${booking.title}:`, {
-        start: booking.start,
-        end: booking.end,
-        startTime: startTime.toString(),
-        endTime: endTime.toString(),
-        startHour,
-        endHour,
-        adjustedStartHour,
-        adjustedEndHour,
-        column,
-        totalColumns
-      });
-    }
+
     
     // Check if this is an all-day event or spans across midnight
     const isAllDay = booking.type === 'all_day_maintenance' || 
@@ -256,42 +242,39 @@ export default function EngineeringPage() {
       // For all-day events, span the entire visible time range
       topPosition = 0;
       height = 21 * 60; // 21 hour view
-      if (booking.title.includes('Test Y and Z')) {
-        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - All day event`);
-      }
     } else if (adjustedEndHour < adjustedStartHour) {
       // Event spans across the view boundary
       topPosition = adjustedStartHour * 60;
       height = (21 - adjustedStartHour) * 60;
-      if (booking.title.includes('Test Y and Z')) {
-        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - Spans view boundary: top=${topPosition}px, height=${height}px`);
-      }
     } else {
       // Normal event within view range
       topPosition = Math.max(0, adjustedStartHour * 60);
       height = Math.max(30, (adjustedEndHour - adjustedStartHour) * 60);
-      
-      if (booking.title.includes('Test Y and Z')) {
-        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - Normal event: top=${topPosition}px, height=${height}px, adjustedStartHour=${adjustedStartHour}, adjustedEndHour=${adjustedEndHour}`);
-      }
     }
     
-    // Calculate width and left position with minimum readable width
-    // Instead of dividing equally, use a minimum width approach with controlled overlap
-    const minReadableWidth = Math.max(40, 100 / Math.min(totalColumns, 3)); // Minimum 40% width, max 3 visible columns
-    const overlapOffset = totalColumns > 1 ? 15 : 0; // Small offset for overlapping bookings
-    const leftPosition = Math.min(column * overlapOffset, 60); // Cap maximum left position to prevent overflow
+    // Calculate width and left position
+    let width, leftPosition;
+    
+    if (totalColumns === 1) {
+      // Single booking - use full width
+      width = 100;
+      leftPosition = 0;
+    } else {
+      // Multiple bookings - divide width equally
+      width = Math.floor(100 / totalColumns);
+      leftPosition = column * width;
+    }
     
     return {
       top: `${topPosition}px`,
       height: `${height}px`,
       left: `${leftPosition}%`,
-      width: `${minReadableWidth}%`,
+      width: `${width}%`,
       backgroundColor: booking.color || '#3B82F6',
       opacity: booking.status === 'cancelled' ? 0.5 : 1,
       border: booking.status === 'tentative' ? '2px dashed #666' : 'none',
       zIndex: 10 + column, // Higher z-index for later columns to ensure visibility
-      boxShadow: totalColumns > 2 ? '0 1px 3px rgba(0,0,0,0.2)' : 'none' // Add shadow for better separation when overlapping
+      boxShadow: totalColumns > 1 ? '0 1px 3px rgba(0,0,0,0.2)' : 'none' // Add shadow for better separation when overlapping
     };
   };
 
