@@ -12,6 +12,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useWeatherForecast } from "@/hooks/useWeatherForecast";
+import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 
 const FACILITY_TIMEZONE = "America/Chicago";
 
@@ -96,6 +98,9 @@ export default function EngineeringPage() {
     const now = new Date();
     return toZonedTime(now, FACILITY_TIMEZONE);
   });
+
+  // Fetch weather forecast data
+  const { forecast } = useWeatherForecast();
 
   // Update current time every minute
   useEffect(() => {
@@ -538,6 +543,15 @@ export default function EngineeringPage() {
                           isToday ? 'text-blue-600' : 'text-gray-900'
                         }`}>
                           {day.dayNumber}
+                        </div>
+                        
+                        {/* Weather forecast cell */}
+                        <div className="mt-2">
+                          <WeatherForecastCell 
+                            date={day.date} 
+                            forecast={forecast} 
+                            size="small"
+                          />
                         </div>
                       </div>
                     </div>
