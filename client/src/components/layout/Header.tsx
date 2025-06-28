@@ -4,6 +4,7 @@ import { subtractDays, addDays, formatWeekRangeText, subtractWeeks, addWeeks, su
 import BookingModal from "@/components/booking/BookingModal";
 import TimezoneTestModal from "@/components/TimezoneTestModal";
 import TimezoneDisplay from "@/components/TimezoneDisplay";
+import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, BookingStudio } from "@shared/schema";
 import { cn } from "@/lib/utils";
@@ -171,6 +172,11 @@ export function Header({
         </div>
         
         <div className="flex items-center space-x-4">
+          {/* Weather Widget */}
+          <div className="hidden lg:block">
+            <WeatherWidget size="compact" />
+          </div>
+          
           {/* Calendar View Options */}
           <div className="hidden md:flex items-center shadow-sm rounded-md overflow-hidden">
             <button 
