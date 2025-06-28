@@ -127,9 +127,9 @@ export default function EngineeringPage() {
     queryKey: ["/api/pcr-rooms"],
   });
 
-  // Generate time slots for full 24-hour view
-  const timeSlots = Array.from({ length: 24 }, (_, i) => {
-    const hour = i; // Start from midnight (0)
+  // Generate time slots for practical business hours (5 AM to 2 AM next day)
+  const timeSlots = Array.from({ length: 21 }, (_, i) => {
+    const hour = (i + 5) % 24; // Start from 5 AM, wrap around to 2 AM
     const ampm = hour < 12 ? 'AM' : 'PM';
     const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
     return {
@@ -225,6 +225,11 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
+    // Calculate position relative to view start (5 AM)
+    const viewStartHour = 5;
+    const adjustedStartHour = startHour >= viewStartHour ? startHour - viewStartHour : startHour + 24 - viewStartHour;
+    const adjustedEndHour = endHour >= viewStartHour ? endHour - viewStartHour : endHour + 24 - viewStartHour;
+    
     // Debug logging for the problematic booking
     if (booking.title.includes('Test Y and Z')) {
       console.log(`[BOOKING STYLE DEBUG] ${booking.title}:`, {
@@ -234,6 +239,8 @@ export default function EngineeringPage() {
         endTime: endTime.toString(),
         startHour,
         endHour,
+        adjustedStartHour,
+        adjustedEndHour,
         column,
         totalColumns
       });
@@ -246,26 +253,26 @@ export default function EngineeringPage() {
     let topPosition, height;
     
     if (isAllDay) {
-      // For all-day events, span the entire day
+      // For all-day events, span the entire visible time range
       topPosition = 0;
-      height = 24 * 60; // Full 24 hours
+      height = 21 * 60; // 21 hour view
       if (booking.title.includes('Test Y and Z')) {
         console.log(`[BOOKING STYLE DEBUG] ${booking.title} - All day event`);
       }
-    } else if (endHour < startHour) {
-      // Event spans midnight - show from start to end of day
-      topPosition = startHour * 60;
-      height = (24 - startHour) * 60;
+    } else if (adjustedEndHour < adjustedStartHour) {
+      // Event spans across the view boundary
+      topPosition = adjustedStartHour * 60;
+      height = (21 - adjustedStartHour) * 60;
       if (booking.title.includes('Test Y and Z')) {
-        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - Spans midnight: top=${topPosition}px, height=${height}px`);
+        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - Spans view boundary: top=${topPosition}px, height=${height}px`);
       }
     } else {
-      // Normal event within same day
-      topPosition = Math.max(0, startHour * 60);
-      height = Math.max(30, (endHour - startHour) * 60);
+      // Normal event within view range
+      topPosition = Math.max(0, adjustedStartHour * 60);
+      height = Math.max(30, (adjustedEndHour - adjustedStartHour) * 60);
       
       if (booking.title.includes('Test Y and Z')) {
-        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - Normal event: top=${topPosition}px, height=${height}px, startHour=${startHour}, endHour=${endHour}`);
+        console.log(`[BOOKING STYLE DEBUG] ${booking.title} - Normal event: top=${topPosition}px, height=${height}px, adjustedStartHour=${adjustedStartHour}, adjustedEndHour=${adjustedEndHour}`);
       }
     }
     
@@ -318,7 +325,9 @@ export default function EngineeringPage() {
   // Helper function to calculate current time indicator position
   const getCurrentTimePosition = () => {
     const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
-    return currentHour * 60; // 60px per hour
+    const viewStartHour = 5;
+    const adjustedHour = currentHour >= viewStartHour ? currentHour - viewStartHour : currentHour + 24 - viewStartHour;
+    return adjustedHour * 60; // 60px per hour
   };
 
   // Check if current time should be shown (current day is in view)
