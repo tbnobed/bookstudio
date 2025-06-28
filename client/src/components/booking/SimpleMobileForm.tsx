@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './simple-mobile.css';
 import { BookingType, BookingSeverity, BookingStatus } from '@/types/bookings';
 import { formatDateForForm, formatTimeForForm } from '@/utils/dateUtils';
-import { createFacilityDate, generateTimeOptions } from '@/lib/dateUtils';
+import { createFacilityDate, generateTimeOptions, formatTime } from '@/lib/dateUtils';
 import { useStudios } from '@/hooks/useStudios';
 import { usePcrRooms } from '@/hooks/usePcrRooms';
 import { useTemplates } from '@/hooks/useTemplates';
@@ -773,16 +773,26 @@ export default function SimpleMobileForm({
             <div className="form-group">
               <label htmlFor="sm-start-time">Start Time*</label>
               <Select 
-                value={formatTimeForForm(formData.start)} 
+                value={formData.start ? formatTime(formData.start) : ""} 
                 onValueChange={(value) => {
-                  const [hours, minutes] = value.split(':').map(Number);
-                  const currentDate = new Date(formData.start);
+                  // Parse 12-hour format (e.g., "1:30pm") to 24-hour
+                  const match = value.match(/^(\d{1,2}):(\d{2})(am|pm)$/);
+                  if (!match) return;
+                  
+                  let hours = parseInt(match[1], 10);
+                  const minutes = parseInt(match[2], 10);
+                  const period = match[3];
+                  
+                  if (period === 'am' && hours === 12) hours = 0;
+                  if (period === 'pm' && hours !== 12) hours += 12;
+                  
+                  const currentDate = formData.start ? new Date(formData.start) : new Date();
                   const year = currentDate.getFullYear();
                   const month = currentDate.getMonth();
                   const day = currentDate.getDate();
                   const newStartDate = createFacilityDate(year, month, day, hours, minutes);
                   
-                  if (newStartDate >= formData.end) {
+                  if (formData.end && newStartDate >= formData.end) {
                     alert('Start time cannot be later than or equal to end time. Please select an earlier time.');
                     return;
                   }
@@ -805,7 +815,7 @@ export default function SimpleMobileForm({
           <div className="form-group">
             <label htmlFor="sm-end-time">End Time*</label>
             <Select 
-              value={formatTimeForForm(formData.end)} 
+              value={formData.end ? formatTime(formData.end) : ""} 
               onValueChange={(value) => {
                 const [hours, minutes] = value.split(':').map(Number);
                 const currentDate = new Date(formData.end);
