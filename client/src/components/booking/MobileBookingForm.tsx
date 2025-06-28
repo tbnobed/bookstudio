@@ -580,6 +580,17 @@ export default function MobileBookingForm({
             </div>
           </div>
 
+          {/* Color */}
+          <div>
+            <Label className="text-sm font-medium">Color</Label>
+            <Input
+              type="color"
+              value={formData.color}
+              onChange={(e) => updateFormField('color', e.target.value)}
+              className="mt-1 h-10"
+            />
+          </div>
+
           {/* Save as Template */}
           {!booking?.id && (
             <div className="space-y-2">
