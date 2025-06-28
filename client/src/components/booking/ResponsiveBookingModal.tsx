@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import BookingModal from "./BookingModal";
 import MobileBookingForm from "./MobileBookingForm";
-import MobileDialogFix from "./MobileDialogFix"; // Import the DOM manipulation fix
-import "./mobile-styles.css";
-import "./mobile-fixes.css"; // Import the emergency fixes
+// CSS imports removed after cleanup
 
 export interface BookingModalProps {
   isOpen: boolean;

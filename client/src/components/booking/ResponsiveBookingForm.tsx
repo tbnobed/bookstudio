@@ -83,32 +83,17 @@ export function ResponsiveBookingForm({
     onSubmit(data);
   };
   
-  // Choose the appropriate form component based on device capabilities
+  // Always use SimpleMobileForm for mobile devices
   if (isMobile) {
-    // Mobile device - choose based on capability
-    if (isLowEnd) {
-      // Use ultra-simplified form for low-end devices
-      return (
-        <DirectMobileForm
-          isOpen={isOpen}
-          onClose={onClose}
-          onSubmit={handleSubmit}
-          booking={booking}
-          selectedStudio={selectedStudio}
-        />
-      );
-    } else {
-      // Use simplified form for normal mobile devices
-      return (
-        <SimpleMobileForm
-          isOpen={isOpen}
-          onClose={onClose}
-          onSubmit={handleSubmit}
-          booking={booking}
-          selectedStudio={selectedStudio}
-        />
-      );
-    }
+    return (
+      <SimpleMobileForm
+        isOpen={isOpen}
+        onClose={onClose}
+        onSubmit={handleSubmit}
+        booking={booking}
+        selectedStudio={selectedStudio}
+      />
+    );
   }
   
   // Not a mobile device - just pass through to the original BookingModal
