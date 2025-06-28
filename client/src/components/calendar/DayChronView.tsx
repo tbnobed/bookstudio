@@ -57,6 +57,11 @@ export default function DayChronView({
   const { notificationGroups } = useNotificationGroups();
   const { data: bookingStudios = [] } = useBookingStudioLinks();
   const { forecast } = useWeatherForecast();
+  
+  // Debug weather data
+  console.log('DayChronView - Weather forecast data:', forecast);
+  console.log('DayChronView - Date for weather:', date.toISOString().split('T')[0]);
+  console.log('DayChronView - Found forecast for date:', forecast?.forecast.find(f => f.date === date.toISOString().split('T')[0]));
 
   // Helper function to format time ago
   const formatTimeAgo = (date: Date): string => {
