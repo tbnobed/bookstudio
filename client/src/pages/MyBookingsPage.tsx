@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import BookingModal from "@/components/booking/BookingModal";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
 
 export default function MyBookingsPage() {
   const { user } = useAuth();
@@ -59,14 +60,25 @@ export default function MyBookingsPage() {
     }
   };
 
-  // Filter bookings
-  const upcomingBookings = userBookings.filter(booking => 
-    new Date(booking.start) >= new Date()
-  ).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  // Get the week range for the selected date
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }); // Start week on Sunday
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+  
+  // Filter bookings for the selected week
+  const weekBookings = userBookings.filter(booking => {
+    const bookingDate = new Date(booking.start);
+    return isWithinInterval(bookingDate, { start: weekStart, end: weekEnd });
+  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-  const pastBookings = userBookings.filter(booking => 
-    new Date(booking.start) < new Date()
-  ).sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime());
+  // Separate into current and future vs past for the selected week
+  const currentTime = new Date();
+  const upcomingBookings = weekBookings.filter(booking => 
+    new Date(booking.end) >= currentTime
+  );
+  
+  const pastBookings = weekBookings.filter(booking => 
+    new Date(booking.end) < currentTime
+  );
 
   // Find the booking to edit
   const bookingToEdit = userBookings.find(booking => booking.id === editBookingId);
@@ -83,7 +95,12 @@ export default function MyBookingsPage() {
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">My Bookings</h1>
+          <div>
+            <h1 className="text-2xl font-bold">My Bookings</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Showing bookings for week of {format(weekStart, "MMM d")} - {format(weekEnd, "MMM d, yyyy")}
+            </p>
+          </div>
           <Button onClick={() => setIsNewBookingModalOpen(true)}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -106,7 +123,7 @@ export default function MyBookingsPage() {
               </div>
             ) : upcomingBookings.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                You don't have any upcoming bookings.
+                You don't have any upcoming bookings for this week.
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -152,7 +169,7 @@ export default function MyBookingsPage() {
               </div>
             ) : pastBookings.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                You don't have any past bookings.
+                You don't have any past bookings for this week.
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
