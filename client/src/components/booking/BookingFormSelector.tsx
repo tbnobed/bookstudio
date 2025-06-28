@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { ApiBooking, FormBookingData } from '../../types/bookings';
-import SimpleMobileForm from './SimpleMobileForm';
+import SimpleMobileForm from './SimpleMobileForm-new';
 import { DirectMobileForm } from './DirectMobileForm';
 
 // Device capability thresholds

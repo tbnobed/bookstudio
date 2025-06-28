@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import './simple-mobile.css';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery } from "@tanstack/react-query";
@@ -42,7 +42,7 @@ export default function SimpleMobileForm({
     id: booking?.id || 0,
     title: booking?.title || '',
     description: booking?.description || '',
-    studioIds: [], // Array for multiple studios
+    studioIds: [] as string[], // Array for multiple studios
     pcrRoomId: "",
     bookingType: alertMode ? "maintenance" : "production",
     status: "confirmed",
@@ -101,17 +101,17 @@ export default function SimpleMobileForm({
     };
 
     // Add template ID if selected
-    if (formData.templateId && formData.templateId !== "" && formData.templateId !== "0") {
-      bookingData.templateId = parseInt(formData.templateId);
+    if (formData.templateId && formData.templateId !== "" && formData.templateId !== "0" && formData.templateId !== "none") {
+      (bookingData as any).templateId = parseInt(formData.templateId);
     } else {
-      bookingData.templateId = null;
+      (bookingData as any).templateId = null;
     }
     
     // Add PCR room ID if selected
-    if (formData.pcrRoomId && formData.pcrRoomId !== "") {
-      bookingData.pcrRoomId = parseInt(formData.pcrRoomId);
+    if (formData.pcrRoomId && formData.pcrRoomId !== "" && formData.pcrRoomId !== "none") {
+      (bookingData as any).pcrRoomId = parseInt(formData.pcrRoomId);
     } else {
-      bookingData.pcrRoomId = null;
+      (bookingData as any).pcrRoomId = null;
     }
     
     // Convert studioIds from strings to numbers
@@ -288,7 +288,7 @@ export default function SimpleMobileForm({
                 <SelectValue placeholder="Select PCR room" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {pcrRoomsData.map((room) => (
                   <SelectItem key={room.id} value={room.id.toString()}>
                     <div className="flex items-center gap-2">
@@ -312,7 +312,7 @@ export default function SimpleMobileForm({
                 <SelectValue placeholder="Select template" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {templatesData.map((template) => (
                   <SelectItem key={template.id} value={template.id.toString()}>
                     {template.name}
