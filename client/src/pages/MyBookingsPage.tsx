@@ -89,7 +89,7 @@ export default function MyBookingsPage() {
   const bookingToEdit = userBookings.find(booking => booking.id === editBookingId);
 
   return (
-    <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'}`}>
+    <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
       {/* Site Name Banner - Only on mobile */}
       {isMobile && siteName && (
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 text-center sticky top-0 z-20">
@@ -107,7 +107,7 @@ export default function MyBookingsPage() {
       />
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm p-6 mb-6">
+        <div className={`${isMobile ? 'bg-white/90 backdrop-blur-sm' : 'bg-white'} rounded-lg shadow-sm p-6 mb-6`}>
           <div className="mb-6">
             <h1 className="text-2xl font-bold">My Bookings</h1>
             <p className="text-sm text-gray-600 mt-1">
