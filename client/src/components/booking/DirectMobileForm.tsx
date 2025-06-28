@@ -193,6 +193,8 @@ export function DirectMobileForm({
           const newEndTime = new Date(prev.start);
           newEndTime.setMinutes(newEndTime.getMinutes() + templateDurationMinutes);
           
+          // Get studio IDs - check both snake_case (database) and camelCase (processed) formats
+          const templateStudioIds = selectedTemplate.studio_ids || selectedTemplate.studioIds || [studioId];
           console.log('Template applying with values:', {
             templateId,
             name: selectedTemplate.name,
@@ -200,7 +202,9 @@ export function DirectMobileForm({
             status: statusCast,
             severity: severityCast,
             duration: templateDurationMinutes,
-            studios: selectedTemplate.studioIds || [studioId]
+            studios: templateStudioIds,
+            originalStudioIds: selectedTemplate.studioIds,
+            originalStudio_ids: selectedTemplate.studio_ids
           });
             
           // Apply template settings
@@ -210,8 +214,8 @@ export function DirectMobileForm({
             title: prev.title || selectedTemplate.name, // Only use template name if title is empty
             description: selectedTemplate.description || prev.description,
             type: typeCast,
-            studioId,
-            studioIds: selectedTemplate.studioIds || [studioId],
+            studioId: templateStudioIds.length > 0 ? templateStudioIds[0] : studioId,
+            studioIds: templateStudioIds,
             pcrRoomId: selectedTemplate.pcrRoomId || prev.pcrRoomId,
             status: statusCast,
             severity: severityCast,

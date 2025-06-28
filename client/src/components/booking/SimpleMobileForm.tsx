@@ -387,10 +387,20 @@ export default function SimpleMobileForm({
         end: endTime
       };
       
-      // If the template has studioIds property, use it
-      if ('studioIds' in selectedTemplate && Array.isArray(selectedTemplate.studioIds)) {
-        updatedFormData.studioIds = [...selectedTemplate.studioIds];
+      // If the template has studio_ids property, use it (database field is snake_case)
+      if ('studio_ids' in selectedTemplate && Array.isArray(selectedTemplate.studio_ids)) {
+        console.log('Template has studio_ids:', selectedTemplate.studio_ids);
+        updatedFormData.studioIds = [...selectedTemplate.studio_ids];
         // Also set the primary studioId to the first studio for form validation
+        if (selectedTemplate.studio_ids.length > 0) {
+          updatedFormData.studioId = selectedTemplate.studio_ids[0];
+          console.log('Set primary studioId from template:', selectedTemplate.studio_ids[0]);
+        }
+      }
+      // Also check for camelCase version for backwards compatibility
+      else if ('studioIds' in selectedTemplate && Array.isArray(selectedTemplate.studioIds)) {
+        console.log('Template has studioIds (camelCase):', selectedTemplate.studioIds);
+        updatedFormData.studioIds = [...selectedTemplate.studioIds];
         if (selectedTemplate.studioIds.length > 0) {
           updatedFormData.studioId = selectedTemplate.studioIds[0];
           console.log('Set primary studioId from template:', selectedTemplate.studioIds[0]);
