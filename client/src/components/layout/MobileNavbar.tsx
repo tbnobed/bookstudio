@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import BookingModal from "@/components/booking/BookingModal";
+import SimpleMobileFormNew from "@/components/booking/SimpleMobileForm-new";
 import AlertModal from "@/components/alerts/AlertModal";
 import { useCalendarContext } from "@/contexts/CalendarContext";
 
@@ -198,9 +198,10 @@ export default function MobileNavbar() {
       </div>
       
       {/* Modals */}
-      <BookingModal
+      <SimpleMobileFormNew
         isOpen={isNewBookingModalOpen}
         onClose={() => setIsNewBookingModalOpen(false)}
+        onSubmit={() => setIsNewBookingModalOpen(false)}
         selectedDate={selectedDate || new Date()}
       />
       
