@@ -473,34 +473,7 @@ export default function MobileDailyView({
 
       {/* Removed "Switch to Weekly View" button as requested */}
 
-      {/* Real-time Studio Status Banner */}
-      {isToday(currentDate) && (
-        <div className="px-4 py-2 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 backdrop-blur-sm border-y border-blue-100">
-          <h2 className="text-sm font-semibold text-blue-800 mb-1 flex items-center gap-2">
-            <Activity size={16} />
-            Real-Time Studio Status
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {studiosWithStatus.map(studio => {
-              const { statusInfo } = studio;
-              return (
-                <Badge 
-                  key={studio.id}
-                  variant={
-                    statusInfo.status === 'in-use' ? 'destructive' : 
-                    statusInfo.status === 'maintenance' ? 'outline' :
-                    statusInfo.status === 'upcoming' ? 'secondary' : 'default'
-                  }
-                  className="flex items-center gap-1"
-                >
-                  <div className={`w-2 h-2 rounded-full ${statusInfo.color}`}></div>
-                  <span>{studio.name}</span>
-                </Badge>
-              );
-            })}
-          </div>
-        </div>
-      )}
+
 
       {/* Alerts section - facility-wide alerts */}
       {facilityAlerts.length > 0 && (

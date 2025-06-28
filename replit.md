@@ -276,6 +276,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 28, 2025: FIXED view toggle button visibility across ALL pages - added showViewToggle prop to Header component, set to false on My Bookings, Templates, Reports, Settings, and User Management pages, ensuring Day/Week/Month view toggle buttons only appear on main calendar pages where they belong
 - June 28, 2025: FIXED desktop My Bookings page styling - removed gradient background from desktop version while maintaining mobile gradient styling, ensuring desktop has clean white background matching other pages while mobile keeps modern gradient design
 - June 28, 2025: CLEANED UP mobile timeline view - removed "Today's Schedule" banner from mobile daily view timeline tab for cleaner, more streamlined appearance
+- June 28, 2025: REORGANIZED mobile navigation for better screen utilization - created dedicated StudiosPage to house Real-Time Studio Status section, replaced Alert button in mobile navbar with Studios button (alert creation moved to menu drawer), removed studio status section from mobile daily view to maximize calendar space, improved mobile screen real estate management
 
 ## User Preferences
 

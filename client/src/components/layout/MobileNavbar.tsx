@@ -131,6 +131,14 @@ export default function MobileNavbar() {
                   <span>Templates</span>
                 </button>
                 
+                <button 
+                  onClick={navigateTo("/studios")}
+                  className="flex items-center p-2 rounded-md hover:bg-gray-100 w-full text-left"
+                >
+                  <Tv className="mr-2 h-5 w-5" />
+                  <span>Studios</span>
+                </button>
+                
                 {/* Reports - only shown to non-producers */}
                 {user?.role !== "producer" && (
                   <button 
@@ -173,6 +181,14 @@ export default function MobileNavbar() {
                     <span>Producers</span>
                   </button>
                 )}
+                
+                <button 
+                  onClick={() => setIsNewAlertModalOpen(true)}
+                  className="flex items-center p-2 rounded-md hover:bg-gray-100 w-full text-left"
+                >
+                  <Bell className="mr-2 h-5 w-5" />
+                  <span>Create Alert</span>
+                </button>
                 
                 <button 
                   onClick={navigateTo("/settings")}
