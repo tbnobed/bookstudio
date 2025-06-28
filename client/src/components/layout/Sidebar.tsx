@@ -102,6 +102,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <span>Templates</span>
           </div>
           
+          <div 
+            className={cn(
+              "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
+              location === "/studio-status" 
+                ? "text-white bg-primary" 
+                : "text-gray-700 hover:bg-gray-100"
+            )}
+            onClick={() => handleNavigate("/studio-status")}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>Studio Status</span>
+          </div>
+          
           {/* Only show Reports for non-producers */}
           {user?.role !== "producer" && (
             <div 

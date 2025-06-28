@@ -20,6 +20,7 @@ import SignagePage from "@/pages/signage-page";
 import MobilePublicCalendarPage from "@/pages/MobilePublicCalendarPage";
 import InvitePage from "@/pages/InvitePage";
 import EngineeringPage from "@/pages/engineering-page";
+import StudioStatusPage from "@/pages/StudioStatusPage";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { CalendarProvider } from "@/contexts/CalendarContext";
@@ -54,6 +55,7 @@ function Router() {
       <ProtectedRoute path="/users" component={UserManagement} />
       <ProtectedRoute path="/producer-management" component={SiteManagerUserPage} />
       <ProtectedRoute path="/engineering" component={EngineeringPage} />
+      <ProtectedRoute path="/studio-status" component={StudioStatusPage} />
       <ProtectedRoute path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
