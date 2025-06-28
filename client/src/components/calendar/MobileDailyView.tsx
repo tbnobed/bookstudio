@@ -695,7 +695,6 @@ export default function MobileDailyView({
         {/* Timeline Tab */}
         <TabsContent value="timeline" className="flex-1 overflow-auto pb-20 -mx-1 px-1 overscroll-contain">
           <div className="p-4 space-y-4">
-            <h2 className="text-lg font-semibold mb-4 sticky top-0 bg-white py-2 -mt-2 -mx-4 px-4 z-10 border-b">Today's Schedule</h2>
             
             {todayBookings.length > 0 ? (
               <div className="space-y-3">

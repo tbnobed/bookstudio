@@ -275,6 +275,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 28, 2025: COMPLETELY REMOVED timezone badge and matched banner styling - eliminated all TimezoneDisplay component references from Header component and updated My Bookings page banner to use identical styling as calendar pages (py-3 px-4 text-center sticky top-0 z-20, text-lg font-bold) for perfect visual consistency
 - June 28, 2025: FIXED view toggle button visibility across ALL pages - added showViewToggle prop to Header component, set to false on My Bookings, Templates, Reports, Settings, and User Management pages, ensuring Day/Week/Month view toggle buttons only appear on main calendar pages where they belong
 - June 28, 2025: FIXED desktop My Bookings page styling - removed gradient background from desktop version while maintaining mobile gradient styling, ensuring desktop has clean white background matching other pages while mobile keeps modern gradient design
+- June 28, 2025: CLEANED UP mobile timeline view - removed "Today's Schedule" banner from mobile daily view timeline tab for cleaner, more streamlined appearance
 
 ## User Preferences
 
