@@ -20,6 +20,8 @@ import { useLocation } from "wouter";
 import { formatDate, isSameDay, formatTimeRange, formatInFacilityTimezone } from "@/lib/dateUtils";
 import { getDayRangeInChicago } from "@/utils/dateUtils";
 import { useStudioStatus } from "@/hooks/use-studio-status";
+import { useWeatherForecast } from "@/hooks/useWeatherForecast";
+import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 
 // Define extended Booking type with bookingStudios
 interface BookingWithStudios extends Booking {
@@ -77,6 +79,9 @@ export default function MobilePublicDailyView({
     queryKey: ['/api/pcr-rooms'],
     staleTime: 60 * 1000, // 1 minute
   });
+
+  // Fetch weather forecast
+  const { forecast } = useWeatherForecast();
   
   // Get the date range for today in Chicago timezone
   const dateRange = getDayRangeInChicago(currentDate);
@@ -237,6 +242,17 @@ export default function MobilePublicDailyView({
             <h1 className="text-lg font-bold">
               {formatInFacilityTimezone(currentDate, "MMM d, yyyy")}
             </h1>
+            <div className="text-sm text-gray-600 font-medium">
+              {formatInFacilityTimezone(currentDate, "EEEE")}
+            </div>
+            {/* Weather forecast for the current date */}
+            <div className="mt-1">
+              <WeatherForecastCell 
+                date={currentDate} 
+                forecast={forecast?.forecast.find((f: any) => f.date === formatInFacilityTimezone(currentDate, "yyyy-MM-dd")) || null} 
+                size="small"
+              />
+            </div>
           </div>
           
           <Button variant="ghost" size="icon" onClick={goToNextDay}>
