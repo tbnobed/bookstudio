@@ -207,22 +207,21 @@ export default function SimpleMobileForm({
           </div>
 
           {/* Date */}
-          <div className="form-group">
-            <label htmlFor="date">Date*</label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="date">Date*</Label>
+            <Input
               id="date"
               type="date"
               value={formData.date}
               onChange={(e) => updateFormField('date', e.target.value)}
-              className="form-input"
               required
             />
           </div>
 
           {/* Time Selection */}
-          <div className="time-row">
-            <div className="form-group">
-              <label htmlFor="start-time">Start Time*</label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="start-time">Start Time*</Label>
               <Select 
                 value={formData.startTime} 
                 onValueChange={(value) => updateFormField('startTime', value)}
@@ -238,8 +237,8 @@ export default function SimpleMobileForm({
               </Select>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="end-time">End Time*</label>
+            <div className="space-y-2">
+              <Label htmlFor="end-time">End Time*</Label>
               <Select 
                 value={formData.endTime} 
                 onValueChange={(value) => updateFormField('endTime', value)}
@@ -257,13 +256,13 @@ export default function SimpleMobileForm({
           </div>
 
           {/* Studios */}
-          <div className="form-group">
-            <label>Studios*</label>
-            <div className="studios-grid">
+          <div className="space-y-2">
+            <Label>Studios*</Label>
+            <div className="grid grid-cols-2 gap-2">
               {studiosData.map((studio) => (
                 <div 
                   key={studio.id} 
-                  className="studio-checkbox"
+                  className="flex items-center space-x-2 p-2 border rounded cursor-pointer hover:bg-gray-50"
                   onClick={() => handleStudioSelect(studio.id)}
                 >
                   <Checkbox 
@@ -271,15 +270,15 @@ export default function SimpleMobileForm({
                     onChange={() => {}} // Handled by parent onClick
                   />
                   <Camera className="h-4 w-4" />
-                  <span>{studio.name}</span>
+                  <span className="text-sm">{studio.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* PCR Room */}
-          <div className="form-group">
-            <label htmlFor="pcr-room">PCR Room</label>
+          <div className="space-y-2">
+            <Label htmlFor="pcr-room">PCR Room</Label>
             <Select 
               value={formData.pcrRoomId} 
               onValueChange={(value) => updateFormField('pcrRoomId', value)}
@@ -302,8 +301,8 @@ export default function SimpleMobileForm({
           </div>
 
           {/* Templates */}
-          <div className="form-group">
-            <label htmlFor="template">Template</label>
+          <div className="space-y-2">
+            <Label htmlFor="template">Template</Label>
             <Select 
               value={formData.templateId} 
               onValueChange={(value) => updateFormField('templateId', value)}
