@@ -93,7 +93,7 @@ export default function MobileBookingForm({
     color: "#3b82f6",
     templateId: "",
     templateName: "",
-    pcrRoomId: "",
+    pcrRoomId: "none",
     studioIds: selectedStudio ? [selectedStudio.toString()] : [],
     notifyList: [],
     saveAsTemplate: false,
@@ -125,7 +125,7 @@ export default function MobileBookingForm({
         color: booking.color || "#3b82f6",
         templateId: booking.templateId?.toString() || "",
         templateName: "",
-        pcrRoomId: booking.pcrRoomId?.toString() || "",
+        pcrRoomId: booking.pcrRoomId?.toString() || "none",
         studioIds: [booking.studioId?.toString()].filter(Boolean) || [],
         notifyList: booking.notifyList?.map((id: any) => id.toString()) || [],
         saveAsTemplate: false,
@@ -265,7 +265,7 @@ export default function MobileBookingForm({
     }
     
     // Add pcrRoomId if selected (same as desktop)
-    if (formData.pcrRoomId && formData.pcrRoomId !== "") {
+    if (formData.pcrRoomId && formData.pcrRoomId !== "" && formData.pcrRoomId !== "none") {
       bookingData.pcrRoomId = parseInt(formData.pcrRoomId);
     } else {
       bookingData.pcrRoomId = null;
@@ -515,7 +515,7 @@ export default function MobileBookingForm({
                 <SelectValue placeholder="Select PCR room" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No PCR room</SelectItem>
+                <SelectItem value="none">No PCR room</SelectItem>
                 {pcrRooms.map((room) => (
                   <SelectItem key={room.id} value={room.id.toString()}>{room.name}</SelectItem>
                 ))}
