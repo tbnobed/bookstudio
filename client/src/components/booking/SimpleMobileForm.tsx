@@ -806,13 +806,27 @@ export default function SimpleMobileForm({
             <label htmlFor="sm-end-time">End Time*</label>
             <Select 
               value={formatTimeForForm(formData.end)} 
-              onValueChange={(value) => handleChange({ target: { name: 'endTime', value } })} 
+              onValueChange={(value) => {
+                const [hours, minutes] = value.split(':').map(Number);
+                const currentDate = new Date(formData.end);
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                const day = currentDate.getDate();
+                const newEndDate = createFacilityDate(year, month, day, hours, minutes);
+                
+                if (newEndDate <= formData.start) {
+                  alert('End time cannot be earlier than or equal to start time. Please select a later time.');
+                  return;
+                }
+                
+                setFormData(prev => ({ ...prev, end: newEndDate }));
+              }}
             >
               <SelectTrigger id="sm-end-time" className="form-input">
                 <SelectValue placeholder="Select end time" />
               </SelectTrigger>
               <SelectContent className="max-h-[200px]">
-                {generateTimeOptions().map((time) => (
+                {generateTimeOptions().map((time: string) => (
                   <SelectItem key={time} value={time}>{time}</SelectItem>
                 ))}
               </SelectContent>
