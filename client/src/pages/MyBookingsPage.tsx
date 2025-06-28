@@ -21,6 +21,9 @@ export default function MyBookingsPage() {
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const { siteName } = useSiteSettings();
   
+  // Detect mobile for responsive banner
+  const isMobile = window.innerWidth <= 768;
+  
   // Fetch studios to display names
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
@@ -86,7 +89,13 @@ export default function MyBookingsPage() {
   const bookingToEdit = userBookings.find(booking => booking.id === editBookingId);
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'}`}>
+      {/* Site Name Banner - Only on mobile */}
+      {isMobile && siteName && (
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 text-center sticky top-0 z-20">
+          <h1 className="text-lg font-bold">{siteName}</h1>
+        </div>
+      )}
       
       <Header
         currentDate={currentDate}
