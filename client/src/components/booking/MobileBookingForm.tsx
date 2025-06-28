@@ -437,12 +437,16 @@ export default function MobileBookingForm({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="startTime" className="text-sm font-medium">Start Time</Label>
-                <Select value={formData.startTime} onValueChange={(value) => updateFormField('startTime', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
+                <Label htmlFor="start-time">Start Time</Label>
+                <Select 
+                  value={formData.startTime} 
+                  onValueChange={(value) => updateFormField('startTime', value)} 
+                  required
+                >
+                  <SelectTrigger id="start-time">
+                    <SelectValue placeholder="Select start time" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[200px]">
                     {generateTimeOptions().map((time) => (
                       <SelectItem key={time} value={time}>{time}</SelectItem>
                     ))}
@@ -451,12 +455,16 @@ export default function MobileBookingForm({
               </div>
 
               <div>
-                <Label htmlFor="endTime" className="text-sm font-medium">End Time</Label>
-                <Select value={formData.endTime} onValueChange={(value) => updateFormField('endTime', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
+                <Label htmlFor="end-time">End Time</Label>
+                <Select 
+                  value={formData.endTime} 
+                  onValueChange={(value) => updateFormField('endTime', value)} 
+                  required
+                >
+                  <SelectTrigger id="end-time">
+                    <SelectValue placeholder="Select end time" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[200px]">
                     {generateTimeOptions().map((time) => (
                       <SelectItem key={time} value={time}>{time}</SelectItem>
                     ))}
