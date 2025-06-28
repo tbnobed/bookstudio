@@ -133,6 +133,12 @@ export default function MobileDailyView({
 
   // Weather forecast hook
   const { forecast } = useWeatherForecast();
+
+  // Site name query
+  const { data: siteData } = useQuery<{ siteName: string }>({
+    queryKey: ['/api/system/site-name'],
+    staleTime: 1000 * 60 * 30, // Cache for 30 minutes
+  });
   
   // Merge booking-studios data into the bookings
   const bookingsWithStudios = useMemo<BookingWithStudios[]>(() => {
@@ -410,6 +416,13 @@ export default function MobileDailyView({
 
   return (
     <div className="flex flex-col h-full overflow-hidden mobile-gradient-bg">
+      {/* Site Name Banner */}
+      {siteData?.siteName && (
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 text-center sticky top-0 z-20">
+          <h1 className="text-lg font-bold">{siteData.siteName}</h1>
+        </div>
+      )}
+      
       {/* Header with date navigation */}
       <div className="border-b p-4 bg-white/90 backdrop-blur-sm sticky top-0 z-10">
         {/* Date navigation buttons */}
