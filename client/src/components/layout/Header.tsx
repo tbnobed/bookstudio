@@ -171,17 +171,17 @@ export function Header({
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 lg:space-x-4">
           {/* Weather Widget */}
-          <div className="hidden lg:block">
+          <div className="hidden xl:block">
             <WeatherWidget size="compact" />
           </div>
           
           {/* Calendar View Options */}
-          <div className="hidden md:flex items-center shadow-sm rounded-md overflow-hidden">
+          <div className="hidden lg:flex items-center shadow-sm rounded-md overflow-hidden">
             <button 
               className={cn(
-                "px-3 py-1.5 text-sm font-medium border",
+                "px-2 py-1.5 text-xs font-medium border",
                 view === "day" 
                   ? "bg-primary text-white border-primary" 
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -192,7 +192,7 @@ export function Header({
             </button>
             <button 
               className={cn(
-                "px-3 py-1.5 text-sm font-medium border",
+                "px-2 py-1.5 text-xs font-medium border",
                 view === "week" 
                   ? "bg-primary text-white border-primary" 
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -203,7 +203,7 @@ export function Header({
             </button>
             <button 
               className={cn(
-                "px-3 py-1.5 text-sm font-medium border",
+                "px-2 py-1.5 text-xs font-medium border",
                 view === "month" 
                   ? "bg-primary text-white border-primary" 
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -224,8 +224,8 @@ export function Header({
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
             </button>
-            <div className="px-4 py-2 min-w-[180px] text-center">
-              <span className="text-sm font-medium text-gray-800">{getDateDisplayText()}</span>
+            <div className="px-3 py-2 min-w-[140px] lg:min-w-[180px] text-center">
+              <span className="text-xs lg:text-sm font-medium text-gray-800">{getDateDisplayText()}</span>
             </div>
             <button 
               className="p-2 hover:bg-gray-50 transition-colors border-l border-gray-200"
@@ -236,7 +236,7 @@ export function Header({
               </svg>
             </button>
             <button 
-              className="ml-0 px-3 py-2 text-sm bg-gray-50 text-gray-700 border-l border-gray-200 hover:bg-gray-100 transition-colors font-medium"
+              className="ml-0 px-2 lg:px-3 py-2 text-xs lg:text-sm bg-gray-50 text-gray-700 border-l border-gray-200 hover:bg-gray-100 transition-colors font-medium"
               onClick={goToToday}
             >
               Today
@@ -244,16 +244,17 @@ export function Header({
           </div>
           
           {/* New Booking Button */}
-          <div>
+          <div className="flex-shrink-0">
             <Button 
               onClick={() => setIsBookingModalOpen(true)}
-              className="inline-flex items-center px-4 py-2"
+              className="inline-flex items-center px-3 lg:px-4 py-2"
+              size="sm"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 lg:mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              New Booking
+              <span className="hidden lg:inline">New Booking</span>
             </Button>
           </div>
         </div>
