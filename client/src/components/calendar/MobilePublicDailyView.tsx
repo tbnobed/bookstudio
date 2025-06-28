@@ -340,7 +340,14 @@ export default function MobilePublicDailyView({
                           const pcrRoom = getPcrRoom(booking);
                           
                           return (
-                            <div key={booking.id} className="p-3 hover:bg-gray-50">
+                            <div 
+                              key={booking.id} 
+                              className="p-3 hover:bg-gray-50"
+                              style={{
+                                backgroundColor: booking.color ? `${booking.color}15` : 'transparent',
+                                borderLeft: booking.color ? `4px solid ${booking.color}` : '4px solid #d1d5db'
+                              }}
+                            >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <h4 className="font-medium text-gray-900">{booking.title}</h4>
@@ -432,6 +439,10 @@ export default function MobilePublicDailyView({
                           booking.status === "cancelled" ? "border-l-4 border-l-red-500" :
                           "border-l-4 border-l-blue-500"
                         )}
+                        style={{
+                          backgroundColor: booking.color ? `${booking.color}15` : '#f3f4f6',
+                          borderColor: booking.color || '#d1d5db'
+                        }}
                       >
                         <div className="p-4">
                           <div className="flex justify-between items-start mb-2">

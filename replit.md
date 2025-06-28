@@ -261,6 +261,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 28, 2025: OPTIMIZED engineering calendar time range - changed from full 24-hour view to practical business hours (5 AM to 2 AM next day), eliminating 3+ hours of empty space from midnight to 5 AM, updated booking positioning logic and current time indicator to work with new time range, improved calendar efficiency while maintaining all functionality
 - June 28, 2025: INTEGRATED weather forecasts into Engineering view - added WeatherForecastCell components to day column headers showing temperature ranges and weather icons for each day of the week, ensuring consistent weather integration across all calendar views (daily, weekly, monthly, engineering, and public calendar views)
 - June 28, 2025: COMPLETED weather integration across ALL calendar views - added weather forecast display to mobile public calendar view in the date header section, now showing day name, current date, and weather information with temperature ranges and weather icons for complete weather consistency across desktop, mobile, engineering, and public calendar interfaces
+- June 28, 2025: FIXED mobile calendar booking color display - restored missing booking color assignments in mobile public calendar view, bookings now display their assigned colors with subtle background tinting (15% opacity) and proper border styling in both Timeline and Studios Status tabs for consistent visual identification
 
 ## User Preferences
 
