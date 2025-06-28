@@ -87,14 +87,15 @@ export default function SimpleMobileForm({
   const [pcrRooms, setPcrRooms] = useState<PcrRoom[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [notificationGroups, setNotificationGroups] = useState<any[]>([]);
-  const [formData, setFormData] = useState<FormBookingData>({
+  const [formData, setFormData] = useState({
     id: 0,
     title: '',
     description: '',
     studioId: selectedStudio || 0,
     pcrRoomId: null,
-    start: selectedDate,
-    end: new Date(selectedDate.getTime() + 60 * 60 * 1000), // 1 hour later
+    date: formatDateForForm(selectedDate),
+    startTime: '9:00am',
+    endTime: '10:00am',
     type: alertMode ? 'alert' : 'production',
     status: 'draft',
     severity: 'low',
@@ -546,18 +547,30 @@ export default function SimpleMobileForm({
     // CRITICAL FIX: Use formData.studioIds which is properly maintained by the checkbox handlers
     console.log('[CRITICAL FIX] Using formData.studioIds:', formData.studioIds);
     
+    // Convert string-based time values to Date objects (same as desktop BookingModal)
+    const startDate = timeToDate(formData.date, formData.startTime);
+    const endDate = timeToDate(formData.date, formData.endTime);
+    
     // Prepare submission data with proper multi-studio support
     const submissionData = {
-      ...formData,
-      // CRITICAL FIX: Use formData.studioIds which is properly maintained by the checkbox handlers
-      studioIds: formData.studioIds || [], // This contains the actual selected studios
-      // Set primary studioId for backwards compatibility
+      id: formData.id || 0,
+      title: formData.title,
+      description: formData.description,
+      type: formData.type,
+      status: formData.status,
+      severity: formData.severity,
+      color: formData.color,
+      templateId: formData.templateId,
+      pcrRoomId: formData.pcrRoomId,
+      notifyList: formData.notifyList || [],
+      // Convert to Date objects for API
+      start: startDate,
+      end: endDate,
+      // Multi-studio support
+      studioIds: formData.studioIds || [],
       studioId: formData.studioIds && formData.studioIds.length > 0 
         ? formData.studioIds[0] 
-        : null,
-      // Ensure dates are properly formatted
-      start: formData.start instanceof Date ? formData.start.toISOString() : formData.start,
-      end: formData.end instanceof Date ? formData.end.toISOString() : formData.end
+        : null
     };
     
     console.log('[CRITICAL] Form data after processing:', JSON.stringify(submissionData));
@@ -773,31 +786,9 @@ export default function SimpleMobileForm({
             <div className="form-group">
               <label htmlFor="sm-start-time">Start Time*</label>
               <Select 
-                value={formData.start ? formatTime(formData.start) : ""} 
+                value={formData.startTime} 
                 onValueChange={(value) => {
-                  // Parse 12-hour format (e.g., "1:30pm") to 24-hour
-                  const match = value.match(/^(\d{1,2}):(\d{2})(am|pm)$/);
-                  if (!match) return;
-                  
-                  let hours = parseInt(match[1], 10);
-                  const minutes = parseInt(match[2], 10);
-                  const period = match[3];
-                  
-                  if (period === 'am' && hours === 12) hours = 0;
-                  if (period === 'pm' && hours !== 12) hours += 12;
-                  
-                  const currentDate = formData.start ? new Date(formData.start) : new Date();
-                  const year = currentDate.getFullYear();
-                  const month = currentDate.getMonth();
-                  const day = currentDate.getDate();
-                  const newStartDate = createFacilityDate(year, month, day, hours, minutes);
-                  
-                  if (formData.end && newStartDate >= formData.end) {
-                    alert('Start time cannot be later than or equal to end time. Please select an earlier time.');
-                    return;
-                  }
-                  
-                  setFormData(prev => ({ ...prev, start: newStartDate }));
+                  setFormData(prev => ({ ...prev, startTime: value }));
                 }}
               >
                 <SelectTrigger id="sm-start-time" className="form-input">
@@ -815,21 +806,9 @@ export default function SimpleMobileForm({
           <div className="form-group">
             <label htmlFor="sm-end-time">End Time*</label>
             <Select 
-              value={formData.end ? formatTime(formData.end) : ""} 
+              value={formData.endTime} 
               onValueChange={(value) => {
-                const [hours, minutes] = value.split(':').map(Number);
-                const currentDate = new Date(formData.end);
-                const year = currentDate.getFullYear();
-                const month = currentDate.getMonth();
-                const day = currentDate.getDate();
-                const newEndDate = createFacilityDate(year, month, day, hours, minutes);
-                
-                if (newEndDate <= formData.start) {
-                  alert('End time cannot be earlier than or equal to start time. Please select a later time.');
-                  return;
-                }
-                
-                setFormData(prev => ({ ...prev, end: newEndDate }));
+                setFormData(prev => ({ ...prev, endTime: value }));
               }}
             >
               <SelectTrigger id="sm-end-time" className="form-input">
