@@ -56,8 +56,29 @@ export function useWeatherForecast() {
 
         const data = await response.json();
         
+        // Also get current weather data for today
+        let currentUrl;
+        if (weatherLat && weatherLon) {
+          currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${weatherLat}&lon=${weatherLon}&appid=${apiKey}&units=imperial`;
+        } else {
+          currentUrl = `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${apiKey}&units=imperial`;
+        }
+
+        const currentResponse = await fetch(currentUrl);
+        const currentData = currentResponse.ok ? await currentResponse.json() : null;
+        
         // Process forecast data to get daily summaries
         const dailyData = new Map();
+        
+        // Add current weather data for today if available
+        if (currentData) {
+          const today = new Date().toISOString().split('T')[0];
+          dailyData.set(today, {
+            temps: [currentData.main.temp, currentData.main.temp_min, currentData.main.temp_max],
+            conditions: [currentData.weather[0].description],
+            icons: [currentData.weather[0].icon]
+          });
+        }
         
         data.list.forEach((item: any) => {
           const date = new Date(item.dt * 1000);
