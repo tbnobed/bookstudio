@@ -177,6 +177,7 @@ export default function TemplatesPage() {
         view="week"
         onViewChange={() => {}}
         title="Templates"
+        showViewToggle={false}
       />
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">

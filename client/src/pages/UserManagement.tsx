@@ -323,6 +323,7 @@ export default function UserManagement() {
           view="week"
           onViewChange={() => {}}
           title="User Management"
+          showViewToggle={false}
         />
         <div className="container mx-auto p-4 flex items-center justify-center h-full">
           <Card className="w-full max-w-md">
@@ -353,6 +354,7 @@ export default function UserManagement() {
         view="week"
         onViewChange={() => {}}
         title="User Management"
+        showViewToggle={false}
       />
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">

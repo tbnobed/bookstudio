@@ -208,6 +208,7 @@ export default function Settings() {
         view="week"
         onViewChange={() => {}}
         title="Settings"
+        showViewToggle={false}
       />
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">
