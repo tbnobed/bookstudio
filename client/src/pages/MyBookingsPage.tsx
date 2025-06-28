@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { useQuery } from "@tanstack/react-query";
