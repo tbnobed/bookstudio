@@ -132,7 +132,7 @@ export default function SimpleMobileForm({
   const handleTemplateChange = (templateId: string) => {
     updateFormField('templateId', templateId);
     
-    if (templateId && templateId !== "none") {
+    if (templateId && templateId !== "none" && templateId !== "") {
       const selectedTemplate = templates.find(t => t.id.toString() === templateId);
       if (selectedTemplate) {
         // Apply template data using the same logic as desktop
@@ -522,7 +522,7 @@ export default function SimpleMobileForm({
                 <SelectValue placeholder="Select template (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Template</SelectItem>
+                <SelectItem value="none">No Template</SelectItem>
                 {templates.map((template) => (
                   <SelectItem key={template.id} value={template.id.toString()}>
                     {template.name}
