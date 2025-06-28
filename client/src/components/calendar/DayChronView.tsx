@@ -3,6 +3,8 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatTime, isSameDay, formatInFacilityTimezone } from '@/lib/dateUtils';
 import { Badge } from '@/components/ui/badge';
+import WeatherForecastCell from './WeatherForecastCell';
+import { useWeatherForecast } from '../../hooks/useWeatherForecast';
 import { 
   Tv, 
   Clock, 
@@ -54,6 +56,7 @@ export default function DayChronView({
 }: DayChronViewProps) {
   const { notificationGroups } = useNotificationGroups();
   const { data: bookingStudios = [] } = useBookingStudioLinks();
+  const { forecast } = useWeatherForecast();
 
   // Helper function to format time ago
   const formatTimeAgo = (date: Date): string => {
@@ -580,9 +583,16 @@ export default function DayChronView({
       {/* Main Content Area */}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">
-            {formatInFacilityTimezone(date, 'EEEE, MMMM d, yyyy')}
-          </h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-bold">
+              {formatInFacilityTimezone(date, 'EEEE, MMMM d, yyyy')}
+            </h2>
+            <WeatherForecastCell 
+              date={date} 
+              forecast={forecast?.forecast.find(f => f.date === date.toISOString().split('T')[0]) || null} 
+              size="normal" 
+            />
+          </div>
           
           {!readOnly && (
             <Button 

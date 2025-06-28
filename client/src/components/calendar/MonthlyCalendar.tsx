@@ -6,6 +6,8 @@ import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate, FACILITY_
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag, Tv } from "lucide-react";
+import WeatherForecastCell from './WeatherForecastCell';
+import { useWeatherForecast } from '../../hooks/useWeatherForecast';
 
 // Helper function to extract studios from a booking using booking-studio links
 function extractStudiosFromBooking(booking: any, studiosList: any[], bookingStudioLinks: any[]): any[] {
@@ -54,6 +56,9 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  
+  // Fetch weather forecast data
+  const { forecast } = useWeatherForecast();
   
   // Fetch PCR rooms to display names instead of IDs
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
