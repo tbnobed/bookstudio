@@ -11,6 +11,7 @@ import BookingModal from "@/components/booking/BookingModal";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export default function MyBookingsPage() {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export default function MyBookingsPage() {
   const { userBookings, isLoading, deleteBooking } = useStudioBookings();
   const [editBookingId, setEditBookingId] = useState<number | null>(null);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
+  const { siteName } = useSiteSettings();
   
   // Fetch studios to display names
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -84,7 +86,7 @@ export default function MyBookingsPage() {
   const bookingToEdit = userBookings.find(booking => booking.id === editBookingId);
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <Header
         currentDate={currentDate}
         onDateChange={setCurrentDate}
@@ -93,31 +95,39 @@ export default function MyBookingsPage() {
         title="My Bookings"
       />
       
-      <div className="container mx-auto p-4 pb-16 overflow-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">My Bookings</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Showing bookings for week of {format(weekStart, "MMM d")} - {format(weekEnd, "MMM d, yyyy")}
-          </p>
+      {/* Site Name Banner */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 shadow-sm">
+        <div className="container mx-auto">
+          <h2 className="text-lg font-semibold">{siteName}</h2>
         </div>
+      </div>
+      
+      <div className="container mx-auto p-4 pb-16 overflow-auto">
+        <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm p-6 mb-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold">My Bookings</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Showing bookings for week of {format(weekStart, "MMM d")} - {format(weekEnd, "MMM d, yyyy")}
+            </p>
+          </div>
 
-        <Tabs defaultValue="upcoming" className="w-full">
-          <TabsList>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="past">Past</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="upcoming">
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-              </div>
-            ) : upcomingBookings.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                You don't have any upcoming bookings for this week.
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Tabs defaultValue="upcoming" className="w-full">
+            <TabsList>
+              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+              <TabsTrigger value="past">Past</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upcoming">
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              ) : upcomingBookings.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  You don't have any upcoming bookings for this week.
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {upcomingBookings.map(booking => (
                   <Card key={booking.id} className="overflow-hidden">
                     <div className={`h-2 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
@@ -184,8 +194,9 @@ export default function MyBookingsPage() {
                 ))}
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       {/* Edit Booking Modal */}
