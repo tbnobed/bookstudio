@@ -12,7 +12,7 @@ export function MobileBanner() {
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
       
       {/* Fade effect at bottom to blend with page background gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent via-blue-100/60 to-blue-50"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-b from-transparent via-blue-100/60 to-blue-50"></div>
       
       {/* Subtle geometric pattern overlay for texture */}
       <div className="absolute inset-0 opacity-20">
@@ -21,11 +21,14 @@ export function MobileBanner() {
       </div>
       
       {/* Content */}
-      <div className="relative px-6 py-4 text-center">
-        <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-lg">
+      <div className="relative px-6 py-8 text-center">
+        <h1 className="text-2xl font-bold text-white tracking-wide drop-shadow-lg mb-2">
           {siteName}
         </h1>
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
+        <p className="text-white/80 text-sm tracking-wide drop-shadow">
+          Television Studio Management
+        </p>
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
       </div>
     </div>
   );
