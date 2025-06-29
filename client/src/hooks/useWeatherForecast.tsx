@@ -8,12 +8,6 @@ export interface ForecastDay {
   };
   condition: string;
   icon: string;
-  humidity?: number;
-  windSpeed?: number;
-  pressure?: number;
-  feelsLike?: number;
-  uvIndex?: number;
-  visibility?: number;
 }
 
 export interface WeatherForecast {
@@ -82,13 +76,7 @@ export function useWeatherForecast() {
           dailyData.set(today, {
             temps: [currentData.main.temp, currentData.main.temp_min, currentData.main.temp_max],
             conditions: [currentData.weather[0].description],
-            icons: [currentData.weather[0].icon],
-            humidity: [currentData.main.humidity],
-            windSpeed: [currentData.wind?.speed || 0],
-            pressure: [currentData.main.pressure],
-            feelsLike: [currentData.main.feels_like],
-            uvIndex: [0], // Current weather API doesn't provide UV index
-            visibility: [(currentData.visibility || 0) / 1000] // Convert meters to kilometers
+            icons: [currentData.weather[0].icon]
           });
         }
         
@@ -100,13 +88,7 @@ export function useWeatherForecast() {
             dailyData.set(dateString, {
               temps: [],
               conditions: [],
-              icons: [],
-              humidity: [],
-              windSpeed: [],
-              pressure: [],
-              feelsLike: [],
-              uvIndex: [],
-              visibility: []
+              icons: []
             });
           }
           
@@ -114,12 +96,6 @@ export function useWeatherForecast() {
           dayData.temps.push(item.main.temp);
           dayData.conditions.push(item.weather[0].description);
           dayData.icons.push(item.weather[0].icon);
-          dayData.humidity.push(item.main.humidity);
-          dayData.windSpeed.push(item.wind?.speed || 0);
-          dayData.pressure.push(item.main.pressure);
-          dayData.feelsLike.push(item.main.feels_like);
-          dayData.uvIndex.push(item.uvi || 0);
-          dayData.visibility.push((item.visibility || 0) / 1000); // Convert meters to kilometers
         });
 
         const dailyForecasts: ForecastDay[] = [];
@@ -131,14 +107,6 @@ export function useWeatherForecast() {
           // Use midday condition and icon
           const middayIndex = Math.floor(data.conditions.length / 2);
           
-          // Calculate averages for additional weather data
-          const avgHumidity = data.humidity.length > 0 ? Math.round(data.humidity.reduce((a: number, b: number) => a + b, 0) / data.humidity.length) : undefined;
-          const avgWindSpeed = data.windSpeed.length > 0 ? Math.round(data.windSpeed.reduce((a: number, b: number) => a + b, 0) / data.windSpeed.length) : undefined;
-          const avgPressure = data.pressure.length > 0 ? Math.round(data.pressure.reduce((a: number, b: number) => a + b, 0) / data.pressure.length) : undefined;
-          const avgFeelsLike = data.feelsLike.length > 0 ? Math.round(data.feelsLike.reduce((a: number, b: number) => a + b, 0) / data.feelsLike.length) : undefined;
-          const avgUvIndex = data.uvIndex && data.uvIndex.length > 0 ? Math.round(data.uvIndex.reduce((a: number, b: number) => a + b, 0) / data.uvIndex.length) : undefined;
-          const avgVisibility = data.visibility && data.visibility.length > 0 ? Math.round(data.visibility.reduce((a: number, b: number) => a + b, 0) / data.visibility.length) : undefined;
-          
           dailyForecasts.push({
             date: dateString,
             temperature: {
@@ -146,13 +114,7 @@ export function useWeatherForecast() {
               max: Math.round(maxTemp)
             },
             condition: data.conditions[middayIndex],
-            icon: data.icons[middayIndex],
-            humidity: avgHumidity,
-            windSpeed: avgWindSpeed,
-            pressure: avgPressure,
-            feelsLike: avgFeelsLike,
-            uvIndex: avgUvIndex,
-            visibility: avgVisibility
+            icon: data.icons[middayIndex]
           });
         });
         
