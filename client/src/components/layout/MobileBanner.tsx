@@ -1,5 +1,4 @@
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import bookstudioLogo from "@assets/bookstuio.png";
 
 export function MobileBanner() {
   const { siteName } = useSiteSettings();
@@ -8,30 +7,23 @@ export function MobileBanner() {
   
   return (
     <div className="relative overflow-hidden">
-      {/* Strong gradient background that blends with page gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-800 via-blue-900 to-slate-800"></div>
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
+      {/* Background with modern gradient and animated effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-cyan-600/20"></div>
       
-      {/* Fade effect at bottom to blend with page background gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-b from-transparent via-blue-100/60 to-blue-50"></div>
-      
-      {/* Subtle geometric pattern overlay for texture */}
-      <div className="absolute inset-0 opacity-20">
+      {/* Subtle geometric pattern overlay */}
+      <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-white to-transparent rounded-full -translate-x-16 -translate-y-16"></div>
         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-white to-transparent rounded-full translate-x-12 -translate-y-12"></div>
+        <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-white to-transparent rounded-full translate-x-20 translate-y-20"></div>
       </div>
       
       {/* Content */}
-      <div className="relative px-6 py-2 text-center">
-        <h1 className="text-2xl font-bold text-white tracking-wide drop-shadow-lg">
+      <div className="relative px-6 py-4 text-center">
+        <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-sm">
           {siteName}
         </h1>
-        <img 
-          src={bookstudioLogo} 
-          alt="BookStud.io Logo" 
-          className="h-32 w-auto mx-auto drop-shadow-lg -mt-10"
-        />
-        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
       </div>
     </div>
   );

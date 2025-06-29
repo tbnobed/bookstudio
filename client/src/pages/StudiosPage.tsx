@@ -207,8 +207,9 @@ export default function StudiosPage() {
       {/* Modern Site Banner - Only on mobile */}
       {isMobile && <MobileBanner />}
       
-      <div className="container mx-auto p-4 pb-16 overflow-auto">
-        <div className={`${isMobile ? 'bg-white/90 backdrop-blur-sm' : 'bg-white'} rounded-lg shadow-sm p-6 mb-6`}>
+      <div className="flex-1 overflow-auto">
+        <div className={`container mx-auto p-3 ${isMobile ? 'pb-20' : ''}`}>
+          <div className={`${isMobile ? 'bg-white/90 backdrop-blur-sm' : 'bg-white'} rounded-lg shadow-sm p-4`}>
             {/* Weather Section - Only on mobile */}
             {isMobile && (
               <div className="mb-6">

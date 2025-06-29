@@ -4,11 +4,9 @@ import WeeklyCalendar from "@/components/calendar/WeeklyCalendar";
 import DailyCalendar from "@/components/calendar/DailyCalendar";
 import MonthlyCalendar from "@/components/calendar/MonthlyCalendar";
 import WeatherWidget from "@/components/weather/WeatherWidget";
-import { MobileBanner } from "@/components/layout/MobileBanner";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 // Separate component to properly handle hooks for the monthly calendar
 function MonthlyCalendarWrapper({ currentDate, studios }: { currentDate: Date, studios: Studio[] }) {
@@ -31,8 +29,6 @@ function MonthlyCalendarWrapper({ currentDate, studios }: { currentDate: Date, s
 }
 
 export default function CalendarPage() {
-  const isMobile = useIsMobile();
-  
   // Persist current date and view in localStorage
   const [currentDate, setCurrentDate] = useState(() => {
     try {
@@ -134,10 +130,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
-      {/* Modern Site Banner - Only on mobile */}
-      {isMobile && <MobileBanner />}
-      
+    <div className="flex flex-col h-screen">
       <CalendarHeader
         key={`header-${currentDate.toISOString()}-${view}`} // Add key to force re-render when date or view changes
         currentDate={currentDate}

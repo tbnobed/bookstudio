@@ -1,64 +1,82 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format, startOfWeek, endOfWeek } from "date-fns";
+import { Header } from "@/components/layout/Header";
+import { useStudioBookings } from "@/hooks/useStudioBookings";
+import { useQuery } from "@tanstack/react-query";
+import { Studio } from "@shared/schema";
+import { formatDateTimeRange } from "@/lib/dateUtils";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import BookingModal from "@/components/booking/BookingModal";
+import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { BookingModal } from "@/components/booking/BookingModal";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { MobileBanner } from "@/components/layout/MobileBanner";
-import { apiRequest } from "@/lib/queryClient";
-
-type Booking = {
-  id: number;
-  title: string;
-  description: string;
-  start: string;
-  end: string;
-  studioId: number | null;
-  userId: number;
-  type: string;
-  status?: string;
-};
-
-type Studio = {
-  id: number;
-  name: string;
-  description: string | null;
-  status: string;
-};
 
 export default function MyBookingsPage() {
+  const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const { userBookings, isLoading, deleteBooking } = useStudioBookings();
   const [editBookingId, setEditBookingId] = useState<number | null>(null);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const isMobile = useIsMobile();
-
-  // Calculate week range for current date
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
-
-  // Fetch user's bookings
-  const { data: userBookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings/user"],
-  });
-
-  // Fetch studios for display
+  const { siteName } = useSiteSettings();
+  
+  // Detect mobile for responsive banner
+  const isMobile = window.innerWidth <= 768;
+  
+  // Fetch studios to display names
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
   });
 
-  // Filter bookings for the current week
-  const weekBookings = userBookings.filter(booking => {
-    const bookingStart = new Date(booking.start);
-    return bookingStart >= weekStart && bookingStart <= weekEnd;
-  });
+  // Get studio name by ID
+  const getStudioName = (studioId: number) => {
+    const studio = studios.find(s => s.id === studioId);
+    return studio ? studio.name : `Studio ${studioId}`;
+  };
 
-  // Split into upcoming and past bookings
+  // Get color for booking type
+  const getBookingTypeColor = (type: string) => {
+    switch (type) {
+      case "production":
+        return "bg-blue-100 text-blue-800 border-blue-300";
+      case "maintenance":
+        return "bg-amber-100 text-amber-800 border-amber-300";
+      case "it_support":
+        return "bg-red-100 text-red-800 border-red-300";
+      case "rehearsal":
+        return "bg-purple-100 text-purple-800 border-purple-300";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  };
+
+  // Format booking type for display
+  const formatBookingType = (type: string) => {
+    return type.replace("_", " ").split(" ").map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" ");
+  };
+
+  // Handle delete booking
+  const handleDeleteBooking = (id: number) => {
+    if (confirm("Are you sure you want to delete this booking?")) {
+      deleteBooking.mutate(id);
+    }
+  };
+
+  // Get the week range for the selected date
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }); // Start week on Sunday
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+  
+  // Filter bookings for the selected week
+  const weekBookings = userBookings.filter(booking => {
+    const bookingDate = new Date(booking.start);
+    return isWithinInterval(bookingDate, { start: weekStart, end: weekEnd });
+  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+  // Separate into current and future vs past for the selected week
   const currentTime = new Date();
   const upcomingBookings = weekBookings.filter(booking => 
     new Date(booking.end) >= currentTime
@@ -71,43 +89,19 @@ export default function MyBookingsPage() {
   // Find the booking to edit
   const bookingToEdit = userBookings.find(booking => booking.id === editBookingId);
 
-  // Delete booking mutation
-  const deleteBookingMutation = useMutation({
-    mutationFn: async (bookingId: number) => {
-      const response = await apiRequest("DELETE", `/api/bookings/${bookingId}`);
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      toast({
-        title: "Success",
-        description: "Booking deleted successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete booking",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleEdit = (bookingId: number) => {
-    setEditBookingId(bookingId);
-  };
-
-  const handleDelete = async (bookingId: number) => {
-    if (window.confirm("Are you sure you want to delete this booking?")) {
-      deleteBookingMutation.mutate(bookingId);
-    }
-  };
-
   return (
     <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
       {/* Modern Site Banner - Only on mobile */}
       {isMobile && <MobileBanner />}
+      
+      <Header
+        currentDate={currentDate}
+        onDateChange={setCurrentDate}
+        view="week"
+        onViewChange={() => {}}
+        title="My Bookings"
+        showViewToggle={false}
+      />
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">
         <div className={`${isMobile ? 'bg-white/90 backdrop-blur-sm' : 'bg-white'} rounded-lg shadow-sm p-6 mb-6`}>
@@ -124,141 +118,93 @@ export default function MyBookingsPage() {
               <TabsTrigger value="past">Past</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="upcoming" className="mt-4">
-              {upcomingBookings.length === 0 ? (
+            <TabsContent value="upcoming">
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              ) : upcomingBookings.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No upcoming bookings for this week</p>
+                  You don't have any upcoming bookings for this week.
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {upcomingBookings.map((booking) => {
-                    const startTime = new Date(booking.start);
-                    const endTime = new Date(booking.end);
-                    const studio = studios.find(s => s.id === booking.studioId);
-                    
-                    return (
-                      <Card key={booking.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <h3 className="font-semibold">{booking.title}</h3>
-                                {booking.type === 'maintenance' && (
-                                  <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                                    Maintenance
-                                  </span>
-                                )}
-                                {booking.type === 'production' && (
-                                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                                    Production
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 mb-1">
-                                {studio ? studio.name : 'Studio null'}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {format(startTime, "MMM d, yyyy, h:mm a")} - {format(endTime, "h:mm a")}
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEdit(booking.id)}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDelete(booking.id)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="past" className="mt-4">
-              {pastBookings.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No past bookings for this week</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {pastBookings.map((booking) => {
-                    const startTime = new Date(booking.start);
-                    const endTime = new Date(booking.end);
-                    const studio = studios.find(s => s.id === booking.studioId);
-                    
-                    return (
-                      <Card key={booking.id} className="opacity-75">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <h3 className="font-semibold">{booking.title}</h3>
-                                {booking.type === 'maintenance' && (
-                                  <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                                    Maintenance
-                                  </span>
-                                )}
-                                {booking.type === 'production' && (
-                                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                                    Production
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 mb-1">
-                                {studio ? studio.name : 'Studio null'}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {format(startTime, "MMM d, yyyy, h:mm a")} - {format(endTime, "h:mm a")}
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEdit(booking.id)}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDelete(booking.id)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {upcomingBookings.map(booking => (
+                  <Card key={booking.id} className="overflow-hidden">
+                    <div className={`h-2 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-lg">{booking.title}</h3>
+                        <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                          {formatBookingType(booking.type)}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-2">{getStudioName(booking.studioId)}</p>
+                      <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                      {booking.description && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
+                      )}
+                      <div className="flex justify-end space-x-2 mt-2">
+                        <Button variant="outline" size="sm" onClick={() => setEditBookingId(booking.id)}>
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => handleDeleteBooking(booking.id)}
+                          disabled={deleteBooking.isPending}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="past">
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : pastBookings.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                You don't have any past bookings for this week.
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {pastBookings.map(booking => (
+                  <Card key={booking.id} className="overflow-hidden opacity-75">
+                    <div className={`h-2 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-lg">{booking.title}</h3>
+                        <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                          {formatBookingType(booking.type)}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-2">{getStudioName(booking.studioId)}</p>
+                      <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                      {booking.description && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
             </TabsContent>
           </Tabs>
         </div>
       </div>
 
       {/* Edit Booking Modal */}
-      {editBookingId && (
+      {bookingToEdit && (
         <BookingModal
-          isOpen={!!editBookingId}
+          isOpen={editBookingId !== null}
           onClose={() => setEditBookingId(null)}
-          selectedDate={currentDate}
           booking={bookingToEdit}
         />
       )}

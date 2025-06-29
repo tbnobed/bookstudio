@@ -4,7 +4,6 @@ import MobileDailyView from "@/components/calendar/MobileDailyView";
 import MobileNavbar from "@/components/layout/MobileNavbar";
 import { useLocation } from "wouter";
 import { useCalendarContext } from "@/contexts/CalendarContext";
-import { MobileBanner } from "@/components/layout/MobileBanner";
 
 export default function MobileCalendarPage() {
   const { isSmallScreen, isTablet, isDesktop } = useDevice();
@@ -62,10 +61,7 @@ export default function MobileCalendarPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen mobile-gradient-bg overflow-hidden">
-      {/* Modern Site Banner - Only on mobile */}
-      <MobileBanner />
-      
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       {/* Main content - MobileNavbar is now added by MobileLayout component */}
       <div className="flex-1 overflow-hidden flex flex-col">
         <MobileDailyView
