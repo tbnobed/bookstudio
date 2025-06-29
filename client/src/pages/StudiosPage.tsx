@@ -43,8 +43,15 @@ export default function StudiosPage() {
   const { bookings, isLoading } = useStudioBookings(oneWeekAgo, oneWeekFromNow);
   const { getAllStudiosWithStatus } = useStudioStatus(bookings);
   
-  // Get all studios with their status - wait for bookings to load
-  const studiosWithStatus = isLoading ? [] : getAllStudiosWithStatus();
+  // Get all studios with their status
+  const studiosWithStatus = getAllStudiosWithStatus();
+  
+  // Debug logging
+  console.log("StudiosPage - studiosWithStatus length:", studiosWithStatus.length);
+  if (studiosWithStatus.length === 0) {
+    console.log("StudiosPage - No studios returned!");
+    console.log("StudiosPage - bookings loaded:", !isLoading, "bookings count:", bookings?.length || 0);
+  }
 
   return (
     <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
