@@ -1,4 +1,5 @@
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import bookstudioLogo from "@assets/bookstuio.png";
 
 export function MobileBanner() {
   const { siteName } = useSiteSettings();
@@ -22,9 +23,16 @@ export function MobileBanner() {
       
       {/* Content */}
       <div className="relative px-6 py-8 text-center">
-        <h1 className="text-2xl font-bold text-white tracking-wide drop-shadow-lg">
-          {siteName}
-        </h1>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <img 
+            src={bookstudioLogo} 
+            alt="BookStud.io Logo" 
+            className="h-8 w-auto drop-shadow-lg"
+          />
+          <h1 className="text-2xl font-bold text-white tracking-wide drop-shadow-lg">
+            {siteName}
+          </h1>
+        </div>
         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
       </div>
     </div>
