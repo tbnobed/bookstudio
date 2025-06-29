@@ -22,12 +22,9 @@ export function MobileBanner() {
       
       {/* Content */}
       <div className="relative px-6 py-8 text-center">
-        <h1 className="text-2xl font-bold text-white tracking-wide drop-shadow-lg mb-2">
+        <h1 className="text-2xl font-bold text-white tracking-wide drop-shadow-lg">
           {siteName}
         </h1>
-        <p className="text-white/80 text-sm tracking-wide drop-shadow">
-          Television Studio Management
-        </p>
         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
       </div>
     </div>
