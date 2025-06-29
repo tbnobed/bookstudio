@@ -132,9 +132,9 @@ export default function EngineeringPage() {
     queryKey: ["/api/pcr-rooms"],
   });
 
-  // Generate time slots for practical business hours (5 AM to 2 AM next day)
-  const timeSlots = Array.from({ length: 21 }, (_, i) => {
-    const hour = (i + 5) % 24; // Start from 5 AM, wrap around to 2 AM
+  // Generate time slots for full 24-hour display (midnight to midnight)
+  const timeSlots = Array.from({ length: 24 }, (_, i) => {
+    const hour = i; // Start from midnight (0) to 11 PM (23)
     const ampm = hour < 12 ? 'AM' : 'PM';
     const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
     return {
@@ -240,10 +240,10 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
-    // Calculate position relative to view start (5 AM)
-    const viewStartHour = 5;
-    const adjustedStartHour = startHour >= viewStartHour ? startHour - viewStartHour : startHour + 24 - viewStartHour;
-    const adjustedEndHour = endHour >= viewStartHour ? endHour - viewStartHour : endHour + 24 - viewStartHour;
+    // Calculate position relative to view start (midnight)
+    const viewStartHour = 0;
+    const adjustedStartHour = startHour;
+    const adjustedEndHour = endHour;
     
 
     
@@ -324,8 +324,8 @@ export default function EngineeringPage() {
   // Helper function to calculate current time indicator position
   const getCurrentTimePosition = () => {
     const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
-    const viewStartHour = 5;
-    const adjustedHour = currentHour >= viewStartHour ? currentHour - viewStartHour : currentHour + 24 - viewStartHour;
+    const viewStartHour = 0; // Starting from midnight
+    const adjustedHour = currentHour;
     return adjustedHour * 60; // 60px per hour
   };
 
