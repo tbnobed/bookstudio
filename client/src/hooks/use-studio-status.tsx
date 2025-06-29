@@ -90,17 +90,7 @@ export function useStudioStatus(filteredBookings?: Booking[]) {
         link.bookingId === booking.id && link.studioId === studioId
       );
       
-      const isMatch = directMatch || linkedMatch;
-      
-      // Debug for specific studios
-      if (studioId === 1 || studioId === 2) {
-        console.log(`Studio ${studioId} checking booking ${booking.id} (${booking.title}):`);
-        console.log(`  - Direct match: ${directMatch} (booking.studioId: ${booking.studioId})`);
-        console.log(`  - Linked match: ${linkedMatch}`);
-        console.log(`  - Final match: ${isMatch}`);
-      }
-      
-      return isMatch;
+      return directMatch || linkedMatch;
     });
     
     // Check if there's a current booking (studio in use)
@@ -171,26 +161,13 @@ export function useStudioStatus(filteredBookings?: Booking[]) {
   const getAllStudiosWithStatus = () => {
     console.log("getAllStudiosWithStatus called, studio count:", studios.length);
     console.log("bookingStudioLinks count:", bookingStudioLinks.length);
-    console.log("bookings count:", bookings.length);
-    
-    // Debug specific booking 218
-    const booking218 = bookings.find(b => b.id === 218);
-    if (booking218) {
-      console.log("Found booking 218:", booking218.title, "studioId:", booking218.studioId);
-      const links = bookingStudioLinks.filter(link => link.bookingId === 218);
-      console.log("Booking 218 links:", links);
-    }
     
     return studios.map(studio => {
       const status = getStudioStatus(studio.id);
       
-      // Debug studio status
-      console.log(`Studio ${studio.id} (${studio.name}) status:`, status.status);
+      // Debug if we have a current booking
       if (status.currentBooking) {
-        console.log(`  - Current booking: ${status.currentBooking.title}`);
-      }
-      if (status.nextBooking) {
-        console.log(`  - Next booking: ${status.nextBooking.title} at ${status.nextBooking.start}`);
+        console.log(`Studio ${studio.id} (${studio.name}) has current booking:`, status.currentBooking.title);
       }
       
       return {
