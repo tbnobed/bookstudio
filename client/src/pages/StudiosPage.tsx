@@ -46,9 +46,7 @@ export default function StudiosPage() {
   // Get all studios with their status - only when bookings are loaded
   const studiosWithStatus = !isLoading ? getAllStudiosWithStatus() : [];
   
-  // Debug logging
-  console.log("StudiosPage - isLoading:", isLoading, "bookings count:", bookings?.length || 0);
-  console.log("StudiosPage - studiosWithStatus length:", studiosWithStatus.length);
+
 
   return (
     <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
