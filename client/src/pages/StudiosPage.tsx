@@ -239,7 +239,7 @@ export default function StudiosPage() {
                 
                 return (
                   <Card key={studio.id} className={cn(
-                    "transition-all hover:shadow-xl border-4 shadow-md",
+                    "transition-all hover:shadow-xl border-3 shadow-md",
                     studioStatus.status === "in-use" 
                       ? "bg-red-50 border-red-300 hover:border-red-400" 
                       : "bg-green-50 border-green-300 hover:border-green-400"
