@@ -195,15 +195,15 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
   const WeatherIcon = getWeatherIcon(weather.icon);
   
   const sizeClasses = {
-    compact: 'text-xs',
-    normal: 'text-sm',
-    large: 'text-base'
+    compact: 'text-sm',
+    normal: 'text-base',
+    large: 'text-lg'
   };
 
   const iconSizes = {
-    compact: 'h-4 w-4',
-    normal: 'h-5 w-5',
-    large: 'h-6 w-6'
+    compact: 'h-5 w-5',
+    normal: 'h-6 w-6',
+    large: 'h-8 w-8'
   };
 
   return (

@@ -284,6 +284,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 29, 2025: MADE Timeline view the default for mobile calendar - changed mobile calendar tab system to default to Timeline view instead of Studios Status, providing immediate schedule visibility when users navigate to calendar page
 - June 29, 2025: RESTORED full 24-hour display in engineering view - changed engineering calendar from 5 AM-2 AM (21 hours) back to complete midnight-to-midnight (24 hours) display, updated booking positioning logic and current time indicator to work with full day view for comprehensive facility scheduling visibility
 - June 29, 2025: ENHANCED monthly view booking entries with start and end times - updated monthly calendar to display both start time and end time for each booking entry instead of just start time, providing complete scheduling information at a glance
+- June 29, 2025: INCREASED weather widget size - enlarged weather badge text and icons across all size variants (compact/normal/large) for better visibility and readability on facility displays
 
 ## User Preferences
 
