@@ -441,7 +441,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                                 {booking.title}
                               </div>
                               <div className="flex items-center justify-between">
-                                <span>{formatTime(booking.start)}</span>
+                                <span className="text-xs">{formatTime(booking.start)} - {formatTime(booking.end)}</span>
                                 {booking.pcrRoomId && (
                                   <span className="text-xs opacity-80">{getPcrRoomName(booking.pcrRoomId)}</span>
                                 )}
