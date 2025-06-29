@@ -233,18 +233,18 @@ export default function StudiosPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {studios.map((studio) => {
                 const studioStatus = getStudioStatus(studio);
                 
                 return (
                   <Card key={studio.id} className={cn(
-                    "transition-all hover:shadow-md",
+                    "transition-all hover:shadow-lg border-2 shadow-sm",
                     studioStatus.status === "in-use" 
-                      ? "bg-red-50/30 border-red-100" 
-                      : "bg-green-50/30 border-green-100"
+                      ? "bg-red-50 border-red-200 hover:border-red-300" 
+                      : "bg-green-50 border-green-200 hover:border-green-300"
                   )}>
-                    <CardContent className="p-2">
+                    <CardContent className="p-3">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-1.5">
                           <Tv className="h-3 w-3" />
