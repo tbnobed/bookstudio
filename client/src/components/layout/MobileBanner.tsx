@@ -8,8 +8,8 @@ export function MobileBanner() {
   return (
     <div className="relative overflow-hidden">
       {/* Strong gradient background that blends with page gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-700"></div>
-      <div className="absolute inset-0 bg-gradient-to-t from-blue-800/30 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-800 via-blue-900 to-slate-800"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
       
       {/* Fade effect at bottom to blend with page background gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent via-blue-100/60 to-blue-50"></div>
