@@ -53,16 +53,11 @@ export default function StudiosPage() {
   const isBookingLinkedToStudio = (booking: Booking, studioId: number) => {
     // Check direct studio assignment
     if (booking.studioId === studioId) {
-      console.log(`Direct link: Booking ${booking.id} (${booking.title}) -> Studio ${studioId}`);
       return true;
     }
     
     // Check junction table for multi-studio bookings
-    const junctionLink = bookingStudios.some(bs => bs.bookingId === booking.id && bs.studioId === studioId);
-    if (junctionLink) {
-      console.log(`Junction link: Booking ${booking.id} (${booking.title}) -> Studio ${studioId}`);
-    }
-    return junctionLink;
+    return bookingStudios.some(bs => bs.bookingId === booking.id && bs.studioId === studioId);
   };
 
   // Function to get current booking for a studio
