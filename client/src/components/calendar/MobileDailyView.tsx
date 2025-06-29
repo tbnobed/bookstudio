@@ -122,27 +122,11 @@ export default function MobileDailyView({
     now 
   } = useStudioStatus(todayBookings);
   
-  // Fetch booking-studios junction data
-  const { data: bookingStudios = [], isLoading: bookingStudiosLoading, error: bookingStudiosError, isError, failureReason } = useQuery<{ bookingId: number, studioId: number }[]>({
-    queryKey: ['/api/booking-studios'],
+  // Fetch booking-studios junction data using the public API endpoint
+  const { data: bookingStudios = [], isLoading: bookingStudiosLoading, error: bookingStudiosError } = useQuery<{ bookingId: number, studioId: number }[]>({
+    queryKey: ['/api/public/booking-studios'],
     staleTime: 0, // Always fetch fresh data
     refetchOnMount: true, // Always refetch when component mounts
-    retry: 1, // Only retry once to see the error faster
-    queryFn: async () => {
-      console.log("MANUAL: Making booking-studios API call");
-      const response = await fetch('/api/booking-studios', {
-        credentials: 'include', // Include session cookies
-      });
-      console.log("MANUAL: API response status:", response.status);
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log("MANUAL: API error response:", errorText);
-        throw new Error(`Failed to fetch booking-studios: ${response.status} ${errorText}`);
-      }
-      const data = await response.json();
-      console.log("MANUAL: API response data:", data);
-      return data;
-    }
   });
   
   // Debug logging for booking studios data
