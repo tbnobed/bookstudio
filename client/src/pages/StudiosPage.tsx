@@ -41,13 +41,34 @@ export default function StudiosPage() {
     queryKey: ["/api/bookings"],
   });
 
+  // Fetch booking-studios junction data
+  const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({
+    queryKey: ['/api/booking-studios'],
+  });
+
   // Get current time for comparison
   const now = new Date();
   
+  // Function to check if a booking is linked to a studio
+  const isBookingLinkedToStudio = (booking: Booking, studioId: number) => {
+    // Check direct studio assignment
+    if (booking.studioId === studioId) {
+      console.log(`Direct link: Booking ${booking.id} (${booking.title}) -> Studio ${studioId}`);
+      return true;
+    }
+    
+    // Check junction table for multi-studio bookings
+    const junctionLink = bookingStudios.some(bs => bs.bookingId === booking.id && bs.studioId === studioId);
+    if (junctionLink) {
+      console.log(`Junction link: Booking ${booking.id} (${booking.title}) -> Studio ${studioId}`);
+    }
+    return junctionLink;
+  };
+
   // Function to get current booking for a studio
   const getCurrentBooking = (studioId: number) => {
     return bookings.find(booking => {
-      if (booking.studioId !== studioId) return false;
+      if (!isBookingLinkedToStudio(booking, studioId)) return false;
       const start = new Date(booking.start);
       const end = new Date(booking.end);
       return start <= now && end > now;
@@ -58,7 +79,7 @@ export default function StudiosPage() {
   const getNextBooking = (studioId: number) => {
     const futureBookings = bookings
       .filter(booking => {
-        if (booking.studioId !== studioId) return false;
+        if (!isBookingLinkedToStudio(booking, studioId)) return false;
         const start = new Date(booking.start);
         return start > now;
       })
