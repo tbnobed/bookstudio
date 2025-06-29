@@ -281,6 +281,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 29, 2025: MADE Studios page the default home page for mobile app - implemented mobile-specific routing logic so mobile users land on Studios page (/) instead of Calendar page, providing immediate studio status overview upon app launch while desktop users continue to see Calendar as home page
 - June 29, 2025: FIXED mobile navigation routing - updated mobile navbar so Studios button points to home (/) and Calendar button points to /calendar, ensuring both pages remain accessible with proper active state highlighting
 - June 29, 2025: ENHANCED mobile + button with dual functionality - replaced single "Create Booking" action with bottom sheet modal offering both "Create Booking" and "Create Alert" options, providing easy access to both booking and facility alert creation from main navigation, removed duplicate alert option from menu drawer
+- June 29, 2025: MADE Timeline view the default for mobile calendar - changed mobile calendar tab system to default to Timeline view instead of Studios Status, providing immediate schedule visibility when users navigate to calendar page
 
 ## User Preferences
 

@@ -497,7 +497,7 @@ export default function MobileDailyView({
       )}
 
       {/* Main content - Studios and bookings */}
-      <Tabs defaultValue="studios" className="flex-1 overflow-hidden flex flex-col">
+      <Tabs defaultValue="timeline" className="flex-1 overflow-hidden flex flex-col">
         <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10 bg-white/90 backdrop-blur-sm">
           <TabsTrigger value="studios">Studios Status</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
