@@ -8,8 +8,8 @@ export function MobileBanner() {
   return (
     <div className="relative overflow-hidden">
       {/* Background with modern gradient and animated effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-cyan-600/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-600/20 via-purple-600/20 to-transparent"></div>
       
       {/* Subtle geometric pattern overlay */}
       <div className="absolute inset-0 opacity-10">
