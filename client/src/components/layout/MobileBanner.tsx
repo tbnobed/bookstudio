@@ -11,6 +11,9 @@ export function MobileBanner() {
       <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-700"></div>
       <div className="absolute inset-0 bg-gradient-to-t from-blue-800/30 to-transparent"></div>
       
+      {/* Fade effect at bottom to blend with page content */}
+      <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-b from-transparent to-white/40"></div>
+      
       {/* Subtle geometric pattern overlay for texture */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-white to-transparent rounded-full -translate-x-16 -translate-y-16"></div>

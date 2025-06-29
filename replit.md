@@ -290,6 +290,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 29, 2025: EXCLUDED cancelled bookings from engineering view - updated engineering calendar to filter out cancelled bookings from both regular booking display and alerts section, providing cleaner view focused on active facility operations
 - June 29, 2025: REDUCED text sizes in engineering view by 10% - decreased booking card text from text-base to text-sm, titles from text-lg to text-base, details from text-sm to text-xs, reduced padding from p-3 to p-2, and made alert icons and text smaller for more compact display
 - June 29, 2025: REDESIGNED mobile banner for seamless integration - created strong blue-to-purple gradient background that matches page's gradient theme, maintained white text with enhanced drop shadow, added subtle geometric overlays for texture while ensuring visual continuity with existing page design
+- June 29, 2025: ADDED fade effect to mobile banner - implemented bottom fade gradient from transparent to white/40 to create smooth transition between banner and page content, eliminating harsh visual cutoff
 
 ## User Preferences
 
