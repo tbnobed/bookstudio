@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import WeatherWidget from "@/components/weather/WeatherWidget";
+import { MobileBanner } from "@/components/layout/MobileBanner";
 
 interface Studio {
   id: number;
@@ -104,12 +105,8 @@ export default function StudiosPage() {
 
   return (
     <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
-      {/* Site Name Banner - Only on mobile */}
-      {isMobile && (
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 text-center sticky top-0 z-20">
-          <h1 className="text-lg font-bold">{siteName}</h1>
-        </div>
-      )}
+      {/* Modern Site Banner - Only on mobile */}
+      {isMobile && <MobileBanner />}
       
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto p-3">

@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { MobileBanner } from "@/components/layout/MobileBanner";
 
 export default function MyBookingsPage() {
   const { user } = useAuth();
@@ -90,12 +91,8 @@ export default function MyBookingsPage() {
 
   return (
     <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
-      {/* Site Name Banner - Only on mobile */}
-      {isMobile && siteName && (
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 text-center sticky top-0 z-20">
-          <h1 className="text-lg font-bold">{siteName}</h1>
-        </div>
-      )}
+      {/* Modern Site Banner - Only on mobile */}
+      {isMobile && <MobileBanner />}
       
       <Header
         currentDate={currentDate}
