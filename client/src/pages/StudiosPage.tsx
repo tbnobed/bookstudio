@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { MobileBanner } from "@/components/layout/MobileBanner";
+import { useStudioStatus } from "@/hooks/use-studio-status";
 
 interface Studio {
   id: number;
@@ -33,75 +34,11 @@ export default function StudiosPage() {
     select: (data: any) => data?.siteName || "BookStud.io"
   });
   
-  const { data: studios = [] } = useQuery<Studio[]>({
-    queryKey: ["/api/studios"],
-  });
-
-  const { data: bookings = [] } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"],
-  });
-
-  // Get current time for comparison
-  const now = new Date();
+  // Use the studio status hook which properly handles multi-studio bookings
+  const { getAllStudiosWithStatus } = useStudioStatus();
   
-  // Function to get current booking for a studio
-  const getCurrentBooking = (studioId: number) => {
-    return bookings.find(booking => {
-      if (booking.studioId !== studioId) return false;
-      const start = new Date(booking.start);
-      const end = new Date(booking.end);
-      return start <= now && end > now;
-    });
-  };
-
-  // Function to get next booking for a studio
-  const getNextBooking = (studioId: number) => {
-    const futureBookings = bookings
-      .filter(booking => {
-        if (booking.studioId !== studioId) return false;
-        const start = new Date(booking.start);
-        return start > now;
-      })
-      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-    
-    return futureBookings[0];
-  };
-
-  // Function to get studio status
-  const getStudioStatus = (studio: Studio) => {
-    const currentBooking = getCurrentBooking(studio.id);
-    const nextBooking = getNextBooking(studio.id);
-    
-    if (currentBooking) {
-      const endTime = new Date(currentBooking.end);
-      return {
-        status: "in-use",
-        label: "In Use",
-        detail: `Until ${formatTime(endTime)}`,
-        booking: currentBooking,
-        color: "bg-red-500"
-      };
-    }
-    
-    if (nextBooking) {
-      const startTime = new Date(nextBooking.start);
-      return {
-        status: "available",
-        label: "Available",
-        detail: `Until ${formatTime(startTime)}`,
-        booking: nextBooking,
-        color: "bg-green-500"
-      };
-    }
-    
-    return {
-      status: "available",
-      label: "Available",
-      detail: "All day",
-      booking: null,
-      color: "bg-green-500"
-    };
-  };
+  // Get all studios with their status
+  const studiosWithStatus = getAllStudiosWithStatus();
 
   return (
     <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
@@ -135,8 +72,9 @@ export default function StudiosPage() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-              {studios.map((studio) => {
-                const studioStatus = getStudioStatus(studio);
+              {studiosWithStatus.map((studioWithStatus) => {
+                const studio = studioWithStatus;
+                const studioStatus = studioWithStatus.statusInfo;
                 
                 return (
                   <Card key={studio.id} className="transition-all hover:shadow-md">
@@ -157,20 +95,26 @@ export default function StudiosPage() {
                           variant={studioStatus.status === "in-use" ? "destructive" : "secondary"}
                           className="text-xs px-1.5 py-0.5 w-full justify-center"
                         >
-                          {studioStatus.label}
+                          {studioStatus.status === "in-use" ? "In Use" : 
+                           studioStatus.status === "maintenance" ? "Maintenance" :
+                           studioStatus.status === "upcoming" ? "Upcoming" : "Available"}
                         </Badge>
                         
                         <div className="text-xs text-gray-600 text-center">
-                          {studioStatus.detail}
+                          {studioStatus.currentBooking ? 
+                            `Until ${formatTime(studioStatus.currentBooking.end)}` :
+                            studioStatus.nextBooking ?
+                            `Until ${formatTime(studioStatus.nextBooking.start)}` :
+                            "All day"}
                         </div>
                         
-                        {studioStatus.booking && (
+                        {(studioStatus.currentBooking || studioStatus.nextBooking) && (
                           <div className="text-xs text-center">
                             <div className="font-medium text-gray-900 truncate">
-                              {studioStatus.booking.title}
+                              {(studioStatus.currentBooking || studioStatus.nextBooking)?.title}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {formatTime(studioStatus.booking.start)}
+                              {formatTime((studioStatus.currentBooking || studioStatus.nextBooking)?.start)}
                             </div>
                           </div>
                         )}
