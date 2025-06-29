@@ -26,6 +26,11 @@ interface Booking {
 export default function StudiosPage() {
   const isMobile = useIsMobile();
   
+  const { data: siteName = "BookStud.io" } = useQuery<string>({
+    queryKey: ["/api/system/site-name"],
+    select: (data: any) => data?.siteName || "BookStud.io"
+  });
+  
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
   });
@@ -101,7 +106,7 @@ export default function StudiosPage() {
       {/* Site Name Banner - Only on mobile */}
       {isMobile && (
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 text-center sticky top-0 z-20">
-          <h1 className="text-lg font-bold">The Plex Studios</h1>
+          <h1 className="text-lg font-bold">{siteName}</h1>
         </div>
       )}
       
