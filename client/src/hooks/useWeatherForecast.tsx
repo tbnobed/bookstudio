@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { toZonedTime, format } from 'date-fns-tz';
+import { FACILITY_TIMEZONE } from '@/lib/dateUtils';
 
 export interface ForecastDay {
   date: string;
@@ -72,7 +74,7 @@ export function useWeatherForecast() {
         
         // Add current weather data for today if available
         if (currentData) {
-          const today = new Date().toISOString().split('T')[0];
+          const today = format(toZonedTime(new Date(), FACILITY_TIMEZONE), 'yyyy-MM-dd', { timeZone: FACILITY_TIMEZONE });
           dailyData.set(today, {
             temps: [currentData.main.temp, currentData.main.temp_min, currentData.main.temp_max],
             conditions: [currentData.weather[0].description],
@@ -82,7 +84,8 @@ export function useWeatherForecast() {
         
         data.list.forEach((item: any) => {
           const date = new Date(item.dt * 1000);
-          const dateString = date.toISOString().split('T')[0];
+          const facilityDate = toZonedTime(date, FACILITY_TIMEZONE);
+          const dateString = format(facilityDate, 'yyyy-MM-dd', { timeZone: FACILITY_TIMEZONE });
           
           if (!dailyData.has(dateString)) {
             dailyData.set(dateString, {

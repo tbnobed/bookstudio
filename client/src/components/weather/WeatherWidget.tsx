@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Cloud, Sun, CloudRain, CloudSnow, Thermometer, Droplets, Wind } from 'lucide-react';
+import { toZonedTime, format } from 'date-fns-tz';
+import { FACILITY_TIMEZONE } from '@/lib/dateUtils';
 
 interface WeatherData {
   temperature: number;
@@ -117,7 +119,8 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
             
             forecastData.list.forEach((item: any) => {
               const date = new Date(item.dt * 1000);
-              const dateString = date.toISOString().split('T')[0];
+              const facilityDate = toZonedTime(date, FACILITY_TIMEZONE);
+              const dateString = format(facilityDate, 'yyyy-MM-dd', { timeZone: FACILITY_TIMEZONE });
               
               if (!dailyData.has(dateString)) {
                 dailyData.set(dateString, {
