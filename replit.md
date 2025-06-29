@@ -295,6 +295,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 29, 2025: EXTENDED mobile banner height and content - increased padding from py-4 to py-8, upgraded title from text-xl to text-2xl, extended fade area to h-12, and increased decorative line width for more prominent banner presence
 - June 29, 2025: REMOVED subtitle text from mobile banner - eliminated "Television Studio Management" subtitle text, keeping only the site name for cleaner design
 - June 29, 2025: ADDED BookStud.io logo to mobile banner - integrated bookstuio.png logo alongside site name in horizontal layout with proper spacing, drop shadows, and 32px height for professional branding
+- June 29, 2025: REPOSITIONED and ENLARGED BookStud.io logo - moved logo below site name and increased size to 160px height (500% larger) for prominent branding display in mobile banner
 
 ## User Preferences
 
