@@ -417,7 +417,7 @@ export default function MobileDailyView({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header with date navigation */}
-      <div className="border-b p-4 bg-white/90 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b p-4 bg-white sticky top-0 z-10">
         {/* Date navigation buttons */}
         <div className="flex justify-between items-center mb-2">
           <Button variant="ghost" size="icon" onClick={goToPreviousDay}>
