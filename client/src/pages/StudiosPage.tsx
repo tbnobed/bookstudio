@@ -155,10 +155,17 @@ export default function StudiosPage() {
     
     if (currentBooking) {
       const endTime = new Date(currentBooking.end);
+      const endDate = new Date(currentBooking.end).toLocaleDateString('en-US', {
+        timeZone: 'America/Chicago',
+        month: 'short',
+        day: 'numeric',
+        year: new Date(currentBooking.end).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+      });
+      const isToday = new Date(currentBooking.end).toDateString() === new Date().toDateString();
       return {
         status: "in-use",
         label: "In Use",
-        detail: `Until ${formatTime(endTime)}`,
+        detail: `Until ${formatTime(endTime)}${isToday ? '' : ` on ${endDate}`}`,
         booking: currentBooking,
         color: "bg-red-500"
       };
@@ -166,10 +173,17 @@ export default function StudiosPage() {
     
     if (nextBooking) {
       const startTime = new Date(nextBooking.start);
+      const startDate = new Date(nextBooking.start).toLocaleDateString('en-US', {
+        timeZone: 'America/Chicago',
+        month: 'short',
+        day: 'numeric',
+        year: new Date(nextBooking.start).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+      });
+      const isToday = new Date(nextBooking.start).toDateString() === new Date().toDateString();
       return {
         status: "available",
         label: "Available",
-        detail: `Until ${formatTime(startTime)}`,
+        detail: `Until ${formatTime(startTime)}${isToday ? '' : ` on ${startDate}`}`,
         booking: nextBooking,
         color: "bg-green-500"
       };
@@ -253,14 +267,7 @@ export default function StudiosPage() {
                             <div className="text-xs text-gray-500">
                               {formatTime(studioStatus.booking.start)}
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {new Date(studioStatus.booking.start).toLocaleDateString('en-US', {
-                                timeZone: 'America/Chicago',
-                                month: 'short',
-                                day: 'numeric',
-                                year: new Date(studioStatus.booking.start).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-                              })}
-                            </div>
+
                             {getOtherLinkedStudios(studioStatus.booking, studio.id) && (
                               <div className="text-xs text-blue-600 mt-0.5 truncate">
                                 {getOtherLinkedStudios(studioStatus.booking, studio.id)}
