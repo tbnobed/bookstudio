@@ -29,7 +29,7 @@ export function MobileBanner() {
         <img 
           src={bookstudioLogo} 
           alt="BookStud.io Logo" 
-          className="h-8 w-auto mx-auto drop-shadow-lg mt-1"
+          className="h-16 w-auto mx-auto drop-shadow-lg mt-1"
         />
         <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
       </div>
