@@ -123,9 +123,19 @@ export default function MobileDailyView({
   } = useStudioStatus(todayBookings);
   
   // Fetch booking-studios junction data
-  const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({
+  const { data: bookingStudios = [], isLoading: bookingStudiosLoading, error: bookingStudiosError } = useQuery<{ bookingId: number, studioId: number }[]>({
     queryKey: ['/api/booking-studios'],
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Always refetch when component mounts
   });
+  
+  // Debug logging for booking studios data
+  console.log("BookingStudios query status:", { 
+    loading: bookingStudiosLoading, 
+    error: bookingStudiosError, 
+    dataLength: bookingStudios.length 
+  });
+  console.log("All bookingStudios data:", bookingStudios);
   
   // Fetch PCR rooms
   const { data: pcrRooms = [] } = useQuery<any[]>({
