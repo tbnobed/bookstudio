@@ -62,12 +62,12 @@ export default function MobileCalendarPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen mobile-gradient-bg overflow-hidden">
-      {/* Modern Site Banner */}
-      <MobileBanner />
-      
-      {/* White content area - matches My Bookings structure */}
-      <div className="flex-1 overflow-hidden flex flex-col bg-white">
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+      {/* White content area with banner inside - matches My Bookings structure */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {/* Modern Site Banner at top of white content */}
+        <MobileBanner />
+        
         <MobileDailyView
           currentDate={currentDate}
           onDateChange={handleDateChange}
