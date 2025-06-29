@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import WeatherWidget from "@/components/weather/WeatherWidget";
 
 interface Studio {
   id: number;
@@ -113,6 +114,23 @@ export default function StudiosPage() {
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto p-3">
           <div className={`${isMobile ? 'bg-white/90 backdrop-blur-sm' : 'bg-white'} rounded-lg shadow-sm p-4`}>
+            {/* Weather Section - Only on mobile */}
+            {isMobile && (
+              <div className="mb-6">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
+                  <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
+                    <Clock className="h-5 w-5 text-blue-600" />
+                    Weather & Forecast
+                  </h2>
+                  <WeatherWidget 
+                    showForecast={true} 
+                    size="normal" 
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="mb-4">
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <Tv className="h-5 w-5" />
