@@ -41,16 +41,36 @@ export default function StudiosPage() {
     queryKey: ["/api/bookings"],
   });
 
+  const { data: bookingStudios = [] } = useQuery<any[]>({
+    queryKey: ["/api/booking-studios"],
+  });
+
   // Get current time for comparison
   const now = new Date();
   
   // Function to get current booking for a studio
   const getCurrentBooking = (studioId: number) => {
     return bookings.find(booking => {
-      if (booking.studioId !== studioId) return false;
-      const start = new Date(booking.start);
-      const end = new Date(booking.end);
-      return start <= now && end > now;
+      // Check direct studio link
+      if (booking.studioId === studioId) {
+        const start = new Date(booking.start);
+        const end = new Date(booking.end);
+        return start <= now && end > now;
+      }
+      
+      // Check junction table links
+      const hasJunctionLink = bookingStudios.some(bs => 
+        Number(bs.bookingId) === Number(booking.id) && 
+        Number(bs.studioId) === Number(studioId)
+      );
+      
+      if (hasJunctionLink) {
+        const start = new Date(booking.start);
+        const end = new Date(booking.end);
+        return start <= now && end > now;
+      }
+      
+      return false;
     });
   };
 
@@ -58,13 +78,74 @@ export default function StudiosPage() {
   const getNextBooking = (studioId: number) => {
     const futureBookings = bookings
       .filter(booking => {
-        if (booking.studioId !== studioId) return false;
-        const start = new Date(booking.start);
-        return start > now;
+        // Check direct studio link
+        if (booking.studioId === studioId) {
+          const start = new Date(booking.start);
+          return start > now;
+        }
+        
+        // Check junction table links
+        const hasJunctionLink = bookingStudios.some(bs => 
+          Number(bs.bookingId) === Number(booking.id) && 
+          Number(bs.studioId) === Number(studioId)
+        );
+        
+        if (hasJunctionLink) {
+          const start = new Date(booking.start);
+          return start > now;
+        }
+        
+        return false;
       })
       .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
     
     return futureBookings[0];
+  };
+
+  // Function to get all linked studios for a booking
+  const getLinkedStudiosForBooking = (booking: any): string[] => {
+    if (!booking) return [];
+    
+    const studioNames: string[] = [];
+    
+    // Check direct studio reference first
+    if (booking.studioId) {
+      const studio = studios.find(s => s.id === booking.studioId);
+      if (studio) {
+        studioNames.push(studio.name);
+      }
+    }
+    
+    // Add studios from the bookingStudios junction table
+    const links = bookingStudios.filter(bs => 
+      Number(bs.bookingId) === Number(booking.id)
+    );
+    
+    if (links && links.length > 0) {
+      links.forEach(link => {
+        const studio = studios.find(s => s.id === link.studioId);
+        if (studio && !studioNames.includes(studio.name)) {
+          studioNames.push(studio.name);
+        }
+      });
+    }
+    
+    return studioNames;
+  };
+
+  // Function to get other linked studios (excluding current studio)
+  const getOtherLinkedStudios = (booking: any, currentStudioId: number): string => {
+    const allLinkedStudios = getLinkedStudiosForBooking(booking);
+    const currentStudio = studios.find(s => s.id === currentStudioId);
+    
+    if (!currentStudio) return "";
+    
+    // Remove current studio from the list
+    const otherStudios = allLinkedStudios.filter(name => name !== currentStudio.name);
+    
+    if (otherStudios.length === 0) return "";
+    if (otherStudios.length === 1) return `+ ${otherStudios[0]}`;
+    return `+ ${otherStudios.length} other studios`;
   };
 
   // Function to get studio status
@@ -172,6 +253,11 @@ export default function StudiosPage() {
                             <div className="text-xs text-gray-500">
                               {formatTime(studioStatus.booking.start)}
                             </div>
+                            {getOtherLinkedStudios(studioStatus.booking, studio.id) && (
+                              <div className="text-xs text-blue-600 mt-0.5 truncate">
+                                {getOtherLinkedStudios(studioStatus.booking, studio.id)}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
