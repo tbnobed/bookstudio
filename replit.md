@@ -285,6 +285,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 29, 2025: RESTORED full 24-hour display in engineering view - changed engineering calendar from 5 AM-2 AM (21 hours) back to complete midnight-to-midnight (24 hours) display, updated booking positioning logic and current time indicator to work with full day view for comprehensive facility scheduling visibility
 - June 29, 2025: ENHANCED monthly view booking entries with start and end times - updated monthly calendar to display both start time and end time for each booking entry instead of just start time, providing complete scheduling information at a glance
 - June 29, 2025: INCREASED weather widget size - enlarged weather badge text and icons across all size variants (compact/normal/large) for better visibility and readability on facility displays
+- June 29, 2025: FIXED critical weather widget timezone inconsistency - both WeatherWidget and useWeatherForecast components now use FACILITY_TIMEZONE for proper date handling, ensuring all weather widgets display consistent Sunday June 29th data in Central timezone instead of conflicting UTC-based dates
 
 ## User Preferences
 
