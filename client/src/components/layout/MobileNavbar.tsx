@@ -15,6 +15,7 @@ export default function MobileNavbar() {
   const { user, logoutMutation } = useAuth();
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const { selectedDate } = useCalendarContext();
   
   // Handle logout
@@ -60,7 +61,7 @@ export default function MobileNavbar() {
           
           {/* Add Button with Options */}
           <div className="flex flex-col items-center justify-center w-full h-full">
-            <Sheet>
+            <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
               <SheetTrigger asChild>
                 <button className="rounded-full bg-blue-600 p-3 text-white shadow-md">
                   <PlusCircle size={24} />
@@ -75,6 +76,7 @@ export default function MobileNavbar() {
                   <button
                     onClick={() => {
                       setIsNewBookingModalOpen(true);
+                      setIsCreateSheetOpen(false);
                     }}
                     className="flex items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 w-full text-left"
                   >
@@ -88,6 +90,7 @@ export default function MobileNavbar() {
                   <button
                     onClick={() => {
                       setIsNewAlertModalOpen(true);
+                      setIsCreateSheetOpen(false);
                     }}
                     className="flex items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 w-full text-left"
                   >
