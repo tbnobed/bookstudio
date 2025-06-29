@@ -296,7 +296,7 @@ export default function WeeklyCalendar({
         <div className="min-w-[1000px]">
           {/* Calendar Days Header with Weather Forecast */}
           <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-30 bg-white shadow-sm">
-            <div className="h-20 border-b border-r bg-white z-30"></div>
+            <div className="h-32 border-b border-r bg-white z-30"></div>
             {weekDates.map((date, index) => {
               const dateString = date.toISOString().split('T')[0];
               const dayForecast = forecast?.forecast.find(f => f.date === dateString);
@@ -305,14 +305,14 @@ export default function WeeklyCalendar({
                 <div 
                   key={index} 
                   className={cn(
-                    "h-20 border-b text-center flex flex-col justify-center z-30 p-1",
+                    "h-32 border-b text-center flex flex-col justify-center z-30 p-2",
                     isWeekend(date) ? "bg-gray-50" : "bg-white",
                     new Date().toDateString() === date.toDateString() && "bg-blue-50 border-blue-200"
                   )}
                 >
-                  <div className="text-sm font-medium">{SHORT_DAY_NAMES[date.getDay()]}</div>
+                  <div className="text-sm font-medium mb-1">{SHORT_DAY_NAMES[date.getDay()]}</div>
                   <div className={cn(
-                    "text-lg font-semibold mb-1",
+                    "text-lg font-semibold mb-2",
                     new Date().toDateString() === date.toDateString() && "text-blue-600 rounded-full w-8 h-8 mx-auto flex items-center justify-center bg-blue-100"
                   )}>
                     {date.getDate()}
@@ -320,7 +320,7 @@ export default function WeeklyCalendar({
                   <WeatherForecastCell 
                     date={date} 
                     forecast={dayForecast || null} 
-                    size="small" 
+                    size="detailed" 
                   />
                 </div>
               );

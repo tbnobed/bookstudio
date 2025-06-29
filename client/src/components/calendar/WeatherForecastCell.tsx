@@ -1,4 +1,4 @@
-import { Cloud, Sun, CloudRain, CloudSnow, Droplets, Wind } from 'lucide-react';
+import { Cloud, Sun, CloudRain, CloudSnow, Droplets, Wind, Gauge, Eye, Zap } from 'lucide-react';
 import type { ForecastDay } from '@/hooks/useWeatherForecast';
 
 interface WeatherForecastCellProps {
