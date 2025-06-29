@@ -90,6 +90,12 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
         
         if (currentResponse.ok) {
           const currentData = await currentResponse.json();
+          console.log("WeatherWidget: Current weather data:", {
+            temp: currentData.main.temp,
+            condition: currentData.weather[0].description,
+            location: currentData.name,
+            timestamp: new Date().toISOString()
+          });
           setWeather({
             temperature: Math.round(currentData.main.temp),
             condition: currentData.weather[0].description,
@@ -169,8 +175,8 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
 
     fetchWeatherData();
     
-    // Refresh weather data every 5 minutes
-    const interval = setInterval(fetchWeatherData, 5 * 60 * 1000);
+    // Refresh weather data every 30 seconds for debugging
+    const interval = setInterval(fetchWeatherData, 30 * 1000);
     
     return () => clearInterval(interval);
   }, [showForecast]);

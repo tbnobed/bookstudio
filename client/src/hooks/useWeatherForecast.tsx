@@ -121,6 +121,9 @@ export function useWeatherForecast() {
           });
         });
         
+        console.log("useWeatherForecast: Processed daily forecasts:", dailyForecasts.slice(0, 3));
+        console.log("useWeatherForecast: Today's forecast from API:", dailyForecasts.find(f => f.date === format(toZonedTime(new Date(), FACILITY_TIMEZONE), 'yyyy-MM-dd', { timeZone: FACILITY_TIMEZONE })));
+        
         setForecast({ forecast: dailyForecasts.slice(0, 14) }); // Get up to 14 days
         setError(null);
       } catch (error) {
