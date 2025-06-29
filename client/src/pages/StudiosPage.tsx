@@ -35,14 +35,16 @@ export default function StudiosPage() {
     select: (data: any) => data?.siteName || "BookStud.io"
   });
   
-  // Use the same data source as mobile calendar
-  const { bookings } = useStudioBookings();
+  // Get bookings for current time window to check real-time status
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   
-  // Use the studio status hook with the filtered bookings
+  const { bookings, isLoading } = useStudioBookings(oneWeekAgo, oneWeekFromNow);
   const { getAllStudiosWithStatus } = useStudioStatus(bookings);
   
-  // Get all studios with their status
-  const studiosWithStatus = getAllStudiosWithStatus();
+  // Get all studios with their status - wait for bookings to load
+  const studiosWithStatus = isLoading ? [] : getAllStudiosWithStatus();
 
   return (
     <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
