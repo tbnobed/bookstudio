@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate, FACILITY_TIMEZONE } from "@/lib/dateUtils";
+import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate, FACILITY_TIMEZONE, isBookingActive } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag, Tv } from "lucide-react";
@@ -409,6 +409,9 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                     // Check if this is an alert booking
                     const isAlert = isAlertBooking(booking);
                     
+                    // Check if booking is currently active
+                    const isActive = isBookingActive(booking);
+                    
                     // Use memoized classes for better performance
                     const { colorClass, borderStyle, customStyle, bookingType } = getBookingStyles(booking, isAlert);
                     
@@ -422,7 +425,8 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                               borderStyle,
                               "flex justify-between items-center",
                               isAlert ? "cursor-default" : (readOnly ? "cursor-default" : "cursor-pointer"),
-                              isAlert && "ring-1 ring-opacity-50"
+                              isAlert && "ring-1 ring-opacity-50",
+                              isActive && "animate-pulse ring-2 ring-green-400 ring-opacity-75 shadow-lg"
                             )}
                             style={!isAlert && booking.color ? customStyle : {}}
                             onClick={(e) => handleBookingClick(e, booking)}
@@ -537,6 +541,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                           <div className="max-h-60 overflow-y-auto space-y-1">
                             {getBookingsForDay(date).map((booking) => {
                               const isAlert = isAlertBooking(booking);
+                              const isActive = isBookingActive(booking);
                               const { colorClass, borderStyle, customStyle } = getBookingStyles(booking, isAlert);
                               
                               return (
@@ -547,7 +552,8 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                                     !isAlert && booking.color ? "" : colorClass,
                                     borderStyle,
                                     "flex justify-between items-center",
-                                    isAlert && "ring-1 ring-opacity-50"
+                                    isAlert && "ring-1 ring-opacity-50",
+                                    isActive && "animate-pulse ring-2 ring-green-400 ring-opacity-75 shadow-lg"
                                   )}
                                   style={!isAlert && booking.color ? customStyle : {}}
                                 >

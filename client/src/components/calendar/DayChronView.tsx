@@ -263,6 +263,9 @@ export default function DayChronView({
     const isCancelled = booking.status === 'cancelled';
     const isTentative = booking.status === 'tentative';
     
+    // Check if booking is currently active
+    const isActive = isBookingActive(booking);
+    
     console.log("[DEBUG] Processing booking:", booking.id, booking.title, "isAlert:", isAlert, "status:", booking.status);
     
     const typeClass = getTypeClass(booking.type, booking.severity);
@@ -284,7 +287,8 @@ export default function DayChronView({
               "border rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors",
               typeClass,
               isTentative && "border-dashed opacity-80 bg-gray-100",
-              isCancelled && "opacity-60 bg-gray-100"
+              isCancelled && "opacity-60 bg-gray-100",
+              isActive && "animate-pulse ring-2 ring-green-400 ring-opacity-75 shadow-lg"
             )}
             style={{
               borderLeftColor: severityColor,
