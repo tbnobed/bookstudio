@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import { Tv, MapPin, Settings, Clock } from "lucide-react";
+import { formatTime } from "@/lib/dateUtils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -77,7 +77,7 @@ export default function StudiosPage() {
       return {
         status: "in-use",
         label: "In Use",
-        detail: `Until ${format(endTime, "h:mm a")}`,
+        detail: `Until ${formatTime(endTime)}`,
         booking: currentBooking,
         color: "bg-red-500"
       };
@@ -88,7 +88,7 @@ export default function StudiosPage() {
       return {
         status: "available",
         label: "Available",
-        detail: `Until ${format(startTime, "h:mm a")}`,
+        detail: `Until ${formatTime(startTime)}`,
         booking: nextBooking,
         color: "bg-green-500"
       };
@@ -170,7 +170,7 @@ export default function StudiosPage() {
                               {studioStatus.booking.title}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {format(new Date(studioStatus.booking.start), "h:mm a")}
+                              {formatTime(studioStatus.booking.start)}
                             </div>
                           </div>
                         )}
