@@ -474,8 +474,8 @@ export default function EngineeringPage() {
                                 }}
                               >
                                 <div className="flex items-center gap-1 mb-1">
-                                  <AlertTriangle className="w-3 h-3" />
-                                  <span className="font-medium truncate">{alert.title}</span>
+                                  <AlertTriangle className="w-2.5 h-2.5" />
+                                  <span className="font-medium truncate text-xs">{alert.title}</span>
                                 </div>
                                 <div className="text-xs opacity-75">
                                   {format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}
@@ -627,7 +627,7 @@ export default function EngineeringPage() {
                         >
                           {/* Time label */}
                           <div
-                            className="absolute left-4 -top-5 px-3 py-2 bg-red-500 text-white text-sm font-bold rounded shadow-lg whitespace-nowrap z-50"
+                            className="absolute left-4 -top-5 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded shadow-lg whitespace-nowrap z-50"
                           >
                             {format(currentTime, 'h:mm a')}
                           </div>
@@ -666,7 +666,7 @@ export default function EngineeringPage() {
                           <Tooltip key={booking.id}>
                             <TooltipTrigger asChild>
                               <div
-                                className={`absolute rounded text-base p-3 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden ${
+                                className={`absolute rounded text-sm p-2 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden ${
                                   severityStyle ? 'font-semibold' : 'text-white'
                                 } ${
                                   severityStyle && severityStyle.pattern === 'diagonal-stripes' ? 'bg-stripe-pattern' : ''
@@ -676,7 +676,7 @@ export default function EngineeringPage() {
                                   textShadow: severityStyle ? '1px 1px 1px rgba(0,0,0,0.6)' : '1px 1px 1px rgba(0,0,0,0.5)'
                                 }}
                               >
-                                <div className="font-bold text-lg mb-1 leading-tight">
+                                <div className="font-bold text-base mb-1 leading-tight">
                                   {severityStyle && (
                                     <span className="text-xs px-1 py-0.5 rounded bg-black bg-opacity-20 font-bold mr-1">
                                       ⚠ {booking.severity?.toUpperCase()}
@@ -685,7 +685,7 @@ export default function EngineeringPage() {
                                   <span className="break-words">{booking.title}</span>
                                 </div>
                                 
-                                <div className="space-y-1 text-sm leading-relaxed">
+                                <div className="space-y-1 text-xs leading-relaxed">
                                   <div className={`font-medium ${severityStyle ? 'opacity-90' : 'opacity-95'}`}>
                                     {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                                   </div>
