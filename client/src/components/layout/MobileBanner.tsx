@@ -22,8 +22,8 @@ export function MobileBanner() {
       </div>
       
       {/* Content */}
-      <div className="relative px-6 py-8 text-center">
-        <h1 className="text-2xl font-bold text-white tracking-wide drop-shadow-lg mb-4">
+      <div className="relative px-6 py-6 text-center">
+        <h1 className="text-2xl font-bold text-white tracking-wide drop-shadow-lg mb-2">
           {siteName}
         </h1>
         <img 
