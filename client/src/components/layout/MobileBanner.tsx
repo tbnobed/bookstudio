@@ -19,7 +19,7 @@ export function MobileBanner() {
       </div>
       
       {/* Content */}
-      <div className="relative px-6 py-4 text-center">
+      <div className="relative px-6 py-6 text-center">
         <div className="flex items-center justify-center gap-3">
           <img 
             src="/bookstudio-logo.png" 
