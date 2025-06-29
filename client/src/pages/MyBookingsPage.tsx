@@ -106,7 +106,7 @@ export default function MyBookingsPage() {
           </div>
           
           {/* Content with extended height */}
-          <div className="relative px-6 py-6 text-center">
+          <div className="relative px-6 py-6 text-center flex items-center justify-center min-h-[5rem]">
             <div className="flex items-center justify-center gap-3">
               <img 
                 src="/bookstudio-logo.png" 
@@ -117,7 +117,7 @@ export default function MyBookingsPage() {
                 {siteName}
               </h1>
             </div>
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
           </div>
         </div>
       )}
