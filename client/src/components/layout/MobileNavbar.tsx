@@ -58,14 +58,48 @@ export default function MobileNavbar() {
             <span className="text-xs mt-1">My Bookings</span>
           </button>
           
-          {/* Add Booking Button */}
+          {/* Add Button with Options */}
           <div className="flex flex-col items-center justify-center w-full h-full">
-            <button 
-              onClick={() => setIsNewBookingModalOpen(true)}
-              className="rounded-full bg-blue-600 p-3 text-white shadow-md"
-            >
-              <PlusCircle size={24} />
-            </button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="rounded-full bg-blue-600 p-3 text-white shadow-md">
+                  <PlusCircle size={24} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-auto">
+                <SheetHeader className="mb-4">
+                  <SheetTitle>Create New</SheetTitle>
+                </SheetHeader>
+                
+                <div className="grid grid-cols-1 gap-4 pb-4">
+                  <button
+                    onClick={() => {
+                      setIsNewBookingModalOpen(true);
+                    }}
+                    className="flex items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 w-full text-left"
+                  >
+                    <Calendar className="mr-3 h-6 w-6 text-blue-600" />
+                    <div>
+                      <div className="font-medium">Create Booking</div>
+                      <div className="text-sm text-gray-500">Schedule studio time</div>
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setIsNewAlertModalOpen(true);
+                    }}
+                    className="flex items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 w-full text-left"
+                  >
+                    <Bell className="mr-3 h-6 w-6 text-orange-600" />
+                    <div>
+                      <div className="font-medium">Create Alert</div>
+                      <div className="text-sm text-gray-500">Facility maintenance or notification</div>
+                    </div>
+                  </button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
           
           {/* Studios */}
@@ -182,13 +216,7 @@ export default function MobileNavbar() {
                   </button>
                 )}
                 
-                <button 
-                  onClick={() => setIsNewAlertModalOpen(true)}
-                  className="flex items-center p-2 rounded-md hover:bg-gray-100 w-full text-left"
-                >
-                  <Bell className="mr-2 h-5 w-5" />
-                  <span>Create Alert</span>
-                </button>
+
                 
                 <button 
                   onClick={navigateTo("/settings")}
