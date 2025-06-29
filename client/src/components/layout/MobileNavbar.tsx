@@ -42,8 +42,8 @@ export default function MobileNavbar() {
         <div className="flex items-center justify-around h-16">
           {/* Calendar Link */}
           <button 
-            onClick={navigateTo("/")}
-            className={`flex flex-col items-center justify-center w-full h-full ${location === "/" ? "text-blue-600" : "text-gray-600"}`}
+            onClick={navigateTo("/calendar")}
+            className={`flex flex-col items-center justify-center w-full h-full ${location === "/calendar" ? "text-blue-600" : "text-gray-600"}`}
           >
             <Calendar size={20} />
             <span className="text-xs mt-1">Calendar</span>
@@ -70,8 +70,8 @@ export default function MobileNavbar() {
           
           {/* Studios */}
           <button 
-            onClick={navigateTo("/studios")}
-            className={`flex flex-col items-center justify-center w-full h-full ${location === "/studios" ? "text-blue-600" : "text-gray-600"}`}
+            onClick={navigateTo("/")}
+            className={`flex flex-col items-center justify-center w-full h-full ${location === "/" ? "text-blue-600" : "text-gray-600"}`}
           >
             <Tv size={20} />
             <span className="text-xs mt-1">Studios</span>

@@ -37,7 +37,7 @@ function Router() {
   const CalendarComponent = isSmallScreen ? MobileCalendarPage : CalendarPage;
   
   // Mobile-first home component - Studios page for mobile, Calendar for desktop
-  const HomeComponent = isSmallScreen ? StudiosPage : CalendarComponent;
+  const HomeComponent = isSmallScreen ? StudiosPage : CalendarPage;
   
   return (
     <Switch>
