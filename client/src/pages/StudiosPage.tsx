@@ -8,23 +8,12 @@ import { cn } from "@/lib/utils";
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { MobileBanner } from "@/components/layout/MobileBanner";
 import { useStudioStatus } from "@/hooks/use-studio-status";
-import { useStudioBookings } from "@/hooks/useStudioBookings";
 
 interface Studio {
   id: number;
   name: string;
   description: string | null;
   status: string;
-}
-
-interface Booking {
-  id: number;
-  title: string;
-  start: string;
-  end: string;
-  studioId: number | null;
-  status: string;
-  color?: string;
 }
 
 export default function StudiosPage() {
@@ -40,8 +29,23 @@ export default function StudiosPage() {
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   
-  const { bookings, isLoading } = useStudioBookings(oneWeekAgo, oneWeekFromNow);
-  const { getAllStudiosWithStatus } = useStudioStatus(bookings);
+  // Use a direct query for just bookings (don't need user bookings for Studios page)
+  const { data: bookings = [], isLoading } = useQuery<any[]>({
+    queryKey: ['/api/bookings', { start: oneWeekAgo.toISOString(), end: oneWeekFromNow.toISOString() }],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        start: oneWeekAgo.toISOString(),
+        end: oneWeekFromNow.toISOString()
+      });
+      const response = await fetch(`/api/bookings?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch bookings');
+      }
+      return response.json();
+    },
+  });
+  
+  const { getAllStudiosWithStatus } = useStudioStatus(bookings as any);
   
   // Get all studios with their status - only when bookings are loaded
   const studiosWithStatus = !isLoading ? getAllStudiosWithStatus() : [];
