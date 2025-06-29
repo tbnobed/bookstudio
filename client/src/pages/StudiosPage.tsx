@@ -161,7 +161,7 @@ export default function StudiosPage() {
         day: 'numeric',
         year: new Date(currentBooking.end).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
       });
-      const isToday = new Date(currentBooking.end).toDateString() === new Date().toDateString();
+      const isToday = new Date(currentBooking.end).toLocaleDateString('en-US', { timeZone: 'America/Chicago' }) === new Date().toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
       return {
         status: "in-use",
         label: "In Use",
@@ -179,7 +179,7 @@ export default function StudiosPage() {
         day: 'numeric',
         year: new Date(nextBooking.start).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
       });
-      const isToday = new Date(nextBooking.start).toDateString() === new Date().toDateString();
+      const isToday = new Date(nextBooking.start).toLocaleDateString('en-US', { timeZone: 'America/Chicago' }) === new Date().toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
       return {
         status: "available",
         label: "Available",
