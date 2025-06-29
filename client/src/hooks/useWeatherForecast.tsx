@@ -8,6 +8,10 @@ export interface ForecastDay {
   };
   condition: string;
   icon: string;
+  humidity?: number;
+  windSpeed?: number;
+  pressure?: number;
+  feelsLike?: number;
 }
 
 export interface WeatherForecast {
@@ -76,7 +80,11 @@ export function useWeatherForecast() {
           dailyData.set(today, {
             temps: [currentData.main.temp, currentData.main.temp_min, currentData.main.temp_max],
             conditions: [currentData.weather[0].description],
-            icons: [currentData.weather[0].icon]
+            icons: [currentData.weather[0].icon],
+            humidity: [currentData.main.humidity],
+            windSpeed: [currentData.wind?.speed || 0],
+            pressure: [currentData.main.pressure],
+            feelsLike: [currentData.main.feels_like]
           });
         }
         
@@ -88,7 +96,11 @@ export function useWeatherForecast() {
             dailyData.set(dateString, {
               temps: [],
               conditions: [],
-              icons: []
+              icons: [],
+              humidity: [],
+              windSpeed: [],
+              pressure: [],
+              feelsLike: []
             });
           }
           
@@ -96,6 +108,10 @@ export function useWeatherForecast() {
           dayData.temps.push(item.main.temp);
           dayData.conditions.push(item.weather[0].description);
           dayData.icons.push(item.weather[0].icon);
+          dayData.humidity.push(item.main.humidity);
+          dayData.windSpeed.push(item.wind?.speed || 0);
+          dayData.pressure.push(item.main.pressure);
+          dayData.feelsLike.push(item.main.feels_like);
         });
 
         const dailyForecasts: ForecastDay[] = [];
@@ -107,6 +123,12 @@ export function useWeatherForecast() {
           // Use midday condition and icon
           const middayIndex = Math.floor(data.conditions.length / 2);
           
+          // Calculate averages for additional weather data
+          const avgHumidity = data.humidity.length > 0 ? Math.round(data.humidity.reduce((a, b) => a + b, 0) / data.humidity.length) : undefined;
+          const avgWindSpeed = data.windSpeed.length > 0 ? Math.round(data.windSpeed.reduce((a, b) => a + b, 0) / data.windSpeed.length) : undefined;
+          const avgPressure = data.pressure.length > 0 ? Math.round(data.pressure.reduce((a, b) => a + b, 0) / data.pressure.length) : undefined;
+          const avgFeelsLike = data.feelsLike.length > 0 ? Math.round(data.feelsLike.reduce((a, b) => a + b, 0) / data.feelsLike.length) : undefined;
+          
           dailyForecasts.push({
             date: dateString,
             temperature: {
@@ -114,7 +136,11 @@ export function useWeatherForecast() {
               max: Math.round(maxTemp)
             },
             condition: data.conditions[middayIndex],
-            icon: data.icons[middayIndex]
+            icon: data.icons[middayIndex],
+            humidity: avgHumidity,
+            windSpeed: avgWindSpeed,
+            pressure: avgPressure,
+            feelsLike: avgFeelsLike
           });
         });
         

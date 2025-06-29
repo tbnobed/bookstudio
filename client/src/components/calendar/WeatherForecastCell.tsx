@@ -1,10 +1,10 @@
-import { Cloud, Sun, CloudRain, CloudSnow } from 'lucide-react';
+import { Cloud, Sun, CloudRain, CloudSnow, Droplets, Wind } from 'lucide-react';
 import type { ForecastDay } from '@/hooks/useWeatherForecast';
 
 interface WeatherForecastCellProps {
   date: Date;
   forecast: ForecastDay | null;
-  size?: 'small' | 'normal';
+  size?: 'small' | 'normal' | 'detailed';
 }
 
 const getWeatherIcon = (iconCode: string) => {
@@ -31,6 +31,38 @@ export default function WeatherForecastCell({ date, forecast, size = 'normal' }:
   const WeatherIcon = getWeatherIcon(forecast.icon);
   
   const isSmall = size === 'small';
+  const isDetailed = size === 'detailed';
+  
+  if (isDetailed) {
+    return (
+      <div className="bg-blue-50/70 rounded-lg p-2 space-y-1">
+        <div className="flex items-center justify-center space-x-1">
+          <WeatherIcon className="h-5 w-5 text-blue-500" />
+          <div className="flex items-center space-x-0.5">
+            <span className="font-medium text-sm">{forecast.temperature.max}°</span>
+            <span className="text-gray-400 text-xs">{forecast.temperature.min}°</span>
+          </div>
+        </div>
+        <div className="text-xs text-gray-600 capitalize text-center">{forecast.condition}</div>
+        {(forecast.humidity || forecast.windSpeed) && (
+          <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
+            {forecast.humidity && (
+              <div className="flex items-center space-x-0.5">
+                <Droplets className="h-3 w-3" />
+                <span>{forecast.humidity}%</span>
+              </div>
+            )}
+            {forecast.windSpeed && (
+              <div className="flex items-center space-x-0.5">
+                <Wind className="h-3 w-3" />
+                <span>{forecast.windSpeed}mph</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
   
   return (
     <div className={`flex items-center justify-center space-x-1 ${isSmall ? 'text-xs' : 'text-sm'} text-gray-600 bg-blue-50/50 px-1 py-0.5 rounded`}>
