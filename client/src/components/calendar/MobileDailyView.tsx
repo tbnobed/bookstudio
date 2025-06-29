@@ -416,7 +416,7 @@ export default function MobileDailyView({
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden mobile-gradient-bg">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Modern Site Banner */}
       <MobileBanner />
       

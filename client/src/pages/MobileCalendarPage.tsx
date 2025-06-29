@@ -61,7 +61,7 @@ export default function MobileCalendarPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+    <div className="flex flex-col h-screen mobile-gradient-bg overflow-hidden">
       {/* Main content - MobileNavbar is now added by MobileLayout component */}
       <div className="flex-1 overflow-hidden flex flex-col">
         <MobileDailyView
