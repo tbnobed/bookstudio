@@ -839,18 +839,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (bookingId) {
         // Get links for a specific booking
-        console.log(`API: Getting booking-studio links for booking ${bookingId}`);
         const links = await storage.getBookingStudioLinks(bookingId);
-        console.log(`API: Found ${links.length} links for booking ${bookingId}:`, links.map(l => `${l.bookingId}->${l.studioId}`));
         return res.json(links);
       } else {
         // Get all booking-studio links for the calendar view
-        console.log("API: Getting ALL booking-studio links");
         const links = await storage.getAllBookingStudioLinks();
-        console.log(`API: Returning ${links.length} total booking-studio links`);
-        // Debug: Check for booking 218 specifically
-        const booking218Links = links.filter(l => l.bookingId === 218);
-        console.log(`API: Booking 218 has ${booking218Links.length} links:`, booking218Links.map(l => `${l.bookingId}->${l.studioId}`));
         return res.json(links);
       }
     } catch (error) {

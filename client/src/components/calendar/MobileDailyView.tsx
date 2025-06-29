@@ -122,7 +122,10 @@ export default function MobileDailyView({
     now 
   } = useStudioStatus(todayBookings);
   
-
+  // Fetch booking-studios junction data
+  const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({
+    queryKey: ['/api/booking-studios'],
+  });
   
   // Fetch PCR rooms
   const { data: pcrRooms = [] } = useQuery<any[]>({
@@ -138,11 +141,48 @@ export default function MobileDailyView({
     staleTime: 1000 * 60 * 30, // Cache for 30 minutes
   });
   
-  // Group bookings by studio
+  // Merge booking-studios data into the bookings
+  const bookingsWithStudios = useMemo<BookingWithStudios[]>(() => {
+    return todayBookings.map(booking => {
+      // Find all entries in bookingStudios that match this booking
+      const relatedBookingStudios = bookingStudios.filter(
+        bs => bs.bookingId === booking.id
+      );
+      
+      // Return a new booking object with the bookingStudios property
+      return {
+        ...booking,
+        bookingStudios: relatedBookingStudios
+      };
+    });
+  }, [todayBookings, bookingStudios]);
+
+  // Log the booking studios data
+  console.log("All bookingStudios data:", bookingStudios);
+  
+  // Group bookings by studio (including linked bookings through booking_studios)
   const bookingsByStudio = studios.reduce((acc, studio) => {
-    acc[studio.id] = todayBookings.filter(booking => booking.studioId === studio.id);
+    // Get all bookings that are linked to this studio (either directly or through booking_studios)
+    acc[studio.id] = bookingsWithStudios.filter(booking => {
+      // Direct studio reference
+      if (booking.studioId === studio.id) {
+        console.log(`Booking ${booking.id} (${booking.title}) is directly linked to Studio ${studio.id} (${studio.name})`);
+        return true;
+      }
+      
+      // Check booking_studios junction table
+      if (booking.bookingStudios && booking.bookingStudios.length > 0) {
+        const isLinked = booking.bookingStudios.some(bs => bs.studioId === studio.id);
+        if (isLinked) {
+          console.log(`Booking ${booking.id} (${booking.title}) is linked via junction table to Studio ${studio.id} (${studio.name})`);
+        }
+        return isLinked;
+      }
+      
+      return false;
+    });
     return acc;
-  }, {} as Record<number, Booking[]>);
+  }, {} as Record<number, BookingWithStudios[]>);
 
   // Get facility-wide alerts (bookings with studioId === null)
   const facilityAlerts = todayBookings.filter(booking => 
@@ -154,7 +194,9 @@ export default function MobileDailyView({
      booking.severity !== null) // Include any booking with a severity set
   );
   
-
+  // Debug alerts
+  console.log("Mobile view - All bookings:", todayBookings);
+  console.log("Mobile view - Facility alerts:", facilityAlerts);
 
   // Navigate to previous/next day
   const goToPreviousDay = () => {
@@ -301,11 +343,43 @@ export default function MobileDailyView({
     return studio ? studio.name : "";
   };
   
-  // Function to get studio names for a booking
+  // Function to get linked studios from the booking-studios junction table
   const getLinkedStudiosForBooking = (booking: any): string[] => {
-    if (!booking || !booking.studioId) return [];
-    const studio = studios.find(s => s.id === booking.studioId);
-    return studio ? [studio.name] : [];
+    if (!booking) return [];
+    
+    console.log(`Getting linked studios for booking ${booking.id} (${booking.title})`);
+    
+    const studioNames: string[] = [];
+    
+    // Check direct studio reference first
+    if (booking.studioId) {
+      const studio = studios.find(s => s.id === booking.studioId);
+      if (studio) {
+        console.log(`Found direct link to studio ${studio.id} (${studio.name})`);
+        studioNames.push(studio.name);
+      }
+    }
+    
+    // Add studios from the bookingStudios lookup data we fetched
+    // Make sure we're comparing numbers to numbers
+    const links = bookingStudios.filter(bs => 
+      Number(bs.bookingId) === Number(booking.id)
+    );
+    
+    console.log(`Finding linked studios for booking ${booking.id}: found ${links.length} links`);
+    
+    if (links && links.length > 0) {
+      links.forEach(link => {
+        const studio = studios.find(s => s.id === link.studioId);
+        if (studio && !studioNames.includes(studio.name)) {
+          console.log(`Found linked studio ${studio.id} (${studio.name}) via junction table`);
+          studioNames.push(studio.name);
+        }
+      });
+    }
+    
+    console.log(`Total studios linked to booking ${booking.id}: ${studioNames.length} (${studioNames.join(', ')})`);
+    return studioNames;
   };
   
   // Function to get a summary of studio names for a booking
@@ -331,8 +405,14 @@ export default function MobileDailyView({
   
   // Function to get PCR room for a booking
   const getPcrRoom = (booking: any) => {
+    console.log("Checking PCR room for booking:", booking.id, booking.title);
+    console.log("PCR room ID:", booking.pcrRoomId);
+    console.log("Available PCR rooms:", pcrRooms);
+    
     if (!booking?.pcrRoomId) return null;
-    return pcrRooms.find(pcr => pcr.id === booking.pcrRoomId);
+    const room = pcrRooms.find(pcr => pcr.id === booking.pcrRoomId);
+    console.log("Found PCR room:", room);
+    return room;
   };
 
   return (

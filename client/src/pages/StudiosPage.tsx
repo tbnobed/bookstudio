@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Tv, MapPin, Settings, Clock } from "lucide-react";
+import { Tv, MapPin, Settings, Clock, Loader2 } from "lucide-react";
 import { formatTime } from "@/lib/dateUtils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,22 +7,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { MobileBanner } from "@/components/layout/MobileBanner";
+import { useStudioStatus } from "@/hooks/use-studio-status";
+import { useStudioBookings } from "@/hooks/useStudioBookings.ts";
 
 interface Studio {
   id: number;
   name: string;
   description: string | null;
   status: string;
-}
-
-interface Booking {
-  id: number;
-  title: string;
-  start: string;
-  end: string;
-  studioId: number | null;
-  status: string;
-  color?: string;
 }
 
 export default function StudiosPage() {
@@ -33,91 +25,25 @@ export default function StudiosPage() {
     select: (data: any) => data?.siteName || "BookStud.io"
   });
   
-  const { data: studios = [] } = useQuery<Studio[]>({
-    queryKey: ["/api/studios"],
-  });
-
-  const { data: bookings = [] } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"],
-  });
-
-  // Fetch booking-studios junction data
-  const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({
-    queryKey: ['/api/booking-studios'],
-  });
-
-  // Get current time for comparison
+  // Get bookings for current time window to check real-time status
   const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   
-  // Function to check if a booking is linked to a studio
-  const isBookingLinkedToStudio = (booking: Booking, studioId: number) => {
-    // Check direct studio assignment
-    if (booking.studioId === studioId) {
-      return true;
-    }
-    
-    // Check junction table for multi-studio bookings
-    return bookingStudios.some(bs => bs.bookingId === booking.id && bs.studioId === studioId);
-  };
+  // Get bookings using the existing hook, but only check if bookings are loading (not user bookings)
+  const { bookings } = useStudioBookings(oneWeekAgo, oneWeekFromNow);
+  
+  // Use a separate query to check if just the bookings are loaded
+  const { isLoading: bookingsLoading } = useQuery({
+    queryKey: ['/api/bookings', { start: oneWeekAgo.toISOString(), end: oneWeekFromNow.toISOString() }],
+  });
+  
+  const { getAllStudiosWithStatus } = useStudioStatus(bookings as any);
+  
+  // Get all studios with their status - only when bookings are loaded
+  const studiosWithStatus = !bookingsLoading ? getAllStudiosWithStatus() : [];
+  
 
-  // Function to get current booking for a studio
-  const getCurrentBooking = (studioId: number) => {
-    return bookings.find(booking => {
-      if (!isBookingLinkedToStudio(booking, studioId)) return false;
-      const start = new Date(booking.start);
-      const end = new Date(booking.end);
-      return start <= now && end > now;
-    });
-  };
-
-  // Function to get next booking for a studio
-  const getNextBooking = (studioId: number) => {
-    const futureBookings = bookings
-      .filter(booking => {
-        if (!isBookingLinkedToStudio(booking, studioId)) return false;
-        const start = new Date(booking.start);
-        return start > now;
-      })
-      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-    
-    return futureBookings[0];
-  };
-
-  // Function to get studio status
-  const getStudioStatus = (studio: Studio) => {
-    const currentBooking = getCurrentBooking(studio.id);
-    const nextBooking = getNextBooking(studio.id);
-    
-    if (currentBooking) {
-      const endTime = new Date(currentBooking.end);
-      return {
-        status: "in-use",
-        label: "In Use",
-        detail: `Until ${formatTime(endTime)}`,
-        booking: currentBooking,
-        color: "bg-red-500"
-      };
-    }
-    
-    if (nextBooking) {
-      const startTime = new Date(nextBooking.start);
-      return {
-        status: "available",
-        label: "Available",
-        detail: `Until ${formatTime(startTime)}`,
-        booking: nextBooking,
-        color: "bg-green-500"
-      };
-    }
-    
-    return {
-      status: "available",
-      label: "Available",
-      detail: "All day",
-      booking: null,
-      color: "bg-green-500"
-    };
-  };
 
   return (
     <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
@@ -150,9 +76,20 @@ export default function StudiosPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-              {studios.map((studio) => {
-                const studioStatus = getStudioStatus(studio);
+            {bookingsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                <span className="ml-2 text-gray-500">Loading studio status...</span>
+              </div>
+            ) : studiosWithStatus.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No studios found
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                {studiosWithStatus.map((studioWithStatus) => {
+                const studio = studioWithStatus;
+                const studioStatus = studioWithStatus.statusInfo;
                 
                 return (
                   <Card key={studio.id} className="transition-all hover:shadow-md">
@@ -173,20 +110,27 @@ export default function StudiosPage() {
                           variant={studioStatus.status === "in-use" ? "destructive" : "secondary"}
                           className="text-xs px-1.5 py-0.5 w-full justify-center"
                         >
-                          {studioStatus.label}
+                          {studioStatus.status === "in-use" ? "In Use" : 
+                           studioStatus.status === "maintenance" ? "Maintenance" :
+                           studioStatus.status === "upcoming" ? "Upcoming" : "Available"}
                         </Badge>
                         
                         <div className="text-xs text-gray-600 text-center">
-                          {studioStatus.detail}
+                          {studioStatus.currentBooking ? 
+                            `Until ${formatTime(new Date(studioStatus.currentBooking.end))}` :
+                            studioStatus.nextBooking ?
+                            `Until ${formatTime(new Date(studioStatus.nextBooking.start))}` :
+                            "All day"}
                         </div>
                         
-                        {studioStatus.booking && (
+                        {(studioStatus.currentBooking || studioStatus.nextBooking) && (
                           <div className="text-xs text-center">
                             <div className="font-medium text-gray-900 truncate">
-                              {studioStatus.booking.title}
+                              {(studioStatus.currentBooking || studioStatus.nextBooking)?.title}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {formatTime(studioStatus.booking.start)}
+                              {(studioStatus.currentBooking || studioStatus.nextBooking)?.start && 
+                               formatTime(new Date((studioStatus.currentBooking || studioStatus.nextBooking)!.start))}
                             </div>
                           </div>
                         )}
@@ -195,12 +139,6 @@ export default function StudiosPage() {
                   </Card>
                 );
               })}
-            </div>
-            
-            {studios.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <Tv className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>No studios found</p>
               </div>
             )}
           </div>
