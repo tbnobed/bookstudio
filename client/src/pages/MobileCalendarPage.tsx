@@ -66,8 +66,8 @@ export default function MobileCalendarPage() {
       {/* Modern Site Banner */}
       <MobileBanner />
       
-      {/* Main content - MobileNavbar is now added by MobileLayout component */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+      {/* White content area - matches My Bookings structure */}
+      <div className="flex-1 overflow-hidden flex flex-col bg-white">
         <MobileDailyView
           currentDate={currentDate}
           onDateChange={handleDateChange}
