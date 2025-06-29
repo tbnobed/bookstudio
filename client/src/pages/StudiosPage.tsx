@@ -106,80 +106,59 @@ export default function StudiosPage() {
       )}
       
       <div className="flex-1 overflow-auto">
-        <div className="container mx-auto p-4">
-          <div className={`${isMobile ? 'bg-white/90 backdrop-blur-sm' : 'bg-white'} rounded-lg shadow-sm p-6`}>
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Tv className="h-6 w-6" />
+        <div className="container mx-auto p-3">
+          <div className={`${isMobile ? 'bg-white/90 backdrop-blur-sm' : 'bg-white'} rounded-lg shadow-sm p-4`}>
+            <div className="mb-4">
+              <h1 className="text-xl font-bold flex items-center gap-2">
+                <Tv className="h-5 w-5" />
                 Studio Status
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 text-sm mt-1">
                 Real-time status and availability of all studios
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
               {studios.map((studio) => {
                 const studioStatus = getStudioStatus(studio);
                 
                 return (
                   <Card key={studio.id} className="transition-all hover:shadow-md">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Tv className="h-5 w-5" />
-                          {studio.name}
-                        </CardTitle>
+                    <CardContent className="p-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <Tv className="h-3 w-3" />
+                          <span className="font-semibold text-xs">{studio.name}</span>
+                        </div>
                         <div className={cn(
-                          "w-3 h-3 rounded-full",
+                          "w-2.5 h-2.5 rounded-full",
                           studioStatus.color
                         )} />
                       </div>
-                      {studio.description && (
-                        <CardDescription className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          {studio.description}
-                        </CardDescription>
-                      )}
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center justify-between">
+                      
+                      <div className="space-y-1">
                         <Badge 
                           variant={studioStatus.status === "in-use" ? "destructive" : "secondary"}
-                          className="flex items-center gap-1"
+                          className="text-xs px-1.5 py-0.5 w-full justify-center"
                         >
-                          {studioStatus.status === "in-use" ? (
-                            <Settings className="h-3 w-3" />
-                          ) : (
-                            <Clock className="h-3 w-3" />
-                          )}
                           {studioStatus.label}
                         </Badge>
-                        <span className="text-sm text-gray-600">
+                        
+                        <div className="text-xs text-gray-600 text-center">
                           {studioStatus.detail}
-                        </span>
-                      </div>
-                      
-                      {studioStatus.booking && (
-                        <div className="text-sm">
-                          <div className="font-medium text-gray-900">
-                            {studioStatus.status === "in-use" ? "Current:" : "Next:"}
-                          </div>
-                          <div className="text-gray-600">
-                            {studioStatus.booking.title}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {format(new Date(studioStatus.booking.start), "MMM d, h:mm a")} - {format(new Date(studioStatus.booking.end), "h:mm a")}
-                          </div>
                         </div>
-                      )}
-                      
-                      {studio.status !== "available" && (
-                        <Badge variant="outline" className="w-full justify-center">
-                          {studio.status === "maintenance" ? "Under Maintenance" : studio.status}
-                        </Badge>
-                      )}
+                        
+                        {studioStatus.booking && (
+                          <div className="text-xs text-center">
+                            <div className="font-medium text-gray-900 truncate">
+                              {studioStatus.booking.title}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {format(new Date(studioStatus.booking.start), "h:mm a")}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 );
