@@ -6,24 +6,15 @@ export function MobileBanner() {
   if (!siteName) return null;
   
   return (
-    <div className="relative overflow-hidden">
-      {/* Background with modern gradient and animated effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-cyan-600/20"></div>
-      
-      {/* Subtle geometric pattern overlay */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-white to-transparent rounded-full -translate-x-16 -translate-y-16"></div>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-white to-transparent rounded-full translate-x-12 -translate-y-12"></div>
-        <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-white to-transparent rounded-full translate-x-20 translate-y-20"></div>
-      </div>
+    <div className="relative">
+      {/* Subtle backdrop blur effect */}
+      <div className="absolute inset-0 bg-white/10 backdrop-blur-sm border-b border-white/20"></div>
       
       {/* Content */}
-      <div className="relative px-6 py-4 text-center">
-        <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-sm">
+      <div className="relative px-6 py-3 text-center">
+        <h1 className="text-lg font-semibold text-gray-800 tracking-wide">
           {siteName}
         </h1>
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
       </div>
     </div>
   );
