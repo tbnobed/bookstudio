@@ -253,6 +253,14 @@ export default function StudiosPage() {
                             <div className="text-xs text-gray-500">
                               {formatTime(studioStatus.booking.start)}
                             </div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(studioStatus.booking.start).toLocaleDateString('en-US', {
+                                timeZone: 'America/Chicago',
+                                month: 'short',
+                                day: 'numeric',
+                                year: new Date(studioStatus.booking.start).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                              })}
+                            </div>
                             {getOtherLinkedStudios(studioStatus.booking, studio.id) && (
                               <div className="text-xs text-blue-600 mt-0.5 truncate">
                                 {getOtherLinkedStudios(studioStatus.booking, studio.id)}
