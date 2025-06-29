@@ -122,22 +122,27 @@ export default function MobileDailyView({
     now 
   } = useStudioStatus(todayBookings);
   
-  // Fetch booking-studios junction data using the public API endpoint
-  const { data: bookingStudios = [], isLoading: bookingStudiosLoading, error: bookingStudiosError } = useQuery<{ bookingId: number, studioId: number }[]>({
-    queryKey: ['/api/public/booking-studios'],
-    staleTime: 0, // Always fetch fresh data
-    refetchOnMount: true, // Always refetch when component mounts
+  // Fetch booking-studios junction data with proper error handling
+  const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({
+    queryKey: ['/api/booking-studios'],
+    staleTime: 0,
+    refetchOnMount: true,
+    retry: false, // Don't retry on failure
+    onError: (error) => {
+      console.log("Failed to fetch booking-studios, using fallback data:", error);
+    }
   });
-  
-  // Debug logging for booking studios data
-  console.log("BookingStudios query status:", { 
-    loading: bookingStudiosLoading, 
-    error: bookingStudiosError,
-    isError,
-    failureReason,
-    dataLength: bookingStudios.length 
+
+  // Create fallback booking-studio relationships from legacy studioId field if API fails
+  const fallbackBookingStudios = todayBookings.flatMap(booking => {
+    if (booking.studioId) {
+      return [{ bookingId: booking.id, studioId: booking.studioId }];
+    }
+    return [];
   });
-  console.log("All bookingStudios data:", bookingStudios);
+
+  // Use API data if available, otherwise use fallback
+  const effectiveBookingStudios = bookingStudios.length > 0 ? bookingStudios : fallbackBookingStudios;
   
   // Fetch PCR rooms
   const { data: pcrRooms = [] } = useQuery<any[]>({
