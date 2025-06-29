@@ -203,11 +203,11 @@ export default function StudiosPage() {
   };
 
   return (
-    <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
+    <div className={isMobile ? "min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" : "flex flex-col h-screen"}>
       {/* Modern Site Banner - Only on mobile */}
       {isMobile && <MobileBanner />}
       
-      <div className="flex-1 overflow-auto">
+      <div className={isMobile ? "flex-1" : "flex-1 overflow-auto"}>
         <div className={`container mx-auto p-3 ${isMobile ? 'pb-20' : ''}`}>
           <div className={`${isMobile ? 'bg-white/90 backdrop-blur-sm' : 'bg-white'} rounded-lg shadow-sm p-4`}>
             {/* Weather Section - Only on mobile */}
