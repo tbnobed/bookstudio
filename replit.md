@@ -289,6 +289,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 29, 2025: FIXED critical double timezone conversion bug - removed redundant `{ timeZone: FACILITY_TIMEZONE }` parameters from `format()` function calls that were causing incorrect date calculations when used with `toZonedTime()` conversion, ensuring all weather widgets show data for the same day consistently using FACILITY_TIMEZONE throughout
 - June 29, 2025: EXCLUDED cancelled bookings from engineering view - updated engineering calendar to filter out cancelled bookings from both regular booking display and alerts section, providing cleaner view focused on active facility operations
 - June 29, 2025: REDUCED text sizes in engineering view by 10% - decreased booking card text from text-base to text-sm, titles from text-lg to text-base, details from text-sm to text-xs, reduced padding from p-3 to p-2, and made alert icons and text smaller for more compact display
+- June 29, 2025: ADDED BookStudio logo to mobile banner - integrated bookstudio-logo.png to the left of site name in mobile banner with proper styling and spacing for enhanced branding on mobile pages
 
 ## User Preferences
 

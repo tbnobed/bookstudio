@@ -20,9 +20,16 @@ export function MobileBanner() {
       
       {/* Content */}
       <div className="relative px-6 py-4 text-center">
-        <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-sm">
-          {siteName}
-        </h1>
+        <div className="flex items-center justify-center gap-3">
+          <img 
+            src="/bookstudio-logo.png" 
+            alt="BookStudio Logo" 
+            className="w-8 h-8 object-contain drop-shadow-sm"
+          />
+          <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-sm">
+            {siteName}
+          </h1>
+        </div>
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
       </div>
     </div>
