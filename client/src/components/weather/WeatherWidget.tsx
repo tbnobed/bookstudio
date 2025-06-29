@@ -59,8 +59,6 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
         
-        console.log("WeatherWidget: Checking API key availability...", !!apiKey);
-        
         if (!apiKey) {
           console.warn("Weather integration disabled: API key not found");
           setLoading(false);
@@ -90,12 +88,6 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
         
         if (currentResponse.ok) {
           const currentData = await currentResponse.json();
-          console.log("WeatherWidget: Current weather data:", {
-            temp: currentData.main.temp,
-            condition: currentData.weather[0].description,
-            location: currentData.name,
-            timestamp: new Date().toISOString()
-          });
           setWeather({
             temperature: Math.round(currentData.main.temp),
             condition: currentData.weather[0].description,
@@ -126,7 +118,7 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
             forecastData.list.forEach((item: any) => {
               const date = new Date(item.dt * 1000);
               const facilityDate = toZonedTime(date, FACILITY_TIMEZONE);
-              const dateString = format(facilityDate, 'yyyy-MM-dd', { timeZone: FACILITY_TIMEZONE });
+              const dateString = format(facilityDate, 'yyyy-MM-dd');
               
               if (!dailyData.has(dateString)) {
                 dailyData.set(dateString, {
@@ -175,8 +167,8 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
 
     fetchWeatherData();
     
-    // Refresh weather data every 30 seconds for debugging
-    const interval = setInterval(fetchWeatherData, 30 * 1000);
+    // Refresh weather data every 5 minutes
+    const interval = setInterval(fetchWeatherData, 5 * 60 * 1000);
     
     return () => clearInterval(interval);
   }, [showForecast]);

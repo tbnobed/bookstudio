@@ -85,7 +85,7 @@ export function useWeatherForecast() {
         data.list.forEach((item: any) => {
           const date = new Date(item.dt * 1000);
           const facilityDate = toZonedTime(date, FACILITY_TIMEZONE);
-          const dateString = format(facilityDate, 'yyyy-MM-dd', { timeZone: FACILITY_TIMEZONE });
+          const dateString = format(facilityDate, 'yyyy-MM-dd');
           
           if (!dailyData.has(dateString)) {
             dailyData.set(dateString, {
@@ -120,9 +120,6 @@ export function useWeatherForecast() {
             icon: data.icons[middayIndex]
           });
         });
-        
-        console.log("useWeatherForecast: Processed daily forecasts:", dailyForecasts.slice(0, 3));
-        console.log("useWeatherForecast: Today's forecast from API:", dailyForecasts.find(f => f.date === format(toZonedTime(new Date(), FACILITY_TIMEZONE), 'yyyy-MM-dd', { timeZone: FACILITY_TIMEZONE })));
         
         setForecast({ forecast: dailyForecasts.slice(0, 14) }); // Get up to 14 days
         setError(null);
