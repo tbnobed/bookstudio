@@ -134,44 +134,43 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className={isMobile ? "min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" : "flex flex-col h-screen"}>
+    <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
+      {/* Modern Site Banner - Only on mobile */}
       {isMobile && <MobileBanner />}
       
-      <div className={isMobile ? "flex-1" : "flex flex-col h-screen"}>
-        <CalendarHeader
-          key={`header-${currentDate.toISOString()}-${view}`} // Add key to force re-render when date or view changes
-          currentDate={currentDate}
-          onDateChange={handleDateChange}
-          view={view}
-          onViewChange={handleViewChange}
+      <CalendarHeader
+        key={`header-${currentDate.toISOString()}-${view}`} // Add key to force re-render when date or view changes
+        currentDate={currentDate}
+        onDateChange={handleDateChange}
+        view={view}
+        onViewChange={handleViewChange}
+        selectedStudioIds={selectedStudioIds}
+        onStudioFilterChange={handleStudioFilterChange}
+      />
+      
+      {view === "day" && (
+        <DailyCalendar
+          key={currentDate.toISOString()} // Add key to force complete re-render on date change
+          date={currentDate}
           selectedStudioIds={selectedStudioIds}
-          onStudioFilterChange={handleStudioFilterChange}
         />
-        
-        {view === "day" && (
-          <DailyCalendar
-            key={currentDate.toISOString()} // Add key to force complete re-render on date change
-            date={currentDate}
-            selectedStudioIds={selectedStudioIds}
-          />
-        )}
-        
-        {view === "week" && (
-          <WeeklyCalendar
-            key={currentDate.toISOString()} // Add key to force complete re-render on date change
-            startDate={currentDate}
-            selectedStudioIds={selectedStudioIds}
-          />
-        )}
-        
-        {/* For monthly view, use the wrapper component */}
-        {view === "month" && (
-          <MonthlyCalendarWrapper
-            currentDate={currentDate}
-            studios={studios}
-          />
-        )}
-      </div>
+      )}
+      
+      {view === "week" && (
+        <WeeklyCalendar
+          key={currentDate.toISOString()} // Add key to force complete re-render on date change
+          startDate={currentDate}
+          selectedStudioIds={selectedStudioIds}
+        />
+      )}
+      
+      {/* For monthly view, use the wrapper component */}
+      {view === "month" && (
+        <MonthlyCalendarWrapper
+          currentDate={currentDate}
+          studios={studios}
+        />
+      )}
     </div>
   );
 }

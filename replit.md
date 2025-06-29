@@ -299,6 +299,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 29, 2025: OPTIMIZED mobile banner spacing - reduced vertical padding from py-8 to py-6 and decreased spacing between site name and logo from mb-4 to mb-2 for tighter, more professional layout
 - June 29, 2025: FINE-TUNED gap between site name and logo - adjusted negative margin to -mt-14 for optimal spacing between title and BookStud.io branding
 - June 29, 2025: APPLIED beautiful gradient banner design to calendar and studios pages - implemented same strong blue-to-purple gradient background with site name and BookStud.io logo that matches mobile banner design for consistent branding across all mobile pages
+- June 29, 2025: UNIFIED banner styling across all mobile pages - copied exact styling structure from My Bookings page banner (mobile-gradient-bg class) and applied to Calendar and Studios pages for perfect visual consistency with same gradient background, banner positioning, and layout structure
 
 ## User Preferences
 
