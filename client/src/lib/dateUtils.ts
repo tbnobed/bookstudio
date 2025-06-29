@@ -46,6 +46,20 @@ export function createFacilityDate(
 }
 
 /**
+ * Check if a booking is currently active (happening right now)
+ * @param booking Booking object with start and end times
+ * @param currentTime Optional current time (defaults to now)
+ * @returns true if the booking is currently active
+ */
+export function isBookingActive(booking: any, currentTime?: Date): boolean {
+  const now = currentTime || new Date();
+  const startTime = new Date(booking.start);
+  const endTime = new Date(booking.end);
+  
+  return now >= startTime && now <= endTime && booking.status !== 'cancelled';
+}
+
+/**
  * Format a date for form inputs in the facility timezone
  * 
  * @param date The date to format

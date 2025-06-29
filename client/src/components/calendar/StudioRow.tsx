@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio, PcrRoom, BookingStudio } from "@shared/schema";
-import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange } from "@/lib/dateUtils";
+import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange, isBookingActive } from "@/lib/dateUtils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
@@ -333,6 +333,9 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                 colorClass = "border"; // Keep only the border class, we'll style it with inline styles
               }
               
+              // Check if booking is currently active
+              const isActive = isBookingActive(booking);
+              
               // No positioning calculations - just render in a grid
               // This eliminates layout shifts completely
               console.log(`Rendering booking ${booking.title} in ${studio.name} on ${date.toDateString()}`);
@@ -345,7 +348,8 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                         "border rounded-md px-2 py-1 mb-1 overflow-hidden text-overflow-ellipsis text-xs z-10 transition-all hover:shadow-md",
                         colorClass,
                         booking.status === "tentative" && "border-dashed opacity-80 bg-gray-100",
-                        booking.status === "cancelled" && "opacity-60 bg-red-50 border-red-300 line-through text-red-600"
+                        booking.status === "cancelled" && "opacity-60 bg-red-50 border-red-300 line-through text-red-600",
+                        isActive && "animate-pulse ring-2 ring-green-400 ring-opacity-75 shadow-lg"
                       )}
                       style={{
                         minHeight: "38px",

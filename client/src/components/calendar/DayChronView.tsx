@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { formatTime, isSameDay, formatInFacilityTimezone } from '@/lib/dateUtils';
+import { formatTime, isSameDay, formatInFacilityTimezone, isBookingActive } from '@/lib/dateUtils';
 import { Badge } from '@/components/ui/badge';
 import WeatherForecastCell from './WeatherForecastCell';
 import { useWeatherForecast } from '../../hooks/useWeatherForecast';
