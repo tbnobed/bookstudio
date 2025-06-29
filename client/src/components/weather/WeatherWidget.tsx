@@ -234,8 +234,8 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
       {/* Forecast */}
       {showForecast && forecast && forecast.forecast.length > 0 && (
         <div className="mt-4">
-          <h4 className={`font-semibold mb-2 ${sizeClasses[size]}`}>7-Day Forecast</h4>
-          <div className="grid grid-cols-7 gap-2">
+          <h4 className={`font-semibold mb-2 ${sizeClasses[size]}`}>6-Day Forecast</h4>
+          <div className="grid grid-cols-6 gap-2 justify-items-center">
             {forecast.forecast.map((day, index) => {
               const ForecastIcon = getWeatherIcon(day.icon);
               const date = new Date(day.date);
