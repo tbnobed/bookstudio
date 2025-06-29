@@ -291,7 +291,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 29, 2025: REDUCED text sizes in engineering view by 10% - decreased booking card text from text-base to text-sm, titles from text-lg to text-base, details from text-sm to text-xs, reduced padding from p-3 to p-2, and made alert icons and text smaller for more compact display
 - June 29, 2025: ADDED BookStudio logo to mobile banner - integrated bookstudio-logo.png to the left of site name in mobile banner with proper styling and spacing for enhanced branding on mobile pages
 - June 29, 2025: UPDATED mobile banner gradient to fade to transparent - changed gradient direction from diagonal (bg-gradient-to-br) to vertical (bg-gradient-to-b) with transparent bottom for cleaner visual integration
-- June 29, 2025: EXTENDED mobile banner height - increased padding from py-4 to py-6 to match height consistency across all pages for better visual proportions
+- June 29, 2025: EXTENDED mobile banner height on My Bookings page only - created page-specific banner with py-6 padding (instead of global py-4) to provide better visual proportions specifically for the My Bookings page layout
 
 ## User Preferences
 
