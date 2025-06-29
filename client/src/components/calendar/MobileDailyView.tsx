@@ -21,6 +21,7 @@ import { useCalendarContext } from "@/contexts/CalendarContext";
 import { getDayRangeInChicago } from "@/utils/dateUtils";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
+import { MobileBanner } from "@/components/layout/MobileBanner";
 
 // Helper function to extract studios from a booking
 function extractStudiosFromBooking(booking: any, studiosList: any[]): any[] {
@@ -416,12 +417,8 @@ export default function MobileDailyView({
 
   return (
     <div className="flex flex-col h-full overflow-hidden mobile-gradient-bg">
-      {/* Site Name Banner */}
-      {siteData?.siteName && (
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 text-center sticky top-0 z-20">
-          <h1 className="text-lg font-bold">{siteData.siteName}</h1>
-        </div>
-      )}
+      {/* Modern Site Banner */}
+      <MobileBanner />
       
       {/* Header with date navigation */}
       <div className="border-b p-4 bg-white/90 backdrop-blur-sm sticky top-0 z-10">
