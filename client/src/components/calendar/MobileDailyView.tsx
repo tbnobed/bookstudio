@@ -164,6 +164,7 @@ export default function MobileDailyView({
 
   // Log the booking studios data
   console.log("All bookingStudios data:", bookingStudios);
+  console.log("Sunday entry booking studios for booking 218:", bookingStudios.filter(bs => bs.bookingId === 218));
   
   // Group bookings by studio (including linked bookings through booking_studios)
   const bookingsByStudio = studios.reduce((acc, studio) => {
