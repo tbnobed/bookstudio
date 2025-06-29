@@ -287,6 +287,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 29, 2025: INCREASED weather widget size - enlarged weather badge text and icons across all size variants (compact/normal/large) for better visibility and readability on facility displays
 - June 29, 2025: FIXED critical weather widget timezone inconsistency - both WeatherWidget and useWeatherForecast components now use FACILITY_TIMEZONE for proper date handling, ensuring all weather widgets display consistent Sunday June 29th data in Central timezone instead of conflicting UTC-based dates
 - June 29, 2025: FIXED critical double timezone conversion bug - removed redundant `{ timeZone: FACILITY_TIMEZONE }` parameters from `format()` function calls that were causing incorrect date calculations when used with `toZonedTime()` conversion, ensuring all weather widgets show data for the same day consistently using FACILITY_TIMEZONE throughout
+- June 29, 2025: EXCLUDED cancelled bookings from engineering view - updated engineering calendar to filter out cancelled bookings from both regular booking display and alerts section, providing cleaner view focused on active facility operations
 
 ## User Preferences
 

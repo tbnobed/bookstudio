@@ -294,17 +294,16 @@ export default function EngineeringPage() {
     };
   };
 
-  // Filter bookings for current week
+  // Filter bookings for current week and exclude cancelled bookings
   const weekBookings = bookings.filter(booking => {
     const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
     const weekStart = currentWeek;
     const weekEnd = endOfDay(addDays(currentWeek, 6)); // End of Sunday, not start of Sunday
     
     const inWeek = bookingDate >= weekStart && bookingDate <= weekEnd;
+    const isNotCancelled = booking.status !== 'cancelled';
     
-
-    
-    return inWeek;
+    return inWeek && isNotCancelled;
   });
 
   const goToPreviousWeek = () => {
