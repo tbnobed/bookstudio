@@ -118,10 +118,6 @@ export default function StudiosPage() {
             {isMobile && (
               <div className="mb-6">
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
-                  <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
-                    <Clock className="h-5 w-5 text-blue-600" />
-                    Weather & Forecast
-                  </h2>
                   <WeatherWidget 
                     showForecast={true} 
                     size="normal" 
