@@ -102,9 +102,9 @@ export default function StudiosPage() {
                         
                         <div className="text-xs text-gray-600 text-center">
                           {studioStatus.currentBooking ? 
-                            `Until ${formatTime(studioStatus.currentBooking.end)}` :
+                            `Until ${formatTime(new Date(studioStatus.currentBooking.end))}` :
                             studioStatus.nextBooking ?
-                            `Until ${formatTime(studioStatus.nextBooking.start)}` :
+                            `Until ${formatTime(new Date(studioStatus.nextBooking.start))}` :
                             "All day"}
                         </div>
                         
@@ -114,7 +114,8 @@ export default function StudiosPage() {
                               {(studioStatus.currentBooking || studioStatus.nextBooking)?.title}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {formatTime((studioStatus.currentBooking || studioStatus.nextBooking)?.start)}
+                              {(studioStatus.currentBooking || studioStatus.nextBooking)?.start && 
+                               formatTime(new Date((studioStatus.currentBooking || studioStatus.nextBooking)!.start))}
                             </div>
                           </div>
                         )}
@@ -125,7 +126,7 @@ export default function StudiosPage() {
               })}
             </div>
             
-            {studios.length === 0 && (
+            {studiosWithStatus.length === 0 && (
               <div className="text-center py-12 text-gray-500">
                 <Tv className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <p>No studios found</p>
