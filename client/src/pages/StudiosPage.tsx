@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Tv, MapPin, Settings, Clock } from "lucide-react";
+import { Tv, MapPin, Settings, Clock, Loader2 } from "lucide-react";
 import { formatTime } from "@/lib/dateUtils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,15 +43,12 @@ export default function StudiosPage() {
   const { bookings, isLoading } = useStudioBookings(oneWeekAgo, oneWeekFromNow);
   const { getAllStudiosWithStatus } = useStudioStatus(bookings);
   
-  // Get all studios with their status
-  const studiosWithStatus = getAllStudiosWithStatus();
+  // Get all studios with their status - only when bookings are loaded
+  const studiosWithStatus = !isLoading ? getAllStudiosWithStatus() : [];
   
   // Debug logging
+  console.log("StudiosPage - isLoading:", isLoading, "bookings count:", bookings?.length || 0);
   console.log("StudiosPage - studiosWithStatus length:", studiosWithStatus.length);
-  if (studiosWithStatus.length === 0) {
-    console.log("StudiosPage - No studios returned!");
-    console.log("StudiosPage - bookings loaded:", !isLoading, "bookings count:", bookings?.length || 0);
-  }
 
   return (
     <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
@@ -84,8 +81,18 @@ export default function StudiosPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-              {studiosWithStatus.map((studioWithStatus) => {
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                <span className="ml-2 text-gray-500">Loading studio status...</span>
+              </div>
+            ) : studiosWithStatus.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No studios found
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                {studiosWithStatus.map((studioWithStatus) => {
                 const studio = studioWithStatus;
                 const studioStatus = studioWithStatus.statusInfo;
                 
@@ -137,12 +144,6 @@ export default function StudiosPage() {
                   </Card>
                 );
               })}
-            </div>
-            
-            {studiosWithStatus.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <Tv className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>No studios found</p>
               </div>
             )}
           </div>
