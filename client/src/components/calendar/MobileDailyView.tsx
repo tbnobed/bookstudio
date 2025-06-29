@@ -152,6 +152,8 @@ export default function MobileDailyView({
       // Debug logging for Sunday entry specifically
       if (booking.title === "Sunday entry") {
         console.log(`DEBUG: Booking ${booking.id} (${booking.title}) junction data:`, relatedBookingStudios);
+        console.log(`DEBUG: Booking ${booking.id} total bookingStudios available:`, bookingStudios.length);
+        console.log(`DEBUG: Looking for bookingId ${booking.id} in:`, bookingStudios.filter(bs => bs.bookingId === booking.id));
       }
       
       // Return a new booking object with the bookingStudios property
