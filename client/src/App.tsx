@@ -36,6 +36,9 @@ function Router() {
   // Choose the appropriate calendar component based on screen size
   const CalendarComponent = isSmallScreen ? MobileCalendarPage : CalendarPage;
   
+  // Mobile-first home component - Studios page for mobile, Calendar for desktop
+  const HomeComponent = isSmallScreen ? StudiosPage : CalendarComponent;
+  
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
@@ -45,7 +48,7 @@ function Router() {
       <Route path="/public-calendar" component={PublicCalendarPage} />
       <Route path="/public-calendar/mobile" component={MobilePublicCalendarPage} />
       <Route path="/signage" component={SignagePage} />
-      <ProtectedRoute path="/" component={CalendarComponent} />
+      <ProtectedRoute path="/" component={HomeComponent} />
       <ProtectedRoute path="/calendar" component={CalendarComponent} />
       <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
       <ProtectedRoute path="/calendar/mobile" component={MobileCalendarPage} />

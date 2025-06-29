@@ -278,6 +278,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 28, 2025: CLEANED UP mobile timeline view - removed "Today's Schedule" banner from mobile daily view timeline tab for cleaner, more streamlined appearance
 - June 28, 2025: REORGANIZED mobile navigation for better screen utilization - created dedicated StudiosPage to house Real-Time Studio Status section, replaced Alert button in mobile navbar with Studios button (alert creation moved to menu drawer), removed studio status section from mobile daily view to maximize calendar space, improved mobile screen real estate management
 - June 28, 2025: OPTIMIZED Studios page for no-scroll viewing - redesigned studio status cards to use compact 2-5 column responsive grid layout, reduced card padding and text sizes, centered status information, made all studios visible on single screen without scrolling for better at-a-glance facility monitoring
+- June 29, 2025: MADE Studios page the default home page for mobile app - implemented mobile-specific routing logic so mobile users land on Studios page (/) instead of Calendar page, providing immediate studio status overview upon app launch while desktop users continue to see Calendar as home page
 
 ## User Preferences
 
