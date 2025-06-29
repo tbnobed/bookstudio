@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { MobileBanner } from "@/components/layout/MobileBanner";
 import { useStudioStatus } from "@/hooks/use-studio-status";
+import { useStudioBookings } from "@/hooks/useStudioBookings";
 
 interface Studio {
   id: number;
@@ -34,8 +35,11 @@ export default function StudiosPage() {
     select: (data: any) => data?.siteName || "BookStud.io"
   });
   
-  // Use the studio status hook which properly handles multi-studio bookings
-  const { getAllStudiosWithStatus } = useStudioStatus();
+  // Use the same data source as mobile calendar
+  const { bookings } = useStudioBookings();
+  
+  // Use the studio status hook with the filtered bookings
+  const { getAllStudiosWithStatus } = useStudioStatus(bookings);
   
   // Get all studios with their status
   const studiosWithStatus = getAllStudiosWithStatus();
