@@ -286,3 +286,11 @@ BookStud.io is a comprehensive web application for television studio management 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+**CRITICAL TIMEZONE REQUIREMENT**: ALL date/time operations throughout the entire application MUST use Chicago timezone (America/Chicago). This includes:
+- Date comparisons and calculations
+- Display formatting
+- Database queries with date ranges
+- Status checks and availability logic
+- Never use browser local timezone or UTC for comparisons
+- Always use 'America/Chicago' timezone in all date operations

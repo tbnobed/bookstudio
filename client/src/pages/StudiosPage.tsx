@@ -161,7 +161,9 @@ export default function StudiosPage() {
         day: 'numeric',
         year: new Date(currentBooking.end).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
       });
-      const isToday = new Date(currentBooking.end).toLocaleDateString('en-US', { timeZone: 'America/Chicago' }) === new Date().toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+      const todayInChicago = new Date().toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+      const bookingEndInChicago = new Date(currentBooking.end).toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+      const isToday = bookingEndInChicago === todayInChicago;
       return {
         status: "in-use",
         label: "In Use",
@@ -179,7 +181,9 @@ export default function StudiosPage() {
         day: 'numeric',
         year: new Date(nextBooking.start).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
       });
-      const isToday = new Date(nextBooking.start).toLocaleDateString('en-US', { timeZone: 'America/Chicago' }) === new Date().toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+      const todayInChicago = new Date().toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+      const bookingStartInChicago = new Date(nextBooking.start).toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+      const isToday = bookingStartInChicago === todayInChicago;
       return {
         status: "available",
         label: "Available",
@@ -234,7 +238,12 @@ export default function StudiosPage() {
                 const studioStatus = getStudioStatus(studio);
                 
                 return (
-                  <Card key={studio.id} className="transition-all hover:shadow-md">
+                  <Card key={studio.id} className={cn(
+                    "transition-all hover:shadow-md",
+                    studioStatus.status === "in-use" 
+                      ? "bg-red-50/30 border-red-100" 
+                      : "bg-green-50/30 border-green-100"
+                  )}>
                     <CardContent className="p-2">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-1.5">
