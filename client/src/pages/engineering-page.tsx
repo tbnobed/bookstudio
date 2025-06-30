@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
+import { Header } from "@/components/layout/Header";
 
 const FACILITY_TIMEZONE = "America/Chicago";
 
@@ -374,54 +375,15 @@ export default function EngineeringPage() {
   return (
     <TooltipProvider>
       <div className="h-screen flex flex-col bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-gray-900">Engineering Schedule</h1>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToCurrentWeek}
-              className="flex items-center space-x-1"
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Today</span>
-            </Button>
-            
-            <div className="flex items-center border rounded-lg">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={goToPreviousWeek}
-                className="border-none rounded-r-none"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              
-              <div className="px-4 py-2 border-l border-r text-sm font-medium min-w-[200px] text-center">
-                {format(currentWeek, 'MMM d')} - {format(addDays(currentWeek, 6), 'MMM d, yyyy')}
-              </div>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={goToNextWeek}
-                className="border-none rounded-l-none"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            <Button variant="outline" size="sm">
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+        {/* Header with sidebar toggle */}
+        <Header
+          currentDate={currentWeek}
+          onDateChange={setCurrentWeek}
+          view="week"
+          onViewChange={() => {}} // Engineering view is always weekly
+          title="Engineering Schedule"
+          showViewToggle={false} // Don't show view toggle for engineering
+        />
 
       {/* Alerts Row - Day by Day */}
       {alertBookings.length > 0 && (
