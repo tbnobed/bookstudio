@@ -647,7 +647,7 @@ export default function EngineeringPage() {
                               <div
                                 className="absolute rounded text-sm cursor-pointer hover:shadow-2xl transition-all duration-200 z-20 overflow-hidden"
                                 style={{
-                                  ...style,
+                                  ...styleWithoutBg,
                                   marginLeft: '2px',
                                   marginRight: '2px'
                                 }}
