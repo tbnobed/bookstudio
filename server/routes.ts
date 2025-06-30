@@ -1381,6 +1381,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.end = new Date(updateData.end);
       }
       
+      // Fix foreign key constraints - set to null if 0 or undefined (same as POST route)
+      updateData = {
+        ...updateData,
+        studioId: updateData.studioId === 0 || updateData.studioId === undefined ? null : updateData.studioId,
+        templateId: updateData.templateId === 0 || updateData.templateId === undefined ? null : updateData.templateId,
+        pcrRoomId: updateData.pcrRoomId === 0 || updateData.pcrRoomId === undefined ? null : updateData.pcrRoomId
+      };
+      
       console.log("Processing update with data:", updateData);
       
       // Check for booking conflicts for all studios in the request
