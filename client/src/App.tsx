@@ -24,6 +24,7 @@ import EngineeringPage from "@/pages/engineering-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { CalendarProvider } from "@/contexts/CalendarContext";
+import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { useDevice } from "@/hooks/use-mobile";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { DocumentTitle } from "@/components/global/DocumentTitle";
@@ -69,6 +70,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [location] = useLocation();
   const { isSmallScreen } = useDevice();
+  const { sidebarVisible } = useSidebar();
   
   // Check if we're on an auth page or public page (no sidebar needed)
   const isPublicPage = location === "/auth" || 
@@ -84,8 +86,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                     location === "/calendar/mobile" ||
                     (isSmallScreen && (location === "/" || location === "/calendar"));
   
-  // Only show the sidebar when not on public pages or mobile pages
-  const showSidebar = !isPublicPage && !isMobilePage;
+  // Only show the sidebar when not on public pages or mobile pages AND when globally visible
+  const showSidebar = !isPublicPage && !isMobilePage && sidebarVisible;
   
   return (
     <div className="flex h-screen overflow-hidden">
@@ -117,15 +119,17 @@ function App() {
     <TimezoneProvider>
       <CalendarProvider>
         <NotificationProvider>
-          <TooltipProvider>
-            {/* Add DocumentTitle to update the title when siteName changes */}
-            <DocumentTitle />
-            <AppLayout>
-              <Router />
-            </AppLayout>
-            <Toaster />
-            <ToastNotification />
-          </TooltipProvider>
+          <SidebarProvider>
+            <TooltipProvider>
+              {/* Add DocumentTitle to update the title when siteName changes */}
+              <DocumentTitle />
+              <AppLayout>
+                <Router />
+              </AppLayout>
+              <Toaster />
+              <ToastNotification />
+            </TooltipProvider>
+          </SidebarProvider>
         </NotificationProvider>
       </CalendarProvider>
     </TimezoneProvider>
