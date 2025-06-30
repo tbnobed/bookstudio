@@ -707,9 +707,9 @@ export default function EngineeringPage() {
                                     minHeight: 'calc(100% - 50px)' // Fill remaining height after header
                                   }}
                                 >
-                                  {/* Transparent background layer */}
+                                  {/* Darker transparent background layer */}
                                   <div 
-                                    className="absolute inset-0 opacity-30"
+                                    className="absolute inset-0 opacity-50"
                                     style={{
                                       backgroundColor: severityStyle 
                                         ? severityStyle.backgroundColor 
