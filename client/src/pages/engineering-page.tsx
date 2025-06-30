@@ -147,14 +147,16 @@ export default function EngineeringPage() {
     };
   });
 
-  // Generate week days
+  // Generate week days - ensure proper timezone handling
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(currentWeek, i);
+    // Ensure date is properly handled in facility timezone
+    const facilityDate = toZonedTime(date, FACILITY_TIMEZONE);
     return {
-      date,
-      dayName: format(date, 'EEE').toUpperCase(),
-      dayNumber: format(date, 'd'),
-      fullDate: format(date, 'yyyy-MM-dd')
+      date: facilityDate,
+      dayName: format(facilityDate, 'EEE', { timeZone: FACILITY_TIMEZONE }).toUpperCase(),
+      dayNumber: format(facilityDate, 'd', { timeZone: FACILITY_TIMEZONE }),
+      fullDate: format(facilityDate, 'yyyy-MM-dd', { timeZone: FACILITY_TIMEZONE })
     };
   });
 
@@ -490,7 +492,19 @@ export default function EngineeringPage() {
                 
                 {/* Day headers */}
                 {weekDays.map((day) => {
-                  const isToday = isSameDay(day.date, toZonedTime(new Date(), FACILITY_TIMEZONE));
+                  const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
+                  const isToday = isSameDay(day.date, today);
+                  
+                  // Debug logging for today detection
+                  if (day.dayName === 'MON') {
+                    console.log(`Engineering Today Detection - Monday:`, {
+                      dayDate: day.date.toISOString(),
+                      today: today.toISOString(),
+                      isToday,
+                      dayDateString: day.date.toString(),
+                      todayString: today.toString()
+                    });
+                  }
                   
                   return (
                     <div
