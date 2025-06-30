@@ -650,6 +650,18 @@ export default function EngineeringPage() {
                           marginRight: '2px'
                         };
 
+                        // Debug logging for DP booking DOM styling
+                        if (booking.title === 'DP') {
+                          console.log('DP Booking Final DOM Style:', {
+                            title: booking.title,
+                            height: finalStyle.height,
+                            top: finalStyle.top,
+                            left: finalStyle.left,
+                            width: finalStyle.width,
+                            position: 'absolute'
+                          });
+                        }
+
                         return (
                           <Tooltip key={booking.id}>
                             <TooltipTrigger asChild>
