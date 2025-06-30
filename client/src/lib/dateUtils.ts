@@ -52,9 +52,19 @@ export function createFacilityDate(
  * @returns true if the booking is currently active
  */
 export function isBookingActive(booking: any, currentTime?: Date): boolean {
+  // Safety check for booking data
+  if (!booking || !booking.start || !booking.end) {
+    return false;
+  }
+  
   const now = currentTime || new Date();
   const startTime = new Date(booking.start);
   const endTime = new Date(booking.end);
+  
+  // Check if dates are valid
+  if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+    return false;
+  }
   
   return now >= startTime && now <= endTime && booking.status !== 'cancelled';
 }
