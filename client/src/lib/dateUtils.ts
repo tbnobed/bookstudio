@@ -409,6 +409,55 @@ export function formatWeekRangeText(currentDate: Date | null | undefined): strin
   }
 }
 
+/**
+ * Format week range text for Monday-based weeks (e.g. "Jun 30 - Jul 6, 2025")
+ * Used specifically for engineering page which starts weeks on Monday
+ * 
+ * @param currentDate The date to format (if null/undefined, uses current date)
+ * @returns Formatted week range string starting from Monday
+ */
+export function formatMondayWeekRangeText(currentDate: Date | null | undefined): string {
+  // If no date is provided, use current date
+  const safeDate = currentDate ? new Date(currentDate.getTime()) : new Date();
+  
+  // Add timestamp for unique logging
+  const timestamp = Date.now();
+  console.log(`formatMondayWeekRangeText - [CALLED at ${timestamp}] Date input: ${safeDate.toISOString()}`);
+  
+  try {
+    // Calculate week start (Monday) and end (Sunday) from scratch
+    const dayOfWeek = safeDate.getDay(); // 0-6, 0 is Sunday
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to Monday-based (0=Monday)
+    
+    // Calculate Monday (start of week)
+    const startDate = new Date(safeDate);
+    startDate.setDate(safeDate.getDate() - daysFromMonday);
+    
+    // Calculate Sunday (end of week)
+    const endDate = new Date(safeDate);
+    endDate.setDate(safeDate.getDate() - daysFromMonday + 6);
+    
+    console.log(`formatMondayWeekRangeText - [${timestamp}] Monday-based calculation - Week start: ${startDate.toISOString()}, end: ${endDate.toISOString()}`);
+    
+    // Format month names
+    const startMonth = MONTH_NAMES[startDate.getMonth()].substring(0, 3);
+    const endMonth = MONTH_NAMES[endDate.getMonth()].substring(0, 3);
+    
+    // Format the week range text
+    const result = (startDate.getMonth() === endDate.getMonth()) 
+      ? `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}, ${startDate.getFullYear()}`
+      : `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startDate.getFullYear()}`;
+      
+    console.log(`formatMondayWeekRangeText - [${timestamp}] Result: ${result}`);
+    return result;
+  } catch (error) {
+    console.error(`formatMondayWeekRangeText - Error: ${error}`);
+    
+    // Fallback in case of any error
+    return safeDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  }
+}
+
 export function createTimeSlots(startHour: number, endHour: number, interval: number): string[] {
   const slots: string[] = [];
   for (let hour = startHour; hour <= endHour; hour++) {

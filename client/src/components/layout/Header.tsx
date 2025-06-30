@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { subtractDays, addDays, formatWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
+import { subtractDays, addDays, formatWeekRangeText, formatMondayWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
 import TimezoneTestModal from "@/components/TimezoneTestModal";
 
@@ -22,6 +22,7 @@ type HeaderProps = {
   selectedStudioIds?: number[];
   title?: string;
   showViewToggle?: boolean;
+  useMondayWeeks?: boolean; // For engineering page that uses Monday-based weeks
 };
 
 export function Header({
@@ -32,7 +33,8 @@ export function Header({
   onStudioFilterChange,
   selectedStudioIds = [],
   title = "Calendar",
-  showViewToggle = true
+  showViewToggle = true,
+  useMondayWeeks = false
 }: HeaderProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showAllStudios, setShowAllStudios] = useState(false);
