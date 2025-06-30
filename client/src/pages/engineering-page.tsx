@@ -678,19 +678,13 @@ export default function EngineeringPage() {
                                 
                                 {/* Transparent Body */}
                                 <div 
-                                  className={`p-2 pt-1 ${
-                                    severityStyle 
-                                      ? (booking.severity === 'critical' ? 'bg-red-500/40' :
-                                         booking.severity === 'high' ? 'bg-orange-500/40' :
-                                         booking.severity === 'medium' ? 'bg-amber-500/40' :
-                                         'bg-blue-500/40')
-                                      : 'bg-blue-500/40'
-                                  }`}
+                                  className="p-2 pt-1"
                                   style={{
                                     border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
                                     borderTop: 'none',
                                     borderRadius: '0 0 6px 6px',
-                                    color: severityStyle ? severityStyle.color : '#ffffff'
+                                    color: severityStyle ? severityStyle.color : '#ffffff',
+                                    backgroundColor: 'transparent'
                                   }}
                                 >
                                   <div className="space-y-1 text-xs leading-relaxed">
