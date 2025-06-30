@@ -154,9 +154,9 @@ export default function EngineeringPage() {
     const facilityDate = toZonedTime(date, FACILITY_TIMEZONE);
     return {
       date: facilityDate,
-      dayName: format(facilityDate, 'EEE', { timeZone: FACILITY_TIMEZONE }).toUpperCase(),
-      dayNumber: format(facilityDate, 'd', { timeZone: FACILITY_TIMEZONE }),
-      fullDate: format(facilityDate, 'yyyy-MM-dd', { timeZone: FACILITY_TIMEZONE })
+      dayName: format(facilityDate, 'EEE').toUpperCase(),
+      dayNumber: format(facilityDate, 'd'),
+      fullDate: format(facilityDate, 'yyyy-MM-dd')
     };
   });
 
@@ -494,17 +494,6 @@ export default function EngineeringPage() {
                 {weekDays.map((day) => {
                   const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
                   const isToday = isSameDay(day.date, today);
-                  
-                  // Debug logging for today detection
-                  if (day.dayName === 'MON') {
-                    console.log(`Engineering Today Detection - Monday:`, {
-                      dayDate: day.date.toISOString(),
-                      today: today.toISOString(),
-                      isToday,
-                      dayDateString: day.date.toString(),
-                      todayString: today.toString()
-                    });
-                  }
                   
                   return (
                     <div

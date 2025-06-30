@@ -10,6 +10,10 @@ import { ResponsiveBookingModal } from "@/components/booking";
 import AlertModal from "../alerts/AlertModal";
 import { useStudioBookings } from "../../hooks/useStudioBookings";
 import { useWeatherForecast } from "../../hooks/useWeatherForecast";
+import { isSameDay } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+
+const FACILITY_TIMEZONE = "America/Chicago";
 
 interface WeeklyCalendarProps {
   currentDate?: Date;
@@ -301,19 +305,23 @@ export default function WeeklyCalendar({
               const dateString = date.toISOString().split('T')[0];
               const dayForecast = forecast?.forecast.find(f => f.date === dateString);
               
+              // Use facility timezone for today detection
+              const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
+              const isToday = isSameDay(date, today);
+              
               return (
                 <div 
                   key={index} 
                   className={cn(
                     "h-20 border-b text-center flex flex-col justify-center z-30 p-1",
                     isWeekend(date) ? "bg-gray-50" : "bg-white",
-                    new Date().toDateString() === date.toDateString() && "bg-blue-50 border-blue-200"
+                    isToday && "bg-blue-50 border-blue-200"
                   )}
                 >
                   <div className="text-sm font-medium">{SHORT_DAY_NAMES[date.getDay()]}</div>
                   <div className={cn(
                     "text-lg font-semibold mb-1",
-                    new Date().toDateString() === date.toDateString() && "text-blue-600 rounded-full w-8 h-8 mx-auto flex items-center justify-center bg-blue-100"
+                    isToday && "text-blue-600 rounded-full w-8 h-8 mx-auto flex items-center justify-center bg-blue-100"
                   )}>
                     {date.getDate()}
                   </div>

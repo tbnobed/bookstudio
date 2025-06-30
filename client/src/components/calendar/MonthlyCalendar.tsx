@@ -8,6 +8,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { CalendarClock, Clock, FileText, User, Tag, Tv } from "lucide-react";
 import WeatherForecastCell from './WeatherForecastCell';
 import { useWeatherForecast } from '../../hooks/useWeatherForecast';
+import { toZonedTime } from "date-fns-tz";
 
 // Helper function to extract studios from a booking using booking-studio links
 function extractStudiosFromBooking(booking: any, studiosList: any[], bookingStudioLinks: any[]): any[] {
@@ -353,7 +354,9 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
   // Get classes for a day cell
   const getDayClass = (date: Date) => {
     const isCurrentMonth = date.getMonth() === currentDate.getMonth();
-    const isToday = isSameDay(date, new Date());
+    // Use facility timezone for today detection
+    const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
+    const isToday = isSameDay(date, today);
     
     return cn(
       "border p-1 transition-colors duration-200",
