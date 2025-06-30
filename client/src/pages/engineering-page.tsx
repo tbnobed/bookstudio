@@ -666,14 +666,15 @@ export default function EngineeringPage() {
                           <Tooltip key={booking.id}>
                             <TooltipTrigger asChild>
                               <div
-                                className={`absolute rounded text-sm p-2 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden ${
+                                className={`absolute rounded text-sm p-2 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden shadow-md ${
                                   severityStyle ? 'font-semibold' : 'text-white'
                                 } ${
                                   severityStyle && severityStyle.pattern === 'diagonal-stripes' ? 'bg-stripe-pattern' : ''
                                 }`}
                                 style={{
                                   ...finalStyle,
-                                  textShadow: severityStyle ? '1px 1px 1px rgba(0,0,0,0.6)' : '1px 1px 1px rgba(0,0,0,0.5)'
+                                  textShadow: severityStyle ? '1px 1px 1px rgba(0,0,0,0.6)' : '1px 1px 1px rgba(0,0,0,0.5)',
+                                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)'
                                 }}
                               >
                                 <div className="font-bold text-base mb-1 leading-tight">
@@ -692,19 +693,19 @@ export default function EngineeringPage() {
                                   
                                   {studios.length > 0 && (
                                     <div className={`font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
-                                      Studios: {studios.join(', ')}
+                                      {studios.join(', ')}
                                     </div>
                                   )}
                                   
                                   {pcrRoom && (
                                     <div className={`font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
-                                      PCR: {pcrRoom}
+                                      {pcrRoom}
                                     </div>
                                   )}
 
                                   {booking.status && booking.status !== 'confirmed' && (
                                     <div className={`font-bold text-xs uppercase ${severityStyle ? 'opacity-90' : 'opacity-95'}`}>
-                                      Status: {booking.status}
+                                      {booking.status}
                                     </div>
                                   )}
                                 </div>
