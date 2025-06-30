@@ -297,6 +297,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 30, 2025: ENHANCED engineering view transparency readability - fixed time display section (start/end times) to use bold white text with enhanced shadows for maximum visibility against transparent backgrounds, ensuring booking times remain clearly readable while maintaining transparency for overlapping booking visibility
 - June 30, 2025: COMPLETED booking height fill fix - resolved critical issue where bookings only displayed partial time duration by adding flex layout (flex flex-col) to booking containers and flex-1 to body sections, ensuring bookings visually fill their entire calculated time period in engineering view
 - June 30, 2025: ENHANCED booking body visibility - increased transparency opacity from 30% to 50% making booking body sections more visible while preserving transparency for overlapping booking detection
+- June 30, 2025: ENHANCED engineering view drop shadows - upgraded booking entry shadows from basic 2px to layered shadows (4px+12px) for default state and dramatic 20px+40px hover shadows for better visual depth and separation
 
 ## User Preferences
 

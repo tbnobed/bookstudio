@@ -644,7 +644,7 @@ export default function EngineeringPage() {
                           <Tooltip key={booking.id}>
                             <TooltipTrigger asChild>
                               <div
-                                className="absolute rounded text-sm cursor-pointer hover:shadow-2xl transition-all duration-200 z-20 overflow-hidden flex flex-col"
+                                className="absolute rounded text-sm cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-200 z-20 overflow-hidden flex flex-col"
                                 style={{
                                   ...styleWithoutBg,
                                   marginLeft: '2px',
@@ -662,7 +662,7 @@ export default function EngineeringPage() {
                                     color: severityStyle ? severityStyle.color : '#ffffff',
                                     textShadow: severityStyle ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 2px rgba(0,0,0,0.7)',
                                     borderRadius: '6px 6px 0 0',
-                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)'
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15)'
                                   }}
                                 >
                                   <div className="font-bold text-base leading-tight">
