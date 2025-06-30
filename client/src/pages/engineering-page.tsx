@@ -644,12 +644,11 @@ export default function EngineeringPage() {
                           <Tooltip key={booking.id}>
                             <TooltipTrigger asChild>
                               <div
-                                className="absolute rounded text-sm cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-200 z-20 overflow-hidden flex flex-col shadow-lg"
+                                className="absolute rounded text-sm cursor-pointer transition-all duration-200 z-20 overflow-hidden flex flex-col"
                                 style={{
                                   ...styleWithoutBg,
                                   marginLeft: '2px',
-                                  marginRight: '2px',
-                                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)'
+                                  marginRight: '2px'
                                 }}
                               >
                                 {/* Solid Header */}
@@ -677,12 +676,13 @@ export default function EngineeringPage() {
                                 
                                 {/* Transparent Body with Maintained Color - Fill remaining height */}
                                 <div 
-                                  className="p-2 pt-1 relative flex-1"
+                                  className="p-2 pt-1 relative flex-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-200"
                                   style={{
                                     border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
                                     borderTop: 'none',
                                     borderRadius: '0 0 6px 6px',
-                                    minHeight: 'calc(100% - 50px)' // Fill remaining height after header
+                                    minHeight: 'calc(100% - 50px)', // Fill remaining height after header
+                                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)'
                                   }}
                                 >
                                   {/* Darker transparent background layer */}
