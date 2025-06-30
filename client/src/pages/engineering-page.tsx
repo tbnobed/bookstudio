@@ -99,7 +99,7 @@ export default function EngineeringPage() {
     return toZonedTime(now, FACILITY_TIMEZONE);
   });
 
-  const [sidebarVisible, setSidebarVisible] = useState(true);
+
 
   // Fetch weather forecast data
   const { forecast } = useWeatherForecast();
