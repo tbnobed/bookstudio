@@ -680,11 +680,11 @@ export default function EngineeringPage() {
                                 <div 
                                   className={`p-2 pt-1 ${
                                     severityStyle 
-                                      ? (booking.severity === 'critical' ? 'bg-red-300/25' :
-                                         booking.severity === 'high' ? 'bg-orange-200/25' :
-                                         booking.severity === 'medium' ? 'bg-amber-100/25' :
-                                         'bg-blue-100/25')
-                                      : 'bg-blue-500/25'
+                                      ? (booking.severity === 'critical' ? 'bg-red-500/40' :
+                                         booking.severity === 'high' ? 'bg-orange-500/40' :
+                                         booking.severity === 'medium' ? 'bg-amber-500/40' :
+                                         'bg-blue-500/40')
+                                      : 'bg-blue-500/40'
                                   }`}
                                   style={{
                                     border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
