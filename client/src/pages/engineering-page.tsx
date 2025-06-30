@@ -383,6 +383,7 @@ export default function EngineeringPage() {
           onViewChange={() => {}} // Engineering view is always weekly
           title="Engineering Schedule"
           showViewToggle={false} // Don't show view toggle for engineering
+          useMondayWeeks={true} // Engineering page uses Monday-based weeks
         />
 
       {/* Alerts Row - Day by Day */}

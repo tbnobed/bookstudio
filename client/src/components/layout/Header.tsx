@@ -133,8 +133,8 @@ export function Header({
       });
     } else if (view === "week") {
       // Generate fresh week text directly from current date
-      const weekText = formatWeekRangeText(currentDate);
-      console.log(`Header - Generated week text: ${weekText} for date ${currentDate.toISOString()}`);
+      const weekText = useMondayWeeks ? formatMondayWeekRangeText(currentDate) : formatWeekRangeText(currentDate);
+      console.log(`Header - Generated ${useMondayWeeks ? 'Monday-based' : 'Sunday-based'} week text: ${weekText} for date ${currentDate.toISOString()}`);
       return weekText;
     } else {
       return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
