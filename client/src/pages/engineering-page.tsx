@@ -652,7 +652,7 @@ export default function EngineeringPage() {
                                   boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)'
                                 }}
                               >
-                                {/* Solid Header */}
+                                {/* Solid Header with All Booking Details */}
                                 <div 
                                   className={`p-2 ${severityStyle ? 'font-semibold' : 'text-white'} ${
                                     severityStyle && severityStyle.pattern === 'diagonal-stripes' ? 'bg-stripe-pattern' : ''
@@ -665,29 +665,67 @@ export default function EngineeringPage() {
                                     borderRadius: '6px 6px 0 0'
                                   }}
                                 >
-                                  <div className="font-bold text-base leading-tight">
-                                    {severityStyle && (
-                                      <span className="text-xs px-1 py-0.5 rounded bg-black bg-opacity-20 font-bold mr-1">
-                                        ⚠ {booking.severity?.toUpperCase()}
-                                      </span>
+                                  <div className="space-y-1">
+                                    {/* Title with severity badge */}
+                                    <div className="font-bold text-base leading-tight">
+                                      {severityStyle && (
+                                        <span className="text-xs px-1 py-0.5 rounded bg-black bg-opacity-20 font-bold mr-1">
+                                          ⚠ {booking.severity?.toUpperCase()}
+                                        </span>
+                                      )}
+                                      <span className="break-words">{booking.title}</span>
+                                    </div>
+                                    
+                                    {/* Time */}
+                                    <div className="font-bold text-sm">
+                                      {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
+                                    </div>
+                                    
+                                    {/* Studios */}
+                                    {studios.length > 0 && (
+                                      <div className="text-sm font-medium">
+                                        Studios: {studios.join(', ')}
+                                      </div>
                                     )}
-                                    <span className="break-words">{booking.title}</span>
+                                    
+                                    {/* PCR Room */}
+                                    {pcrRoom && (
+                                      <div className="text-sm font-medium">
+                                        PCR: {pcrRoom}
+                                      </div>
+                                    )}
+                                    
+                                    {/* Description (truncated) */}
+                                    {booking.description && (
+                                      <div className="text-xs leading-tight opacity-90">
+                                        {booking.description.length > 80 
+                                          ? `${booking.description.substring(0, 80)}...` 
+                                          : booking.description}
+                                      </div>
+                                    )}
+                                    
+                                    {/* Status if not confirmed */}
+                                    {booking.status && booking.status !== 'confirmed' && (
+                                      <div className="text-xs font-bold uppercase">
+                                        {booking.status}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                                 
-                                {/* Transparent Body with Maintained Color - Fill remaining height */}
+                                {/* Transparent Body - Minimal space for visual balance */}
                                 <div 
-                                  className="p-2 pt-1 relative flex-1"
+                                  className="relative flex-1"
                                   style={{
                                     border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
                                     borderTop: 'none',
                                     borderRadius: '0 0 6px 6px',
-                                    minHeight: 'calc(100% - 50px)' // Fill remaining height after header
+                                    minHeight: '20px' // Just enough for visual balance
                                   }}
                                 >
-                                  {/* Darker transparent background layer */}
+                                  {/* Transparent background layer */}
                                   <div 
-                                    className="absolute inset-0 opacity-50"
+                                    className="absolute inset-0 opacity-30"
                                     style={{
                                       backgroundColor: severityStyle 
                                         ? severityStyle.backgroundColor 
@@ -695,43 +733,6 @@ export default function EngineeringPage() {
                                       borderRadius: '0 0 6px 6px'
                                     }}
                                   ></div>
-                                  
-                                  {/* Content with full color */}
-                                  <div 
-                                    className="relative space-y-1 text-xs leading-relaxed"
-                                    style={{
-                                      color: severityStyle ? severityStyle.color : '#ffffff',
-                                      textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
-                                    }}
-                                  >
-                                    <div 
-                                      className="font-bold text-sm"
-                                      style={{
-                                        color: '#ffffff',
-                                        textShadow: '2px 2px 4px rgba(0,0,0,0.9)'
-                                      }}
-                                    >
-                                      {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
-                                    </div>
-                                    
-                                    {studios.length > 0 && (
-                                      <div className="font-medium">
-                                        {studios.join(', ')}
-                                      </div>
-                                    )}
-                                    
-                                    {pcrRoom && (
-                                      <div className="font-medium">
-                                        {pcrRoom}
-                                      </div>
-                                    )}
-
-                                    {booking.status && booking.status !== 'confirmed' && (
-                                      <div className="font-bold text-xs uppercase">
-                                        {booking.status}
-                                      </div>
-                                    )}
-                                  </div>
                                 </div>
                               </div>
                             </TooltipTrigger>
