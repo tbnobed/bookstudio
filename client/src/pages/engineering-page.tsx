@@ -271,7 +271,9 @@ export default function EngineeringPage() {
         end: booking.end,
         startHour,
         endHour,
-        duration: endHour - startHour
+        duration: endHour - startHour,
+        calculatedHeight: Math.max(30, (endHour - startHour) * 60),
+        topPosition: Math.max(0, startHour * 60)
       });
     }
     
