@@ -263,31 +263,38 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
-    // Calculate position relative to view start (midnight)
-    const viewStartHour = 0;
-    const adjustedStartHour = startHour;
-    const adjustedEndHour = endHour;
-    
-
+    // Debug logging for the specific DP booking
+    if (booking.title === 'DP') {
+      console.log('DP Booking Debug:', {
+        title: booking.title,
+        start: booking.start,
+        end: booking.end,
+        startHour,
+        endHour,
+        duration: endHour - startHour
+      });
+    }
     
     // Check if this is an all-day event or spans across midnight
-    const isAllDay = booking.type === 'all_day_maintenance' || 
-                     (endHour < startHour && Math.abs(endHour - startHour) > 12);
+    const isAllDay = booking.type === 'all_day_maintenance';
+    
+    // Check for cross-midnight spanning - only if start is later than end on same day
+    const spansAcrossMidnight = isSameDay(startTime, endTime) && endHour < startHour;
     
     let topPosition, height;
     
     if (isAllDay) {
       // For all-day events, span the entire visible time range
       topPosition = 0;
-      height = 21 * 60; // 21 hour view
-    } else if (adjustedEndHour < adjustedStartHour) {
-      // Event spans across the view boundary
-      topPosition = adjustedStartHour * 60;
-      height = (21 - adjustedStartHour) * 60;
+      height = 24 * 60; // Full 24 hour view
+    } else if (spansAcrossMidnight) {
+      // Event spans across midnight on same calendar day
+      topPosition = startHour * 60;
+      height = (24 - startHour + endHour) * 60;
     } else {
-      // Normal event within view range
-      topPosition = Math.max(0, adjustedStartHour * 60);
-      height = Math.max(30, (adjustedEndHour - adjustedStartHour) * 60);
+      // Normal event - calculate direct duration
+      topPosition = Math.max(0, startHour * 60);
+      height = Math.max(30, (endHour - startHour) * 60);
     }
     
     // Calculate width and left position
