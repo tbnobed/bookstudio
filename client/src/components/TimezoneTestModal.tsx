@@ -76,53 +76,67 @@ export function TimezoneTestModal({ isOpen, onClose }: TimezoneTestModalProps) {
     const now = new Date();
     const testCases = [];
     
-    // Test case 1: Current date in facility timezone
-    const facilityDate = createFacilityDate(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-      12, 0, 0
-    );
-    
-    testCases.push({
-      name: "Noon today in facility timezone (Dallas)",
-      date: facilityDate,
-      formattedDate: formatDateTimeRange(facilityDate, facilityDate)
-    });
-    
-    // Test case 2: Late night case
-    const lateNight = createFacilityDate(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-      23, 30, 0
-    );
-    
-    testCases.push({
-      name: "Late night today in facility timezone (11:30 PM in Dallas)",
-      date: lateNight,
-      formattedDate: formatDateTimeRange(lateNight, lateNight)
-    });
-    
-    // Test case 3: Day boundary test
-    const nextDayEarly = createFacilityDate(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() + 1,
-      0, 30, 0
-    );
-    
-    testCases.push({
-      name: "Early morning tomorrow in facility timezone (12:30 AM in Dallas)",
-      date: nextDayEarly,
-      formattedDate: formatDateTimeRange(nextDayEarly, nextDayEarly),
-      sameDayTest: isSameDay(lateNight, nextDayEarly) ? "FAILED" : "PASSED"
-    });
+    try {
+      // Test case 1: Current date in facility timezone
+      const facilityDate = createFacilityDate(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        12, 0, 0
+      );
+      
+      // Validate the date
+      if (!isNaN(facilityDate.getTime())) {
+        testCases.push({
+          name: "Noon today in facility timezone (Dallas)",
+          date: facilityDate,
+          formattedDate: formatDateTimeRange(facilityDate, facilityDate)
+        });
+      }
+      
+      // Test case 2: Late night case
+      const lateNight = createFacilityDate(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        23, 30, 0
+      );
+      
+      if (!isNaN(lateNight.getTime())) {
+        testCases.push({
+          name: "Late night today in facility timezone (11:30 PM in Dallas)",
+          date: lateNight,
+          formattedDate: formatDateTimeRange(lateNight, lateNight)
+        });
+        
+        // Test case 3: Day boundary test - use proper date arithmetic
+        const tomorrow = new Date(now);
+        tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+        
+        const nextDayEarly = createFacilityDate(
+          tomorrow.getUTCFullYear(),
+          tomorrow.getUTCMonth(),
+          tomorrow.getUTCDate(),
+          0, 30, 0
+        );
+        
+        if (!isNaN(nextDayEarly.getTime())) {
+          testCases.push({
+            name: "Early morning tomorrow in facility timezone (12:30 AM in Dallas)",
+            date: nextDayEarly,
+            formattedDate: formatDateTimeRange(nextDayEarly, nextDayEarly),
+            sameDayTest: isSameDay(lateNight, nextDayEarly) ? "FAILED" : "PASSED"
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error generating timezone test cases:', error);
+    }
     
     return testCases;
   };
   
-  const exampleTests = generateExampleTests();
+  const exampleTests = isOpen ? generateExampleTests() : [];
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
