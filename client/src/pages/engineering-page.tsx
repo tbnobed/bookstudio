@@ -633,20 +633,13 @@ export default function EngineeringPage() {
                         const severityStyle = getSeverityStyle(booking);
                         
                         // Apply severity styling for alerts/maintenance, otherwise use default booking style
-                        const finalStyle = severityStyle 
-                          ? {
-                              ...style,
-                              backgroundColor: severityStyle.backgroundColor,
-                              border: `2px solid ${severityStyle.borderColor}`,
-                              color: severityStyle.color,
-                              marginLeft: '2px',
-                              marginRight: '2px'
-                            }
-                          : {
-                              ...style,
-                              marginLeft: '2px',
-                              marginRight: '2px'
-                            };
+                        // Remove backgroundColor from main container - we'll apply it to header/body separately
+                        const { backgroundColor, ...styleWithoutBg } = style;
+                        const finalStyle = {
+                          ...styleWithoutBg,
+                          marginLeft: '2px',
+                          marginRight: '2px'
+                        };
 
                         return (
                           <Tooltip key={booking.id}>
@@ -665,9 +658,9 @@ export default function EngineeringPage() {
                                     severityStyle && severityStyle.pattern === 'diagonal-stripes' ? 'bg-stripe-pattern' : ''
                                   }`}
                                   style={{
-                                    backgroundColor: severityStyle ? severityStyle.backgroundColor : finalStyle.backgroundColor,
-                                    border: severityStyle ? `2px solid ${severityStyle.borderColor}` : finalStyle.border,
-                                    color: severityStyle ? severityStyle.color : finalStyle.color,
+                                    backgroundColor: severityStyle ? severityStyle.backgroundColor : (booking.color || '#3B82F6'),
+                                    border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
+                                    color: severityStyle ? severityStyle.color : '#ffffff',
                                     textShadow: severityStyle ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 2px rgba(0,0,0,0.7)',
                                     borderRadius: '6px 6px 0 0',
                                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)'
@@ -690,10 +683,10 @@ export default function EngineeringPage() {
                                     backgroundColor: severityStyle 
                                       ? hexToRgba(severityStyle.backgroundColor, 0.25) // 25% opacity
                                       : (booking.color ? hexToRgba(booking.color, 0.25) : 'rgba(59, 130, 246, 0.25)'), // 25% opacity
-                                    border: severityStyle ? `2px solid ${severityStyle.borderColor}` : finalStyle.border,
+                                    border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
                                     borderTop: 'none',
                                     borderRadius: '0 0 6px 6px',
-                                    color: severityStyle ? severityStyle.color : (finalStyle.color || '#ffffff')
+                                    color: severityStyle ? severityStyle.color : '#ffffff'
                                   }}
                                 >
                                   <div className="space-y-1 text-xs leading-relaxed">
