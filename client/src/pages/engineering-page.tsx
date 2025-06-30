@@ -599,7 +599,7 @@ export default function EngineeringPage() {
                   return (
                     <div
                       key={day.fullDate}
-                      className="flex-1 min-w-[140px] border-r border-gray-200 relative overflow-hidden"
+                      className="flex-1 min-w-[140px] border-r border-gray-200 relative"
                     >
                       {/* Hour grid lines */}
                       {timeSlots.map((slot) => (
