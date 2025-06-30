@@ -263,19 +263,7 @@ export default function EngineeringPage() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
-    // Debug logging for the specific DP booking
-    if (booking.title === 'DP') {
-      console.log('DP Booking Debug:', {
-        title: booking.title,
-        start: booking.start,
-        end: booking.end,
-        startHour,
-        endHour,
-        duration: endHour - startHour,
-        calculatedHeight: Math.max(30, (endHour - startHour) * 60),
-        topPosition: Math.max(0, startHour * 60)
-      });
-    }
+
     
     // Check if this is an all-day event or spans across midnight
     const isAllDay = booking.type === 'all_day_maintenance';
@@ -650,17 +638,7 @@ export default function EngineeringPage() {
                           marginRight: '2px'
                         };
 
-                        // Debug logging for DP booking DOM styling
-                        if (booking.title === 'DP') {
-                          console.log('DP Booking Final DOM Style:', {
-                            title: booking.title,
-                            height: finalStyle.height,
-                            top: finalStyle.top,
-                            left: finalStyle.left,
-                            width: finalStyle.width,
-                            position: 'absolute'
-                          });
-                        }
+
 
                         return (
                           <Tooltip key={booking.id}>
