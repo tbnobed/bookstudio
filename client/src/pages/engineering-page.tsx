@@ -676,20 +676,34 @@ export default function EngineeringPage() {
                                   </div>
                                 </div>
                                 
-                                {/* Fully Transparent Body with All Content */}
+                                {/* Transparent Body with Maintained Color */}
                                 <div 
-                                  className="p-2 pt-1 opacity-30"
+                                  className="p-2 pt-1 relative"
                                   style={{
-                                    backgroundColor: severityStyle 
-                                      ? severityStyle.backgroundColor 
-                                      : (booking.color || '#3B82F6'),
                                     border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
                                     borderTop: 'none',
-                                    borderRadius: '0 0 6px 6px',
-                                    color: severityStyle ? severityStyle.color : '#ffffff'
+                                    borderRadius: '0 0 6px 6px'
                                   }}
                                 >
-                                  <div className="space-y-1 text-xs leading-relaxed">
+                                  {/* Transparent background layer */}
+                                  <div 
+                                    className="absolute inset-0 opacity-30"
+                                    style={{
+                                      backgroundColor: severityStyle 
+                                        ? severityStyle.backgroundColor 
+                                        : (booking.color || '#3B82F6'),
+                                      borderRadius: '0 0 6px 6px'
+                                    }}
+                                  ></div>
+                                  
+                                  {/* Content with full color */}
+                                  <div 
+                                    className="relative space-y-1 text-xs leading-relaxed"
+                                    style={{
+                                      color: severityStyle ? severityStyle.color : '#ffffff',
+                                      textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
+                                    }}
+                                  >
                                     <div className="font-medium">
                                       {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                                     </div>
