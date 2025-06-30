@@ -666,15 +666,16 @@ export default function EngineeringPage() {
                           <Tooltip key={booking.id}>
                             <TooltipTrigger asChild>
                               <div
-                                className={`absolute rounded text-sm p-2 cursor-pointer hover:shadow-lg transition-shadow z-20 overflow-hidden shadow-md ${
+                                className={`absolute rounded text-sm p-2 cursor-pointer hover:shadow-2xl transition-all duration-200 z-20 overflow-hidden ${
                                   severityStyle ? 'font-semibold' : 'text-white'
                                 } ${
                                   severityStyle && severityStyle.pattern === 'diagonal-stripes' ? 'bg-stripe-pattern' : ''
                                 }`}
                                 style={{
                                   ...finalStyle,
-                                  textShadow: severityStyle ? '1px 1px 1px rgba(0,0,0,0.6)' : '1px 1px 1px rgba(0,0,0,0.5)',
-                                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)'
+                                  textShadow: severityStyle ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 2px rgba(0,0,0,0.7)',
+                                  boxShadow: '0 8px 16px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)',
+                                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
                                 }}
                               >
                                 <div className="font-bold text-base mb-1 leading-tight">
