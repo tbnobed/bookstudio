@@ -666,7 +666,7 @@ export default function EngineeringPage() {
                           <Tooltip key={booking.id}>
                             <TooltipTrigger asChild>
                               <div
-                                className="absolute rounded text-sm cursor-pointer hover:shadow-2xl transition-all duration-200 z-20 overflow-hidden"
+                                className="absolute rounded text-sm cursor-pointer hover:shadow-2xl transition-all duration-200 z-20 overflow-hidden flex flex-col"
                                 style={{
                                   ...styleWithoutBg,
                                   marginLeft: '2px',
@@ -697,13 +697,14 @@ export default function EngineeringPage() {
                                   </div>
                                 </div>
                                 
-                                {/* Transparent Body with Maintained Color */}
+                                {/* Transparent Body with Maintained Color - Fill remaining height */}
                                 <div 
-                                  className="p-2 pt-1 relative"
+                                  className="p-2 pt-1 relative flex-1"
                                   style={{
                                     border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
                                     borderTop: 'none',
-                                    borderRadius: '0 0 6px 6px'
+                                    borderRadius: '0 0 6px 6px',
+                                    minHeight: 'calc(100% - 50px)' // Fill remaining height after header
                                   }}
                                 >
                                   {/* Transparent background layer */}
