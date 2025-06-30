@@ -684,14 +684,14 @@ export default function EngineeringPage() {
                                     {/* Studios */}
                                     {studios.length > 0 && (
                                       <div className="text-sm font-medium">
-                                        Studios: {studios.join(', ')}
+                                        {studios.join(', ')}
                                       </div>
                                     )}
                                     
                                     {/* PCR Room */}
                                     {pcrRoom && (
                                       <div className="text-sm font-medium">
-                                        PCR: {pcrRoom}
+                                        {pcrRoom}
                                       </div>
                                     )}
                                     
