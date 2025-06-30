@@ -676,9 +676,9 @@ export default function EngineeringPage() {
                                   </div>
                                 </div>
                                 
-                                {/* Transparent Body */}
+                                {/* Fully Transparent Body with All Content */}
                                 <div 
-                                  className="p-2 pt-1 opacity-40"
+                                  className="p-2 pt-1 opacity-30"
                                   style={{
                                     backgroundColor: severityStyle 
                                       ? severityStyle.backgroundColor 
@@ -690,24 +690,24 @@ export default function EngineeringPage() {
                                   }}
                                 >
                                   <div className="space-y-1 text-xs leading-relaxed">
-                                    <div className={`font-medium ${severityStyle ? 'opacity-90' : 'opacity-95'}`}>
+                                    <div className="font-medium">
                                       {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                                     </div>
                                     
                                     {studios.length > 0 && (
-                                      <div className={`font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
+                                      <div className="font-medium">
                                         {studios.join(', ')}
                                       </div>
                                     )}
                                     
                                     {pcrRoom && (
-                                      <div className={`font-medium ${severityStyle ? 'opacity-85' : 'opacity-90'}`}>
+                                      <div className="font-medium">
                                         {pcrRoom}
                                       </div>
                                     )}
 
                                     {booking.status && booking.status !== 'confirmed' && (
-                                      <div className={`font-bold text-xs uppercase ${severityStyle ? 'opacity-90' : 'opacity-95'}`}>
+                                      <div className="font-bold text-xs uppercase">
                                         {booking.status}
                                       </div>
                                     )}
