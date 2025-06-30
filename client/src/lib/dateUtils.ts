@@ -76,6 +76,11 @@ export function isBookingActive(booking: any, currentTime?: Date): boolean {
  * @returns Date string in YYYY-MM-DD format in facility timezone
  */
 export function formatDateForForm(date: Date): string {
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return "2025-01-01"; // Return a valid default date
+  }
+  
   // Get the date components in the facility timezone
   const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: FACILITY_TIMEZONE,
@@ -179,18 +184,30 @@ export function formatInFacilityTimezone(date: Date, formatStr: string): string 
 
 export function formatTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
+  // Check if date is valid
+  if (isNaN(d.getTime())) {
+    return "Invalid Date";
+  }
   // Use facility timezone for all time formatting
   return formatTimeInFacilityTimezone(d);
 }
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
+  // Check if date is valid
+  if (isNaN(d.getTime())) {
+    return "Invalid Date";
+  }
   // Use facility timezone for all date formatting
   return formatDateInFacilityTimezone(d);
 }
 
 export function formatDateShort(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
+  // Check if date is valid
+  if (isNaN(d.getTime())) {
+    return "Invalid Date";
+  }
   return d.toLocaleDateString("en-US", { 
     month: "numeric", 
     day: "numeric",
@@ -205,6 +222,11 @@ export function formatTimeRange(start: Date | string, end: Date | string): strin
 export function formatDateTimeRange(start: Date | string, end: Date | string): string {
   const startDate = typeof start === "string" ? new Date(start) : start;
   const endDate = typeof end === "string" ? new Date(end) : end;
+  
+  // Check if dates are valid
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return "Invalid Date Range";
+  }
   
   const sameDay = startDate.toDateString() === endDate.toDateString();
   
@@ -307,6 +329,11 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
   // Make defensive copies to ensure we don't modify the inputs
   const d1 = typeof date1 === "string" ? new Date(date1) : new Date(date1.getTime());
   const d2 = typeof date2 === "string" ? new Date(date2) : new Date(date2.getTime());
+  
+  // Check if dates are valid
+  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) {
+    return false;
+  }
   
   // Use Intl.DateTimeFormat to get the date components in the facility timezone
   const formatter = new Intl.DateTimeFormat('en-US', {
