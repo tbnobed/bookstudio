@@ -678,17 +678,25 @@ export default function EngineeringPage() {
                                 
                                 {/* Transparent Body */}
                                 <div 
-                                  className="p-2 pt-1"
+                                  className="p-2 pt-1 relative"
                                   style={{
-                                    backgroundColor: severityStyle 
-                                      ? hexToRgba(severityStyle.backgroundColor, 0.25) // 25% opacity
-                                      : (booking.color ? hexToRgba(booking.color, 0.25) : 'rgba(59, 130, 246, 0.25)'), // 25% opacity
                                     border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
                                     borderTop: 'none',
                                     borderRadius: '0 0 6px 6px',
                                     color: severityStyle ? severityStyle.color : '#ffffff'
                                   }}
                                 >
+                                  {/* Background overlay with transparency */}
+                                  <div 
+                                    className="absolute inset-0 rounded-b-md"
+                                    style={{
+                                      backgroundColor: severityStyle 
+                                        ? severityStyle.backgroundColor 
+                                        : (booking.color || '#3B82F6'),
+                                      opacity: 0.25,
+                                      zIndex: -1
+                                    }}
+                                  ></div>
                                   <div className="space-y-1 text-xs leading-relaxed">
                                     <div className={`font-medium ${severityStyle ? 'opacity-90' : 'opacity-95'}`}>
                                       {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
