@@ -704,7 +704,13 @@ export default function EngineeringPage() {
                                       textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
                                     }}
                                   >
-                                    <div className="font-medium">
+                                    <div 
+                                      className="font-bold text-sm"
+                                      style={{
+                                        color: '#ffffff',
+                                        textShadow: '2px 2px 4px rgba(0,0,0,0.9)'
+                                      }}
+                                    >
                                       {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
                                     </div>
                                     
