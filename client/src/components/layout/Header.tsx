@@ -13,6 +13,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
 
+// Force reload - trigger new import
+console.log('Header: Current timezone is', FACILITY_TIMEZONE);
+
 type HeaderProps = {
   currentDate: Date;
   onDateChange: (date: Date) => void;
