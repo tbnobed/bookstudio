@@ -129,7 +129,7 @@ export function Header({
         month: "long", 
         day: "numeric",
         year: "numeric",
-        timeZone: "America/Chicago"
+        timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || "America/Chicago"
       });
     } else if (view === "week") {
       // Generate fresh week text directly from current date

@@ -14,8 +14,8 @@ export const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-// The facility timezone is America/Chicago (Dallas, TX)
-export const FACILITY_TIMEZONE = 'America/Chicago';
+// The facility timezone - configurable for multi-site deployment
+export const FACILITY_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
 
 /**
  * Creates a Date object for a specific date/time in the facility timezone
