@@ -356,8 +356,9 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
     const isCurrentMonth = date.getMonth() === currentDate.getMonth();
     // Use facility timezone for today detection as instructed
     const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
-    const today = toZonedTime(new Date(), facilityTz);
-    const isToday = isSameDay(date, today);
+    const now = new Date();
+    const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
+    const isToday = isSameDay(date, facilityToday);
     
     return cn(
       "border p-1 transition-colors duration-200",
