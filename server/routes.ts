@@ -2105,6 +2105,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System timezone routes
+  app.get("/api/system/timezone", async (req, res) => {
+    try {
+      const timezoneSetting = await storage.getSystemSetting('facilityTimezone');
+      const timezone = timezoneSetting?.value || null;
+      res.json({ timezone });
+    } catch (error) {
+      console.error("Error getting facility timezone:", error);
+      res.status(500).json({ message: "Failed to fetch facility timezone" });
+    }
+  });
+
+  app.put("/api/system/timezone", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const { timezone } = req.body;
+      
+      if (!timezone || typeof timezone !== 'string') {
+        return res.status(400).json({ message: "Timezone is required and must be a string" });
+      }
+      
+      // Validate timezone (basic validation)
+      try {
+        Intl.DateTimeFormat(undefined, { timeZone: timezone });
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid timezone identifier" });
+      }
+      
+      const setting = await storage.upsertSystemSetting({ 
+        key: 'facilityTimezone', 
+        value: timezone 
+      });
+      
+      res.json({ timezone: setting.value, message: "Facility timezone updated successfully" });
+    } catch (error) {
+      console.error("Error setting facility timezone:", error);
+      res.status(500).json({ message: "Failed to update facility timezone" });
+    }
+  });
+
   // Backup Management API routes
   app.get("/api/backup/status", isAuthenticated, hasRole(["admin"]), async (req, res) => {
     try {

@@ -21,6 +21,7 @@ import * as z from "zod";
 import StudioManagementModal from "@/components/studio/StudioManagementModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
+import { setFacilityTimezoneAsync } from "@/lib/timezoneConfig";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 import ProfilePanel from "@/components/settings/ProfilePanel";
 import PcrRoomsPanel from "@/components/settings/PcrRoomsPanel";
