@@ -22,10 +22,11 @@ interface EmailParams {
   html?: string;
 }
 
-// Format date for emails in Chicago CDT timezone
+// Format date for emails in facility timezone
 export function formatDate(date: Date): string {
-  const chicagoDate = new Date(date).toLocaleString('en-US', {
-    timeZone: 'America/Chicago',
+  const facilityTimezone = process.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+  const facilityDate = new Date(date).toLocaleString('en-US', {
+    timeZone: facilityTimezone,
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -35,8 +36,9 @@ export function formatDate(date: Date): string {
     hour12: true
   });
   
-  // Add CDT suffix for clarity
-  return `${chicagoDate} CDT`;
+  // Add timezone abbreviation for clarity
+  const timezoneName = facilityTimezone.split('/')[1].replace('_', ' ');
+  return `${facilityDate} (${timezoneName})`;
 }
 
 // SendGrid email sender
