@@ -729,7 +729,7 @@ export default function SignagePage() {
                         </div>
                         <div className="text-base font-semibold text-yellow-50 mb-1">{alert.title}</div>
                         <div className="text-sm text-yellow-200">
-                          {formatChicagoTime(alert.start, 'MMM d, h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
+                          {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
                         </div>
                         <div className="text-sm text-yellow-300">
                           {getStudioNames(alert, studios, bookingStudioLinks)}
