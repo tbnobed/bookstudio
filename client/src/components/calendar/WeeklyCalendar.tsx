@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getWeekDates, formatDateShort, SHORT_DAY_NAMES, isWeekend } from "@/lib/dateUtils";
+import { getWeekDates, formatDateShort, SHORT_DAY_NAMES, isWeekend, getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
@@ -305,8 +305,8 @@ export default function WeeklyCalendar({
               const dateString = date.toISOString().split('T')[0];
               const dayForecast = forecast?.forecast.find(f => f.date === dateString);
               
-              // Use facility timezone for today detection
-              const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
+              // Use dynamic facility timezone for today detection
+              const today = toZonedTime(new Date(), getFacilityTimezone_Dynamic());
               const isToday = isSameDay(date, today);
               
               return (

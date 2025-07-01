@@ -15,8 +15,7 @@ import {
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { Header } from "@/components/layout/Header";
-
-const FACILITY_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || "America/Chicago";
+import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 
 // Get severity-based styling for alerts and maintenance bookings
 function getSeverityStyle(booking: BookingData) {
@@ -507,7 +506,7 @@ export default function EngineeringPage() {
                 
                 {/* Day headers */}
                 {weekDays.map((day) => {
-                  const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
+                  const today = toZonedTime(new Date(), getFacilityTimezone_Dynamic());
                   const isToday = isSameDay(day.date, today);
                   
                   return (

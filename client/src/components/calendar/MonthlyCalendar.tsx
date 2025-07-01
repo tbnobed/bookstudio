@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate, FACILITY_TIMEZONE, isBookingActive } from "@/lib/dateUtils";
+import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate, FACILITY_TIMEZONE, isBookingActive, getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, User, Tag, Tv } from "lucide-react";
@@ -354,8 +354,8 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
   // Get classes for a day cell
   const getDayClass = (date: Date) => {
     const isCurrentMonth = date.getMonth() === currentDate.getMonth();
-    // Use facility timezone for today detection as instructed
-    const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    // Use dynamic facility timezone for today detection
+    const facilityTz = getFacilityTimezone_Dynamic();
     
     // Get current date components in facility timezone
     const now = new Date();
