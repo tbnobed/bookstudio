@@ -32,19 +32,13 @@ export default function CalendarPage() {
   // Persist current date and view in localStorage
   const [currentDate, setCurrentDate] = useState(() => {
     try {
-      // Use the actual current date in facility timezone
-      const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+      // Get the current date in the browser's timezone
       const now = new Date();
+      console.log(`CalendarPage - Browser shows current date as: ${now.toLocaleDateString()}`);
+      console.log(`CalendarPage - Browser ISO: ${now.toISOString()}`);
       
-      // Create a date object that represents "today" in the facility timezone
-      const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
-      
-      console.log(`CalendarPage - Raw browser date: ${now.toISOString()}`);
-      console.log(`CalendarPage - Facility timezone: ${facilityTz}`);
-      console.log(`CalendarPage - Today in facility timezone: ${facilityToday.toLocaleDateString()}`);
-      console.log(`CalendarPage - Using date: ${facilityToday.toISOString()}`);
-      
-      return facilityToday;
+      // Use the browser's understanding of "today" rather than server dates
+      return now;
     } catch (error) {
       console.error('Error setting initial date', error);
       return new Date(); // Fallback to today
