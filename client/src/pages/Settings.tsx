@@ -384,6 +384,41 @@ export default function Settings() {
                         <p className="text-xs text-red-600 mt-2 font-mono bg-red-50 p-2 rounded border border-red-200">
                           DEBUG: Environment Variable = {FACILITY_TIMEZONE}
                         </p>
+                        <div className="mt-4 p-4 bg-blue-50 rounded border border-blue-200">
+                          <h4 className="text-sm font-medium mb-2">Timezone Override Control</h4>
+                          <p className="text-xs text-gray-600 mb-3">
+                            Use this to override the timezone without rebuilding the application:
+                          </p>
+                          <div className="space-y-2">
+                            <button 
+                              onClick={() => {
+                                localStorage.setItem('bookstudio_facility_timezone', 'America/Los_Angeles');
+                                window.location.reload();
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                            >
+                              Set to Los Angeles (America/Los_Angeles)
+                            </button>
+                            <button 
+                              onClick={() => {
+                                localStorage.setItem('bookstudio_facility_timezone', 'America/Chicago');
+                                window.location.reload();
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                            >
+                              Set to Dallas (America/Chicago)
+                            </button>
+                            <button 
+                              onClick={() => {
+                                localStorage.removeItem('bookstudio_facility_timezone');
+                                window.location.reload();
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                            >
+                              Clear Override (use build-time value)
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

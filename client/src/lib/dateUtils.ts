@@ -14,11 +14,10 @@ export const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-// The facility timezone - configurable for multi-site deployment
-export const FACILITY_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+import { getFacilityTimezone } from './timezoneConfig';
 
-// Debug environment variable loading (temporary)
-console.log('🕒 FACILITY_TIMEZONE:', FACILITY_TIMEZONE);
+// The facility timezone - uses runtime configuration to bypass Vite caching
+export const FACILITY_TIMEZONE = getFacilityTimezone();
 
 /**
  * Creates a Date object for a specific date/time in the facility timezone
