@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { subtractDays, addDays, formatWeekRangeText, formatMondayWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
-import TimezoneTestModal from "@/components/TimezoneTestModal";
+
 
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
@@ -38,7 +38,7 @@ export function Header({
 }: HeaderProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showAllStudios, setShowAllStudios] = useState(false);
-  const [isTimezoneModalOpen, setIsTimezoneModalOpen] = useState(false);
+
   const { sidebarVisible, toggleSidebar } = useSidebar();
   
   // Display a message about the timezone testing feature when the component mounts
@@ -324,24 +324,7 @@ export function Header({
             </div>
             
             <div className="ml-auto flex items-center space-x-2 text-sm">
-              {/* Timezone Test Button - Only for Admin */}
-              {useAuth().user?.role === "admin" && (
-                <div className="hidden md:flex items-center">
-                  <button 
-                    onClick={() => setIsTimezoneModalOpen(true)}
-                    className="px-2 py-1 text-xs font-medium text-blue-700 border border-blue-200 bg-blue-50 rounded-md hover:bg-blue-100"
-                    title="Run a test to verify timezone handling is working correctly"
-                  >
-                    <span className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                      </svg>
-                      Test Timezone
-                    </span>
-                  </button>
-                </div>
-              )}
+
               <div className="flex items-center">
                 <span className="h-3 w-3 rounded-full bg-green-500 mr-1"></span>
                 <span className="text-xs">Available</span>
@@ -366,11 +349,7 @@ export function Header({
         selectedDate={currentDate}
       />
 
-      {/* Timezone Test Modal */}
-      <TimezoneTestModal
-        isOpen={isTimezoneModalOpen}
-        onClose={() => setIsTimezoneModalOpen(false)}
-      />
+
     </header>
   );
 }
