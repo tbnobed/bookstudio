@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Tv, MapPin, Settings, Clock } from "lucide-react";
 import { formatTime } from "@/lib/dateUtils";
+import { getFacilityTimezone } from "@/lib/timezoneConfig";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -155,15 +156,16 @@ export default function StudiosPage() {
     
     if (currentBooking) {
       const endTime = new Date(currentBooking.end);
+      const facilityTimezone = import.meta.env.VITE_FACILITY_TIMEZONE || getFacilityTimezone();
       const endDate = new Date(currentBooking.end).toLocaleDateString('en-US', {
-        timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
+        timeZone: facilityTimezone,
         month: 'short',
         day: 'numeric',
         year: new Date(currentBooking.end).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
       });
-      const todayInChicago = new Date().toLocaleDateString('en-US', { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' });
-      const bookingEndInChicago = new Date(currentBooking.end).toLocaleDateString('en-US', { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' });
-      const isToday = bookingEndInChicago === todayInChicago;
+      const todayInFacility = new Date().toLocaleDateString('en-US', { timeZone: facilityTimezone });
+      const bookingEndInFacility = new Date(currentBooking.end).toLocaleDateString('en-US', { timeZone: facilityTimezone });
+      const isToday = bookingEndInFacility === todayInFacility;
       return {
         status: "in-use",
         label: "In Use",
@@ -175,15 +177,16 @@ export default function StudiosPage() {
     
     if (nextBooking) {
       const startTime = new Date(nextBooking.start);
+      const facilityTimezone = import.meta.env.VITE_FACILITY_TIMEZONE || getFacilityTimezone();
       const startDate = new Date(nextBooking.start).toLocaleDateString('en-US', {
-        timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
+        timeZone: facilityTimezone,
         month: 'short',
         day: 'numeric',
         year: new Date(nextBooking.start).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
       });
-      const todayInChicago = new Date().toLocaleDateString('en-US', { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' });
-      const bookingStartInChicago = new Date(nextBooking.start).toLocaleDateString('en-US', { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' });
-      const isToday = bookingStartInChicago === todayInChicago;
+      const todayInFacility = new Date().toLocaleDateString('en-US', { timeZone: facilityTimezone });
+      const bookingStartInFacility = new Date(nextBooking.start).toLocaleDateString('en-US', { timeZone: facilityTimezone });
+      const isToday = bookingStartInFacility === todayInFacility;
       return {
         status: "available",
         label: "Available",
