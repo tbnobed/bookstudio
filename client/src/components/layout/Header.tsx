@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
-import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
+import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 
 type HeaderProps = {
   currentDate: Date;
@@ -69,7 +69,7 @@ export function Header({
   // Navigate to today
   const goToToday = () => {
     // Use facility timezone for today as instructed
-    const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    const facilityTz = getFacilityTimezone_Dynamic();
     const now = new Date();
     const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
     onDateChange(facilityToday);
@@ -133,7 +133,7 @@ export function Header({
         month: "long", 
         day: "numeric",
         year: "numeric",
-        timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || "America/Chicago"
+        timeZone: getFacilityTimezone_Dynamic()
       });
     } else if (view === "week") {
       // Generate fresh week text directly from current date
@@ -141,7 +141,7 @@ export function Header({
       console.log(`Header - Generated ${useMondayWeeks ? 'Monday-based' : 'Sunday-based'} week text: ${weekText} for date ${currentDate.toISOString()}`);
       return weekText;
     } else {
-      return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: getFacilityTimezone_Dynamic() });
     }
   };
 
