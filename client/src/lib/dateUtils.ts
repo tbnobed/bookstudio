@@ -16,7 +16,12 @@ export const MONTH_NAMES = [
 
 import { getFacilityTimezone } from './timezoneConfig';
 
-// The facility timezone - uses runtime configuration to bypass Vite caching
+// Dynamic timezone getter - evaluates timezone on each call to bypass module caching
+export function getFacilityTimezone_Dynamic() {
+  return getFacilityTimezone();
+}
+
+// Legacy constant for backward compatibility - but now dynamic
 export const FACILITY_TIMEZONE = getFacilityTimezone();
 
 /**
@@ -85,7 +90,7 @@ export function formatDateForForm(date: Date): string {
   
   // Get the date components in the facility timezone
   const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: FACILITY_TIMEZONE,
+    timeZone: getFacilityTimezone_Dynamic(),
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
@@ -112,7 +117,7 @@ export function formatTimeInFacilityTimezone(date: Date): string {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-    timeZone: FACILITY_TIMEZONE
+    timeZone: getFacilityTimezone_Dynamic()
   });
 }
 
@@ -124,7 +129,7 @@ export function formatTimeInFacilityTimezone(date: Date): string {
  */
 export function formatTimeForForm(date: Date): string {
   const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: FACILITY_TIMEZONE,
+    timeZone: getFacilityTimezone_Dynamic(),
     hour: '2-digit',
     minute: '2-digit',
     hour12: false
@@ -148,7 +153,7 @@ export function formatDateInFacilityTimezone(date: Date): string {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-    timeZone: FACILITY_TIMEZONE
+    timeZone: getFacilityTimezone_Dynamic()
   });
 }
 
@@ -339,7 +344,7 @@ export function isSameDay(date1: Date | string, date2: Date | string): boolean {
   
   // Use Intl.DateTimeFormat to get the date components in the facility timezone
   const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: FACILITY_TIMEZONE,
+    timeZone: getFacilityTimezone_Dynamic(),
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
