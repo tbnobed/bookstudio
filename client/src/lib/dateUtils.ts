@@ -17,8 +17,8 @@ export const MONTH_NAMES = [
 // The facility timezone - configurable for multi-site deployment
 export const FACILITY_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
 
-// Debug: Log the actual timezone being used (temporary)
-console.log('FACILITY_TIMEZONE loaded:', FACILITY_TIMEZONE, 'from env:', import.meta.env.VITE_FACILITY_TIMEZONE);
+// Debug environment variable loading (temporary)
+console.log('🕒 FACILITY_TIMEZONE:', FACILITY_TIMEZONE);
 
 /**
  * Creates a Date object for a specific date/time in the facility timezone
