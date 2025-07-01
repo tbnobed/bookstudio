@@ -610,7 +610,13 @@ export function testTimezoneHandling(): void {
   console.log(`User's local timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
   console.log(`Facility timezone: ${FACILITY_TIMEZONE}`);
   
-  // Create a test date for Dallas at 8:00 AM
+  // Test with current date/time
+  const now = new Date();
+  console.log(`\nCurrent UTC time: ${now.toISOString()}`);
+  console.log(`Current facility time: ${now.toLocaleString('en-US', { timeZone: FACILITY_TIMEZONE })}`);
+  console.log(`Today's date in facility timezone: ${formatDate(now)}`);
+  
+  // Create a test date for Dallas at 8:00 AM  
   const testDate = createFacilityDate(2025, 4, 15, 8, 0, 0); // May 15, 2025 8:00 AM in Dallas
   
   console.log(`\nTest date (8:00 AM in Dallas): ${testDate.toISOString()}`);
