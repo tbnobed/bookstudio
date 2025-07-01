@@ -70,9 +70,12 @@ export function formatTimeForForm(date: Date | string): string {
  * @returns True if dates are on the same day in Chicago timezone
  */
 export function isSameDay(date1: Date, date2: Date): boolean {
+  // Use environment variable with fallback - this will be configurable per deployment
+  const timezone = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+  
   // Convert dates to facility timezone strings
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE,
+    timeZone: timezone,
     year: 'numeric',
     month: 'numeric',
     day: 'numeric'
@@ -97,7 +100,7 @@ export function isSameDay(date1: Date, date2: Date): boolean {
 export function getDayRangeInChicago(date: Date): { start: Date, end: Date } {
   // Format the date in facility timezone to get year, month, day components
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE,
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     year: 'numeric',
     month: 'numeric',
     day: 'numeric'
@@ -128,7 +131,7 @@ export function formatDateForDisplay(date: Date | string): string {
   
   // Format with facility timezone
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE,
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -150,7 +153,7 @@ export function formatTimeForDisplay(date: Date | string): string {
   
   // Format with facility timezone (time only)
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE,
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     hour: 'numeric',
     minute: 'numeric',
     hour12: true
