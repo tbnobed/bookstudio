@@ -32,9 +32,13 @@ export default function CalendarPage() {
   // Persist current date and view in localStorage
   const [currentDate, setCurrentDate] = useState(() => {
     try {
-      // Always start with today's date
-      const today = new Date();
-      console.log(`CalendarPage - Initializing with today's date: ${today.toISOString()}`);
+      // Use browser's current date to avoid server date mismatches in development
+      const now = Date.now();
+      const today = new Date(now);
+      console.log(`CalendarPage - Initializing with browser's current date: ${today.toISOString()}`);
+      console.log(`CalendarPage - Browser local date: ${today.toLocaleDateString()}`);
+      console.log(`CalendarPage - System timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
+      console.log(`CalendarPage - UTC timestamp: ${now}`);
       return today;
     } catch (error) {
       console.error('Error setting initial date', error);
