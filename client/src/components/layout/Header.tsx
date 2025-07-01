@@ -68,7 +68,11 @@ export function Header({
 
   // Navigate to today
   const goToToday = () => {
-    onDateChange(new Date());
+    // Use facility timezone for today as instructed
+    const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    const now = new Date();
+    const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
+    onDateChange(facilityToday);
   };
 
   // Navigate based on view - using clean date objects

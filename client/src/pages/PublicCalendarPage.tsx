@@ -158,7 +158,11 @@ function PublicCalendarPage() {
 
   // Navigation functions
   const goToToday = () => {
-    setCurrentDate(new Date());
+    // Use facility timezone for today as instructed
+    const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    const now = new Date();
+    const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
+    setCurrentDate(facilityToday);
   };
 
   const goToPrevious = () => {

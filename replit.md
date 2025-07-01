@@ -302,6 +302,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 30, 2025: FIXED production foreign key constraint error - added validation in PATCH route that converts 0 values to null for pcrRoomId, templateId, and studioId, preventing database constraint violations in production environment
 - June 30, 2025: VERIFIED system ready for multi-city deployment - confirmed all timezone handling uses FACILITY_TIMEZONE environment variable, created Tustin deployment guide with Pacific timezone configuration
 - June 30, 2025: COMPLETELY FIXED multi-site timezone support - replaced all 26+ hardcoded "America/Chicago" references with VITE_FACILITY_TIMEZONE environment variable throughout entire codebase including Header, utils/dateUtils, components, and pages, added VITE_FACILITY_TIMEZONE to .env files, system now fully configurable for any timezone deployment (Tustin=America/Los_Angeles, Nashville=America/Chicago, etc.), resolved development environment date mismatch where Replit system clock showed wrong date
+- June 30, 2025: FIXED calendar "today" highlighting across ALL components - updated CalendarPage initialization, MonthlyCalendar getDayClass function, Header goToToday function, MobileDailyView goToToday, MobilePublicDailyView goToToday, and PublicCalendarPage goToToday to consistently use VITE_FACILITY_TIMEZONE for "today" detection instead of browser local timezone, ensuring June 30th correctly highlights as today in facility timezone regardless of user's browser timezone settings
 
 ## User Preferences
 

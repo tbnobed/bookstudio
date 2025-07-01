@@ -217,10 +217,13 @@ export default function MobileDailyView({
   
   // Navigate to today
   const goToToday = () => {
-    const today = new Date();
+    // Use facility timezone for today as instructed
+    const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    const now = new Date();
+    const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
     // Update both the prop callback and the context
-    onDateChange(today);
-    setSelectedDate(today);
+    onDateChange(facilityToday);
+    setSelectedDate(facilityToday);
   };
 
   // Switch to weekly view
