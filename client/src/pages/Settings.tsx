@@ -21,7 +21,7 @@ import * as z from "zod";
 import StudioManagementModal from "@/components/studio/StudioManagementModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
-import { setFacilityTimezoneAsync, clearFacilityTimezoneAsync } from "@/lib/timezoneConfig";
+import { setFacilityTimezoneAsync, clearFacilityTimezoneAsync, getFacilityTimezoneAsync } from "@/lib/timezoneConfig";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 import ProfilePanel from "@/components/settings/ProfilePanel";
 import PcrRoomsPanel from "@/components/settings/PcrRoomsPanel";
@@ -123,6 +123,20 @@ export default function Settings() {
   const [selectedStudio, setSelectedStudio] = useState<Studio | undefined>(undefined);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [studioToDelete, setStudioToDelete] = useState<Studio | null>(null);
+  const [currentTimezone, setCurrentTimezone] = useState<string>(FACILITY_TIMEZONE);
+  
+  // Load current effective timezone on component mount
+  useEffect(() => {
+    const loadCurrentTimezone = async () => {
+      try {
+        const effectiveTimezone = await getFacilityTimezoneAsync();
+        setCurrentTimezone(effectiveTimezone);
+      } catch (error) {
+        console.error('Failed to load current timezone:', error);
+      }
+    };
+    loadCurrentTimezone();
+  }, []);
   
   // Fetch studios for studio settings
   const { data: studios = [] } = useQuery<Studio[]>({
