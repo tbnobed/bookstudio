@@ -313,10 +313,10 @@ BookStud.io is a comprehensive web application for television studio management 
 
 Preferred communication style: Simple, everyday language.
 
-**CRITICAL TIMEZONE REQUIREMENT**: ALL date/time operations throughout the entire application MUST use Chicago timezone (America/Chicago). This includes:
+**CRITICAL TIMEZONE REQUIREMENT**: ALL date/time operations throughout the entire application MUST use facility timezone (configured via VITE_FACILITY_TIMEZONE environment variable). This includes:
 - Date comparisons and calculations
 - Display formatting
 - Database queries with date ranges
 - Status checks and availability logic
 - Never use browser local timezone or UTC for comparisons
-- Always use 'America/Chicago' timezone in all date operations
+- Always use the configured facility timezone in all date operations

@@ -70,22 +70,22 @@ export function formatTimeForForm(date: Date | string): string {
  * @returns True if dates are on the same day in Chicago timezone
  */
 export function isSameDay(date1: Date, date2: Date): boolean {
-  // Convert dates to Chicago timezone strings
+  // Convert dates to facility timezone strings
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE,
     year: 'numeric',
     month: 'numeric',
     day: 'numeric'
   };
   
-  const chicagoDate1 = new Date(date1).toLocaleString('en-US', options);
-  const chicagoDate2 = new Date(date2).toLocaleString('en-US', options);
+  const facilityDate1 = new Date(date1).toLocaleString('en-US', options);
+  const facilityDate2 = new Date(date2).toLocaleString('en-US', options);
   
   // Log the comparison for debugging
-  console.log(`isSameDay: Comparing "${date1.toISOString()}" (${chicagoDate1}) with "${date2.toISOString()}" (${chicagoDate2}) => ${chicagoDate1 === chicagoDate2}`);
+  console.log(`isSameDay: Comparing "${date1.toISOString()}" (${facilityDate1}) with "${date2.toISOString()}" (${facilityDate2}) => ${facilityDate1 === facilityDate2}`);
   
-  // If the formatted dates (without time) match, they're the same day in Chicago timezone
-  return chicagoDate1 === chicagoDate2;
+  // If the formatted dates (without time) match, they're the same day in facility timezone
+  return facilityDate1 === facilityDate2;
 }
 
 /**
@@ -95,27 +95,27 @@ export function isSameDay(date1: Date, date2: Date): boolean {
  * @returns Object with start and end properties representing midnight to midnight in Chicago timezone
  */
 export function getDayRangeInChicago(date: Date): { start: Date, end: Date } {
-  // Format the date in Chicago timezone to get year, month, day components
+  // Format the date in facility timezone to get year, month, day components
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE,
     year: 'numeric',
     month: 'numeric',
     day: 'numeric'
   };
   
-  const chicagoDateStr = date.toLocaleString('en-US', options);
-  const [monthDayYear, _] = chicagoDateStr.split(',');
+  const facilityDateStr = date.toLocaleString('en-US', options);
+  const [monthDayYear, _] = facilityDateStr.split(',');
   const [month, day, year] = monthDayYear.split('/').map(Number);
   
-  // Create a date object representing midnight at the start of the day in Chicago
-  const chicagoMidnight = new Date(Date.UTC(year, month - 1, day, 5, 0, 0, 0)); // 00:00 in Chicago is 05:00 in UTC
+  // Create a date object representing midnight at the start of the day in facility timezone
+  const facilityMidnight = new Date(Date.UTC(year, month - 1, day, 5, 0, 0, 0)); // 00:00 in facility timezone is 05:00 in UTC
   
   // Create end of day (23:59:59.999)
-  const chicagoEndOfDay = new Date(Date.UTC(year, month - 1, day, 29, 59, 59, 999)); // 23:59:59.999 in Chicago
+  const facilityEndOfDay = new Date(Date.UTC(year, month - 1, day, 29, 59, 59, 999)); // 23:59:59.999 in facility timezone
   
-  console.log(`getDayRangeInChicago: For date ${date.toISOString()} (${chicagoDateStr}), range is: ${chicagoMidnight.toISOString()} to ${chicagoEndOfDay.toISOString()}`);
+  console.log(`getDayRangeInChicago: For date ${date.toISOString()} (${facilityDateStr}), range is: ${facilityMidnight.toISOString()} to ${facilityEndOfDay.toISOString()}`);
   
-  return { start: chicagoMidnight, end: chicagoEndOfDay };
+  return { start: facilityMidnight, end: facilityEndOfDay };
 }
 
 /**
@@ -126,9 +126,9 @@ export function getDayRangeInChicago(date: Date): { start: Date, end: Date } {
 export function formatDateForDisplay(date: Date | string): string {
   const d = date instanceof Date ? date : new Date(date);
   
-  // Format with Chicago timezone
+  // Format with facility timezone
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE,
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -148,9 +148,9 @@ export function formatDateForDisplay(date: Date | string): string {
 export function formatTimeForDisplay(date: Date | string): string {
   const d = date instanceof Date ? date : new Date(date);
   
-  // Format with Chicago timezone (time only)
+  // Format with facility timezone (time only)
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE,
     hour: 'numeric',
     minute: 'numeric',
     hour12: true
