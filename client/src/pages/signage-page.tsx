@@ -108,8 +108,8 @@ function isBookingActive(booking: Booking, now: Date) {
   return isWithinInterval(now, { start, end });
 }
 
-function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLinks: BookingStudioLink[]) {
-  const now = getChicagoTime();
+function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLinks: BookingStudioLink[], timezone: string) {
+  const now = getFacilityTime(timezone);
   const studioBookings = bookings.filter(booking => {
     if (booking.studioId === studioId) return true;
     return bookingStudioLinks.some(link => link.studioId === studioId && link.bookingId === booking.id);
@@ -118,13 +118,13 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
   // Check if currently in use
   const activeBooking = studioBookings.find(booking => isBookingActive(booking, now));
   if (activeBooking) {
-    return formatChicagoTime(activeBooking.end, 'h:mm a');
+    return formatFacilityTime(activeBooking.end, 'h:mm a', timezone);
   }
   
   // Find next booking
   const nextBooking = studioBookings.find(booking => parseISO(booking.start) > now);
   if (nextBooking) {
-    return formatChicagoTime(nextBooking.start, 'h:mm a');
+    return formatFacilityTime(nextBooking.start, 'h:mm a', timezone);
   }
   
   return 'Available';
@@ -156,11 +156,11 @@ export default function SignagePage() {
   // Auto-refresh time every 30 seconds
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(getCurrentChicagoTime());
+      setCurrentTime(getCurrentFacilityTime(facilityTimezone));
     }, 30000);
     
     return () => clearInterval(timer);
-  }, []);
+  }, [facilityTimezone]);
   
   // Fetch weather data and forecast
   useEffect(() => {
@@ -339,7 +339,7 @@ export default function SignagePage() {
     return {
       ...studio,
       currentBooking: activeBooking,
-      nextAvailable: getNextAvailable(studio.id, bookings, bookingStudioLinks),
+      nextAvailable: getNextAvailable(studio.id, bookings, bookingStudioLinks, facilityTimezone),
     };
   });
 
@@ -356,7 +356,7 @@ export default function SignagePage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-10">
         <div className="flex items-center space-x-6">
-          <div className="text-6xl font-bold text-white drop-shadow-lg">The Plex Studios</div>
+          <div className="text-6xl font-bold text-white drop-shadow-lg">{siteName}</div>
           <Badge variant="outline" className="text-xl px-6 py-3 bg-blue-500/20 text-blue-300 border-blue-400 font-semibold">
             LIVE DISPLAY
           </Badge>
@@ -383,7 +383,7 @@ export default function SignagePage() {
             <div>
               <div className="text-4xl font-bold">
                 {new Date().toLocaleTimeString('en-US', { 
-                  timeZone: FACILITY_TIMEZONE,
+                  timeZone: facilityTimezone,
                   hour: 'numeric',
                   minute: '2-digit',
                   hour12: true
@@ -391,14 +391,20 @@ export default function SignagePage() {
               </div>
               <div className="text-xl text-slate-300">
                 {new Date().toLocaleDateString('en-US', {
-                  timeZone: FACILITY_TIMEZONE,
+                  timeZone: facilityTimezone,
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
                 })}
               </div>
-              <div className="text-lg text-slate-400">Central Time</div>
+              <div className="text-lg text-slate-400">
+                {facilityTimezone.includes('Los_Angeles') ? 'Pacific Time' : 
+                 facilityTimezone.includes('Chicago') ? 'Central Time' : 
+                 facilityTimezone.includes('New_York') ? 'Eastern Time' : 
+                 facilityTimezone.includes('Denver') ? 'Mountain Time' : 
+                 'Local Time'}
+              </div>
             </div>
           </div>
         </div>
@@ -478,7 +484,7 @@ export default function SignagePage() {
                           {getStudioNames(booking, studios, bookingStudioLinks)}
                         </div>
                         <div className="text-base text-slate-400">
-                          {formatChicagoTime(booking.start, 'h:mm a')} - {formatChicagoTime(booking.end, 'h:mm a')}
+                          {formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}
                         </div>
                         {booking.description && booking.description.trim() && (
                           <div className="text-sm text-slate-500 mt-1 truncate" title={booking.description}>
