@@ -138,6 +138,44 @@ export default function Settings() {
     loadCurrentTimezone();
   }, []);
   
+  // Enhanced timezone setter that updates both database and local state
+  const handleSetTimezone = async (timezone: string) => {
+    try {
+      await setFacilityTimezoneAsync(timezone);
+      setCurrentTimezone(timezone);
+      toast({
+        title: "Timezone Updated",
+        description: `System timezone set to ${formatTimezoneDisplay(timezone).description}`,
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update timezone setting",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Enhanced timezone clearer that updates both database and local state
+  const handleClearTimezone = async () => {
+    try {
+      await clearFacilityTimezoneAsync();
+      setCurrentTimezone(FACILITY_TIMEZONE);
+      toast({
+        title: "Timezone Cleared",
+        description: `System timezone reset to build-time value: ${formatTimezoneDisplay(FACILITY_TIMEZONE).description}`,
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear timezone setting",
+        variant: "destructive",
+      });
+    }
+  };
+  
   // Fetch studios for studio settings
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
@@ -391,10 +429,10 @@ export default function Settings() {
                       <Label>System Timezone</Label>
                       <div className="mt-2">
                         <p className="text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                          <strong>{formatTimezoneDisplay(FACILITY_TIMEZONE).displayName}</strong> ({formatTimezoneDisplay(FACILITY_TIMEZONE).description})
+                          <strong>{formatTimezoneDisplay(currentTimezone).displayName}</strong> ({formatTimezoneDisplay(currentTimezone).description})
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          The system uses {formatTimezoneDisplay(FACILITY_TIMEZONE).displayName} for all bookings to ensure consistent scheduling
+                          The system uses {formatTimezoneDisplay(currentTimezone).displayName} for all bookings to ensure consistent scheduling
                         </p>
                         <p className="text-xs text-red-600 mt-2 font-mono bg-red-50 p-2 rounded border border-red-200">
                           DEBUG: Environment Variable = {FACILITY_TIMEZONE}
@@ -406,31 +444,31 @@ export default function Settings() {
                           </p>
                           <div className="space-y-2">
                             <button 
-                              onClick={() => setFacilityTimezoneAsync('America/Los_Angeles')}
+                              onClick={() => handleSetTimezone('America/Los_Angeles')}
                               className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
                             >
                               Set to Los Angeles (America/Los_Angeles)
                             </button>
                             <button 
-                              onClick={() => setFacilityTimezoneAsync('America/Chicago')}
+                              onClick={() => handleSetTimezone('America/Chicago')}
                               className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
                             >
                               Set to Dallas (America/Chicago)
                             </button>
                             <button 
-                              onClick={() => setFacilityTimezoneAsync('America/New_York')}
+                              onClick={() => handleSetTimezone('America/New_York')}
                               className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
                             >
                               Set to New York (America/New_York)
                             </button>
                             <button 
-                              onClick={() => setFacilityTimezoneAsync('America/Denver')}
+                              onClick={() => handleSetTimezone('America/Denver')}
                               className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
                             >
                               Set to Denver (America/Denver)
                             </button>
                             <button 
-                              onClick={() => clearFacilityTimezoneAsync()}
+                              onClick={() => handleClearTimezone()}
                               className="w-full text-left px-3 py-2 text-sm bg-red-50 border border-red-200 rounded hover:bg-red-100 text-red-700"
                             >
                               Clear Override (use build-time value)
