@@ -518,12 +518,12 @@ export default function SignagePage() {
                       <div className={`text-lg font-medium mb-1 ${
                         index === 0 ? 'text-blue-400' : 'text-slate-300'
                       }`}>
-                        {formatChicagoTime(date, 'EEE')}
+                        {formatFacilityTime(date, 'EEE', facilityTimezone)}
                       </div>
                       <div className={`text-2xl font-bold mb-1 ${
                         index === 0 ? 'text-blue-400' : 'text-white'
                       }`}>
-                        {formatChicagoTime(date, 'd')}
+                        {formatFacilityTime(date, 'd', facilityTimezone)}
                       </div>
                       
                       {/* Weather forecast for the day */}
@@ -578,7 +578,7 @@ export default function SignagePage() {
                                 ? (booking.severity === 'critical' ? '#dc2626' : '#ea580c')
                                 : booking.color 
                             }}
-                            title={`${booking.title} - ${formatChicagoTime(booking.start, 'h:mm a')} to ${formatChicagoTime(booking.end, 'h:mm a')}`}
+                            title={`${booking.title} - ${formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} to ${formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}`}
                           >
                             <div className="flex items-center justify-between mb-1">
                               <div className="font-medium truncate flex-1">
@@ -601,7 +601,7 @@ export default function SignagePage() {
                             </div>
                             <div className="flex items-center justify-between text-xs opacity-90">
                               <div className="flex items-center space-x-2">
-                                <span>{formatChicagoTime(booking.start, 'h:mm a')}-{formatChicagoTime(booking.end, 'h:mm a')}</span>
+                                <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
                                 {booking.type === 'maintenance' && (
                                   <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
                                 )}
@@ -688,7 +688,7 @@ export default function SignagePage() {
                         </div>
                         <div className="text-lg font-semibold text-red-50 mb-1">{alert.title}</div>
                         <div className="text-sm text-red-200">
-                          {formatChicagoTime(alert.start, 'h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
+                          {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
                         </div>
                         <div className="text-sm text-red-300">
                           {getStudioNames(alert, studios, bookingStudioLinks)}
@@ -708,7 +708,7 @@ export default function SignagePage() {
                         </div>
                         <div className="text-lg font-semibold text-orange-50 mb-1">{alert.title}</div>
                         <div className="text-sm text-orange-200">
-                          {formatChicagoTime(alert.start, 'h:mm a')} - {formatChicagoTime(alert.end, 'h:mm a')}
+                          {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
                         </div>
                         <div className="text-sm text-orange-300">
                           {getStudioNames(alert, studios, bookingStudioLinks)}
