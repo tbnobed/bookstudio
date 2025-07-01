@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Studio, Template, PcrRoom, InsertBooking, NotificationGroup, Booking } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { formatTime, generateTimeOptions, timeToDate, createFacilityDate } from "@/lib/dateUtils";
+import { getFacilityTimezone } from "@/lib/timezoneConfig";
 import { Camera, Monitor, Trash2 } from "lucide-react";
 import { useNotification } from "@/hooks/use-notification";
 import {
@@ -108,7 +109,8 @@ export default function MobileBookingForm({
 
   // Convert time to dropdown format (matches generateTimeOptions format)
   const formatTimeForDropdown = (date: Date): string => {
-    const facilityTime = new Date(date.toLocaleString("en-US", { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || "America/Chicago" }));
+    const facilityTimezone = import.meta.env.VITE_FACILITY_TIMEZONE || getFacilityTimezone();
+    const facilityTime = new Date(date.toLocaleString("en-US", { timeZone: facilityTimezone }));
     const hour = facilityTime.getHours();
     const minute = facilityTime.getMinutes();
     const h = hour % 12 || 12;
