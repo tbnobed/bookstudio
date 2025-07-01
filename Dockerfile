@@ -29,21 +29,28 @@ ARG VITE_OPENWEATHER_API_KEY
 ARG VITE_WEATHER_LOCATION
 ARG VITE_WEATHER_LAT
 ARG VITE_WEATHER_LON
+ARG VITE_FACILITY_TIMEZONE
+ARG TZ
 ENV VITE_OPENWEATHER_API_KEY=$VITE_OPENWEATHER_API_KEY
 ENV VITE_WEATHER_LOCATION=$VITE_WEATHER_LOCATION
 ENV VITE_WEATHER_LAT=$VITE_WEATHER_LAT
 ENV VITE_WEATHER_LON=$VITE_WEATHER_LON
+ENV VITE_FACILITY_TIMEZONE=$VITE_FACILITY_TIMEZONE
+ENV TZ=$TZ
 
 RUN echo "=== Building with environment variables ===" && \
     echo "VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}" && \
     echo "VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}" && \
     echo "VITE_WEATHER_LAT=${VITE_WEATHER_LAT}" && \
     echo "VITE_WEATHER_LON=${VITE_WEATHER_LON}" && \
+    echo "VITE_FACILITY_TIMEZONE=${VITE_FACILITY_TIMEZONE}" && \
+    echo "TZ=${TZ}" && \
     echo "=== Creating client .env for Vite ===" && \
     echo "VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}" > client/.env && \
     echo "VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}" >> client/.env && \
     echo "VITE_WEATHER_LAT=${VITE_WEATHER_LAT}" >> client/.env && \
     echo "VITE_WEATHER_LON=${VITE_WEATHER_LON}" >> client/.env && \
+    echo "VITE_FACILITY_TIMEZONE=${VITE_FACILITY_TIMEZONE}" >> client/.env && \
     echo "=== Starting Vite build ===" && \
     npm run build
 # Create a production-ready server file
@@ -87,15 +94,12 @@ WORKDIR /app
 ENV RUNNING_IN_DOCKER=true
 ENV PORT=5000
 ENV NODE_ENV=production
-ENV TZ=America/Chicago
-ENV FACILITY_TIMEZONE=America/Chicago
+# Timezone will be set via build args and runtime environment
 
 # Install production-only dependencies
 RUN apk add --no-cache curl wget tzdata
 
-# Set timezone with proper configuration
-RUN cp /usr/share/zoneinfo/America/Chicago /etc/localtime && \
-    echo "America/Chicago" > /etc/timezone
+# Timezone will be configured at runtime via environment variables
 
 # Create unprivileged user for running the application
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

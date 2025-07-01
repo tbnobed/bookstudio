@@ -11,6 +11,8 @@ services:
         - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}
         - VITE_WEATHER_LAT=${VITE_WEATHER_LAT}
         - VITE_WEATHER_LON=${VITE_WEATHER_LON}
+        - VITE_FACILITY_TIMEZONE=${VITE_FACILITY_TIMEZONE:-America/Chicago}
+        - TZ=${TZ:-America/Chicago}
     image: bookstudio:${VERSION:-latest}
     restart: always
     ports:
