@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar, Radio, AlertTriangle } from "lucide-react";
 import { format, isWithinInterval, addDays, startOfDay, endOfDay, parseISO, isSameDay } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
+import { getFacilityTimezoneAsync } from "@/lib/timezoneConfig";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface Booking {
   id: number;
@@ -53,31 +55,31 @@ interface WeatherForecast {
   forecast: ForecastDay[];
 }
 
-const FACILITY_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+const BUILD_TIME_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
 
-function getChicagoTime() {
-  // Get current time in Chicago timezone
+function getFacilityTime(timezone: string) {
+  // Get current time in facility timezone
   const now = new Date();
-  // Convert UTC time to Chicago time
-  return toZonedTime(now, FACILITY_TIMEZONE);
+  // Convert UTC time to facility time
+  return toZonedTime(now, timezone);
 }
 
-function formatChicagoTime(date: Date | string, formatStr: string) {
-  let chicagoDate;
+function formatFacilityTime(date: Date | string, formatStr: string, timezone: string) {
+  let facilityDate;
   if (typeof date === 'string') {
-    chicagoDate = toZonedTime(parseISO(date), FACILITY_TIMEZONE);
+    facilityDate = toZonedTime(parseISO(date), timezone);
   } else {
-    chicagoDate = toZonedTime(date, FACILITY_TIMEZONE);
+    facilityDate = toZonedTime(date, timezone);
   }
-  return format(chicagoDate, formatStr, { timeZone: FACILITY_TIMEZONE });
+  return format(facilityDate, formatStr);
 }
 
-function getCurrentChicagoTime() {
-  // Get current time and create a proper Chicago timezone date
+function getCurrentFacilityTime(timezone: string) {
+  // Get current time and create a proper facility timezone date
   const now = new Date();
-  // This creates a new Date object representing the current time in Chicago
-  const chicagoTime = new Date(now.toLocaleString("en-US", { timeZone: FACILITY_TIMEZONE }));
-  return chicagoTime;
+  // This creates a new Date object representing the current time in facility timezone
+  const facilityTime = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
+  return facilityTime;
 }
 
 function getStudioNames(booking: Booking, studios: Studio[], bookingStudioLinks: BookingStudioLink[]) {
@@ -129,9 +131,27 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
 }
 
 export default function SignagePage() {
-  const [currentTime, setCurrentTime] = useState(getCurrentChicagoTime());
+  const [currentTime, setCurrentTime] = useState(getCurrentFacilityTime(BUILD_TIME_TIMEZONE));
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<WeatherForecast | null>(null);
+  const [facilityTimezone, setFacilityTimezone] = useState<string>(BUILD_TIME_TIMEZONE);
+  
+  // Get site settings
+  const { siteName } = useSiteSettings();
+  
+  // Load facility timezone from database
+  useEffect(() => {
+    const loadTimezone = async () => {
+      try {
+        const timezone = await getFacilityTimezoneAsync();
+        setFacilityTimezone(timezone);
+      } catch (error) {
+        console.error("Failed to load facility timezone:", error);
+        // Keep using build-time timezone as fallback
+      }
+    };
+    loadTimezone();
+  }, []);
   
   // Auto-refresh time every 30 seconds
   useEffect(() => {
