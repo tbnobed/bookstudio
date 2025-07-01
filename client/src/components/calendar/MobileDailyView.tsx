@@ -82,10 +82,10 @@ export default function MobileDailyView({
   // regardless of the user's local timezone
   const { start: dayStart, end: dayEnd } = getDayRangeInFacilityTimezone(currentDate);
   
-  console.log(`MobileDailyView - Showing bookings for ${currentDate.toDateString()} in Chicago timezone`);
+  console.log(`MobileDailyView - Showing bookings for ${currentDate.toDateString()} in facility timezone`);
   console.log(`MobileDailyView - Date range: ${dayStart.toISOString()} to ${dayEnd.toISOString()}`);
 
-  // Fetch bookings for the selected day using Chicago midnight-to-midnight
+  // Fetch bookings for the selected day using facility timezone midnight-to-midnight
   const { data: fetchedBookings = [] } = useQuery<Booking[]>({
     queryKey: [`/api/bookings?start=${dayStart.toISOString()}&end=${dayEnd.toISOString()}`],
   });
