@@ -37,8 +37,8 @@ services:
       - SITE_MANAGER_EMAIL=${SITE_MANAGER_EMAIL:-obedtest@tbn.tv}
       - RUNNING_IN_DOCKER=true
       - SUPPORT_SITE_MANAGER_ROLE=true
-      - TZ=America/Chicago
-      - FACILITY_TIMEZONE=America/Chicago
+      - TZ=${TZ:-America/Chicago}
+      - FACILITY_TIMEZONE=${FACILITY_TIMEZONE:-America/Chicago}
       - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
       - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}
     depends_on:
@@ -68,7 +68,7 @@ services:
     command: >
       sh -c "
         echo 'Starting BookStud.io application v1.4.1...' &&
-        echo 'Using timezone: America/Chicago' &&
+        echo \"Using timezone: ${TZ:-America/Chicago}\" &&
         echo 'Verifying database tables before startup...' &&
         node -e \"
           const { Pool } = require('pg');
@@ -160,6 +160,8 @@ services:
         - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}
         - VITE_WEATHER_LAT=${VITE_WEATHER_LAT}
         - VITE_WEATHER_LON=${VITE_WEATHER_LON}
+        - VITE_FACILITY_TIMEZONE=${VITE_FACILITY_TIMEZONE:-America/Chicago}
+        - TZ=${TZ:-America/Chicago}
     image: bookstudio:${VERSION:-latest}
     depends_on:
       db:
@@ -183,8 +185,8 @@ services:
       - SITE_MANAGER_EMAIL=${SITE_MANAGER_EMAIL:-obedtest@tbn.tv}
       - RUNNING_IN_DOCKER=true
       - SUPPORT_SITE_MANAGER_ROLE=true
-      - TZ=America/Chicago
-      - FACILITY_TIMEZONE=America/Chicago
+      - TZ=${TZ:-America/Chicago}
+      - FACILITY_TIMEZONE=${FACILITY_TIMEZONE:-America/Chicago}
     networks:
       - app-network
     # Run database migrations and initialization
@@ -226,8 +228,8 @@ services:
       - POSTGRES_USER=${PGUSER:-postgres}
       - POSTGRES_PASSWORD=${PGPASSWORD:-postgres}
       - POSTGRES_DB=${PGDATABASE:-bookstudio}
-      - TZ=America/Chicago
-      - PGTZ=America/Chicago
+      - TZ=${TZ:-America/Chicago}
+      - PGTZ=${TZ:-America/Chicago}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -239,7 +241,7 @@ services:
       retries: 10
       start_period: 15s
     # Production-optimized Postgres settings
-    command: postgres -c shared_buffers=256MB -c max_connections=100 -c timezone='America/Chicago' -c work_mem=4MB
+    command: postgres -c shared_buffers=256MB -c max_connections=100 -c timezone='${TZ:-America/Chicago}' -c work_mem=4MB
     shm_size: '256mb'  # Shared memory size for PostgreSQL
     
   # No need for Nginx in Docker when using Nginx Proxy Manager externally
