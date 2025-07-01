@@ -7,7 +7,7 @@ import { storage } from '../storage';
 import { sendEmail, sendBookingConfirmation } from './emailService';
 import { getApplicationUrl } from '../email';
 
-// Format date helper for Chicago CDT timezone
+// Format date helper for facility timezone
 function formatDate(date: Date | string): string {
   try {
     // Ensure we have a proper Date object
@@ -18,8 +18,9 @@ function formatDate(date: Date | string): string {
       return 'Invalid Date';
     }
     
-    const chicagoDate = dateObj.toLocaleString('en-US', {
-      timeZone: 'America/Chicago',
+    const facilityTimezone = process.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    const facilityDate = dateObj.toLocaleString('en-US', {
+      timeZone: facilityTimezone,
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -29,8 +30,9 @@ function formatDate(date: Date | string): string {
       hour12: true
     });
     
-    // Add CDT suffix for clarity
-    return `${chicagoDate} CDT`;
+    // Add timezone abbreviation for clarity
+    const timezoneName = facilityTimezone.split('/')[1].replace('_', ' ');
+    return `${facilityDate} (${timezoneName})`;
   } catch (error) {
     console.error('Date formatting error:', error);
     return 'Date formatting error';
