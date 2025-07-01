@@ -21,7 +21,7 @@ import * as z from "zod";
 import StudioManagementModal from "@/components/studio/StudioManagementModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FACILITY_TIMEZONE } from "@/lib/dateUtils";
-import { setFacilityTimezoneAsync } from "@/lib/timezoneConfig";
+import { setFacilityTimezoneAsync, clearFacilityTimezoneAsync } from "@/lib/timezoneConfig";
 import NotificationGroupsPanel from "@/components/settings/NotificationGroupsPanel";
 import ProfilePanel from "@/components/settings/ProfilePanel";
 import PcrRoomsPanel from "@/components/settings/PcrRoomsPanel";
@@ -392,29 +392,32 @@ export default function Settings() {
                           </p>
                           <div className="space-y-2">
                             <button 
-                              onClick={() => {
-                                localStorage.setItem('bookstudio_facility_timezone', 'America/Los_Angeles');
-                                window.location.reload();
-                              }}
+                              onClick={() => setFacilityTimezoneAsync('America/Los_Angeles')}
                               className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
                             >
                               Set to Los Angeles (America/Los_Angeles)
                             </button>
                             <button 
-                              onClick={() => {
-                                localStorage.setItem('bookstudio_facility_timezone', 'America/Chicago');
-                                window.location.reload();
-                              }}
+                              onClick={() => setFacilityTimezoneAsync('America/Chicago')}
                               className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
                             >
                               Set to Dallas (America/Chicago)
                             </button>
                             <button 
-                              onClick={() => {
-                                localStorage.removeItem('bookstudio_facility_timezone');
-                                window.location.reload();
-                              }}
+                              onClick={() => setFacilityTimezoneAsync('America/New_York')}
                               className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                            >
+                              Set to New York (America/New_York)
+                            </button>
+                            <button 
+                              onClick={() => setFacilityTimezoneAsync('America/Denver')}
+                              className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                            >
+                              Set to Denver (America/Denver)
+                            </button>
+                            <button 
+                              onClick={() => clearFacilityTimezoneAsync()}
+                              className="w-full text-left px-3 py-2 text-sm bg-red-50 border border-red-200 rounded hover:bg-red-100 text-red-700"
                             >
                               Clear Override (use build-time value)
                             </button>

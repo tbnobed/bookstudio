@@ -2144,6 +2144,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/system/timezone", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const deleted = await storage.deleteSystemSetting('facilityTimezone');
+      
+      if (deleted) {
+        res.json({ message: "Facility timezone cleared successfully" });
+      } else {
+        res.json({ message: "No timezone setting found to clear" });
+      }
+    } catch (error) {
+      console.error("Error clearing facility timezone:", error);
+      res.status(500).json({ message: "Failed to clear facility timezone" });
+    }
+  });
+
   // Backup Management API routes
   app.get("/api/backup/status", isAuthenticated, hasRole(["admin"]), async (req, res) => {
     try {

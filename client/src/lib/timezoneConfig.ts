@@ -124,19 +124,56 @@ export function setFacilityTimezone(timezone: string): void {
 }
 
 /**
- * Clear runtime timezone override
+ * Clear runtime timezone override (async version)
  */
-export function clearFacilityTimezone(): void {
+export async function clearFacilityTimezoneAsync(): Promise<void> {
+  try {
+    // Clear from database
+    const response = await fetch('/api/system/timezone', {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      // Clear cache
+      databaseTimezoneCache = null;
+      databaseTimezoneLoaded = true;
+    }
+  } catch (error) {
+    console.warn('Failed to clear timezone from database:', error);
+  }
+  
+  // Also clear localStorage as fallback
   localStorage.removeItem(TIMEZONE_STORAGE_KEY);
-  console.log('Cleared runtime timezone override, using build-time value');
+  console.log('Cleared timezone override');
   
   // Trigger a page reload to apply changes
   window.location.reload();
 }
 
 /**
+ * Clear runtime timezone override (legacy sync version)
+ */
+export function clearFacilityTimezone(): void {
+  // Use async version but don't wait for it
+  clearFacilityTimezoneAsync().catch(error => {
+    console.warn('Error in async timezone clear:', error);
+  });
+}
+
+/**
+ * Initialize timezone system (call on app startup)
+ */
+export async function initializeFacilityTimezone(): Promise<void> {
+  try {
+    await getFacilityTimezoneAsync();
+  } catch (error) {
+    console.warn('Failed to initialize timezone from database:', error);
+  }
+}
+
+/**
  * Check if a runtime override is active
  */
 export function hasTimezoneOverride(): boolean {
-  return localStorage.getItem(TIMEZONE_STORAGE_KEY) !== null;
+  return databaseTimezoneCache !== null || localStorage.getItem(TIMEZONE_STORAGE_KEY) !== null;
 }

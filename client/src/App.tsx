@@ -29,6 +29,7 @@ import { useDevice } from "@/hooks/use-mobile";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { DocumentTitle } from "@/components/global/DocumentTitle";
 import { NotificationProvider } from "@/hooks/use-notification";
+import { initializeFacilityTimezone } from "@/lib/timezoneConfig";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -115,6 +116,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  // Initialize timezone system on app startup
+  useEffect(() => {
+    initializeFacilityTimezone();
+  }, []);
+
   return (
     <TimezoneProvider>
       <CalendarProvider>
