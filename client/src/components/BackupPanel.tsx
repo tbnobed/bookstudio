@@ -99,7 +99,16 @@ export default function BackupPanel() {
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleString();
+    const facilityTimezone = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    return new Date(dateString).toLocaleString('en-US', {
+      timeZone: facilityTimezone,
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   const getStatusBadge = (status: string) => {
