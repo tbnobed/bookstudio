@@ -381,6 +381,9 @@ export default function Settings() {
                         <p className="text-xs text-muted-foreground mt-1">
                           The system uses {formatTimezoneDisplay(FACILITY_TIMEZONE).displayName} for all bookings to ensure consistent scheduling
                         </p>
+                        <p className="text-xs text-red-600 mt-2 font-mono bg-red-50 p-2 rounded border border-red-200">
+                          DEBUG: Environment Variable = {FACILITY_TIMEZONE}
+                        </p>
                       </div>
                     </div>
                   </div>
