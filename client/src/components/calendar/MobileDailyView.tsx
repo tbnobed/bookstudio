@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { formatTime, formatDate, isSameDay, formatTimeRange } from "@/lib/dateUtils";
+import { getFacilityTimezone } from "@/lib/timezoneConfig";
 import { useCalendarContext } from "@/contexts/CalendarContext";
 import { getDayRangeInFacilityTimezone } from "@/utils/dateUtils";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
@@ -218,7 +219,7 @@ export default function MobileDailyView({
   // Navigate to today
   const goToToday = () => {
     // Use facility timezone for today as instructed
-    const facilityTz = getFacilityTimezone_Dynamic();
+    const facilityTz = getFacilityTimezone();
     const now = new Date();
     const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
     // Update both the prop callback and the context
