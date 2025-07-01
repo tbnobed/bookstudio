@@ -356,8 +356,19 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
     const isCurrentMonth = date.getMonth() === currentDate.getMonth();
     // Use facility timezone for today detection as instructed
     const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    
+    // Get current date components in facility timezone
     const now = new Date();
-    const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: facilityTz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const facilityDateStr = formatter.format(now);
+    const [year, month, day] = facilityDateStr.split('-').map(Number);
+    const facilityToday = new Date(year, month - 1, day);
+    
     const isToday = isSameDay(date, facilityToday);
     
     return cn(
