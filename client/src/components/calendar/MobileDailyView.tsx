@@ -18,7 +18,7 @@ import { useLocation } from "wouter";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { formatTime, formatDate, isSameDay, formatTimeRange } from "@/lib/dateUtils";
 import { useCalendarContext } from "@/contexts/CalendarContext";
-import { getDayRangeInChicago } from "@/utils/dateUtils";
+import { getDayRangeInFacilityTimezone } from "@/utils/dateUtils";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { MobileBanner } from "@/components/layout/MobileBanner";
@@ -77,10 +77,10 @@ export default function MobileDailyView({
     }
   }, [currentDate, selectedDate, setSelectedDate]);
   
-  // Get date range in Chicago timezone for the day (midnight to midnight)
-  // This is important because we want bookings for the day as seen in Chicago
+  // Get date range in facility timezone for the day (midnight to midnight)
+  // This is important because we want bookings for the day as seen in facility timezone
   // regardless of the user's local timezone
-  const { start: dayStart, end: dayEnd } = getDayRangeInChicago(currentDate);
+  const { start: dayStart, end: dayEnd } = getDayRangeInFacilityTimezone(currentDate);
   
   console.log(`MobileDailyView - Showing bookings for ${currentDate.toDateString()} in Chicago timezone`);
   console.log(`MobileDailyView - Date range: ${dayStart.toISOString()} to ${dayEnd.toISOString()}`);

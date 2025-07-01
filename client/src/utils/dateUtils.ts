@@ -92,12 +92,12 @@ export function isSameDay(date1: Date, date2: Date): boolean {
 }
 
 /**
- * Get the start and end of day in Chicago timezone for a given date
- * This returns UTC date objects that represent midnight to midnight in Chicago
+ * Get the start and end of day in facility timezone for a given date
+ * This returns UTC date objects that represent midnight to midnight in facility timezone
  * @param date The date to get day range for
- * @returns Object with start and end properties representing midnight to midnight in Chicago timezone
+ * @returns Object with start and end properties representing midnight to midnight in facility timezone
  */
-export function getDayRangeInChicago(date: Date): { start: Date, end: Date } {
+export function getDayRangeInFacilityTimezone(date: Date): { start: Date, end: Date } {
   // Format the date in facility timezone to get year, month, day components
   const options: Intl.DateTimeFormatOptions = {
     timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
@@ -116,7 +116,7 @@ export function getDayRangeInChicago(date: Date): { start: Date, end: Date } {
   // Create end of day (23:59:59.999)
   const facilityEndOfDay = new Date(Date.UTC(year, month - 1, day, 29, 59, 59, 999)); // 23:59:59.999 in facility timezone
   
-  console.log(`getDayRangeInChicago: For date ${date.toISOString()} (${facilityDateStr}), range is: ${facilityMidnight.toISOString()} to ${facilityEndOfDay.toISOString()}`);
+  console.log(`getDayRangeInFacilityTimezone: For date ${date.toISOString()} (${facilityDateStr}), range is: ${facilityMidnight.toISOString()} to ${facilityEndOfDay.toISOString()}`);
   
   return { start: facilityMidnight, end: facilityEndOfDay };
 }

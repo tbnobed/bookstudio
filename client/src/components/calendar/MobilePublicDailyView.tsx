@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import { formatDate, isSameDay, formatTimeRange, formatInFacilityTimezone } from "@/lib/dateUtils";
-import { getDayRangeInChicago } from "@/utils/dateUtils";
+import { getDayRangeInFacilityTimezone } from "@/utils/dateUtils";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
@@ -83,8 +83,8 @@ export default function MobilePublicDailyView({
   // Fetch weather forecast
   const { forecast } = useWeatherForecast();
   
-  // Get the date range for today in Chicago timezone
-  const dateRange = getDayRangeInChicago(currentDate);
+  // Get the date range for today in facility timezone
+  const dateRange = getDayRangeInFacilityTimezone(currentDate);
   
   // Fetch public bookings for the current date
   const { data: publicBookings = [], isLoading, error } = useQuery<BookingWithStudios[]>({
@@ -111,7 +111,7 @@ export default function MobilePublicDailyView({
   const studiosWithStatus = getAllStudiosWithStatus();
   
   // Console logs for debugging
-  console.log("MobilePublicDailyView - Showing bookings for", format(currentDate, "MMM d, yyyy"), "in Chicago timezone");
+  console.log("MobilePublicDailyView - Showing bookings for", format(currentDate, "MMM d, yyyy"), "in facility timezone");
   console.log("MobilePublicDailyView - Date range:", dateRange.start.toISOString(), "to", dateRange.end.toISOString());
   
   // Filter bookings for today
