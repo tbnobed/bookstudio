@@ -354,8 +354,8 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
   // Get classes for a day cell
   const getDayClass = (date: Date) => {
     const isCurrentMonth = date.getMonth() === currentDate.getMonth();
-    // Use facility timezone for today detection
-    const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
+    // Use browser's actual current date for today detection
+    const today = new Date();
     const isToday = isSameDay(date, today);
     
     return cn(
