@@ -16,7 +16,7 @@ import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { Header } from "@/components/layout/Header";
 
-const FACILITY_TIMEZONE = "America/Chicago";
+const FACILITY_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || "America/Chicago";
 
 // Get severity-based styling for alerts and maintenance bookings
 function getSeverityStyle(booking: BookingData) {

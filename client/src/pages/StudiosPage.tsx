@@ -156,13 +156,13 @@ export default function StudiosPage() {
     if (currentBooking) {
       const endTime = new Date(currentBooking.end);
       const endDate = new Date(currentBooking.end).toLocaleDateString('en-US', {
-        timeZone: 'America/Chicago',
+        timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
         month: 'short',
         day: 'numeric',
         year: new Date(currentBooking.end).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
       });
-      const todayInChicago = new Date().toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
-      const bookingEndInChicago = new Date(currentBooking.end).toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+      const todayInChicago = new Date().toLocaleDateString('en-US', { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' });
+      const bookingEndInChicago = new Date(currentBooking.end).toLocaleDateString('en-US', { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' });
       const isToday = bookingEndInChicago === todayInChicago;
       return {
         status: "in-use",
@@ -176,13 +176,13 @@ export default function StudiosPage() {
     if (nextBooking) {
       const startTime = new Date(nextBooking.start);
       const startDate = new Date(nextBooking.start).toLocaleDateString('en-US', {
-        timeZone: 'America/Chicago',
+        timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
         month: 'short',
         day: 'numeric',
         year: new Date(nextBooking.start).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
       });
-      const todayInChicago = new Date().toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
-      const bookingStartInChicago = new Date(nextBooking.start).toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+      const todayInChicago = new Date().toLocaleDateString('en-US', { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' });
+      const bookingStartInChicago = new Date(nextBooking.start).toLocaleDateString('en-US', { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' });
       const isToday = bookingStartInChicago === todayInChicago;
       return {
         status: "available",

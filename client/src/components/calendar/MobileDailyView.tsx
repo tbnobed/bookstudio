@@ -435,7 +435,7 @@ export default function MobileDailyView({
               {isToday(currentDate) ? "Today" : formatDate(currentDate)}
             </h1>
             <span className="text-sm text-gray-500">
-              {currentDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/Chicago' })}
+              {currentDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' })}
             </span>
             <WeatherForecastCell 
               date={currentDate} 

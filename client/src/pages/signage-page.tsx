@@ -53,7 +53,7 @@ interface WeatherForecast {
   forecast: ForecastDay[];
 }
 
-const FACILITY_TIMEZONE = 'America/Chicago';
+const FACILITY_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
 
 function getChicagoTime() {
   // Get current time in Chicago timezone

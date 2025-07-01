@@ -56,7 +56,7 @@ export function formatTimeForForm(date: Date | string): string {
   
   // Format time in Chicago timezone using 24-hour format
   return d.toLocaleTimeString('en-US', { 
-    timeZone: 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     hour12: false,
     hour: '2-digit',
     minute: '2-digit'
@@ -72,7 +72,7 @@ export function formatTimeForForm(date: Date | string): string {
 export function isSameDay(date1: Date, date2: Date): boolean {
   // Convert dates to Chicago timezone strings
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     year: 'numeric',
     month: 'numeric',
     day: 'numeric'
@@ -97,7 +97,7 @@ export function isSameDay(date1: Date, date2: Date): boolean {
 export function getDayRangeInChicago(date: Date): { start: Date, end: Date } {
   // Format the date in Chicago timezone to get year, month, day components
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     year: 'numeric',
     month: 'numeric',
     day: 'numeric'
@@ -128,7 +128,7 @@ export function formatDateForDisplay(date: Date | string): string {
   
   // Format with Chicago timezone
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -150,7 +150,7 @@ export function formatTimeForDisplay(date: Date | string): string {
   
   // Format with Chicago timezone (time only)
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     hour: 'numeric',
     minute: 'numeric',
     hour12: true
@@ -170,7 +170,7 @@ export function getDateRangeString(start: Date, end: Date): string {
   const endDate = new Date(end);
   
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     month: 'short',
     day: 'numeric'
   };
@@ -193,7 +193,7 @@ export function getDateRangeString(start: Date, end: Date): string {
  */
 export function getTimeRangeString(start: Date, end: Date): string {
   const timeOptions: Intl.DateTimeFormatOptions = {
-    timeZone: 'America/Chicago',
+    timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago',
     hour: 'numeric',
     minute: 'numeric',
     hour12: true

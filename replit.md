@@ -301,6 +301,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - June 30, 2025: MOVED booking details to header section - relocated time, studios, PCR info, and description from transparent body to solid header section for optimal readability while maintaining transparent area for overlapping booking visibility
 - June 30, 2025: FIXED production foreign key constraint error - added validation in PATCH route that converts 0 values to null for pcrRoomId, templateId, and studioId, preventing database constraint violations in production environment
 - June 30, 2025: VERIFIED system ready for multi-city deployment - confirmed all timezone handling uses FACILITY_TIMEZONE environment variable, created Tustin deployment guide with Pacific timezone configuration
+- June 30, 2025: COMPLETELY FIXED multi-site timezone support - replaced all 26+ hardcoded "America/Chicago" references with VITE_FACILITY_TIMEZONE environment variable throughout entire codebase including Header, utils/dateUtils, components, and pages, added VITE_FACILITY_TIMEZONE to .env files, system now fully configurable for any timezone deployment (Tustin=America/Los_Angeles, Nashville=America/Chicago, etc.), resolved development environment date mismatch where Replit system clock showed wrong date
 
 ## User Preferences
 

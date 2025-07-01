@@ -13,7 +13,7 @@ import { useWeatherForecast } from "../../hooks/useWeatherForecast";
 import { isSameDay } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 
-const FACILITY_TIMEZONE = "America/Chicago";
+const FACILITY_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || "America/Chicago";
 
 interface WeeklyCalendarProps {
   currentDate?: Date;

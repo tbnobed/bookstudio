@@ -108,7 +108,7 @@ export default function MobileBookingForm({
 
   // Convert time to dropdown format (matches generateTimeOptions format)
   const formatTimeForDropdown = (date: Date): string => {
-    const facilityTime = new Date(date.toLocaleString("en-US", { timeZone: "America/Chicago" }));
+    const facilityTime = new Date(date.toLocaleString("en-US", { timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || "America/Chicago" }));
     const hour = facilityTime.getHours();
     const minute = facilityTime.getMinutes();
     const h = hour % 12 || 12;
