@@ -90,13 +90,13 @@ interface PcrRoom {
 export default function EngineeringPage() {
   const [currentWeek, setCurrentWeek] = useState(() => {
     const now = new Date();
-    const chicagoTime = toZonedTime(now, FACILITY_TIMEZONE);
+    const chicagoTime = toZonedTime(now, getFacilityTimezone_Dynamic());
     return startOfWeek(chicagoTime, { weekStartsOn: 1 }); // Start on Monday
   });
 
   const [currentTime, setCurrentTime] = useState(() => {
     const now = new Date();
-    return toZonedTime(now, FACILITY_TIMEZONE);
+    return toZonedTime(now, getFacilityTimezone_Dynamic());
   });
 
 
@@ -108,7 +108,7 @@ export default function EngineeringPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
-      setCurrentTime(toZonedTime(now, FACILITY_TIMEZONE));
+      setCurrentTime(toZonedTime(now, getFacilityTimezone_Dynamic()));
     }, 60000); // Update every minute
 
     return () => clearInterval(interval);
@@ -150,7 +150,7 @@ export default function EngineeringPage() {
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(currentWeek, i);
     // Ensure date is properly handled in facility timezone
-    const facilityDate = toZonedTime(date, FACILITY_TIMEZONE);
+    const facilityDate = toZonedTime(date, getFacilityTimezone_Dynamic());
     return {
       date: facilityDate,
       dayName: format(facilityDate, 'EEE').toUpperCase(),
@@ -256,8 +256,8 @@ export default function EngineeringPage() {
 
   // Helper function to calculate booking position and height with column support
   const getBookingStyle = (booking: BookingData, column: number, totalColumns: number) => {
-    const startTime = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
-    const endTime = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
+    const startTime = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
+    const endTime = toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic());
     
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
@@ -315,7 +315,7 @@ export default function EngineeringPage() {
 
   // Filter bookings for current week and exclude cancelled bookings
   const weekBookings = bookings.filter(booking => {
-    const bookingDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
+    const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
     const weekStart = currentWeek;
     const weekEnd = endOfDay(addDays(currentWeek, 6)); // End of Sunday, not start of Sunday
     
@@ -335,7 +335,7 @@ export default function EngineeringPage() {
 
   const goToCurrentWeek = () => {
     const now = new Date();
-    const chicagoTime = toZonedTime(now, FACILITY_TIMEZONE);
+    const chicagoTime = toZonedTime(now, getFacilityTimezone_Dynamic());
     setCurrentWeek(startOfWeek(chicagoTime, { weekStartsOn: 1 }));
   };
 
@@ -349,7 +349,7 @@ export default function EngineeringPage() {
 
   // Check if current time should be shown (current day is in view)
   const shouldShowCurrentTimeIndicator = () => {
-    const today = toZonedTime(new Date(), FACILITY_TIMEZONE);
+    const today = toZonedTime(new Date(), getFacilityTimezone_Dynamic());
     return weekDays.some(day => isSameDay(day.date, today));
   };
 
@@ -427,7 +427,7 @@ export default function EngineeringPage() {
             {/* Day columns for alerts - exact match with calendar structure */}
             {weekDays.map((day) => {
               const dayAlerts = alertBookings.filter(alert => {
-                const alertDate = toZonedTime(parseISO(alert.start), FACILITY_TIMEZONE);
+                const alertDate = toZonedTime(parseISO(alert.start), getFacilityTimezone_Dynamic());
                 return isSameDay(alertDate, day.date);
               });
 
@@ -440,8 +440,8 @@ export default function EngineeringPage() {
                     <div className="p-2 space-y-1">
                       {dayAlerts.map((alert) => {
                         const severityStyle = getSeverityStyle(alert);
-                        const startTime = toZonedTime(parseISO(alert.start), FACILITY_TIMEZONE);
-                        const endTime = toZonedTime(parseISO(alert.end), FACILITY_TIMEZONE);
+                        const startTime = toZonedTime(parseISO(alert.start), getFacilityTimezone_Dynamic());
+                        const endTime = toZonedTime(parseISO(alert.end), getFacilityTimezone_Dynamic());
                         
                         return (
                           <Tooltip key={alert.id}>
@@ -559,8 +559,8 @@ export default function EngineeringPage() {
                 {/* Day columns */}
                 {weekDays.map((day) => {
                   const dayBookings = regularBookings.filter(booking => {
-                    const bookingStartDate = toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE);
-                    const bookingEndDate = toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE);
+                    const bookingStartDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
+                    const bookingEndDate = toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic());
                     
                     // Only show booking on the day it starts, unless it truly spans multiple days
                     const startsOnDay = isSameDay(bookingStartDate, day.date);
@@ -597,7 +597,7 @@ export default function EngineeringPage() {
                       ))}
 
                       {/* Current time indicator line */}
-                      {shouldShowCurrentTimeIndicator() && isSameDay(day.date, toZonedTime(new Date(), FACILITY_TIMEZONE)) && (
+                      {shouldShowCurrentTimeIndicator() && isSameDay(day.date, toZonedTime(new Date(), getFacilityTimezone_Dynamic())) && (
                         <div
                           className="absolute left-0 right-0 z-30 pointer-events-none"
                           style={{
@@ -677,7 +677,7 @@ export default function EngineeringPage() {
                                     
                                     {/* Time */}
                                     <div className="font-bold text-sm">
-                                      {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
+                                      {format(toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic()), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic()), 'h:mm a')}
                                     </div>
                                     
                                     {/* Studios */}
@@ -748,7 +748,7 @@ export default function EngineeringPage() {
                                 )}
                                 
                                 <div className="text-sm text-gray-700">
-                                  <strong>Time:</strong> {format(toZonedTime(parseISO(booking.start), FACILITY_TIMEZONE), 'MMM d, yyyy h:mm a')} - {format(toZonedTime(parseISO(booking.end), FACILITY_TIMEZONE), 'h:mm a')}
+                                  <strong>Time:</strong> {format(toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic()), 'MMM d, yyyy h:mm a')} - {format(toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic()), 'h:mm a')}
                                 </div>
                                 
                                 {studios.length > 0 && (
