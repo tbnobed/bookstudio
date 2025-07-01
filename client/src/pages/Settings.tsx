@@ -435,7 +435,7 @@ export default function Settings() {
                           The system uses {formatTimezoneDisplay(currentTimezone).displayName} for all bookings to ensure consistent scheduling
                         </p>
                         <p className="text-xs text-red-600 mt-2 font-mono bg-red-50 p-2 rounded border border-red-200">
-                          DEBUG: Environment Variable = {FACILITY_TIMEZONE}
+                          DEBUG: Build-time Variable = {FACILITY_TIMEZONE}, Current Effective = {currentTimezone}
                         </p>
                         <div className="mt-4 p-4 bg-blue-50 rounded border border-blue-200">
                           <h4 className="text-sm font-medium mb-2">Timezone Override Control</h4>
