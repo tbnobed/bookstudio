@@ -45,11 +45,27 @@ export function createFacilityDate(
   minute = 0,
   second = 0
 ): Date {
-  // Create a date string in ISO format with the Chicago timezone
-  const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+  // Get the dynamic facility timezone
+  const facilityTimezone = getFacilityTimezone_Dynamic();
   
-  // Use the date constructor with explicit timezone (-05:00 is Central Time/America/Chicago)
-  return new Date(`${dateString}-05:00`);
+  // Create a date object representing the local time in the facility timezone
+  // This approach constructs the date as if it were in UTC, then adjusts for the facility timezone
+  const localDate = new Date(year, month, day, hour, minute, second);
+  
+  // Get what this local time would be in the facility timezone
+  const facilityTimeString = localDate.toLocaleString('sv-SE', { timeZone: facilityTimezone });
+  const [datePart, timePart] = facilityTimeString.split(' ');
+  const [facilityYear, facilityMonth, facilityDay] = datePart.split('-').map(Number);
+  const [facilityHour, facilityMinute, facilitySecond] = timePart.split(':').map(Number);
+  
+  // Calculate the difference between what we want and what we get
+  const targetLocal = new Date(year, month, day, hour, minute, second);
+  const actualLocal = new Date(facilityYear, facilityMonth - 1, facilityDay, facilityHour, facilityMinute, facilitySecond);
+  
+  const offsetMs = targetLocal.getTime() - actualLocal.getTime();
+  
+  // Apply the offset to get the correct UTC time
+  return new Date(localDate.getTime() + offsetMs);
 }
 
 /**
