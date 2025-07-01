@@ -16,7 +16,7 @@ import { usePublicBookingStudioLinks } from '@/hooks/useBookingStudioLinks';
 import { useDevice } from '@/hooks/use-mobile';
 import { useLocation } from 'wouter';
 // Import isSameDay directly from our dateUtils to use for timezone-aware comparison
-import { isSameDay, formatInFacilityTimezone } from '@/lib/dateUtils';
+import { isSameDay, formatInFacilityTimezone, getFacilityTimezone_Dynamic } from '@/lib/dateUtils';
 
 // Define our own DateRange type since it's not exported from date-fns
 interface DateRange {
@@ -159,7 +159,7 @@ function PublicCalendarPage() {
   // Navigation functions
   const goToToday = () => {
     // Use facility timezone for today as instructed
-    const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    const facilityTz = getFacilityTimezone_Dynamic();
     const now = new Date();
     const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
     setCurrentDate(facilityToday);

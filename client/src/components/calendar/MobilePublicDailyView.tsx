@@ -17,7 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
-import { formatDate, isSameDay, formatTimeRange, formatInFacilityTimezone } from "@/lib/dateUtils";
+import { formatDate, isSameDay, formatTimeRange, formatInFacilityTimezone, getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 import { getDayRangeInFacilityTimezone } from "@/utils/dateUtils";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
@@ -181,7 +181,7 @@ export default function MobilePublicDailyView({
   
   function goToToday() {
     // Use facility timezone for today as instructed
-    const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    const facilityTz = getFacilityTimezone_Dynamic();
     const now = new Date();
     const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
     setCurrentDate(facilityToday);

@@ -218,7 +218,7 @@ export default function MobileDailyView({
   // Navigate to today
   const goToToday = () => {
     // Use facility timezone for today as instructed
-    const facilityTz = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+    const facilityTz = getFacilityTimezone_Dynamic();
     const now = new Date();
     const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
     // Update both the prop callback and the context
