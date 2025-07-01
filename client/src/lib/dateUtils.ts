@@ -169,22 +169,25 @@ export function formatInFacilityTimezone(date: Date, formatStr: string): string 
   // Basic format string replacement using Intl API for proper timezone handling
   let result = formatStr;
   
+  // Get dynamic timezone for each call
+  const timezone = getFacilityTimezone_Dynamic();
+  
   // Days
-  result = result.replace('EEEE', date.toLocaleDateString('en-US', { weekday: 'long', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace('EEE', date.toLocaleDateString('en-US', { weekday: 'short', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('EEEE', date.toLocaleDateString('en-US', { weekday: 'long', timeZone: timezone }));
+  result = result.replace('EEE', date.toLocaleDateString('en-US', { weekday: 'short', timeZone: timezone }));
   
   // Months
-  result = result.replace('MMMM', date.toLocaleDateString('en-US', { month: 'long', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace('MMM', date.toLocaleDateString('en-US', { month: 'short', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace('MM', date.toLocaleDateString('en-US', { month: '2-digit', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('MMMM', date.toLocaleDateString('en-US', { month: 'long', timeZone: timezone }));
+  result = result.replace('MMM', date.toLocaleDateString('en-US', { month: 'short', timeZone: timezone }));
+  result = result.replace('MM', date.toLocaleDateString('en-US', { month: '2-digit', timeZone: timezone }));
   
   // Days of month  
-  result = result.replace('dd', date.toLocaleDateString('en-US', { day: '2-digit', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace(/\bd\b/, date.toLocaleDateString('en-US', { day: 'numeric', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('dd', date.toLocaleDateString('en-US', { day: '2-digit', timeZone: timezone }));
+  result = result.replace(/\bd\b/, date.toLocaleDateString('en-US', { day: 'numeric', timeZone: timezone }));
   
   // Years
-  result = result.replace('yyyy', date.toLocaleDateString('en-US', { year: 'numeric', timeZone: FACILITY_TIMEZONE }));
-  result = result.replace('yy', date.toLocaleDateString('en-US', { year: '2-digit', timeZone: FACILITY_TIMEZONE }));
+  result = result.replace('yyyy', date.toLocaleDateString('en-US', { year: 'numeric', timeZone: timezone }));
+  result = result.replace('yy', date.toLocaleDateString('en-US', { year: '2-digit', timeZone: timezone }));
   
   return result;
 }
