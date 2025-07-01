@@ -26,6 +26,33 @@ import ProfilePanel from "@/components/settings/ProfilePanel";
 import PcrRoomsPanel from "@/components/settings/PcrRoomsPanel";
 import BackupPanel from "@/components/BackupPanel";
 
+// Function to format timezone display
+function formatTimezoneDisplay(timezone: string): { displayName: string; description: string } {
+  const timezoneMap: Record<string, { displayName: string; description: string }> = {
+    'America/Chicago': { 
+      displayName: 'America/Chicago',
+      description: 'Dallas, TX - Central Time'
+    },
+    'America/Los_Angeles': { 
+      displayName: 'America/Los_Angeles',
+      description: 'Los Angeles, CA - Pacific Time'
+    },
+    'America/New_York': { 
+      displayName: 'America/New_York',
+      description: 'New York, NY - Eastern Time'
+    },
+    'America/Denver': { 
+      displayName: 'America/Denver',
+      description: 'Denver, CO - Mountain Time'
+    }
+  };
+  
+  return timezoneMap[timezone] || { 
+    displayName: timezone,
+    description: timezone.replace('_', ' ')
+  };
+}
+
 // Site Name Form Component
 function SiteNameForm() {
   const { siteName, updateSiteName, isUpdating } = useSiteSettings();
@@ -349,10 +376,10 @@ export default function Settings() {
                       <Label>System Timezone</Label>
                       <div className="mt-2">
                         <p className="text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                          <strong>America/Chicago</strong> (Dallas, TX - Central Time)
+                          <strong>{formatTimezoneDisplay(FACILITY_TIMEZONE).displayName}</strong> ({formatTimezoneDisplay(FACILITY_TIMEZONE).description})
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          The system uses Chicago time for all bookings to ensure consistent scheduling
+                          The system uses {formatTimezoneDisplay(FACILITY_TIMEZONE).displayName} for all bookings to ensure consistent scheduling
                         </p>
                       </div>
                     </div>
