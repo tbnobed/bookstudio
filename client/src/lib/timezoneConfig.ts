@@ -169,18 +169,18 @@ export async function initializeFacilityTimezone(): Promise<void> {
     const dbTimezone = await fetchDatabaseTimezone();
     
     if (dbTimezone) {
-      // Database has a timezone setting - use it and clear any localStorage override
+      // Database has a timezone setting - but check for user preference first
       databaseTimezoneCache = dbTimezone;
       databaseTimezoneLoaded = true;
       
-      // Clear localStorage override if it conflicts with database
+      // Keep localStorage override if user has set one (user preference wins)
       const localOverride = localStorage.getItem(TIMEZONE_STORAGE_KEY);
       if (localOverride && localOverride !== dbTimezone) {
-        console.log('Clearing conflicting localStorage timezone override:', localOverride);
-        localStorage.removeItem(TIMEZONE_STORAGE_KEY);
+        console.log('User preference differs from database, keeping localStorage:', localOverride);
+        console.log('Database has:', dbTimezone, 'but user prefers:', localOverride);
+      } else {
+        console.log('Initialized with database timezone:', dbTimezone);
       }
-      
-      console.log('Initialized with database timezone:', dbTimezone);
     } else {
       // No database timezone - check if we have a localStorage override
       const localOverride = localStorage.getItem(TIMEZONE_STORAGE_KEY);
