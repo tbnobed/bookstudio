@@ -2109,8 +2109,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/system/timezone", async (req, res) => {
     try {
       const timezoneSetting = await storage.getSystemSetting('facilityTimezone');
-      const timezone = timezoneSetting?.value || null;
-      res.json({ timezone });
+      const dbTimezone = timezoneSetting?.value || null;
+      
+      // If no database setting, return the server environment variable
+      const envTimezone = process.env.VITE_FACILITY_TIMEZONE || process.env.FACILITY_TIMEZONE || 'America/Los_Angeles';
+      const timezone = dbTimezone || envTimezone;
+      
+      res.json({ 
+        timezone,
+        source: dbTimezone ? 'database' : 'environment',
+        environment: envTimezone 
+      });
     } catch (error) {
       console.error("Error getting facility timezone:", error);
       res.status(500).json({ message: "Failed to fetch facility timezone" });
