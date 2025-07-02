@@ -165,6 +165,33 @@ export function clearFacilityTimezone(): void {
  */
 export async function initializeFacilityTimezone(): Promise<void> {
   try {
+    // First, check if we have a database timezone
+    const dbTimezone = await fetchDatabaseTimezone();
+    
+    if (dbTimezone) {
+      // Database has a timezone setting - use it and clear any localStorage override
+      databaseTimezoneCache = dbTimezone;
+      databaseTimezoneLoaded = true;
+      
+      // Clear localStorage override if it conflicts with database
+      const localOverride = localStorage.getItem(TIMEZONE_STORAGE_KEY);
+      if (localOverride && localOverride !== dbTimezone) {
+        console.log('Clearing conflicting localStorage timezone override:', localOverride);
+        localStorage.removeItem(TIMEZONE_STORAGE_KEY);
+      }
+      
+      console.log('Initialized with database timezone:', dbTimezone);
+    } else {
+      // No database timezone - check if we have a localStorage override
+      const localOverride = localStorage.getItem(TIMEZONE_STORAGE_KEY);
+      if (localOverride) {
+        console.log('No database timezone, using localStorage override:', localOverride);
+      } else {
+        console.log('No timezone overrides, using build-time default:', BUILD_TIME_TIMEZONE);
+      }
+      databaseTimezoneLoaded = true;
+    }
+    
     await getFacilityTimezoneAsync();
   } catch (error) {
     console.warn('Failed to initialize timezone from database:', error);
