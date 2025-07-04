@@ -73,6 +73,14 @@ export default function AlertModal({
     if (isOpen) {
       if (alert) {
         // Edit mode - populate form with alert data
+        console.log("AlertModal - Editing alert:", {
+          id: alert.id,
+          title: alert.title,
+          type: alert.type,
+          severity: alert.severity,
+          fullAlert: alert
+        });
+        
         setTitle(alert.title);
         setDescription(alert.description || "");
         setAlertType(alert.type);
