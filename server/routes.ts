@@ -2112,7 +2112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dbTimezone = timezoneSetting?.value || null;
       
       // If no database setting, return the server environment variable
-      const envTimezone = process.env.VITE_FACILITY_TIMEZONE || process.env.FACILITY_TIMEZONE || 'America/Los_Angeles';
+      const envTimezone = process.env.VITE_FACILITY_TIMEZONE || process.env.FACILITY_TIMEZONE;
       const timezone = dbTimezone || envTimezone;
       
       res.json({ 
