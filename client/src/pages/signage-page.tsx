@@ -627,7 +627,7 @@ export default function SignagePage() {
                                 )}
                                 {/* Show studio names for regular bookings (not alerts) */}
                                 {!isAlert && (
-                                  <span className="text-xs opacity-80 truncate max-w-20">
+                                  <span className="text-xs opacity-80">
                                     {getStudioNames(booking, studios, bookingStudioLinks)}
                                   </span>
                                 )}
