@@ -333,10 +333,11 @@ export default function SignagePage() {
     return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && (isMaintenanceType || hasAlertKeyword);
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-  // Get weekly overview (next 7 days)
+  // Get weekly overview (next 7 days) - use proper timezone boundaries
   const weeklyBookings = Array.from({ length: 7 }, (_, i) => {
-    const date = addDays(today, i);
-    const dayEnd = endOfDay(date);
+    const facilityDate = addDays(nowInFacility, i);
+    const date = fromZonedTime(startOfDay(facilityDate), facilityTimezone);
+    const dayEnd = fromZonedTime(endOfDay(facilityDate), facilityTimezone);
     const dayBookings = bookings.filter(booking => {
       const bookingStart = parseISO(booking.start);
       return isWithinInterval(bookingStart, { start: date, end: dayEnd });
