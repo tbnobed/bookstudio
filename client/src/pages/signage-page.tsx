@@ -288,9 +288,15 @@ export default function SignagePage() {
     refetchInterval: 60000,
   });
 
-  // Filter today's bookings and alerts
-  const today = startOfDay(currentTime);
-  const todayEnd = endOfDay(currentTime);
+  // Filter today's bookings and alerts - use proper facility timezone bounds
+  // The issue is that currentTime is already timezone-converted, so we need to get
+  // actual UTC boundaries for comparison with the UTC booking times
+  const nowInFacility = toZonedTime(new Date(), facilityTimezone);
+  const todayStartInFacility = startOfDay(nowInFacility);
+  const todayEndInFacility = endOfDay(nowInFacility);
+  // Convert back to UTC for comparison with booking.start which is in UTC
+  const today = fromZonedTime(todayStartInFacility, facilityTimezone);
+  const todayEnd = fromZonedTime(todayEndInFacility, facilityTimezone);
   const todaysBookings = bookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
