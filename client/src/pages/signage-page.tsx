@@ -75,11 +75,9 @@ function formatFacilityTime(date: Date | string, formatStr: string, timezone: st
 }
 
 function getCurrentFacilityTime(timezone: string) {
-  // Get current time and create a proper facility timezone date
+  // Get current time in facility timezone using proper timezone handling
   const now = new Date();
-  // This creates a new Date object representing the current time in facility timezone
-  const facilityTime = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
-  return facilityTime;
+  return toZonedTime(now, timezone);
 }
 
 function getStudioNames(booking: Booking, studios: Studio[], bookingStudioLinks: BookingStudioLink[]) {
