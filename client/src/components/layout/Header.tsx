@@ -175,10 +175,10 @@ export function Header({
     <header className="bg-white shadow-sm">
       <div className="flex justify-between items-center px-4 py-3 lg:px-6">
         <div className="flex items-center space-x-4">
-          {/* Sidebar Toggle Button */}
+          {/* Sidebar Toggle Button - Hidden on mobile */}
           <button
             onClick={toggleSidebar}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="hidden lg:block p-2 hover:bg-gray-100 rounded-md transition-colors"
             title={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
           >
             <svg 
