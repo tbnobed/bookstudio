@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Template, PcrRoom, InsertBooking, NotificationGroup, Booking } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
-import { formatTime, generateTimeOptions, timeToDate } from "@/lib/dateUtils";
+import { formatTime, generateTimeOptions, timeToDate, formatDateForForm } from "@/lib/dateUtils";
 import { Camera, Monitor, Trash2 } from "lucide-react";
 import { useNotification } from "@/hooks/use-notification";
 
@@ -59,19 +59,7 @@ export default function SimpleMobileForm({
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({ queryKey: ["/api/pcr-rooms"] });
   const { data: notificationGroups = [] } = useQuery<NotificationGroup[]>({ queryKey: ["/api/notification-groups"] });
 
-  // Format date for form (same logic as desktop)
-  const formatDateForForm = (date: Date): string => {
-    const isoDate = date.toISOString();
-    if (isoDate.match(/T06:[0-5][0-9]:[0-9]{2}\.[0-9]{3}Z/)) {
-      const correctDate = isoDate.split('T')[0];
-      return correctDate;
-    }
-    if (isoDate.match(/T05:30:[0-9]{2}\.[0-9]{3}Z/)) {
-      const correctDate = isoDate.split('T')[0];
-      return correctDate;
-    }
-    return isoDate.split('T')[0];
-  };
+
 
   // Default form values (same as desktop)
   const getDefaultFormData = (): FormData => ({
