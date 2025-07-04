@@ -399,11 +399,11 @@ export default function SignagePage() {
                 })}
               </div>
               <div className="text-lg text-slate-400">
-                {facilityTimezone.includes('Los_Angeles') ? 'Pacific Time' : 
-                 facilityTimezone.includes('Chicago') ? 'Central Time' : 
-                 facilityTimezone.includes('New_York') ? 'Eastern Time' : 
-                 facilityTimezone.includes('Denver') ? 'Mountain Time' : 
-                 'Local Time'}
+                {facilityTimezone?.includes('Los_Angeles') ? 'Pacific Time' : 
+                 facilityTimezone?.includes('Chicago') ? 'Central Time' : 
+                 facilityTimezone?.includes('New_York') ? 'Eastern Time' : 
+                 facilityTimezone?.includes('Denver') ? 'Mountain Time' : 
+                 facilityTimezone || 'Local Time'}
               </div>
             </div>
           </div>

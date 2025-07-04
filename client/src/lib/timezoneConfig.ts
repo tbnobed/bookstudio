@@ -4,7 +4,7 @@
  */
 
 // Build-time fallback (from Vite environment variable) - force rebuild
-const BUILD_TIME_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Los_Angeles';
+const BUILD_TIME_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE;
 
 // Runtime timezone override storage
 const TIMEZONE_STORAGE_KEY = 'bookstudio_facility_timezone';
