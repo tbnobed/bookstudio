@@ -619,19 +619,22 @@ export default function SignagePage() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center justify-between text-xs opacity-90">
+                            <div className={`flex items-center text-xs opacity-90 ${isAlert ? 'justify-center' : 'justify-between'}`}>
                               <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
-                              <div className="flex items-center space-x-2">
-                                {booking.type === 'maintenance' && (
-                                  <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
-                                )}
-                                {/* Show studio names for regular bookings (not alerts) */}
-                                {!isAlert && (
+                              {!isAlert && (
+                                <div className="flex items-center space-x-2">
+                                  {booking.type === 'maintenance' && (
+                                    <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
+                                  )}
+                                  {/* Show studio names for regular bookings (not alerts) */}
                                   <span className="text-xs opacity-80">
                                     {getStudioNames(booking, studios, bookingStudioLinks)}
                                   </span>
-                                )}
-                              </div>
+                                </div>
+                              )}
+                              {isAlert && booking.type === 'maintenance' && (
+                                <span className="bg-orange-600/50 px-1 rounded text-xs ml-2">MAINT</span>
+                              )}
                             </div>
                             {booking.description && booking.description.trim() && (
                               <div className="text-xs opacity-80 mt-1 truncate">
