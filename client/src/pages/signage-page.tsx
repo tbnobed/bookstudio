@@ -619,20 +619,20 @@ export default function SignagePage() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center justify-center text-xs opacity-90">
+                            <div className="flex items-center justify-between text-xs opacity-90">
+                              <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
                               <div className="flex items-center space-x-2">
-                                <span className="text-center">{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
                                 {booking.type === 'maintenance' && (
                                   <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
                                 )}
+                                {/* Show studio names for regular bookings (not alerts) */}
+                                {!isAlert && (
+                                  <span className="text-xs opacity-80 truncate max-w-20">
+                                    {getStudioNames(booking, studios, bookingStudioLinks)}
+                                  </span>
+                                )}
                               </div>
                             </div>
-                            {/* Show studio names for regular bookings (not alerts) */}
-                            {!isAlert && (
-                              <div className="text-xs opacity-80 mt-1 truncate">
-                                {getStudioNames(booking, studios, bookingStudioLinks)}
-                              </div>
-                            )}
                             {booking.description && booking.description.trim() && (
                               <div className="text-xs opacity-80 mt-1 truncate">
                                 {booking.description}
