@@ -214,17 +214,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
           // - Alert end is on or after the start of this day
           let overlapsWithDay = (alertStart <= dateEnd) && (alertEnd >= dateStart);
           
-          // Debug logging for the specific alert showing on wrong day
-          if (alert.title === "test all day 2") {
-            console.log(`Alert "${alert.title}" - Day ${date.toDateString()}:`);
-            console.log(`  Alert Start: ${alertStart.toISOString()}`);
-            console.log(`  Alert End: ${alertEnd.toISOString()}`);
-            console.log(`  Facility Timezone: ${facilityTimezone}`);
-            console.log(`  Date Start (UTC): ${dateStart.toISOString()}`);
-            console.log(`  Date End (UTC): ${dateEnd.toISOString()}`);
-            console.log(`  Overlaps: ${overlapsWithDay}`);
-            console.log(`  ---`);
-          }
+
           
           // Debug multi-day alert 6 specifically to track the issue
           if (alert.id === 6) {

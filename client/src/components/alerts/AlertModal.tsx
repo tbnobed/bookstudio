@@ -94,10 +94,36 @@ export default function AlertModal({
         const formattedEndHours = endHours > 12 ? endHours - 12 : (endHours === 0 ? 12 : endHours);
         setEndTime(`${formattedEndHours}:${endMinutes.toString().padStart(2, "0")}${endPeriod}`);
         
-        // Check if this is an all-day alert
-        // If start is 00:00 and end is 23:59, it's an all-day alert
-        const isStartMidnight = startHours === 0 && startMinutes === 0;
-        const isEndBeforeMidnight = endHours === 23 && endMinutes === 59;
+        // Check if this is an all-day alert using facility timezone
+        const facilityTimezone = getFacilityTimezone();
+        const facilityStartTime = toZonedTime(new Date(alert.start), facilityTimezone);
+        const facilityEndTime = toZonedTime(new Date(alert.end), facilityTimezone);
+        
+        const startHoursFacility = facilityStartTime.getHours();
+        const startMinutesFacility = facilityStartTime.getMinutes();
+        const endHoursFacility = facilityEndTime.getHours();
+        const endMinutesFacility = facilityEndTime.getMinutes();
+        
+        // If start is 00:00 and end is 23:59 in facility timezone, it's an all-day alert
+        const isStartMidnight = startHoursFacility === 0 && startMinutesFacility === 0;
+        const isEndBeforeMidnight = endHoursFacility === 23 && endMinutesFacility === 59;
+        
+        console.log("All-day detection:", {
+          alertTitle: alert.title,
+          facilityTimezone,
+          startUTC: alert.start,
+          endUTC: alert.end,
+          startFacility: facilityStartTime.toISOString(),
+          endFacility: facilityEndTime.toISOString(),
+          startHoursFacility,
+          startMinutesFacility,
+          endHoursFacility,
+          endMinutesFacility,
+          isStartMidnight,
+          isEndBeforeMidnight,
+          isAllDay: isStartMidnight && isEndBeforeMidnight
+        });
+        
         setIsAllDay(isStartMidnight && isEndBeforeMidnight);
         
         setNotifyList(alert.notifyList || []);
