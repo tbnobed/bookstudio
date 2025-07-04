@@ -294,7 +294,22 @@ export default function SignagePage() {
   const todaysBookings = bookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
-    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && !isMaintenanceType;
+    const withinInterval = isWithinInterval(bookingStart, { start: today, end: todayEnd });
+    
+    // Debug logging for the 1 AM booking
+    if (booking.id === 234) {
+      console.log(`[Signage Debug] Booking 234 (${booking.title}):`, {
+        start: booking.start,
+        bookingStart: bookingStart.toISOString(),
+        today: today.toISOString(),
+        todayEnd: todayEnd.toISOString(),
+        withinInterval,
+        isMaintenanceType,
+        willShow: withinInterval && !isMaintenanceType
+      });
+    }
+    
+    return withinInterval && !isMaintenanceType;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
   // Get today's site alerts (maintenance type bookings and alert keywords)
