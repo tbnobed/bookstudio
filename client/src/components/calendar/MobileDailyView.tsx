@@ -743,13 +743,15 @@ export default function MobileDailyView({
                           </div>
                         )}
 
-                        {/* PCR Room - Direct Display */}
-                        <div className="text-xs text-gray-500 flex items-center gap-1 mt-2 bg-gray-100 p-1 rounded">
-                          <MonitorPlay size={14} className="text-blue-500" />
-                          <div>
-                            PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"} 
+                        {/* PCR Room - Only for regular bookings, not alerts */}
+                        {!isFacilityAlert && (
+                          <div className="text-xs text-gray-500 flex items-center gap-1 mt-2 bg-gray-100 p-1 rounded">
+                            <MonitorPlay size={14} className="text-blue-500" />
+                            <div>
+                              PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"} 
+                            </div>
                           </div>
-                        </div>
+                        )}
                         
                         {isFacilityAlert && booking.severity && (
                           <div className="text-xs text-red-600 mt-1 flex items-center">
