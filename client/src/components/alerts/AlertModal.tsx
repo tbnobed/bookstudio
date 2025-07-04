@@ -33,6 +33,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
 import { generateTimeOptions, timeToDate } from "@/lib/dateUtils";
+import { getFacilityTimezone } from "@/lib/timezoneConfig";
+import { startOfDay, endOfDay, parseISO } from "date-fns";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { queryClient } from "@/lib/queryClient";
 
 interface AlertModalProps {
@@ -143,31 +146,27 @@ export default function AlertModal({
     let finalAlertType = alertType; // Create a mutable copy of alertType
     
     if (isAllDay) {
-      // For all-day events, we need to account for timezone issues
-      // Parse the date string (YYYY-MM-DD) into its components
-      const [year, month, day] = date.split('-').map(Number);
+      // Handle all-day alert - use proper facility timezone handling
+      const facilityTimezone = getFacilityTimezone();
       
-      // Create start and end dates in the local timezone to maintain the intended date
-      // Month is 0-indexed in JavaScript Date, so subtract 1
-      const startDateObj = new Date(year, month-1, day, 0, 0, 0, 0);
-      // End date at the end of the day, but technically it goes to next day at midnight
-      const endDateObj = new Date(year, month-1, day, 23, 59, 59, 999);
+      // Parse the date string (YYYY-MM-DD format) and create date in facility timezone
+      const selectedDate = parseISO(date + 'T00:00:00');
       
-      localStartDate = startDateObj;
-      localEndDate = endDateObj;
+      // Create start and end of day in facility timezone
+      const facilityStartOfDay = startOfDay(selectedDate);
+      const facilityEndOfDay = endOfDay(selectedDate);
       
-      // Log the intended start and end date in user's timezone for debugging
-      console.log(`All-day alert intended date: ${date}`);
-      console.log(`Local timestamps - Start: ${startDateObj}, End: ${endDateObj}`);
+      // Convert from facility timezone to UTC for storage
+      localStartDate = fromZonedTime(facilityStartOfDay, facilityTimezone);
+      localEndDate = fromZonedTime(facilityEndOfDay, facilityTimezone);
       
       // Add a special flag to the type field to ensure it's recognized as all-day
       // This will be used by isAllDayAlert in AlertsRow.tsx
       finalAlertType = `all-day:${alertType}`;
       
-      // No longer forcing critical severity for alerts created from the Add Alert button
-      
-      console.log(`Creating all-day alert for date: ${date}`);
-      console.log(`Start: ${localStartDate.toISOString()}, End: ${localEndDate.toISOString()}`);
+      console.log(`Creating all-day alert for date: ${date} in facility timezone: ${facilityTimezone}`);
+      console.log(`Facility times - Start: ${facilityStartOfDay.toISOString()}, End: ${facilityEndOfDay.toISOString()}`);
+      console.log(`UTC times - Start: ${localStartDate.toISOString()}, End: ${localEndDate.toISOString()}`);
       console.log(`Modified type with flag: ${finalAlertType}, Severity: ${severity}`);
     } else {
       // Regular time-bound event
