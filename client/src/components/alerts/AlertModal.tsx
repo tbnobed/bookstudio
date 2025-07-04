@@ -327,56 +327,39 @@ export default function AlertModal({
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="type">Alert Type</Label>
-              <Select value={alertType} onValueChange={setAlertType} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="all-day:maintenance">All-Day Maintenance</SelectItem>
-                  <SelectItem value="alert">Site Alert</SelectItem>
-                  <SelectItem value="it_support">IT Support</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="severity">Severity</Label>
-              <Select value={severity} onValueChange={setSeverity} required>
-                <SelectTrigger id="severity">
-                  <SelectValue placeholder="Select severity" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                      Low - Informational
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="medium">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
-                      Medium - Planned Maintenance
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="high">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-orange-500 mr-2"></div>
-                      High - Urgent Issue
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="critical">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                      Critical - Outage
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label htmlFor="severity">Severity</Label>
+            <Select value={severity} onValueChange={setSeverity} required>
+              <SelectTrigger id="severity">
+                <SelectValue placeholder="Select severity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    Low - Informational
+                  </div>
+                </SelectItem>
+                <SelectItem value="medium">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                    Medium - Planned Maintenance
+                  </div>
+                </SelectItem>
+                <SelectItem value="high">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-orange-500 mr-2"></div>
+                    High - Urgent Issue
+                  </div>
+                </SelectItem>
+                <SelectItem value="critical">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    Critical - Outage
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="space-y-3">

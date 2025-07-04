@@ -1142,22 +1142,24 @@ export default function BookingModal({
                           </Select>
                         </div>
                       
-                        <div>
-                          <Label htmlFor="type">Booking Type</Label>
-                          <Select 
-                            value={formData.bookingType} 
-                            onValueChange={(value) => updateFormField('bookingType', value)} 
-                            required
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="production">Production</SelectItem>
-                              <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        {!alertsOnly && (
+                          <div>
+                            <Label htmlFor="type">Booking Type</Label>
+                            <Select 
+                              value={formData.bookingType} 
+                              onValueChange={(value) => updateFormField('bookingType', value)} 
+                              required
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="production">Production</SelectItem>
+                                <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                         
                         <div>
                           <Label htmlFor="status">Booking Status</Label>
@@ -1620,31 +1622,24 @@ export default function BookingModal({
                       </div>
                     )}
                     
-                    <div>
-                      <Label htmlFor="type">Booking Type</Label>
-                      <Select 
-                        value={formData.bookingType} 
-                        onValueChange={(value) => updateFormField('bookingType', value)} 
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {alertsOnly ? (
-                            <>
-                              <SelectItem value="maintenance">Maintenance</SelectItem>
-                              <SelectItem value="it_support">IT Support</SelectItem>
-                            </>
-                          ) : (
-                            <>
-                              <SelectItem value="production">Production</SelectItem>
-                              <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                            </>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {!alertsOnly && (
+                      <div>
+                        <Label htmlFor="type">Booking Type</Label>
+                        <Select 
+                          value={formData.bookingType} 
+                          onValueChange={(value) => updateFormField('bookingType', value)} 
+                          required
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="production">Production</SelectItem>
+                            <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     
                     {!alertsOnly && (
                       <div>
