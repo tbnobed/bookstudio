@@ -73,14 +73,6 @@ export default function AlertModal({
     if (isOpen) {
       if (alert) {
         // Edit mode - populate form with alert data
-        console.log("AlertModal - Editing alert:", {
-          id: alert.id,
-          title: alert.title,
-          type: alert.type,
-          severity: alert.severity,
-          fullAlert: alert
-        });
-        
         setTitle(alert.title);
         setDescription(alert.description || "");
         setAlertType(alert.type);
@@ -344,6 +336,8 @@ export default function AlertModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="all-day:maintenance">All-Day Maintenance</SelectItem>
+                  <SelectItem value="alert">Site Alert</SelectItem>
                   <SelectItem value="it_support">IT Support</SelectItem>
                 </SelectContent>
               </Select>
