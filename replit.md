@@ -318,6 +318,9 @@ BookStud.io is a comprehensive web application for television studio management 
 - July 4, 2025: CLEANED UP signage page studio information display - removed ALL studio name sections from site alerts in signage page since facility alerts (maintenance/IT support) don't have studios assigned to them, eliminates confusing empty or incorrect studio information from alert displays
 - July 4, 2025: ENHANCED signage page alert descriptions - added description display to all Active Site Alerts sections (active, today's upcoming, and upcoming maintenance) with color-coded text styling for better visibility and information completeness
 - July 4, 2025: OPTIMIZED signage page booking layout - repositioned studio information to right side of time display for regular bookings while maintaining centered time display for facility alerts, removed width restrictions on studio names for full visibility, implemented conditional layout logic for optimal information presentation
+- July 4, 2025: FIXED mobile interface sidebar toggle visibility - hidden hamburger menu button from mobile views using `hidden lg:block` classes, ensuring desktop users retain sidebar functionality while mobile users get clean interface with bottom navigation
+- July 4, 2025: COMPLETELY FIXED toast notification visibility issue - updated ToastNotification component to use conditional rendering instead of CSS transforms, component now returns null when no message exists, eliminating persistent empty toast elements in mobile views
+- July 4, 2025: REMOVED PCR information from alerts in mobile view - added conditional rendering to hide PCR room details for facility alerts while preserving them for regular production bookings, improving mobile interface clarity
 
 ## User Preferences
 

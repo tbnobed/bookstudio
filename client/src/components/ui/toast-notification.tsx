@@ -105,13 +105,18 @@ export default function ToastNotification() {
     }
   };
 
+  // Only render when there's a message and it should be visible
+  if (!isVisible || !message.title) {
+    return null;
+  }
+
   return (
     <div
       id="toast-notification"
       className={cn(
         "fixed top-4 right-4 p-4 rounded-md shadow-lg border transform transition-transform duration-300 z-50 flex items-start max-w-sm",
         getToastColors(),
-        isVisible ? "translate-x-0" : "translate-x-full"
+        "translate-x-0"
       )}
     >
       <div className="mr-3">
