@@ -619,16 +619,14 @@ export default function SignagePage() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center justify-between text-xs opacity-90">
+                            <div className="flex items-center justify-center text-xs opacity-90">
                               <div className="flex items-center space-x-2">
-                                <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
+                                <span className="text-center">{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
                                 {booking.type === 'maintenance' && (
                                   <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
                                 )}
                               </div>
-                              <div className="text-xs opacity-75 truncate ml-2">
-                                {getStudioNames(booking, studios, bookingStudioLinks)}
-                              </div>
+
                             </div>
                             {booking.description && booking.description.trim() && (
                               <div className="text-xs opacity-80 mt-1 truncate">
@@ -710,9 +708,12 @@ export default function SignagePage() {
                         <div className="text-sm text-red-200">
                           {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
                         </div>
-                        <div className="text-sm text-red-300">
-                          {getStudioNames(alert, studios, bookingStudioLinks)}
-                        </div>
+                        {alert.description && alert.description.trim() && (
+                          <div className="text-sm text-red-300 mt-1">
+                            {alert.description}
+                          </div>
+                        )}
+
                       </div>
                     ))
                   }
@@ -730,9 +731,12 @@ export default function SignagePage() {
                         <div className="text-sm text-orange-200">
                           {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
                         </div>
-                        <div className="text-sm text-orange-300">
-                          {getStudioNames(alert, studios, bookingStudioLinks)}
-                        </div>
+                        {alert.description && alert.description.trim() && (
+                          <div className="text-sm text-orange-300 mt-1">
+                            {alert.description}
+                          </div>
+                        )}
+
                       </div>
                     ))
                   }
@@ -751,9 +755,12 @@ export default function SignagePage() {
                         <div className="text-sm text-yellow-200">
                           {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
                         </div>
-                        <div className="text-sm text-yellow-300">
-                          {getStudioNames(alert, studios, bookingStudioLinks)}
-                        </div>
+                        {alert.description && alert.description.trim() && (
+                          <div className="text-sm text-yellow-300 mt-1">
+                            {alert.description}
+                          </div>
+                        )}
+
                       </div>
                     ))}
                 </div>
