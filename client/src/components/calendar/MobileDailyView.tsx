@@ -65,6 +65,7 @@ export default function MobileDailyView({
   const [, navigate] = useLocation();
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
+  const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
@@ -275,7 +276,7 @@ export default function MobileDailyView({
       };
       
       setEditBooking(alertData);
-      setIsNewAlertModalOpen(true);
+      setIsEditAlertModalOpen(true);
       return;
     }
     
@@ -830,10 +831,19 @@ export default function MobileDailyView({
         isOpen={isNewAlertModalOpen}
         onClose={() => {
           setIsNewAlertModalOpen(false);
+        }}
+        selectedDate={selectedDate || currentDate}
+      />
+      
+      {/* Edit Alert Modal */}
+      <AlertModal
+        isOpen={isEditAlertModalOpen}
+        onClose={() => {
+          setIsEditAlertModalOpen(false);
           setEditBooking(null);
         }}
         selectedDate={selectedDate || currentDate}
-        alert={editBooking && (editBooking.type === 'maintenance' || editBooking.type === 'alert' || editBooking.type === 'it_support') ? editBooking : undefined}
+        alert={editBooking}
       />
     </div>
   );
