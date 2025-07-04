@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Booking } from "@shared/schema";
 import { formatTime, isWeekend, isSameDay, formatDate } from "@/lib/dateUtils";
+import { getFacilityTimezone } from "@/lib/timezoneConfig";
+import { startOfDay, endOfDay } from "date-fns";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import AlertModal from "../alerts/AlertModal";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient } from "@/lib/queryClient";
@@ -132,12 +135,16 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
       const alertStart = new Date(alert.start);
       const alertEnd = new Date(alert.end);
       
-      // Check if alert spans this date
-      const dateStart = new Date(date);
-      dateStart.setHours(0, 0, 0, 0);
+      // Check if alert spans this date using facility timezone
+      const facilityTimezone = getFacilityTimezone();
       
-      const dateEnd = new Date(date);
-      dateEnd.setHours(23, 59, 59, 999);
+      // Create facility timezone boundaries for this date
+      const facilityDateStart = startOfDay(toZonedTime(date, facilityTimezone));
+      const facilityDateEnd = endOfDay(toZonedTime(date, facilityTimezone));
+      
+      // Convert facility timezone boundaries to UTC for comparison with alert times
+      const dateStart = fromZonedTime(facilityDateStart, facilityTimezone);
+      const dateEnd = fromZonedTime(facilityDateEnd, facilityTimezone);
       
       return (alertStart <= dateEnd) && (alertEnd >= dateStart);
     }).length;
@@ -191,17 +198,33 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
           // Cast the alert to our API interface type which includes snake_case properties
           const apiAlert = alert as unknown as ApiBooking;
           
-          // Check if alert spans this date
-          const dateStart = new Date(date);
-          dateStart.setHours(0, 0, 0, 0);
+          // Check if alert spans this date using facility timezone
+          const facilityTimezone = getFacilityTimezone();
           
-          const dateEnd = new Date(date);
-          dateEnd.setHours(23, 59, 59, 999);
+          // Create facility timezone boundaries for this date
+          const facilityDateStart = startOfDay(toZonedTime(date, facilityTimezone));
+          const facilityDateEnd = endOfDay(toZonedTime(date, facilityTimezone));
+          
+          // Convert facility timezone boundaries to UTC for comparison with alert times
+          const dateStart = fromZonedTime(facilityDateStart, facilityTimezone);
+          const dateEnd = fromZonedTime(facilityDateEnd, facilityTimezone);
           
           // Alert overlaps with this day if:
           // - Alert start is on or before the end of this day AND
           // - Alert end is on or after the start of this day
           let overlapsWithDay = (alertStart <= dateEnd) && (alertEnd >= dateStart);
+          
+          // Debug logging for the specific alert showing on wrong day
+          if (alert.title === "test all day 2") {
+            console.log(`Alert "${alert.title}" - Day ${date.toDateString()}:`);
+            console.log(`  Alert Start: ${alertStart.toISOString()}`);
+            console.log(`  Alert End: ${alertEnd.toISOString()}`);
+            console.log(`  Facility Timezone: ${facilityTimezone}`);
+            console.log(`  Date Start (UTC): ${dateStart.toISOString()}`);
+            console.log(`  Date End (UTC): ${dateEnd.toISOString()}`);
+            console.log(`  Overlaps: ${overlapsWithDay}`);
+            console.log(`  ---`);
+          }
           
           // Debug multi-day alert 6 specifically to track the issue
           if (alert.id === 6) {
