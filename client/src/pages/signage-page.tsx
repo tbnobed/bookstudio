@@ -626,8 +626,13 @@ export default function SignagePage() {
                                   <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
                                 )}
                               </div>
-
                             </div>
+                            {/* Show studio names for regular bookings (not alerts) */}
+                            {!isAlert && (
+                              <div className="text-xs opacity-80 mt-1 truncate">
+                                {getStudioNames(booking, studios, bookingStudioLinks)}
+                              </div>
+                            )}
                             {booking.description && booking.description.trim() && (
                               <div className="text-xs opacity-80 mt-1 truncate">
                                 {booking.description}
