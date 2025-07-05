@@ -104,6 +104,19 @@ function isBookingActive(booking: Booking, now: Date) {
   const start = parseISO(booking.start);
   const end = parseISO(booking.end);
   const isActive = isWithinInterval(now, { start, end });
+  
+  // Debug logging for booking 240
+  if (booking.id === 240) {
+    console.log(`[isBookingActive Debug] Booking 240:`, {
+      bookingStart: start.toISOString(),
+      bookingEnd: end.toISOString(), 
+      currentTime: now.toISOString(),
+      isWithinInterval: isActive,
+      status: booking.status,
+      finalResult: isActive && booking.status !== 'cancelled'
+    });
+  }
+  
   return isActive && booking.status !== 'cancelled';
 }
 
