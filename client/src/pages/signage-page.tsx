@@ -103,7 +103,20 @@ function getStudioNames(booking: Booking, studios: Studio[], bookingStudioLinks:
 function isBookingActive(booking: Booking, now: Date) {
   const start = parseISO(booking.start);
   const end = parseISO(booking.end);
-  return isWithinInterval(now, { start, end });
+  const isActive = isWithinInterval(now, { start, end });
+  
+  // Debug logging for the current booking
+  if (booking.id === 240) {
+    console.log(`[Signage Active Check] Booking 240 (${booking.title}):`, {
+      bookingStart: start.toISOString(),
+      bookingEnd: end.toISOString(),
+      currentTime: now.toISOString(),
+      isActive,
+      cancelled: booking.status === 'cancelled'
+    });
+  }
+  
+  return isActive && booking.status !== 'cancelled';
 }
 
 function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLinks: BookingStudioLink[], timezone: string) {
