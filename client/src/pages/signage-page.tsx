@@ -114,9 +114,24 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
     return bookingStudioLinks.some(link => link.studioId === studioId && link.bookingId === booking.id);
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   
+  // Debug logging for studios 1 and 2
+  if (studioId === 1 || studioId === 2) {
+    console.log(`[Studio ${studioId} Debug] Current time:`, now.toISOString());
+    console.log(`[Studio ${studioId} Debug] Studio bookings:`, studioBookings.map(b => ({
+      id: b.id,
+      title: b.title,
+      start: b.start,
+      end: b.end,
+      isActive: isBookingActive(b, now)
+    })));
+  }
+  
   // Check if currently in use
   const activeBooking = studioBookings.find(booking => isBookingActive(booking, now));
   if (activeBooking) {
+    if (studioId === 1 || studioId === 2) {
+      console.log(`[Studio ${studioId} Debug] Active booking found:`, activeBooking.title);
+    }
     return formatFacilityTime(activeBooking.end, 'h:mm a', timezone);
   }
   
