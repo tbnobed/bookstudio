@@ -158,7 +158,11 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
 }
 
 export default function SignagePage() {
-  const [currentTime, setCurrentTime] = useState(getCurrentFacilityTime(BUILD_TIME_TIMEZONE));
+  const [currentTime, setCurrentTime] = useState(() => {
+    const time = getCurrentFacilityTime(BUILD_TIME_TIMEZONE);
+    console.log('[Signage Debug] Initial current time:', time.toISOString());
+    return time;
+  });
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<WeatherForecast | null>(null);
   const [facilityTimezone, setFacilityTimezone] = useState<string>(BUILD_TIME_TIMEZONE);
