@@ -11,7 +11,7 @@ import { isToday, isPast, isAfter, isBefore, formatDistance, format } from "date
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, CalendarDays, Plus, AlertTriangle, Activity, Tv, MonitorPlay } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import MobileBookingForm from "@/components/booking/MobileBookingForm";
+import SimpleMobileForm from "@/components/booking/SimpleMobileForm-new";
 import AlertModal from "@/components/alerts/AlertModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
@@ -800,9 +800,15 @@ export default function MobileDailyView({
       {/* Modals */}
       {/* Edit Booking Modal */}
       {editBooking && editBooking.type !== 'maintenance' && editBooking.type !== 'alert' && editBooking.type !== 'it_support' && (
-        <MobileBookingForm
+        <SimpleMobileForm
           isOpen={isEditModalOpen}
           onClose={() => {
+            setIsEditModalOpen(false);
+            setEditBooking(null);
+          }}
+          onSubmit={(data) => {
+            // Handle form submission
+            console.log("Edit booking submitted:", data);
             setIsEditModalOpen(false);
             setEditBooking(null);
           }}
@@ -820,9 +826,14 @@ export default function MobileDailyView({
       })}
       
       {/* New Booking Modal */}
-      <MobileBookingForm
+      <SimpleMobileForm
         isOpen={isNewBookingModalOpen}
         onClose={() => setIsNewBookingModalOpen(false)}
+        onSubmit={(data) => {
+          // Handle form submission
+          console.log("New booking submitted:", data);
+          setIsNewBookingModalOpen(false);
+        }}
         selectedDate={selectedDate || currentDate}
       />
       
