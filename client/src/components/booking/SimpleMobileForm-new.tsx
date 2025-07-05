@@ -136,7 +136,7 @@ export default function SimpleMobileForm({
         templateId: booking.templateId?.toString() || "",
         templateName: "",
         pcrRoomId: booking.pcrRoomId?.toString() || "none",
-        studioIds: [booking.studioId?.toString()].filter(Boolean) || [],
+        studioIds: booking.studioIds?.map((id: any) => id.toString()) || [booking.studioId?.toString()].filter(Boolean) || [],
         notifyList: booking.notifyList?.map((id: any) => id.toString()) || [],
         saveAsTemplate: false,
       });
