@@ -75,9 +75,8 @@ function formatFacilityTime(date: Date | string, formatStr: string, timezone: st
 }
 
 function getCurrentFacilityTime(timezone: string) {
-  // Get current time in facility timezone using proper timezone handling
-  const now = new Date();
-  return toZonedTime(now, timezone);
+  // Get current UTC time for comparison with database UTC times
+  return new Date();
 }
 
 function getStudioNames(booking: Booking, studios: Studio[], bookingStudioLinks: BookingStudioLink[]) {
@@ -158,11 +157,7 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
 }
 
 export default function SignagePage() {
-  const [currentTime, setCurrentTime] = useState(() => {
-    const time = getCurrentFacilityTime(BUILD_TIME_TIMEZONE);
-    console.log('[Signage Debug] Initial current time:', time.toISOString());
-    return time;
-  });
+  const [currentTime, setCurrentTime] = useState(() => getCurrentFacilityTime(BUILD_TIME_TIMEZONE));
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<WeatherForecast | null>(null);
   const [facilityTimezone, setFacilityTimezone] = useState<string>(BUILD_TIME_TIMEZONE);
@@ -313,41 +308,7 @@ export default function SignagePage() {
     gcTime: 0, // Don't cache data
   });
 
-  // Debug: Log booking 240 data
-  useEffect(() => {
-    const booking240 = bookings.find(b => b.id === 240);
-    console.log('[Signage Debug] Processing bookings update:', {
-      totalBookings: bookings.length,
-      booking240Found: !!booking240,
-      currentTime: currentTime.toISOString(),
-      currentTimeFacilityString: currentTime.toLocaleString('en-US', {
-        timeZone: facilityTimezone,
-        hour12: true,
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    });
-    
-    if (booking240) {
-      const isActive = isBookingActive(booking240, currentTime);
-      console.log('[Signage Debug] Booking 240 details:', {
-        id: booking240.id,
-        title: booking240.title,
-        start: booking240.start,
-        end: booking240.end,
-        status: booking240.status,
-        isActive: isActive,
-        endTime: new Date(booking240.end).toLocaleString('en-US', {
-          timeZone: facilityTimezone,
-          hour12: true,
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      });
-    } else {
-      console.log('[Signage Debug] Booking 240 NOT found in bookings array. Total bookings:', bookings.length);
-    }
-  }, [bookings, currentTime, facilityTimezone]);
+
 
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ['/api/studios'],
