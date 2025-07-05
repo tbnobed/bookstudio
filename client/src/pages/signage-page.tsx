@@ -309,7 +309,45 @@ export default function SignagePage() {
   const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ['/api/public/bookings'],
     refetchInterval: 60000, // Refetch every minute
+    staleTime: 0, // Always consider data stale
+    gcTime: 0, // Don't cache data
   });
+
+  // Debug: Log booking 240 data
+  useEffect(() => {
+    const booking240 = bookings.find(b => b.id === 240);
+    console.log('[Signage Debug] Processing bookings update:', {
+      totalBookings: bookings.length,
+      booking240Found: !!booking240,
+      currentTime: currentTime.toISOString(),
+      currentTimeFacilityString: currentTime.toLocaleString('en-US', {
+        timeZone: facilityTimezone,
+        hour12: true,
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    });
+    
+    if (booking240) {
+      const isActive = isBookingActive(booking240, currentTime);
+      console.log('[Signage Debug] Booking 240 details:', {
+        id: booking240.id,
+        title: booking240.title,
+        start: booking240.start,
+        end: booking240.end,
+        status: booking240.status,
+        isActive: isActive,
+        endTime: new Date(booking240.end).toLocaleString('en-US', {
+          timeZone: facilityTimezone,
+          hour12: true,
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      });
+    } else {
+      console.log('[Signage Debug] Booking 240 NOT found in bookings array. Total bookings:', bookings.length);
+    }
+  }, [bookings, currentTime, facilityTimezone]);
 
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ['/api/studios'],
