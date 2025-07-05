@@ -119,9 +119,9 @@ export default function SimpleMobileForm({
   // Initialize form data when booking changes (same logic as desktop)
   useEffect(() => {
     if (booking && booking.id && booking.id !== 0) {
-      // Convert existing booking data to form format
-      const startTime = formatTime(new Date(booking.start));
-      const endTime = formatTime(new Date(booking.end));
+      // Convert existing booking data to form format (remove space from AM/PM)
+      const startTime = formatTime(new Date(booking.start)).replace(/\s+/g, '').toLowerCase();
+      const endTime = formatTime(new Date(booking.end)).replace(/\s+/g, '').toLowerCase();
       
       setFormData({
         title: booking.title || "",
