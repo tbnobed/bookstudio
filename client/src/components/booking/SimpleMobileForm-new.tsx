@@ -176,14 +176,14 @@ export default function SimpleMobileForm({
           updateFormField('notifyList', notifyList.map(id => id.toString()));
         }
         
-        // Apply times if available
+        // Apply times if available and valid
         const startTime = (selectedTemplate as any).start_time || selectedTemplate.startTime;
-        if (startTime) {
+        if (startTime && startTime.trim() !== "" && startTime.match(/^\d+:\d+[ap]m$/i)) {
           updateFormField('startTime', startTime);
         }
         
         const endTime = (selectedTemplate as any).end_time || selectedTemplate.endTime;
-        if (endTime) {
+        if (endTime && endTime.trim() !== "" && endTime.match(/^\d+:\d+[ap]m$/i)) {
           updateFormField('endTime', endTime);
         }
       }
@@ -244,6 +244,17 @@ export default function SimpleMobileForm({
         type: "error",
         title: "Error",
         message: "At least one studio must be selected"
+      });
+      return;
+    }
+    
+    // Validate time fields before conversion
+    if (!formData.startTime || !formData.endTime || 
+        formData.startTime.trim() === "" || formData.endTime.trim() === "") {
+      showNotification({
+        type: "error",
+        title: "Invalid Time",
+        message: "Please select both start and end times"
       });
       return;
     }
