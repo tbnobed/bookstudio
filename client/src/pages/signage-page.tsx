@@ -104,18 +104,6 @@ function isBookingActive(booking: Booking, now: Date) {
   const start = parseISO(booking.start);
   const end = parseISO(booking.end);
   const isActive = isWithinInterval(now, { start, end });
-  
-  // Debug logging for the current booking
-  if (booking.id === 240) {
-    console.log(`[Signage Active Check] Booking 240 (${booking.title}):`, {
-      bookingStart: start.toISOString(),
-      bookingEnd: end.toISOString(),
-      currentTime: now.toISOString(),
-      isActive,
-      cancelled: booking.status === 'cancelled'
-    });
-  }
-  
   return isActive && booking.status !== 'cancelled';
 }
 
@@ -315,18 +303,7 @@ export default function SignagePage() {
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
     const withinInterval = isWithinInterval(bookingStart, { start: today, end: todayEnd });
     
-    // Debug logging for the 1 AM booking
-    if (booking.id === 234) {
-      console.log(`[Signage Debug] Booking 234 (${booking.title}):`, {
-        start: booking.start,
-        bookingStart: bookingStart.toISOString(),
-        today: today.toISOString(),
-        todayEnd: todayEnd.toISOString(),
-        withinInterval,
-        isMaintenanceType,
-        willShow: withinInterval && !isMaintenanceType
-      });
-    }
+
     
     return withinInterval && !isMaintenanceType;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
