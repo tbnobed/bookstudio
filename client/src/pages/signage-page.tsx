@@ -622,6 +622,18 @@ export default function SignagePage() {
                               {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
                             </div>
                           </>
+                        ) : index === 0 && weather ? (
+                          // Show current weather for today if forecast data doesn't match
+                          <>
+                            <img 
+                              src={`https://openweathermap.org/img/w/${weather.icon}.png`}
+                              alt={weather.condition}
+                              className="w-8 h-8 mb-1"
+                            />
+                            <div className="text-xs text-slate-300">
+                              {weather.temperature}°
+                            </div>
+                          </>
                         ) : (
                           <>
                             <div className="w-8 h-8 mb-1 flex items-center justify-center">
