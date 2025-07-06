@@ -132,46 +132,21 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
     }
   };
 
-  // Check if a booking is an alert by checking its type and title
+  // Check if a booking is an alert
   const isAlertBooking = (booking: any) => {
-    // Check for alert indicators:
-    // 1. It has "alert" type, OR
-    // 2. It has "Alert" in the title, OR
-    // 3. It's an "all-day:maintenance" type booking, OR
-    // 4. It's an "all-day:it_support" type booking
-    // 5. It has "update" or "network" in the title (for network updates), OR
-    // 6. It has maintenance or it_support type with severity property
+    // Consider a booking an alert if:
+    // 1. It has alert/maintenance type, OR
+    // 2. It has a severity field (indicates it was created via alert forms)
     
-    const hasAlertInTitle = booking.title && booking.title.toLowerCase().includes('alert');
-    const hasUpdateInTitle = booking.title && booking.title.toLowerCase().includes('update');
-    const hasNetworkInTitle = booking.title && booking.title.toLowerCase().includes('network');
-    const hasIssueInTitle = booking.title && booking.title.toLowerCase().includes('issue');
-    const isAllDayMaintenance = booking.type && booking.type.includes('all-day:maintenance');
-    const isAllDayITSupport = booking.type && booking.type.includes('all-day:it_support');
-    const isMaintenanceType = booking.type === 'maintenance';
-    const isITSupportType = booking.type === 'it_support';
+    const isAlertType = booking.type === 'maintenance' || 
+                        booking.type === 'all_day_maintenance' ||
+                        booking.type === 'site_alert' ||
+                        booking.type === 'alert';
     
-    // Special case handling for known alert titles
-    const specialCaseAlerts = [
-      'network update', 
-      'mu2 toa space issue'
-    ];
+    // Check if it has severity field (set by alert forms) - but only if it's not empty/null
+    const hasSeverity = booking.severity != null && booking.severity !== "";
     
-    const isSpecialCaseAlert = booking.title && 
-      specialCaseAlerts.some(alertTitle => 
-        booking.title.toLowerCase().includes(alertTitle.toLowerCase())
-      );
-    
-    return booking.type === 'alert' || 
-           hasAlertInTitle || 
-           isSpecialCaseAlert ||
-           (hasUpdateInTitle && hasNetworkInTitle) || // Network updates are alerts
-           hasIssueInTitle || // Issues are alerts
-           isAllDayMaintenance || 
-           isAllDayITSupport ||
-           (isMaintenanceType && booking.severity) ||
-           (isMaintenanceType && hasUpdateInTitle) || // Maintenance updates are alerts 
-           (isITSupportType && booking.severity);
+    return isAlertType || hasSeverity;
   };
   
   // Pre-process bookings by date for performance, using facility timezone

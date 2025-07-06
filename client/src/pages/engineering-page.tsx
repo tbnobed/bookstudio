@@ -316,29 +316,18 @@ export default function EngineeringPage() {
   // Function to determine if a booking is an alert/maintenance
   const isAlertBooking = (booking: BookingData) => {
     // Consider a booking an alert if:
-    // 1. It has "maintenance" type, OR
-    // 2. It has "alert" type, OR  
-    // 3. It has "Alert" in the title, OR
-    // 4. It's an "all_day_maintenance" type booking, OR
-    // 5. It has "site_alert" type, OR
-    // 6. It has "outage" in the title, OR
-    // 7. It has maintenance keywords in title
+    // 1. It has alert/maintenance type, OR
+    // 2. It has a severity field (indicates it was created via alert forms)
     
-    const isMaintenanceType = booking.type === 'maintenance' || 
-                             booking.type === 'all_day_maintenance' ||
-                             booking.type === 'site_alert' ||
-                             booking.type === 'alert';
-                             
-    const hasAlertKeywords = booking.title && (
-      booking.title.toLowerCase().includes('alert') ||
-      booking.title.toLowerCase().includes('outage') ||
-      booking.title.toLowerCase().includes('emergency') ||
-      booking.title.toLowerCase().includes('maintenance') ||
-      booking.title.toLowerCase().includes('notice') ||
-      booking.title.toLowerCase().includes('warning')
-    );
+    const isAlertType = booking.type === 'maintenance' || 
+                        booking.type === 'all_day_maintenance' ||
+                        booking.type === 'site_alert' ||
+                        booking.type === 'alert';
     
-    return isMaintenanceType || hasAlertKeywords;
+    // Check if it has severity field (set by alert forms) - but only if it's not empty/null
+    const hasSeverity = booking.severity != null && booking.severity !== "";
+    
+    return isAlertType || hasSeverity;
   };
 
   // Filter bookings for current week and exclude cancelled bookings (but keep alerts regardless of status)
@@ -384,8 +373,27 @@ export default function EngineeringPage() {
   };
 
   // Separate alerts from regular bookings
-  const alertBookings = weekBookings.filter(booking => isAlertBooking(booking));
+  const alertBookings = weekBookings.filter(booking => {
+    const isAlert = isAlertBooking(booking);
+    console.log(`[ENGINEERING ALERT CHECK] Booking ${booking.id} - ${booking.title}`, {
+      type: booking.type,
+      isAlert,
+      status: booking.status,
+      studioId: booking.studioId
+    });
+    return isAlert;
+  });
   const regularBookings = weekBookings.filter(booking => !isAlertBooking(booking));
+  
+  console.log(`[ENGINEERING ALERTS] Found ${alertBookings.length} alerts out of ${weekBookings.length} total bookings`);
+  console.log(`[ENGINEERING ALERTS] Alert booking IDs:`, alertBookings.map(b => `${b.id}: ${b.title} (type: ${b.type}, severity: ${b.severity}, studioId: ${b.studioId})`));
+  
+  // Debug: show all bookings and their severity values
+  weekBookings.forEach(booking => {
+    if (booking.severity) {
+      console.log(`[ENGINEERING DEBUG] Booking ${booking.id} "${booking.title}" has severity: "${booking.severity}" (type: ${booking.type})`);
+    }
+  });
 
   return (
     <TooltipProvider>
@@ -429,14 +437,7 @@ export default function EngineeringPage() {
                 const alertDate = toZonedTime(parseISO(alert.start), getFacilityTimezone_Dynamic());
                 const alertEndDate = toZonedTime(parseISO(alert.end), getFacilityTimezone_Dynamic());
                 
-                // Debug logging for the specific alert we're tracking
-                if (alert.title?.includes('test all day')) {
-                  console.log(`[ALERTS BAR] Checking alert "${alert.title}" for day ${format(day.date, 'MMM d')}:`);
-                  console.log(`  Alert start: ${format(alertDate, 'MMM d, h:mm a')} (${alert.start})`);
-                  console.log(`  Alert end: ${format(alertEndDate, 'MMM d, h:mm a')} (${alert.end})`);
-                  console.log(`  Day date: ${format(day.date, 'MMM d, h:mm a')}`);
-                  console.log(`  isSameDay result: ${isSameDay(alertDate, day.date)}`);
-                }
+
                 
                 return isSameDay(alertDate, day.date);
               });

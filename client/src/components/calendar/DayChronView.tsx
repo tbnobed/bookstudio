@@ -104,25 +104,25 @@ export default function DayChronView({
   // Function to determine if a booking should be treated as an alert
   const isAlertBooking = (booking: any) => {
     // Consider a booking an alert if:
-    // 1. It has "alert" type, OR
-    // 2. It has "Alert" in the title, OR
-    // 3. It's an "all-day:maintenance" type booking, OR
-    // 4. It's an "all-day:it_support" type booking, OR
-    // 5. It has "maintenance" or "alert" in the type field
+    // 1. It has alert/maintenance type, OR
+    // 2. It has a severity field (indicates it was created via alert forms)
     
-    const isAlert = booking.type === 'alert' || 
-           booking.type === 'maintenance' ||
-           (booking.title && booking.title.toLowerCase().includes('alert')) ||
-           (booking.title && booking.title.toLowerCase().includes('maintenance')) ||
-           (booking.type && booking.type.includes('all-day:maintenance')) ||
-           (booking.type && booking.type.includes('all-day:it_support')) ||
-           (booking.type && booking.type.includes('maintenance'));
+    const isAlertType = booking.type === 'maintenance' || 
+                        booking.type === 'all_day_maintenance' ||
+                        booking.type === 'site_alert' ||
+                        booking.type === 'alert';
+    
+    // Check if it has severity field (set by alert forms) - but only if it's not empty/null
+    const hasSeverity = booking.severity != null && booking.severity !== "";
+    
+    const isAlert = isAlertType || hasSeverity;
            
     // Only log when we detect an alert to reduce console spam
     if (isAlert) {
       console.log(`[ALERT DETECTED] Booking ${booking.id} - ${booking.title}`, {
         type: booking.type, 
-        severity: booking.severity
+        severity: booking.severity,
+        studioId: booking.studioId
       });
     }
     

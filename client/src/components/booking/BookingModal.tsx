@@ -153,7 +153,7 @@ export default function BookingModal({
     notifyList: [] as string[],
     saveAsTemplate: false,
     templateName: "",
-    severity: "medium", // low, medium, high, critical
+    severity: alertsOnly ? "medium" : "", // Only set severity for alerts
     color: booking ? booking.color : "#4B83E2" // Use booking color or default blue
   };
   
