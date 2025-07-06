@@ -313,6 +313,34 @@ export default function EngineeringPage() {
     };
   };
 
+  // Function to determine if a booking is an alert/maintenance
+  const isAlertBooking = (booking: BookingData) => {
+    // Consider a booking an alert if:
+    // 1. It has "maintenance" type, OR
+    // 2. It has "alert" type, OR  
+    // 3. It has "Alert" in the title, OR
+    // 4. It's an "all_day_maintenance" type booking, OR
+    // 5. It has "site_alert" type, OR
+    // 6. It has "outage" in the title, OR
+    // 7. It has maintenance keywords in title
+    
+    const isMaintenanceType = booking.type === 'maintenance' || 
+                             booking.type === 'all_day_maintenance' ||
+                             booking.type === 'site_alert' ||
+                             booking.type === 'alert';
+                             
+    const hasAlertKeywords = booking.title && (
+      booking.title.toLowerCase().includes('alert') ||
+      booking.title.toLowerCase().includes('outage') ||
+      booking.title.toLowerCase().includes('emergency') ||
+      booking.title.toLowerCase().includes('maintenance') ||
+      booking.title.toLowerCase().includes('notice') ||
+      booking.title.toLowerCase().includes('warning')
+    );
+    
+    return isMaintenanceType || hasAlertKeywords;
+  };
+
   // Filter bookings for current week and exclude cancelled bookings (but keep alerts regardless of status)
   const weekBookings = bookings.filter(booking => {
     const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
@@ -353,34 +381,6 @@ export default function EngineeringPage() {
   const shouldShowCurrentTimeIndicator = () => {
     const today = toZonedTime(new Date(), getFacilityTimezone_Dynamic());
     return weekDays.some(day => isSameDay(day.date, today));
-  };
-
-  // Function to determine if a booking is an alert/maintenance
-  const isAlertBooking = (booking: BookingData) => {
-    // Consider a booking an alert if:
-    // 1. It has "maintenance" type, OR
-    // 2. It has "alert" type, OR  
-    // 3. It has "Alert" in the title, OR
-    // 4. It's an "all_day_maintenance" type booking, OR
-    // 5. It has "site_alert" type, OR
-    // 6. It has "outage" in the title, OR
-    // 7. It has maintenance keywords in title
-    
-    const isMaintenanceType = booking.type === 'maintenance' || 
-                             booking.type === 'all_day_maintenance' ||
-                             booking.type === 'site_alert' ||
-                             booking.type === 'alert';
-                             
-    const hasAlertKeywords = booking.title && (
-      booking.title.toLowerCase().includes('alert') ||
-      booking.title.toLowerCase().includes('outage') ||
-      booking.title.toLowerCase().includes('emergency') ||
-      booking.title.toLowerCase().includes('maintenance') ||
-      booking.title.toLowerCase().includes('notice') ||
-      booking.title.toLowerCase().includes('warning')
-    );
-    
-    return isMaintenanceType || hasAlertKeywords;
   };
 
   // Separate alerts from regular bookings
