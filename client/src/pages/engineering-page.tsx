@@ -313,16 +313,18 @@ export default function EngineeringPage() {
     };
   };
 
-  // Filter bookings for current week and exclude cancelled bookings
+  // Filter bookings for current week and exclude cancelled bookings (but keep alerts regardless of status)
   const weekBookings = bookings.filter(booking => {
     const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
     const weekStart = currentWeek;
     const weekEnd = endOfDay(addDays(currentWeek, 6)); // End of Sunday, not start of Sunday
     
     const inWeek = bookingDate >= weekStart && bookingDate <= weekEnd;
+    const isAlert = isAlertBooking(booking);
     const isNotCancelled = booking.status !== 'cancelled';
     
-    return inWeek && isNotCancelled;
+    // Include if in week AND (is alert OR not cancelled)
+    return inWeek && (isAlert || isNotCancelled);
   });
 
   const goToPreviousWeek = () => {
@@ -384,9 +386,6 @@ export default function EngineeringPage() {
   // Separate alerts from regular bookings
   const alertBookings = weekBookings.filter(booking => isAlertBooking(booking));
   const regularBookings = weekBookings.filter(booking => !isAlertBooking(booking));
-  
-  // console.log(`[ENGINEERING] Current week: ${format(currentWeek, 'MMM d')} - ${format(addDays(currentWeek, 6), 'MMM d')}`);
-  // console.log(`[ENGINEERING] Total bookings: ${weekBookings.length}, Alerts: ${alertBookings.length}, Regular: ${regularBookings.length}`);
 
   return (
     <TooltipProvider>
