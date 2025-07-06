@@ -427,6 +427,17 @@ export default function EngineeringPage() {
             {weekDays.map((day) => {
               const dayAlerts = alertBookings.filter(alert => {
                 const alertDate = toZonedTime(parseISO(alert.start), getFacilityTimezone_Dynamic());
+                const alertEndDate = toZonedTime(parseISO(alert.end), getFacilityTimezone_Dynamic());
+                
+                // Debug logging for the specific alert we're tracking
+                if (alert.title?.includes('test all day')) {
+                  console.log(`[ALERTS BAR] Checking alert "${alert.title}" for day ${format(day.date, 'MMM d')}:`);
+                  console.log(`  Alert start: ${format(alertDate, 'MMM d, h:mm a')} (${alert.start})`);
+                  console.log(`  Alert end: ${format(alertEndDate, 'MMM d, h:mm a')} (${alert.end})`);
+                  console.log(`  Day date: ${format(day.date, 'MMM d, h:mm a')}`);
+                  console.log(`  isSameDay result: ${isSameDay(alertDate, day.date)}`);
+                }
+                
                 return isSameDay(alertDate, day.date);
               });
 
