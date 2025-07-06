@@ -830,6 +830,8 @@ export default function SignagePage() {
                   }
                   
                   {/* Show upcoming maintenance (next 7 days, excluding today) */}
+                  {console.log("[SIGNAGE ALERTS] Maintenance alerts:", maintenanceAlerts.map(a => ({ id: a.id, title: a.title, start: a.start })))}
+                  {console.log("[SIGNAGE ALERTS] Maintenance alerts after filtering:", maintenanceAlerts.filter(alert => !isSameDay(parseISO(alert.start), today)).map(a => ({ id: a.id, title: a.title, start: a.start })))}
                   {maintenanceAlerts
                     .filter(alert => !isSameDay(parseISO(alert.start), today))
                     .slice(0, 2)
