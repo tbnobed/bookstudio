@@ -778,11 +778,6 @@ export default function SignagePage() {
               {/* Show today's site alerts and upcoming maintenance */}
               {todaysAlerts.length > 0 || maintenanceAlerts.length > 0 ? (
                 <div className="space-y-2">
-                  {console.log("[SIGNAGE ALERTS] Today's alerts:", todaysAlerts.map(a => ({ id: a.id, title: a.title, start: a.start, end: a.end })))}
-                  {console.log("[SIGNAGE ALERTS] Current time:", currentTime.toISOString())}
-                  {console.log("[SIGNAGE ALERTS] Active alerts:", todaysAlerts.filter(alert => isBookingActive(alert, currentTime)).map(a => ({ id: a.id, title: a.title })))}
-                  {console.log("[SIGNAGE ALERTS] Upcoming alerts:", todaysAlerts.filter(alert => !isBookingActive(alert, currentTime) && parseISO(alert.start) > currentTime).map(a => ({ id: a.id, title: a.title })))}
-                  
                   {/* Show active site alerts from today */}
                   {todaysAlerts
                     .filter(alert => isBookingActive(alert, currentTime))
@@ -829,11 +824,12 @@ export default function SignagePage() {
                     ))
                   }
                   
-                  {/* Show upcoming maintenance (next 7 days, excluding today) */}
-                  {console.log("[SIGNAGE ALERTS] Maintenance alerts:", maintenanceAlerts.map(a => ({ id: a.id, title: a.title, start: a.start })))}
-                  {console.log("[SIGNAGE ALERTS] Maintenance alerts after filtering:", maintenanceAlerts.filter(alert => !isSameDay(parseISO(alert.start), today)).map(a => ({ id: a.id, title: a.title, start: a.start })))}
+                  {/* Show upcoming maintenance (next 7 days, excluding today and already shown active alerts) */}
                   {maintenanceAlerts
-                    .filter(alert => !isSameDay(parseISO(alert.start), today))
+                    .filter(alert => 
+                      !isSameDay(parseISO(alert.start), today) && 
+                      !todaysAlerts.some(todayAlert => todayAlert.id === alert.id)
+                    )
                     .slice(0, 2)
                     .map(alert => (
                       <div key={`upcoming-${alert.id}`} className="p-3 rounded-lg bg-yellow-900/40 border border-yellow-500 shadow-sm">
