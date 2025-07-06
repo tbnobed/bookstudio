@@ -558,7 +558,7 @@ export default function EngineeringPage() {
 
                 {/* Day columns */}
                 {weekDays.map((day) => {
-                  const dayBookings = regularBookings.filter(booking => {
+                  const dayBookings = weekBookings.filter(booking => {
                     const bookingStartDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
                     const bookingEndDate = toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic());
                     
