@@ -778,6 +778,11 @@ export default function SignagePage() {
               {/* Show today's site alerts and upcoming maintenance */}
               {todaysAlerts.length > 0 || maintenanceAlerts.length > 0 ? (
                 <div className="space-y-2">
+                  {console.log("[SIGNAGE ALERTS] Today's alerts:", todaysAlerts.map(a => ({ id: a.id, title: a.title, start: a.start, end: a.end })))}
+                  {console.log("[SIGNAGE ALERTS] Current time:", currentTime.toISOString())}
+                  {console.log("[SIGNAGE ALERTS] Active alerts:", todaysAlerts.filter(alert => isBookingActive(alert, currentTime)).map(a => ({ id: a.id, title: a.title })))}
+                  {console.log("[SIGNAGE ALERTS] Upcoming alerts:", todaysAlerts.filter(alert => !isBookingActive(alert, currentTime) && parseISO(alert.start) > currentTime).map(a => ({ id: a.id, title: a.title })))}
+                  
                   {/* Show active site alerts from today */}
                   {todaysAlerts
                     .filter(alert => isBookingActive(alert, currentTime))
