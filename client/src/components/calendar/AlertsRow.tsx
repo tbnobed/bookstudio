@@ -457,7 +457,10 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
                             </div>
                             <div className="flex items-center text-xs text-muted-foreground mt-1">
                               <Bell className="mr-1 h-3 w-3 flex-shrink-0" />
-                              <span className="capitalize">{alert.type?.replace("all-day:", "").replace("_", " ")}</span>
+                              <span className="capitalize">
+                                {alert.type?.replace("all-day:", "").replace("_", " ") === "undefined" ? "all-day" : 
+                                 alert.type?.replace("all-day:", "").replace("_", " ") || "alert"}
+                              </span>
                             </div>
                             {alert.description && (
                               <div className="flex items-start mt-2 text-xs text-muted-foreground">

@@ -249,7 +249,7 @@ export default function AlertModal({
       localEndDate = fromZonedTime(facilityEndOfDay, facilityTimezone);
       
       // Add a special flag to the type field to ensure it's recognized as all-day
-      finalAlertType = `all-day:${alertType}`;
+      finalAlertType = `all-day:${alertType || 'maintenance'}`;
       
       console.log(`Creating all-day alert for date: ${date} in facility timezone: ${facilityTimezone}`);
       console.log(`Facility times - Start: ${facilityStartOfDay.toISOString()}, End: ${facilityEndOfDay.toISOString()}`);
@@ -275,8 +275,8 @@ export default function AlertModal({
     // Only add the all-day prefix if the user selected isAllDay
     // This makes the "All Day" checkbox actually work as intended
     const effectiveType = isAllDay && !finalAlertType.startsWith("all-day:") 
-      ? `all-day:${alertType}` 
-      : finalAlertType;
+      ? `all-day:${alertType || 'maintenance'}` 
+      : finalAlertType || (alertType || 'maintenance');
 
     console.log(`Creating alert with type: ${effectiveType}, severity: ${effectiveSeverity}, alertsOnly: ${alertsOnly}`);
     
