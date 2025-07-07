@@ -30,11 +30,24 @@ interface AlertsRowProps {
 
 // Helper function to determine if an alert is an all-day alert
 function isAllDayAlert(alert: ApiBooking): boolean {
+  // Debug logging to see what data we're working with
+  console.log('isAllDayAlert debug:', {
+    id: alert.id,
+    title: alert.title,
+    type: alert.type,
+    start: alert.start,
+    end: alert.end,
+    startType: typeof alert.start,
+    endType: typeof alert.end
+  });
+  
   // First, check if the alert has a special metadata flag indicating all-day
   // This is the most reliable way - check the alertType for all-day prefix
   const hasAllDayFlag = 
                         alert.type === "all-day" || 
                         alert.type?.startsWith("all-day:");
+  
+  console.log('hasAllDayFlag:', hasAllDayFlag);
   
   if (hasAllDayFlag) {
     return true;
