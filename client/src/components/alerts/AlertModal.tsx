@@ -253,17 +253,44 @@ export default function AlertModal({
       severity: effectiveSeverity // Use the effective severity
     };
     
-    if (alert) {
+    if (alert && alert.id) {
       // Update existing alert
-      await updateAlert.mutateAsync({ id: alert.id, data: alertData });
+      console.log("Updating alert with ID:", alert.id, "and data:", alertData);
+      try {
+        await updateAlert.mutateAsync({ id: alert.id, data: alertData });
+        showNotification({
+          type: "success",
+          title: "Alert Updated",
+          message: "The facility alert has been successfully updated.",
+        });
+      } catch (error) {
+        console.error("Error updating alert:", error);
+        showNotification({
+          type: "error",
+          title: "Update Failed",
+          message: "Failed to update the alert. Please try again.",
+        });
+        return;
+      }
     } else {
       // Create new alert
       console.log("Creating alert with data:", alertData);
       try {
         const result = await createAlert.mutateAsync(alertData as InsertAlert);
         console.log("Alert creation result:", result);
+        showNotification({
+          type: "success",
+          title: "Alert Created",
+          message: "The facility alert has been successfully created.",
+        });
       } catch (error) {
         console.error("Error creating alert:", error);
+        showNotification({
+          type: "error",
+          title: "Creation Failed",
+          message: "Failed to create the alert. Please try again.",
+        });
+        return;
       }
     }
     
@@ -272,15 +299,34 @@ export default function AlertModal({
   
   // Handle alert deletion
   const handleDelete = async () => {
-    if (alert) {
+    if (alert && alert.id) {
+      console.log("Deleting alert with ID:", alert.id);
       try {
         await deleteAlert.mutateAsync(alert.id);
+        
+        showNotification({
+          type: "success",
+          title: "Alert Deleted",
+          message: "The facility alert has been successfully deleted.",
+        });
         
         onClose();
         setIsDeleteDialogOpen(false);
       } catch (error) {
         console.error("Error deleting alert:", error);
+        showNotification({
+          type: "error",
+          title: "Delete Failed",
+          message: "Failed to delete the alert. Please try again.",
+        });
       }
+    } else {
+      console.error("Cannot delete alert: Invalid alert ID");
+      showNotification({
+        type: "error",
+        title: "Delete Failed",
+        message: "Cannot delete alert: Invalid alert ID.",
+      });
     }
   };
 
