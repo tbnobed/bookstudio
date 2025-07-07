@@ -84,8 +84,21 @@ export default function AlertModal({
         
         // Convert alert times to facility timezone for proper display
         const facilityTimezone = getFacilityTimezone();
+        console.log("AlertModal - Edit mode alert data:", {
+          title: alert.title,
+          start: alert.start,
+          end: alert.end,
+          facilityTimezone
+        });
+        
         const facilityStartTime = toZonedTime(new Date(alert.start), facilityTimezone);
         const facilityEndTime = toZonedTime(new Date(alert.end), facilityTimezone);
+        
+        console.log("AlertModal - Converted times:", {
+          facilityStartTime: facilityStartTime.toISOString(),
+          facilityEndTime: facilityEndTime.toISOString(),
+          startDateString: facilityStartTime.toISOString().split("T")[0]
+        });
         
         // Set date based on facility timezone
         setDate(facilityStartTime.toISOString().split("T")[0]);
