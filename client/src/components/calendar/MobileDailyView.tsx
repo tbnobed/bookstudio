@@ -149,12 +149,32 @@ export default function MobileDailyView({
     staleTime: 1000 * 60 * 30, // Cache for 30 minutes
   });
   
+  // Filter alerts for the current day
+  const todayAlerts = useMemo(() => {
+    if (!allAlerts || allAlerts.length === 0) return [];
+    
+    return allAlerts.filter(alert => {
+      const alertStart = new Date(alert.start);
+      const alertEnd = new Date(alert.end);
+      
+      // Check if alert overlaps with the current day
+      const isOverlapping = alertStart <= dayEnd && alertEnd > dayStart;
+      const isOnCurrentDay = isSameDay(alertStart, currentDate) || 
+                             isSameDay(alertEnd, currentDate) ||
+                             (alertStart < dayStart && alertEnd > dayEnd);
+      
+      console.log(`Alert ${alert.id} (${alert.title}) overlapping: ${isOverlapping}, on current day: ${isOnCurrentDay}`);
+      
+      return isOverlapping && isOnCurrentDay;
+    });
+  }, [allAlerts, dayStart, dayEnd, currentDate]);
+
   // Combine bookings with alerts from API
   const combinedBookings = useMemo(() => {
-    console.log(`MobileDailyView - Combining ${todayBookings.length} bookings with ${allAlerts.length} alerts`);
+    console.log(`MobileDailyView - Combining ${todayBookings.length} bookings with ${todayAlerts.length} alerts`);
     
     // Convert alerts to booking format for display
-    const alertsAsBookings = allAlerts.map(alert => ({
+    const alertsAsBookings = todayAlerts.map(alert => ({
       id: `alert-${alert.id}`,
       title: alert.title,
       description: alert.description,
@@ -178,7 +198,7 @@ export default function MobileDailyView({
     console.log(`MobileDailyView - Converted ${alertsAsBookings.length} API alerts to booking format`);
     
     return [...todayBookings, ...alertsAsBookings];
-  }, [todayBookings, allAlerts]);
+  }, [todayBookings, todayAlerts]);
 
   // Merge booking-studios data into the bookings
   const bookingsWithStudios = useMemo<BookingWithStudios[]>(() => {
@@ -708,9 +728,9 @@ export default function MobileDailyView({
         <TabsContent value="timeline" className="flex-1 overflow-auto pb-20 -mx-1 px-1 overscroll-contain">
           <div className="p-4 space-y-4">
             
-            {todayBookings.length > 0 ? (
+            {combinedBookings.length > 0 ? (
               <div className="space-y-3">
-                {todayBookings
+                {combinedBookings
                   // Include both studio bookings and facility alerts in timeline view
                   .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
                   .map(booking => {

@@ -151,18 +151,21 @@ export default function MobilePublicDailyView({
   console.log("MobilePublicDailyView - Showing bookings for", format(currentDate, "MMM d, yyyy"), "in facility timezone");
   console.log("MobilePublicDailyView - Date range:", dateRange.start.toISOString(), "to", dateRange.end.toISOString());
   
-  // Filter bookings for today
+  // Filter bookings for today (excluding alerts and maintenance from regular bookings)
   const todayBookings = combinedBookings.filter(booking => {
     const bookingStart = new Date(booking.start);
     const bookingEnd = new Date(booking.end);
     
+    // Check if booking overlaps with the current day
+    const isOverlapping = bookingStart <= dateRange.end && bookingEnd > dateRange.start;
+    const isOnCurrentDay = isSameDay(bookingStart, currentDate) || 
+                           isSameDay(bookingEnd, currentDate) ||
+                           (bookingStart < dateRange.start && bookingEnd > dateRange.end);
+    
     // Log for debugging
-    console.log("isSameDay: Comparing", JSON.stringify(bookingStart), "with", JSON.stringify(currentDate), "=>", isSameDay(bookingStart, currentDate));
+    console.log(`MobilePublicDailyView - Booking ${booking.id} (${booking.title}) overlapping: ${isOverlapping}, on current day: ${isOnCurrentDay}`);
     
-    // Only show bookings that start on the selected day
-    const startsOnSelectedDay = isSameDay(bookingStart, currentDate);
-    
-    return startsOnSelectedDay && booking.type !== 'alert' && booking.type !== 'maintenance';
+    return isOverlapping && isOnCurrentDay;
   });
   
   // Process bookings to include their studio relationships
