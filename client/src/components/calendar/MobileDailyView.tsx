@@ -128,6 +128,12 @@ export default function MobileDailyView({
   const { data: bookingStudios = [] } = useQuery<{ bookingId: number, studioId: number }[]>({
     queryKey: ['/api/booking-studios'],
   });
+
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
   
   // Fetch PCR rooms
   const { data: pcrRooms = [] } = useQuery<any[]>({
@@ -143,9 +149,40 @@ export default function MobileDailyView({
     staleTime: 1000 * 60 * 30, // Cache for 30 minutes
   });
   
+  // Combine bookings with alerts from API
+  const combinedBookings = useMemo(() => {
+    console.log(`MobileDailyView - Combining ${todayBookings.length} bookings with ${allAlerts.length} alerts`);
+    
+    // Convert alerts to booking format for display
+    const alertsAsBookings = allAlerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      status: alert.status || 'active',
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null,
+      userId: alert.createdBy,
+      templateId: null,
+      createdAt: alert.createdAt,
+      notifyList: alert.notifyList || [],
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107'
+    }));
+    
+    console.log(`MobileDailyView - Converted ${alertsAsBookings.length} API alerts to booking format`);
+    
+    return [...todayBookings, ...alertsAsBookings];
+  }, [todayBookings, allAlerts]);
+
   // Merge booking-studios data into the bookings
   const bookingsWithStudios = useMemo<BookingWithStudios[]>(() => {
-    return todayBookings.map(booking => {
+    return combinedBookings.map(booking => {
       // Find all entries in bookingStudios that match this booking
       const relatedBookingStudios = bookingStudios.filter(
         bs => bs.bookingId === booking.id
@@ -157,7 +194,7 @@ export default function MobileDailyView({
         bookingStudios: relatedBookingStudios
       };
     });
-  }, [todayBookings, bookingStudios]);
+  }, [combinedBookings, bookingStudios]);
 
   // Log the booking studios data
   console.log("All bookingStudios data:", bookingStudios);

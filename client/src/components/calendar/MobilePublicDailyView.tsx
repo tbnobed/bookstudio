@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Booking, Studio } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -105,9 +105,46 @@ export default function MobilePublicDailyView({
     },
     staleTime: 60 * 1000, // 1 minute
   });
+
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
   
+  // Combine bookings with alerts from API
+  const combinedBookings = useMemo(() => {
+    console.log(`MobilePublicDailyView - Combining ${publicBookings.length} bookings with ${allAlerts.length} alerts`);
+    
+    // Convert alerts to booking format for display
+    const alertsAsBookings = allAlerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      status: alert.status || 'active',
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null,
+      userId: alert.createdBy,
+      templateId: null,
+      createdAt: alert.createdAt,
+      notifyList: alert.notifyList || [],
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107'
+    }));
+    
+    console.log(`MobilePublicDailyView - Converted ${alertsAsBookings.length} API alerts to booking format`);
+    
+    return [...publicBookings, ...alertsAsBookings];
+  }, [publicBookings, allAlerts]);
+
   // Use studio status hook to show real-time status
-  const { getAllStudiosWithStatus } = useStudioStatus(publicBookings);
+  const { getAllStudiosWithStatus } = useStudioStatus(combinedBookings);
   const studiosWithStatus = getAllStudiosWithStatus();
   
   // Console logs for debugging
@@ -115,7 +152,7 @@ export default function MobilePublicDailyView({
   console.log("MobilePublicDailyView - Date range:", dateRange.start.toISOString(), "to", dateRange.end.toISOString());
   
   // Filter bookings for today
-  const todayBookings = publicBookings.filter(booking => {
+  const todayBookings = combinedBookings.filter(booking => {
     const bookingStart = new Date(booking.start);
     const bookingEnd = new Date(booking.end);
     

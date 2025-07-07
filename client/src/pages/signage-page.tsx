@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar, Radio, AlertTriangle } from "lucide-react";
@@ -342,6 +342,14 @@ export default function SignagePage() {
     gcTime: 0, // Don't cache data
   });
 
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 30000, // Refetch every 30 seconds for signage
+    staleTime: 0, // Always consider data stale
+    gcTime: 0, // Don't cache data
+  });
+
 
 
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -363,7 +371,7 @@ export default function SignagePage() {
   // Convert back to UTC for comparison with booking.start which is in UTC
   const today = fromZonedTime(todayStartInFacility, facilityTimezone);
   const todayEnd = fromZonedTime(todayEndInFacility, facilityTimezone);
-  const todaysBookings = bookings.filter(booking => {
+  const todaysBookings = combinedBookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
     const withinInterval = isWithinInterval(bookingStart, { start: today, end: todayEnd });
@@ -374,7 +382,7 @@ export default function SignagePage() {
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
   // Get today's site alerts (maintenance type bookings and alert keywords)
-  const todaysAlerts = bookings.filter(booking => {
+  const todaysAlerts = combinedBookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance' || booking.type === 'alert';
     const hasAlertKeyword = booking.title && (
@@ -393,7 +401,7 @@ export default function SignagePage() {
     const facilityDate = addDays(nowInFacility, i);
     const date = fromZonedTime(startOfDay(facilityDate), facilityTimezone);
     const dayEnd = fromZonedTime(endOfDay(facilityDate), facilityTimezone);
-    const dayBookings = bookings.filter(booking => {
+    const dayBookings = combinedBookings.filter(booking => {
       const bookingStart = parseISO(booking.start);
       return isWithinInterval(bookingStart, { start: date, end: dayEnd });
     }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
@@ -405,7 +413,7 @@ export default function SignagePage() {
 
   // Get current studio status
   const studioStatus = studios.map(studio => {
-    const activeBooking = bookings.find(booking => {
+    const activeBooking = combinedBookings.find(booking => {
       const isDirectStudio = booking.studioId === studio.id;
       const hasLink = bookingStudioLinks.some(link => link.studioId === studio.id && link.bookingId === booking.id);
       return (isDirectStudio || hasLink) && isBookingActive(booking, currentTime);
@@ -414,12 +422,43 @@ export default function SignagePage() {
     return {
       ...studio,
       currentBooking: activeBooking,
-      nextAvailable: getNextAvailable(studio.id, bookings, bookingStudioLinks, facilityTimezone),
+      nextAvailable: getNextAvailable(studio.id, combinedBookings, bookingStudioLinks, facilityTimezone),
     };
   });
 
-  // Get maintenance alerts
-  const maintenanceAlerts = bookings.filter(booking => {
+  // Combine bookings with alerts from API
+  const combinedBookings = useMemo(() => {
+    console.log(`SignagePage - Combining ${bookings.length} bookings with ${allAlerts.length} alerts`);
+    
+    // Convert alerts to booking format for display
+    const alertsAsBookings = allAlerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      status: alert.status || 'active',
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null,
+      userId: alert.createdBy,
+      templateId: null,
+      createdAt: alert.createdAt,
+      notifyList: alert.notifyList || [],
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107'
+    }));
+    
+    console.log(`SignagePage - Converted ${alertsAsBookings.length} API alerts to booking format`);
+    
+    return [...bookings, ...alertsAsBookings];
+  }, [bookings, allAlerts]);
+
+  // Get maintenance alerts from combined data
+  const maintenanceAlerts = combinedBookings.filter(booking => {
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
     return isMaintenanceType && 
            parseISO(booking.start) >= today &&

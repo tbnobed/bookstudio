@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Booking } from "@shared/schema";
 import { formatTime, isWeekend, isSameDay, formatDate } from "@/lib/dateUtils";
@@ -22,7 +23,7 @@ interface ApiBooking extends Omit<Booking, 'studioId' | 'userId' | 'templateId' 
 
 interface AlertsRowProps {
   weekDates: Date[];
-  alerts: ApiBooking[]; // Now using our custom API type
+  alerts?: ApiBooking[]; // Legacy alerts from bookings
   onAlertClick: (booking: ApiBooking) => void;
   readOnly?: boolean;
 }
@@ -84,12 +85,49 @@ function isAllDayAlert(alert: ApiBooking): boolean {
   return isStartAtDayStart && isEndAtDayEndOrLater || (isLongDuration && isEarlyStart);
 }
 
-export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = false }: AlertsRowProps) {
+export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOnly = false }: AlertsRowProps) {
   const { user } = useAuth();
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editAlert, setEditAlert] = useState<ApiBooking | null>(null);
   const [isEditAlertModalOpen, setIsEditAlertModalOpen] = useState(false);
+  
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
+  
+  // Combine legacy booking alerts with new API alerts
+  const combinedAlerts = useMemo(() => {
+    console.log(`AlertsRow - Combining ${alerts.length} legacy alerts with ${allAlerts.length} API alerts`);
+    
+    // Convert API alerts to booking format for display
+    const apiAlertsAsBookings = allAlerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      status: alert.status || 'active',
+      studio_id: null, // Alerts don't have studios
+      pcr_room_id: null,
+      user_id: alert.createdBy,
+      template_id: null,
+      created_at: alert.createdAt,
+      notify_list: alert.notifyList || [],
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107'
+    }));
+    
+    console.log(`AlertsRow - Converted ${apiAlertsAsBookings.length} API alerts to booking format`);
+    
+    return [...alerts, ...apiAlertsAsBookings];
+  }, [alerts, allAlerts]);
   
   // Set up auto-refresh of alerts data
   useEffect(() => {
@@ -102,8 +140,8 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
   }, []);
   
   // Debug the alerts collection
-  console.log("All alerts in AlertsRow: ", JSON.stringify(alerts));
-  console.log("Alert IDs in AlertsRow: ", alerts.map(a => a.id).join(', '));
+  console.log("All alerts in AlertsRow: ", JSON.stringify(combinedAlerts));
+  console.log("Alert IDs in AlertsRow: ", combinedAlerts.map(a => a.id).join(', '));
   
   // Check if user has permission to create alerts (engineers, admins, IT, and site managers)
   const canCreateAlerts = user?.role === "engineer" || user?.role === "admin" || user?.role === "it" || user?.role === "site_manager";
@@ -131,7 +169,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
 
   // Calculate max alerts for any day in this week for consistent row heights
   const maxAlertsForWeek = weekDates.reduce((max, date) => {
-    const count = alerts.filter(alert => {
+    const count = combinedAlerts.filter(alert => {
       const alertStart = new Date(alert.start);
       const alertEnd = new Date(alert.end);
       
@@ -190,7 +228,7 @@ export default function AlertsRow({ weekDates, alerts, onAlertClick, readOnly = 
       {weekDates.map((date, index) => {
         // Filter alerts for this date (maintenance and IT support)
         // Only include facility-wide alerts (with null studioId) in this row
-        const dayAlerts = alerts.filter(alert => {
+        const dayAlerts = combinedAlerts.filter(alert => {
           const alertStart = new Date(alert.start);
           const alertEnd = new Date(alert.end);
           console.log(`Alert #${alert.id} - ${alert.title}: ${alertStart.toISOString()}`);

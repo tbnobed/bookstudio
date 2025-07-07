@@ -122,6 +122,7 @@ export default function EngineeringPage() {
   // Fetch alerts from the dedicated alerts API
   const { data: allAlerts = [] } = useQuery<any[]>({
     queryKey: ['/api/alerts'],
+    refetchInterval: 5000, // Refetch every 5 seconds
   });
 
   // Fetch studios
@@ -337,8 +338,39 @@ export default function EngineeringPage() {
     return isAlertType || hasSeverity;
   };
 
+  // Combine bookings with alerts from API
+  const combinedBookings = useMemo(() => {
+    console.log(`EngineeringPage - Combining ${bookings.length} bookings with ${allAlerts.length} alerts`);
+    
+    // Convert alerts to booking format for display
+    const alertsAsBookings = allAlerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      status: alert.status || 'active',
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null,
+      userId: alert.createdBy,
+      templateId: null,
+      createdAt: alert.createdAt,
+      notifyList: alert.notifyList || [],
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107'
+    }));
+    
+    console.log(`EngineeringPage - Converted ${alertsAsBookings.length} API alerts to booking format`);
+    
+    return [...bookings, ...alertsAsBookings];
+  }, [bookings, allAlerts]);
+
   // Filter bookings for current week and exclude cancelled bookings (but keep alerts regardless of status)
-  const weekBookings = bookings.filter(booking => {
+  const weekBookings = combinedBookings.filter(booking => {
     const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
     const weekStart = currentWeek;
     const weekEnd = endOfDay(addDays(currentWeek, 6)); // End of Sunday, not start of Sunday

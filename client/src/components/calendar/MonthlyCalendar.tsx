@@ -76,6 +76,12 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
     queryKey: ["/api/public/booking-studios"],
   });
   
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
+  
   // Function to get PCR room name from ID
   const getPcrRoomName = (pcrRoomId: number): string => {
     const pcrRoom = pcrRooms.find(room => room.id === pcrRoomId);
@@ -103,8 +109,36 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
 
-  // Use bookings passed from props
-  const bookings = propBookings;
+  // Combine bookings with alerts from API
+  const bookings = useMemo(() => {
+    console.log(`MonthlyCalendar - Combining ${propBookings.length} bookings with ${allAlerts.length} alerts`);
+    
+    // Convert alerts to booking format for display
+    const alertsAsBookings = allAlerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      status: alert.status || 'active',
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null,
+      userId: alert.createdBy,
+      templateId: null,
+      createdAt: alert.createdAt,
+      notifyList: alert.notifyList || [],
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107'
+    }));
+    
+    console.log(`MonthlyCalendar - Converted ${alertsAsBookings.length} API alerts to booking format`);
+    
+    return [...propBookings, ...alertsAsBookings];
+  }, [propBookings, allAlerts]);
 
   // Handle day click to create a new booking
   const handleDayClick = (date: Date) => {
