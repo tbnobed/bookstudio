@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatTime, isSameDay, formatInFacilityTimezone, isBookingActive } from '@/lib/dateUtils';
+import { getFacilityTimezone } from '@/lib/timezoneConfig';
+import { toZonedTime } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import WeatherForecastCell from './WeatherForecastCell';
 import { useWeatherForecast } from '../../hooks/useWeatherForecast';
@@ -124,13 +126,31 @@ export default function DayChronView({
   const dayAlerts = useMemo(() => {
     if (!allAlerts || allAlerts.length === 0) return [];
     
-    const dayStart = startOfDay(date);
-    const dayEnd = endOfDay(date);
-    
     return allAlerts.filter(alert => {
       const alertStart = parseISO(alert.start);
       const alertEnd = parseISO(alert.end);
-      return (alertStart <= dayEnd && alertEnd >= dayStart);
+      
+      // Check if alert overlaps with this specific day using facility timezone
+      const facilityTimezone = getFacilityTimezone();
+      
+      // Convert alert times to facility timezone 
+      const alertStartInFacility = toZonedTime(alertStart, facilityTimezone);
+      const alertEndInFacility = toZonedTime(alertEnd, facilityTimezone);
+      
+      // Get the date part only for comparison (strip time)
+      const alertStartDate = new Date(alertStartInFacility);
+      alertStartDate.setHours(0, 0, 0, 0);
+      
+      const alertEndDate = new Date(alertEndInFacility);
+      alertEndDate.setHours(0, 0, 0, 0);
+      
+      // Get current day date part only
+      const currentDay = new Date(date);
+      currentDay.setHours(0, 0, 0, 0);
+      
+      // Alert appears on this day if the day falls between start and end dates (inclusive)
+      return currentDay.getTime() >= alertStartDate.getTime() && 
+             currentDay.getTime() <= alertEndDate.getTime();
     });
   }, [allAlerts, date]);
 
