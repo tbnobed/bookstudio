@@ -3048,12 +3048,17 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAlert(id: number): Promise<boolean> {
     try {
-      const result = await db.delete(alerts).where(eq(alerts.id, id));
+      const [deletedAlert] = await db.delete(alerts).where(eq(alerts.id, id)).returning();
       
-      // Remove from cache
-      this.alerts.delete(id);
+      if (deletedAlert) {
+        // Remove from cache
+        this.alerts.delete(id);
+        console.log(`Successfully deleted alert with ID ${id}`);
+        return true;
+      }
       
-      return result.count > 0;
+      console.log(`Alert with ID ${id} not found for deletion`);
+      return false;
     } catch (error) {
       console.error(`Error deleting alert with ID ${id}:`, error);
       return false;
