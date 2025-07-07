@@ -17,7 +17,7 @@ interface BookingFormSelectorProps {
   selectedStudio?: number | null;
   forceSimpleMode?: boolean;
   selectedDate?: Date;
-  alertMode?: boolean;
+  // alertMode removed - this component is booking-only
 }
 
 export function BookingFormSelector({
@@ -27,8 +27,7 @@ export function BookingFormSelector({
   booking = null,
   selectedStudio = null,
   forceSimpleMode = false,
-  selectedDate = new Date(),
-  alertMode = false
+  selectedDate = new Date()
 }: BookingFormSelectorProps) {
   // Clean and prepare booking data to ensure proper form population
   const processedBooking = React.useMemo(() => {
@@ -166,7 +165,8 @@ export function BookingFormSelector({
     });
   }, [booking, processedBooking, isOpen, selectedDate]);
   
-  // Always use SimpleMobileForm for all mobile devices
+  // BookingFormSelector should ONLY handle booking forms, never alerts
+  // Alert creation should use AlertModal directly, not route through here
   return (
     <SimpleMobileForm 
       isOpen={isOpen}
@@ -175,7 +175,7 @@ export function BookingFormSelector({
       booking={processedBooking}
       selectedStudio={selectedStudio}
       selectedDate={selectedDate}
-      alertMode={alertMode}
+      alertMode={false} // This component is booking-only, never alerts
     />
   );
 }

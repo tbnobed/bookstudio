@@ -20,7 +20,7 @@ interface SimpleMobileFormProps {
   booking?: any;
   selectedDate?: Date;
   selectedStudio?: number;
-  alertMode?: boolean;
+  // alertMode removed - this component only handles bookings
 }
 
 interface FormData {
@@ -47,8 +47,7 @@ export default function SimpleMobileForm({
   onSubmit,
   booking,
   selectedDate = new Date(),
-  selectedStudio,
-  alertMode = false
+  selectedStudio
 }: SimpleMobileFormProps) {
   const { showNotification } = useNotification();
   const { createBooking, updateBooking, deleteBooking, createTemplate } = useStudioBookings();
@@ -61,14 +60,14 @@ export default function SimpleMobileForm({
 
 
 
-  // Default form values (same as desktop)
+  // Default form values for booking creation only
   const getDefaultFormData = (): FormData => ({
     title: "",
     description: "",
     date: formatDateForForm(selectedDate),
     startTime: "9:00am",
     endTime: "10:00am",
-    bookingType: alertMode ? "alert" : "production",
+    bookingType: "production", // Always production since this is booking-only
     status: "confirmed",
     severity: "low",
     color: "#3b82f6",
