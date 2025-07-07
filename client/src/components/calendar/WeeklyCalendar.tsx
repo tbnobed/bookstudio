@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getWeekDates, formatDateShort, SHORT_DAY_NAMES, isWeekend, getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, PcrRoom } from "@shared/schema";
@@ -122,8 +122,44 @@ export default function WeeklyCalendar({
     console.log(`WeeklyCalendar - Current date range: ${weekStart?.toISOString()} to ${weekEnd?.toISOString()}`);
   }, [fetchedBookings, weekStart, weekEnd]);
   
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
+  
   // Use external bookings if provided, otherwise use fetched bookings
-  const bookings = externalBookings || fetchedBookings;
+  const baseBookings = externalBookings || fetchedBookings;
+  
+  // Combine bookings with alerts from API
+  const bookings = useMemo(() => {
+    console.log(`WeeklyCalendar - Combining ${baseBookings.length} bookings with ${allAlerts.length} alerts`);
+    
+    // Convert alerts to booking format for display
+    const alertsAsBookings = allAlerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      status: alert.status || 'active',
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null,
+      userId: alert.createdBy,
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107',
+      notifyList: alert.notifyList || [],
+      createdAt: alert.createdAt
+    }));
+    
+    console.log(`WeeklyCalendar - Converted ${alertsAsBookings.length} alerts to booking format`);
+    
+    return [...baseBookings, ...alertsAsBookings];
+  }, [baseBookings, allAlerts]);
   
   // Setup a polling effect to refetch bookings every 2 seconds
   useEffect(() => {
