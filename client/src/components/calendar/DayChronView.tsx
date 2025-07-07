@@ -115,6 +115,25 @@ export default function DayChronView({
     return isAlertType || hasSeverity;
   };
 
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+  });
+
+  // Filter alerts for the current day
+  const dayAlerts = useMemo(() => {
+    if (!allAlerts || allAlerts.length === 0) return [];
+    
+    const dayStart = startOfDay(date);
+    const dayEnd = endOfDay(date);
+    
+    return allAlerts.filter(alert => {
+      const alertStart = parseISO(alert.start);
+      const alertEnd = parseISO(alert.end);
+      return (alertStart <= dayEnd && alertEnd >= dayStart);
+    });
+  }, [allAlerts, date]);
+
   // Combine alerts from both sources (legacy bookings + new alerts API)
   const alerts = useMemo(() => {
     console.log("[DEBUG] All bookings for day:", dayBookings);
@@ -154,26 +173,7 @@ export default function DayChronView({
     queryKey: ['/api/public/booking-studios'],
   });
 
-  // Fetch alerts from the dedicated alerts API
-  const { data: allAlerts = [] } = useQuery<any[]>({
-    queryKey: ['/api/alerts'],
-  });
 
-  // Filter alerts for the current day
-  const dayAlerts = useMemo(() => {
-    if (!allAlerts || allAlerts.length === 0) return [];
-    
-    const dayStart = startOfDay(date);
-    const dayEnd = endOfDay(date);
-    
-    return allAlerts.filter(alert => {
-      const alertStart = parseISO(alert.start);
-      const alertEnd = parseISO(alert.end);
-      
-      // Check if alert overlaps with this day
-      return (alertStart <= dayEnd && alertEnd >= dayStart);
-    });
-  }, [allAlerts, date]);
 
   // Get studio names for a booking (including all linked studios)
   const getStudiosForBooking = (booking: any) => {
