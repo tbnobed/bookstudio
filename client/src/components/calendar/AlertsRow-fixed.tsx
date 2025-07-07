@@ -1,5 +1,6 @@
-import { AlertTriangle, AlertCircle, Activity, Bell } from "lucide-react";
-import { getFacilityTimezone } from "../../lib/timezoneConfig";
+import { Alert as AlertIcon, AlertTriangle, AlertCircle, Activity } from "lucide-react";
+import { startOfDay, endOfDay, toZonedTime, fromZonedTime } from "date-fns-tz";
+import { getFacilityTimezone } from "../../utils/dateUtils";
 
 interface ApiBooking extends Omit<Booking, 'studioId' | 'userId' | 'templateId' | 'createdAt' | 'notifyList'> {
   studio_id: number | null;
@@ -115,11 +116,11 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
               console.log(`Alert start date: ${alertStartDateStr}`);
               console.log(`Overlap result: ${overlapsWithDay}`);
             } else {
-              // Regular time-based alerts use simple date overlap logic
-              const dateStart = new Date(date);
-              dateStart.setHours(0, 0, 0, 0);
-              const dateEnd = new Date(date);
-              dateEnd.setHours(23, 59, 59, 999);
+              // Regular time-based alerts use overlap logic
+              const facilityDateStart = startOfDay(toZonedTime(date, facilityTimezone));
+              const facilityDateEnd = endOfDay(toZonedTime(date, facilityTimezone));
+              const dateStart = fromZonedTime(facilityDateStart, facilityTimezone);
+              const dateEnd = fromZonedTime(facilityDateEnd, facilityTimezone);
               overlapsWithDay = (alertStart <= dateEnd) && (alertEnd >= dateStart);
             }
             
@@ -150,7 +151,7 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
                     case 'low': return <Activity className="w-3 h-3" />;
                     case 'medium': return <AlertCircle className="w-3 h-3" />;
                     case 'high': return <AlertTriangle className="w-3 h-3" />;
-                    case 'critical': return <Bell className="w-3 h-3" />;
+                    case 'critical': return <AlertIcon className="w-3 h-3" />;
                     default: return <AlertCircle className="w-3 h-3" />;
                   }
                 };
