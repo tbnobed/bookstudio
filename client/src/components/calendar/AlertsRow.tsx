@@ -176,15 +176,41 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
       // Check if alert spans this date using facility timezone
       const facilityTimezone = getFacilityTimezone();
       
-      // Create facility timezone boundaries for this date
-      const facilityDateStart = startOfDay(toZonedTime(date, facilityTimezone));
-      const facilityDateEnd = endOfDay(toZonedTime(date, facilityTimezone));
+      // Create start and end of day in facility timezone using the calendar date directly
+      const dayYear = date.getFullYear();
+      const dayMonth = date.getMonth();
+      const dayDate = date.getDate();
       
-      // Convert facility timezone boundaries to UTC for comparison with alert times
-      const dateStart = fromZonedTime(facilityDateStart, facilityTimezone);
-      const dateEnd = fromZonedTime(facilityDateEnd, facilityTimezone);
+      // Create day boundaries in facility timezone
+      const facilityDayStart = new Date();
+      facilityDayStart.setFullYear(dayYear, dayMonth, dayDate);
+      facilityDayStart.setHours(0, 0, 0, 0);
       
-      return (alertStart <= dateEnd) && (alertEnd >= dateStart);
+      const facilityDayEnd = new Date(); 
+      facilityDayEnd.setFullYear(dayYear, dayMonth, dayDate);
+      facilityDayEnd.setHours(23, 59, 59, 999);
+      
+      // Convert facility timezone boundaries to UTC for comparison with stored alert times
+      const dateStart = fromZonedTime(facilityDayStart, facilityTimezone);
+      const dateEnd = fromZonedTime(facilityDayEnd, facilityTimezone);
+      
+      // Convert stored UTC alert times to facility timezone for comparison
+      const alertStartInFacility = toZonedTime(alertStart, facilityTimezone);
+      const alertEndInFacility = toZonedTime(alertEnd, facilityTimezone);
+      
+      // Check if the alert's facility-timezone dates overlap with this specific day
+      const alertStartDay = new Date(alertStartInFacility);
+      alertStartDay.setHours(0, 0, 0, 0);
+      const alertEndDay = new Date(alertEndInFacility);
+      alertEndDay.setHours(0, 0, 0, 0);
+      
+      const currentDay = new Date(facilityDayStart);
+      
+      // Alert overlaps with this day if the alert spans any part of this specific day
+      return (
+        alertStartDay.getTime() <= currentDay.getTime() && 
+        alertEndDay.getTime() >= currentDay.getTime()
+      );
     }).length;
     return Math.max(max, count);
   }, 0);
@@ -239,18 +265,41 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
           // Check if alert spans this date using facility timezone
           const facilityTimezone = getFacilityTimezone();
           
-          // Create facility timezone boundaries for this date
-          const facilityDateStart = startOfDay(toZonedTime(date, facilityTimezone));
-          const facilityDateEnd = endOfDay(toZonedTime(date, facilityTimezone));
+          // Create start and end of day in facility timezone using the calendar date directly
+          const dayYear = date.getFullYear();
+          const dayMonth = date.getMonth();
+          const dayDate = date.getDate();
           
-          // Convert facility timezone boundaries to UTC for comparison with alert times
-          const dateStart = fromZonedTime(facilityDateStart, facilityTimezone);
-          const dateEnd = fromZonedTime(facilityDateEnd, facilityTimezone);
+          // Create day boundaries in facility timezone
+          const facilityDayStart = new Date();
+          facilityDayStart.setFullYear(dayYear, dayMonth, dayDate);
+          facilityDayStart.setHours(0, 0, 0, 0);
           
-          // Alert overlaps with this day if:
-          // - Alert start is on or before the end of this day AND
-          // - Alert end is on or after the start of this day
-          let overlapsWithDay = (alertStart <= dateEnd) && (alertEnd >= dateStart);
+          const facilityDayEnd = new Date(); 
+          facilityDayEnd.setFullYear(dayYear, dayMonth, dayDate);
+          facilityDayEnd.setHours(23, 59, 59, 999);
+          
+          // Convert facility timezone boundaries to UTC for comparison with stored alert times
+          const dateStart = fromZonedTime(facilityDayStart, facilityTimezone);
+          const dateEnd = fromZonedTime(facilityDayEnd, facilityTimezone);
+          
+          // Convert stored UTC alert times to facility timezone for comparison
+          const alertStartInFacility = toZonedTime(alertStart, facilityTimezone);
+          const alertEndInFacility = toZonedTime(alertEnd, facilityTimezone);
+          
+          // Check if the alert's facility-timezone dates overlap with this specific day
+          const alertStartDay = new Date(alertStartInFacility);
+          alertStartDay.setHours(0, 0, 0, 0);
+          const alertEndDay = new Date(alertEndInFacility);
+          alertEndDay.setHours(0, 0, 0, 0);
+          
+          const currentDay = new Date(facilityDayStart);
+          
+          // Alert overlaps with this day if the alert spans any part of this specific day
+          let overlapsWithDay = (
+            alertStartDay.getTime() <= currentDay.getTime() && 
+            alertEndDay.getTime() >= currentDay.getTime()
+          );
           
 
           
