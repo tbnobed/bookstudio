@@ -19,7 +19,7 @@ import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 
 // Get severity-based styling for alerts and maintenance bookings
 function getSeverityStyle(booking: BookingData) {
-  if (!booking.severity || (!booking.type.includes('maintenance') && booking.type !== 'all_day_maintenance')) {
+  if (!booking.severity || (!booking.type.includes('maintenance') && booking.type !== 'all-day:maintenance')) {
     return null;
   }
 
@@ -265,7 +265,7 @@ export default function EngineeringPage() {
 
     
     // Check if this is an all-day event or spans across midnight
-    const isAllDay = booking.type === 'all_day_maintenance';
+    const isAllDay = booking.type === 'all-day:maintenance' || booking.type.includes('all-day');
     
     // Check for cross-midnight spanning - only if start is later than end on same day
     const spansAcrossMidnight = isSameDay(startTime, endTime) && endHour < startHour;
@@ -320,9 +320,11 @@ export default function EngineeringPage() {
     // 2. It has a severity field (indicates it was created via alert forms)
     
     const isAlertType = booking.type === 'maintenance' || 
-                        booking.type === 'all_day_maintenance' ||
+                        booking.type === 'all-day:maintenance' ||
                         booking.type === 'site_alert' ||
-                        booking.type === 'alert';
+                        booking.type === 'alert' ||
+                        booking.type.includes('maintenance') ||
+                        booking.type.includes('alert');
     
     // Check if it has severity field (set by alert forms) - but only if it's not empty/null
     const hasSeverity = booking.severity != null && booking.severity !== "";
