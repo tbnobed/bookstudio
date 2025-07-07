@@ -79,7 +79,7 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
     <>
       {/* Time column header for Alerts */}
       <div className="w-40 h-10 border-b border-r border-gray-200 bg-orange-50 flex items-center justify-center">
-        <div className="text-xs font-semibold text-orange-700">Alerts</div>
+        <div className="text-xs font-semibold text-orange-700">ALERTS</div>
       </div>
       
       {/* Alert cells for each day */}

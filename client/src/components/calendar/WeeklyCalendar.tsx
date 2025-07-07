@@ -10,7 +10,6 @@ import { ResponsiveBookingModal } from "@/components/booking";
 import AlertModal from "../alerts/AlertModal";
 import { useStudioBookings } from "../../hooks/useStudioBookings";
 import { useWeatherForecast } from "../../hooks/useWeatherForecast";
-import { useAlerts } from "../../hooks/useAlerts";
 import { isSameDay } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 
@@ -123,11 +122,7 @@ export default function WeeklyCalendar({
     console.log(`WeeklyCalendar - Current date range: ${weekStart?.toISOString()} to ${weekEnd?.toISOString()}`);
   }, [fetchedBookings, weekStart, weekEnd]);
   
-  // Fetch alerts from the dedicated alerts API
-  const { data: allAlerts = [] } = useQuery<any[]>({
-    queryKey: ['/api/alerts'],
-    refetchInterval: 5000, // Refetch every 5 seconds
-  });
+
   
   // Use external bookings if provided, otherwise use fetched bookings
   // Only use actual bookings for studio rows, alerts are handled separately in AlertsRow
@@ -215,27 +210,67 @@ export default function WeeklyCalendar({
     }
   };
   
-  // Use alerts from the dedicated alerts API instead of filtering from bookings
-  console.log("Alerts from API:", JSON.stringify(allAlerts));
+  // Filter alerts (maintenance and IT support bookings) and only include facility-wide alerts
+  console.log("All bookings:", JSON.stringify(bookings));
   
-  // Convert alerts to ApiBooking format for AlertsRow compatibility
-  const alerts = (allAlerts || []).map(alert => ({
-    id: alert.id,
-    title: alert.title,
-    description: alert.description,
-    studio_id: null, // Alerts are always facility-wide
-    pcr_room_id: null,
-    user_id: alert.userId,
-    start: alert.start,
-    end: alert.end,
-    type: alert.alertType,
-    template_id: null,
-    notify_list: [],
-    created_at: alert.createdAt,
-    severity: alert.severity
-  }));
+  const filteredAlerts = bookings.filter(booking => {
+    // Check if we're getting snake_case properties (from API) or camelCase (from our code)
+    const hasSnakeCase = 'studio_id' in booking;
+    const studioId = hasSnakeCase ? booking.studio_id : booking.studioId;
+    
+    const isMaintenanceOrIT = booking.type === "maintenance" || 
+                     booking.type === "it_support" || 
+                     booking.type?.startsWith("all-day:maintenance") ||
+                     booking.type?.startsWith("all-day:it_support");
+    const isFacilityWide = studioId === null;
+    
+    console.log(`Booking ${booking.id}: type=${booking.type}, studioId=${studioId}, format=${hasSnakeCase ? 'snake_case' : 'camelCase'}, isMaintenanceOrIT=${isMaintenanceOrIT}, isFacilityWide=${isFacilityWide}`);
+    
+    return isMaintenanceOrIT && isFacilityWide;
+  });
   
-  console.log("Converted alerts for AlertsRow:", JSON.stringify(alerts));
+  console.log("Filtered facility-wide alerts:", JSON.stringify(filteredAlerts));
+  
+  // Convert to consistent ApiBooking format
+  const alerts = filteredAlerts.map(booking => {
+    // Check if we're getting snake_case properties (from API) or camelCase (from our code)
+    const hasSnakeCase = 'studio_id' in booking;
+    
+    const apiBooking = hasSnakeCase ? {
+      // Already in API format, just pass it through
+      id: booking.id,
+      title: booking.title,
+      description: booking.description,
+      studio_id: booking.studio_id, // Already null for facility-wide alerts
+      pcr_room_id: booking.pcr_room_id,
+      user_id: booking.user_id,
+      start: booking.start,
+      end: booking.end,
+      type: booking.type,
+      template_id: booking.template_id,
+      notify_list: booking.notify_list,
+      created_at: booking.created_at,
+      severity: booking.severity
+    } : {
+      // Convert from camelCase to snake_case
+      id: booking.id,
+      title: booking.title,
+      description: booking.description,
+      studio_id: booking.studioId, // This is explicitly null for facility-wide alerts
+      pcr_room_id: booking.pcrRoomId,
+      user_id: booking.userId,
+      start: booking.start,
+      end: booking.end,
+      type: booking.type,
+      template_id: booking.templateId,
+      notify_list: booking.notifyList,
+      created_at: booking.createdAt,
+      severity: booking.severity
+    };
+    
+    console.log("Converted API booking:", JSON.stringify(apiBooking));
+    return apiBooking;
+  });
 
   return (
     <>
