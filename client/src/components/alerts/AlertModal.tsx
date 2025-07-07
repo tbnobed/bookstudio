@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAlerts } from "@/hooks/useAlerts";
 import { InsertAlert } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useNotification } from "@/hooks/use-notification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,6 +70,7 @@ export default function AlertModal({
   // Alert mutations
   const { createAlert, updateAlert, deleteAlert } = useAlerts();
   const { toast } = useToast();
+  const { showNotification } = useNotification();
 
   // Set initial form values
   useEffect(() => {
@@ -177,10 +179,10 @@ export default function AlertModal({
       const endDate = timeToDate(date, endTime);
       
       if (endDate <= startDate) {
-        toast({
+        showNotification({
+          type: "error",
           title: "Invalid Time Range",
-          description: "End time must be after start time. Please choose an end time that comes after the start time.",
-          variant: "destructive",
+          message: "End time must be after start time. Please choose an end time that comes after the start time.",
         });
         return;
       }
