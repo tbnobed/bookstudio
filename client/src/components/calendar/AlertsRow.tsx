@@ -387,6 +387,20 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
                   // Double-check the resulting color class for debugging
                   console.log(`Alert ${alert.id} color class:`, colorClass);
                   
+                  // Add specific debugging for the "mobile entry" alert
+                  if (alert.title === "mobile entry") {
+                    console.log('MOBILE ENTRY ALERT DEBUG:', {
+                      id: alert.id,
+                      title: alert.title,
+                      start: alert.start,
+                      end: alert.end,
+                      type: alert.type,
+                      isAllDay: isAllDayAlert(alert),
+                      startDate: new Date(alert.start),
+                      endDate: new Date(alert.end)
+                    });
+                  }
+
                   return (
                     <HoverCard key={alert.id}>
                       <HoverCardTrigger asChild>

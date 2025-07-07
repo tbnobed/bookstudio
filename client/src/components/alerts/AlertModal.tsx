@@ -249,9 +249,12 @@ export default function AlertModal({
       localEndDate = fromZonedTime(facilityEndOfDay, facilityTimezone);
       
       // Add a special flag to the type field to ensure it's recognized as all-day
-      finalAlertType = `all-day:${alertType || 'maintenance'}`;
+      // Ensure alertType has a valid value to prevent "all-day:undefined"
+      const validAlertType = alertType && alertType !== 'undefined' && alertType.trim() !== '' ? alertType : 'maintenance';
+      finalAlertType = `all-day:${validAlertType}`;
       
       console.log(`Creating all-day alert for date: ${date} in facility timezone: ${facilityTimezone}`);
+      console.log(`Original alertType: "${alertType}", Valid alertType: "${validAlertType}"`);
       console.log(`Facility times - Start: ${facilityStartOfDay.toISOString()}, End: ${facilityEndOfDay.toISOString()}`);
       console.log(`UTC times - Start: ${localStartDate.toISOString()}, End: ${localEndDate.toISOString()}`);
       console.log(`Modified type with flag: ${finalAlertType}, Severity: ${severity}`);
@@ -274,9 +277,11 @@ export default function AlertModal({
     
     // Only add the all-day prefix if the user selected isAllDay
     // This makes the "All Day" checkbox actually work as intended
+    // Ensure alertType has a valid value to prevent "all-day:undefined"
+    const validAlertTypeForEffective = alertType && alertType !== 'undefined' && alertType.trim() !== '' ? alertType : 'maintenance';
     const effectiveType = isAllDay && !finalAlertType.startsWith("all-day:") 
-      ? `all-day:${alertType || 'maintenance'}` 
-      : finalAlertType || (alertType || 'maintenance');
+      ? `all-day:${validAlertTypeForEffective}` 
+      : finalAlertType || validAlertTypeForEffective;
 
     console.log(`Creating alert with type: ${effectiveType}, severity: ${effectiveSeverity}, alertsOnly: ${alertsOnly}`);
     
