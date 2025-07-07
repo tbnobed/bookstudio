@@ -476,18 +476,6 @@ export default function EngineeringPage() {
       {/* Alerts Row - Day by Day */}
       {alertBookings.length > 0 && (
         <div className="bg-orange-50 border-b border-orange-200">
-          <div className="px-6 py-3 border-b border-orange-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-orange-900 flex items-center space-x-2">
-                <AlertTriangle className="w-4 h-4" />
-                <span>Active Alerts & Maintenance</span>
-              </h2>
-              <span className="text-xs text-orange-700 bg-orange-200 px-2 py-1 rounded-full">
-                {alertBookings.length} Alert{alertBookings.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
-          
           {/* Day-by-day alerts grid */}
           <div className="flex">
             {/* Time column spacer - exact match with calendar grid */}
