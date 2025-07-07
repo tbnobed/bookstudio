@@ -1,5 +1,6 @@
 import { AlertTriangle, AlertCircle, Activity, Bell } from "lucide-react";
 import { getFacilityTimezone } from "../../lib/timezoneConfig";
+import { Booking } from "@shared/schema";
 
 interface ApiBooking extends Omit<Booking, 'studioId' | 'userId' | 'templateId' | 'createdAt' | 'notifyList'> {
   studio_id: number | null;
@@ -74,9 +75,14 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
   };
 
   return (
-    <div className="flex border-b border-gray-200">
-      <div className="flex-1 flex">
-        {weekDates.map((date, index) => {
+    <>
+      {/* Time column header for Alerts */}
+      <div className="w-40 h-10 border-b border-r border-gray-200 bg-orange-50 flex items-center justify-center">
+        <div className="text-xs font-semibold text-orange-700">ALERTS</div>
+      </div>
+      
+      {/* Alert cells for each day */}
+      {weekDates.map((date, index) => {
           // Filter alerts to only show those that span this date
           const dayAlerts = apiAlerts.filter((alert) => {
             const alertStart = new Date(alert.start);
@@ -131,7 +137,7 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
           return (
             <div
               key={index}
-              className="flex-1 min-h-[40px] border-r border-gray-200 relative cursor-pointer hover:bg-gray-50"
+              className="h-10 border-b border-r border-gray-200 relative cursor-pointer hover:bg-gray-50"
               onClick={() => handleCellClick(date)}
             >
               {dayAlerts.map((alert) => {
@@ -176,7 +182,6 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
             </div>
           );
         })}
-      </div>
-    </div>
+    </>
   );
 }
