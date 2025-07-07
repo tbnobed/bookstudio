@@ -254,10 +254,17 @@ export default function AlertModal({
     };
     
     if (alert && alert.id) {
-      // Update existing alert
-      console.log("Updating alert with ID:", alert.id, "and data:", alertData);
+      // Extract numeric ID from alert.id (handles both "alert-1" and 1 formats)
+      const numericId = typeof alert.id === 'string' && alert.id.startsWith('alert-')
+        ? parseInt(alert.id.replace('alert-', ''))
+        : typeof alert.id === 'string' 
+          ? parseInt(alert.id)
+          : alert.id;
+      
+      console.log("Updating alert - Original ID:", alert.id, "Extracted numeric ID:", numericId, "Data:", alertData);
+      
       try {
-        await updateAlert.mutateAsync({ id: alert.id, data: alertData });
+        await updateAlert.mutateAsync({ id: numericId, data: alertData });
         showNotification({
           type: "success",
           title: "Alert Updated",
@@ -320,9 +327,17 @@ export default function AlertModal({
   // Handle alert deletion
   const handleDelete = async () => {
     if (alert && alert.id) {
-      console.log("Deleting alert with ID:", alert.id);
+      // Extract numeric ID from alert.id (handles both "alert-1" and 1 formats)
+      const numericId = typeof alert.id === 'string' && alert.id.startsWith('alert-')
+        ? parseInt(alert.id.replace('alert-', ''))
+        : typeof alert.id === 'string' 
+          ? parseInt(alert.id)
+          : alert.id;
+      
+      console.log("Deleting alert - Original ID:", alert.id, "Extracted numeric ID:", numericId);
+      
       try {
-        await deleteAlert.mutateAsync(alert.id);
+        await deleteAlert.mutateAsync(numericId);
         
         showNotification({
           type: "success",
