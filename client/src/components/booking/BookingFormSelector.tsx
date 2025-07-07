@@ -175,7 +175,7 @@ export function BookingFormSelector({
       booking={processedBooking}
       selectedStudio={selectedStudio}
       selectedDate={selectedDate}
-      alertMode={false} // This component is booking-only, never alerts
+      // This component only handles bookings, never alerts
     />
   );
 }

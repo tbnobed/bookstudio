@@ -22,7 +22,7 @@ interface MobileBookingControllerProps {
   selectedDate?: Date;
   selectedStudio?: number | null;
   alertsOnly?: boolean;
-  alertMode?: boolean;
+  // alertMode removed - this controller only handles bookings now
   onSuccess?: () => void;
 }
 
@@ -183,7 +183,7 @@ export function MobileBookingController({
         booking={booking}
         selectedStudio={selectedStudio}
         selectedDate={selectedDate}
-        alertMode={alertMode || alertsOnly}
+        // alertMode removed - BookingFormSelector only handles bookings
       />
     );
   }
