@@ -97,8 +97,14 @@ export default function AlertModal({
         const facilityStartTime = toZonedTime(utcStartTime, facilityTimezone);
         const facilityEndTime = toZonedTime(utcEndTime, facilityTimezone);
         
-        // Format the date for the date input (YYYY-MM-DD format)
-        const facilityDateStr = format(facilityStartTime, 'yyyy-MM-dd', { timeZone: facilityTimezone });
+        // Format the date for the date input (YYYY-MM-DD format) - use Intl for consistent results
+        const dateFormatter = new Intl.DateTimeFormat('en-CA', { 
+          timeZone: facilityTimezone,
+          year: 'numeric',
+          month: '2-digit', 
+          day: '2-digit'
+        });
+        const facilityDateStr = dateFormatter.format(utcStartTime);
         
         console.log("AlertModal - Converted times:", {
           utcStart: utcStartTime.toISOString(),
@@ -226,19 +232,23 @@ export default function AlertModal({
       // Handle all-day alert - use proper facility timezone handling
       const facilityTimezone = getFacilityTimezone();
       
-      // Parse the date string (YYYY-MM-DD format) and create date in facility timezone
-      const selectedDate = parseISO(date + 'T00:00:00');
+      // Parse the date string (YYYY-MM-DD format)
+      const [year, month, day] = date.split('-').map(Number);
       
-      // Create start and end of day in facility timezone
-      const facilityStartOfDay = startOfDay(selectedDate);
-      const facilityEndOfDay = endOfDay(selectedDate);
+      // Create start and end of day in facility timezone using the timezone-aware constructor
+      const facilityStartOfDay = new Date();
+      facilityStartOfDay.setFullYear(year, month - 1, day); // month is 0-indexed
+      facilityStartOfDay.setHours(0, 0, 0, 0);
+      
+      const facilityEndOfDay = new Date();
+      facilityEndOfDay.setFullYear(year, month - 1, day); // month is 0-indexed  
+      facilityEndOfDay.setHours(23, 59, 59, 999);
       
       // Convert from facility timezone to UTC for storage
       localStartDate = fromZonedTime(facilityStartOfDay, facilityTimezone);
       localEndDate = fromZonedTime(facilityEndOfDay, facilityTimezone);
       
       // Add a special flag to the type field to ensure it's recognized as all-day
-      // This will be used by isAllDayAlert in AlertsRow.tsx
       finalAlertType = `all-day:${alertType}`;
       
       console.log(`Creating all-day alert for date: ${date} in facility timezone: ${facilityTimezone}`);
