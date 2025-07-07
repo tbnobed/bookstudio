@@ -91,30 +91,48 @@ export default function AlertModal({
           facilityTimezone
         });
         
-        const facilityStartTime = toZonedTime(new Date(alert.start), facilityTimezone);
-        const facilityEndTime = toZonedTime(new Date(alert.end), facilityTimezone);
+        // Convert UTC times to facility timezone using proper date-fns-tz
+        const utcStartTime = new Date(alert.start);
+        const utcEndTime = new Date(alert.end);
+        const facilityStartTime = toZonedTime(utcStartTime, facilityTimezone);
+        const facilityEndTime = toZonedTime(utcEndTime, facilityTimezone);
+        
+        // Format the date for the date input (YYYY-MM-DD format)
+        const facilityDateStr = format(facilityStartTime, 'yyyy-MM-dd', { timeZone: facilityTimezone });
         
         console.log("AlertModal - Converted times:", {
+          utcStart: utcStartTime.toISOString(),
+          utcEnd: utcEndTime.toISOString(),
           facilityStartTime: facilityStartTime.toISOString(),
           facilityEndTime: facilityEndTime.toISOString(),
-          startDateString: facilityStartTime.toISOString().split("T")[0]
+          facilityDateStr,
+          facilityTimezone
         });
         
         // Set date based on facility timezone
-        setDate(facilityStartTime.toISOString().split("T")[0]);
+        setDate(facilityDateStr);
         
         // Parse times using facility timezone
         const startHours = facilityStartTime.getHours();
         const startMinutes = facilityStartTime.getMinutes();
         const startPeriod = startHours >= 12 ? "pm" : "am";
         const formattedStartHours = startHours > 12 ? startHours - 12 : (startHours === 0 ? 12 : startHours);
-        setStartTime(`${formattedStartHours}:${startMinutes.toString().padStart(2, "0")}${startPeriod}`);
+        const formattedStartTime = `${formattedStartHours}:${startMinutes.toString().padStart(2, "0")}${startPeriod}`;
+        setStartTime(formattedStartTime);
         
         const endHours = facilityEndTime.getHours();
         const endMinutes = facilityEndTime.getMinutes();
         const endPeriod = endHours >= 12 ? "pm" : "am";
         const formattedEndHours = endHours > 12 ? endHours - 12 : (endHours === 0 ? 12 : endHours);
-        setEndTime(`${formattedEndHours}:${endMinutes.toString().padStart(2, "0")}${endPeriod}`);
+        const formattedEndTime = `${formattedEndHours}:${endMinutes.toString().padStart(2, "0")}${endPeriod}`;
+        setEndTime(formattedEndTime);
+        
+        console.log("AlertModal - Formatted times:", {
+          formattedStartTime,
+          formattedEndTime,
+          originalStartHours: startHours,
+          originalEndHours: endHours
+        });
         
         // Check if this is an all-day alert using facility timezone (reuse existing variables)
         const startHoursFacility = facilityStartTime.getHours();
