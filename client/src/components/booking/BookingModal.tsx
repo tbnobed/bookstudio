@@ -816,7 +816,8 @@ export default function BookingModal({
       templateId: data.templateId || null,
       status: data.status || "confirmed",
       notifyList: Array.isArray(data.notifyList) ? data.notifyList : [],
-      severity: data.severity || "medium",
+      // Only set severity for alerts, NOT for regular bookings
+      severity: alertsOnly ? (data.severity || "medium") : undefined,
       color: data.color || "#4B83E2"
     };
     
