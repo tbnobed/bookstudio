@@ -1890,18 +1890,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       delete updateData.createdBy; // Prevent creator modification
       delete updateData.createdAt; // Prevent creation date modification
       
+      console.log(`Attempting to update alert ${id} with data:`, updateData);
+      console.log(`Existing alert:`, existingAlert);
+      
       const updatedAlert = await storage.updateAlert(id, updateData);
       
       if (!updatedAlert) {
+        console.error(`Update alert ${id} returned null/undefined`);
         return res.status(500).json({ message: "Failed to update alert" });
       }
       
-      console.log(`Alert ${id} updated by ${user.username} (ID: ${user.id})`);
+      console.log(`Alert ${id} updated successfully by ${user.username} (ID: ${user.id})`);
       
       res.json(updatedAlert);
     } catch (error) {
-      console.error("Error updating alert:", error);
-      res.status(500).json({ message: "Failed to update alert" });
+      console.error("Error updating alert - detailed error:", error);
+      console.error("Error stack:", error.stack);
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      
+      // Provide more specific error messages
+      if (error.message?.includes('schema') || error.message?.includes('constraint')) {
+        return res.status(400).json({ 
+          message: "Invalid alert data format", 
+          details: error.message 
+        });
+      }
+      
+      res.status(500).json({ 
+        message: "Failed to update alert",
+        details: error.message || "Unknown error"
+      });
     }
   });
   

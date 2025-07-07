@@ -2999,10 +2999,30 @@ export class DatabaseStorage implements IStorage {
 
   async updateAlert(id: number, data: Partial<InsertAlert>): Promise<Alert | undefined> {
     try {
+      console.log(`Storage: Updating alert ${id} with data:`, data);
+      
+      // Clean and validate the data before sending to database
+      const processedData: any = { ...data };
+      
+      // Convert date strings to Date objects if necessary
+      if (processedData.start && typeof processedData.start === 'string') {
+        processedData.start = new Date(processedData.start);
+      }
+      if (processedData.end && typeof processedData.end === 'string') {
+        processedData.end = new Date(processedData.end);
+      }
+      
+      // Ensure notifyList is properly formatted
+      if (processedData.notifyList && Array.isArray(processedData.notifyList)) {
+        processedData.notifyList = JSON.stringify(processedData.notifyList);
+      }
+      
+      console.log(`Storage: Processed data for alert ${id}:`, processedData);
+      
       const [alert] = await db
         .update(alerts)
         .set({
-          ...data,
+          ...processedData,
           updatedAt: new Date()
         })
         .where(eq(alerts.id, id))
@@ -3010,12 +3030,19 @@ export class DatabaseStorage implements IStorage {
         
       if (alert) {
         this.alerts.set(id, alert);
+        console.log(`Storage: Successfully updated alert ${id}`);
+      } else {
+        console.error(`Storage: No alert returned after update for ID ${id}`);
       }
       
       return alert;
     } catch (error) {
-      console.error(`Error updating alert with ID ${id}:`, error);
-      throw new Error(`Failed to update alert: ${error}`);
+      console.error(`Storage: Error updating alert with ID ${id}:`, error);
+      console.error(`Storage: Error details - name: ${error.name}, message: ${error.message}`);
+      if (error.stack) {
+        console.error(`Storage: Error stack:`, error.stack);
+      }
+      throw new Error(`Failed to update alert: ${error.message || error}`);
     }
   }
 

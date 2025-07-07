@@ -265,10 +265,30 @@ export default function AlertModal({
         });
       } catch (error) {
         console.error("Error updating alert:", error);
+        console.error("Error details:", {
+          name: error?.name,
+          message: error?.message,
+          response: error?.response,
+          status: error?.response?.status
+        });
+        
+        let errorMessage = "Failed to update the alert. Please try again.";
+        
+        // Try to extract more specific error message
+        if (error?.response?.status === 400) {
+          errorMessage = "Invalid alert data format.";
+        } else if (error?.response?.status === 403) {
+          errorMessage = "You don't have permission to update this alert.";
+        } else if (error?.response?.status === 404) {
+          errorMessage = "Alert not found.";
+        } else if (error?.message) {
+          errorMessage = `Update failed: ${error.message}`;
+        }
+        
         showNotification({
           type: "error",
           title: "Update Failed",
-          message: "Failed to update the alert. Please try again.",
+          message: errorMessage,
         });
         return;
       }
