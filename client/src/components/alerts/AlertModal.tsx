@@ -78,27 +78,28 @@ export default function AlertModal({
         setAlertType(alert.type);
         setSeverity(alert.severity || "medium");
         
-        const alertDate = new Date(alert.start);
-        setDate(alertDate.toISOString().split("T")[0]);
-        
-        // Parse times
-        const startHours = new Date(alert.start).getHours();
-        const startMinutes = new Date(alert.start).getMinutes();
-        const startPeriod = startHours >= 12 ? "pm" : "am";
-        const formattedStartHours = startHours > 12 ? startHours - 12 : (startHours === 0 ? 12 : startHours);
-        setStartTime(`${formattedStartHours}:${startMinutes.toString().padStart(2, "0")}${startPeriod}`);
-        
-        const endHours = new Date(alert.end).getHours();
-        const endMinutes = new Date(alert.end).getMinutes();
-        const endPeriod = endHours >= 12 ? "pm" : "am";
-        const formattedEndHours = endHours > 12 ? endHours - 12 : (endHours === 0 ? 12 : endHours);
-        setEndTime(`${formattedEndHours}:${endMinutes.toString().padStart(2, "0")}${endPeriod}`);
-        
-        // Check if this is an all-day alert using facility timezone
+        // Convert alert times to facility timezone for proper display
         const facilityTimezone = getFacilityTimezone();
         const facilityStartTime = toZonedTime(new Date(alert.start), facilityTimezone);
         const facilityEndTime = toZonedTime(new Date(alert.end), facilityTimezone);
         
+        // Set date based on facility timezone
+        setDate(facilityStartTime.toISOString().split("T")[0]);
+        
+        // Parse times using facility timezone
+        const startHours = facilityStartTime.getHours();
+        const startMinutes = facilityStartTime.getMinutes();
+        const startPeriod = startHours >= 12 ? "pm" : "am";
+        const formattedStartHours = startHours > 12 ? startHours - 12 : (startHours === 0 ? 12 : startHours);
+        setStartTime(`${formattedStartHours}:${startMinutes.toString().padStart(2, "0")}${startPeriod}`);
+        
+        const endHours = facilityEndTime.getHours();
+        const endMinutes = facilityEndTime.getMinutes();
+        const endPeriod = endHours >= 12 ? "pm" : "am";
+        const formattedEndHours = endHours > 12 ? endHours - 12 : (endHours === 0 ? 12 : endHours);
+        setEndTime(`${formattedEndHours}:${endMinutes.toString().padStart(2, "0")}${endPeriod}`);
+        
+        // Check if this is an all-day alert using facility timezone (reuse existing variables)
         const startHoursFacility = facilityStartTime.getHours();
         const startMinutesFacility = facilityStartTime.getMinutes();
         const endHoursFacility = facilityEndTime.getHours();
