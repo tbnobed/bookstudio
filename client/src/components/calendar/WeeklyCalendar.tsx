@@ -122,7 +122,11 @@ export default function WeeklyCalendar({
     console.log(`WeeklyCalendar - Current date range: ${weekStart?.toISOString()} to ${weekEnd?.toISOString()}`);
   }, [fetchedBookings, weekStart, weekEnd]);
   
-
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
   
   // Use external bookings if provided, otherwise use fetched bookings
   // Only use actual bookings for studio rows, alerts are handled separately in AlertsRow
@@ -212,6 +216,31 @@ export default function WeeklyCalendar({
   
   // Filter alerts (maintenance and IT support bookings) and only include facility-wide alerts
   console.log("All bookings:", JSON.stringify(bookings));
+  
+  // Debug specifically alert ID 4 (the one for April 27th)
+  const alert4 = bookings.find(b => b.id === 4);
+  if (alert4) {
+    console.log("Found Alert ID 4 (April 27th):", JSON.stringify(alert4));
+  } else {
+    console.log("Alert ID 4 (April 27th) is missing from bookings response");
+  }
+  
+  // Get all bookings from API - this is for debugging
+  useEffect(() => {
+    const fetchAllBookings = async () => {
+      try {
+        const response = await fetch('/api/bookings');
+        if (response.ok) {
+          const data = await response.json();
+          console.log("ALL bookings from API directly:", JSON.stringify(data));
+        }
+      } catch (error) {
+        console.error("Error fetching bookings directly:", error);
+      }
+    };
+    
+    fetchAllBookings();
+  }, []);
   
   const filteredAlerts = bookings.filter(booking => {
     // Check if we're getting snake_case properties (from API) or camelCase (from our code)
