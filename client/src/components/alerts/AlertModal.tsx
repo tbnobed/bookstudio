@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useStudioBookings } from "@/hooks/useStudioBookings";
-import { InsertBooking } from "@shared/schema";
+import { useAlerts } from "@/hooks/useAlerts";
+import { InsertAlert } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,8 +65,8 @@ export default function AlertModal({
   const [notifyList, setNotifyList] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Booking mutation
-  const { createBooking, updateBooking, deleteBooking } = useStudioBookings();
+  // Alert mutations
+  const { createAlert, updateAlert, deleteAlert } = useAlerts();
 
   // Set initial form values
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function AlertModal({
         // Edit mode - populate form with alert data
         setTitle(alert.title);
         setDescription(alert.description || "");
-        setAlertType(alert.type);
+        setAlertType(alert.alertType);
         setSeverity(alert.severity || "medium");
         
         // Convert alert times to facility timezone for proper display
@@ -220,11 +220,10 @@ export default function AlertModal({
 
     console.log(`Creating alert with type: ${effectiveType}, severity: ${effectiveSeverity}, alertsOnly: ${alertsOnly}`);
     
-    const alertData: Partial<InsertBooking> = {
+    const alertData: Partial<InsertAlert> = {
       title,
       description,
-      studioId: null, // Use camelCase to match the schema definitions
-      type: effectiveType, // Use the effective type with proper flag
+      alertType: effectiveType, // Use the effective type with proper flag
       start: localStartDate instanceof Date 
         ? localStartDate 
         : new Date(localStartDate), // Convert to Date if it's a string
@@ -237,18 +236,13 @@ export default function AlertModal({
     
     if (alert) {
       // Update existing alert
-      await updateBooking.mutateAsync({ id: alert.id, data: alertData });
-      // Invalidate queries to ensure data is refreshed immediately
-      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+      await updateAlert.mutateAsync({ id: alert.id, data: alertData });
     } else {
       // Create new alert
       console.log("Creating alert with data:", alertData);
       try {
-        const result = await createBooking.mutateAsync(alertData as InsertBooking);
+        const result = await createAlert.mutateAsync(alertData as InsertAlert);
         console.log("Alert creation result:", result);
-        
-        // Invalidate queries to ensure data is refreshed immediately
-        queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
       } catch (error) {
         console.error("Error creating alert:", error);
       }
@@ -261,34 +255,7 @@ export default function AlertModal({
   const handleDelete = async () => {
     if (alert) {
       try {
-        await deleteBooking.mutateAsync(alert.id);
-        
-        // Comprehensive cache invalidation to refresh ALL mobile views
-        // Invalidate all booking-related queries with pattern matching
-        queryClient.invalidateQueries({ 
-          predicate: (query) => {
-            const key = query.queryKey[0];
-            return typeof key === 'string' && (
-              key.includes('/api/bookings') || 
-              key.includes('/api/booking-studios') ||
-              key.includes('/api/public/booking-studios')
-            );
-          }
-        });
-        
-        // Also invalidate the specific patterns used by mobile calendar
-        queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/bookings/user'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/booking-studios'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/public/booking-studios'] });
-        
-        // Force refetch of all data to ensure mobile view updates
-        queryClient.refetchQueries({ 
-          predicate: (query) => {
-            const key = query.queryKey[0];
-            return typeof key === 'string' && key.includes('/api/bookings');
-          }
-        });
+        await deleteAlert.mutateAsync(alert.id);
         
         onClose();
         setIsDeleteDialogOpen(false);
