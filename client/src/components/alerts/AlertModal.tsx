@@ -173,9 +173,22 @@ export default function AlertModal({
         // Create mode - set defaults
         resetForm();
         
-        // Set selected date if provided
+        // Set selected date if provided, using facility timezone
         if (selectedDate) {
-          setDate(selectedDate.toISOString().split("T")[0]);
+          const facilityTimezone = getFacilityTimezone();
+          const dateFormatter = new Intl.DateTimeFormat('en-CA', { 
+            timeZone: facilityTimezone,
+            year: 'numeric',
+            month: '2-digit', 
+            day: '2-digit'
+          });
+          const facilityDateStr = dateFormatter.format(selectedDate);
+          setDate(facilityDateStr);
+          console.log("AlertModal - Setting date for new alert:", {
+            selectedDate: selectedDate.toISOString(),
+            facilityTimezone,
+            facilityDateStr
+          });
         }
       }
     }
@@ -200,7 +213,27 @@ export default function AlertModal({
       setIsAllDay(false);
     }
     
-    setDate(selectedDate ? selectedDate.toISOString().split("T")[0] : "");
+    // Set date using facility timezone if selectedDate is available, otherwise current date
+    if (selectedDate) {
+      const facilityTimezone = getFacilityTimezone();
+      const dateFormatter = new Intl.DateTimeFormat('en-CA', { 
+        timeZone: facilityTimezone,
+        year: 'numeric',
+        month: '2-digit', 
+        day: '2-digit'
+      });
+      setDate(dateFormatter.format(selectedDate));
+    } else {
+      // Default to current date in facility timezone
+      const facilityTimezone = getFacilityTimezone();
+      const dateFormatter = new Intl.DateTimeFormat('en-CA', { 
+        timeZone: facilityTimezone,
+        year: 'numeric',
+        month: '2-digit', 
+        day: '2-digit'
+      });
+      setDate(dateFormatter.format(new Date()));
+    }
     setStartTime("9:00am");
     setEndTime("10:00am");
     setNotifyList([]);
