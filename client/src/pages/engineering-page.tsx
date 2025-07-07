@@ -411,53 +411,43 @@ export default function EngineeringPage() {
     return weekDays.some(day => isSameDay(day.date, today));
   };
 
-  // Combine alerts from both sources (legacy bookings + new alerts API)
+  // Get alerts from new alerts API only (no legacy bookings)
   const combinedAlerts = useMemo(() => {
-    // Legacy alert bookings from bookings table
-    const legacyAlertBookings = weekBookings.filter(booking => {
-      const isAlert = isAlertBooking(booking);
-      console.log(`[ENGINEERING ALERT CHECK] Booking ${booking.id} - ${booking.title}`, {
-        type: booking.type,
-        isAlert,
-        status: booking.status,
-        studioId: booking.studioId
-      });
-      return isAlert;
-    });
-
     // Filter new alerts for current week
     const weekStart = currentWeek;
     const weekEnd = endOfDay(addDays(currentWeek, 6));
     
-    const newWeekAlerts = allAlerts.filter(alert => {
+    const weekAlerts = allAlerts.filter(alert => {
       const alertStart = parseISO(alert.start);
       const alertEnd = parseISO(alert.end);
       return (alertStart <= weekEnd && alertEnd >= weekStart);
     });
 
     // Convert new alerts to display format compatible with booking structure
-    const convertedNewAlerts = newWeekAlerts.map(alert => ({
+    const convertedAlerts = weekAlerts.map(alert => ({
       ...alert,
       type: alert.alertType, // Convert alertType to type for consistency
       id: `alert-${alert.id}`, // Prefix to avoid ID conflicts
       studioId: null, // Alerts don't have studios
       pcrRoomId: null, // Alerts don't have PCR rooms
-      color: '#f59e0b', // Default amber color for alerts
-      status: 'confirmed' // Default status for alerts
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107',
+      status: alert.status || 'active' // Use alert status
     }));
 
-    console.log(`[ENGINEERING ALERTS] Legacy alert bookings:`, legacyAlertBookings.length);
-    console.log(`[ENGINEERING ALERTS] New alerts from API:`, convertedNewAlerts.length);
+    console.log(`[ENGINEERING ALERTS] New alerts from API:`, convertedAlerts.length);
+    console.log(`[ENGINEERING ALERTS] Total alerts:`, convertedAlerts.length);
     
-    // Combine both sources
-    const combined = [...legacyAlertBookings, ...convertedNewAlerts];
-    console.log(`[ENGINEERING ALERTS] Total combined alerts:`, combined.length);
-    
-    return combined;
-  }, [weekBookings, allAlerts, currentWeek]);
+    return convertedAlerts;
+  }, [allAlerts, currentWeek]);
 
   const alertBookings = combinedAlerts;
-  const regularBookings = weekBookings.filter(booking => !isAlertBooking(booking));
+  // Filter out cancelled bookings and legacy alert bookings since alerts come from new API
+  const regularBookings = weekBookings.filter(booking => 
+    booking.status !== 'cancelled' && !isAlertBooking(booking)
+  );
   
   console.log(`[ENGINEERING ALERTS] Found ${alertBookings.length} alerts out of ${weekBookings.length} total bookings`);
   console.log(`[ENGINEERING ALERTS] Alert booking IDs:`, alertBookings.map(b => `${b.id}: ${b.title} (type: ${b.type}, severity: ${b.severity}, studioId: ${b.studioId})`));
