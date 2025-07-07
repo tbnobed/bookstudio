@@ -10,6 +10,7 @@ import {
   insertPcrRoomSchema,
   insertTemplateSchema, 
   insertBookingSchema, 
+  insertAlertSchema,
   insertNotificationSchema,
   insertNotificationGroupSchema
 } from "@shared/schema";
@@ -1754,6 +1755,192 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       res.status(500).json({ message: "Failed to delete booking" });
+    }
+  });
+
+  // ALERT ROUTES - Completely separate from booking system
+  // Alerts handle facility-wide notifications (maintenance, IT support, emergency alerts)
+  // These routes do NOT interact with studios, PCR rooms, or booking-specific fields
+  
+  // GET /api/alerts - Get all alerts
+  app.get("/api/alerts", isAuthenticated, async (req, res) => {
+    try {
+      const alerts = await storage.getAllAlerts();
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching alerts:", error);
+      res.status(500).json({ message: "Failed to fetch alerts" });
+    }
+  });
+  
+  // GET /api/alerts/range - Get alerts by date range
+  app.get("/api/alerts/range", isAuthenticated, async (req, res) => {
+    try {
+      const { start, end } = req.query;
+      
+      if (!start || !end) {
+        return res.status(400).json({ message: "Start and end dates are required" });
+      }
+      
+      const startDate = new Date(start as string);
+      const endDate = new Date(end as string);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return res.status(400).json({ message: "Invalid date format" });
+      }
+      
+      const alerts = await storage.getAlertsByDateRange(startDate, endDate);
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching alerts by date range:", error);
+      res.status(500).json({ message: "Failed to fetch alerts" });
+    }
+  });
+  
+  // GET /api/alerts/:id - Get specific alert
+  app.get("/api/alerts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid alert ID" });
+      }
+      
+      const alert = await storage.getAlert(id);
+      
+      if (!alert) {
+        return res.status(404).json({ message: "Alert not found" });
+      }
+      
+      res.json(alert);
+    } catch (error) {
+      console.error("Error fetching alert:", error);
+      res.status(500).json({ message: "Failed to fetch alert" });
+    }
+  });
+  
+  // POST /api/alerts - Create new alert
+  app.post("/api/alerts", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // Only admin, engineers, IT staff, and site managers can create alerts
+      if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
+        return res.status(403).json({ 
+          message: "Only admin, engineers, IT staff, and site managers can create alerts" 
+        });
+      }
+      
+      // Validate alert data using Zod schema
+      const alertData = insertAlertSchema.parse({
+        ...req.body,
+        createdBy: user.id
+      });
+      
+      const alert = await storage.createAlert(alertData);
+      
+      console.log(`Alert created by ${user.username} (ID: ${user.id}): "${alert.title}"`);
+      
+      // Send facility-wide notifications for alerts
+      // TODO: Integrate with notification system for alert broadcasts
+      
+      res.status(201).json(alert);
+    } catch (error) {
+      console.error("Error creating alert:", error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: "Invalid alert data", 
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ message: "Failed to create alert" });
+    }
+  });
+  
+  // PATCH /api/alerts/:id - Update alert
+  app.patch("/api/alerts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = req.user as any;
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid alert ID" });
+      }
+      
+      // Get existing alert to check permissions
+      const existingAlert = await storage.getAlert(id);
+      
+      if (!existingAlert) {
+        return res.status(404).json({ message: "Alert not found" });
+      }
+      
+      // Permission check: Only creator, admin, engineers, IT staff, and site managers can update
+      if (existingAlert.createdBy !== user.id && 
+          !["admin", "engineer", "it", "site_manager"].includes(user.role)) {
+        return res.status(403).json({ 
+          message: "You don't have permission to update this alert" 
+        });
+      }
+      
+      // Clean and validate update data
+      const updateData = { ...req.body };
+      delete updateData.id; // Prevent ID modification
+      delete updateData.createdBy; // Prevent creator modification
+      delete updateData.createdAt; // Prevent creation date modification
+      
+      const updatedAlert = await storage.updateAlert(id, updateData);
+      
+      if (!updatedAlert) {
+        return res.status(500).json({ message: "Failed to update alert" });
+      }
+      
+      console.log(`Alert ${id} updated by ${user.username} (ID: ${user.id})`);
+      
+      res.json(updatedAlert);
+    } catch (error) {
+      console.error("Error updating alert:", error);
+      res.status(500).json({ message: "Failed to update alert" });
+    }
+  });
+  
+  // DELETE /api/alerts/:id - Delete alert
+  app.delete("/api/alerts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = req.user as any;
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid alert ID" });
+      }
+      
+      // Get existing alert to check permissions
+      const existingAlert = await storage.getAlert(id);
+      
+      if (!existingAlert) {
+        return res.status(404).json({ message: "Alert not found" });
+      }
+      
+      // Permission check: Only creator, admin, engineers, IT staff, and site managers can delete
+      if (existingAlert.createdBy !== user.id && 
+          !["admin", "engineer", "it", "site_manager"].includes(user.role)) {
+        return res.status(403).json({ 
+          message: "You don't have permission to delete this alert" 
+        });
+      }
+      
+      const success = await storage.deleteAlert(id);
+      
+      if (success) {
+        console.log(`Alert ${id} deleted by ${user.username} (ID: ${user.id})`);
+        res.json({ message: "Alert deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete alert" });
+      }
+    } catch (error) {
+      console.error("Error deleting alert:", error);
+      res.status(500).json({ message: "Failed to delete alert" });
     }
   });
 

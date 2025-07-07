@@ -105,6 +105,7 @@ export const bookingStudios = pgTable("booking_studios", {
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   createdAt: true,
+  severity: true, // Remove severity from booking schema - only for alerts
 }).extend({
   // Allow Date objects or ISO strings for timestamps
   start: z.union([z.string(), z.date()]).transform(val => 
@@ -113,9 +114,7 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   end: z.union([z.string(), z.date()]).transform(val => 
     typeof val === 'string' ? new Date(val) : val
   ),
-  // Make studioId optional for maintenance and IT alerts
-  studioId: z.number().optional().nullable(),
-  // Make pcrRoomId optional
+  // pcrRoomId is required for production bookings
   pcrRoomId: z.number().optional().nullable(),
   // Make color optional, but validate if provided
   color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional().nullable()
@@ -123,6 +122,35 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
     .describe("HEX color value (e.g., #FF5733)"),
   // Add studioIds for multi-studio booking support
   studioIds: z.array(z.number()).optional(),
+});
+
+// Alerts schema - separate from bookings
+export const alerts = pgTable("alerts", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  alertType: text("alert_type").notNull(), // maintenance, site_alert, facility_alert, network_outage
+  severity: text("severity").notNull(), // low, medium, high, critical
+  start: timestamp("start").notNull(),
+  end: timestamp("end").notNull(),
+  isAllDay: boolean("is_all_day").default(false),
+  status: text("status").default("active"), // active, resolved, cancelled
+  notifyList: json("notify_list").default([]), // array of notification group IDs
+  createdBy: integer("created_by").notNull(), // user id
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAlertSchema = createInsertSchema(alerts).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  // Allow Date objects or ISO strings for timestamps
+  start: z.union([z.string(), z.date()]).transform(val => 
+    typeof val === 'string' ? new Date(val) : val
+  ),
+  end: z.union([z.string(), z.date()]).transform(val => 
+    typeof val === 'string' ? new Date(val) : val
+  ),
 });
 
 // Notifications schema
@@ -161,6 +189,9 @@ export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
+
+export type Alert = typeof alerts.$inferSelect;
+export type InsertAlert = z.infer<typeof insertAlertSchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;

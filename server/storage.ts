@@ -3,6 +3,7 @@ import {
   studios, type Studio, type InsertStudio,
   templates, type Template, type InsertTemplate,
   bookings, type Booking, type InsertBooking,
+  alerts, type Alert, type InsertAlert,
   notifications, type Notification, type InsertNotification,
   notificationGroups, type NotificationGroup, type InsertNotificationGroup,
   pcrRooms, type PcrRoom, type InsertPcrRoom,
@@ -60,6 +61,14 @@ export interface IStorage {
   deleteBooking(id: number): Promise<boolean>;
   checkBookingConflicts(studioId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]>;
   copyBookingToMultipleDates(bookingId: number, dates: Date[]): Promise<Booking[]>;
+  
+  // Alert management
+  getAlert(id: number): Promise<Alert | undefined>;
+  getAllAlerts(): Promise<Alert[]>;
+  getAlertsByDateRange(start: Date, end: Date): Promise<Alert[]>;
+  createAlert(alert: InsertAlert): Promise<Alert>;
+  updateAlert(id: number, data: Partial<InsertAlert>): Promise<Alert | undefined>;
+  deleteAlert(id: number): Promise<boolean>;
   
   // Booking-Studio links management
   getBookingStudioLinks(bookingId: number): Promise<BookingStudio[]>;
@@ -934,6 +943,7 @@ export class DatabaseStorage implements IStorage {
   private studios: Map<number, Studio>;
   private templates: Map<number, Template>;
   private bookings: Map<number, Booking>;
+  private alerts: Map<number, Alert>;
   private notifications: Map<number, Notification>;
   private notificationGroups: Map<number, NotificationGroup>;
   private pcrRooms: Map<number, PcrRoom>;
@@ -945,6 +955,7 @@ export class DatabaseStorage implements IStorage {
   private studioIdCounter: number;
   private templateIdCounter: number;
   private bookingIdCounter: number;
+  private alertIdCounter: number;
   private notificationIdCounter: number;
   private notificationGroupIdCounter: number;
   private pcrRoomIdCounter: number;
@@ -958,6 +969,7 @@ export class DatabaseStorage implements IStorage {
     this.studios = new Map();
     this.templates = new Map();
     this.bookings = new Map();
+    this.alerts = new Map();
     this.notifications = new Map();
     this.notificationGroups = new Map();
     this.pcrRooms = new Map();
@@ -968,6 +980,7 @@ export class DatabaseStorage implements IStorage {
     this.studioIdCounter = 1;
     this.templateIdCounter = 1;
     this.bookingIdCounter = 1;
+    this.alertIdCounter = 1;
     this.notificationIdCounter = 1;
     this.notificationGroupIdCounter = 1;
     this.pcrRoomIdCounter = 1;
@@ -2900,6 +2913,123 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error(`Error linking booking ${bookingId} to studio ${studioId}:`, error);
       throw new Error(`Failed to link booking to studio: ${error}`);
+    }
+  }
+
+  // Alert management methods
+  async getAlert(id: number): Promise<Alert | undefined> {
+    // Check memory cache first
+    if (this.alerts.has(id)) {
+      return this.alerts.get(id);
+    }
+    
+    // If not in cache, fetch from database
+    try {
+      const [alert] = await db.select().from(alerts).where(eq(alerts.id, id));
+      if (alert) {
+        this.alerts.set(id, alert);
+      }
+      return alert;
+    } catch (error) {
+      console.error(`Error getting alert with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getAllAlerts(): Promise<Alert[]> {
+    try {
+      const allAlerts = await db.select().from(alerts);
+      // Update cache
+      allAlerts.forEach(alert => {
+        this.alerts.set(alert.id, alert);
+        this.alertIdCounter = Math.max(this.alertIdCounter, alert.id + 1);
+      });
+      return allAlerts;
+    } catch (error) {
+      console.error("Error getting all alerts:", error);
+      return Array.from(this.alerts.values());
+    }
+  }
+
+  async getAlertsByDateRange(start: Date, end: Date): Promise<Alert[]> {
+    try {
+      const alertsInRange = await db
+        .select()
+        .from(alerts)
+        .where(
+          and(
+            gte(alerts.startTime, start),
+            lte(alerts.startTime, end)
+          )
+        );
+      
+      // Update cache
+      alertsInRange.forEach(alert => {
+        this.alerts.set(alert.id, alert);
+      });
+      
+      return alertsInRange;
+    } catch (error) {
+      console.error("Error getting alerts by date range:", error);
+      return [];
+    }
+  }
+
+  async createAlert(alertData: InsertAlert): Promise<Alert> {
+    try {
+      const [alert] = await db
+        .insert(alerts)
+        .values({
+          ...alertData,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+        
+      // Update cache
+      this.alerts.set(alert.id, alert);
+      this.alertIdCounter = Math.max(this.alertIdCounter, alert.id + 1);
+      
+      return alert;
+    } catch (error) {
+      console.error("Error creating alert:", error);
+      throw new Error(`Failed to create alert: ${error}`);
+    }
+  }
+
+  async updateAlert(id: number, data: Partial<InsertAlert>): Promise<Alert | undefined> {
+    try {
+      const [alert] = await db
+        .update(alerts)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(eq(alerts.id, id))
+        .returning();
+        
+      if (alert) {
+        this.alerts.set(id, alert);
+      }
+      
+      return alert;
+    } catch (error) {
+      console.error(`Error updating alert with ID ${id}:`, error);
+      throw new Error(`Failed to update alert: ${error}`);
+    }
+  }
+
+  async deleteAlert(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(alerts).where(eq(alerts.id, id));
+      
+      // Remove from cache
+      this.alerts.delete(id);
+      
+      return result.count > 0;
+    } catch (error) {
+      console.error(`Error deleting alert with ID ${id}:`, error);
+      return false;
     }
   }
 }
