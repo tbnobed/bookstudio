@@ -31,12 +31,10 @@ interface AlertsRowProps {
 // Helper function to determine if an alert is an all-day alert
 function isAllDayAlert(alert: ApiBooking): boolean {
   // First, check if the alert has a special metadata flag indicating all-day
-  // This could be checking a prop from the database that indicates all-day
+  // This is the most reliable way - check the alertType for all-day prefix
   const hasAllDayFlag = 
                         alert.type === "all-day" || 
-                        alert.type?.startsWith("all-day:") ||
-                        alert.title?.toLowerCase().includes("all day") ||
-                        alert.description?.toLowerCase().includes("all day");
+                        alert.type?.startsWith("all-day:");
   
   if (hasAllDayFlag) {
     return true;
@@ -49,40 +47,24 @@ function isAllDayAlert(alert: ApiBooking): boolean {
   const durationMs = endDate.getTime() - startDate.getTime();
   const durationHours = durationMs / (1000 * 60 * 60);
   
-  // Duration method: Check if close to full day or multiple days
-  if (durationHours >= 23.5) {
-    // Likely an all-day alert if duration is close to or greater than a day
+  // Duration method: Only consider it all-day if it's truly close to a full day (23+ hours)
+  if (durationHours >= 23) {
     return true;
   }
   
-  // Time-based check: For alerts set to specific times that span an entire day
+  // Time-based check: Only for alerts that actually span from midnight to near-midnight
   const isStartMidnight = startDate.getHours() === 0 && startDate.getMinutes() === 0;
   const isEndNearMidnight = (endDate.getHours() === 23 && endDate.getMinutes() >= 59) || 
                            (endDate.getHours() === 0 && endDate.getMinutes() === 0 && 
                             startDate.getDate() !== endDate.getDate());
                             
-  // Checking for the exact 24 hour period from midnight to midnight (next day)
+  // Only consider it all-day if it truly starts at midnight and ends near midnight
   if (isStartMidnight && isEndNearMidnight) {
     return true;
   }
   
-  // For alerts that were created using the all-day checkbox but might not fit perfect timing
-  // Check if they start at the beginning of a day and end at the end of a day or later
-  const startDay = new Date(startDate);
-  startDay.setHours(0, 0, 0, 0);
-  
-  const endOfDay = new Date(startDate);
-  endOfDay.setHours(23, 59, 59, 999);
-  
-  const isStartAtDayStart = Math.abs(startDate.getTime() - startDay.getTime()) < 60000; // Within a minute of day start
-  const isEndAtDayEndOrLater = endDate.getTime() >= endOfDay.getTime();
-  
-  // For special case handling of long-running alerts (like outages)
-  // Any alert that spans 12+ hours and starts in first third of day is considered all-day
-  const isLongDuration = durationHours >= 12;
-  const isEarlyStart = startDate.getHours() < 8;
-  
-  return isStartAtDayStart && isEndAtDayEndOrLater || (isLongDuration && isEarlyStart);
+  // All other alerts are considered timed alerts (not all-day)
+  return false;
 }
 
 export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOnly = false }: AlertsRowProps) {
