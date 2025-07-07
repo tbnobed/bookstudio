@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { format } from 'date-fns';
+import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatTime, isSameDay, formatInFacilityTimezone, isBookingActive } from '@/lib/dateUtils';
 import { Badge } from '@/components/ui/badge';
@@ -101,43 +101,45 @@ export default function DayChronView({
     return filtered;
   }, [bookings, date]);
 
-  // Function to determine if a booking should be treated as an alert
+  // Function to determine if a booking should be treated as an alert (legacy bookings only)
   const isAlertBooking = (booking: any) => {
-    // Consider a booking an alert if:
-    // 1. It has alert/maintenance type, OR
-    // 2. It has a severity field (indicates it was created via alert forms)
-    
+    // Only for legacy bookings that are still in bookings table with alert types
     const isAlertType = booking.type === 'maintenance' || 
                         booking.type === 'all_day_maintenance' ||
                         booking.type === 'site_alert' ||
                         booking.type === 'alert';
     
-    // Check if it has severity field (set by alert forms) - but only if it's not empty/null
+    // Check if it has severity field (legacy alert bookings)
     const hasSeverity = booking.severity != null && booking.severity !== "";
     
-    const isAlert = isAlertType || hasSeverity;
-           
-    // Only log when we detect an alert to reduce console spam
-    if (isAlert) {
-      console.log(`[ALERT DETECTED] Booking ${booking.id} - ${booking.title}`, {
-        type: booking.type, 
-        severity: booking.severity,
-        studioId: booking.studioId
-      });
-    }
-    
-    return isAlert;
+    return isAlertType || hasSeverity;
   };
 
-  // Separate alerts from regular bookings 
+  // Combine alerts from both sources (legacy bookings + new alerts API)
   const alerts = useMemo(() => {
-    // Debug log to see what types are available
     console.log("[DEBUG] All bookings for day:", dayBookings);
+    console.log("[DEBUG] All alerts for day:", dayAlerts);
     
-    const alertBookings = dayBookings.filter(booking => isAlertBooking(booking));
-    console.log("[DEBUG] Filtered alert bookings:", alertBookings);
-    return alertBookings;
-  }, [dayBookings]);
+    // Legacy alert bookings (still in bookings table)
+    const legacyAlertBookings = dayBookings.filter(booking => isAlertBooking(booking));
+    console.log("[DEBUG] Legacy alert bookings:", legacyAlertBookings);
+    
+    // New alerts from dedicated table - convert to display format
+    const newAlerts = dayAlerts.map(alert => ({
+      ...alert,
+      type: alert.alertType, // Convert alertType to type for consistency
+      id: `alert-${alert.id}`, // Prefix to avoid ID conflicts
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null, // Alerts don't have PCR rooms
+    }));
+    console.log("[DEBUG] New alerts converted:", newAlerts);
+    
+    // Combine both sources
+    const allAlerts = [...legacyAlertBookings, ...newAlerts];
+    console.log("[DEBUG] Combined alerts:", allAlerts);
+    
+    return allAlerts;
+  }, [dayBookings, dayAlerts]);
   
   // Sort regular bookings by start time
   const regularBookings = useMemo(() => {
@@ -151,6 +153,27 @@ export default function DayChronView({
   const { data: bookingStudioLinks = [] } = useQuery<any[]>({
     queryKey: ['/api/public/booking-studios'],
   });
+
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+  });
+
+  // Filter alerts for the current day
+  const dayAlerts = useMemo(() => {
+    if (!allAlerts || allAlerts.length === 0) return [];
+    
+    const dayStart = startOfDay(date);
+    const dayEnd = endOfDay(date);
+    
+    return allAlerts.filter(alert => {
+      const alertStart = parseISO(alert.start);
+      const alertEnd = parseISO(alert.end);
+      
+      // Check if alert overlaps with this day
+      return (alertStart <= dayEnd && alertEnd >= dayStart);
+    });
+  }, [allAlerts, date]);
 
   // Get studio names for a booking (including all linked studios)
   const getStudiosForBooking = (booking: any) => {

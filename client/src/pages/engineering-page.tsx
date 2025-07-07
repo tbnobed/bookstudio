@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO, endOfDay } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
@@ -117,6 +117,11 @@ export default function EngineeringPage() {
   // Fetch bookings
   const { data: bookings = [] } = useQuery<BookingData[]>({
     queryKey: ["/api/bookings"],
+  });
+
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
   });
 
   // Fetch studios
@@ -374,17 +379,52 @@ export default function EngineeringPage() {
     return weekDays.some(day => isSameDay(day.date, today));
   };
 
-  // Separate alerts from regular bookings
-  const alertBookings = weekBookings.filter(booking => {
-    const isAlert = isAlertBooking(booking);
-    console.log(`[ENGINEERING ALERT CHECK] Booking ${booking.id} - ${booking.title}`, {
-      type: booking.type,
-      isAlert,
-      status: booking.status,
-      studioId: booking.studioId
+  // Combine alerts from both sources (legacy bookings + new alerts API)
+  const combinedAlerts = useMemo(() => {
+    // Legacy alert bookings from bookings table
+    const legacyAlertBookings = weekBookings.filter(booking => {
+      const isAlert = isAlertBooking(booking);
+      console.log(`[ENGINEERING ALERT CHECK] Booking ${booking.id} - ${booking.title}`, {
+        type: booking.type,
+        isAlert,
+        status: booking.status,
+        studioId: booking.studioId
+      });
+      return isAlert;
     });
-    return isAlert;
-  });
+
+    // Filter new alerts for current week
+    const weekStart = currentWeek;
+    const weekEnd = endOfDay(addDays(currentWeek, 6));
+    
+    const newWeekAlerts = allAlerts.filter(alert => {
+      const alertStart = parseISO(alert.start);
+      const alertEnd = parseISO(alert.end);
+      return (alertStart <= weekEnd && alertEnd >= weekStart);
+    });
+
+    // Convert new alerts to display format compatible with booking structure
+    const convertedNewAlerts = newWeekAlerts.map(alert => ({
+      ...alert,
+      type: alert.alertType, // Convert alertType to type for consistency
+      id: `alert-${alert.id}`, // Prefix to avoid ID conflicts
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null, // Alerts don't have PCR rooms
+      color: '#f59e0b', // Default amber color for alerts
+      status: 'confirmed' // Default status for alerts
+    }));
+
+    console.log(`[ENGINEERING ALERTS] Legacy alert bookings:`, legacyAlertBookings.length);
+    console.log(`[ENGINEERING ALERTS] New alerts from API:`, convertedNewAlerts.length);
+    
+    // Combine both sources
+    const combined = [...legacyAlertBookings, ...convertedNewAlerts];
+    console.log(`[ENGINEERING ALERTS] Total combined alerts:`, combined.length);
+    
+    return combined;
+  }, [weekBookings, allAlerts, currentWeek]);
+
+  const alertBookings = combinedAlerts;
   const regularBookings = weekBookings.filter(booking => !isAlertBooking(booking));
   
   console.log(`[ENGINEERING ALERTS] Found ${alertBookings.length} alerts out of ${weekBookings.length} total bookings`);
