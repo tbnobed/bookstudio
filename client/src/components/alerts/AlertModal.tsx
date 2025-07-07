@@ -169,6 +169,17 @@ export default function AlertModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate that end time is not earlier than start time (only for non-all-day alerts)
+    if (!isAllDay) {
+      const startDate = timeToDate(date, startTime);
+      const endDate = timeToDate(date, endTime);
+      
+      if (endDate <= startDate) {
+        alert("End time must be after start time. Please choose an end time that comes after the start time.");
+        return;
+      }
+    }
+    
     let localStartDate, localEndDate;
     let finalAlertType = alertType; // Create a mutable copy of alertType
     
