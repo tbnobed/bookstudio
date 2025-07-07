@@ -817,77 +817,85 @@ export default function SignagePage() {
               {/* Show today's site alerts and upcoming maintenance */}
               {todaysAlerts.length > 0 || maintenanceAlerts.length > 0 ? (
                 <div className="space-y-2">
-                  {/* Show active site alerts from today */}
-                  {todaysAlerts
-                    .filter(alert => isBookingActive(alert, currentTime))
-                    .map(alert => (
-                      <div key={`active-${alert.id}`} className="p-3 rounded-lg bg-red-900/60 border-2 border-red-500 shadow-lg animate-pulse">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertTriangle className="h-4 w-4 text-red-300 animate-bounce" />
-                          <div className="text-sm font-bold text-red-100 uppercase tracking-wide">ACTIVE ALERT</div>
-                        </div>
-                        <div className="text-lg font-semibold text-red-50 mb-1">{alert.title}</div>
-                        <div className="text-sm text-red-200">
-                          {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
-                        </div>
-                        {alert.description && alert.description.trim() && (
-                          <div className="text-sm text-red-300 mt-1">
-                            {alert.description}
+                  {/* Combine and sort all alerts chronologically */}
+                  {[
+                    // Active alerts from today
+                    ...todaysAlerts
+                      .filter(alert => isBookingActive(alert, currentTime))
+                      .map(alert => ({ ...alert, alertCategory: 'active' })),
+                    
+                    // Today's upcoming alerts  
+                    ...todaysAlerts
+                      .filter(alert => !isBookingActive(alert, currentTime) && parseISO(alert.start) > currentTime)
+                      .map(alert => ({ ...alert, alertCategory: 'today' })),
+                    
+                    // Upcoming maintenance (next 7 days, excluding today and already shown active alerts)
+                    ...maintenanceAlerts
+                      .filter(alert => 
+                        !isSameDay(parseISO(alert.start), today) && 
+                        !todaysAlerts.some(todayAlert => todayAlert.id === alert.id)
+                      )
+                      .slice(0, 2)
+                      .map(alert => ({ ...alert, alertCategory: 'upcoming' }))
+                  ]
+                  .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+                  .map(alert => {
+                    if (alert.alertCategory === 'active') {
+                      return (
+                        <div key={`active-${alert.id}`} className="p-3 rounded-lg bg-red-900/60 border-2 border-red-500 shadow-lg animate-pulse">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="h-4 w-4 text-red-300 animate-bounce" />
+                            <div className="text-sm font-bold text-red-100 uppercase tracking-wide">ACTIVE ALERT</div>
                           </div>
-                        )}
-
-                      </div>
-                    ))
-                  }
-                  
-                  {/* Show today's upcoming alerts */}
-                  {todaysAlerts
-                    .filter(alert => !isBookingActive(alert, currentTime) && parseISO(alert.start) > currentTime)
-                    .map(alert => (
-                      <div key={`today-${alert.id}`} className="p-3 rounded-lg bg-orange-900/50 border-2 border-orange-500 shadow-md">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertTriangle className="h-4 w-4 text-orange-300" />
-                          <div className="text-sm font-bold text-orange-100 uppercase tracking-wide">Today</div>
-                        </div>
-                        <div className="text-lg font-semibold text-orange-50 mb-1">{alert.title}</div>
-                        <div className="text-sm text-orange-200">
-                          {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
-                        </div>
-                        {alert.description && alert.description.trim() && (
-                          <div className="text-sm text-orange-300 mt-1">
-                            {alert.description}
+                          <div className="text-lg font-semibold text-red-50 mb-1">{alert.title}</div>
+                          <div className="text-sm text-red-200">
+                            {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
                           </div>
-                        )}
-
-                      </div>
-                    ))
-                  }
-                  
-                  {/* Show upcoming maintenance (next 7 days, excluding today and already shown active alerts) */}
-                  {maintenanceAlerts
-                    .filter(alert => 
-                      !isSameDay(parseISO(alert.start), today) && 
-                      !todaysAlerts.some(todayAlert => todayAlert.id === alert.id)
-                    )
-                    .slice(0, 2)
-                    .map(alert => (
-                      <div key={`upcoming-${alert.id}`} className="p-3 rounded-lg bg-yellow-900/40 border border-yellow-500 shadow-sm">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertTriangle className="h-4 w-4 text-yellow-300" />
-                          <div className="text-sm font-bold text-yellow-100 uppercase tracking-wide">Upcoming</div>
+                          {alert.description && alert.description.trim() && (
+                            <div className="text-sm text-red-300 mt-1">
+                              {alert.description}
+                            </div>
+                          )}
                         </div>
-                        <div className="text-base font-semibold text-yellow-50 mb-1">{alert.title}</div>
-                        <div className="text-sm text-yellow-200">
-                          {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
-                        </div>
-                        {alert.description && alert.description.trim() && (
-                          <div className="text-sm text-yellow-300 mt-1">
-                            {alert.description}
+                      );
+                    } else if (alert.alertCategory === 'today') {
+                      return (
+                        <div key={`today-${alert.id}`} className="p-3 rounded-lg bg-orange-900/50 border-2 border-orange-500 shadow-md">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="h-4 w-4 text-orange-300" />
+                            <div className="text-sm font-bold text-orange-100 uppercase tracking-wide">UPCOMING</div>
                           </div>
-                        )}
-
-                      </div>
-                    ))}
+                          <div className="text-lg font-semibold text-orange-50 mb-1">{alert.title}</div>
+                          <div className="text-sm text-orange-200">
+                            {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                          </div>
+                          {alert.description && alert.description.trim() && (
+                            <div className="text-sm text-orange-300 mt-1">
+                              {alert.description}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div key={`upcoming-${alert.id}`} className="p-3 rounded-lg bg-yellow-900/40 border border-yellow-500 shadow-sm">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="h-4 w-4 text-yellow-300" />
+                            <div className="text-sm font-bold text-yellow-100 uppercase tracking-wide">UPCOMING</div>
+                          </div>
+                          <div className="text-base font-semibold text-yellow-50 mb-1">{alert.title}</div>
+                          <div className="text-sm text-yellow-200">
+                            {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                          </div>
+                          {alert.description && alert.description.trim() && (
+                            <div className="text-sm text-yellow-300 mt-1">
+                              {alert.description}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-4">
