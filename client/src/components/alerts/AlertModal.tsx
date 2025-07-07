@@ -36,7 +36,7 @@ import {
 import { Trash2 } from "lucide-react";
 import { generateTimeOptions, timeToDate } from "@/lib/dateUtils";
 import { getFacilityTimezone } from "@/lib/timezoneConfig";
-import { startOfDay, endOfDay, parseISO } from "date-fns";
+import { startOfDay, endOfDay, parseISO, format } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { queryClient } from "@/lib/queryClient";
 
