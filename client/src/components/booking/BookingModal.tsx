@@ -36,7 +36,6 @@ interface BookingModalProps {
   booking?: any; // Optional existing booking for editing
   selectedDate?: Date;
   selectedStudio?: number;
-  alertsOnly?: boolean; // If true, only maintenance and IT support options are available
 }
 
 export default function BookingModal({ 
@@ -44,8 +43,7 @@ export default function BookingModal({
   onClose, 
   booking, 
   selectedDate = new Date(),
-  selectedStudio,
-  alertsOnly = false
+  selectedStudio
 }: BookingModalProps) {
   const { showNotification } = useNotification();
   
@@ -109,7 +107,7 @@ export default function BookingModal({
     studioId: studioIdStr, // Keep for backward compatibility
     studioIds: studioIdsArray, // Array for multiple studios
     pcrRoomId: "",
-    bookingType: alertsOnly ? "maintenance" : "production",
+    bookingType: "production",
     status: "confirmed", // confirmed, tentative, cancelled
     date: formatDateForForm(selectedDate),
     startTime: "9:00am",
@@ -118,7 +116,7 @@ export default function BookingModal({
     notifyList: [] as string[],
     saveAsTemplate: false,
     templateName: "",
-    severity: alertsOnly ? "medium" : "", // Only set severity for alerts
+    // Remove severity field completely - not used in production bookings
     color: booking ? booking.color : "#4B83E2" // Use booking color or default blue
   };
   
@@ -214,14 +212,14 @@ export default function BookingModal({
       studio_id: effectiveStudioForDummy,
       pcrRoomId: null,
       pcr_room_id: null,
-      type: alertsOnly ? "maintenance" : "production",
+      type: "production",
       start: startTime.toISOString(),
       end: endTime.toISOString(),
       templateId: null,
       template_id: null,
       notifyList: [],
       notify_list: [],
-      severity: "medium",
+      // Remove severity - not used in production bookings
       status: "confirmed",
       color: booking ? booking.color : "#4B83E2" // Use booking color or default blue
     };
@@ -256,7 +254,7 @@ export default function BookingModal({
         notifyList: (bookingToUse.notifyList !== undefined 
           ? bookingToUse.notifyList 
           : bookingToUse.notify_list) || [],
-        severity: bookingToUse.severity || "medium",
+        // Remove severity handling - production bookings don't use severity
         color: bookingToUse.color || (booking ? booking.color : "#4B83E2") // Use booking color or default blue
       };
       
@@ -337,7 +335,7 @@ export default function BookingModal({
       // Mark form as initialized
       formInitializedRef.current = true;
     }
-  }, [isOpen, booking, selectedDate, selectedStudio, studios, alertsOnly]);
+  }, [isOpen, booking, selectedDate, selectedStudio, studios]);
   
   // Reset form when modal closes
   useEffect(() => {
@@ -510,7 +508,7 @@ export default function BookingModal({
     e.preventDefault();
     
     // Studio validation
-    if (formData.studioIds.length === 0 && (!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support"))) {
+    if (formData.studioIds.length === 0) {
       showNotification({
         type: "error",
         title: "Error",
@@ -551,14 +549,11 @@ export default function BookingModal({
     // Use the first selected studio as the primary if available
     if (formData.studioIds.length > 0) {
       bookingData.studioId = parseInt(formData.studioIds[0]);
-    } else if (alertsOnly && (formData.bookingType === "maintenance" || formData.bookingType === "it_support")) {
+    } else {
       bookingData.studioId = null;
     }
     
-    // Add severity for alerts
-    if (alertsOnly) {
-      bookingData.severity = formData.severity;
-    }
+    // Production bookings only - no alert handling or severity
     
     // Add templateId if selected
     if (formData.templateId && formData.templateId !== "") {
@@ -782,7 +777,7 @@ export default function BookingModal({
       status: data.status || "confirmed",
       notifyList: Array.isArray(data.notifyList) ? data.notifyList : [],
       // Only set severity for alerts, NOT for regular bookings
-      severity: alertsOnly ? (data.severity || "medium") : undefined,
+      // Production bookings don't use severity
       color: data.color || "#4B83E2"
     };
     
@@ -801,7 +796,7 @@ export default function BookingModal({
   
   return (
     <div>
-      {booking && !alertsOnly && (
+      {booking && (
         <CopyBookingModal 
           isOpen={isCopyModalOpen} 
           onClose={handleCloseCopyModal} 
@@ -826,13 +821,13 @@ export default function BookingModal({
             <DialogHeader>
               <DialogTitle>
                 {booking && booking.id > 0
-                  ? (alertsOnly ? "Edit Alert" : "Edit Booking") 
-                  : (alertsOnly ? "New Alert" : "New Booking")
+                  ? "Edit Booking" 
+                  : "New Booking"
                 }
               </DialogTitle>
             </DialogHeader>
         
-          {!alertsOnly ? (
+          {true && (
             // Tabbed interface for standard bookings (both new and edit)
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
@@ -1108,7 +1103,7 @@ export default function BookingModal({
                           </Select>
                         </div>
                       
-                        {!alertsOnly && (
+                        {(
                           <div>
                             <Label htmlFor="type">Booking Type</Label>
                             <Select 
@@ -1145,7 +1140,7 @@ export default function BookingModal({
                           </Select>
                         </div>
                         
-                        {!alertsOnly && (
+                        {(
                           <div>
                             <Label htmlFor="color">Booking Color</Label>
                             <div className="flex items-center mt-1.5">
@@ -1163,7 +1158,7 @@ export default function BookingModal({
                           </div>
                         )}
                         
-                        {alertsOnly && (
+                        {false && ( // Production bookings don't use severity
                           <div>
                             <Label htmlFor="severity">Severity</Label>
                             <Select 
@@ -1315,385 +1310,6 @@ export default function BookingModal({
                 )}
               </TabsContent>
             </Tabs>
-          ) : (
-            // Regular form for new bookings or alerts
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => updateFormField('title', e.target.value)}
-                  placeholder={alertsOnly ? "Enter alert title" : "Enter booking title"}
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => updateFormField('description', e.target.value)}
-                  placeholder={alertsOnly ? "Enter alert details" : "Enter booking details"}
-                  rows={3}
-                />
-              </div>
-              
-              {/* 3-column grid for form controls */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Left column - Studios */}
-                <div>
-                  <div className="space-y-4">
-                    {(!alertsOnly || (alertsOnly && formData.bookingType !== "maintenance" && formData.bookingType !== "it_support")) && (
-                      <div>
-                        <Label>Studios</Label>
-                        {studios.length > 10 ? (
-                            <div className="grid grid-cols-2 mt-2 gap-x-4">
-                              <div className="space-y-2">
-                                {studios.slice(0, Math.ceil(studios.length / 2)).map((studio) => (
-                                  <div key={studio.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`studio-${studio.id}`}
-                                      checked={formData.studioIds.includes(studio.id.toString())}
-                                      onCheckedChange={(checked) => {
-                                        const studioId = studio.id.toString();
-                                        if (checked) {
-                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
-                                        } else {
-                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
-                                        }
-                                      }}
-                                    />
-                                    <Label
-                                      htmlFor={`studio-${studio.id}`}
-                                      className="cursor-pointer text-sm"
-                                    >
-                                      {studio.name}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="space-y-2">
-                                {studios.slice(Math.ceil(studios.length / 2)).map((studio) => (
-                                  <div key={studio.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`studio-${studio.id}`}
-                                      checked={formData.studioIds.includes(studio.id.toString())}
-                                      onCheckedChange={(checked) => {
-                                        const studioId = studio.id.toString();
-                                        if (checked) {
-                                          updateFormField('studioIds', [...formData.studioIds, studioId]);
-                                        } else {
-                                          updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
-                                        }
-                                      }}
-                                    />
-                                    <Label
-                                      htmlFor={`studio-${studio.id}`}
-                                      className="cursor-pointer text-sm"
-                                    >
-                                      {studio.name}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col mt-2 space-y-2">
-                              {studios.map((studio) => (
-                                <div key={studio.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`studio-${studio.id}`}
-                                    checked={formData.studioIds.includes(studio.id.toString())}
-                                    onCheckedChange={(checked) => {
-                                      const studioId = studio.id.toString();
-                                      if (checked) {
-                                        updateFormField('studioIds', [...formData.studioIds, studioId]);
-                                      } else {
-                                        updateFormField('studioIds', formData.studioIds.filter(id => id !== studioId));
-                                      }
-                                    }}
-                                  />
-                                  <Label
-                                    htmlFor={`studio-${studio.id}`}
-                                    className="cursor-pointer"
-                                  >
-                                    {studio.name}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        {formData.studioIds.length === 0 && (
-                          <p className="text-sm text-red-500 mt-1">At least one studio must be selected</p>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Notification Groups section - moved to left column */}
-                    <div className="mt-4">
-                      <div className="flex items-center mb-1">
-                        <BellRing className="h-4 w-4 mr-1 text-primary" />
-                        <Label>Notification Groups</Label>
-                      </div>
-                      
-                      {notificationGroups.length === 0 ? (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          No notification groups available
-                        </p>
-                      ) : (
-                        <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
-                          {notificationGroups
-                            .filter((group: NotificationGroup) => group.groupType !== 'site_management')
-                            .map((group: NotificationGroup) => (
-                            <div key={group.id} className="flex items-center justify-between">
-                              <div className="flex items-center">
-                                {group.groupType === 'camera' && <Tag className="h-3.5 w-3.5 mr-1 text-blue-500" />}
-                                {group.groupType === 'lighting' && <Tag className="h-3.5 w-3.5 mr-1 text-yellow-500" />}
-                                {group.groupType === 'sound' && <Tag className="h-3.5 w-3.5 mr-1 text-green-500" />}
-                                {group.groupType === 'directors' && <Tag className="h-3.5 w-3.5 mr-1 text-purple-500" />}
-                                {group.groupType === 'production' && <Tag className="h-3.5 w-3.5 mr-1 text-red-500" />}
-                                {group.groupType === 'engineering' && <Tag className="h-3.5 w-3.5 mr-1 text-orange-500" />}
-                                <span className="text-xs">{group.name}</span>
-                              </div>
-                              <Checkbox
-                                id={`notify-group-${group.id}`}
-                                checked={formData.notifyList.includes(group.id.toString())}
-                                onCheckedChange={(checked) => handleCrewToggle(group.id.toString())}
-                                className="h-4 w-4"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {formData.notifyList.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1.5">
-                          {formData.notifyList.map((groupId) => {
-                            const group = notificationGroups.find((g: NotificationGroup) => g.id.toString() === groupId);
-                            if (!group) return null;
-                            return (
-                              <Badge key={groupId} variant="outline" className="flex items-center gap-1 text-xs py-0">
-                                <span>{group.name}</span>
-                              </Badge>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Middle column - Date and time */}
-                <div>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="date">Date</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => updateFormField('date', e.target.value)}
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="start-time">Start Time</Label>
-                      <Select 
-                        value={formData.startTime} 
-                        onValueChange={(value) => updateFormField('startTime', value)} 
-                        required
-                      >
-                        <SelectTrigger id="start-time">
-                          <SelectValue placeholder="Select start time" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[200px]">
-                          {generateTimeOptions().map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="end-time">End Time</Label>
-                      <Select 
-                        value={formData.endTime} 
-                        onValueChange={(value) => updateFormField('endTime', value)} 
-                        required
-                      >
-                        <SelectTrigger id="end-time">
-                          <SelectValue placeholder="Select end time" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[200px]">
-                          {generateTimeOptions().map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {!alertsOnly && (
-                      <div>
-                        <Label htmlFor="pcrRoom">PCR Room (Optional)</Label>
-                        <Select 
-                          value={formData.pcrRoomId} 
-                          onValueChange={(value) => updateFormField('pcrRoomId', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="None" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">None</SelectItem>
-                            {pcrRooms.map((pcrRoom) => (
-                              <SelectItem key={pcrRoom.id} value={pcrRoom.id.toString()}>
-                                {pcrRoom.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Right column - Booking configuration */}
-                <div>
-                  <div className="space-y-4">
-                    {!alertsOnly && (
-                      <div>
-                        <Label htmlFor="template">Template (Optional)</Label>
-                        <Select 
-                          value={formData.templateId} 
-                          onValueChange={handleTemplateChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="None" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">None</SelectItem>
-                            {templates.map((template) => (
-                              <SelectItem key={template.id} value={template.id.toString()}>
-                                {template.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    
-                    {!alertsOnly && (
-                      <div>
-                        <Label htmlFor="type">Booking Type</Label>
-                        <Select 
-                          value={formData.bookingType} 
-                          onValueChange={(value) => updateFormField('bookingType', value)} 
-                          required
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="production">Production</SelectItem>
-                            <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    
-                    {!alertsOnly && (
-                      <div>
-                        <Label htmlFor="color">Booking Color</Label>
-                        <div className="flex items-center mt-1.5">
-                          <Input
-                            id="color"
-                            type="color"
-                            value={formData.color}
-                            onChange={(e) => updateFormField('color', e.target.value)}
-                            className="w-16 h-8 p-1 mr-2"
-                          />
-                          <span className="text-xs text-muted-foreground">
-                            Custom color for calendar display
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {alertsOnly && (
-                      <div>
-                        <Label htmlFor="severity">Severity</Label>
-                        <Select 
-                          value={formData.severity} 
-                          onValueChange={(value) => updateFormField('severity', value)} 
-                          required
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select severity" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">Low</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="critical">Critical</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              {!alertsOnly && (
-                <div className="flex flex-row items-start space-x-2 pt-2">
-                  <Checkbox
-                    id="save-template"
-                    checked={formData.saveAsTemplate}
-                    onCheckedChange={(checked) => updateFormField('saveAsTemplate', checked)}
-                  />
-                  <Label
-                    htmlFor="save-template"
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    Save as template for future bookings
-                  </Label>
-                </div>
-              )}
-              
-              {formData.saveAsTemplate && (
-                <div>
-                  <Label htmlFor="template-name">Template Name</Label>
-                  <Input
-                    id="template-name"
-                    value={formData.templateName}
-                    onChange={(e) => updateFormField('templateName', e.target.value)}
-                    placeholder="Enter a name for this template"
-                    required={formData.saveAsTemplate}
-                  />
-                </div>
-              )}
-              
-              <DialogFooter className="flex items-center justify-between pt-4">
-                <div>
-                  {/* Left side empty for alignment */}
-                </div>
-                <Button
-                  type="submit"
-                  disabled={createBooking.isPending}
-                >
-                  {createBooking.isPending ? (
-                    <span>Creating...</span>
-                  ) : (
-                    <span>{alertsOnly ? "Create Alert" : "Create Booking"}</span>
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
           )}
         </DialogContent>
       </Dialog>
