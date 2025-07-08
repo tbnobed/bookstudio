@@ -196,17 +196,17 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
   const isAlertBooking = (booking: any) => {
     // Consider a booking an alert if:
     // 1. It has alert/maintenance type, OR
-    // 2. It has a severity field (indicates it was created via alert forms)
+    // 2. It's a converted alert (id starts with "alert-")
     
     const isAlertType = booking.type === 'maintenance' || 
                         booking.type === 'all_day_maintenance' ||
                         booking.type === 'site_alert' ||
                         booking.type === 'alert';
     
-    // Check if it has severity field (set by alert forms) - but only if it's not empty/null
-    const hasSeverity = booking.severity != null && booking.severity !== "";
+    // Check if this is a converted alert from the API
+    const isConvertedAlert = typeof booking.id === 'string' && booking.id.startsWith('alert-');
     
-    return isAlertType || hasSeverity;
+    return isAlertType || isConvertedAlert;
   };
   
   // Pre-process bookings by date for performance, using facility timezone
