@@ -195,6 +195,14 @@ async function ensureSeverityColumn() {
       console.log('Severity column added successfully');
     } else {
       console.log('Severity column already exists');
+      
+      // CRITICAL: Remove DEFAULT contamination if it exists
+      console.log('Removing DEFAULT value from severity column to prevent contamination...');
+      await query(`
+        ALTER TABLE bookings
+        ALTER COLUMN severity DROP DEFAULT
+      `);
+      console.log('DEFAULT value removed from severity column - contamination prevented');
     }
   } catch (error) {
     console.error('Error ensuring severity column:', error);

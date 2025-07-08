@@ -102,7 +102,7 @@ async function migrateDb() {
         start TIMESTAMP NOT NULL,
         "end" TIMESTAMP NOT NULL,
         type TEXT NOT NULL,
-        severity TEXT DEFAULT 'medium',
+        severity TEXT,
         template_id INTEGER REFERENCES templates(id),
         notify_list JSONB DEFAULT '[]',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
