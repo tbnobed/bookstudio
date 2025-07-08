@@ -9,7 +9,7 @@ import { Studio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 
 // Separate component to properly handle hooks for the monthly calendar
-function MonthlyCalendarWrapper({ currentDate, studios }: { currentDate: Date, studios: Studio[] }) {
+function MonthlyCalendarWrapper({ currentDate, studios, selectedStudioIds }: { currentDate: Date, studios: Studio[], selectedStudioIds: number[] }) {
   // Calculate month start and end dates for data fetching
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
@@ -24,6 +24,7 @@ function MonthlyCalendarWrapper({ currentDate, studios }: { currentDate: Date, s
       studios={studios}
       bookings={bookings}
       readOnly={false}
+      selectedStudioIds={selectedStudioIds}
     />
   );
 }
@@ -168,6 +169,7 @@ export default function CalendarPage() {
         <MonthlyCalendarWrapper
           currentDate={currentDate}
           studios={studios}
+          selectedStudioIds={selectedStudioIds}
         />
       )}
     </div>

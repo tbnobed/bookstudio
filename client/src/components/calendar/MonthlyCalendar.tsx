@@ -49,9 +49,10 @@ interface MonthlyCalendarProps {
   studios: any[];
   bookings: any[];
   readOnly?: boolean;
+  selectedStudioIds?: number[];
 }
 
-export default function MonthlyCalendar({ date: currentDate, studios: studiosProp, bookings: propBookings = [], readOnly = false }: MonthlyCalendarProps) {
+export default function MonthlyCalendar({ date: currentDate, studios: studiosProp, bookings: propBookings = [], readOnly = false, selectedStudioIds = [] }: MonthlyCalendarProps) {
   const [monthDays, setMonthDays] = useState<Date[]>([]);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -137,8 +138,33 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
     
     console.log(`MonthlyCalendar - Converted ${alertsAsBookings.length} API alerts to booking format`);
     
-    return [...propBookings, ...alertsAsBookings];
-  }, [propBookings, allAlerts]);
+    const combinedBookings = [...propBookings, ...alertsAsBookings];
+    
+    // Apply studio filtering if selectedStudioIds is provided
+    if (selectedStudioIds.length > 0) {
+      const filteredBookings = combinedBookings.filter(booking => {
+        // Always include alerts (they don't have studios)
+        if (booking.studioId === null) {
+          return true;
+        }
+        
+        // Check if booking is directly assigned to a selected studio
+        const directMatch = selectedStudioIds.includes(booking.studioId);
+        
+        // Check if booking is linked to a selected studio via junction table
+        const linkedMatch = bookingStudioLinks.some(link => 
+          link.bookingId === booking.id && selectedStudioIds.includes(link.studioId)
+        );
+        
+        return directMatch || linkedMatch;
+      });
+      
+      console.log(`MonthlyCalendar - Filtered ${combinedBookings.length} bookings to ${filteredBookings.length} based on selected studios: ${selectedStudioIds.join(', ')}`);
+      return filteredBookings;
+    }
+    
+    return combinedBookings;
+  }, [propBookings, allAlerts, selectedStudioIds, bookingStudioLinks]);
 
   // Handle day click to create a new booking
   const handleDayClick = (date: Date) => {
