@@ -119,20 +119,9 @@ RUN npm ci --production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/scripts ./scripts
 
-# Copy Docker-specific migration scripts
-COPY scripts/docker-migrate-db.cjs ./scripts/
-COPY scripts/docker-init-db.cjs ./scripts/
-COPY scripts/docker-migrate-pcr-rooms.cjs ./scripts/
-COPY scripts/docker-create-booking-studios.cjs ./scripts/
-COPY scripts/docker-migrate-file-attachments.cjs ./scripts/
-COPY scripts/docker-migrate-booking-colors.cjs ./scripts/
-COPY scripts/docker-migrate-booking-status.cjs ./scripts/
-COPY scripts/docker-migrate-system-settings.cjs ./scripts/
-COPY scripts/docker-fix-system-settings.cjs ./scripts/
-COPY scripts/docker-migrate-site-manager-notifications.cjs ./scripts/
-COPY scripts/docker-migrate-template-time-fields.cjs ./scripts/
-COPY scripts/docker-restore-legacy-templates.cjs ./scripts/
-COPY scripts/docker-migrate-alerts.cjs ./scripts/
+# Copy consolidated migration scripts for Docker
+COPY scripts/consolidated-migration.cjs ./scripts/
+COPY scripts/schema-repair.cjs ./scripts/
 
 # Copy backup and restore scripts
 COPY scripts/production-backup.sh ./scripts/

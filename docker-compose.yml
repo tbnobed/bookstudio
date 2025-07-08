@@ -189,37 +189,16 @@ services:
       - FACILITY_TIMEZONE=${FACILITY_TIMEZONE:-America/Chicago}
     networks:
       - app-network
-    # Run database migrations and initialization
+    # Run consolidated database migration and initialization
     command: >
       sh -c "
         echo 'Waiting for database to be fully ready...' &&
         sleep 10 &&
-        echo 'Creating database schema...' &&
-        node scripts/docker-migrate-db.cjs &&
-        echo 'Creating PCR rooms schema...' &&
-        node scripts/docker-migrate-pcr-rooms.cjs &&
-        echo 'Creating booking-studios junction table...' &&
-        node scripts/docker-create-booking-studios.cjs &&
-        echo 'Creating file attachments schema...' &&
-        node scripts/docker-migrate-file-attachments.cjs &&
-        echo 'Adding booking colors support...' &&
-        node scripts/docker-migrate-booking-colors.cjs &&
-        echo 'Adding booking status support...' &&
-        node scripts/docker-migrate-booking-status.cjs &&
-        echo 'Setting up system settings table...' &&
-        node scripts/docker-migrate-system-settings.cjs &&
-        echo 'Fixing system settings table structure if needed...' &&
-        node scripts/docker-fix-system-settings.cjs &&
-        echo 'Setting up site manager notification system...' &&
-        node scripts/docker-migrate-site-manager-notifications.cjs &&
-        echo 'Adding template time fields support...' &&
-        node scripts/docker-migrate-template-time-fields.cjs &&
-        echo 'Creating alerts table with proper schema...' &&
-        node scripts/docker-migrate-alerts.cjs &&
-        echo 'Skipping legacy template restoration to preserve production templates...' &&
-        echo 'Initializing database data with admin, site manager, producer, and engineer accounts...' &&
-        node scripts/docker-init-db.cjs &&
-        echo 'Database initialization completed successfully' 
+        echo 'Running consolidated migration system...' &&
+        node scripts/consolidated-migration.cjs &&
+        echo 'Running schema repair (for existing deployments)...' &&
+        node scripts/schema-repair.cjs &&
+        echo 'Database initialization completed successfully!'
       "
 
   # PostgreSQL database
