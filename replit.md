@@ -337,6 +337,7 @@ BookStud.io is a comprehensive web application for television studio management 
 - July 7, 2025: FIXED chronological alert ordering in signage page - combined all alert categories (active, today's upcoming, future maintenance) into single chronologically sorted array, ensuring alerts display in proper time sequence (e.g., July 8th alerts appear before July 10th alerts) while preserving category-specific visual styling for optimal facility monitoring timeline view
 - July 7, 2025: COMPLETELY FIXED alert deletion functionality - resolved Drizzle ORM delete result handling issue by changing from result.count to returning() method pattern, added proper success/failure logging, enhanced error messages, alert deletion now works properly across entire system
 - July 7, 2025: ELIMINATED runtime error in BookingModal component - removed duplicate console.log statements and cleaned up debugging code that was causing JavaScript runtime errors in booking creation form
+- July 8, 2025: UPDATED Docker deployment configuration for alerts system - created comprehensive docker-migrate-alerts.cjs migration script with proper schema matching shared/schema.ts, added alerts table creation to docker-compose.yml initialization sequence, updated Dockerfile to copy alerts migration script, ensured Docker deployments include complete alerts system functionality with proper database migration and indexes
 
 ## User Preferences
 

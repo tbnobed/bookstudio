@@ -132,6 +132,7 @@ COPY scripts/docker-fix-system-settings.cjs ./scripts/
 COPY scripts/docker-migrate-site-manager-notifications.cjs ./scripts/
 COPY scripts/docker-migrate-template-time-fields.cjs ./scripts/
 COPY scripts/docker-restore-legacy-templates.cjs ./scripts/
+COPY scripts/docker-migrate-alerts.cjs ./scripts/
 
 # Copy backup and restore scripts
 COPY scripts/production-backup.sh ./scripts/
