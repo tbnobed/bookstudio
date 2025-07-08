@@ -273,7 +273,6 @@ export default function DailyCalendar({
         isOpen={isNewAlertModalOpen}
         onClose={() => setIsNewAlertModalOpen(false)}
         selectedDate={currentDate}
-        alertsOnly={true}
       />
     </>
   );

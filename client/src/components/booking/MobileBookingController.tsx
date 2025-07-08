@@ -21,8 +21,7 @@ interface MobileBookingControllerProps {
   booking?: ApiBooking | null;
   selectedDate?: Date;
   selectedStudio?: number | null;
-  alertsOnly?: boolean;
-  // alertMode removed - this controller only handles bookings now
+  // alertsOnly removed - this controller only handles bookings now
   onSuccess?: () => void;
 }
 
@@ -36,7 +35,6 @@ export function MobileBookingController({
   booking,
   selectedDate = new Date(),
   selectedStudio,
-  alertsOnly = false,
   onSuccess
 }: MobileBookingControllerProps) {
   const { toast } = useToast();
@@ -88,7 +86,7 @@ export function MobileBookingController({
             end: new Date(data.end),
             templateId: data.templateId || null,
             status: data.status,
-            severity: data.severity,
+            // severity removed - production bookings don't use severity
             color: data.color
           },
           studioIds: data.studioIds || (data.studioId ? [data.studioId] : []) // CRITICAL: Pass studioIds array for multi-studio support
@@ -133,7 +131,7 @@ export function MobileBookingController({
         end: new Date(data.end),
         templateId: data.templateId || null,
         status: data.status,
-        severity: data.severity,
+        // severity removed - production bookings don't use severity
         color: data.color
       };
       

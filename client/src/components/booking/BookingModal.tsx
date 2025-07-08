@@ -324,7 +324,7 @@ export default function BookingModal({
           notifyList: normalizedBooking.notifyList ? normalizedBooking.notifyList.map(id => String(id)) : [],
           saveAsTemplate: false,
           templateName: "",
-          severity: normalizedBooking.severity,
+          // severity: removed - production bookings don't use severity
           color: normalizedBooking.color || defaultValues.color
         });
       };

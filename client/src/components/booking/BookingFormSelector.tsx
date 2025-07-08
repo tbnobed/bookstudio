@@ -69,7 +69,7 @@ export function BookingFormSelector({
     newBooking.pcrRoomId = newBooking.pcrRoomId !== undefined ? Number(newBooking.pcrRoomId) : null;
     newBooking.type = String(newBooking.type || 'production');
     newBooking.status = String(newBooking.status || 'confirmed');
-    newBooking.severity = newBooking.severity || null;
+    // severity removed - production bookings don't use severity
     newBooking.templateId = Number(newBooking.templateId) || null;
     
     // Handle notification list correctly

@@ -31,7 +31,7 @@ interface FormData {
   endTime: string;
   bookingType: string;
   status: string;
-  severity: string;
+  // severity removed - production bookings don't use severity
   color: string;
   templateId: string;
   templateName: string;
@@ -69,7 +69,7 @@ export default function SimpleMobileForm({
     endTime: "10:00am",
     bookingType: "production", // Always production since this is booking-only
     status: "confirmed",
-    severity: "low",
+    // severity: removed - production bookings don't use severity
     color: "#3b82f6",
     templateId: "",
     templateName: "",
@@ -130,7 +130,7 @@ export default function SimpleMobileForm({
         endTime,
         bookingType: booking.type || "production",
         status: booking.status || "confirmed",
-        severity: booking.severity || "low",
+        // severity: removed - production bookings don't use severity
         color: booking.color || "#3b82f6",
         templateId: booking.templateId?.toString() || "",
         templateName: "",
@@ -283,8 +283,7 @@ export default function SimpleMobileForm({
       bookingData.studioId = parseInt(formData.studioIds[0]);
     }
     
-    // Add severity
-    bookingData.severity = formData.severity;
+    // severity removed - production bookings don't use severity
     
     // Add templateId if selected (same as desktop)
     if (formData.templateId && formData.templateId !== "" && formData.templateId !== "none") {
