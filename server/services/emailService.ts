@@ -653,7 +653,7 @@ export async function sendMaintenanceAlert(
         <a href="${bookingUrl}" class="header-link">View Maintenance Details</a>
     </div>
     <div class="content">
-        ${createSeverityBadge(booking.severity || 'Medium')}
+        <!-- Severity badge removed - production bookings don't use severity -->
         
         <p class="message-text"><strong>Scheduled Maintenance Notice</strong></p>
         <p class="message-text">A maintenance event has been scheduled that may affect studio availability.</p>
@@ -675,7 +675,7 @@ export async function sendMaintenanceAlert(
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Severity:</span>
-                    <span class="detail-value">${booking.severity || 'Medium'}</span>
+                    <!-- Severity removed - production bookings don't use severity -->
                 </div>
                 ${booking.description ? `
                 <div class="detail-row">
@@ -698,7 +698,7 @@ export async function sendMaintenanceAlert(
     
     - Title: ${booking.title}
     - Type: Maintenance
-    - Severity: ${booking.severity || 'Medium'}
+    <!-- Severity removed - production bookings don't use severity -->
     - From: ${formatDate(booking.start)}
     - To: ${formatDate(booking.end)}
     ${booking.description ? `- Description: ${booking.description}` : ''}
@@ -739,7 +739,7 @@ export async function sendMaintenanceAlert(
                     <tr>
                         <td style="padding: 32px 24px;">
                             <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: ${severityColor}; color: white;">
-                                ${(booking.severity || 'Medium').toUpperCase()} PRIORITY
+                                <!-- Severity removed - production bookings don't use severity -->
                             </div>
                             
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>Site Manager Alert</strong></p>
@@ -762,10 +762,7 @@ export async function sendMaintenanceAlert(
                                                 <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">End:</td>
                                                 <td style="padding: 6px 0; color: #1f2937;">${formatDate(booking.end)}</td>
                                             </tr>
-                                            <tr>
-                                                <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Severity:</td>
-                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; background-color: ${severityColor}; color: white;">${booking.severity || 'Medium'}</span></td>
-                                            </tr>
+                                            <!-- Severity row removed - production bookings don't use severity -->
                                             ${booking.description ? `
                                             <tr>
                                                 <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Description:</td>
@@ -796,7 +793,7 @@ export async function sendMaintenanceAlert(
       
       - Title: ${booking.title}
       - Type: Maintenance
-      - Severity: ${booking.severity || 'Medium'}
+      <!-- Severity removed - production bookings don't use severity -->
       - From: ${formatDate(booking.start)}
       - To: ${formatDate(booking.end)}
       ${booking.description ? `- Description: ${booking.description}` : ''}
@@ -843,8 +840,9 @@ export async function sendFacilityAlert(
                     </tr>
                     <tr>
                         <td style="padding: 0 24px 32px 24px;">
-                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: ${alertSeverityColor}; color: white;">
-                                ${(booking.severity || 'High').toUpperCase()} PRIORITY
+                            <!-- Severity badge removed - production bookings don't use severity -->
+                            <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
+                                FACILITY ALERT
                             </div>
                             
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>FACILITY-WIDE ALERT</strong></p>
@@ -869,7 +867,7 @@ export async function sendFacilityAlert(
                                             </tr>
                                             <tr>
                                                 <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Severity:</td>
-                                                <td style="padding: 6px 0; color: #1f2937;"><span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; background-color: ${alertSeverityColor}; color: white;">${booking.severity || 'High'}</span></td>
+                                                <!-- Severity removed - production bookings don't use severity -->
                                             </tr>
                                             ${booking.description ? `
                                             <tr>
@@ -901,7 +899,7 @@ export async function sendFacilityAlert(
     
     - Title: ${booking.title}
     - Type: ${booking.type}
-    - Severity: ${booking.severity || 'High'}
+    <!-- Severity removed - production bookings don't use severity -->
     - From: ${formatDate(booking.start)}
     - To: ${formatDate(booking.end)}
     ${booking.description ? `- Description: ${booking.description}` : ''}
@@ -939,7 +937,7 @@ export async function sendFacilityAlert(
                     <tr>
                         <td style="padding: 32px 24px;">
                             <div style="display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 0 0 24px 0; text-align: center; background-color: #dc2626; color: white;">
-                                ${(booking.severity || 'High').toUpperCase()} PRIORITY
+                                FACILITY ALERT
                             </div>
                             
                             <p style="font-size: 16px; line-height: 1.7; color: #374151; margin: 0 0 24px 0;"><strong>CRITICAL FACILITY-WIDE ALERT</strong></p>
@@ -964,7 +962,7 @@ export async function sendFacilityAlert(
                                             </tr>
                                             <tr>
                                                 <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Severity:</td>
-                                                <td style="padding: 6px 0; color: #1f2937;">${booking.severity || 'High'}</td>
+                                                <!-- Severity removed - production bookings don't use severity -->
                                             </tr>
                                             ${booking.description ? `
                                             <tr>
@@ -1003,7 +1001,7 @@ export async function sendFacilityAlert(
       
       - Title: ${booking.title}
       - Type: ${booking.type}
-      - Severity: ${booking.severity || 'High'}
+      <!-- Severity removed - production bookings don't use severity -->
       - From: ${formatDate(booking.start)}
       - To: ${formatDate(booking.end)}
       ${booking.description ? `- Description: ${booking.description}` : ''}

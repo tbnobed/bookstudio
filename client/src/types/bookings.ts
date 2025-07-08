@@ -8,8 +8,7 @@ export type BookingType = 'recording' | 'live' | 'maintenance' | 'other' | 'prod
 // Booking status
 export type BookingStatus = 'confirmed' | 'pending' | 'cancelled' | 'draft';
 
-// Booking severity
-export type BookingSeverity = 'low' | 'medium' | 'high' | 'critical';
+// Booking severity - REMOVED: Only used for alerts, not production bookings
 
 // API Booking data
 export interface ApiBooking {
@@ -26,7 +25,7 @@ export interface ApiBooking {
   notifyList: string[];
   createdAt?: string;
   status: BookingStatus;
-  severity: BookingSeverity;
+  // severity: REMOVED - production bookings don't use severity
   color: string | null;
   studioIds?: number[]; // Used for multiple studio bookings
 }
@@ -44,7 +43,7 @@ export interface FormBookingData {
   type: BookingType;
   templateId: number | null;
   status: BookingStatus;
-  severity: BookingSeverity;
+  // severity: REMOVED - production bookings don't use severity
   color: string;
   notifyList: string[];
 }
