@@ -190,7 +190,7 @@ async function ensureSeverityColumn() {
       console.log('Adding severity column to bookings table...');
       await query(`
         ALTER TABLE bookings
-        ADD COLUMN severity VARCHAR(50) DEFAULT 'medium'
+        ADD COLUMN severity VARCHAR(50)
       `);
       console.log('Severity column added successfully');
     } else {
