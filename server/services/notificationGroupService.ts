@@ -478,10 +478,10 @@ export async function sendMaintenanceAlertToGroups(
             <strong style="color: #4b5563; display: inline-block; width: 100px;">Type:</strong>
             <span style="color: #1f2937;">Maintenance</span>
         </div>
-        <div style="margin-bottom: 12px;">
+        ${booking.severity ? `<div style="margin-bottom: 12px;">
             <strong style="color: #4b5563; display: inline-block; width: 100px;">Severity:</strong>
-            <span style="color: #1f2937;">${booking.severity || 'medium'}</span>
-        </div>
+            <span style="color: #1f2937;">${booking.severity}</span>
+        </div>` : ''}
         <div style="margin-bottom: 12px;">
             <strong style="color: #4b5563; display: inline-block; width: 100px;">Start:</strong>
             <span style="color: #1f2937;">${formatDate(booking.start)}</span>
@@ -509,7 +509,7 @@ export async function sendMaintenanceAlertToGroups(
     
     - Title: ${booking.title}
     - Type: Maintenance
-    - Severity: ${booking.severity || 'medium'}
+    ${booking.severity ? `- Severity: ${booking.severity}` : ''}
     - Start: ${formatDate(booking.start)}
     - End: ${formatDate(booking.end)}
     ${booking.description ? `- Description: ${booking.description}` : ''}
