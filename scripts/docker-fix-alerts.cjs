@@ -35,6 +35,10 @@ async function fixDockerAlerts() {
       console.log('Renaming user_id to created_by...');
       await pool.query('ALTER TABLE alerts RENAME COLUMN user_id TO created_by;');
       console.log('✅ Successfully renamed user_id to created_by');
+    } else if (hasUserId && hasCreatedBy) {
+      console.log('Both user_id and created_by exist, dropping user_id...');
+      await pool.query('ALTER TABLE alerts DROP COLUMN user_id;');
+      console.log('✅ Successfully dropped duplicate user_id column');
     } else if (hasCreatedBy) {
       console.log('✅ created_by column already exists');
     } else {
