@@ -207,98 +207,97 @@ export default function StudiosPage() {
       {/* Modern Site Banner - Only on mobile */}
       {isMobile && <MobileBanner />}
       
-      <div className="flex-1 overflow-auto">
-        <div className={`container mx-auto p-3 ${isMobile ? 'pb-20' : ''}`}>
-          <div className={`${isMobile ? 'bg-white/90 backdrop-blur-sm' : 'bg-white'} rounded-lg shadow-sm p-4`}>
-            {/* Weather Section - Only on mobile */}
-            {isMobile && (
-              <div className="mb-6">
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
-                  <WeatherWidget 
-                    showForecast={true} 
-                    size="normal" 
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            )}
+      <div className={`flex-1 overflow-auto p-3 ${isMobile ? 'pb-20' : ''} space-y-4`}>
+        {/* Weather Section - Only on mobile - Floating */}
+        {isMobile && (
+          <div className="bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg rounded-2xl p-4 mx-3">
+            <WeatherWidget 
+              showForecast={true} 
+              size="normal" 
+              className="w-full"
+            />
+          </div>
+        )}
 
-            <div className="mb-4">
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <Tv className="h-5 w-5" />
-                Studio Status
-              </h1>
-              <p className="text-gray-600 text-sm mt-1">
-                Real-time status and availability of all studios
-              </p>
-            </div>
+        {/* Header Section - Floating */}
+        <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white shadow-lg border'} rounded-2xl p-4 mx-3`}>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Tv className="h-5 w-5" />
+            Studio Status
+          </h1>
+          <p className="text-gray-600 text-sm mt-1">
+            Real-time status and availability of all studios
+          </p>
+        </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {studios.map((studio) => {
-                const studioStatus = getStudioStatus(studio);
-                
-                return (
-                  <Card key={studio.id} className={cn(
-                    "transition-all hover:shadow-xl border-2 shadow-lg",
-                    studioStatus.status === "in-use" 
-                      ? "bg-red-50 border-red-300 hover:border-red-400" 
-                      : "bg-green-50 border-green-300 hover:border-green-400"
-                  )}>
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <Tv className="h-3 w-3" />
-                          <span className="font-semibold text-xs">{studio.name}</span>
+        {/* Studios Grid - Floating Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mx-3">
+          {studios.map((studio) => {
+            const studioStatus = getStudioStatus(studio);
+            
+            return (
+              <Card key={studio.id} className={cn(
+                "transition-all hover:shadow-xl border-2 shadow-lg",
+                studioStatus.status === "in-use" 
+                  ? "bg-red-50 border-red-300 hover:border-red-400" 
+                  : "bg-green-50 border-green-300 hover:border-green-400"
+              )}>
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5">
+                      <Tv className="h-3 w-3" />
+                      <span className="font-semibold text-xs">{studio.name}</span>
+                    </div>
+                    <div className={cn(
+                      "w-2.5 h-2.5 rounded-full",
+                      studioStatus.color
+                    )} />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Badge 
+                      variant={studioStatus.status === "in-use" ? "destructive" : "secondary"}
+                      className="text-xs px-1.5 py-0.5 w-full justify-center"
+                    >
+                      {studioStatus.label}
+                    </Badge>
+                    
+                    <div className="text-xs text-gray-600 text-center">
+                      {studioStatus.detail}
+                    </div>
+                    
+                    {studioStatus.booking && (
+                      <div className="text-xs text-center">
+                        <div className="font-medium text-gray-900 truncate">
+                          {studioStatus.booking.title}
                         </div>
-                        <div className={cn(
-                          "w-2.5 h-2.5 rounded-full",
-                          studioStatus.color
-                        )} />
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <Badge 
-                          variant={studioStatus.status === "in-use" ? "destructive" : "secondary"}
-                          className="text-xs px-1.5 py-0.5 w-full justify-center"
-                        >
-                          {studioStatus.label}
-                        </Badge>
-                        
-                        <div className="text-xs text-gray-600 text-center">
-                          {studioStatus.detail}
+                        <div className="text-xs text-gray-500">
+                          {formatTime(studioStatus.booking.start)}
                         </div>
-                        
-                        {studioStatus.booking && (
-                          <div className="text-xs text-center">
-                            <div className="font-medium text-gray-900 truncate">
-                              {studioStatus.booking.title}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {formatTime(studioStatus.booking.start)}
-                            </div>
 
-                            {getOtherLinkedStudios(studioStatus.booking, studio.id) && (
-                              <div className="text-xs text-blue-600 mt-0.5 truncate">
-                                {getOtherLinkedStudios(studioStatus.booking, studio.id)}
-                              </div>
-                            )}
+                        {getOtherLinkedStudios(studioStatus.booking, studio.id) && (
+                          <div className="text-xs text-blue-600 mt-0.5 truncate">
+                            {getOtherLinkedStudios(studioStatus.booking, studio.id)}
                           </div>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-            
-            {studios.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <Tv className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>No studios found</p>
-              </div>
-            )}
-          </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
+        
+        {/* Empty State - Floating */}
+        {studios.length === 0 && (
+          <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white shadow-lg border'} rounded-2xl p-12 mx-3`}>
+            <div className="text-center text-gray-500">
+              <Tv className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <p>No studios found</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
