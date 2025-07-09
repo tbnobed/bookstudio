@@ -605,7 +605,7 @@ export default function CustomSignagePage() {
             <CardContent>
               <div className="grid grid-cols-7 gap-2">
                 {weeklyBookings.map(({ date, bookings }, index) => {
-                  const dateString = format(date, 'yyyy-MM-dd');
+                  const dateString = formatFacilityTime(date, 'yyyy-MM-dd', facilityTimezone);
                   const dayForecast = forecast?.forecast.find(f => f.date === dateString);
                   
                   // Debug logging for weather forecast availability
