@@ -273,15 +273,54 @@ class BackupManager {
     }
   }
 
+  async restoreBackupSafe(filename: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const backupPath = join(this.config.backupPath, filename);
+      
+      // Verify file exists
+      await fs.access(backupPath);
+      
+      console.log(`Performing safe restore from backup: ${filename}`);
+      
+      const result = await this.executeSafeRestore(backupPath);
+      
+      if (result.success) {
+        console.log(`Database restored safely from: ${filename}`);
+        return { success: true, message: `Database restored safely from ${filename}` };
+      } else {
+        return { success: false, message: result.error || 'Safe restore failed' };
+      }
+    } catch (error) {
+      console.error('Safe restore failed:', error);
+      return { success: false, message: `Safe restore failed: ${error instanceof Error ? error.message : String(error)}` };
+    }
+  }
+
   private executeRestore(backupPath: string): Promise<{ success: boolean; error?: string }> {
     return new Promise((resolve) => {
-      const psql = spawn('psql', [
-        '-h', process.env.PGHOST || 'localhost',
-        '-p', process.env.PGPORT || '5432',
-        '-U', process.env.PGUSER || 'postgres',
-        '-d', process.env.PGDATABASE || 'bookstudio',
-        '-f', backupPath
-      ], {
+      // First, drop and recreate the database to avoid conflicts
+      const dropAndRestore = spawn('bash', ['-c', `
+        # Drop the existing database
+        psql -h ${process.env.PGHOST || 'localhost'} \
+             -p ${process.env.PGPORT || '5432'} \
+             -U ${process.env.PGUSER || 'postgres'} \
+             -d postgres \
+             -c "DROP DATABASE IF EXISTS ${process.env.PGDATABASE || 'bookstudio'};"
+        
+        # Create a new empty database
+        psql -h ${process.env.PGHOST || 'localhost'} \
+             -p ${process.env.PGPORT || '5432'} \
+             -U ${process.env.PGUSER || 'postgres'} \
+             -d postgres \
+             -c "CREATE DATABASE ${process.env.PGDATABASE || 'bookstudio'};"
+        
+        # Restore from backup
+        psql -h ${process.env.PGHOST || 'localhost'} \
+             -p ${process.env.PGPORT || '5432'} \
+             -U ${process.env.PGUSER || 'postgres'} \
+             -d ${process.env.PGDATABASE || 'bookstudio'} \
+             -f "${backupPath}"
+      `], {
         env: {
           ...process.env,
           PGPASSWORD: process.env.PGPASSWORD || 'postgres'
@@ -289,20 +328,104 @@ class BackupManager {
       });
 
       let errorOutput = '';
-      psql.stderr.on('data', (data) => {
+      let stdOutput = '';
+      
+      dropAndRestore.stderr.on('data', (data) => {
         errorOutput += data.toString();
-        console.log('psql:', data.toString());
+        console.log('restore stderr:', data.toString());
       });
 
-      psql.on('close', (code) => {
+      dropAndRestore.stdout.on('data', (data) => {
+        stdOutput += data.toString();
+        console.log('restore stdout:', data.toString());
+      });
+
+      dropAndRestore.on('close', (code) => {
         if (code === 0) {
+          console.log('Database restore completed successfully');
           resolve({ success: true });
         } else {
-          resolve({ success: false, error: `psql exited with code ${code}: ${errorOutput}` });
+          console.error('Database restore failed with code:', code);
+          resolve({ success: false, error: `Database restore failed (exit code ${code}): ${errorOutput}` });
         }
       });
 
-      psql.on('error', (error) => {
+      dropAndRestore.on('error', (error) => {
+        console.error('Database restore error:', error);
+        resolve({ success: false, error: error.message });
+      });
+    });
+  }
+
+  private executeSafeRestore(backupPath: string): Promise<{ success: boolean; error?: string }> {
+    return new Promise((resolve) => {
+      // Create a script that truncates all data and restores without dropping database
+      const safeRestore = spawn('bash', ['-c', `
+        # Create a temporary script to truncate all tables
+        psql -h ${process.env.PGHOST || 'localhost'} \
+             -p ${process.env.PGPORT || '5432'} \
+             -U ${process.env.PGUSER || 'postgres'} \
+             -d ${process.env.PGDATABASE || 'bookstudio'} \
+             -t -c "
+               SELECT 'TRUNCATE TABLE ' || table_name || ' RESTART IDENTITY CASCADE;' 
+               FROM information_schema.tables 
+               WHERE table_schema = 'public' 
+               AND table_type = 'BASE TABLE'
+               AND table_name NOT LIKE 'pg_%'
+             " > /tmp/truncate_script.sql
+        
+        # Execute truncate script
+        psql -h ${process.env.PGHOST || 'localhost'} \
+             -p ${process.env.PGPORT || '5432'} \
+             -U ${process.env.PGUSER || 'postgres'} \
+             -d ${process.env.PGDATABASE || 'bookstudio'} \
+             -f /tmp/truncate_script.sql
+        
+        # Extract and execute only the data portion from the backup
+        # Skip CREATE statements and constraints, only COPY data
+        grep -E '^COPY|^\\\\\\.|^[0-9]' "${backupPath}" > /tmp/data_only.sql
+        
+        # Restore only the data
+        psql -h ${process.env.PGHOST || 'localhost'} \
+             -p ${process.env.PGPORT || '5432'} \
+             -U ${process.env.PGUSER || 'postgres'} \
+             -d ${process.env.PGDATABASE || 'bookstudio'} \
+             -f /tmp/data_only.sql
+        
+        # Clean up temporary files
+        rm -f /tmp/truncate_script.sql /tmp/data_only.sql
+      `], {
+        env: {
+          ...process.env,
+          PGPASSWORD: process.env.PGPASSWORD || 'postgres'
+        }
+      });
+
+      let errorOutput = '';
+      let stdOutput = '';
+      
+      safeRestore.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+        console.log('safe restore stderr:', data.toString());
+      });
+
+      safeRestore.stdout.on('data', (data) => {
+        stdOutput += data.toString();
+        console.log('safe restore stdout:', data.toString());
+      });
+
+      safeRestore.on('close', (code) => {
+        if (code === 0) {
+          console.log('Safe database restore completed successfully');
+          resolve({ success: true });
+        } else {
+          console.error('Safe database restore failed with code:', code);
+          resolve({ success: false, error: `Safe restore failed (exit code ${code}): ${errorOutput}` });
+        }
+      });
+
+      safeRestore.on('error', (error) => {
+        console.error('Safe database restore error:', error);
         resolve({ success: false, error: error.message });
       });
     });
