@@ -814,38 +814,103 @@ export default function CustomSignagePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {todaysAlerts.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
-                  <AlertTriangle className="mx-auto h-12 w-12 mb-3 opacity-50" />
-                  <p className="text-lg">No active alerts</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {todaysAlerts.map((alert) => (
-                    <div
-                      key={alert.id}
-                      className="p-3 rounded-lg bg-red-900/40 border border-red-500/50 animate-pulse"
-                    >
-                      <div className="flex items-start space-x-2">
-                        <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1">
-                          <div className="text-lg font-semibold text-white">
-                            {alert.title}
+              {/* Show today's site alerts and upcoming maintenance */}
+              {todaysAlerts.length > 0 || maintenanceAlerts.length > 0 ? (
+                <div className="space-y-2">
+                  {/* Combine and sort all alerts chronologically */}
+                  {[
+                    // Active alerts from today
+                    ...todaysAlerts
+                      .filter(alert => isBookingActive(alert, currentTime))
+                      .map(alert => ({ ...alert, alertCategory: 'active' })),
+                    
+                    // Today's upcoming alerts  
+                    ...todaysAlerts
+                      .filter(alert => !isBookingActive(alert, currentTime) && parseISO(alert.start) > currentTime)
+                      .map(alert => ({ ...alert, alertCategory: 'today' })),
+                    
+                    // Upcoming maintenance (next 7 days, excluding today and already shown active alerts)
+                    ...maintenanceAlerts
+                      .filter(alert => 
+                        !isSameDay(parseISO(alert.start), today) && 
+                        !todaysAlerts.some(todayAlert => todayAlert.id === alert.id)
+                      )
+                      .slice(0, 2)
+                      .map(alert => ({ ...alert, alertCategory: 'upcoming' }))
+                  ]
+                  .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+                  .map(alert => {
+                    if (alert.alertCategory === 'active') {
+                      return (
+                        <div key={`active-${alert.id}`} className="p-3 rounded-lg bg-red-900/60 border-2 border-red-500 shadow-lg animate-pulse">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="h-4 w-4 text-red-300 animate-bounce" />
+                            <div className="text-sm font-bold text-red-100 uppercase tracking-wide">ACTIVE ALERT</div>
                           </div>
-                          <div className="text-sm text-slate-300">
-                            {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                          <div className="text-lg font-semibold text-red-50 mb-1">{alert.title}</div>
+                          <div className="text-sm text-red-200">
+                            {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
                           </div>
                           {alert.description && alert.description.trim() && (
-                            <div className="text-sm text-slate-400 mt-1">
+                            <div className="text-sm text-red-300 mt-1">
                               {alert.description}
                             </div>
                           )}
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    } else if (alert.alertCategory === 'today') {
+                      return (
+                        <div key={`today-${alert.id}`} className="p-3 rounded-lg bg-orange-900/50 border-2 border-orange-500 shadow-md">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="h-4 w-4 text-orange-300" />
+                            <div className="text-sm font-bold text-orange-100 uppercase tracking-wide">UPCOMING</div>
+                          </div>
+                          <div className="text-lg font-semibold text-orange-50 mb-1">{alert.title}</div>
+                          <div className="text-sm text-orange-200">
+                            {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                          </div>
+                          {alert.description && alert.description.trim() && (
+                            <div className="text-sm text-orange-300 mt-1">
+                              {alert.description}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div key={`upcoming-${alert.id}`} className="p-3 rounded-lg bg-yellow-900/40 border border-yellow-500 shadow-sm">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="h-4 w-4 text-yellow-300" />
+                            <div className="text-sm font-bold text-yellow-100 uppercase tracking-wide">UPCOMING</div>
+                          </div>
+                          <div className="text-base font-semibold text-yellow-50 mb-1">{alert.title}</div>
+                          <div className="text-sm text-yellow-200">
+                            {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                          </div>
+                          {alert.description && alert.description.trim() && (
+                            <div className="text-sm text-yellow-300 mt-1">
+                              {alert.description}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <div className="text-green-400 text-sm">No Active Alerts</div>
+                  <div className="text-slate-400 text-xs mt-1">All systems operational</div>
                 </div>
               )}
+              
+              {/* Auto-refresh indicator */}
+              <div className="text-center text-slate-400 pt-3 mt-3 border-t border-slate-600">
+                <div className="flex items-center justify-center space-x-2 mb-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-xs">Auto-updating every 2 minutes</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
