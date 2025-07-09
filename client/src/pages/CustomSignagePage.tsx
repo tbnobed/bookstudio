@@ -422,6 +422,8 @@ export default function CustomSignagePage() {
     const weekStart = startOfDay(today);
     const days = [];
     
+    console.log("[CUSTOM SIGNAGE DEBUG] Generating weekly bookings, weekStart:", weekStart);
+    
     for (let i = 0; i < 7; i++) {
       const day = addDays(weekStart, i);
       const dayStart = fromZonedTime(
@@ -439,11 +441,16 @@ export default function CustomSignagePage() {
         return bookingStart < dayEnd && bookingEnd > dayStart;
       }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
       
+      console.log(`[CUSTOM SIGNAGE DEBUG] Day ${i}: ${format(day, 'yyyy-MM-dd EEE')}, bookings: ${dayBookings.length}`);
+      
       days.push({
         date: day,
         bookings: dayBookings
       });
     }
+    
+    console.log("[CUSTOM SIGNAGE DEBUG] Total days generated:", days.length);
+    console.log("[CUSTOM SIGNAGE DEBUG] Days array:", days.map((d, i) => `${i}: ${format(d.date, 'yyyy-MM-dd EEE')}`));
     
     return days;
   }, [filteredBookings, today, facilityTimezone]);
@@ -636,16 +643,17 @@ export default function CustomSignagePage() {
           </Card>
 
           {/* Weekly Overview */}
-          <Card className="bg-slate-800/50 border-slate-700 mt-6">
+          <Card className="bg-slate-800/50 border-slate-700 mt-6 w-full">
             <CardHeader>
               <CardTitle className="flex items-center text-white text-3xl">
                 <Clock className="mr-4 h-8 w-8" />
                 Week at a Glance
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-2">
+            <CardContent className="w-full">
+              <div className="flex gap-2 w-full justify-between">
                 {weeklyBookings.map(({ date, bookings }, index) => {
+                  console.log(`[CUSTOM SIGNAGE RENDER] Rendering day ${index}: ${format(date, 'yyyy-MM-dd EEE')}, bookings: ${bookings.length}`);
                   const dateString = format(date, 'yyyy-MM-dd');
                   const dayForecast = forecast?.forecast.find(f => f.date === dateString);
                   
@@ -658,7 +666,7 @@ export default function CustomSignagePage() {
                   }
                   
                   return (
-                    <div key={index} className="text-center">
+                    <div key={index} className="text-center min-w-0 flex-shrink-0">
                       <div className={`text-lg font-medium mb-1 ${
                         index === 0 ? 'text-blue-400' : 'text-slate-300'
                       }`}>
