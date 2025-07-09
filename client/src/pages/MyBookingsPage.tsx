@@ -12,8 +12,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { MobileBanner } from "@/components/layout/MobileBanner";
-import { Clock, MapPin, Edit, Trash2, Calendar } from "lucide-react";
 
 export default function MyBookingsPage() {
   const { user } = useAuth();
@@ -21,10 +19,6 @@ export default function MyBookingsPage() {
   const { userBookings, isLoading, deleteBooking } = useStudioBookings();
   const [editBookingId, setEditBookingId] = useState<number | null>(null);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
-  const { siteName } = useSiteSettings();
-  
-  // Detect mobile for responsive banner
-  const isMobile = window.innerWidth <= 768;
   
   // Fetch studios to display names
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -91,38 +85,7 @@ export default function MyBookingsPage() {
   const bookingToEdit = userBookings.find(booking => booking.id === editBookingId);
 
   return (
-    <div className={`flex flex-col h-screen ${isMobile ? 'mobile-gradient-bg' : ''}`}>
-      {/* Modern Site Banner - Only on mobile with extended height */}
-      {isMobile && (
-        <div className="relative overflow-hidden">
-          {/* Background with modern gradient and animated effects */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-transparent"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-600/20 via-purple-600/20 to-transparent"></div>
-          
-          {/* Subtle geometric pattern overlay */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-white to-transparent rounded-full -translate-x-16 -translate-y-16"></div>
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-white to-transparent rounded-full translate-x-12 -translate-y-12"></div>
-            <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-white to-transparent rounded-full translate-x-20 translate-y-20"></div>
-          </div>
-          
-          {/* Content with extended height */}
-          <div className="relative px-6 py-6 text-center flex items-center justify-center min-h-[5rem]">
-            <div className="flex items-center justify-center gap-3">
-              <img 
-                src="/bookstudio-logo.png" 
-                alt="BookStudio Logo" 
-                className="w-8 h-8 object-contain drop-shadow-sm"
-              />
-              <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-sm">
-                {siteName}
-              </h1>
-            </div>
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
-          </div>
-        </div>
-      )}
-      
+    <div className="flex flex-col h-screen">
       <Header
         currentDate={currentDate}
         onDateChange={setCurrentDate}
@@ -132,96 +95,49 @@ export default function MyBookingsPage() {
         showViewToggle={false}
       />
       
-      <div className="flex-1 overflow-auto p-4 pb-20">
-        {/* Page Header */}
-        <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white border'} rounded-2xl p-4 mb-4`}>
-          <div className="flex items-center gap-3 mb-2">
-            <Calendar className="h-6 w-6 text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-900">My Bookings</h1>
+      <div className="container mx-auto p-4 pb-16 overflow-auto">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold">My Bookings</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Showing bookings for week of {format(weekStart, "MMM d")} - {format(weekEnd, "MMM d, yyyy")}
+            </p>
           </div>
-          <p className="text-sm text-gray-600">
-            Week of {format(weekStart, "MMM d")} - {format(weekEnd, "MMM d, yyyy")}
-          </p>
-        </div>
 
-        {/* Mobile Optimized Tabs */}
-        <Tabs defaultValue="upcoming" className="w-full">
-          <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white border'} rounded-2xl p-1 mb-4`}>
-            <TabsList className="grid w-full grid-cols-2 bg-gray-100/80 rounded-xl h-11">
-              <TabsTrigger value="upcoming" className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Upcoming
-              </TabsTrigger>
-              <TabsTrigger value="past" className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Past
-              </TabsTrigger>
+          <Tabs defaultValue="upcoming" className="w-full">
+            <TabsList>
+              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+              <TabsTrigger value="past">Past</TabsTrigger>
             </TabsList>
-          </div>
-          
-          {/* Upcoming Bookings */}
-          <TabsContent value="upcoming" className="mt-0">
-            {isLoading ? (
-              <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white border'} rounded-2xl p-8`}>
-                <div className="flex justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+            
+            <TabsContent value="upcoming">
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                 </div>
-              </div>
-            ) : upcomingBookings.length === 0 ? (
-              <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white border'} rounded-2xl p-8`}>
-                <div className="text-center text-gray-500">
-                  <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="font-medium">No upcoming bookings</p>
-                  <p className="text-sm mt-1">You don't have any bookings scheduled for this week.</p>
+              ) : upcomingBookings.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  You don't have any upcoming bookings for this week.
                 </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {upcomingBookings.map(booking => (
-                  <Card key={booking.id} className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl' : 'bg-white border hover:shadow-md'} rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.02]`}>
-                    {/* Color indicator */}
-                    <div className={`h-1.5 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
-                    
+                  <Card key={booking.id} className="overflow-hidden">
+                    <div className={`h-2 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
                     <CardContent className="p-4">
-                      {/* Header with title and type */}
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-bold text-base text-gray-900 leading-tight pr-2">
-                          {booking.title}
-                        </h3>
-                        <Badge 
-                          variant="secondary" 
-                          className={`${getBookingTypeColor(booking.type)} text-xs font-medium px-2 py-1 rounded-full flex-shrink-0`}
-                        >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-lg">{booking.title}</h3>
+                        <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
                           {formatBookingType(booking.type)}
                         </Badge>
                       </div>
-
-                      {/* Studio and Time Info */}
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <span className="font-medium">{getStudioName(booking.studioId)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <span>{formatDateTimeRange(booking.start, booking.end)}</span>
-                        </div>
-                      </div>
-
-                      {/* Description */}
+                      <p className="text-sm text-gray-500 mb-2">{getStudioName(booking.studioId)}</p>
+                      <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
                       {booking.description && (
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                          {booking.description}
-                        </p>
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
                       )}
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setEditBookingId(booking.id)}
-                          className="flex-1 h-9 rounded-xl font-medium border-gray-200 hover:bg-gray-50"
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
+                      <div className="flex justify-end space-x-2 mt-2">
+                        <Button variant="outline" size="sm" onClick={() => setEditBookingId(booking.id)}>
                           Edit
                         </Button>
                         <Button 
@@ -229,9 +145,7 @@ export default function MyBookingsPage() {
                           size="sm" 
                           onClick={() => handleDeleteBooking(booking.id)}
                           disabled={deleteBooking.isPending}
-                          className="flex-1 h-9 rounded-xl font-medium"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
                           Delete
                         </Button>
                       </div>
@@ -242,68 +156,40 @@ export default function MyBookingsPage() {
             )}
           </TabsContent>
           
-          {/* Past Bookings */}
-          <TabsContent value="past" className="mt-0">
+          <TabsContent value="past">
             {isLoading ? (
-              <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white border'} rounded-2xl p-8`}>
-                <div className="flex justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
-                </div>
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : pastBookings.length === 0 ? (
-              <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white border'} rounded-2xl p-8`}>
-                <div className="text-center text-gray-500">
-                  <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="font-medium">No past bookings</p>
-                  <p className="text-sm mt-1">You don't have any completed bookings for this week.</p>
-                </div>
+              <div className="text-center py-8 text-gray-500">
+                You don't have any past bookings for this week.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {pastBookings.map(booking => (
-                  <Card key={booking.id} className={`${isMobile ? 'bg-white/90 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white border'} rounded-2xl overflow-hidden opacity-75 transition-all duration-200`}>
-                    {/* Color indicator */}
-                    <div className={`h-1.5 ${getBookingTypeColor(booking.type).split(" ")[0]} opacity-60`}></div>
-                    
+                  <Card key={booking.id} className="overflow-hidden opacity-75">
+                    <div className={`h-2 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
                     <CardContent className="p-4">
-                      {/* Header with title and type */}
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-bold text-base text-gray-700 leading-tight pr-2">
-                          {booking.title}
-                        </h3>
-                        <Badge 
-                          variant="secondary" 
-                          className={`${getBookingTypeColor(booking.type)} text-xs font-medium px-2 py-1 rounded-full flex-shrink-0 opacity-80`}
-                        >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-lg">{booking.title}</h3>
+                        <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
                           {formatBookingType(booking.type)}
                         </Badge>
                       </div>
-
-                      {/* Studio and Time Info */}
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <span className="font-medium">{getStudioName(booking.studioId)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <span>{formatDateTimeRange(booking.start, booking.end)}</span>
-                        </div>
-                      </div>
-
-                      {/* Description */}
+                      <p className="text-sm text-gray-500 mb-2">{getStudioName(booking.studioId)}</p>
+                      <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
                       {booking.description && (
-                        <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
-                          {booking.description}
-                        </p>
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
                       )}
                     </CardContent>
                   </Card>
                 ))}
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       {/* Edit Booking Modal */}

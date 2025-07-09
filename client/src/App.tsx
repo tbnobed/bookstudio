@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import CalendarPage from "@/pages/CalendarPage";
 import MobileCalendarPage from "@/pages/MobileCalendarPage";
 import MyBookingsPage from "@/pages/MyBookingsPage";
+import MobileMyBookingsPage from "@/pages/MobileMyBookingsPage";
 import TemplatesPage from "@/pages/TemplatesPage";
 import ReportsPage from "@/pages/ReportsPage";
 import UserManagement from "@/pages/UserManagement";
@@ -41,6 +42,9 @@ function Router() {
   // Mobile-first home component - Studios page for mobile, Calendar for desktop
   const HomeComponent = isSmallScreen ? StudiosPage : CalendarPage;
   
+  // Choose the appropriate My Bookings component based on screen size
+  const MyBookingsComponent = isSmallScreen ? MobileMyBookingsPage : MyBookingsPage;
+  
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
@@ -54,7 +58,7 @@ function Router() {
       <ProtectedRoute path="/calendar" component={CalendarComponent} />
       <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
       <ProtectedRoute path="/calendar/mobile" component={MobileCalendarPage} />
-      <ProtectedRoute path="/my-bookings" component={MyBookingsPage} />
+      <ProtectedRoute path="/my-bookings" component={MyBookingsComponent} />
       <ProtectedRoute path="/templates" component={TemplatesPage} />
       <ProtectedRoute path="/reports" component={ReportsPage} />
       <ProtectedRoute path="/users" component={UserManagement} />
