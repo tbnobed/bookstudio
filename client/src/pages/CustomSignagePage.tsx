@@ -206,41 +206,41 @@ export default function CustomSignagePage() {
   
   // Fetch weather data and forecast
   useEffect(() => {
-    if (!showWeather) return;
-
     const fetchWeatherData = async () => {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        console.log("[CUSTOM SIGNAGE WEATHER] Weather API Key status:", apiKey ? "Available" : "Missing");
+        console.log("[SIGNAGE WEATHER] Weather API Key status:", apiKey ? "Available" : "Missing");
         // Fetch current weather
         const weatherLocation = import.meta.env.VITE_WEATHER_LOCATION;
         const weatherLat = import.meta.env.VITE_WEATHER_LAT;
         const weatherLon = import.meta.env.VITE_WEATHER_LON;
         
-        console.log("[CUSTOM SIGNAGE WEATHER] Weather Location:", weatherLocation || "Not configured");
-        console.log("[CUSTOM SIGNAGE WEATHER] Weather Lat:", weatherLat || "Not configured");
-        console.log("[CUSTOM SIGNAGE WEATHER] Weather Lon:", weatherLon || "Not configured");
+        console.log("[SIGNAGE WEATHER] Weather Location:", weatherLocation || "Not configured");
+        console.log("[SIGNAGE WEATHER] Weather Lat:", weatherLat || "Not configured");
+        console.log("[SIGNAGE WEATHER] Weather Lon:", weatherLon || "Not configured");
+        console.log("[SIGNAGE WEATHER] All VITE env vars:", Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
         
         if (!apiKey) {
-          console.error("[CUSTOM SIGNAGE WEATHER] Weather integration disabled: API key not found");
+          console.error("[SIGNAGE WEATHER] Weather integration disabled: API key not found");
           return;
         }
 
         if (!weatherLocation) {
-          console.error("[CUSTOM SIGNAGE WEATHER] Weather integration disabled: Location not configured");
+          console.error("[SIGNAGE WEATHER] Weather integration disabled: Location not configured");
           return;
         }
 
-        console.log("[CUSTOM SIGNAGE WEATHER] Fetching current weather...");
+
+        console.log("[SIGNAGE WEATHER] Fetching current weather...");
         const currentResponse = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${apiKey}&units=imperial`
         );
         
-        console.log("[CUSTOM SIGNAGE WEATHER] Current weather response status:", currentResponse.status);
+        console.log("[SIGNAGE WEATHER] Current weather response status:", currentResponse.status);
         
         if (currentResponse.ok) {
           const currentData = await currentResponse.json();
-          console.log("[CUSTOM SIGNAGE WEATHER] Current weather data received:", currentData);
+          console.log("[SIGNAGE WEATHER] Current weather data received:", currentData);
           setWeather({
             temperature: Math.round(currentData.main.temp),
             condition: currentData.weather[0].description,
@@ -249,22 +249,22 @@ export default function CustomSignagePage() {
             icon: currentData.weather[0].icon,
             location: currentData.name
           });
-          console.log("[CUSTOM SIGNAGE WEATHER] Weather state updated");
+          console.log("[SIGNAGE WEATHER] Weather state updated");
         } else {
-          console.error("[CUSTOM SIGNAGE WEATHER] Current weather API failed:", currentResponse.status, await currentResponse.text());
+          console.error("[SIGNAGE WEATHER] Current weather API failed:", currentResponse.status, await currentResponse.text());
         }
 
         // Fetch 7-day forecast
-        console.log("[CUSTOM SIGNAGE WEATHER] Fetching forecast...");
+        console.log("[SIGNAGE WEATHER] Fetching forecast...");
         const forecastResponse = await fetch(
           `https://api.openweathermap.org/data/2.5/forecast?q=${weatherLocation}&appid=${apiKey}&units=imperial`
         );
         
-        console.log("[CUSTOM SIGNAGE WEATHER] Forecast response status:", forecastResponse.status);
+        console.log("[SIGNAGE WEATHER] Forecast response status:", forecastResponse.status);
         
         if (forecastResponse.ok) {
           const forecastData = await forecastResponse.json();
-          console.log("[CUSTOM SIGNAGE WEATHER] Forecast data received:", forecastData);
+          console.log("[SIGNAGE WEATHER] Forecast data received:", forecastData);
           
           // Process forecast data - get daily forecasts by grouping hourly data
           // Use facility timezone for proper date grouping
@@ -282,24 +282,25 @@ export default function CustomSignagePage() {
             dailyData.get(dateString)!.push(item);
           });
           
-          console.log("[CUSTOM SIGNAGE WEATHER] Daily data grouped:", Array.from(dailyData.keys()));
+          console.log("[SIGNAGE WEATHER] Daily data grouped:", Array.from(dailyData.keys()));
           
           // Create daily forecasts with proper min/max calculations
           const dailyForecasts: ForecastDay[] = [];
           
+          // Filter out past dates and only include today and future dates
           // Use the same date calculation as the weekly view to ensure consistency
           const now = new Date();
           const facilityNow = toZonedTime(now, facilityTimezone);
           const today = format(facilityNow, 'yyyy-MM-dd');
-          console.log("[CUSTOM SIGNAGE WEATHER] Today's date for filtering:", today);
-          console.log("[CUSTOM SIGNAGE WEATHER] Current UTC time:", now.toISOString());
-          console.log("[CUSTOM SIGNAGE WEATHER] Current facility time:", facilityNow.toISOString());
+          console.log("[SIGNAGE WEATHER] Today's date for filtering:", today);
+          console.log("[SIGNAGE WEATHER] Current UTC time:", now.toISOString());
+          console.log("[SIGNAGE WEATHER] Current facility time:", facilityNow.toISOString());
           
           const futureDates = Array.from(dailyData.entries())
             .filter(([dateString]) => dateString >= today)
             .slice(0, 7);
           
-          console.log("[CUSTOM SIGNAGE WEATHER] Filtered future dates:", futureDates.map(([date]) => date));
+          console.log("[SIGNAGE WEATHER] Filtered future dates:", futureDates.map(([date]) => date));
           
           futureDates.forEach(([dateString, dayData]) => {
             const temps = dayData.map(item => item.main.temp);
@@ -323,23 +324,23 @@ export default function CustomSignagePage() {
             });
           });
           
-          console.log("[CUSTOM SIGNAGE WEATHER] Daily forecasts created:", dailyForecasts);
+          console.log("[SIGNAGE WEATHER] Daily forecasts created:", dailyForecasts);
           setForecast({ forecast: dailyForecasts });
-          console.log("[CUSTOM SIGNAGE WEATHER] Forecast state updated");
+          console.log("[SIGNAGE WEATHER] Forecast state updated");
         } else {
-          console.error("[CUSTOM SIGNAGE WEATHER] Forecast API failed:", forecastResponse.status, await forecastResponse.text());
+          console.error("[SIGNAGE WEATHER] Forecast API failed:", forecastResponse.status, await forecastResponse.text());
         }
       } catch (error) {
-        console.error("[CUSTOM SIGNAGE WEATHER] Weather API error:", error);
+        console.error("Weather API error:", error);
         // Continue without weather data if API unavailable
       }
     };
 
-    // Fetch weather immediately and then every 5 minutes
+    // Try immediately and retry every 5 minutes
     fetchWeatherData();
     const weatherTimer = setInterval(fetchWeatherData, 300000);
     return () => clearInterval(weatherTimer);
-  }, [showWeather, facilityTimezone]);
+  }, []);
 
 
 
