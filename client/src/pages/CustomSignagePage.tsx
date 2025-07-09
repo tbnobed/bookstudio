@@ -234,6 +234,74 @@ export default function CustomSignagePage() {
         } else {
           console.error("[CUSTOM SIGNAGE WEATHER] Current weather API failed:", currentResponse.status);
         }
+
+        // Fetch 5-day forecast for weekly overview
+        const forecastResponse = await fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${API_KEY}&units=imperial`
+        );
+
+        if (forecastResponse.ok) {
+          const forecastData = await forecastResponse.json();
+          console.log("[CUSTOM SIGNAGE WEATHER] Forecast data:", forecastData);
+          
+          // Group forecast data by date
+          const dailyData = new Map<string, any[]>();
+          
+          forecastData.list.forEach((item: any) => {
+            const facilityDate = toZonedTime(new Date(item.dt * 1000), facilityTimezone);
+            const dateString = format(facilityDate, 'yyyy-MM-dd');
+            
+            if (!dailyData.has(dateString)) {
+              dailyData.set(dateString, []);
+            }
+            dailyData.get(dateString)!.push(item);
+          });
+          
+          console.log("[CUSTOM SIGNAGE WEATHER] Daily data grouped:", Array.from(dailyData.keys()));
+          
+          // Create daily forecasts with proper min/max calculations
+          const dailyForecasts: ForecastDay[] = [];
+          
+          // Filter out past dates and only include today and future dates
+          const now = new Date();
+          const facilityNow = toZonedTime(now, facilityTimezone);
+          const today = format(facilityNow, 'yyyy-MM-dd');
+          console.log("[CUSTOM SIGNAGE WEATHER] Today's date for filtering:", today);
+          
+          const futureDates = Array.from(dailyData.entries())
+            .filter(([dateString]) => dateString >= today)
+            .slice(0, 7);
+          
+          console.log("[CUSTOM SIGNAGE WEATHER] Filtered future dates:", futureDates.map(([date]) => date));
+          
+          futureDates.forEach(([dateString, dayData]) => {
+            const temps = dayData.map(item => item.main.temp);
+            const minTemp = Math.min(...temps);
+            const maxTemp = Math.max(...temps);
+            
+            // Use midday data for condition and icon (around noon)
+            const middayData = dayData.find(item => {
+              const hour = new Date(item.dt * 1000).getHours();
+              return hour >= 11 && hour <= 13;
+            }) || dayData[Math.floor(dayData.length / 2)];
+            
+            dailyForecasts.push({
+              date: dateString,
+              temperature: {
+                min: Math.round(minTemp),
+                max: Math.round(maxTemp)
+              },
+              condition: middayData.weather[0].description,
+              icon: middayData.weather[0].icon
+            });
+          });
+          
+          console.log("[CUSTOM SIGNAGE WEATHER] Daily forecasts created:", dailyForecasts);
+          setForecast({ forecast: dailyForecasts });
+          console.log("[CUSTOM SIGNAGE WEATHER] Forecast state updated");
+        } else {
+          console.error("[CUSTOM SIGNAGE WEATHER] Forecast API failed:", forecastResponse.status, await forecastResponse.text());
+        }
       } catch (error) {
         console.error("[CUSTOM SIGNAGE WEATHER] Weather API error:", error);
         // Continue without weather data if API unavailable
