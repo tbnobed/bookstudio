@@ -337,3 +337,24 @@ export const fileAttachmentsRelations = relations(fileAttachments, ({ one }) => 
 export const pcrRoomsRelations = relations(pcrRooms, ({ many }) => ({
   bookings: many(bookings),
 }));
+
+// Booking Types schema - allows customization of booking categories
+export const bookingTypes = pgTable("booking_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  color: text("color").notNull().default("#3b82f6"), // hex color for visual identification
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertBookingTypeSchema = createInsertSchema(bookingTypes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type BookingType = typeof bookingTypes.$inferSelect;
+export type InsertBookingType = z.infer<typeof insertBookingTypeSchema>;

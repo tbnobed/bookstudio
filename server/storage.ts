@@ -9,7 +9,8 @@ import {
   pcrRooms, type PcrRoom, type InsertPcrRoom,
   bookingStudios, type BookingStudio, type InsertBookingStudio,
   systemSettings, type SystemSetting, type InsertSystemSetting,
-  fileAttachments, type FileAttachment, type InsertFileAttachment
+  fileAttachments, type FileAttachment, type InsertFileAttachment,
+  bookingTypes, type BookingType, type InsertBookingType
 } from "@shared/schema";
 
 import { db, pool, ensureConnection } from "./db";
@@ -100,6 +101,15 @@ export interface IStorage {
   upsertSystemSetting(data: InsertSystemSetting): Promise<SystemSetting>;
   deleteSystemSetting(key: string): Promise<boolean>;
   
+  // Booking Types management
+  getBookingType(id: number): Promise<BookingType | undefined>;
+  getAllBookingTypes(): Promise<BookingType[]>;
+  createBookingType(bookingType: InsertBookingType): Promise<BookingType>;
+  updateBookingType(id: number, data: Partial<InsertBookingType>): Promise<BookingType | undefined>;
+  deleteBookingType(id: number): Promise<boolean>;
+  getBookingTypeUsage(id: number): Promise<number>;
+  reorderBookingTypes(orderedIds: number[]): Promise<boolean>;
+  
   // Session management
   sessionStore: session.Store;
 }
@@ -117,6 +127,7 @@ export class MemStorage implements IStorage {
   private notificationGroups: Map<number, NotificationGroup>;
   private bookingStudios: Map<string, BookingStudio>; // Use bookingId-studioId as key
   private systemSettings: Map<string, SystemSetting>;
+  private bookingTypes: Map<number, BookingType>;
   
   private userIdCounter: number;
   private studioIdCounter: number;
@@ -126,6 +137,7 @@ export class MemStorage implements IStorage {
   private notificationGroupIdCounter: number;
   private bookingStudioIdCounter: number;
   private systemSettingIdCounter: number;
+  private bookingTypeIdCounter: number;
   
   public sessionStore: session.Store;
 
@@ -139,6 +151,7 @@ export class MemStorage implements IStorage {
     this.bookingStudios = new Map();
     this.pcrRooms = new Map();
     this.systemSettings = new Map();
+    this.bookingTypes = new Map();
     
     this.userIdCounter = 1;
     this.studioIdCounter = 1;
@@ -149,6 +162,7 @@ export class MemStorage implements IStorage {
     this.bookingStudioIdCounter = 1;
     this.pcrRoomIdCounter = 1;
     this.systemSettingIdCounter = 1;
+    this.bookingTypeIdCounter = 1;
     
     // Create memory store for sessions
     this.sessionStore = new MemoryStore({
@@ -254,6 +268,21 @@ export class MemStorage implements IStorage {
     // Create each notification group
     for (const group of notificationGroups) {
       this.createNotificationGroup(group);
+    }
+    
+    // Create default booking types
+    const defaultBookingTypes = [
+      { name: "Production", color: "#4B83E2", description: "Regular production booking" },
+      { name: "Rehearsal", color: "#7C2D12", description: "Rehearsal session" },
+      { name: "Meeting", color: "#0F766E", description: "Meeting or conference" },
+      { name: "Training", color: "#7C3AED", description: "Training session" },
+      { name: "Testing", color: "#DC2626", description: "Equipment testing" },
+      { name: "Setup", color: "#EA580C", description: "Equipment setup" },
+      { name: "Other", color: "#6B7280", description: "Other booking type" }
+    ];
+    
+    for (const bookingType of defaultBookingTypes) {
+      this.createBookingType(bookingType);
     }
   }
 
@@ -931,6 +960,47 @@ export class MemStorage implements IStorage {
     if (!setting) return false;
     
     return this.systemSettings.delete(setting.id);
+  }
+
+  // Booking Type methods
+  async getBookingType(id: number): Promise<BookingType | undefined> {
+    return this.bookingTypes.get(id);
+  }
+
+  async getAllBookingTypes(): Promise<BookingType[]> {
+    return Array.from(this.bookingTypes.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async createBookingType(bookingType: InsertBookingType): Promise<BookingType> {
+    const id = this.bookingTypeIdCounter++;
+    const newBookingType: BookingType = { ...bookingType, id };
+    this.bookingTypes.set(id, newBookingType);
+    return newBookingType;
+  }
+
+  async updateBookingType(id: number, data: Partial<InsertBookingType>): Promise<BookingType | undefined> {
+    const bookingType = this.bookingTypes.get(id);
+    if (!bookingType) return undefined;
+    
+    const updatedBookingType: BookingType = { ...bookingType, ...data };
+    this.bookingTypes.set(id, updatedBookingType);
+    return updatedBookingType;
+  }
+
+  async deleteBookingType(id: number): Promise<boolean> {
+    return this.bookingTypes.delete(id);
+  }
+
+  async getBookingTypeUsage(id: number): Promise<number> {
+    // For MemStorage, we'll need to iterate through bookings to count usage
+    // Since we don't have a proper type field yet, we'll return 0 for now
+    return 0;
+  }
+
+  async reorderBookingTypes(orderedIds: number[]): Promise<boolean> {
+    // For MemStorage, we can't really reorder since we don't have a position field
+    // This would need to be implemented with a position field in the schema
+    return true;
   }
 }
 
@@ -3061,6 +3131,84 @@ export class DatabaseStorage implements IStorage {
       return false;
     } catch (error) {
       console.error(`Error deleting alert with ID ${id}:`, error);
+      return false;
+    }
+  }
+
+  // Booking Type methods
+  async getBookingType(id: number): Promise<BookingType | undefined> {
+    try {
+      const [bookingType] = await db.select().from(bookingTypes).where(eq(bookingTypes.id, id));
+      return bookingType;
+    } catch (error) {
+      console.error(`Error getting booking type ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getAllBookingTypes(): Promise<BookingType[]> {
+    try {
+      return await db.select().from(bookingTypes).orderBy(bookingTypes.name);
+    } catch (error) {
+      console.error('Error getting all booking types:', error);
+      return [];
+    }
+  }
+
+  async createBookingType(bookingType: InsertBookingType): Promise<BookingType> {
+    try {
+      const [newBookingType] = await db.insert(bookingTypes).values(bookingType).returning();
+      return newBookingType;
+    } catch (error) {
+      console.error('Error creating booking type:', error);
+      throw new Error(`Failed to create booking type: ${error}`);
+    }
+  }
+
+  async updateBookingType(id: number, data: Partial<InsertBookingType>): Promise<BookingType | undefined> {
+    try {
+      const [updatedBookingType] = await db
+        .update(bookingTypes)
+        .set(data)
+        .where(eq(bookingTypes.id, id))
+        .returning();
+      
+      return updatedBookingType;
+    } catch (error) {
+      console.error(`Error updating booking type ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async deleteBookingType(id: number): Promise<boolean> {
+    try {
+      const [deletedBookingType] = await db.delete(bookingTypes).where(eq(bookingTypes.id, id)).returning();
+      return !!deletedBookingType;
+    } catch (error) {
+      console.error(`Error deleting booking type ${id}:`, error);
+      return false;
+    }
+  }
+
+  async getBookingTypeUsage(id: number): Promise<number> {
+    try {
+      // Count bookings that use this booking type
+      // For now, we'll return 0 since we don't have a direct booking type field yet
+      // This can be implemented when we add booking type association to bookings
+      return 0;
+    } catch (error) {
+      console.error(`Error getting booking type usage for ${id}:`, error);
+      return 0;
+    }
+  }
+
+  async reorderBookingTypes(orderedIds: number[]): Promise<boolean> {
+    try {
+      // For now, we'll just return true since we don't have a position field
+      // This can be implemented when we add position/order field to booking types
+      return true;
+    } catch (error) {
+      console.error('Error reordering booking types:', error);
       return false;
     }
   }

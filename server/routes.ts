@@ -12,7 +12,8 @@ import {
   insertBookingSchema, 
   insertAlertSchema,
   insertNotificationSchema,
-  insertNotificationGroupSchema
+  insertNotificationGroupSchema,
+  insertBookingTypeSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { ValidationError } from "zod-validation-error";
@@ -2417,6 +2418,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       res.status(500).json({ message: "Failed to restore backup" });
+    }
+  });
+
+  // Booking Types routes
+  app.get("/api/booking-types", isAuthenticated, async (req, res) => {
+    try {
+      const bookingTypes = await storage.getAllBookingTypes();
+      res.json(bookingTypes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch booking types" });
+    }
+  });
+
+  app.get("/api/booking-types/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const bookingType = await storage.getBookingType(id);
+      
+      if (!bookingType) {
+        return res.status(404).json({ message: "Booking type not found" });
+      }
+      
+      res.json(bookingType);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch booking type" });
+    }
+  });
+
+  app.post("/api/booking-types", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // Only admins can manage booking types
+      if (user.role !== "admin") {
+        return res.status(403).json({ 
+          message: "Only administrators can manage booking types" 
+        });
+      }
+      
+      const bookingTypeData = insertBookingTypeSchema.parse(req.body);
+      const newBookingType = await storage.createBookingType(bookingTypeData);
+      res.status(201).json(newBookingType);
+    } catch (error) {
+      if (error instanceof ValidationError || error instanceof ZodError) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to create booking type" });
+    }
+  });
+
+  app.patch("/api/booking-types/:id", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const id = parseInt(req.params.id);
+      
+      // Only admins can manage booking types
+      if (user.role !== "admin") {
+        return res.status(403).json({ 
+          message: "Only administrators can manage booking types" 
+        });
+      }
+      
+      const bookingType = await storage.getBookingType(id);
+      if (!bookingType) {
+        return res.status(404).json({ message: "Booking type not found" });
+      }
+      
+      const updateData = req.body;
+      const updatedBookingType = await storage.updateBookingType(id, updateData);
+      
+      if (!updatedBookingType) {
+        return res.status(404).json({ message: "Booking type not found" });
+      }
+      
+      res.json(updatedBookingType);
+    } catch (error) {
+      if (error instanceof ValidationError || error instanceof ZodError) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to update booking type" });
+    }
+  });
+
+  app.delete("/api/booking-types/:id", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const id = parseInt(req.params.id);
+      
+      // Only admins can manage booking types
+      if (user.role !== "admin") {
+        return res.status(403).json({ 
+          message: "Only administrators can manage booking types" 
+        });
+      }
+      
+      const bookingType = await storage.getBookingType(id);
+      if (!bookingType) {
+        return res.status(404).json({ message: "Booking type not found" });
+      }
+      
+      // Check if booking type is in use
+      const usage = await storage.getBookingTypeUsage(id);
+      if (usage > 0) {
+        return res.status(400).json({ 
+          message: `Cannot delete booking type "${bookingType.name}" - it is used by ${usage} booking(s)` 
+        });
+      }
+      
+      const deleted = await storage.deleteBookingType(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Booking type not found" });
+      }
+      
+      res.json({ message: "Booking type deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete booking type" });
+    }
+  });
+
+  app.get("/api/booking-types/:id/usage", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const usage = await storage.getBookingTypeUsage(id);
+      res.json({ usage });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get booking type usage" });
     }
   });
 
