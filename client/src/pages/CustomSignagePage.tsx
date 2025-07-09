@@ -1,19 +1,50 @@
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import WeatherWidget from "@/components/weather/WeatherWidget";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { getFacilityTimezoneAsync } from "@/lib/timezoneConfig";
-import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Calendar, Radio, AlertTriangle, Camera } from "lucide-react";
+import { Clock, Calendar, Radio, AlertTriangle } from "lucide-react";
+import { format, isWithinInterval, addDays, startOfDay, endOfDay, parseISO } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+import { getFacilityTimezoneAsync } from "@/lib/timezoneConfig";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
-// Define timezone and time functions
+interface Booking {
+  id: number;
+  title: string;
+  description: string;
+  start: string;
+  end: string;
+  status: 'confirmed' | 'tentative' | 'cancelled';
+  type: 'production' | 'maintenance' | 'meeting';
+  color: string;
+  studioId: number;
+}
+
+interface Studio {
+  id: number;
+  name: string;
+  status: 'available' | 'maintenance' | 'in_use';
+}
+
+interface BookingStudioLink {
+  id: number;
+  bookingId: number;
+  studioId: number;
+}
+
+interface WeatherData {
+  temperature: number;
+  condition: string;
+  humidity: number;
+  windSpeed: number;
+  icon: string;
+  location: string;
+}
+
 const BUILD_TIME_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
 
-function getCurrentFacilityTime() {
-  return new Date(); // Current UTC time for database comparison
+function getCurrentFacilityTime(timezone: string) {
+  return new Date();
 }
 
 function formatFacilityTime(date: Date | string, formatStr: string, timezone: string) {
@@ -26,63 +57,64 @@ function formatFacilityTime(date: Date | string, formatStr: string, timezone: st
   return format(facilityDate, formatStr);
 }
 
-interface CustomSignageProps {
-  studioIds?: string;
-  title?: string;
-  layout?: 'grid' | 'list' | 'compact';
-  showWeather?: boolean;
-  showAlerts?: boolean;
-  showWeekly?: boolean;
-  refreshInterval?: number;
+function isBookingActive(booking: any, currentTime: Date): boolean {
+  const start = parseISO(booking.start);
+  const end = parseISO(booking.end);
+  return currentTime >= start && currentTime <= end;
 }
 
-interface Studio {
-  id: number;
-  name: string;
-  status?: string;
+function getNextAvailable(studioId: number, bookings: any[], bookingStudioLinks: any[], timezone: string): string {
+  const now = new Date();
+  
+  const studioBookings = bookings.filter(booking => {
+    const isDirectStudio = booking.studioId === studioId;
+    const hasLink = bookingStudioLinks.some(link => link.studioId === studioId && link.bookingId === booking.id);
+    return isDirectStudio || hasLink;
+  }).sort((a, b) => parseISO(a.start).getTime() - parseISO(b.start).getTime());
+
+  const nextBooking = studioBookings.find(booking => parseISO(booking.start) > now);
+  if (nextBooking) {
+    return formatFacilityTime(nextBooking.start, 'h:mm a', timezone);
+  }
+  
+  return 'Available';
 }
 
-interface Booking {
-  id: number;
-  title: string;
-  description?: string;
-  start: string;
-  end: string;
-  type: string;
-  status: string;
-  color: string;
-  studios?: Studio[];
-  studioNames?: string;
-}
-
-interface Alert {
-  id: number;
-  title: string;
-  description?: string;
-  alert_type: string;
-  severity: string;
-  start: string;
-  end: string;
-  status: string;
+function getStudioNames(booking: any, studios: any[], bookingStudioLinks: any[]) {
+  const studioIds = new Set<number>();
+  
+  if (booking.studioId) {
+    studioIds.add(booking.studioId);
+  }
+  
+  bookingStudioLinks
+    .filter(link => link.bookingId === booking.id)
+    .forEach(link => studioIds.add(link.studioId));
+  
+  const studioNames = Array.from(studioIds)
+    .map(id => studios.find(s => s.id === id)?.name)
+    .filter(Boolean);
+  
+  return studioNames.length > 0 ? studioNames.join(', ') : 'Unknown Studio';
 }
 
 export default function CustomSignagePage() {
-  const [currentTime, setCurrentTime] = useState(() => getCurrentFacilityTime());
+  const [currentTime, setCurrentTime] = useState(() => getCurrentFacilityTime(BUILD_TIME_TIMEZONE));
+  const [weather, setWeather] = useState<WeatherData | null>(null);
   const [facilityTimezone, setFacilityTimezone] = useState<string>(BUILD_TIME_TIMEZONE);
   
   // Parse URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const studioIds = urlParams.get('studios');
   const title = urlParams.get('title') || 'Studio Display';
-  const layout = (urlParams.get('layout') as 'grid' | 'list' | 'compact') || 'grid';
   const showWeather = urlParams.get('weather') !== 'false';
   const showAlerts = urlParams.get('alerts') !== 'false';
   const showWeekly = urlParams.get('weekly') !== 'false';
-  const refreshInterval = parseInt(urlParams.get('refresh') || '120') * 1000; // Convert to milliseconds
+  const refreshInterval = parseInt(urlParams.get('refresh') || '120') * 1000;
   
   const { siteName } = useSiteSettings();
   
-  // Load facility timezone
+  // Load facility timezone from database
   useEffect(() => {
     const loadTimezone = async () => {
       try {
@@ -95,7 +127,7 @@ export default function CustomSignagePage() {
     loadTimezone();
   }, []);
   
-  // Auto-refresh time
+  // Auto-refresh time every 30 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(getCurrentFacilityTime(facilityTimezone));
@@ -104,330 +136,418 @@ export default function CustomSignagePage() {
     return () => clearInterval(timer);
   }, [facilityTimezone]);
   
-  // Auto-refresh page data
+  // Auto-refresh data every 2 minutes
   useEffect(() => {
-    const timer = setInterval(() => {
+    const refreshTimer = setInterval(() => {
       window.location.reload();
     }, refreshInterval);
     
-    return () => clearInterval(timer);
+    return () => clearInterval(refreshTimer);
   }, [refreshInterval]);
-  
-  // Fetch studios
-  const { data: allStudios = [] } = useQuery({
-    queryKey: ['/api/studios'],
-    queryFn: async () => {
-      const res = await fetch('/api/studios');
-      return res.json();
-    },
-    refetchInterval: 60000, // Refresh every minute
-  });
-  
-  // Fetch bookings
-  const { data: allBookings = [] } = useQuery({
-    queryKey: ['/api/bookings'],
-    queryFn: async () => {
-      const res = await fetch('/api/bookings');
-      return res.json();
-    },
+
+  // Fetch weather data if enabled
+  useEffect(() => {
+    if (!showWeather) return;
+    
+    const fetchWeatherData = async () => {
+      try {
+        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        if (!apiKey) return;
+
+        const weatherLocation = import.meta.env.VITE_WEATHER_LOCATION;
+        if (!weatherLocation) return;
+
+        const currentResponse = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${apiKey}&units=imperial`
+        );
+        
+        if (currentResponse.ok) {
+          const currentData = await currentResponse.json();
+          setWeather({
+            temperature: Math.round(currentData.main.temp),
+            condition: currentData.weather[0].description,
+            humidity: currentData.main.humidity,
+            windSpeed: Math.round(currentData.wind.speed),
+            icon: currentData.weather[0].icon,
+            location: currentData.name
+          });
+        }
+      } catch (error) {
+        console.error("Weather API error:", error);
+      }
+    };
+
+    fetchWeatherData();
+    const weatherTimer = setInterval(fetchWeatherData, 300000);
+    return () => clearInterval(weatherTimer);
+  }, [showWeather]);
+
+  const { data: bookings = [] } = useQuery<Booking[]>({
+    queryKey: ['/api/public/bookings'],
     refetchInterval: 60000,
+    staleTime: 0,
+    gcTime: 0,
   });
-  
-  // Fetch booking-studio relationships
-  const { data: bookingStudios = [] } = useQuery({
-    queryKey: ['/api/booking-studios'],
-    queryFn: async () => {
-      const res = await fetch('/api/booking-studios');
-      return res.json();
-    },
-    refetchInterval: 60000,
-  });
-  
-  // Fetch alerts
-  const { data: allAlerts = [] } = useQuery({
+
+  const { data: allAlerts = [] } = useQuery<any[]>({
     queryKey: ['/api/alerts'],
-    queryFn: async () => {
-      const res = await fetch('/api/alerts');
-      return res.json();
-    },
+    refetchInterval: 30000,
+    staleTime: 0,
+    gcTime: 0,
+  });
+
+  const { data: studios = [] } = useQuery<Studio[]>({
+    queryKey: ['/api/studios'],
     refetchInterval: 60000,
   });
-  
+
+  const { data: bookingStudioLinks = [] } = useQuery<BookingStudioLink[]>({
+    queryKey: ['/api/public/booking-studios'],
+    refetchInterval: 60000,
+  });
+
   // Filter studios based on URL parameter
   const filteredStudios = studioIds 
-    ? allStudios.filter((studio: Studio) => 
+    ? studios.filter((studio: Studio) => 
         studioIds.split(',').map(id => parseInt(id.trim())).includes(studio.id)
       )
-    : allStudios;
-  
-  // Get today's date range in facility timezone
-  const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-  
-  // Filter bookings for today and selected studios
-  const todaysBookings = allBookings.filter((booking: Booking) => {
-    const bookingStart = new Date(booking.start);
-    const bookingEnd = new Date(booking.end);
+    : studios;
+
+  // Combine bookings with alerts
+  const combinedBookings = useMemo(() => {
+    const alertsAsBookings = allAlerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      status: alert.status || 'active',
+      studioId: null,
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107'
+    }));
     
-    // Check if booking is today
-    const isToday = (bookingStart >= todayStart && bookingStart < todayEnd) ||
-                   (bookingEnd > todayStart && bookingEnd <= todayEnd) ||
-                   (bookingStart <= todayStart && bookingEnd >= todayEnd);
-    
-    if (!isToday) return false;
-    
-    // If no specific studios are selected, show all bookings
-    if (!studioIds) return true;
-    
-    // Check if booking involves any of the selected studios
-    const selectedStudioIds = studioIds.split(',').map(id => parseInt(id.trim()));
-    const bookingStudioIds = bookingStudios
-      .filter((bs: any) => bs.bookingId === booking.id)
-      .map((bs: any) => bs.studioId);
-    
-    return bookingStudioIds.some(id => selectedStudioIds.includes(id));
-  });
+    return [...bookings, ...alertsAsBookings];
+  }, [bookings, allAlerts]);
+
+  // Filter today's bookings - use proper facility timezone bounds
+  const nowInFacility = toZonedTime(new Date(), facilityTimezone);
+  const todayStartInFacility = startOfDay(nowInFacility);
+  const todayEndInFacility = endOfDay(nowInFacility);
+  const today = fromZonedTime(todayStartInFacility, facilityTimezone);
+  const todayEnd = fromZonedTime(todayEndInFacility, facilityTimezone);
   
-  // Sort bookings by start time
-  const sortedBookings = todaysBookings.sort((a: Booking, b: Booking) => 
-    new Date(a.start).getTime() - new Date(b.start).getTime()
-  );
-  
-  // Filter active alerts
-  const activeAlerts = showAlerts ? allAlerts.filter((alert: Alert) => 
-    alert.status === 'active'
-  ) : [];
-  
-  // Get studio status for selected studios
-  const studioStatus = filteredStudios.map((studio: Studio) => {
-    const currentBooking = sortedBookings.find((booking: Booking) => {
-      const now = new Date();
-      const start = new Date(booking.start);
-      const end = new Date(booking.end);
-      const bookingStudioIds = bookingStudios
+  const todaysBookings = combinedBookings.filter(booking => {
+    const bookingStart = parseISO(booking.start);
+    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
+    const withinInterval = isWithinInterval(bookingStart, { start: today, end: todayEnd });
+    
+    if (!withinInterval) return false;
+    
+    // Apply studio filter for regular bookings
+    if (!isMaintenanceType && studioIds) {
+      const selectedStudioIds = studioIds.split(',').map(id => parseInt(id.trim()));
+      const bookingStudioIds = bookingStudioLinks
         .filter((bs: any) => bs.bookingId === booking.id)
         .map((bs: any) => bs.studioId);
       
-      return bookingStudioIds.includes(studio.id) && now >= start && now <= end;
-    });
+      const hasDirectStudio = selectedStudioIds.includes(booking.studioId);
+      const hasLinkedStudio = bookingStudioIds.some(id => selectedStudioIds.includes(id));
+      
+      return hasDirectStudio || hasLinkedStudio;
+    }
+    
+    return !isMaintenanceType;
+  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+  // Get today's alerts
+  const todaysAlerts = showAlerts ? combinedBookings.filter(booking => {
+    const bookingStart = parseISO(booking.start);
+    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance' || booking.type === 'alert';
+    const hasAlertKeyword = booking.title && (
+      booking.title.toLowerCase().includes('alert') ||
+      booking.title.toLowerCase().includes('outage') ||
+      booking.title.toLowerCase().includes('emergency') ||
+      booking.title.toLowerCase().includes('maintenance') ||
+      booking.title.toLowerCase().includes('notice') ||
+      booking.title.toLowerCase().includes('warning')
+    );
+    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && (isMaintenanceType || hasAlertKeyword);
+  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()) : [];
+
+  // Get weekly overview
+  const weeklyBookings = showWeekly ? Array.from({ length: 7 }, (_, i) => {
+    const facilityDate = addDays(nowInFacility, i);
+    const date = fromZonedTime(startOfDay(facilityDate), facilityTimezone);
+    const dayEnd = fromZonedTime(endOfDay(facilityDate), facilityTimezone);
+    const dayBookings = combinedBookings.filter(booking => {
+      const bookingStart = parseISO(booking.start);
+      const withinInterval = isWithinInterval(bookingStart, { start: date, end: dayEnd });
+      
+      if (!withinInterval) return false;
+      
+      // Apply studio filter
+      if (studioIds) {
+        const selectedStudioIds = studioIds.split(',').map(id => parseInt(id.trim()));
+        const bookingStudioIds = bookingStudioLinks
+          .filter((bs: any) => bs.bookingId === booking.id)
+          .map((bs: any) => bs.studioId);
+        
+        const hasDirectStudio = selectedStudioIds.includes(booking.studioId);
+        const hasLinkedStudio = bookingStudioIds.some(id => selectedStudioIds.includes(id));
+        
+        return hasDirectStudio || hasLinkedStudio;
+      }
+      
+      return true;
+    }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
     
     return {
+      date,
+      bookings: dayBookings,
+    };
+  }) : [];
+
+  // Get current studio status for filtered studios
+  const studioStatus = filteredStudios.map(studio => {
+    const activeBooking = combinedBookings.find(booking => {
+      const isDirectStudio = booking.studioId === studio.id;
+      const hasLink = bookingStudioLinks.some(link => link.studioId === studio.id && link.bookingId === booking.id);
+      return (isDirectStudio || hasLink) && isBookingActive(booking, currentTime);
+    });
+
+    return {
       ...studio,
-      currentBooking,
-      status: currentBooking ? 'in-use' : 'available'
+      currentBooking: activeBooking,
+      nextAvailable: getNextAvailable(studio.id, combinedBookings, bookingStudioLinks, facilityTimezone),
     };
   });
-  
-  // Format time
-  const formatTime = (dateStr: string) => {
-    return format(new Date(dateStr), 'h:mm a');
-  };
-  
-  // Format booking duration
-  const formatDuration = (start: string, end: string) => {
-    return `${formatTime(start)} - ${formatTime(end)}`;
-  };
-  
-  // Get layout classes
-  const getLayoutClasses = () => {
-    switch (layout) {
-      case 'list':
-        return 'space-y-4';
-      case 'compact':
-        return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
-      default: // grid
-        return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
-    }
-  };
-  
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-6xl font-bold text-white drop-shadow-lg">
-              {title}
-            </h1>
-            <p className="text-2xl text-blue-200 mt-2">
-              {siteName || 'BookStud.io'}
-            </p>
-          </div>
-          
-          <div className="text-right">
-            <div className="text-4xl font-bold text-white drop-shadow-lg">
-              {format(currentTime, 'h:mm a')}
-            </div>
-            <div className="text-xl text-blue-200">
-              {format(currentTime, 'EEEE, MMMM d, yyyy')}
-            </div>
-          </div>
+      <div className="flex justify-between items-center mb-10">
+        <div className="flex items-center space-x-6">
+          <div className="text-6xl font-bold text-white drop-shadow-lg">{title}</div>
+          <Badge variant="outline" className="text-xl px-6 py-3 bg-blue-500/20 text-blue-300 border-blue-400 font-semibold">
+            CUSTOM DISPLAY
+          </Badge>
         </div>
-        
-        {showWeather && (
-          <div className="flex justify-end">
-            <WeatherWidget size="large" />
-          </div>
-        )}
-      </div>
-      
-      {/* Active Alerts */}
-      {showAlerts && activeAlerts.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-red-400 mb-4">
-            🚨 Active Facility Alerts
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeAlerts.map((alert: Alert) => (
-              <div
-                key={alert.id}
-                className={`p-4 rounded-lg border-l-4 ${
-                  alert.severity === 'critical' ? 'bg-red-900 border-red-500' :
-                  alert.severity === 'high' ? 'bg-orange-900 border-orange-500' :
-                  alert.severity === 'medium' ? 'bg-yellow-900 border-yellow-500' :
-                  'bg-blue-900 border-blue-500'
-                }`}
-              >
-                <h3 className="text-xl font-bold text-white">{alert.title}</h3>
-                {alert.description && (
-                  <p className="text-gray-300 mt-2">{alert.description}</p>
-                )}
-                <p className="text-sm text-gray-400 mt-2">
-                  {formatDuration(alert.start, alert.end)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {/* Studio Status Overview */}
-      {filteredStudios.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-6">
-            Studio Status
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {studioStatus.map((studio) => (
-              <div
-                key={studio.id}
-                className={`p-4 rounded-lg border-2 ${
-                  studio.status === 'in-use' 
-                    ? 'bg-red-900 border-red-500' 
-                    : 'bg-green-900 border-green-500'
-                }`}
-              >
-                <h3 className="text-lg font-bold text-white text-center">
-                  {studio.name}
-                </h3>
-                <div className={`text-center mt-2 ${
-                  studio.status === 'in-use' ? 'text-red-300' : 'text-green-300'
-                }`}>
-                  {studio.status === 'in-use' ? '🔴 IN USE' : '🟢 AVAILABLE'}
+        <div className="text-right text-white">
+          <div className="flex items-center justify-end space-x-6">
+            {/* Weather Info */}
+            {weather && showWeather && (
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-2 mb-1">
+                  <img 
+                    src={`https://openweathermap.org/img/w/${weather.icon}.png`}
+                    alt={weather.condition}
+                    className="w-12 h-12"
+                  />
+                  <div className="text-3xl font-bold">{weather.temperature}°F</div>
                 </div>
-                {studio.currentBooking && (
-                  <div className="text-center mt-2 text-white text-sm">
-                    {studio.currentBooking.title}
-                  </div>
-                )}
+                <div className="text-lg text-slate-300 capitalize">{weather.condition}</div>
+                <div className="text-base text-slate-400">{weather.location}</div>
               </div>
-            ))}
+            )}
+            
+            {/* Time Info */}
+            <div>
+              <div className="text-4xl font-bold">
+                {new Date().toLocaleTimeString('en-US', { 
+                  timeZone: facilityTimezone,
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                })}
+              </div>
+              <div className="text-xl text-slate-300">
+                {new Date().toLocaleDateString('en-US', {
+                  timeZone: facilityTimezone,
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </div>
+              <div className="text-lg text-slate-400">
+                {facilityTimezone?.includes('Los_Angeles') ? 'Pacific Time' : 
+                 facilityTimezone?.includes('Chicago') ? 'Central Time' : 
+                 facilityTimezone?.includes('New_York') ? 'Eastern Time' : 
+                 facilityTimezone?.includes('Denver') ? 'Mountain Time' : 
+                 facilityTimezone || 'Local Time'}
+              </div>
+            </div>
           </div>
         </div>
-      )}
-      
-      {/* Today's Schedule */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-6">
-          Today's Schedule
-          {studioIds && (
-            <span className="text-xl text-blue-300 ml-4">
-              ({filteredStudios.map(s => s.name).join(', ')})
-            </span>
-          )}
-        </h2>
-        
-        {sortedBookings.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-2xl text-gray-400">
-              No bookings scheduled for today
-            </p>
-          </div>
-        ) : (
-          <div className={getLayoutClasses()}>
-            {sortedBookings.map((booking: Booking) => {
-              const bookingStudioNames = bookingStudios
-                .filter((bs: any) => bs.bookingId === booking.id)
-                .map((bs: any) => {
-                  const studio = allStudios.find((s: Studio) => s.id === bs.studioId);
-                  return studio?.name;
-                })
-                .filter(Boolean)
-                .join(', ');
-              
-              return (
-                <div
-                  key={booking.id}
-                  className={`p-6 rounded-lg shadow-lg border-l-4 ${
-                    layout === 'compact' ? 'p-4' : 'p-6'
-                  }`}
-                  style={{
-                    backgroundColor: `${booking.color}20`,
-                    borderLeftColor: booking.color
-                  }}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className={`font-bold text-white ${
-                      layout === 'compact' ? 'text-lg' : 'text-xl'
-                    }`}>
-                      {booking.title}
-                    </h3>
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                      booking.status === 'confirmed' ? 'bg-green-600 text-white' :
-                      booking.status === 'tentative' ? 'bg-yellow-600 text-white' :
-                      'bg-gray-600 text-white'
-                    }`}>
-                      {booking.status.toUpperCase()}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center text-blue-300">
-                      <span className="text-lg mr-2">🕒</span>
-                      <span className={layout === 'compact' ? 'text-sm' : 'text-base'}>
-                        {formatDuration(booking.start, booking.end)}
-                      </span>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Today's Schedule */}
+        <div className="xl:col-span-2">
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white text-3xl">
+                <Calendar className="mr-4 h-8 w-8" />
+                Today's Schedule
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {todaysBookings.length === 0 ? (
+                <div className="text-center py-12 text-slate-400">
+                  <Calendar className="mx-auto h-16 w-16 mb-4 opacity-50" />
+                  <p className="text-xl">No bookings scheduled for today</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-4">
+                  {todaysBookings.map((booking) => (
+                    <div key={booking.id} className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+                      <div className="text-lg font-semibold text-white mb-2 truncate">
+                        {booking.title}
+                      </div>
+                      <div className="text-sm text-slate-300 mb-2">
+                        {formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}
+                      </div>
+                      <div className="text-sm text-slate-400">
+                        {getStudioNames(booking, studios, bookingStudioLinks)}
+                      </div>
+                      {booking.status && (
+                        <div className="mt-2">
+                          <Badge variant="outline" className={`text-xs ${
+                            booking.status === 'confirmed' ? 'bg-green-500/20 text-green-300 border-green-400' :
+                            booking.status === 'tentative' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400' :
+                            'bg-red-500/20 text-red-300 border-red-400'
+                          }`}>
+                            {booking.status.toUpperCase()}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
-                    
-                    {bookingStudioNames && (
-                      <div className="flex items-center text-green-300">
-                        <span className="text-lg mr-2">📺</span>
-                        <span className={layout === 'compact' ? 'text-sm' : 'text-base'}>
-                          {bookingStudioNames}
-                        </span>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* Active Site Alerts */}
+          {showAlerts && todaysAlerts.length > 0 && (
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="flex items-center text-white text-2xl">
+                  <AlertTriangle className="mr-3 h-6 w-6" />
+                  Active Site Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {todaysAlerts.map((alert) => (
+                    <div key={alert.id} className="bg-orange-500/20 rounded-lg p-4 border border-orange-400">
+                      <div className="text-lg font-semibold text-white mb-2">
+                        {alert.title}
+                      </div>
+                      <div className="text-sm text-slate-300 mb-2">
+                        {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                      </div>
+                      {alert.description && (
+                        <div className="text-sm text-slate-400">
+                          {alert.description}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Studio Status */}
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white text-2xl">
+                <Radio className="mr-3 h-6 w-6" />
+                Studio Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                {studioStatus.map((studio) => (
+                  <div key={studio.id} className="bg-slate-700/50 rounded-lg p-3">
+                    <div className="text-lg font-semibold text-white mb-1">
+                      {studio.name}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-3 h-3 rounded-full ${
+                        studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
+                      }`} />
+                      <div className="text-sm text-slate-300">
+                        {studio.currentBooking ? 'IN USE' : 'AVAILABLE'}
+                      </div>
+                    </div>
+                    {studio.currentBooking && (
+                      <div className="text-sm text-slate-400 mt-1 truncate">
+                        {studio.currentBooking.title}
                       </div>
                     )}
-                    
-                    {booking.description && (
-                      <p className="text-gray-300 text-sm mt-2">
-                        {booking.description.length > 100 && layout === 'compact'
-                          ? `${booking.description.substring(0, 100)}...`
-                          : booking.description
-                        }
-                      </p>
-                    )}
+                    <div className="text-xs text-slate-500 mt-1">
+                      Next: {studio.nextAvailable}
+                    </div>
                   </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Weekly Overview */}
+          {showWeekly && (
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="flex items-center text-white text-2xl">
+                  <Clock className="mr-3 h-6 w-6" />
+                  Weekly Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {weeklyBookings.map((day, index) => (
+                    <div key={index} className="border-l-4 border-slate-600 pl-4">
+                      <div className="text-lg font-semibold text-white mb-2">
+                        {formatFacilityTime(day.date, 'EEEE, MMM d', facilityTimezone)}
+                      </div>
+                      {day.bookings.length === 0 ? (
+                        <div className="text-sm text-slate-500">No bookings</div>
+                      ) : (
+                        <div className="space-y-2">
+                          {day.bookings.slice(0, 3).map((booking) => (
+                            <div key={booking.id} className="text-sm">
+                              <div className="text-slate-300 font-medium truncate">
+                                {booking.title}
+                              </div>
+                              <div className="text-slate-500">
+                                {formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}
+                              </div>
+                            </div>
+                          ))}
+                          {day.bookings.length > 3 && (
+                            <div className="text-xs text-slate-500">
+                              +{day.bookings.length - 3} more
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      
-      {/* Footer */}
-      <div className="text-center text-gray-400 text-lg">
-        <p>Updated every {refreshInterval / 1000} seconds • {format(new Date(), 'h:mm:ss a')}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );

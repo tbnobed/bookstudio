@@ -15,11 +15,41 @@ The BookStud.io system now includes customizable signage displays that can be co
 
 ### Display Options
 - `title=Studio%20A%20Display` - Custom title for the display (URL encoded)
-- `layout=grid|list|compact` - Layout style (default: grid)
 - `weather=true|false` - Show weather widget (default: true)
 - `alerts=true|false` - Show facility alerts (default: true)
 - `weekly=true|false` - Show weekly overview (default: true)
 - `refresh=120` - Auto-refresh interval in seconds (default: 120)
+
+## How to Create New Signage Pages
+
+There are two ways to create new signage pages:
+
+### Method 1: URL Parameters (Recommended)
+1. Use the `/signage/custom` route with URL parameters
+2. Configure display settings through the URL
+3. Examples:
+   - `/signage/custom?studios=1,2&title=News%20Department`
+   - `/signage/custom?studios=5,6,7&title=Sports%20Area&weather=false`
+
+### Method 2: Create New Page Files (For Advanced Users)
+1. Create new page file in `client/src/pages/` (e.g., `NewsSignagePage.tsx`)
+2. Copy the structure from `CustomSignagePage.tsx`
+3. Add hardcoded studio filtering logic
+4. Add route to `client/src/App.tsx`
+
+## Assigning Studios to Pages
+
+### Via URL Parameters
+Simply include the studio IDs in the `studios` parameter:
+- Single studio: `?studios=1`
+- Multiple studios: `?studios=1,2,3`
+- All studios: Omit the `studios` parameter
+
+### Finding Studio IDs
+1. Log into the BookStud.io admin panel
+2. Go to Settings → Studios
+3. Note the ID numbers for each studio
+4. Use these IDs in your URL parameters
 
 ## Example URLs
 
