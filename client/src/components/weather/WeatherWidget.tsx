@@ -234,33 +234,33 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
   return (
     <div className={`${className}`}>
       {/* Current Weather */}
-      <div className="flex items-center space-x-2">
-        <WeatherIcon className={`${iconSizes[size]} text-blue-500`} />
-        <div className={`${sizeClasses[size]}`}>
-          <div className="flex items-center space-x-1">
-            <span className="font-semibold">{weather.temperature}°F</span>
-            <span className="text-gray-600 capitalize">{weather.condition}</span>
+      <div className="flex items-center justify-end space-x-4">
+        <div className={`text-right ${sizeClasses[size]}`}>
+          <div className="flex items-center justify-end space-x-2">
+            <span className="text-gray-600 capitalize text-lg">{weather.condition}</span>
+            <span className="font-bold text-2xl">{weather.temperature}°F</span>
           </div>
           {size !== 'compact' && (
-            <div className="flex items-center space-x-3 text-gray-500 mt-1">
+            <div className="flex items-center justify-end space-x-4 text-gray-500 mt-2">
               <div className="flex items-center space-x-1">
-                <Droplets className="h-3 w-3" />
-                <span>{weather.humidity}%</span>
+                <Droplets className="h-4 w-4" />
+                <span className="text-base">{weather.humidity}%</span>
               </div>
               <div className="flex items-center space-x-1">
-                <Wind className="h-3 w-3" />
-                <span>{weather.windSpeed} mph</span>
+                <Wind className="h-4 w-4" />
+                <span className="text-base">{weather.windSpeed} mph</span>
               </div>
             </div>
           )}
         </div>
+        <WeatherIcon className={`${iconSizes[size]} text-blue-500`} />
       </div>
 
       {/* Forecast */}
       {showForecast && forecast && forecast.forecast.length > 0 && (
-        <div className="mt-4">
-          <h4 className={`font-semibold mb-2 ${sizeClasses[size]}`}>6-Day Forecast</h4>
-          <div className="grid grid-cols-6 gap-2 justify-items-center">
+        <div className="mt-6">
+          <h4 className={`font-bold mb-3 text-right text-lg ${sizeClasses[size]}`}>6-Day Forecast</h4>
+          <div className="grid grid-cols-6 gap-3 justify-items-center">
             {forecast.forecast.map((day, index) => {
               const ForecastIcon = getWeatherIcon(day.icon);
               const date = new Date(day.date + 'T12:00:00'); // Add time to avoid timezone shifts
@@ -270,13 +270,13 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
               });
               
               return (
-                <div key={day.date} className="text-center">
-                  <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
+                <div key={day.date} className="text-center bg-white/50 rounded-lg p-2 backdrop-blur-sm">
+                  <div className={`text-sm font-semibold text-gray-700 mb-1`}>
                     {index === 0 ? 'Today' : dayName}
                   </div>
-                  <ForecastIcon className={`${iconSizes[size]} mx-auto text-blue-500 my-1`} />
-                  <div className={`${sizeClasses[size]} text-gray-600`}>
-                    <div>{day.temperature.max}°</div>
+                  <ForecastIcon className={`h-6 w-6 mx-auto text-blue-500 my-2`} />
+                  <div className={`text-sm text-gray-600`}>
+                    <div className="font-bold">{day.temperature.max}°</div>
                     <div className="text-gray-400">{day.temperature.min}°</div>
                   </div>
                 </div>
