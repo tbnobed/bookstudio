@@ -119,8 +119,9 @@ async function createCoreBookingTypes() {
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL UNIQUE,
       description TEXT,
-      color TEXT,
-      icon TEXT,
+      color TEXT NOT NULL DEFAULT '#3b82f6',
+      is_active BOOLEAN DEFAULT true,
+      sort_order INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -339,27 +340,28 @@ async function createDefaultNotificationGroups() {
 async function createDefaultBookingTypes() {
   console.log('Creating default booking types...');
   
-  // Ensure the table exists (defensive programming)
+  // Ensure the table exists with proper schema
   await query(`
     CREATE TABLE IF NOT EXISTS booking_types (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL UNIQUE,
       description TEXT,
-      color TEXT,
-      icon TEXT,
+      color TEXT NOT NULL DEFAULT '#3b82f6',
+      is_active BOOLEAN DEFAULT true,
+      sort_order INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
   
   const defaultTypes = [
-    { name: 'Production', description: 'Regular production booking', color: '#3b82f6', icon: 'camera' },
-    { name: 'Rehearsal', description: 'Rehearsal session', color: '#8b5cf6', icon: 'play' },
-    { name: 'Meeting', description: 'Meeting or conference', color: '#10b981', icon: 'users' },
-    { name: 'Training', description: 'Training session', color: '#f59e0b', icon: 'graduation-cap' },
-    { name: 'Testing', description: 'Equipment or system testing', color: '#ef4444', icon: 'settings' },
-    { name: 'Setup', description: 'Setup or preparation', color: '#6b7280', icon: 'tools' },
-    { name: 'Other', description: 'Other type of booking', color: '#84cc16', icon: 'more-horizontal' }
+    { name: 'Production', description: 'Regular production booking', color: '#3b82f6', sortOrder: 1 },
+    { name: 'Rehearsal', description: 'Rehearsal session', color: '#8b5cf6', sortOrder: 2 },
+    { name: 'Meeting', description: 'Meeting or conference', color: '#10b981', sortOrder: 3 },
+    { name: 'Training', description: 'Training session', color: '#f59e0b', sortOrder: 4 },
+    { name: 'Testing', description: 'Equipment or system testing', color: '#ef4444', sortOrder: 5 },
+    { name: 'Setup', description: 'Setup or preparation', color: '#6b7280', sortOrder: 6 },
+    { name: 'Other', description: 'Other type of booking', color: '#84cc16', sortOrder: 7 }
   ];
   
   for (const type of defaultTypes) {
@@ -368,9 +370,9 @@ async function createDefaultBookingTypes() {
       
       if (exists.rows.length === 0) {
         await query(`
-          INSERT INTO booking_types (name, description, color, icon)
-          VALUES ($1, $2, $3, $4)
-        `, [type.name, type.description, type.color, type.icon]);
+          INSERT INTO booking_types (name, description, color, is_active, sort_order)
+          VALUES ($1, $2, $3, true, $4)
+        `, [type.name, type.description, type.color, type.sortOrder]);
         
         console.log(`✅ Created booking type: ${type.name}`);
       } else {

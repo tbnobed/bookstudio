@@ -168,6 +168,32 @@ async function ensureBookingTypesTable() {
     console.log('✅ Booking_types table created with default types');
   } else {
     console.log('✅ Booking_types table already exists');
+    
+    // Add missing columns to existing booking_types table
+    console.log('Adding missing columns to booking_types table...');
+    try {
+      await query(`ALTER TABLE booking_types ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;`);
+      console.log('✅ Added is_active column to booking_types');
+    } catch (error) {
+      console.log('✅ Column is_active already exists in booking_types');
+    }
+    
+    try {
+      await query(`ALTER TABLE booking_types ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;`);
+      console.log('✅ Added sort_order column to booking_types');
+    } catch (error) {
+      console.log('✅ Column sort_order already exists in booking_types');
+    }
+    
+    // Update color column to have NOT NULL constraint with default
+    try {
+      await query(`ALTER TABLE booking_types ALTER COLUMN color SET DEFAULT '#3b82f6';`);
+      await query(`UPDATE booking_types SET color = '#3b82f6' WHERE color IS NULL;`);
+      await query(`ALTER TABLE booking_types ALTER COLUMN color SET NOT NULL;`);
+      console.log('✅ Updated color column in booking_types');
+    } catch (error) {
+      console.log('✅ Color column already properly configured in booking_types');
+    }
   }
 }
 
