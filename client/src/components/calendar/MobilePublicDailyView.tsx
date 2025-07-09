@@ -457,14 +457,14 @@ export default function MobilePublicDailyView({
           ) : (
             <div className="p-4">
               {/* Timeline view - all bookings sorted by time */}
-              {bookingsWithStudios.length === 0 ? (
+              {combinedBookings.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Calendar size={48} className="mx-auto mb-2 text-gray-400" />
                   <p>No bookings scheduled for today</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {bookingsWithStudios.map(booking => {
+                  {combinedBookings.map(booking => {
                     const startTime = new Date(booking.start);
                     const endTime = new Date(booking.end);
                     const pcrRoom = getPcrRoom(booking);

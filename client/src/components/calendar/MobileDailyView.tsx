@@ -646,17 +646,23 @@ export default function MobileDailyView({
                                 PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"}
                               </div>
                               
-                              {isUpcoming && (
+                              {booking.status === 'cancelled' ? (
+                                <div className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                                  </svg>
+                                  Cancelled
+                                </div>
+                              ) : isUpcoming ? (
                                 <div className="text-xs text-amber-700 mt-1">
                                   Starts in {formatDistance(bookingStart, now)}
                                 </div>
-                              )}
-                              
-                              {isActive && (
+                              ) : isActive ? (
                                 <div className="text-xs text-red-700 mt-1">
                                   Ends in {formatDistance(bookingEnd, now)}
                                 </div>
-                              )}
+                              ) : null}
                             </div>
                           );
                         })}
@@ -818,7 +824,15 @@ export default function MobileDailyView({
                           </div>
                         )}
                         
-                        {isUpcoming && (
+                        {booking.status === 'cancelled' ? (
+                          <div className="text-xs text-red-600 mt-2 flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10" />
+                              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                            </svg>
+                            Cancelled
+                          </div>
+                        ) : isUpcoming ? (
                           <div className="text-xs text-amber-700 mt-2 flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <circle cx="12" cy="12" r="10" />
@@ -826,9 +840,7 @@ export default function MobileDailyView({
                             </svg>
                             Starts in {formatDistance(bookingStart, now)}
                           </div>
-                        )}
-                        
-                        {isActive && (
+                        ) : isActive ? (
                           <div className="text-xs text-red-700 mt-2 flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M10 2h4v4h-4z" />
@@ -839,7 +851,7 @@ export default function MobileDailyView({
                             </svg>
                             In progress - Ends in {formatDistance(bookingEnd, now)}
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     );
                   })}
