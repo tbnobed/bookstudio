@@ -303,6 +303,7 @@ export default function Settings() {
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="studios">Studios</TabsTrigger>
             <TabsTrigger value="pcr">PCR Rooms</TabsTrigger>
+            <TabsTrigger value="bookingtypes">Booking Types</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="backup">Backup & Restore</TabsTrigger>
           </TabsList>
@@ -651,6 +652,108 @@ export default function Settings() {
               {/* Notification Groups Panel */}
               <NotificationGroupsPanel />
             </div>
+          </TabsContent>
+          
+          <TabsContent value="bookingtypes">
+            <Card>
+              <CardHeader>
+                <CardTitle>Booking Types</CardTitle>
+                <CardDescription>Configure available booking types for production scheduling</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Current Booking Types</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <span className="font-medium">Production</span>
+                          <span className="text-sm text-gray-500">Core production activities</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <span className="font-medium">Rehearsal</span>
+                          <span className="text-sm text-gray-500">Practice sessions</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                          <span className="font-medium">Meeting</span>
+                          <span className="text-sm text-gray-500">Team meetings</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                          <span className="font-medium">Training</span>
+                          <span className="text-sm text-gray-500">Training sessions</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <span className="font-medium">Testing</span>
+                          <span className="text-sm text-gray-500">Equipment testing</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <span className="font-medium">Setup</span>
+                          <span className="text-sm text-gray-500">Equipment setup</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          <span className="font-medium">Other</span>
+                          <span className="text-sm text-gray-500">Miscellaneous activities</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Usage Statistics</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <span>Production</span>
+                          <span className="text-sm text-gray-500">85% of bookings</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <span>Rehearsal</span>
+                          <span className="text-sm text-gray-500">8% of bookings</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <span>Meeting</span>
+                          <span className="text-sm text-gray-500">4% of bookings</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <span>Training</span>
+                          <span className="text-sm text-gray-500">2% of bookings</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <span>Testing</span>
+                          <span className="text-sm text-gray-500">1% of bookings</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <span>Setup</span>
+                          <span className="text-sm text-gray-500">1% of bookings</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <span>Other</span>
+                          <span className="text-sm text-gray-500">1% of bookings</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-semibold text-blue-900 mb-2">About Booking Types</h4>
+                    <p className="text-sm text-blue-800">
+                      Booking types help categorize different kinds of studio activities. These types appear in booking forms, 
+                      calendar views, and reports. The current types are optimized for television production workflows.
+                    </p>
+                    <p className="text-sm text-blue-800 mt-2">
+                      <strong>Note:</strong> Facility alerts and maintenance schedules are managed separately through the 
+                      alert system and do not use these booking types.
+                    </p>
+                  </div>
+                  
+                  <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <h4 className="font-semibold text-amber-900 mb-2">Future Enhancement</h4>
+                    <p className="text-sm text-amber-800">
+                      Custom booking type management (add, edit, remove) will be available in a future update. 
+                      Currently, booking types are standardized across all BookStud.io installations.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="backup">
