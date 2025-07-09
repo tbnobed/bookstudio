@@ -316,23 +316,41 @@ async function createDefaultNotificationGroups() {
   ];
   
   for (const group of defaultGroups) {
-    const exists = await query('SELECT id FROM notification_groups WHERE name = $1', [group.name]);
-    
-    if (exists.rows.length === 0) {
-      await query(`
-        INSERT INTO notification_groups (name, email, group_type, description)
-        VALUES ($1, $2, $3, $4)
-      `, [group.name, group.email, group.type, group.description]);
+    try {
+      const exists = await query('SELECT id FROM notification_groups WHERE name = $1', [group.name]);
       
-      console.log(`✅ Created notification group: ${group.name}`);
-    } else {
-      console.log(`✅ Notification group already exists: ${group.name}`);
+      if (exists.rows.length === 0) {
+        await query(`
+          INSERT INTO notification_groups (name, email, group_type, description)
+          VALUES ($1, $2, $3, $4)
+        `, [group.name, group.email, group.type, group.description]);
+        
+        console.log(`✅ Created notification group: ${group.name}`);
+      } else {
+        console.log(`✅ Notification group already exists: ${group.name}`);
+      }
+    } catch (error) {
+      console.error(`❌ Failed to process notification group ${group.name}:`, error.message);
+      // Continue with other groups instead of failing completely
     }
   }
 }
 
 async function createDefaultBookingTypes() {
   console.log('Creating default booking types...');
+  
+  // Ensure the table exists (defensive programming)
+  await query(`
+    CREATE TABLE IF NOT EXISTS booking_types (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      description TEXT,
+      color TEXT,
+      icon TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
   
   const defaultTypes = [
     { name: 'Production', description: 'Regular production booking', color: '#3b82f6', icon: 'camera' },
@@ -345,23 +363,40 @@ async function createDefaultBookingTypes() {
   ];
   
   for (const type of defaultTypes) {
-    const exists = await query('SELECT id FROM booking_types WHERE name = $1', [type.name]);
-    
-    if (exists.rows.length === 0) {
-      await query(`
-        INSERT INTO booking_types (name, description, color, icon)
-        VALUES ($1, $2, $3, $4)
-      `, [type.name, type.description, type.color, type.icon]);
+    try {
+      const exists = await query('SELECT id FROM booking_types WHERE name = $1', [type.name]);
       
-      console.log(`✅ Created booking type: ${type.name}`);
-    } else {
-      console.log(`✅ Booking type already exists: ${type.name}`);
+      if (exists.rows.length === 0) {
+        await query(`
+          INSERT INTO booking_types (name, description, color, icon)
+          VALUES ($1, $2, $3, $4)
+        `, [type.name, type.description, type.color, type.icon]);
+        
+        console.log(`✅ Created booking type: ${type.name}`);
+      } else {
+        console.log(`✅ Booking type already exists: ${type.name}`);
+      }
+    } catch (error) {
+      console.error(`❌ Failed to process booking type ${type.name}:`, error.message);
+      // Continue with other types instead of failing completely
     }
   }
 }
 
 async function createDefaultSystemSettings() {
   console.log('Creating default system settings...');
+  
+  // First, ensure the table exists (double-check)
+  await query(`
+    CREATE TABLE IF NOT EXISTS system_settings (
+      id SERIAL PRIMARY KEY,
+      setting_key TEXT NOT NULL UNIQUE,
+      setting_value TEXT NOT NULL,
+      description TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
   
   const defaultSettings = [
     { key: 'site_name', value: 'BookStud.io', description: 'Application site name' },
@@ -371,17 +406,22 @@ async function createDefaultSystemSettings() {
   ];
   
   for (const setting of defaultSettings) {
-    const exists = await query('SELECT id FROM system_settings WHERE setting_key = $1', [setting.key]);
-    
-    if (exists.rows.length === 0) {
-      await query(`
-        INSERT INTO system_settings (setting_key, setting_value, description)
-        VALUES ($1, $2, $3)
-      `, [setting.key, setting.value, setting.description]);
+    try {
+      const exists = await query('SELECT id FROM system_settings WHERE setting_key = $1', [setting.key]);
       
-      console.log(`✅ Created system setting: ${setting.key}`);
-    } else {
-      console.log(`✅ System setting already exists: ${setting.key}`);
+      if (exists.rows.length === 0) {
+        await query(`
+          INSERT INTO system_settings (setting_key, setting_value, description)
+          VALUES ($1, $2, $3)
+        `, [setting.key, setting.value, setting.description]);
+        
+        console.log(`✅ Created system setting: ${setting.key}`);
+      } else {
+        console.log(`✅ System setting already exists: ${setting.key}`);
+      }
+    } catch (error) {
+      console.error(`❌ Failed to process system setting ${setting.key}:`, error.message);
+      // Continue with other settings instead of failing completely
     }
   }
 }
