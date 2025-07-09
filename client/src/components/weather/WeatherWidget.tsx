@@ -263,8 +263,11 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
           <div className="grid grid-cols-6 gap-2 justify-items-center">
             {forecast.forecast.map((day, index) => {
               const ForecastIcon = getWeatherIcon(day.icon);
-              const date = new Date(day.date);
-              const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+              const date = new Date(day.date + 'T12:00:00'); // Add time to avoid timezone shifts
+              const dayName = date.toLocaleDateString('en-US', { 
+                weekday: 'short',
+                timeZone: FACILITY_TIMEZONE
+              });
               
               return (
                 <div key={day.date} className="text-center">
