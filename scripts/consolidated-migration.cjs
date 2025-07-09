@@ -183,11 +183,20 @@ async function createCoreAlerts() {
       severity TEXT NOT NULL,
       start TIMESTAMP NOT NULL,
       "end" TIMESTAMP NOT NULL,
-      user_id INTEGER REFERENCES users(id) NOT NULL,
-      notify_list JSONB DEFAULT '[]',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      is_all_day BOOLEAN DEFAULT false,
+      status TEXT DEFAULT 'active',
+      notify_list JSON DEFAULT '[]',
+      created_by INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
     );
   `);
+  
+  // Create indexes for better performance
+  await query('CREATE INDEX IF NOT EXISTS idx_alerts_start ON alerts(start);');
+  await query('CREATE INDEX IF NOT EXISTS idx_alerts_end ON alerts("end");');
+  await query('CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);');
+  await query('CREATE INDEX IF NOT EXISTS idx_alerts_type ON alerts(alert_type);');
+  await query('CREATE INDEX IF NOT EXISTS idx_alerts_created_by ON alerts(created_by);');
 }
 
 async function createCoreSystemSettings() {
