@@ -172,18 +172,12 @@ export default function CustomSignagePage() {
     refetchInterval: 2 * 60 * 1000,
   });
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
-
+  // Get facility timezone
   useEffect(() => {
     const loadTimezone = async () => {
       try {
-        const tz = await getFacilityTimezoneAsync();
-        setFacilityTimezone(tz);
+        const timezone = await getFacilityTimezoneAsync();
+        setFacilityTimezone(timezone);
       } catch (error) {
         console.error('Error loading timezone:', error);
       }
@@ -191,25 +185,35 @@ export default function CustomSignagePage() {
     loadTimezone();
   }, []);
 
+  // Update current time
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
+
   // Weather fetching
   useEffect(() => {
-    const fetchWeather = async () => {
-      if (weatherParam === 'false') return;
-      
-      try {
-        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        if (!apiKey) return;
+    const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+    const WEATHER_LOCATION = import.meta.env.VITE_WEATHER_LOCATION;
+    
+    if (!API_KEY || !WEATHER_LOCATION) {
+      console.log('Weather API key or location not configured');
+      return;
+    }
 
-        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX';
-        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`);
-        
+    const fetchWeather = async () => {
+      try {
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${WEATHER_LOCATION}&appid=${API_KEY}&units=imperial`);
         if (response.ok) {
           const data = await response.json();
           setWeather({
             temperature: Math.round(data.main.temp),
             condition: data.weather[0].description,
             humidity: data.main.humidity,
-            windSpeed: data.wind.speed,
+            windSpeed: Math.round(data.wind.speed),
             icon: data.weather[0].icon,
             location: data.name
           });
@@ -220,25 +224,16 @@ export default function CustomSignagePage() {
     };
 
     const fetchForecast = async () => {
-      if (weatherParam === 'false') return;
-      
       try {
-        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        if (!apiKey) return;
-
-        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX';
-        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=imperial`);
-        
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${WEATHER_LOCATION}&appid=${API_KEY}&units=imperial`);
         if (response.ok) {
           const data = await response.json();
           
-          // Process forecast data
           const forecastDays: ForecastDay[] = [];
           const processedDates = new Set<string>();
           
           for (const item of data.list) {
-            const facilityDate = toZonedTime(new Date(item.dt * 1000), facilityTimezone);
-            const dateStr = format(facilityDate, 'yyyy-MM-dd');
+            const dateStr = format(new Date(item.dt * 1000), 'yyyy-MM-dd');
             
             if (!processedDates.has(dateStr) && forecastDays.length < 7) {
               forecastDays.push({
@@ -399,47 +394,35 @@ export default function CustomSignagePage() {
                     alt={weather.condition}
                     className="w-12 h-12"
                   />
-                  <div className="text-3xl font-bold">{weather.temperature}°F</div>
+                  <span className="text-4xl font-bold">{weather.temperature}°F</span>
                 </div>
                 <div className="text-lg text-slate-300 capitalize">{weather.condition}</div>
-                <div className="text-base text-slate-400">{weather.location}</div>
+                <div className="text-sm text-slate-400">
+                  Humidity: {weather.humidity}% • Wind: {weather.windSpeed} mph
+                </div>
               </div>
             )}
-            
-            {/* Time Info */}
-            <div>
+            {/* Current Time */}
+            <div className="text-center">
               <div className="text-4xl font-bold">
-                {new Date().toLocaleTimeString('en-US', { 
-                  timeZone: facilityTimezone,
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  hour12: true
-                })}
+                {formatFacilityTime(currentTime, 'h:mm a', facilityTimezone)}
               </div>
-              <div className="text-xl text-slate-300">
-                {new Date().toLocaleDateString('en-US', {
-                  timeZone: facilityTimezone,
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+              <div className="text-lg text-slate-300">
+                {formatFacilityTime(currentTime, 'EEEE, MMMM d, yyyy', facilityTimezone)}
               </div>
-              <div className="text-lg text-slate-400">
-                {facilityTimezone?.includes('Los_Angeles') ? 'Pacific Time' : 
-                 facilityTimezone?.includes('Chicago') ? 'Central Time' : 
-                 facilityTimezone?.includes('New_York') ? 'Eastern Time' : 
-                 facilityTimezone?.includes('Denver') ? 'Mountain Time' : 
-                 facilityTimezone || 'Local Time'}
+              <div className="text-sm text-slate-400">
+                Central Time
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
         {/* Today's Schedule */}
-        <div className="xl:col-span-2">
+        <div className="lg:col-span-2">
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
               <CardTitle className="flex items-center text-white text-3xl">
@@ -454,366 +437,63 @@ export default function CustomSignagePage() {
                   <p className="text-xl">No bookings scheduled for today</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-4 gap-4">
-                  {todaysBookings.map((booking) => {
-                    const isAlert = booking.type === 'maintenance' || 
-                                   booking.type === 'all-day:maintenance' ||
-                                   booking.type === 'alert' ||
-                                   (booking.title && (
-                                     booking.title.toLowerCase().includes('alert') ||
-                                     booking.title.toLowerCase().includes('outage') ||
-                                     booking.title.toLowerCase().includes('emergency') ||
-                                     booking.title.toLowerCase().includes('maintenance') ||
-                                     booking.title.toLowerCase().includes('notice') ||
-                                     booking.title.toLowerCase().includes('warning')
-                                   ));
-                    
-                    return (
-                      <div
-                        key={booking.id}
-                        className={`p-3 rounded-lg border-l-4 ${
-                          isAlert 
-                            ? 'bg-red-900/40 border-red-500 shadow-lg animate-pulse' 
-                            : isBookingActive(booking, currentTime)
-                            ? 'bg-green-500/20 border-green-400'
-                            : parseISO(booking.start) > currentTime
-                            ? 'bg-slate-700/50 border-slate-500'
-                            : 'bg-slate-600/30 border-slate-600'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <h3 className="text-lg font-semibold text-white truncate">
-                                {isAlert && <span className="mr-1 text-red-300">⚠️</span>}
-                                {booking.title}
-                              </h3>
-                              {isBookingActive(booking, currentTime) && (
-                                <Badge className="bg-red-500 text-white animate-pulse text-xs px-1 py-0">
-                                  <Radio className="w-2 h-2 mr-1" />
-                                  LIVE
-                                </Badge>
-                              )}
-                            </div>
-                            <Badge 
-                              variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
-                              className={`text-xs ${booking.status === 'confirmed' ? 'bg-green-600' : ''}`}
-                            >
-                              {booking.status.toUpperCase()}
-                            </Badge>
-                          </div>
-                          <div 
-                            className="w-3 h-12 rounded ml-2 flex-shrink-0"
-                            style={{ backgroundColor: booking.color }}
-                          />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {todaysBookings.map((booking) => (
+                    <div
+                      key={booking.id}
+                      className="p-4 rounded-lg border border-slate-600 bg-slate-700/30"
+                      style={{
+                        borderLeftColor: booking.color,
+                        borderLeftWidth: '4px'
+                      }}
+                    >
+                      <div className="flex flex-col space-y-2">
+                        <div className="text-lg font-semibold text-white">
+                          {booking.title}
                         </div>
-                        <div className="text-base text-slate-300 mb-1 truncate">
-                          {booking.studioId ? getStudioNames(booking, studios, bookingStudioLinks) : 'Facility Alert'}
-                        </div>
-                        <div className="text-base text-slate-400">
+                        
+                        <div className="flex items-center text-slate-300 text-sm">
+                          <Clock className="mr-2 h-4 w-4" />
                           {formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}
                         </div>
+                        
+                        {booking.studioId && (
+                          <div className="flex items-center text-slate-300 text-sm">
+                            <Radio className="mr-2 h-4 w-4" />
+                            {getStudioNames(booking, studios, bookingStudioLinks)}
+                          </div>
+                        )}
+                        
                         {booking.description && booking.description.trim() && (
-                          <div className="text-sm text-slate-500 mt-1 truncate" title={booking.description}>
+                          <div className="text-sm text-slate-400">
                             {booking.description}
                           </div>
                         )}
+                        
+                        <div className="flex items-center justify-between">
+                          <Badge 
+                            variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
+                            className={`
+                              ${booking.status === 'confirmed' ? 'bg-green-500/20 text-green-300 border-green-500/50' : ''}
+                              ${booking.status === 'tentative' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50' : ''}
+                              ${booking.status === 'cancelled' ? 'bg-red-500/20 text-red-300 border-red-500/50' : ''}
+                            `}
+                          >
+                            {booking.status.toUpperCase()}
+                          </Badge>
+                        </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Weekly Overview */}
-          <Card className="bg-slate-800/50 border-slate-700 mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center text-white text-3xl">
-                <Clock className="mr-4 h-8 w-8" />
-                Week at a Glance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-2">
-                {weeklyBookings.map(({ date, bookings }, index) => {
-                  const dateString = format(date, 'yyyy-MM-dd');
-                  const dayForecast = forecast?.forecast.find(f => f.date === dateString);
-                  
-                  return (
-                    <div key={index} className="text-center">
-                      <div className={`text-lg font-medium mb-1 ${
-                        index === 0 ? 'text-blue-400' : 'text-slate-300'
-                      }`}>
-                        {formatFacilityTime(date, 'EEE', facilityTimezone)}
-                      </div>
-                      <div className={`text-2xl font-bold mb-1 ${
-                        index === 0 ? 'text-blue-400' : 'text-white'
-                      }`}>
-                        {formatFacilityTime(date, 'd', facilityTimezone)}
-                      </div>
-                      
-                      {/* Weather forecast for the day */}
-                      {showWeather && (
-                        <div className="mb-2 flex flex-col items-center">
-                          {dayForecast ? (
-                            <>
-                              <img 
-                                src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
-                                alt={dayForecast.condition}
-                                className="w-8 h-8 mb-1"
-                              />
-                              <div className="text-xs text-slate-300">
-                                {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
-                              </div>
-                            </>
-                          ) : index === 0 && weather ? (
-                            // Show current weather for today if forecast data doesn't match
-                            <>
-                              <img 
-                                src={`https://openweathermap.org/img/w/${weather.icon}.png`}
-                                alt={weather.condition}
-                                className="w-8 h-8 mb-1"
-                              />
-                              <div className="text-xs text-slate-300">
-                                {weather.temperature}°
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-8 h-8 mb-1 flex items-center justify-center">
-                                <span className="text-slate-500 text-lg">☁</span>
-                              </div>
-                              <div className="text-xs text-slate-500">
-                                --/--
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      
-                      <div className="space-y-1">
-                      {bookings.map((booking) => {
-                        const isAlert = booking.type === 'maintenance' || 
-                                       booking.type === 'all-day:maintenance' ||
-                                       booking.type === 'alert' ||
-                                       (booking.title && (
-                                         booking.title.toLowerCase().includes('alert') ||
-                                         booking.title.toLowerCase().includes('outage') ||
-                                         booking.title.toLowerCase().includes('emergency') ||
-                                         booking.title.toLowerCase().includes('maintenance') ||
-                                         booking.title.toLowerCase().includes('notice') ||
-                                         booking.title.toLowerCase().includes('warning')
-                                       ));
-                        
-                        return (
-                          <div
-                            key={booking.id}
-                            className={`text-xs p-2 rounded text-white ${
-                              isAlert 
-                                ? 'animate-pulse border border-red-400 shadow-md' 
-                                : ''
-                            }`}
-                            style={{ 
-                              backgroundColor: isAlert 
-                                ? (booking.severity === 'critical' ? '#dc2626' : '#ea580c')
-                                : booking.color 
-                            }}
-                            title={`${booking.title} - ${formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} to ${formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="font-medium truncate flex-1">
-                                {isAlert && (
-                                  <span className="mr-1">⚠️</span>
-                                )}
-                                {booking.title}
-                              </div>
-                              <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
-                                {booking.status === 'confirmed' && (
-                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Confirmed" />
-                                )}
-                                {booking.status === 'tentative' && (
-                                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full" title="Tentative" />
-                                )}
-                                {booking.status === 'cancelled' && (
-                                  <div className="w-1.5 h-1.5 bg-red-400 rounded-full" title="Cancelled" />
-                                )}
-                              </div>
-                            </div>
-                            <div className={`flex items-center text-xs opacity-90 ${isAlert ? 'justify-center' : 'justify-between'}`}>
-                              <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
-                              {!isAlert && booking.studioId && (
-                                <div className="flex items-center space-x-2">
-                                  {booking.type === 'maintenance' && (
-                                    <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
-                                  )}
-                                  {/* Show studio names for regular bookings (not alerts) */}
-                                  <span className="text-xs opacity-80">
-                                    {getStudioNames(booking, studios, bookingStudioLinks)}
-                                  </span>
-                                </div>
-                              )}
-                              {isAlert && booking.type === 'maintenance' && (
-                                <span className="bg-orange-600/50 px-1 rounded text-xs ml-2">MAINT</span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Studio Status */}
-        <div className="xl:col-span-1">
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader>
-              <CardTitle className="flex items-center text-white text-3xl">
-                <Clock className="mr-4 h-8 w-8" />
-                Week at a Glance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-2">
-                {weeklyBookings.map(({ date, bookings }, index) => {
-                  const dateString = format(date, 'yyyy-MM-dd');
-                  const dayForecast = forecast?.forecast.find(f => f.date === dateString);
-                  
-                  return (
-                    <div key={index} className="text-center">
-                      <div className={`text-lg font-medium mb-1 ${
-                        index === 0 ? 'text-blue-400' : 'text-slate-300'
-                      }`}>
-                        {formatFacilityTime(date, 'EEE', facilityTimezone)}
-                      </div>
-                      <div className={`text-2xl font-bold mb-1 ${
-                        index === 0 ? 'text-blue-400' : 'text-white'
-                      }`}>
-                        {formatFacilityTime(date, 'd', facilityTimezone)}
-                      </div>
-                      
-                      {/* Weather forecast for the day */}
-                      <div className="mb-2 flex flex-col items-center">
-                        {dayForecast ? (
-                          <>
-                            <img 
-                              src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
-                              alt={dayForecast.condition}
-                              className="w-8 h-8 mb-1"
-                            />
-                            <div className="text-xs text-slate-300">
-                              {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
-                            </div>
-                          </>
-                        ) : index === 0 && weather ? (
-                          // Show current weather for today if forecast data doesn't match
-                          <>
-                            <img 
-                              src={`https://openweathermap.org/img/w/${weather.icon}.png`}
-                              alt={weather.condition}
-                              className="w-8 h-8 mb-1"
-                            />
-                            <div className="text-xs text-slate-300">
-                              {weather.temperature}°
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="w-8 h-8 mb-1 flex items-center justify-center">
-                              <span className="text-slate-500 text-lg">☁</span>
-                            </div>
-                            <div className="text-xs text-slate-500">
-                              --/--
-                            </div>
-                          </>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-1">
-                      {bookings.map((booking) => {
-                        const isAlert = booking.type === 'maintenance' || 
-                                       booking.type === 'all-day:maintenance' ||
-                                       booking.type === 'alert' ||
-                                       (booking.title && (
-                                         booking.title.toLowerCase().includes('alert') ||
-                                         booking.title.toLowerCase().includes('outage') ||
-                                         booking.title.toLowerCase().includes('emergency') ||
-                                         booking.title.toLowerCase().includes('maintenance') ||
-                                         booking.title.toLowerCase().includes('notice') ||
-                                         booking.title.toLowerCase().includes('warning')
-                                       ));
-                        
-                        return (
-                          <div
-                            key={booking.id}
-                            className={`text-xs p-2 rounded text-white ${
-                              isAlert 
-                                ? 'animate-pulse border border-red-400 shadow-md' 
-                                : ''
-                            }`}
-                            style={{ 
-                              backgroundColor: isAlert 
-                                ? (booking.severity === 'critical' ? '#dc2626' : '#ea580c')
-                                : booking.color 
-                            }}
-                            title={`${booking.title} - ${formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} to ${formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="font-medium truncate flex-1">
-                                {isAlert && (
-                                  <span className="mr-1">⚠️</span>
-                                )}
-                                {booking.title}
-                              </div>
-                              <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
-                                {booking.status === 'confirmed' && (
-                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Confirmed" />
-                                )}
-                                {booking.status === 'tentative' && (
-                                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full" title="Tentative" />
-                                )}
-                                {booking.status === 'cancelled' && (
-                                  <div className="w-1.5 h-1.5 bg-red-400 rounded-full" title="Cancelled" />
-                                )}
-                              </div>
-                            </div>
-                            <div className={`flex items-center text-xs opacity-90 ${isAlert ? 'justify-center' : 'justify-between'}`}>
-                              <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
-                              {!isAlert && (
-                                <div className="flex items-center space-x-2">
-                                  {booking.type === 'maintenance' && (
-                                    <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
-                                  )}
-                                  {/* Show studio names for regular bookings (not alerts) */}
-                                  <span className="text-xs opacity-80">
-                                    {getStudioNames(booking, studios, bookingStudioLinks)}
-                                  </span>
-                                </div>
-                              )}
-                              {isAlert && booking.type === 'maintenance' && (
-                                <span className="bg-orange-600/50 px-1 rounded text-xs ml-2">MAINT</span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Studio Status */}
-        <div className="xl:col-span-1">
-          <Card className="bg-slate-800/50 border-slate-700">
+        <div>
+          <Card className="bg-slate-800/50 border-slate-700 mb-6">
             <CardHeader>
               <CardTitle className="flex items-center text-white text-3xl">
                 <Radio className="mr-4 h-8 w-8" />
@@ -825,42 +505,37 @@ export default function CustomSignagePage() {
                 {studioStatus
                   .filter(studio => targetStudioIds.length === 0 || targetStudioIds.includes(studio.id))
                   .map((studio) => (
-                  <div key={studio.id} className="p-3 rounded-lg bg-slate-700/30">
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="text-lg font-semibold text-white truncate">
-                          {studio.name}
+                    <div
+                      key={studio.id}
+                      className="p-3 rounded-lg border border-slate-600 bg-slate-700/30"
+                    >
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-white text-sm">{studio.name}</span>
+                          <div className={`w-3 h-3 rounded-full ${
+                            studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
+                          }`} />
                         </div>
-                        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                          studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
-                        }`} />
-                      </div>
-                      <div className="text-sm text-slate-300">
-                        {studio.currentBooking ? (
-                          <>
-                            <div className="font-medium text-white truncate">{studio.currentBooking.title}</div>
-                            <div className="text-xs text-slate-400">
-                              Until {studio.nextAvailable}
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-green-400">Available</span>
-                        )}
-                      </div>
-                      {!studio.currentBooking && studio.nextAvailable !== 'Available' && (
-                        <div className="text-xs text-slate-400">
-                          Next: {studio.nextAvailable}
+                        
+                        <div className="text-xs text-slate-300">
+                          {studio.currentBooking ? (
+                            <>
+                              <div className="font-medium">{studio.currentBooking.title}</div>
+                              <div className="text-slate-400">Until {studio.nextAvailable}</div>
+                            </>
+                          ) : (
+                            <div className="text-green-400 font-medium">Available</div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>
 
           {/* Active Site Alerts */}
-          <Card className="bg-slate-800/50 border-slate-700 mt-6">
+          <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
               <CardTitle className="flex items-center text-white text-3xl">
                 <AlertTriangle className="mr-4 h-8 w-8" />
@@ -933,110 +608,67 @@ export default function CustomSignagePage() {
                   </div>
                   
                   {/* Weather forecast for the day */}
-                  <div className="mb-2 flex flex-col items-center">
-                    {dayForecast ? (
-                      <>
-                        <img 
-                          src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
-                          alt={dayForecast.condition}
-                          className="w-8 h-8 mb-1"
-                        />
-                        <div className="text-xs text-slate-300">
-                          {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
-                        </div>
-                      </>
-                    ) : index === 0 && weather ? (
-                      // Show current weather for today if forecast data doesn't match
-                      <>
-                        <img 
-                          src={`https://openweathermap.org/img/w/${weather.icon}.png`}
-                          alt={weather.condition}
-                          className="w-8 h-8 mb-1"
-                        />
-                        <div className="text-xs text-slate-300">
-                          {weather.temperature}°
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-8 h-8 mb-1 flex items-center justify-center">
-                          <span className="text-slate-500 text-lg">☁</span>
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          --/--
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  {showWeather && (
+                    <div className="mb-2 flex flex-col items-center">
+                      {dayForecast ? (
+                        <>
+                          <img 
+                            src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
+                            alt={dayForecast.condition}
+                            className="w-8 h-8 mb-1"
+                          />
+                          <div className="text-xs text-slate-300">
+                            {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
+                          </div>
+                        </>
+                      ) : index === 0 && weather ? (
+                        // Show current weather for today if forecast data doesn't match
+                        <>
+                          <img 
+                            src={`https://openweathermap.org/img/w/${weather.icon}.png`}
+                            alt={weather.condition}
+                            className="w-8 h-8 mb-1"
+                          />
+                          <div className="text-xs text-slate-300">
+                            {weather.temperature}°
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-8 h-8 mb-1 flex items-center justify-center">
+                            <span className="text-slate-500 text-lg">☁</span>
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            --/--
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                   
                   <div className="space-y-1">
-                  {bookings.map((booking) => {
-                    const isAlert = booking.type === 'maintenance' || 
-                                   booking.type === 'all-day:maintenance' ||
-                                   booking.type === 'alert' ||
-                                   (booking.title && (
-                                     booking.title.toLowerCase().includes('alert') ||
-                                     booking.title.toLowerCase().includes('outage') ||
-                                     booking.title.toLowerCase().includes('emergency') ||
-                                     booking.title.toLowerCase().includes('maintenance') ||
-                                     booking.title.toLowerCase().includes('notice') ||
-                                     booking.title.toLowerCase().includes('warning')
-                                   ));
-                    
-                    return (
-                      <div
-                        key={booking.id}
-                        className={`text-xs p-2 rounded text-white ${
-                          isAlert 
-                            ? 'animate-pulse border border-red-400 shadow-md' 
-                            : ''
-                        }`}
-                        style={{ 
-                          backgroundColor: isAlert 
-                            ? (booking.severity === 'critical' ? '#dc2626' : '#ea580c')
-                            : booking.color 
-                        }}
-                        title={`${booking.title} - ${formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} to ${formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="font-medium truncate flex-1">
-                            {isAlert && (
-                              <span className="mr-1">⚠️</span>
-                            )}
+                    {bookings.map((booking) => {
+                      const isAlert = booking.type === 'maintenance' || 
+                                     booking.type === 'all-day:maintenance' ||
+                                     !booking.studioId;
+                      
+                      return (
+                        <div
+                          key={booking.id}
+                          className={`p-1 rounded text-xs text-white ${
+                            isAlert ? 'bg-red-600/80' : 'bg-blue-600/80'
+                          }`}
+                          style={!isAlert ? { backgroundColor: `${booking.color}80` } : {}}
+                        >
+                          <div className="font-medium truncate">
                             {booking.title}
                           </div>
-                          <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
-                            {booking.status === 'confirmed' && (
-                              <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Confirmed" />
-                            )}
-                            {booking.status === 'tentative' && (
-                              <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full" title="Tentative" />
-                            )}
-                            {booking.status === 'cancelled' && (
-                              <div className="w-1.5 h-1.5 bg-red-400 rounded-full" title="Cancelled" />
-                            )}
+                          <div className="text-xs opacity-90">
+                            {formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}
                           </div>
                         </div>
-                        <div className={`flex items-center text-xs opacity-90 ${isAlert ? 'justify-center' : 'justify-between'}`}>
-                          <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
-                          {!isAlert && (
-                            <div className="flex items-center space-x-2">
-                              {booking.type === 'maintenance' && (
-                                <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
-                              )}
-                              {/* Show studio names for regular bookings (not alerts) */}
-                              <span className="text-xs opacity-80">
-                                {getStudioNames(booking, studios, bookingStudioLinks)}
-                              </span>
-                            </div>
-                          )}
-                          {isAlert && booking.type === 'maintenance' && (
-                            <span className="bg-orange-600/50 px-1 rounded text-xs ml-2">MAINT</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                   </div>
                 </div>
               );
