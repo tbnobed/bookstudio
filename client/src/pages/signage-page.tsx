@@ -412,9 +412,14 @@ export default function SignagePage() {
     return withinInterval && !isMaintenanceType;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-  // Get today's site alerts (maintenance type bookings and alert keywords)
+  // Get today's site alerts (from alerts API and maintenance type bookings)
   const todaysAlerts = combinedBookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
+    
+    // Check if this is an alert from the alerts API (converted to booking format)
+    const isApiAlert = typeof booking.id === 'string' && booking.id.startsWith('alert-');
+    
+    // Check if this is a maintenance type booking or has alert keywords
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance' || booking.type === 'alert';
     const hasAlertKeyword = booking.title && (
       booking.title.toLowerCase().includes('alert') ||
@@ -424,7 +429,23 @@ export default function SignagePage() {
       booking.title.toLowerCase().includes('notice') ||
       booking.title.toLowerCase().includes('warning')
     );
-    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && (isMaintenanceType || hasAlertKeyword);
+    
+    const isAlert = isApiAlert || isMaintenanceType || hasAlertKeyword;
+    const withinToday = isWithinInterval(bookingStart, { start: today, end: todayEnd });
+    
+    console.log(`[todaysAlerts Debug] Booking ${booking.id} (${booking.title}):`, {
+      isApiAlert,
+      isMaintenanceType,
+      hasAlertKeyword,
+      isAlert,
+      withinToday,
+      bookingType: booking.type,
+      bookingStart: bookingStart.toISOString(),
+      todayStart: today.toISOString(),
+      todayEnd: todayEnd.toISOString()
+    });
+    
+    return withinToday && isAlert;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
   // Get weekly overview (next 7 days) - use proper timezone boundaries
@@ -457,10 +478,13 @@ export default function SignagePage() {
     };
   });
 
-  // Get maintenance alerts from combined data
+  // Get maintenance alerts from combined data (including alerts from API)
   const maintenanceAlerts = combinedBookings.filter(booking => {
+    const isApiAlert = typeof booking.id === 'string' && booking.id.startsWith('alert-');
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
-    return isMaintenanceType && 
+    const isAlert = isApiAlert || isMaintenanceType;
+    
+    return isAlert && 
            parseISO(booking.start) >= today &&
            parseISO(booking.start) <= addDays(today, 7);
   });
