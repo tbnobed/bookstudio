@@ -1117,6 +1117,11 @@ export default function BookingModal({
                               <SelectContent>
                                 <SelectItem value="production">Production</SelectItem>
                                 <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                                <SelectItem value="meeting">Meeting</SelectItem>
+                                <SelectItem value="training">Training</SelectItem>
+                                <SelectItem value="testing">Testing</SelectItem>
+                                <SelectItem value="setup">Setup</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>

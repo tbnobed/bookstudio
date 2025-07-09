@@ -599,10 +599,12 @@ export default function SimpleMobileForm({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="production">Production</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
                   <SelectItem value="rehearsal">Rehearsal</SelectItem>
                   <SelectItem value="meeting">Meeting</SelectItem>
-                  <SelectItem value="alert">Alert</SelectItem>
+                  <SelectItem value="training">Training</SelectItem>
+                  <SelectItem value="testing">Testing</SelectItem>
+                  <SelectItem value="setup">Setup</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
