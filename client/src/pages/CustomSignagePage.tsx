@@ -161,24 +161,40 @@ export default function CustomSignagePage() {
   // Filter studios based on URL parameter
   const targetStudioIds = studioParam ? studioParam.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : [];
 
+  // Auto-refresh data every 2 minutes
+  useEffect(() => {
+    const refreshTimer = setInterval(() => {
+      window.location.reload();
+    }, 120000);
+    
+    return () => clearInterval(refreshTimer);
+  }, []);
+
   const { data: bookings = [] } = useQuery<Booking[]>({
-    queryKey: ["/api/public/bookings"],
-    refetchInterval: 2 * 60 * 1000, // 2 minutes
+    queryKey: ['/api/public/bookings'],
+    refetchInterval: 60000, // Refetch every minute
+    staleTime: 0, // Always consider data stale
+    gcTime: 0, // Don't cache data
   });
 
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 30000, // Refetch every 30 seconds for signage
+    staleTime: 0, // Always consider data stale
+    gcTime: 0, // Don't cache data
+  });
+
+
+
   const { data: studios = [] } = useQuery<Studio[]>({
-    queryKey: ["/api/studios"],
-    refetchInterval: 2 * 60 * 1000,
+    queryKey: ['/api/studios'],
+    refetchInterval: 60000,
   });
 
   const { data: bookingStudioLinks = [] } = useQuery<BookingStudioLink[]>({
-    queryKey: ["/api/public/booking-studios"],
-    refetchInterval: 2 * 60 * 1000,
-  });
-
-  const { data: alerts = [] } = useQuery({
-    queryKey: ["/api/alerts"],
-    refetchInterval: 2 * 60 * 1000,
+    queryKey: ['/api/public/booking-studios'],
+    refetchInterval: 60000,
   });
 
   // Load facility timezone from database
@@ -344,15 +360,29 @@ export default function CustomSignagePage() {
 
 
 
-  // Combine bookings and alerts
+  // Combine bookings with alerts from API
   const combinedBookings = useMemo(() => {
-    const alertBookings = alerts.map((alert: any) => ({
-      ...alert,
-      studioId: null,
-      color: alert.severity === 'critical' ? '#dc2626' : '#ea580c'
+    console.log(`SignagePage - Combining ${bookings.length} bookings with ${allAlerts.length} alerts`);
+    
+    // Convert alerts to booking format for display
+    const alertsAsBookings = allAlerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      studioId: null, // Facility alerts don't have studios
+      pcrRoomId: null,
+      color: alert.severity === 'critical' ? '#dc2626' : '#ea580c', // Red for critical, orange for others
+      status: 'confirmed'
     }));
-    return [...bookings, ...alertBookings];
-  }, [bookings, alerts]);
+    
+    const result = [...bookings, ...alertsAsBookings];
+    console.log(`SignagePage - Combined result: ${result.length} total items`);
+    return result;
+  }, [bookings, allAlerts]);
 
   // Filter bookings based on selected studios
   const filteredBookings = targetStudioIds.length > 0 ? combinedBookings.filter(booking => {
