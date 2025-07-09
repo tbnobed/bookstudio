@@ -372,7 +372,7 @@ export default function CustomSignagePage() {
   // Convert back to UTC for comparison with booking.start which is in UTC
   const today = fromZonedTime(todayStartInFacility, facilityTimezone);
   const todayEnd = fromZonedTime(todayEndInFacility, facilityTimezone);
-  const todaysBookings = combinedBookings.filter(booking => {
+  const todaysBookings = filteredBookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
     const withinInterval = isWithinInterval(bookingStart, { start: today, end: todayEnd });
@@ -421,7 +421,7 @@ export default function CustomSignagePage() {
     const facilityDate = addDays(nowInFacility, i);
     const date = fromZonedTime(startOfDay(facilityDate), facilityTimezone);
     const dayEnd = fromZonedTime(endOfDay(facilityDate), facilityTimezone);
-    const dayBookings = combinedBookings.filter(booking => {
+    const dayBookings = filteredBookings.filter(booking => {
       const bookingStart = parseISO(booking.start);
       return isWithinInterval(bookingStart, { start: date, end: dayEnd });
     }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
@@ -431,9 +431,10 @@ export default function CustomSignagePage() {
     };
   });
 
-  // Get current studio status
-  const studioStatus = studios.map(studio => {
-    const activeBooking = combinedBookings.find(booking => {
+  // Get current studio status - filter studios based on URL parameter
+  const filteredStudios = targetStudioIds.length > 0 ? studios.filter(studio => targetStudioIds.includes(studio.id)) : studios;
+  const studioStatus = filteredStudios.map(studio => {
+    const activeBooking = filteredBookings.find(booking => {
       const isDirectStudio = booking.studioId === studio.id;
       const hasLink = bookingStudioLinks.some(link => link.studioId === studio.id && link.bookingId === booking.id);
       return (isDirectStudio || hasLink) && isBookingActive(booking, currentTime);
@@ -442,7 +443,7 @@ export default function CustomSignagePage() {
     return {
       ...studio,
       currentBooking: activeBooking,
-      nextAvailable: getNextAvailable(studio.id, combinedBookings, bookingStudioLinks, facilityTimezone),
+      nextAvailable: getNextAvailable(studio.id, filteredBookings, bookingStudioLinks, facilityTimezone),
     };
   });
 
