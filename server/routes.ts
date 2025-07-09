@@ -2234,10 +2234,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Booking not found" });
         }
 
-        // Only booking owner, admin, engineer, or IT can add attachments
+        // Only booking owner, admin, engineer, IT, site manager, or producer can add attachments
         if (
           booking.userId !== user.id &&
-          !["admin", "engineer", "it", "site_manager"].includes(user.role)
+          !["admin", "engineer", "it", "site_manager", "producer"].includes(user.role)
         ) {
           return res.status(403).json({
             message: "You don't have permission to add attachments to this booking",
