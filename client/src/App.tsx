@@ -19,6 +19,7 @@ import AuthPage from "@/pages/auth-page";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import PublicCalendarPage from "@/pages/PublicCalendarPage";
 import SignagePage from "@/pages/signage-page";
+import CustomSignagePage from "@/pages/CustomSignagePage";
 import MobilePublicCalendarPage from "@/pages/MobilePublicCalendarPage";
 import InvitePage from "@/pages/InvitePage";
 import EngineeringPage from "@/pages/engineering-page";
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/public-calendar" component={PublicCalendarPage} />
       <Route path="/public-calendar/mobile" component={MobilePublicCalendarPage} />
       <Route path="/signage" component={SignagePage} />
+      <Route path="/signage/custom" component={CustomSignagePage} />
       <ProtectedRoute path="/" component={HomeComponent} />
       <ProtectedRoute path="/calendar" component={CalendarComponent} />
       <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
