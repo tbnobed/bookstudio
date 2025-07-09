@@ -232,7 +232,7 @@ function BookingTypesPanel() {
   const updateBookingTypeMutation = useMutation({
     mutationFn: async (data: InsertBookingType) => {
       if (!selectedBookingType?.id) throw new Error('No booking type selected');
-      const response = await apiRequest('PUT', `/api/booking-types/${selectedBookingType.id}`, data);
+      const response = await apiRequest('PATCH', `/api/booking-types/${selectedBookingType.id}`, data);
       return response;
     },
     onSuccess: () => {
