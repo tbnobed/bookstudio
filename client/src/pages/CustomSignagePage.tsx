@@ -7,7 +7,6 @@ import { format, isWithinInterval, addDays, startOfDay, endOfDay, parseISO, isSa
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { getFacilityTimezoneAsync } from "@/lib/timezoneConfig";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { useSearch } from 'wouter';
 
 interface Booking {
   id: number;
@@ -58,8 +57,20 @@ interface WeatherForecast {
 
 const BUILD_TIME_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
 
+// Parse URL parameters
+function parseURLParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    studios: params.get('studios'),
+    title: params.get('title'),
+    weather: params.get('weather')
+  };
+}
+
 function getFacilityTime(timezone: string) {
+  // Get current time in facility timezone
   const now = new Date();
+  // Convert UTC time to facility time
   return toZonedTime(now, timezone);
 }
 
@@ -74,16 +85,19 @@ function formatFacilityTime(date: Date | string, formatStr: string, timezone: st
 }
 
 function getCurrentFacilityTime(timezone: string) {
+  // Get current UTC time for comparison with database UTC times
   return new Date();
 }
 
 function getStudioNames(booking: Booking, studios: Studio[], bookingStudioLinks: BookingStudioLink[]) {
   const studioIds = new Set<number>();
   
+  // Add primary studio
   if (booking.studioId) {
     studioIds.add(booking.studioId);
   }
   
+  // Add linked studios
   bookingStudioLinks
     .filter(link => link.bookingId === booking.id)
     .forEach(link => studioIds.add(link.studioId));
@@ -95,168 +109,304 @@ function getStudioNames(booking: Booking, studios: Studio[], bookingStudioLinks:
   return studioNames.length > 0 ? studioNames.join(', ') : 'Unknown Studio';
 }
 
-function isBookingActive(booking: Booking, currentTime: Date): boolean {
+function isBookingActive(booking: Booking, now: Date) {
   const start = parseISO(booking.start);
   const end = parseISO(booking.end);
-  return currentTime >= start && currentTime <= end;
+  const isActive = isWithinInterval(now, { start, end });
+  
+  return isActive && booking.status !== 'cancelled';
 }
 
 function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLinks: BookingStudioLink[], timezone: string) {
-  const currentTime = getCurrentFacilityTime(timezone);
-  const futureBookings = bookings
-    .filter(booking => {
-      const isDirectStudio = booking.studioId === studioId;
-      const hasLink = bookingStudioLinks.some(link => link.studioId === studioId && link.bookingId === booking.id);
-      return (isDirectStudio || hasLink) && parseISO(booking.start) > currentTime;
-    })
-    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-
-  if (futureBookings.length > 0) {
-    return formatFacilityTime(futureBookings[0].start, 'h:mm a', timezone);
+  const now = getFacilityTime(timezone);
+  const studioBookings = bookings.filter(booking => {
+    if (booking.studioId === studioId) return true;
+    return bookingStudioLinks.some(link => link.studioId === studioId && link.bookingId === booking.id);
+  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  
+  // Check if currently in use
+  const activeBooking = studioBookings.find(booking => isBookingActive(booking, now));
+  if (activeBooking) {
+    return formatFacilityTime(activeBooking.end, 'h:mm a', timezone);
   }
   
-  return 'Ready';
+  // Find next booking
+  const nextBooking = studioBookings.find(booking => new Date(booking.start) > now);
+  if (nextBooking) {
+    return formatFacilityTime(nextBooking.start, 'h:mm a', timezone);
+  }
+  
+  return 'Available';
 }
 
 export default function CustomSignagePage() {
-  const search = useSearch();
-  const searchParams = new URLSearchParams(search);
-  
-  // Parse URL parameters
-  const studioIds = searchParams.get('studios');
-  const customTitle = searchParams.get('title');
-  const showWeather = searchParams.get('weather') !== 'false';
-  const showAlerts = searchParams.get('alerts') !== 'false';
-  const showWeekly = searchParams.get('weekly') !== 'false';
-
-  const title = decodeURIComponent(customTitle || 'Custom Display');
-
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [facilityTimezone, setFacilityTimezone] = useState(BUILD_TIME_TIMEZONE);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<WeatherForecast | null>(null);
-  const [facilityTimezone, setFacilityTimezone] = useState<string>(BUILD_TIME_TIMEZONE);
-
   const { siteName } = useSiteSettings();
 
-  // Fetch timezone
-  useEffect(() => {
-    const fetchTimezone = async () => {
-      const timezone = await getFacilityTimezoneAsync();
-      setFacilityTimezone(timezone);
-    };
-    fetchTimezone();
-  }, []);
+  // Parse URL parameters
+  const { studios: studioParam, title: titleParam, weather: weatherParam } = parseURLParams();
 
-  // Update time every second
+  // Filter studios based on URL parameter
+  const targetStudioIds = studioParam ? studioParam.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : [];
+
+  const { data: bookings = [] } = useQuery<Booking[]>({
+    queryKey: ["/api/public/bookings"],
+    refetchInterval: 2 * 60 * 1000, // 2 minutes
+  });
+
+  const { data: studios = [] } = useQuery<Studio[]>({
+    queryKey: ["/api/studios"],
+    refetchInterval: 2 * 60 * 1000,
+  });
+
+  const { data: bookingStudioLinks = [] } = useQuery<BookingStudioLink[]>({
+    queryKey: ["/api/public/booking-studios"],
+    refetchInterval: 2 * 60 * 1000,
+  });
+
+  const { data: alerts = [] } = useQuery({
+    queryKey: ["/api/alerts"],
+    refetchInterval: 2 * 60 * 1000,
+  });
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000);
+    }, 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch weather data
+  useEffect(() => {
+    const loadTimezone = async () => {
+      try {
+        const tz = await getFacilityTimezoneAsync();
+        setFacilityTimezone(tz);
+      } catch (error) {
+        console.error('Error loading timezone:', error);
+      }
+    };
+    loadTimezone();
+  }, []);
+
+  // Weather fetching
   useEffect(() => {
     const fetchWeather = async () => {
+      if (weatherParam === 'false') return;
+      
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
         if (!apiKey) return;
 
-        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX,US';
+        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX';
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`);
         
-        const currentResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`
-        );
-        
-        if (currentResponse.ok) {
-          const currentData = await currentResponse.json();
+        if (response.ok) {
+          const data = await response.json();
           setWeather({
-            temperature: Math.round(currentData.main.temp),
-            condition: currentData.weather[0].description,
-            humidity: currentData.main.humidity,
-            windSpeed: Math.round(currentData.wind.speed),
-            icon: currentData.weather[0].icon,
-            location: currentData.name
+            temperature: Math.round(data.main.temp),
+            condition: data.weather[0].description,
+            humidity: data.main.humidity,
+            windSpeed: data.wind.speed,
+            icon: data.weather[0].icon,
+            location: data.name
           });
-        }
-
-        const forecastResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=imperial`
-        );
-        
-        if (forecastResponse.ok) {
-          const forecastData = await forecastResponse.json();
-          const dailyForecasts: { [key: string]: any } = {};
-          
-          forecastData.list.forEach((item: any) => {
-            const facilityDateTime = toZonedTime(new Date(item.dt * 1000), facilityTimezone);
-            const dateKey = format(facilityDateTime, 'yyyy-MM-dd');
-            
-            if (!dailyForecasts[dateKey]) {
-              dailyForecasts[dateKey] = {
-                temps: [],
-                conditions: [],
-                icons: []
-              };
-            }
-            
-            dailyForecasts[dateKey].temps.push(item.main.temp);
-            dailyForecasts[dateKey].conditions.push(item.weather[0].description);
-            dailyForecasts[dateKey].icons.push(item.weather[0].icon);
-          });
-
-          const forecastArray = Object.entries(dailyForecasts).map(([date, data]: [string, any]) => ({
-            date,
-            temperature: {
-              min: Math.round(Math.min(...data.temps)),
-              max: Math.round(Math.max(...data.temps))
-            },
-            condition: data.conditions[0],
-            icon: data.icons[0]
-          }));
-
-          setForecast({ forecast: forecastArray });
         }
       } catch (error) {
-        console.error('Weather fetch error:', error);
+        console.error('Error fetching weather:', error);
       }
     };
 
-    if (showWeather) {
+    const fetchForecast = async () => {
+      if (weatherParam === 'false') return;
+      
+      try {
+        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        if (!apiKey) return;
+
+        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX';
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=imperial`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Process forecast data
+          const forecastDays: ForecastDay[] = [];
+          const processedDates = new Set<string>();
+          
+          for (const item of data.list) {
+            const facilityDate = toZonedTime(new Date(item.dt * 1000), facilityTimezone);
+            const dateStr = format(facilityDate, 'yyyy-MM-dd');
+            
+            if (!processedDates.has(dateStr) && forecastDays.length < 7) {
+              forecastDays.push({
+                date: dateStr,
+                temperature: {
+                  min: Math.round(item.main.temp_min),
+                  max: Math.round(item.main.temp_max)
+                },
+                condition: item.weather[0].description,
+                icon: item.weather[0].icon
+              });
+              processedDates.add(dateStr);
+            }
+          }
+          
+          setForecast({ forecast: forecastDays });
+        }
+      } catch (error) {
+        console.error('Error fetching forecast:', error);
+      }
+    };
+
+    fetchWeather();
+    fetchForecast();
+    
+    // Refresh every 10 minutes
+    const interval = setInterval(() => {
       fetchWeather();
-      const weatherTimer = setInterval(fetchWeather, 300000); // Update every 5 minutes
-      return () => clearInterval(weatherTimer);
+      fetchForecast();
+    }, 10 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [facilityTimezone, weatherParam]);
+
+  // Combine bookings and alerts
+  const combinedBookings = useMemo(() => {
+    const alertBookings = alerts.map((alert: any) => ({
+      ...alert,
+      studioId: null,
+      color: alert.severity === 'critical' ? '#dc2626' : '#ea580c'
+    }));
+    return [...bookings, ...alertBookings];
+  }, [bookings, alerts]);
+
+  // Filter bookings based on selected studios
+  const filteredBookings = targetStudioIds.length > 0 ? combinedBookings.filter(booking => {
+    // Always include facility alerts (no studio assignment)
+    if (!booking.studioId) return true;
+    
+    if (booking.studioId && targetStudioIds.includes(booking.studioId)) {
+      return true;
     }
-  }, [facilityTimezone, showWeather]);
+    return bookingStudioLinks.some(link => 
+      link.bookingId === booking.id && targetStudioIds.includes(link.studioId)
+    );
+  }) : combinedBookings;
 
-  // Fetch bookings data
-  const { data: bookings = [] } = useQuery<Booking[]>({
-    queryKey: ['/api/public/bookings'],
+  // Get today's data in facility timezone
+  const today = getFacilityTime(facilityTimezone);
+  const todayStart = fromZonedTime(
+    new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0),
+    facilityTimezone
+  );
+  const todayEnd = fromZonedTime(
+    new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59),
+    facilityTimezone
+  );
+
+  // Get today's bookings
+  const todaysBookings = filteredBookings.filter(booking => {
+    const bookingStart = parseISO(booking.start);
+    const bookingEnd = parseISO(booking.end);
+    
+    // Check if booking overlaps with today
+    return bookingStart < todayEnd && bookingEnd > todayStart;
+  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+  // Get weekly bookings
+  const weeklyBookings = useMemo(() => {
+    const weekStart = startOfDay(today);
+    const days = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const day = addDays(weekStart, i);
+      const dayStart = fromZonedTime(
+        new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0),
+        facilityTimezone
+      );
+      const dayEnd = fromZonedTime(
+        new Date(day.getFullYear(), day.getMonth(), day.getDate(), 23, 59, 59),
+        facilityTimezone
+      );
+      
+      const dayBookings = filteredBookings.filter(booking => {
+        const bookingStart = parseISO(booking.start);
+        const bookingEnd = parseISO(booking.end);
+        return bookingStart < dayEnd && bookingEnd > dayStart;
+      }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+      
+      days.push({
+        date: day,
+        bookings: dayBookings
+      });
+    }
+    
+    return days;
+  }, [filteredBookings, today, facilityTimezone]);
+
+  // Get studio status
+  const studioStatus = studios.map(studio => {
+    const activeBooking = filteredBookings.find(booking => {
+      if (booking.studioId === studio.id) {
+        return isBookingActive(booking, getCurrentFacilityTime(facilityTimezone));
+      }
+      return bookingStudioLinks.some(link => 
+        link.studioId === studio.id && 
+        link.bookingId === booking.id &&
+        isBookingActive(booking, getCurrentFacilityTime(facilityTimezone))
+      );
+    });
+
+    return {
+      ...studio,
+      currentBooking: activeBooking,
+      nextAvailable: getNextAvailable(studio.id, filteredBookings, bookingStudioLinks, facilityTimezone),
+    };
   });
 
-  const { data: studios = [] } = useQuery<Studio[]>({
-    queryKey: ['/api/studios'],
+  // Get maintenance alerts from combined data
+  const maintenanceAlerts = filteredBookings.filter(booking => {
+    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
+    return isMaintenanceType && 
+           parseISO(booking.start) >= today &&
+           parseISO(booking.start) <= addDays(today, 7);
   });
 
-  const { data: bookingStudioLinks = [] } = useQuery<BookingStudioLink[]>({
-    queryKey: ['/api/public/booking-studios'],
-  });
-
-  const { data: alerts = [] } = useQuery({
-    queryKey: ['/api/alerts'],
-  });
+  const pageTitle = titleParam || siteName;
+  const showWeather = weatherParam !== 'false';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+      {/* Header */}
       <div className="flex justify-between items-center mb-10">
         <div className="flex items-center space-x-6">
-          <div className="text-6xl font-bold text-white drop-shadow-lg">{title}</div>
+          <div className="text-6xl font-bold text-white drop-shadow-lg">{pageTitle}</div>
           <Badge variant="outline" className="text-xl px-6 py-3 bg-blue-500/20 text-blue-300 border-blue-400 font-semibold">
             LIVE DISPLAY
           </Badge>
         </div>
         <div className="text-right text-white">
           <div className="flex items-center justify-end space-x-6">
+            {/* Weather Info */}
+            {weather && showWeather && (
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-2 mb-1">
+                  <img 
+                    src={`https://openweathermap.org/img/w/${weather.icon}.png`}
+                    alt={weather.condition}
+                    className="w-12 h-12"
+                  />
+                  <div className="text-3xl font-bold">{weather.temperature}°F</div>
+                </div>
+                <div className="text-lg text-slate-300 capitalize">{weather.condition}</div>
+                <div className="text-base text-slate-400">{weather.location}</div>
+              </div>
+            )}
+            
+            {/* Time Info */}
             <div>
               <div className="text-4xl font-bold">
                 {new Date().toLocaleTimeString('en-US', { 
@@ -275,16 +425,342 @@ export default function CustomSignagePage() {
                   day: 'numeric'
                 })}
               </div>
+              <div className="text-lg text-slate-400">
+                {facilityTimezone?.includes('Los_Angeles') ? 'Pacific Time' : 
+                 facilityTimezone?.includes('Chicago') ? 'Central Time' : 
+                 facilityTimezone?.includes('New_York') ? 'Eastern Time' : 
+                 facilityTimezone?.includes('Denver') ? 'Mountain Time' : 
+                 facilityTimezone || 'Local Time'}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="text-center py-12 text-white">
-        <h2 className="text-4xl font-bold mb-4">Custom Signage Display</h2>
-        <p className="text-xl text-slate-300">
-          URL Parameters: studios={studioIds || 'none'}, title={customTitle || 'default'}, weather={showWeather ? 'true' : 'false'}
-        </p>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Today's Schedule */}
+        <div className="xl:col-span-2">
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white text-3xl">
+                <Calendar className="mr-4 h-8 w-8" />
+                Today's Schedule
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {todaysBookings.length === 0 ? (
+                <div className="text-center py-12 text-slate-400">
+                  <Calendar className="mx-auto h-16 w-16 mb-4 opacity-50" />
+                  <p className="text-xl">No bookings scheduled for today</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-4">
+                  {todaysBookings.map((booking) => {
+                    const isAlert = booking.type === 'maintenance' || 
+                                   booking.type === 'all-day:maintenance' ||
+                                   booking.type === 'alert' ||
+                                   (booking.title && (
+                                     booking.title.toLowerCase().includes('alert') ||
+                                     booking.title.toLowerCase().includes('outage') ||
+                                     booking.title.toLowerCase().includes('emergency') ||
+                                     booking.title.toLowerCase().includes('maintenance') ||
+                                     booking.title.toLowerCase().includes('notice') ||
+                                     booking.title.toLowerCase().includes('warning')
+                                   ));
+                    
+                    return (
+                      <div
+                        key={booking.id}
+                        className={`p-3 rounded-lg border-l-4 ${
+                          isAlert 
+                            ? 'bg-red-900/40 border-red-500 shadow-lg animate-pulse' 
+                            : isBookingActive(booking, currentTime)
+                            ? 'bg-green-500/20 border-green-400'
+                            : parseISO(booking.start) > currentTime
+                            ? 'bg-slate-700/50 border-slate-500'
+                            : 'bg-slate-600/30 border-slate-600'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h3 className="text-lg font-semibold text-white truncate">
+                                {isAlert && <span className="mr-1 text-red-300">⚠️</span>}
+                                {booking.title}
+                              </h3>
+                              {isBookingActive(booking, currentTime) && (
+                                <Badge className="bg-red-500 text-white animate-pulse text-xs px-1 py-0">
+                                  <Radio className="w-2 h-2 mr-1" />
+                                  LIVE
+                                </Badge>
+                              )}
+                            </div>
+                            <Badge 
+                              variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
+                              className={`text-xs ${booking.status === 'confirmed' ? 'bg-green-600' : ''}`}
+                            >
+                              {booking.status.toUpperCase()}
+                            </Badge>
+                          </div>
+                          <div 
+                            className="w-3 h-12 rounded ml-2 flex-shrink-0"
+                            style={{ backgroundColor: booking.color }}
+                          />
+                        </div>
+                        <div className="text-base text-slate-300 mb-1 truncate">
+                          {booking.studioId ? getStudioNames(booking, studios, bookingStudioLinks) : 'Facility Alert'}
+                        </div>
+                        <div className="text-base text-slate-400">
+                          {formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}
+                        </div>
+                        {booking.description && booking.description.trim() && (
+                          <div className="text-sm text-slate-500 mt-1 truncate" title={booking.description}>
+                            {booking.description}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Weekly Overview */}
+          <Card className="bg-slate-800/50 border-slate-700 mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white text-3xl">
+                <Clock className="mr-4 h-8 w-8" />
+                Week at a Glance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-7 gap-2">
+                {weeklyBookings.map(({ date, bookings }, index) => {
+                  const dateString = format(date, 'yyyy-MM-dd');
+                  const dayForecast = forecast?.forecast.find(f => f.date === dateString);
+                  
+                  return (
+                    <div key={index} className="text-center">
+                      <div className={`text-lg font-medium mb-1 ${
+                        index === 0 ? 'text-blue-400' : 'text-slate-300'
+                      }`}>
+                        {formatFacilityTime(date, 'EEE', facilityTimezone)}
+                      </div>
+                      <div className={`text-2xl font-bold mb-1 ${
+                        index === 0 ? 'text-blue-400' : 'text-white'
+                      }`}>
+                        {formatFacilityTime(date, 'd', facilityTimezone)}
+                      </div>
+                      
+                      {/* Weather forecast for the day */}
+                      {showWeather && (
+                        <div className="mb-2 flex flex-col items-center">
+                          {dayForecast ? (
+                            <>
+                              <img 
+                                src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
+                                alt={dayForecast.condition}
+                                className="w-8 h-8 mb-1"
+                              />
+                              <div className="text-xs text-slate-300">
+                                {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
+                              </div>
+                            </>
+                          ) : index === 0 && weather ? (
+                            // Show current weather for today if forecast data doesn't match
+                            <>
+                              <img 
+                                src={`https://openweathermap.org/img/w/${weather.icon}.png`}
+                                alt={weather.condition}
+                                className="w-8 h-8 mb-1"
+                              />
+                              <div className="text-xs text-slate-300">
+                                {weather.temperature}°
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-8 h-8 mb-1 flex items-center justify-center">
+                                <span className="text-slate-500 text-lg">☁</span>
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                --/--
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div className="space-y-1">
+                      {bookings.map((booking) => {
+                        const isAlert = booking.type === 'maintenance' || 
+                                       booking.type === 'all-day:maintenance' ||
+                                       booking.type === 'alert' ||
+                                       (booking.title && (
+                                         booking.title.toLowerCase().includes('alert') ||
+                                         booking.title.toLowerCase().includes('outage') ||
+                                         booking.title.toLowerCase().includes('emergency') ||
+                                         booking.title.toLowerCase().includes('maintenance') ||
+                                         booking.title.toLowerCase().includes('notice') ||
+                                         booking.title.toLowerCase().includes('warning')
+                                       ));
+                        
+                        return (
+                          <div
+                            key={booking.id}
+                            className={`text-xs p-2 rounded text-white ${
+                              isAlert 
+                                ? 'animate-pulse border border-red-400 shadow-md' 
+                                : ''
+                            }`}
+                            style={{ 
+                              backgroundColor: isAlert 
+                                ? (booking.severity === 'critical' ? '#dc2626' : '#ea580c')
+                                : booking.color 
+                            }}
+                            title={`${booking.title} - ${formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} to ${formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="font-medium truncate flex-1">
+                                {isAlert && (
+                                  <span className="mr-1">⚠️</span>
+                                )}
+                                {booking.title}
+                              </div>
+                              <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
+                                {booking.status === 'confirmed' && (
+                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Confirmed" />
+                                )}
+                                {booking.status === 'tentative' && (
+                                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full" title="Tentative" />
+                                )}
+                                {booking.status === 'cancelled' && (
+                                  <div className="w-1.5 h-1.5 bg-red-400 rounded-full" title="Cancelled" />
+                                )}
+                              </div>
+                            </div>
+                            <div className={`flex items-center text-xs opacity-90 ${isAlert ? 'justify-center' : 'justify-between'}`}>
+                              <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
+                              {!isAlert && booking.studioId && (
+                                <div className="flex items-center space-x-2">
+                                  {booking.type === 'maintenance' && (
+                                    <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
+                                  )}
+                                  {/* Show studio names for regular bookings (not alerts) */}
+                                  <span className="text-xs opacity-80">
+                                    {getStudioNames(booking, studios, bookingStudioLinks)}
+                                  </span>
+                                </div>
+                              )}
+                              {isAlert && booking.type === 'maintenance' && (
+                                <span className="bg-orange-600/50 px-1 rounded text-xs ml-2">MAINT</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Studio Status */}
+        <div className="xl:col-span-1">
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white text-3xl">
+                <Radio className="mr-4 h-8 w-8" />
+                Studio Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {studioStatus
+                  .filter(studio => targetStudioIds.length === 0 || targetStudioIds.includes(studio.id))
+                  .map((studio) => (
+                  <div key={studio.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-700/30">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <div className="text-lg font-semibold text-white">
+                          {studio.name}
+                        </div>
+                        <div className={`w-3 h-3 rounded-full ${
+                          studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
+                        }`} />
+                      </div>
+                      <div className="text-sm text-slate-300">
+                        {studio.currentBooking ? (
+                          <>
+                            <span className="font-medium">{studio.currentBooking.title}</span>
+                            <div className="text-xs text-slate-400">
+                              Until {studio.nextAvailable}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-green-400">Available</span>
+                        )}
+                      </div>
+                      {!studio.currentBooking && studio.nextAvailable !== 'Available' && (
+                        <div className="text-xs text-slate-400">
+                          Next booking: {studio.nextAvailable}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Active Site Alerts */}
+          <Card className="bg-slate-800/50 border-slate-700 mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white text-3xl">
+                <AlertTriangle className="mr-4 h-8 w-8" />
+                Active Site Alerts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {maintenanceAlerts.length === 0 ? (
+                <div className="text-center py-8 text-slate-400">
+                  <AlertTriangle className="mx-auto h-12 w-12 mb-3 opacity-50" />
+                  <p className="text-lg">No active alerts</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {maintenanceAlerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="p-3 rounded-lg bg-red-900/40 border border-red-500/50 animate-pulse"
+                    >
+                      <div className="flex items-start space-x-2">
+                        <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="text-lg font-semibold text-white">
+                            {alert.title}
+                          </div>
+                          <div className="text-sm text-slate-300">
+                            {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                          </div>
+                          {alert.description && alert.description.trim() && (
+                            <div className="text-sm text-slate-400 mt-1">
+                              {alert.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
