@@ -250,6 +250,20 @@ function PublicCalendarPage() {
              isWithinInterval(bookingEnd, { start: dateRange.start, end: dateRange.end }) ||
              (bookingStart <= dateRange.start && bookingEnd >= dateRange.end);
     })
+    .filter(booking => {
+      // Apply studio filtering if studios are selected
+      if (selectedStudioIds.length === 0) return true; // Show all if no studios selected
+      
+      // Check if booking is directly assigned to a selected studio
+      const directMatch = selectedStudioIds.includes(booking.studioId);
+      
+      // Check if booking is linked to a selected studio via junction table
+      const linkedMatch = bookingStudioLinks.some(link => 
+        link.bookingId === booking.id && selectedStudioIds.includes(link.studioId)
+      );
+      
+      return directMatch || linkedMatch;
+    })
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
     
   // Log filtered bookings for debugging
@@ -411,6 +425,7 @@ function PublicCalendarPage() {
                 studios={filteredStudios}
                 bookings={filteredBookings}
                 readOnly={true}
+                selectedStudioIds={selectedStudioIds}
               />
             )}
           </div>
