@@ -7,7 +7,6 @@ import { format, isWithinInterval, addDays, startOfDay, endOfDay, parseISO, isSa
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { getFacilityTimezoneAsync } from "@/lib/timezoneConfig";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 
 interface Booking {
   id: number;
@@ -145,8 +144,9 @@ export default function CustomSignagePage() {
   const [facilityTimezone, setFacilityTimezone] = useState(BUILD_TIME_TIMEZONE);
   const { siteName } = useSiteSettings();
   
-  // Use the same weather hook as main signage page
-  const { forecast, loading: weatherLoading } = useWeatherForecast();
+  // Weather state (using same structure as main signage page)
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [forecast, setForecast] = useState<WeatherForecast | null>(null);
 
   // Parse URL parameters
   const { studios: studioParam, title: titleParam, weather: weatherParam } = parseURLParams();
@@ -196,6 +196,55 @@ export default function CustomSignagePage() {
     };
     loadTimezone();
   }, []);
+
+  // Weather data fetching (using same logic as main signage page)
+  useEffect(() => {
+    if (!showWeather) return;
+
+    const fetchWeatherData = async () => {
+      try {
+        const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Hendersonville,TN,US';
+        
+        if (!API_KEY) {
+          console.log("[CUSTOM SIGNAGE WEATHER] No API key available");
+          return;
+        }
+
+        console.log("[CUSTOM SIGNAGE WEATHER] Fetching weather for:", location);
+
+        // Fetch current weather
+        const currentResponse = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}&units=imperial`
+        );
+
+        if (currentResponse.ok) {
+          const currentData = await currentResponse.json();
+          console.log("[CUSTOM SIGNAGE WEATHER] Current weather data:", currentData);
+          
+          setWeather({
+            temperature: Math.round(currentData.main.temp),
+            condition: currentData.weather[0].description,
+            humidity: currentData.main.humidity,
+            windSpeed: Math.round(currentData.wind?.speed || 0),
+            icon: currentData.weather[0].icon,
+            location: currentData.name
+          });
+          console.log("[CUSTOM SIGNAGE WEATHER] Weather state updated");
+        } else {
+          console.error("[CUSTOM SIGNAGE WEATHER] Current weather API failed:", currentResponse.status);
+        }
+      } catch (error) {
+        console.error("[CUSTOM SIGNAGE WEATHER] Weather API error:", error);
+        // Continue without weather data if API unavailable
+      }
+    };
+
+    // Fetch weather immediately and then every 5 minutes
+    fetchWeatherData();
+    const weatherTimer = setInterval(fetchWeatherData, 300000);
+    return () => clearInterval(weatherTimer);
+  }, [showWeather]);
 
 
 
