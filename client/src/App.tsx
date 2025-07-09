@@ -85,6 +85,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                      location === "/public-calendar" || 
                      location === "/public-calendar/mobile" ||
                      location === "/signage" ||
+                     location === "/signage/custom" ||
                      location.startsWith("/reset-password/") ||
                      location.startsWith("/invite/");
   
