@@ -146,7 +146,7 @@ export default function CustomSignagePage() {
   const { siteName } = useSiteSettings();
   
   // Use the same weather hook as main signage page
-  const { forecast, weather, loading: weatherLoading } = useWeatherForecast();
+  const { forecast, loading: weatherLoading } = useWeatherForecast();
 
   // Parse URL parameters
   const { studios: studioParam, title: titleParam, weather: weatherParam } = parseURLParams();
