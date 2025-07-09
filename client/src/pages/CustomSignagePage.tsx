@@ -262,18 +262,41 @@ export default function CustomSignagePage() {
           // Create daily forecasts with proper min/max calculations
           const dailyForecasts: ForecastDay[] = [];
           
-          // Filter out past dates and only include today and future dates
+          // Filter dates: today + 6 future days (tomorrow through day 7)
           const now = new Date();
           const facilityNow = toZonedTime(now, facilityTimezone);
           const today = format(facilityNow, 'yyyy-MM-dd');
-          console.log("[CUSTOM SIGNAGE WEATHER] Today's date for filtering:", today);
+          const tomorrow = format(addDays(facilityNow, 1), 'yyyy-MM-dd');
+          console.log("[CUSTOM SIGNAGE WEATHER] Today's date:", today);
+          console.log("[CUSTOM SIGNAGE WEATHER] Tomorrow's date:", tomorrow);
           
+          // Get today's forecast if available
+          const todayData = dailyData.get(today);
           const futureDates = Array.from(dailyData.entries())
-            .filter(([dateString]) => dateString >= today)
-            .slice(0, 7);
+            .filter(([dateString]) => dateString >= tomorrow)
+            .slice(0, 6); // 6 days starting from tomorrow
           
-          console.log("[CUSTOM SIGNAGE WEATHER] Filtered future dates:", futureDates.map(([date]) => date));
+          console.log("[CUSTOM SIGNAGE WEATHER] Today has forecast data:", !!todayData);
+          console.log("[CUSTOM SIGNAGE WEATHER] Future dates (tomorrow+6):", futureDates.map(([date]) => date));
           
+          // Add today's forecast if available (using current weather data for consistency)
+          if (todayData && weather) {
+            const todayTemps = todayData.map(item => item.main.temp);
+            const todayMinTemp = Math.min(...todayTemps);
+            const todayMaxTemp = Math.max(...todayTemps);
+            
+            dailyForecasts.push({
+              date: today,
+              temperature: {
+                min: Math.round(Math.min(todayMinTemp, weather.temperature)),
+                max: Math.round(Math.max(todayMaxTemp, weather.temperature))
+              },
+              condition: weather.condition,
+              icon: weather.icon
+            });
+          }
+          
+          // Add 6 days starting from tomorrow
           futureDates.forEach(([dateString, dayData]) => {
             const temps = dayData.map(item => item.main.temp);
             const minTemp = Math.min(...temps);
