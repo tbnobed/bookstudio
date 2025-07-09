@@ -481,13 +481,13 @@ async function addPerformanceIndexes() {
   
   const indexes = [
     { table: 'bookings', column: 'start', name: 'idx_bookings_start' },
-    { table: 'bookings', column: 'end', name: 'idx_bookings_end' },
+    { table: 'bookings', column: '"end"', name: 'idx_bookings_end' },
     { table: 'bookings', column: 'studio_id', name: 'idx_bookings_studio_id' },
     { table: 'bookings', column: 'user_id', name: 'idx_bookings_user_id' },
     { table: 'booking_studios', column: 'booking_id', name: 'idx_booking_studios_booking_id' },
     { table: 'booking_studios', column: 'studio_id', name: 'idx_booking_studios_studio_id' },
     { table: 'alerts', column: 'start', name: 'idx_alerts_start' },
-    { table: 'alerts', column: 'end', name: 'idx_alerts_end' }
+    { table: 'alerts', column: '"end"', name: 'idx_alerts_end' }
   ];
   
   for (const index of indexes) {
