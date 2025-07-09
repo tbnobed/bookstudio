@@ -237,23 +237,48 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
         <div className="mt-4">
           <h4 className={`font-semibold mb-2 ${sizeClasses[size]}`}>6-Day Forecast</h4>
           <div className="grid grid-cols-6 gap-2 justify-items-center">
-            {forecast.forecast.map((day, index) => {
-              const ForecastIcon = getWeatherIcon(day.icon);
-              const date = new Date(day.date);
-              const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+            {Array.from({ length: 6 }, (_, index) => {
+              const day = forecast.forecast[index];
               
-              return (
-                <div key={day.date} className="text-center">
-                  <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
-                    {index === 0 ? 'Today' : dayName}
+              if (day) {
+                // Real forecast data available
+                const ForecastIcon = getWeatherIcon(day.icon);
+                const date = new Date(day.date);
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                
+                return (
+                  <div key={day.date} className="text-center">
+                    <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
+                      {index === 0 ? 'Today' : dayName}
+                    </div>
+                    <ForecastIcon className={`${iconSizes[size]} mx-auto text-blue-500 my-1`} />
+                    <div className={`${sizeClasses[size]} text-gray-600`}>
+                      <div>{day.temperature.max}°</div>
+                      <div className="text-gray-400">{day.temperature.min}°</div>
+                    </div>
                   </div>
-                  <ForecastIcon className={`${iconSizes[size]} mx-auto text-blue-500 my-1`} />
-                  <div className={`${sizeClasses[size]} text-gray-600`}>
-                    <div>{day.temperature.max}°</div>
-                    <div className="text-gray-400">{day.temperature.min}°</div>
+                );
+              } else {
+                // Placeholder for missing forecast data (API limitation)
+                const today = new Date();
+                const futureDate = new Date(today);
+                futureDate.setDate(today.getDate() + index);
+                const dayName = futureDate.toLocaleDateString('en-US', { weekday: 'short' });
+                const CloudIcon = getWeatherIcon('03d'); // Generic cloud icon
+                
+                return (
+                  <div key={`placeholder-${index}`} className="text-center">
+                    <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
+                      {index === 0 ? 'Today' : dayName}
+                    </div>
+                    <CloudIcon className={`${iconSizes[size]} mx-auto text-gray-400 my-1`} />
+                    <div className={`${sizeClasses[size]} text-gray-400`}>
+                      <div>--°</div>
+                      <div>--°</div>
+                    </div>
                   </div>
-                </div>
-              );
+                );
+              }
             })}
           </div>
         </div>
