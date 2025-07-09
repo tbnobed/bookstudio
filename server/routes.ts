@@ -2243,6 +2243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: "You don't have permission to add attachments to this booking",
           });
         }
+        
 
         // Save the file metadata to database
         const savedFile = await fileService.saveFileMetadata(req.file, bookingId, user.id, description);
