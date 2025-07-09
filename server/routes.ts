@@ -2473,6 +2473,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       const id = parseInt(req.params.id);
       
+      console.log(`[PATCH /api/booking-types/${id}] Request body:`, req.body);
+      console.log(`[PATCH /api/booking-types/${id}] User role:`, user.role);
+      
       // Only admins can manage booking types
       if (user.role !== "admin") {
         return res.status(403).json({ 
@@ -2482,22 +2485,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const bookingType = await storage.getBookingType(id);
       if (!bookingType) {
+        console.log(`[PATCH /api/booking-types/${id}] Booking type not found in database`);
         return res.status(404).json({ message: "Booking type not found" });
       }
       
-      const updateData = req.body;
+      console.log(`[PATCH /api/booking-types/${id}] Current booking type:`, bookingType);
+      
+      // Validate the request body using the schema
+      const updateData = insertBookingTypeSchema.partial().parse(req.body);
+      console.log(`[PATCH /api/booking-types/${id}] Validated update data:`, updateData);
+      
       const updatedBookingType = await storage.updateBookingType(id, updateData);
       
       if (!updatedBookingType) {
+        console.log(`[PATCH /api/booking-types/${id}] Update failed - returned null`);
         return res.status(404).json({ message: "Booking type not found" });
       }
       
+      console.log(`[PATCH /api/booking-types/${id}] Successfully updated:`, updatedBookingType);
       res.json(updatedBookingType);
     } catch (error) {
+      console.error(`[PATCH /api/booking-types/${id}] Error:`, error);
       if (error instanceof ValidationError || error instanceof ZodError) {
-        return res.status(400).json({ message: error.message });
+        return res.status(400).json({ message: error.message, errors: error.errors || error });
       }
-      res.status(500).json({ message: "Failed to update booking type" });
+      res.status(500).json({ message: "Failed to update booking type", error: error.message });
     }
   });
 
