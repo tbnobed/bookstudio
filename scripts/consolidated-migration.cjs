@@ -47,6 +47,7 @@ async function consolidatedMigration() {
     await createCoreUsers();
     await createCoreStudios();
     await createCoreNotificationGroups();
+    await createCoreBookingTypes();
     await createCoreTemplates();
     await createCoreBookings();
     await createCoreAlerts();
@@ -61,6 +62,7 @@ async function consolidatedMigration() {
     // Step 2: Create default data
     await createDefaultAdmin();
     await createDefaultNotificationGroups();
+    await createDefaultBookingTypes();
     await createDefaultSystemSettings();
     
     console.log('✅ Consolidated migration completed successfully!');
@@ -106,6 +108,21 @@ async function createCoreNotificationGroups() {
       group_type TEXT NOT NULL,
       description TEXT,
       enabled BOOLEAN DEFAULT TRUE
+    );
+  `);
+}
+
+async function createCoreBookingTypes() {
+  console.log('Creating booking_types table...');
+  await query(`
+    CREATE TABLE IF NOT EXISTS booking_types (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      description TEXT,
+      color TEXT,
+      icon TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
 }
@@ -310,6 +327,35 @@ async function createDefaultNotificationGroups() {
       console.log(`✅ Created notification group: ${group.name}`);
     } else {
       console.log(`✅ Notification group already exists: ${group.name}`);
+    }
+  }
+}
+
+async function createDefaultBookingTypes() {
+  console.log('Creating default booking types...');
+  
+  const defaultTypes = [
+    { name: 'Production', description: 'Regular production booking', color: '#3b82f6', icon: 'camera' },
+    { name: 'Rehearsal', description: 'Rehearsal session', color: '#8b5cf6', icon: 'play' },
+    { name: 'Meeting', description: 'Meeting or conference', color: '#10b981', icon: 'users' },
+    { name: 'Training', description: 'Training session', color: '#f59e0b', icon: 'graduation-cap' },
+    { name: 'Testing', description: 'Equipment or system testing', color: '#ef4444', icon: 'settings' },
+    { name: 'Setup', description: 'Setup or preparation', color: '#6b7280', icon: 'tools' },
+    { name: 'Other', description: 'Other type of booking', color: '#84cc16', icon: 'more-horizontal' }
+  ];
+  
+  for (const type of defaultTypes) {
+    const exists = await query('SELECT id FROM booking_types WHERE name = $1', [type.name]);
+    
+    if (exists.rows.length === 0) {
+      await query(`
+        INSERT INTO booking_types (name, description, color, icon)
+        VALUES ($1, $2, $3, $4)
+      `, [type.name, type.description, type.color, type.icon]);
+      
+      console.log(`✅ Created booking type: ${type.name}`);
+    } else {
+      console.log(`✅ Booking type already exists: ${type.name}`);
     }
   }
 }

@@ -41,6 +41,7 @@ async function repairSchema() {
     // Step 1: Fix missing tables
     await ensureAlertsTable();
     await ensureBookingStudiosTable();
+    await ensureBookingTypesTable();
     await ensureSystemSettingsTable();
     await ensurePcrRoomsTable();
     await ensureFileAttachmentsTable();
@@ -120,6 +121,53 @@ async function ensureBookingStudiosTable() {
     console.log('✅ Booking_studios table created');
   } else {
     console.log('✅ Booking_studios table already exists');
+  }
+}
+
+async function ensureBookingTypesTable() {
+  console.log('Ensuring booking_types table exists...');
+  
+  const tableExists = await query(`
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.tables 
+      WHERE table_schema = 'public' AND table_name = 'booking_types'
+    )
+  `);
+  
+  if (!tableExists.rows[0].exists) {
+    await query(`
+      CREATE TABLE booking_types (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        description TEXT,
+        color TEXT,
+        icon TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Insert default booking types
+    const defaultTypes = [
+      { name: 'Production', description: 'Regular production booking', color: '#3b82f6', icon: 'camera' },
+      { name: 'Rehearsal', description: 'Rehearsal session', color: '#8b5cf6', icon: 'play' },
+      { name: 'Meeting', description: 'Meeting or conference', color: '#10b981', icon: 'users' },
+      { name: 'Training', description: 'Training session', color: '#f59e0b', icon: 'graduation-cap' },
+      { name: 'Testing', description: 'Equipment or system testing', color: '#ef4444', icon: 'settings' },
+      { name: 'Setup', description: 'Setup or preparation', color: '#6b7280', icon: 'tools' },
+      { name: 'Other', description: 'Other type of booking', color: '#84cc16', icon: 'more-horizontal' }
+    ];
+    
+    for (const type of defaultTypes) {
+      await query(`
+        INSERT INTO booking_types (name, description, color, icon)
+        VALUES ($1, $2, $3, $4)
+      `, [type.name, type.description, type.color, type.icon]);
+    }
+    
+    console.log('✅ Booking_types table created with default types');
+  } else {
+    console.log('✅ Booking_types table already exists');
   }
 }
 
