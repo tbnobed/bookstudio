@@ -408,6 +408,7 @@ function PublicCalendarPage() {
                   studios={filteredStudios}
                   bookings={filteredBookings}
                   readOnly={true}
+                  selectedStudioIds={selectedStudioIds}
                 />
               </>
             )}
@@ -417,6 +418,7 @@ function PublicCalendarPage() {
                 studios={filteredStudios}
                 bookings={filteredBookings}
                 readOnly={true}
+                selectedStudioIds={selectedStudioIds}
               />
             )}
             {viewType === 'monthly' && (
