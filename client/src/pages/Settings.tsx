@@ -208,7 +208,7 @@ function BookingTypesPanel() {
   const queryClient = useQueryClient();
 
   // Query for booking types
-  const { data: bookingTypes = [], isLoading } = useQuery<BookingType[]>({
+  const { data: bookingTypes = [], isLoading, refetch } = useQuery<BookingType[]>({
     queryKey: ['/api/booking-types'],
   });
 
@@ -219,7 +219,7 @@ function BookingTypesPanel() {
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/booking-types'] });
+      refetch();
       toast({ title: "Booking type created successfully" });
       setIsModalOpen(false);
     },
@@ -236,7 +236,7 @@ function BookingTypesPanel() {
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/booking-types'] });
+      refetch();
       toast({ title: "Booking type updated successfully" });
       setIsModalOpen(false);
     },
@@ -251,7 +251,7 @@ function BookingTypesPanel() {
       await apiRequest('DELETE', `/api/booking-types/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/booking-types'] });
+      refetch();
       toast({ title: "Booking type deleted successfully" });
       setIsDeleteDialogOpen(false);
       setBookingTypeToDelete(null);
