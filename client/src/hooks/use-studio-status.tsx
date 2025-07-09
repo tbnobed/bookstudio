@@ -82,6 +82,9 @@ export function useStudioStatus(filteredBookings?: Booking[]) {
     
     // Get bookings for this studio (both direct and via junction table)
     const studioBookings = bookings.filter(booking => {
+      // Skip cancelled bookings - they don't affect studio status
+      if (booking.status === 'cancelled') return false;
+      
       // Check direct assignment (legacy support)
       const directMatch = booking.studioId === studioId;
       

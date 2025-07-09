@@ -25,6 +25,9 @@ export function calculateStudioStatus(
   
   // Check if there are any active bookings for this studio right now
   const hasActiveBooking = bookings.some(booking => {
+    // Skip cancelled bookings - they don't make studios "in-use"
+    if (booking.status === 'cancelled') return false;
+    
     // First, check traditional studioId (kept for backwards compatibility)
     const directMatch = booking.studioId === studio.id;
     

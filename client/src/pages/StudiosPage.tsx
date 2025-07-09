@@ -51,6 +51,9 @@ export default function StudiosPage() {
   // Function to get current booking for a studio
   const getCurrentBooking = (studioId: number) => {
     return bookings.find(booking => {
+      // Skip cancelled bookings - they don't make studios "in-use"
+      if (booking.status === 'cancelled') return false;
+      
       // Check direct studio link
       if (booking.studioId === studioId) {
         const start = new Date(booking.start);
@@ -78,6 +81,9 @@ export default function StudiosPage() {
   const getNextBooking = (studioId: number) => {
     const futureBookings = bookings
       .filter(booking => {
+        // Skip cancelled bookings - they don't affect studio availability
+        if (booking.status === 'cancelled') return false;
+        
         // Check direct studio link
         if (booking.studioId === studioId) {
           const start = new Date(booking.start);
