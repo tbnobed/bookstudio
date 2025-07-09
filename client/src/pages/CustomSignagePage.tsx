@@ -646,12 +646,15 @@ export default function CustomSignagePage() {
             <CardContent>
               <div className="grid grid-cols-7 gap-2">
                 {weeklyBookings.map(({ date, bookings }, index) => {
-                  const dateString = formatFacilityTime(date, 'yyyy-MM-dd', facilityTimezone);
+                  const dateString = format(date, 'yyyy-MM-dd');
                   const dayForecast = forecast?.forecast.find(f => f.date === dateString);
                   
-                  // Debug logging for weather forecast availability
+                  // Debug logging for weather display
                   if (index === 0) {
-                    console.log("[CUSTOM SIGNAGE WEATHER] Available forecast dates:", forecast?.forecast.map(f => f.date) || []);
+                    console.log("[CUSTOM SIGNAGE WEATHER] Today's date string:", dateString);
+                    console.log("[CUSTOM SIGNAGE WEATHER] Available forecast dates:", forecast?.forecast.map(f => f.date));
+                    console.log("[CUSTOM SIGNAGE WEATHER] Today's forecast found:", !!dayForecast);
+                    console.log("[CUSTOM SIGNAGE WEATHER] Today's forecast data:", dayForecast);
                   }
                   
                   return (
@@ -668,43 +671,41 @@ export default function CustomSignagePage() {
                       </div>
                       
                       {/* Weather forecast for the day */}
-                      {showWeather && (
-                        <div className="mb-2 flex flex-col items-center">
-                          {dayForecast ? (
-                            <>
-                              <img 
-                                src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
-                                alt={dayForecast.condition}
-                                className="w-8 h-8 mb-1"
-                              />
-                              <div className="text-xs text-slate-300">
-                                {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
-                              </div>
-                            </>
-                          ) : index === 0 && weather ? (
-                            // Show current weather for today if forecast data doesn't match
-                            <>
-                              <img 
-                                src={`https://openweathermap.org/img/w/${weather.icon}.png`}
-                                alt={weather.condition}
-                                className="w-8 h-8 mb-1"
-                              />
-                              <div className="text-xs text-slate-300">
-                                {weather.temperature}°
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-8 h-8 mb-1 flex items-center justify-center">
-                                <span className="text-slate-500 text-lg">☁</span>
-                              </div>
-                              <div className="text-xs text-slate-500">
-                                --/--
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
+                      <div className="mb-2 flex flex-col items-center">
+                        {dayForecast ? (
+                          <>
+                            <img 
+                              src={`https://openweathermap.org/img/w/${dayForecast.icon}.png`}
+                              alt={dayForecast.condition}
+                              className="w-8 h-8 mb-1"
+                            />
+                            <div className="text-xs text-slate-300">
+                              {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
+                            </div>
+                          </>
+                        ) : index === 0 && weather ? (
+                          // Show current weather for today if forecast data doesn't match
+                          <>
+                            <img 
+                              src={`https://openweathermap.org/img/w/${weather.icon}.png`}
+                              alt={weather.condition}
+                              className="w-8 h-8 mb-1"
+                            />
+                            <div className="text-xs text-slate-300">
+                              {weather.temperature}°
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-8 h-8 mb-1 flex items-center justify-center">
+                              <span className="text-slate-500 text-lg">☁</span>
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              --/--
+                            </div>
+                          </>
+                        )}
+                      </div>
                       
                       <div className="space-y-1">
                       {bookings.map((booking) => {
