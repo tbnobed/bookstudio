@@ -321,14 +321,35 @@ export default function CustomSignagePage() {
 
 
 
-  // Combine bookings and alerts
+  // Combine bookings with alerts from API (exact copy from signage-page.tsx)
   const combinedBookings = useMemo(() => {
-    const alertBookings = alerts.map((alert: any) => ({
-      ...alert,
-      studioId: null,
-      color: alert.severity === 'critical' ? '#dc2626' : '#ea580c'
+    console.log(`CustomSignagePage - Combining ${bookings.length} bookings with ${alerts.length} alerts`);
+    
+    // Convert alerts to booking format for display
+    const alertsAsBookings = alerts.map((alert: any) => ({
+      id: `alert-${alert.id}`,
+      title: alert.title,
+      description: alert.description,
+      start: alert.start,
+      end: alert.end,
+      type: alert.alertType || 'maintenance',
+      severity: alert.severity,
+      status: alert.status || 'active',
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null,
+      userId: alert.createdBy,
+      templateId: null,
+      createdAt: alert.createdAt,
+      notifyList: alert.notifyList || [],
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107'
     }));
-    return [...bookings, ...alertBookings];
+    
+    console.log(`CustomSignagePage - Converted ${alertsAsBookings.length} API alerts to booking format`);
+    
+    return [...bookings, ...alertsAsBookings];
   }, [bookings, alerts]);
 
   // Filter bookings based on selected studios
@@ -344,24 +365,55 @@ export default function CustomSignagePage() {
     );
   }) : combinedBookings;
 
-  // Get today's data in facility timezone
-  const today = getFacilityTime(facilityTimezone);
-  const todayStart = fromZonedTime(
-    new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0),
-    facilityTimezone
-  );
-  const todayEnd = fromZonedTime(
-    new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59),
-    facilityTimezone
-  );
-
-  // Get today's bookings
+  // Filter today's bookings and alerts - use proper facility timezone bounds (exact copy from signage-page.tsx)
+  const nowInFacility = toZonedTime(new Date(), facilityTimezone);
+  const todayStartInFacility = startOfDay(nowInFacility);
+  const todayEndInFacility = endOfDay(nowInFacility);
+  // Convert back to UTC for comparison with booking.start which is in UTC
+  const today = fromZonedTime(todayStartInFacility, facilityTimezone);
+  const todayEnd = fromZonedTime(todayEndInFacility, facilityTimezone);
   const todaysBookings = filteredBookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
-    const bookingEnd = parseISO(booking.end);
+    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
+    const withinInterval = isWithinInterval(bookingStart, { start: today, end: todayEnd });
     
-    // Check if booking overlaps with today
-    return bookingStart < todayEnd && bookingEnd > todayStart;
+    return withinInterval && !isMaintenanceType;
+  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+  // Get today's site alerts (from alerts API and maintenance type bookings) - exact copy from signage-page.tsx
+  const todaysAlerts = filteredBookings.filter(booking => {
+    const bookingStart = parseISO(booking.start);
+    
+    // Check if this is an alert from the alerts API (converted to booking format)
+    const isApiAlert = typeof booking.id === 'string' && booking.id.startsWith('alert-');
+    
+    // Check if this is a maintenance type booking or has alert keywords
+    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance' || booking.type === 'alert';
+    const hasAlertKeyword = booking.title && (
+      booking.title.toLowerCase().includes('alert') ||
+      booking.title.toLowerCase().includes('outage') ||
+      booking.title.toLowerCase().includes('emergency') ||
+      booking.title.toLowerCase().includes('maintenance') ||
+      booking.title.toLowerCase().includes('notice') ||
+      booking.title.toLowerCase().includes('warning')
+    );
+    
+    const isAlert = isApiAlert || isMaintenanceType || hasAlertKeyword;
+    const withinToday = isWithinInterval(bookingStart, { start: today, end: todayEnd });
+    
+    console.log(`[CustomSignage todaysAlerts Debug] Booking ${booking.id} (${booking.title}):`, {
+      isApiAlert,
+      isMaintenanceType,
+      hasAlertKeyword,
+      isAlert,
+      withinToday,
+      bookingType: booking.type,
+      bookingStart: bookingStart.toISOString(),
+      todayStart: today.toISOString(),
+      todayEnd: todayEnd.toISOString()
+    });
+    
+    return withinToday && isAlert;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
   // Get weekly bookings
@@ -415,19 +467,15 @@ export default function CustomSignagePage() {
     };
   });
 
-  // Get maintenance alerts from combined data (including alerts from API)
+  // Get maintenance alerts from combined data (including alerts from API) - exact copy from signage-page.tsx
   const maintenanceAlerts = filteredBookings.filter(booking => {
-    // Check if this is an alert from the alerts API (has alertType field)
-    const isApiAlert = booking.alertType !== undefined;
-    
-    // Check if this is a maintenance type booking 
+    const isApiAlert = typeof booking.id === 'string' && booking.id.startsWith('alert-');
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
-    
     const isAlert = isApiAlert || isMaintenanceType;
     
     return isAlert && 
-           parseISO(booking.start) >= todayStart &&
-           parseISO(booking.start) <= addDays(todayStart, 7);
+           parseISO(booking.start) >= today &&
+           parseISO(booking.start) <= addDays(today, 7);
   });
 
   const pageTitle = titleParam || siteName;
@@ -787,14 +835,14 @@ export default function CustomSignagePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {maintenanceAlerts.length === 0 ? (
+              {todaysAlerts.length === 0 ? (
                 <div className="text-center py-8 text-slate-400">
                   <AlertTriangle className="mx-auto h-12 w-12 mb-3 opacity-50" />
                   <p className="text-lg">No active alerts</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {maintenanceAlerts.map((alert) => (
+                  {todaysAlerts.map((alert) => (
                     <div
                       key={alert.id}
                       className="p-3 rounded-lg bg-red-900/40 border border-red-500/50 animate-pulse"
