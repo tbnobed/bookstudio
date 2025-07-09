@@ -372,7 +372,7 @@ export default function CustomSignagePage() {
   // Convert back to UTC for comparison with booking.start which is in UTC
   const today = fromZonedTime(todayStartInFacility, facilityTimezone);
   const todayEnd = fromZonedTime(todayEndInFacility, facilityTimezone);
-  const todaysBookings = filteredBookings.filter(booking => {
+  const todaysBookings = combinedBookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
     const withinInterval = isWithinInterval(bookingStart, { start: today, end: todayEnd });
@@ -381,7 +381,7 @@ export default function CustomSignagePage() {
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
   // Get today's site alerts (from alerts API and maintenance type bookings) - exact copy from signage-page.tsx
-  const todaysAlerts = filteredBookings.filter(booking => {
+  const todaysAlerts = combinedBookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
     
     // Check if this is an alert from the alerts API (converted to booking format)
@@ -416,59 +416,38 @@ export default function CustomSignagePage() {
     return withinToday && isAlert;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-  // Get weekly bookings
-  const weeklyBookings = useMemo(() => {
-    const weekStart = startOfDay(today);
-    const days = [];
-    
-    for (let i = 0; i < 7; i++) {
-      const day = addDays(weekStart, i);
-      const dayStart = fromZonedTime(
-        new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0),
-        facilityTimezone
-      );
-      const dayEnd = fromZonedTime(
-        new Date(day.getFullYear(), day.getMonth(), day.getDate(), 23, 59, 59),
-        facilityTimezone
-      );
-      
-      const dayBookings = filteredBookings.filter(booking => {
-        const bookingStart = parseISO(booking.start);
-        const bookingEnd = parseISO(booking.end);
-        return bookingStart < dayEnd && bookingEnd > dayStart;
-      }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-      
-      days.push({
-        date: day,
-        bookings: dayBookings
-      });
-    }
-    
-    return days;
-  }, [filteredBookings, today, facilityTimezone]);
+  // Get weekly overview (next 7 days) - use proper timezone boundaries
+  const weeklyBookings = Array.from({ length: 7 }, (_, i) => {
+    const facilityDate = addDays(nowInFacility, i);
+    const date = fromZonedTime(startOfDay(facilityDate), facilityTimezone);
+    const dayEnd = fromZonedTime(endOfDay(facilityDate), facilityTimezone);
+    const dayBookings = combinedBookings.filter(booking => {
+      const bookingStart = parseISO(booking.start);
+      return isWithinInterval(bookingStart, { start: date, end: dayEnd });
+    }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+    return {
+      date,
+      bookings: dayBookings,
+    };
+  });
 
-  // Get studio status
+  // Get current studio status
   const studioStatus = studios.map(studio => {
-    const activeBooking = filteredBookings.find(booking => {
-      if (booking.studioId === studio.id) {
-        return isBookingActive(booking, getCurrentFacilityTime(facilityTimezone));
-      }
-      return bookingStudioLinks.some(link => 
-        link.studioId === studio.id && 
-        link.bookingId === booking.id &&
-        isBookingActive(booking, getCurrentFacilityTime(facilityTimezone))
-      );
+    const activeBooking = combinedBookings.find(booking => {
+      const isDirectStudio = booking.studioId === studio.id;
+      const hasLink = bookingStudioLinks.some(link => link.studioId === studio.id && link.bookingId === booking.id);
+      return (isDirectStudio || hasLink) && isBookingActive(booking, currentTime);
     });
 
     return {
       ...studio,
       currentBooking: activeBooking,
-      nextAvailable: getNextAvailable(studio.id, filteredBookings, bookingStudioLinks, facilityTimezone),
+      nextAvailable: getNextAvailable(studio.id, combinedBookings, bookingStudioLinks, facilityTimezone),
     };
   });
 
-  // Get maintenance alerts from combined data (including alerts from API) - exact copy from signage-page.tsx
-  const maintenanceAlerts = filteredBookings.filter(booking => {
+  // Get maintenance alerts from combined data (including alerts from API)
+  const maintenanceAlerts = combinedBookings.filter(booking => {
     const isApiAlert = typeof booking.id === 'string' && booking.id.startsWith('alert-');
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
     const isAlert = isApiAlert || isMaintenanceType;
