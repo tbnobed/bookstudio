@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar, Radio, AlertTriangle } from "lucide-react";
-import { format, isWithinInterval, addDays, startOfDay, endOfDay, parseISO, isSameDay } from "date-fns";
+import { format, isWithinInterval, addDays, startOfDay, endOfDay, parseISO } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { getFacilityTimezoneAsync } from "@/lib/timezoneConfig";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -104,18 +104,6 @@ function isBookingActive(booking: Booking, now: Date) {
   const end = parseISO(booking.end);
   const isActive = isWithinInterval(now, { start, end });
   
-  // Debug logging for booking 240
-  if (booking.id === 240) {
-    console.log(`[isBookingActive Debug] Booking 240:`, {
-      bookingStart: start.toISOString(),
-      bookingEnd: end.toISOString(), 
-      currentTime: now.toISOString(),
-      isWithinInterval: isActive,
-      status: booking.status,
-      finalResult: isActive && booking.status !== 'cancelled'
-    });
-  }
-  
   return isActive && booking.status !== 'cancelled';
 }
 
@@ -126,29 +114,14 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
     return bookingStudioLinks.some(link => link.studioId === studioId && link.bookingId === booking.id);
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   
-  // Debug logging for studios 1 and 2
-  if (studioId === 1 || studioId === 2) {
-    console.log(`[Studio ${studioId} Debug] Current time:`, now.toISOString());
-    console.log(`[Studio ${studioId} Debug] Studio bookings:`, studioBookings.map(b => ({
-      id: b.id,
-      title: b.title,
-      start: b.start,
-      end: b.end,
-      isActive: isBookingActive(b, now)
-    })));
-  }
-  
   // Check if currently in use
   const activeBooking = studioBookings.find(booking => isBookingActive(booking, now));
   if (activeBooking) {
-    if (studioId === 1 || studioId === 2) {
-      console.log(`[Studio ${studioId} Debug] Active booking found:`, activeBooking.title);
-    }
     return formatFacilityTime(activeBooking.end, 'h:mm a', timezone);
   }
   
   // Find next booking
-  const nextBooking = studioBookings.find(booking => parseISO(booking.start) > now);
+  const nextBooking = studioBookings.find(booking => new Date(booking.start) > now);
   if (nextBooking) {
     return formatFacilityTime(nextBooking.start, 'h:mm a', timezone);
   }
@@ -157,297 +130,201 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
 }
 
 export default function SignagePage() {
-  const [currentTime, setCurrentTime] = useState(() => getCurrentFacilityTime(BUILD_TIME_TIMEZONE));
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [facilityTimezone, setFacilityTimezone] = useState(BUILD_TIME_TIMEZONE);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<WeatherForecast | null>(null);
-  const [facilityTimezone, setFacilityTimezone] = useState<string>(BUILD_TIME_TIMEZONE);
-  
-  // Get site settings
   const { siteName } = useSiteSettings();
-  
-  // Load facility timezone from database
+
+  const { data: bookings = [] } = useQuery<Booking[]>({
+    queryKey: ["/api/public/bookings"],
+    refetchInterval: 2 * 60 * 1000, // 2 minutes
+  });
+
+  const { data: studios = [] } = useQuery<Studio[]>({
+    queryKey: ["/api/studios"],
+    refetchInterval: 2 * 60 * 1000,
+  });
+
+  const { data: bookingStudioLinks = [] } = useQuery<BookingStudioLink[]>({
+    queryKey: ["/api/public/booking-studios"],
+    refetchInterval: 2 * 60 * 1000,
+  });
+
+  const { data: alerts = [] } = useQuery({
+    queryKey: ["/api/alerts"],
+    refetchInterval: 2 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     const loadTimezone = async () => {
       try {
-        const timezone = await getFacilityTimezoneAsync();
-        setFacilityTimezone(timezone);
+        const tz = await getFacilityTimezoneAsync();
+        setFacilityTimezone(tz);
       } catch (error) {
-        console.error("Failed to load facility timezone:", error);
-        // Keep using build-time timezone as fallback
+        console.error('Error loading timezone:', error);
       }
     };
     loadTimezone();
   }, []);
-  
-  // Auto-refresh time every 30 seconds
+
+  // Weather fetching
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(getCurrentFacilityTime(facilityTimezone));
-    }, 30000);
-    
-    return () => clearInterval(timer);
-  }, [facilityTimezone]);
-  
-  // Fetch weather data and forecast
-  useEffect(() => {
-    const fetchWeatherData = async () => {
+    const fetchWeather = async () => {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        console.log("[SIGNAGE WEATHER] Weather API Key status:", apiKey ? "Available" : "Missing");
-        // Fetch current weather
-        const weatherLocation = import.meta.env.VITE_WEATHER_LOCATION;
-        const weatherLat = import.meta.env.VITE_WEATHER_LAT;
-        const weatherLon = import.meta.env.VITE_WEATHER_LON;
-        
-        console.log("[SIGNAGE WEATHER] Weather Location:", weatherLocation || "Not configured");
-        console.log("[SIGNAGE WEATHER] Weather Lat:", weatherLat || "Not configured");
-        console.log("[SIGNAGE WEATHER] Weather Lon:", weatherLon || "Not configured");
-        console.log("[SIGNAGE WEATHER] All VITE env vars:", Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
-        
-        if (!apiKey) {
-          console.error("[SIGNAGE WEATHER] Weather integration disabled: API key not found");
-          return;
-        }
+        if (!apiKey) return;
 
-        if (!weatherLocation) {
-          console.error("[SIGNAGE WEATHER] Weather integration disabled: Location not configured");
-          return;
-        }
-
-
-        console.log("[SIGNAGE WEATHER] Fetching current weather...");
-        const currentResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${apiKey}&units=imperial`
-        );
+        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX';
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`);
         
-        console.log("[SIGNAGE WEATHER] Current weather response status:", currentResponse.status);
-        
-        if (currentResponse.ok) {
-          const currentData = await currentResponse.json();
-          console.log("[SIGNAGE WEATHER] Current weather data received:", currentData);
+        if (response.ok) {
+          const data = await response.json();
           setWeather({
-            temperature: Math.round(currentData.main.temp),
-            condition: currentData.weather[0].description,
-            humidity: currentData.main.humidity,
-            windSpeed: Math.round(currentData.wind.speed),
-            icon: currentData.weather[0].icon,
-            location: currentData.name
+            temperature: Math.round(data.main.temp),
+            condition: data.weather[0].description,
+            humidity: data.main.humidity,
+            windSpeed: data.wind.speed,
+            icon: data.weather[0].icon,
+            location: data.name
           });
-          console.log("[SIGNAGE WEATHER] Weather state updated");
-        } else {
-          console.error("[SIGNAGE WEATHER] Current weather API failed:", currentResponse.status, await currentResponse.text());
-        }
-
-        // Fetch 7-day forecast
-        console.log("[SIGNAGE WEATHER] Fetching forecast...");
-        const forecastResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${weatherLocation}&appid=${apiKey}&units=imperial`
-        );
-        
-        console.log("[SIGNAGE WEATHER] Forecast response status:", forecastResponse.status);
-        
-        if (forecastResponse.ok) {
-          const forecastData = await forecastResponse.json();
-          console.log("[SIGNAGE WEATHER] Forecast data received:", forecastData);
-          
-          // Process forecast data - get daily forecasts by grouping hourly data
-          // Use facility timezone for proper date grouping
-          const dailyData = new Map<string, any[]>();
-          
-          forecastData.list.forEach((item: any) => {
-            const utcDate = new Date(item.dt * 1000);
-            // Convert to facility timezone for proper date grouping
-            const facilityDate = toZonedTime(utcDate, facilityTimezone);
-            const dateString = format(facilityDate, 'yyyy-MM-dd');
-            
-            if (!dailyData.has(dateString)) {
-              dailyData.set(dateString, []);
-            }
-            dailyData.get(dateString)!.push(item);
-          });
-          
-          console.log("[SIGNAGE WEATHER] Daily data grouped:", Array.from(dailyData.keys()));
-          
-          // Create daily forecasts with proper min/max calculations
-          const dailyForecasts: ForecastDay[] = [];
-          
-          // Filter out past dates and only include today and future dates
-          // Use the same date calculation as the weekly view to ensure consistency
-          const now = new Date();
-          const facilityNow = toZonedTime(now, facilityTimezone);
-          const today = format(facilityNow, 'yyyy-MM-dd');
-          console.log("[SIGNAGE WEATHER] Today's date for filtering:", today);
-          console.log("[SIGNAGE WEATHER] Current UTC time:", now.toISOString());
-          console.log("[SIGNAGE WEATHER] Current facility time:", facilityNow.toISOString());
-          
-          const futureDates = Array.from(dailyData.entries())
-            .filter(([dateString]) => dateString >= today)
-            .slice(0, 7);
-          
-          console.log("[SIGNAGE WEATHER] Filtered future dates:", futureDates.map(([date]) => date));
-          
-          futureDates.forEach(([dateString, dayData]) => {
-            const temps = dayData.map(item => item.main.temp);
-            const minTemp = Math.min(...temps);
-            const maxTemp = Math.max(...temps);
-            
-            // Use midday data for condition and icon (around noon)
-            const middayData = dayData.find(item => {
-              const hour = new Date(item.dt * 1000).getHours();
-              return hour >= 11 && hour <= 13;
-            }) || dayData[Math.floor(dayData.length / 2)];
-            
-            dailyForecasts.push({
-              date: dateString,
-              temperature: {
-                min: Math.round(minTemp),
-                max: Math.round(maxTemp)
-              },
-              condition: middayData.weather[0].description,
-              icon: middayData.weather[0].icon
-            });
-          });
-          
-          console.log("[SIGNAGE WEATHER] Daily forecasts created:", dailyForecasts);
-          setForecast({ forecast: dailyForecasts });
-          console.log("[SIGNAGE WEATHER] Forecast state updated");
-        } else {
-          console.error("[SIGNAGE WEATHER] Forecast API failed:", forecastResponse.status, await forecastResponse.text());
         }
       } catch (error) {
-        console.error("Weather API error:", error);
-        // Continue without weather data if API unavailable
+        console.error('Error fetching weather:', error);
       }
     };
 
-    // Try immediately and retry every 5 minutes
-    fetchWeatherData();
-    const weatherTimer = setInterval(fetchWeatherData, 300000);
-    return () => clearInterval(weatherTimer);
-  }, []);
-  
-  // Auto-refresh data every 2 minutes
-  useEffect(() => {
-    const refreshTimer = setInterval(() => {
-      window.location.reload();
-    }, 120000);
+    const fetchForecast = async () => {
+      try {
+        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        if (!apiKey) return;
+
+        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX';
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=imperial`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Process forecast data
+          const forecastDays: ForecastDay[] = [];
+          const processedDates = new Set<string>();
+          
+          for (const item of data.list) {
+            const facilityDate = toZonedTime(new Date(item.dt * 1000), facilityTimezone);
+            const dateStr = format(facilityDate, 'yyyy-MM-dd');
+            
+            if (!processedDates.has(dateStr) && forecastDays.length < 7) {
+              forecastDays.push({
+                date: dateStr,
+                temperature: {
+                  min: Math.round(item.main.temp_min),
+                  max: Math.round(item.main.temp_max)
+                },
+                condition: item.weather[0].description,
+                icon: item.weather[0].icon
+              });
+              processedDates.add(dateStr);
+            }
+          }
+          
+          setForecast({ forecast: forecastDays });
+        }
+      } catch (error) {
+        console.error('Error fetching forecast:', error);
+      }
+    };
+
+    fetchWeather();
+    fetchForecast();
     
-    return () => clearInterval(refreshTimer);
-  }, []);
+    // Refresh every 10 minutes
+    const interval = setInterval(() => {
+      fetchWeather();
+      fetchForecast();
+    }, 10 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [facilityTimezone]);
 
-  const { data: bookings = [] } = useQuery<Booking[]>({
-    queryKey: ['/api/public/bookings'],
-    refetchInterval: 60000, // Refetch every minute
-    staleTime: 0, // Always consider data stale
-    gcTime: 0, // Don't cache data
-  });
-
-  // Fetch alerts from the dedicated alerts API
-  const { data: allAlerts = [] } = useQuery<any[]>({
-    queryKey: ['/api/alerts'],
-    refetchInterval: 30000, // Refetch every 30 seconds for signage
-    staleTime: 0, // Always consider data stale
-    gcTime: 0, // Don't cache data
-  });
-
-
-
-  const { data: studios = [] } = useQuery<Studio[]>({
-    queryKey: ['/api/studios'],
-    refetchInterval: 60000,
-  });
-
-  const { data: bookingStudioLinks = [] } = useQuery<BookingStudioLink[]>({
-    queryKey: ['/api/public/booking-studios'],
-    refetchInterval: 60000,
-  });
-
-  // Combine bookings with alerts from API
+  // Combine bookings and alerts
   const combinedBookings = useMemo(() => {
-    console.log(`SignagePage - Combining ${bookings.length} bookings with ${allAlerts.length} alerts`);
-    
-    // Convert alerts to booking format for display
-    const alertsAsBookings = allAlerts.map(alert => ({
-      id: `alert-${alert.id}`,
-      title: alert.title,
-      description: alert.description,
-      start: alert.start,
-      end: alert.end,
-      type: alert.alertType || 'maintenance',
-      severity: alert.severity,
-      status: alert.status || 'active',
-      studioId: null, // Alerts don't have studios
-      pcrRoomId: null,
-      userId: alert.createdBy,
-      templateId: null,
-      createdAt: alert.createdAt,
-      notifyList: alert.notifyList || [],
-      color: alert.severity === 'critical' ? '#f44336' : 
-             alert.severity === 'high' ? '#ff9800' : 
-             alert.severity === 'medium' ? '#ffc107' : 
-             alert.severity === 'low' ? '#2196f3' : '#ffc107'
+    const alertBookings = alerts.map((alert: any) => ({
+      ...alert,
+      studioId: null,
+      color: alert.severity === 'critical' ? '#dc2626' : '#ea580c'
     }));
-    
-    console.log(`SignagePage - Converted ${alertsAsBookings.length} API alerts to booking format`);
-    
-    return [...bookings, ...alertsAsBookings];
-  }, [bookings, allAlerts]);
+    return [...bookings, ...alertBookings];
+  }, [bookings, alerts]);
 
-  // Filter today's bookings and alerts - use proper facility timezone bounds
-  // The issue is that currentTime is already timezone-converted, so we need to get
-  // actual UTC boundaries for comparison with the UTC booking times
-  const nowInFacility = toZonedTime(new Date(), facilityTimezone);
-  const todayStartInFacility = startOfDay(nowInFacility);
-  const todayEndInFacility = endOfDay(nowInFacility);
-  // Convert back to UTC for comparison with booking.start which is in UTC
-  const today = fromZonedTime(todayStartInFacility, facilityTimezone);
-  const todayEnd = fromZonedTime(todayEndInFacility, facilityTimezone);
+  // Get today's data in facility timezone
+  const today = getFacilityTime(facilityTimezone);
+  const todayStart = fromZonedTime(
+    new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0),
+    facilityTimezone
+  );
+  const todayEnd = fromZonedTime(
+    new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59),
+    facilityTimezone
+  );
+
+  // Get today's bookings
   const todaysBookings = combinedBookings.filter(booking => {
     const bookingStart = parseISO(booking.start);
-    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
-    const withinInterval = isWithinInterval(bookingStart, { start: today, end: todayEnd });
+    const bookingEnd = parseISO(booking.end);
     
-
-    
-    return withinInterval && !isMaintenanceType;
+    // Check if booking overlaps with today
+    return bookingStart < todayEnd && bookingEnd > todayStart;
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-  // Get today's site alerts (maintenance type bookings and alert keywords)
-  const todaysAlerts = combinedBookings.filter(booking => {
-    const bookingStart = parseISO(booking.start);
-    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance' || booking.type === 'alert';
-    const hasAlertKeyword = booking.title && (
-      booking.title.toLowerCase().includes('alert') ||
-      booking.title.toLowerCase().includes('outage') ||
-      booking.title.toLowerCase().includes('emergency') ||
-      booking.title.toLowerCase().includes('maintenance') ||
-      booking.title.toLowerCase().includes('notice') ||
-      booking.title.toLowerCase().includes('warning')
-    );
-    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && (isMaintenanceType || hasAlertKeyword);
-  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  // Get weekly bookings
+  const weeklyBookings = useMemo(() => {
+    const weekStart = startOfDay(today);
+    const days = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const day = addDays(weekStart, i);
+      const dayStart = fromZonedTime(
+        new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0),
+        facilityTimezone
+      );
+      const dayEnd = fromZonedTime(
+        new Date(day.getFullYear(), day.getMonth(), day.getDate(), 23, 59, 59),
+        facilityTimezone
+      );
+      
+      const dayBookings = combinedBookings.filter(booking => {
+        const bookingStart = parseISO(booking.start);
+        const bookingEnd = parseISO(booking.end);
+        return bookingStart < dayEnd && bookingEnd > dayStart;
+      }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+      
+      days.push({
+        date: day,
+        bookings: dayBookings
+      });
+    }
+    
+    return days;
+  }, [combinedBookings, today, facilityTimezone]);
 
-  // Get weekly overview (next 7 days) - use proper timezone boundaries
-  const weeklyBookings = Array.from({ length: 7 }, (_, i) => {
-    const facilityDate = addDays(nowInFacility, i);
-    const date = fromZonedTime(startOfDay(facilityDate), facilityTimezone);
-    const dayEnd = fromZonedTime(endOfDay(facilityDate), facilityTimezone);
-    const dayBookings = combinedBookings.filter(booking => {
-      const bookingStart = parseISO(booking.start);
-      return isWithinInterval(bookingStart, { start: date, end: dayEnd });
-    }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-    return {
-      date,
-      bookings: dayBookings,
-    };
-  });
-
-  // Get current studio status
+  // Get studio status
   const studioStatus = studios.map(studio => {
     const activeBooking = combinedBookings.find(booking => {
-      const isDirectStudio = booking.studioId === studio.id;
-      const hasLink = bookingStudioLinks.some(link => link.studioId === studio.id && link.bookingId === booking.id);
-      return (isDirectStudio || hasLink) && isBookingActive(booking, currentTime);
+      if (booking.studioId === studio.id) {
+        return isBookingActive(booking, getCurrentFacilityTime(facilityTimezone));
+      }
+      return bookingStudioLinks.some(link => 
+        link.studioId === studio.id && 
+        link.bookingId === booking.id &&
+        isBookingActive(booking, getCurrentFacilityTime(facilityTimezone))
+      );
     });
 
     return {
@@ -595,7 +472,7 @@ export default function SignagePage() {
                           />
                         </div>
                         <div className="text-base text-slate-300 mb-1 truncate">
-                          {getStudioNames(booking, studios, bookingStudioLinks)}
+                          {booking.studioId ? getStudioNames(booking, studios, bookingStudioLinks) : 'Facility Alert'}
                         </div>
                         <div className="text-base text-slate-400">
                           {formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}
@@ -626,14 +503,6 @@ export default function SignagePage() {
                 {weeklyBookings.map(({ date, bookings }, index) => {
                   const dateString = format(date, 'yyyy-MM-dd');
                   const dayForecast = forecast?.forecast.find(f => f.date === dateString);
-                  
-                  // Debug logging for weather display
-                  if (index === 0) {
-                    console.log("[SIGNAGE WEATHER] Today's date string:", dateString);
-                    console.log("[SIGNAGE WEATHER] Available forecast dates:", forecast?.forecast.map(f => f.date));
-                    console.log("[SIGNAGE WEATHER] Today's forecast found:", !!dayForecast);
-                    console.log("[SIGNAGE WEATHER] Today's forecast data:", dayForecast);
-                  }
                   
                   return (
                     <div key={index} className="text-center">
@@ -735,7 +604,7 @@ export default function SignagePage() {
                             </div>
                             <div className={`flex items-center text-xs opacity-90 ${isAlert ? 'justify-center' : 'justify-between'}`}>
                               <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
-                              {!isAlert && (
+                              {!isAlert && booking.studioId && (
                                 <div className="flex items-center space-x-2">
                                   {booking.type === 'maintenance' && (
                                     <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
@@ -750,16 +619,11 @@ export default function SignagePage() {
                                 <span className="bg-orange-600/50 px-1 rounded text-xs ml-2">MAINT</span>
                               )}
                             </div>
-                            {booking.description && booking.description.trim() && (
-                              <div className="text-xs opacity-80 mt-1 truncate">
-                                {booking.description}
-                              </div>
-                            )}
                           </div>
                         );
                       })}
+                      </div>
                     </div>
-                  </div>
                   );
                 })}
               </div>
@@ -767,35 +631,45 @@ export default function SignagePage() {
           </Card>
         </div>
 
-        {/* Right Sidebar */}
-        <div className="space-y-6">
-          {/* Studio Status */}
+        {/* Studio Status */}
+        <div className="xl:col-span-1">
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center text-white text-2xl">
-                <Radio className="mr-4 h-6 w-6" />
+              <CardTitle className="flex items-center text-white text-3xl">
+                <Radio className="mr-4 h-8 w-8" />
                 Studio Status
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-3">
                 {studioStatus.map((studio) => (
-                  <div key={studio.id} className="flex flex-col p-2 rounded-lg bg-slate-700/30">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="font-medium text-white text-lg truncate">{studio.name}</div>
-                      <div className={`w-4 h-4 rounded-full flex-shrink-0 ${
-                        studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
-                      }`} />
-                    </div>
-                    {studio.currentBooking ? (
-                      <div className="text-base text-slate-400 truncate">
-                        {studio.currentBooking.title}
+                  <div key={studio.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-700/30">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <div className="text-lg font-semibold text-white">
+                          {studio.name}
+                        </div>
+                        <div className={`w-3 h-3 rounded-full ${
+                          studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
+                        }`} />
                       </div>
-                    ) : (
-                      <div className="text-base text-green-400">Available</div>
-                    )}
-                    <div className="text-sm text-slate-500 mt-1">
-                      {studio.currentBooking ? `Until ${studio.nextAvailable}` : 'Ready'}
+                      <div className="text-sm text-slate-300">
+                        {studio.currentBooking ? (
+                          <>
+                            <span className="font-medium">{studio.currentBooking.title}</span>
+                            <div className="text-xs text-slate-400">
+                              Until {studio.nextAvailable}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-green-400">Available</span>
+                        )}
+                      </div>
+                      {!studio.currentBooking && studio.nextAvailable !== 'Available' && (
+                        <div className="text-xs text-slate-400">
+                          Next booking: {studio.nextAvailable}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -803,114 +677,47 @@ export default function SignagePage() {
             </CardContent>
           </Card>
 
-
-
           {/* Active Site Alerts */}
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-slate-800/50 border-slate-700 mt-6">
             <CardHeader>
-              <CardTitle className="flex items-center text-white text-2xl">
-                <AlertTriangle className="mr-4 h-6 w-6" />
+              <CardTitle className="flex items-center text-white text-3xl">
+                <AlertTriangle className="mr-4 h-8 w-8" />
                 Active Site Alerts
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Show today's site alerts and upcoming maintenance */}
-              {todaysAlerts.length > 0 || maintenanceAlerts.length > 0 ? (
-                <div className="space-y-2">
-                  {/* Combine and sort all alerts chronologically */}
-                  {[
-                    // Active alerts from today
-                    ...todaysAlerts
-                      .filter(alert => isBookingActive(alert, currentTime))
-                      .map(alert => ({ ...alert, alertCategory: 'active' })),
-                    
-                    // Today's upcoming alerts  
-                    ...todaysAlerts
-                      .filter(alert => !isBookingActive(alert, currentTime) && parseISO(alert.start) > currentTime)
-                      .map(alert => ({ ...alert, alertCategory: 'today' })),
-                    
-                    // Upcoming maintenance (next 7 days, excluding today and already shown active alerts)
-                    ...maintenanceAlerts
-                      .filter(alert => 
-                        !isSameDay(parseISO(alert.start), today) && 
-                        !todaysAlerts.some(todayAlert => todayAlert.id === alert.id)
-                      )
-                      .slice(0, 2)
-                      .map(alert => ({ ...alert, alertCategory: 'upcoming' }))
-                  ]
-                  .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-                  .map(alert => {
-                    if (alert.alertCategory === 'active') {
-                      return (
-                        <div key={`active-${alert.id}`} className="p-3 rounded-lg bg-red-900/60 border-2 border-red-500 shadow-lg animate-pulse">
-                          <div className="flex items-center gap-2 mb-2">
-                            <AlertTriangle className="h-4 w-4 text-red-300 animate-bounce" />
-                            <div className="text-sm font-bold text-red-100 uppercase tracking-wide">ACTIVE ALERT</div>
-                          </div>
-                          <div className="text-lg font-semibold text-red-50 mb-1">{alert.title}</div>
-                          <div className="text-sm text-red-200">
-                            {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
-                          </div>
-                          {alert.description && alert.description.trim() && (
-                            <div className="text-sm text-red-300 mt-1">
-                              {alert.description}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    } else if (alert.alertCategory === 'today') {
-                      return (
-                        <div key={`today-${alert.id}`} className="p-3 rounded-lg bg-orange-900/50 border-2 border-orange-500 shadow-md">
-                          <div className="flex items-center gap-2 mb-2">
-                            <AlertTriangle className="h-4 w-4 text-orange-300" />
-                            <div className="text-sm font-bold text-orange-100 uppercase tracking-wide">UPCOMING</div>
-                          </div>
-                          <div className="text-lg font-semibold text-orange-50 mb-1">{alert.title}</div>
-                          <div className="text-sm text-orange-200">
-                            {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
-                          </div>
-                          {alert.description && alert.description.trim() && (
-                            <div className="text-sm text-orange-300 mt-1">
-                              {alert.description}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    } else {
-                      return (
-                        <div key={`upcoming-${alert.id}`} className="p-3 rounded-lg bg-yellow-900/40 border border-yellow-500 shadow-sm">
-                          <div className="flex items-center gap-2 mb-2">
-                            <AlertTriangle className="h-4 w-4 text-yellow-300" />
-                            <div className="text-sm font-bold text-yellow-100 uppercase tracking-wide">UPCOMING</div>
-                          </div>
-                          <div className="text-base font-semibold text-yellow-50 mb-1">{alert.title}</div>
-                          <div className="text-sm text-yellow-200">
-                            {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
-                          </div>
-                          {alert.description && alert.description.trim() && (
-                            <div className="text-sm text-yellow-300 mt-1">
-                              {alert.description}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    }
-                  })}
+              {maintenanceAlerts.length === 0 ? (
+                <div className="text-center py-8 text-slate-400">
+                  <AlertTriangle className="mx-auto h-12 w-12 mb-3 opacity-50" />
+                  <p className="text-lg">No active alerts</p>
                 </div>
               ) : (
-                <div className="text-center py-4">
-                  <div className="text-green-400 text-sm">No Active Alerts</div>
-                  <div className="text-slate-400 text-xs mt-1">All systems operational</div>
+                <div className="space-y-3">
+                  {maintenanceAlerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="p-3 rounded-lg bg-red-900/40 border border-red-500/50 animate-pulse"
+                    >
+                      <div className="flex items-start space-x-2">
+                        <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="text-lg font-semibold text-white">
+                            {alert.title}
+                          </div>
+                          <div className="text-sm text-slate-300">
+                            {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                          </div>
+                          {alert.description && alert.description.trim() && (
+                            <div className="text-sm text-slate-400 mt-1">
+                              {alert.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
-              
-              {/* Auto-refresh indicator */}
-              <div className="text-center text-slate-400 pt-3 mt-3 border-t border-slate-600">
-                <div className="flex items-center justify-center space-x-2 mb-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-xs">Auto-updating every 2 minutes</span>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>
