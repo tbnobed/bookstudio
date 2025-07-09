@@ -217,7 +217,7 @@ async function createCoreAlerts() {
       await query('ALTER TABLE alerts ADD COLUMN is_all_day BOOLEAN DEFAULT false;');
     }
     
-    // Check if created_by column exists
+    // Check if created_by column exists or if we need to rename user_id
     const createdByExists = await query(`
       SELECT EXISTS (
         SELECT FROM information_schema.columns 
@@ -227,7 +227,19 @@ async function createCoreAlerts() {
       );
     `);
     
-    if (!createdByExists.rows[0].exists) {
+    const userIdExists = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'alerts' 
+        AND column_name = 'user_id'
+      );
+    `);
+    
+    if (!createdByExists.rows[0].exists && userIdExists.rows[0].exists) {
+      console.log('Renaming user_id column to created_by in alerts table...');
+      await query('ALTER TABLE alerts RENAME COLUMN user_id TO created_by;');
+    } else if (!createdByExists.rows[0].exists) {
       console.log('Adding missing created_by column to alerts table...');
       await query('ALTER TABLE alerts ADD COLUMN created_by INTEGER NOT NULL DEFAULT 1;');
     }

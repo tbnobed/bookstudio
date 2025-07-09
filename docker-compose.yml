@@ -200,6 +200,8 @@ services:
         node scripts/consolidated-migration.cjs &&
         echo 'Running schema repair (for existing deployments)...' &&
         node scripts/schema-repair.cjs &&
+        echo 'Running Docker alerts column fix...' &&
+        node scripts/docker-fix-alerts.cjs &&
         echo 'Database initialization completed successfully!'
       "
 
