@@ -198,11 +198,22 @@ export default function CustomSignagePage() {
   // Weather fetching
   useEffect(() => {
     const fetchWeather = async () => {
-      if (!showWeather) return;
+      console.log("[CUSTOM SIGNAGE] Starting weather fetch...");
+      console.log("[CUSTOM SIGNAGE] showWeather:", showWeather);
+      console.log("[CUSTOM SIGNAGE] weatherParam:", weatherParam);
+      
+      if (!showWeather) {
+        console.log("[CUSTOM SIGNAGE] Weather disabled, skipping fetch");
+        return;
+      }
       
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        if (!apiKey) return;
+        console.log("[CUSTOM SIGNAGE] API key present:", !!apiKey);
+        if (!apiKey) {
+          console.log("[CUSTOM SIGNAGE] No API key found, skipping weather fetch");
+          return;
+        }
 
         const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX';
         const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`);
