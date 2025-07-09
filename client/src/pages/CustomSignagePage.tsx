@@ -575,6 +575,11 @@ export default function CustomSignagePage() {
                                 <span className="bg-orange-600/50 px-1 rounded text-xs ml-2">MAINT</span>
                               )}
                             </div>
+                            {booking.description && booking.description.trim() && (
+                              <div className="text-xs opacity-80 mt-1 truncate">
+                                {booking.description}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
