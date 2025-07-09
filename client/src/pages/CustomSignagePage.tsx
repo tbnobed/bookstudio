@@ -642,8 +642,8 @@ export default function CustomSignagePage() {
                             </div>
                           );
                         })}
+                        </div>
                       </div>
-                    </div>
                     );
                   })}
                 </div>
