@@ -4,8 +4,13 @@ FROM node:20.18.1-alpine3.19 AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apk add --no-cache python3 make g++ 
+# Install build dependencies with retry logic
+RUN apk update && \
+    apk add --no-cache --retry 3 python3 make g++ || \
+    (echo "Retrying with different mirror..." && \
+     echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories && \
+     echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories && \
+     apk update && apk add --no-cache python3 make g++) 
 
 # Install dependencies first (for better caching)
 COPY package*.json ./
@@ -96,8 +101,14 @@ ENV PORT=5000
 ENV NODE_ENV=production
 # Timezone will be set via build args and runtime environment
 
-# Install production-only dependencies
-RUN apk add --no-cache curl wget tzdata
+# Install production-only dependencies with timeout and retry logic
+RUN timeout 300 sh -c 'apk update && apk add --no-cache curl wget tzdata' || \
+    (echo "Primary install failed, trying alternative approach..." && \
+     echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories && \
+     echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories && \
+     timeout 300 sh -c 'apk update && apk add --no-cache curl wget tzdata') || \
+    (echo "All package installs failed, using minimal setup..." && \
+     echo "Healthcheck will use node instead of wget")
 
 # Timezone will be configured at runtime via environment variables
 

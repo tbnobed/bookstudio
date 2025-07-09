@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      network: host
       args:
         - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
         - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}
@@ -59,9 +60,9 @@ services:
         max-file: "5"
     # Healthcheck to verify application is running properly
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
+      test: ["CMD", "sh", "-c", "wget -qO- http://localhost:5000/api/health 2>/dev/null || curl -f http://localhost:5000/api/health || node -e 'const http = require(\"http\"); const req = http.get(\"http://localhost:5000/api/health\", res => process.exit(res.statusCode === 200 ? 0 : 1)); req.on(\"error\", () => process.exit(1)); req.setTimeout(3000, () => process.exit(1));'"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
       start_period: 45s
     # Start the application after database initialization
@@ -155,6 +156,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      network: host
       args:
         - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
         - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}
