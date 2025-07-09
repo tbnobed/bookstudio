@@ -437,7 +437,7 @@ export default function SignagePage() {
       return isWithinInterval(bookingStart, { start: date, end: dayEnd });
     }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
     return {
-      date: facilityDate, // Use facility timezone date for proper formatting
+      date,
       bookings: dayBookings,
     };
   });
