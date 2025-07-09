@@ -415,12 +415,19 @@ export default function CustomSignagePage() {
     };
   });
 
-  // Get maintenance alerts from combined data
+  // Get maintenance alerts from combined data (including alerts from API)
   const maintenanceAlerts = filteredBookings.filter(booking => {
+    // Check if this is an alert from the alerts API (has alertType field)
+    const isApiAlert = booking.alertType !== undefined;
+    
+    // Check if this is a maintenance type booking 
     const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
-    return isMaintenanceType && 
-           parseISO(booking.start) >= today &&
-           parseISO(booking.start) <= addDays(today, 7);
+    
+    const isAlert = isApiAlert || isMaintenanceType;
+    
+    return isAlert && 
+           parseISO(booking.start) >= todayStart &&
+           parseISO(booking.start) <= addDays(todayStart, 7);
   });
 
   const pageTitle = titleParam || siteName;
