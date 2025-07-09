@@ -497,18 +497,6 @@ export default function CustomSignagePage() {
                                 {dayForecast.temperature.max}°/{dayForecast.temperature.min}°
                               </div>
                             </>
-                          ) : index === 0 && weather ? (
-                            // Show current weather for today if forecast data doesn't match
-                            <>
-                              <img 
-                                src={`https://openweathermap.org/img/w/${weather.icon}.png`}
-                                alt={weather.condition}
-                                className="w-8 h-8 mb-1"
-                              />
-                              <div className="text-xs text-slate-300">
-                                {weather.temperature}°
-                              </div>
-                            </>
                           ) : (
                             <>
                               <div className="w-8 h-8 mb-1 flex items-center justify-center">
@@ -572,7 +560,7 @@ export default function CustomSignagePage() {
                             </div>
                             <div className={`flex items-center text-xs opacity-90 ${isAlert ? 'justify-center' : 'justify-between'}`}>
                               <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
-                              {!isAlert && booking.studioId && (
+                              {!isAlert && (
                                 <div className="flex items-center space-x-2">
                                   {booking.type === 'maintenance' && (
                                     <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
