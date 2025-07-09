@@ -174,29 +174,119 @@ async function createCoreBookings() {
 
 async function createCoreAlerts() {
   console.log('Creating alerts table...');
-  await query(`
-    CREATE TABLE IF NOT EXISTS alerts (
-      id SERIAL PRIMARY KEY,
-      title TEXT NOT NULL,
-      description TEXT,
-      alert_type TEXT NOT NULL,
-      severity TEXT NOT NULL,
-      start TIMESTAMP NOT NULL,
-      "end" TIMESTAMP NOT NULL,
-      is_all_day BOOLEAN DEFAULT false,
-      status TEXT DEFAULT 'active',
-      notify_list JSON DEFAULT '[]',
-      created_by INTEGER NOT NULL,
-      created_at TIMESTAMP DEFAULT NOW()
+  
+  // Check if alerts table already exists
+  const tableExists = await query(`
+    SELECT EXISTS (
+      SELECT FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_name = 'alerts'
     );
   `);
   
-  // Create indexes for better performance
-  await query('CREATE INDEX IF NOT EXISTS idx_alerts_start ON alerts(start);');
-  await query('CREATE INDEX IF NOT EXISTS idx_alerts_end ON alerts("end");');
-  await query('CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);');
-  await query('CREATE INDEX IF NOT EXISTS idx_alerts_type ON alerts(alert_type);');
-  await query('CREATE INDEX IF NOT EXISTS idx_alerts_created_by ON alerts(created_by);');
+  if (tableExists.rows[0].exists) {
+    console.log('✅ Alerts table already exists, checking schema...');
+    
+    // Check if status column exists
+    const statusExists = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'alerts' 
+        AND column_name = 'status'
+      );
+    `);
+    
+    if (!statusExists.rows[0].exists) {
+      console.log('Adding missing status column to alerts table...');
+      await query('ALTER TABLE alerts ADD COLUMN status TEXT DEFAULT \'active\';');
+    }
+    
+    // Check if is_all_day column exists
+    const isAllDayExists = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'alerts' 
+        AND column_name = 'is_all_day'
+      );
+    `);
+    
+    if (!isAllDayExists.rows[0].exists) {
+      console.log('Adding missing is_all_day column to alerts table...');
+      await query('ALTER TABLE alerts ADD COLUMN is_all_day BOOLEAN DEFAULT false;');
+    }
+    
+    // Check if created_by column exists
+    const createdByExists = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'alerts' 
+        AND column_name = 'created_by'
+      );
+    `);
+    
+    if (!createdByExists.rows[0].exists) {
+      console.log('Adding missing created_by column to alerts table...');
+      await query('ALTER TABLE alerts ADD COLUMN created_by INTEGER NOT NULL DEFAULT 1;');
+    }
+    
+  } else {
+    console.log('Creating new alerts table...');
+    await query(`
+      CREATE TABLE alerts (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        alert_type TEXT NOT NULL,
+        severity TEXT NOT NULL,
+        start TIMESTAMP NOT NULL,
+        "end" TIMESTAMP NOT NULL,
+        is_all_day BOOLEAN DEFAULT false,
+        status TEXT DEFAULT 'active',
+        notify_list JSON DEFAULT '[]',
+        created_by INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+  }
+  
+  // Create indexes for better performance with error handling
+  try {
+    await query('CREATE INDEX IF NOT EXISTS idx_alerts_start ON alerts(start);');
+    console.log('✅ Created index on alerts.start');
+  } catch (err) {
+    console.log('Note: Index on alerts.start may already exist');
+  }
+  
+  try {
+    await query('CREATE INDEX IF NOT EXISTS idx_alerts_end ON alerts("end");');
+    console.log('✅ Created index on alerts.end');
+  } catch (err) {
+    console.log('Note: Index on alerts.end may already exist');
+  }
+  
+  try {
+    await query('CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);');
+    console.log('✅ Created index on alerts.status');
+  } catch (err) {
+    console.log('Note: Index on alerts.status may already exist');
+  }
+  
+  try {
+    await query('CREATE INDEX IF NOT EXISTS idx_alerts_type ON alerts(alert_type);');
+    console.log('✅ Created index on alerts.alert_type');
+  } catch (err) {
+    console.log('Note: Index on alerts.alert_type may already exist');
+  }
+  
+  try {
+    await query('CREATE INDEX IF NOT EXISTS idx_alerts_created_by ON alerts(created_by);');
+    console.log('✅ Created index on alerts.created_by');
+  } catch (err) {
+    console.log('Note: Index on alerts.created_by may already exist');
+  }
 }
 
 async function createCoreSystemSettings() {
