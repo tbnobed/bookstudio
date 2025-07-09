@@ -213,42 +213,43 @@ export default function CustomSignagePage() {
 
         console.log("[CUSTOM SIGNAGE WEATHER] Fetching weather for:", location);
 
-        // Fetch current weather
-        const currentResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}&units=imperial`
-        );
+        // Fetch both current weather and forecast simultaneously
+        const [currentResponse, forecastResponse] = await Promise.all([
+          fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}&units=imperial`),
+          fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${API_KEY}&units=imperial`)
+        ]);
 
+        let currentWeatherData = null;
         if (currentResponse.ok) {
           const currentData = await currentResponse.json();
           console.log("[CUSTOM SIGNAGE WEATHER] Current weather data:", currentData);
           
-          setWeather({
+          currentWeatherData = {
             temperature: Math.round(currentData.main.temp),
             condition: currentData.weather[0].description,
             humidity: currentData.main.humidity,
             windSpeed: Math.round(currentData.wind?.speed || 0),
             icon: currentData.weather[0].icon,
             location: currentData.name
-          });
+          };
+          setWeather(currentWeatherData);
           console.log("[CUSTOM SIGNAGE WEATHER] Weather state updated");
         } else {
           console.error("[CUSTOM SIGNAGE WEATHER] Current weather API failed:", currentResponse.status);
         }
 
-        // Fetch 5-day forecast for weekly overview
-        const forecastResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${API_KEY}&units=imperial`
-        );
-
         if (forecastResponse.ok) {
           const forecastData = await forecastResponse.json();
-          console.log("[CUSTOM SIGNAGE WEATHER] Forecast data:", forecastData);
+          console.log("[CUSTOM SIGNAGE WEATHER] Forecast data received:", forecastData);
           
-          // Group forecast data by date
+          // Process forecast data - get daily forecasts by grouping hourly data
+          // Use facility timezone for proper date grouping
           const dailyData = new Map<string, any[]>();
           
           forecastData.list.forEach((item: any) => {
-            const facilityDate = toZonedTime(new Date(item.dt * 1000), facilityTimezone);
+            const utcDate = new Date(item.dt * 1000);
+            // Convert to facility timezone for proper date grouping
+            const facilityDate = toZonedTime(utcDate, facilityTimezone);
             const dateString = format(facilityDate, 'yyyy-MM-dd');
             
             if (!dailyData.has(dateString)) {
@@ -262,41 +263,21 @@ export default function CustomSignagePage() {
           // Create daily forecasts with proper min/max calculations
           const dailyForecasts: ForecastDay[] = [];
           
-          // Filter dates: today + 6 future days (tomorrow through day 7)
+          // Filter out past dates and only include today and future dates
+          // Use the same date calculation as the weekly view to ensure consistency
           const now = new Date();
           const facilityNow = toZonedTime(now, facilityTimezone);
           const today = format(facilityNow, 'yyyy-MM-dd');
-          const tomorrow = format(addDays(facilityNow, 1), 'yyyy-MM-dd');
-          console.log("[CUSTOM SIGNAGE WEATHER] Today's date:", today);
-          console.log("[CUSTOM SIGNAGE WEATHER] Tomorrow's date:", tomorrow);
+          console.log("[CUSTOM SIGNAGE WEATHER] Today's date for filtering:", today);
+          console.log("[CUSTOM SIGNAGE WEATHER] Current UTC time:", now.toISOString());
+          console.log("[CUSTOM SIGNAGE WEATHER] Current facility time:", facilityNow.toISOString());
           
-          // Get today's forecast if available
-          const todayData = dailyData.get(today);
           const futureDates = Array.from(dailyData.entries())
-            .filter(([dateString]) => dateString >= tomorrow)
-            .slice(0, 6); // 6 days starting from tomorrow
+            .filter(([dateString]) => dateString >= today)
+            .slice(0, 7);
           
-          console.log("[CUSTOM SIGNAGE WEATHER] Today has forecast data:", !!todayData);
-          console.log("[CUSTOM SIGNAGE WEATHER] Future dates (tomorrow+6):", futureDates.map(([date]) => date));
+          console.log("[CUSTOM SIGNAGE WEATHER] Filtered future dates:", futureDates.map(([date]) => date));
           
-          // Add today's forecast if available (using current weather data for consistency)
-          if (todayData && weather) {
-            const todayTemps = todayData.map(item => item.main.temp);
-            const todayMinTemp = Math.min(...todayTemps);
-            const todayMaxTemp = Math.max(...todayTemps);
-            
-            dailyForecasts.push({
-              date: today,
-              temperature: {
-                min: Math.round(Math.min(todayMinTemp, weather.temperature)),
-                max: Math.round(Math.max(todayMaxTemp, weather.temperature))
-              },
-              condition: weather.condition,
-              icon: weather.icon
-            });
-          }
-          
-          // Add 6 days starting from tomorrow
           futureDates.forEach(([dateString, dayData]) => {
             const temps = dayData.map(item => item.main.temp);
             const minTemp = Math.min(...temps);
