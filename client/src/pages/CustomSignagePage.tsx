@@ -150,13 +150,17 @@ export default function CustomSignagePage() {
 
   // Parse URL parameters
   const { studios: studioParam, title: titleParam, weather: weatherParam } = parseURLParams();
-  console.log("[SIGNAGE] URL Parameters:", { studioParam, titleParam, weatherParam });
-
-  // Filter studios based on URL parameter
-  const targetStudioIds = studioParam ? studioParam.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : [];
   
   // Determine if weather should be shown (default: true unless explicitly disabled)
   const showWeather = weatherParam !== 'false';
+  
+  console.log("[SIGNAGE] URL Parameters:", { studioParam, titleParam, weatherParam });
+  console.log("[SIGNAGE DEBUG] showWeather:", showWeather);
+  console.log("[SIGNAGE DEBUG] weather state:", weather);
+  console.log("[SIGNAGE DEBUG] forecast state:", forecast);
+
+  // Filter studios based on URL parameter
+  const targetStudioIds = studioParam ? studioParam.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : [];
 
   const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/public/bookings"],
@@ -437,18 +441,27 @@ export default function CustomSignagePage() {
         <div className="text-right text-white">
           <div className="flex items-center justify-end space-x-6">
             {/* Weather Info */}
-            {weather && showWeather && (
+            {showWeather && (
               <div className="text-center">
-                <div className="flex items-center justify-center space-x-2 mb-1">
-                  <img 
-                    src={`https://openweathermap.org/img/w/${weather.icon}.png`}
-                    alt={weather.condition}
-                    className="w-12 h-12"
-                  />
-                  <div className="text-3xl font-bold">{weather.temperature}°F</div>
-                </div>
-                <div className="text-lg text-slate-300 capitalize">{weather.condition}</div>
-                <div className="text-base text-slate-400">{weather.location}</div>
+                {weather ? (
+                  <>
+                    <div className="flex items-center justify-center space-x-2 mb-1">
+                      <img 
+                        src={`https://openweathermap.org/img/w/${weather.icon}.png`}
+                        alt={weather.condition}
+                        className="w-12 h-12"
+                      />
+                      <div className="text-3xl font-bold">{weather.temperature}°F</div>
+                    </div>
+                    <div className="text-lg text-slate-300 capitalize">{weather.condition}</div>
+                    <div className="text-base text-slate-400">{weather.location}</div>
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-slate-600 rounded mb-1 mx-auto animate-pulse"></div>
+                    <div className="text-lg text-slate-400">Loading weather...</div>
+                  </div>
+                )}
               </div>
             )}
             
