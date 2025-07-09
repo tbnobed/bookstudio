@@ -641,22 +641,22 @@ export default function SignagePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 {studioStatus.map((studio) => (
-                  <div key={studio.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-700/30">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <div className="text-lg font-semibold text-white">
+                  <div key={studio.id} className="p-3 rounded-lg bg-slate-700/30">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-lg font-semibold text-white truncate">
                           {studio.name}
                         </div>
-                        <div className={`w-3 h-3 rounded-full ${
+                        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
                           studio.currentBooking ? 'bg-red-500' : 'bg-green-500'
                         }`} />
                       </div>
                       <div className="text-sm text-slate-300">
                         {studio.currentBooking ? (
                           <>
-                            <span className="font-medium">{studio.currentBooking.title}</span>
+                            <div className="font-medium text-white truncate">{studio.currentBooking.title}</div>
                             <div className="text-xs text-slate-400">
                               Until {studio.nextAvailable}
                             </div>
@@ -667,7 +667,7 @@ export default function SignagePage() {
                       </div>
                       {!studio.currentBooking && studio.nextAvailable !== 'Available' && (
                         <div className="text-xs text-slate-400">
-                          Next booking: {studio.nextAvailable}
+                          Next: {studio.nextAvailable}
                         </div>
                       )}
                     </div>
