@@ -1842,8 +1842,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Alert created by ${user.username} (ID: ${user.id}): "${alert.title}"`);
       
-      // Send facility-wide notifications for alerts
-      // TODO: Integrate with notification system for alert broadcasts
+      // Send facility-wide notifications for all alerts
+      try {
+        console.log(`Processing facility-wide alert notification: ${alert.title}`);
+        
+        // Get ALL notification groups for facility alerts  
+        const allNotificationGroups = await storage.getAllNotificationGroups();
+        const allGroupIds = allNotificationGroups.map(group => group.id);
+        
+        console.log(`[ALERT NOTIFICATION] Found ${allNotificationGroups.length} notification groups:`, allNotificationGroups.map(g => `${g.name} (${g.email}, enabled: ${g.enabled})`));
+        console.log(`[ALERT NOTIFICATION] Sending facility alert to ALL ${allGroupIds.length} notification groups + site managers`);
+        
+        if (allGroupIds.length > 0) {
+          // Convert alert to booking format for email compatibility
+          const alertAsBooking = {
+            id: alert.id,
+            title: alert.title,
+            description: alert.description || '',
+            start: alert.start,
+            end: alert.end,
+            type: alert.alertType,
+            severity: alert.severity,
+            studioId: null, // Alerts don't have studios
+            pcrRoomId: null,
+            userId: alert.createdBy,
+            notifyList: [],
+            status: alert.status,
+            templateId: null,
+            createdAt: alert.createdAt,
+            color: '#f44336'
+          };
+          
+          try {
+            // Send facility alert to ALL groups + site managers (always true for alerts)
+            console.log(`[ALERT NOTIFICATION] About to call sendMaintenanceAlertToGroups with group IDs: [${allGroupIds.join(', ')}]`);
+            const emailResults = await sendMaintenanceAlertToGroups(alertAsBooking, allGroupIds, true);
+            console.log(`[ALERT NOTIFICATION] Email results received:`, emailResults);
+            console.log(`[ALERT NOTIFICATION] Successfully sent facility alert to all ${allGroupIds.length} notification groups + site managers`);
+          } catch (emailError) {
+            console.error("[ALERT NOTIFICATION] Error sending facility alert emails:", emailError);
+            // Continue even if emails fail
+          }
+        } else {
+          console.log("[ALERT NOTIFICATION] ERROR: No notification groups found for facility alert");
+        }
+      } catch (error) {
+        console.error("Error processing facility-wide alert notification:", error);
+        // Continue with the response even if alert notification processing fails
+      }
       
       res.status(201).json(alert);
     } catch (error) {
@@ -1902,6 +1948,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log(`Alert ${id} updated successfully by ${user.username} (ID: ${user.id})`);
+      
+      // Send facility-wide notifications for updated alerts 
+      try {
+        console.log(`Processing facility-wide alert update notification: ${updatedAlert.title}`);
+        
+        // Get ALL notification groups for facility alerts  
+        const allNotificationGroups = await storage.getAllNotificationGroups();
+        const allGroupIds = allNotificationGroups.map(group => group.id);
+        
+        console.log(`[ALERT UPDATE NOTIFICATION] Found ${allNotificationGroups.length} notification groups:`, allNotificationGroups.map(g => `${g.name} (${g.email}, enabled: ${g.enabled})`));
+        console.log(`[ALERT UPDATE NOTIFICATION] Sending updated facility alert to ALL ${allGroupIds.length} notification groups + site managers`);
+        
+        if (allGroupIds.length > 0) {
+          // Convert alert to booking format for email compatibility
+          const alertAsBooking = {
+            id: updatedAlert.id,
+            title: updatedAlert.title,
+            description: updatedAlert.description || '',
+            start: updatedAlert.start,
+            end: updatedAlert.end,
+            type: updatedAlert.alertType,
+            severity: updatedAlert.severity,
+            studioId: null, // Alerts don't have studios
+            pcrRoomId: null,
+            userId: updatedAlert.createdBy,
+            notifyList: [],
+            status: updatedAlert.status,
+            templateId: null,
+            createdAt: updatedAlert.createdAt,
+            color: '#f44336'
+          };
+          
+          try {
+            // Send updated facility alert to ALL groups + site managers (always true for alerts)
+            console.log(`[ALERT UPDATE NOTIFICATION] About to call sendMaintenanceAlertToGroups with group IDs: [${allGroupIds.join(', ')}]`);
+            const emailResults = await sendMaintenanceAlertToGroups(alertAsBooking, allGroupIds, true);
+            console.log(`[ALERT UPDATE NOTIFICATION] Email results received:`, emailResults);
+            console.log(`[ALERT UPDATE NOTIFICATION] Successfully sent updated facility alert to all ${allGroupIds.length} notification groups + site managers`);
+          } catch (emailError) {
+            console.error("[ALERT UPDATE NOTIFICATION] Error sending updated facility alert emails:", emailError);
+            // Continue even if emails fail
+          }
+        } else {
+          console.log("[ALERT UPDATE NOTIFICATION] ERROR: No notification groups found for updated facility alert");
+        }
+      } catch (error) {
+        console.error("Error processing facility-wide alert update notification:", error);
+        // Continue with the response even if alert notification processing fails
+      }
       
       res.json(updatedAlert);
     } catch (error) {
