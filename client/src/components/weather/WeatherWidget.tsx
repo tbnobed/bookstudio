@@ -258,9 +258,9 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
 
       {/* Forecast */}
       {showForecast && forecast && forecast.forecast.length > 0 && (
-        <div className="mt-6">
-          <h4 className={`font-bold mb-3 text-right text-lg ${sizeClasses[size]}`}>6-Day Forecast</h4>
-          <div className="grid grid-cols-6 gap-3 justify-items-center">
+        <div className="mt-4">
+          <h4 className={`font-semibold mb-2 ${sizeClasses[size]}`}>6-Day Forecast</h4>
+          <div className="grid grid-cols-6 gap-2 justify-items-center">
             {forecast.forecast.map((day, index) => {
               const ForecastIcon = getWeatherIcon(day.icon);
               const date = new Date(day.date + 'T12:00:00'); // Add time to avoid timezone shifts
@@ -270,13 +270,13 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
               });
               
               return (
-                <div key={day.date} className="text-center bg-white/50 rounded-lg p-2 backdrop-blur-sm">
-                  <div className={`text-sm font-semibold text-gray-700 mb-1`}>
+                <div key={day.date} className="text-center">
+                  <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
                     {index === 0 ? 'Today' : dayName}
                   </div>
-                  <ForecastIcon className={`h-6 w-6 mx-auto text-blue-500 my-2`} />
-                  <div className={`text-sm text-gray-600`}>
-                    <div className="font-bold">{day.temperature.max}°</div>
+                  <ForecastIcon className={`${iconSizes[size]} mx-auto text-blue-500 my-1`} />
+                  <div className={`${sizeClasses[size]} text-gray-600`}>
+                    <div>{day.temperature.max}°</div>
                     <div className="text-gray-400">{day.temperature.min}°</div>
                   </div>
                 </div>
