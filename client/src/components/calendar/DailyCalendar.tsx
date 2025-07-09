@@ -60,12 +60,37 @@ export default function DailyCalendar({
     enabled: propBookings.length === 0,
   });
 
-  const bookings = propBookings.length > 0 ? propBookings : fetchedBookings;
+  const rawBookings = propBookings.length > 0 ? propBookings : fetchedBookings;
+
+  // Fetch booking-studio links to show multiple studios per booking
+  const { data: bookingStudioLinks = [] } = useQuery<BookingStudio[]>({
+    queryKey: ['/api/booking-studios'],
+  });
 
   // Filter studios if selectedStudioIds is provided
   const filteredStudios = selectedStudioIds.length > 0
     ? studios.filter((studio) => selectedStudioIds.includes(studio.id))
     : studios;
+
+  // Filter bookings based on selectedStudioIds
+  const bookings = selectedStudioIds.length > 0 
+    ? rawBookings.filter(booking => {
+        // Always include facility alerts (no studio assignment)
+        if (booking.studioId === null) {
+          return true;
+        }
+        
+        // Check if booking is directly assigned to a selected studio
+        const directMatch = selectedStudioIds.includes(booking.studioId);
+        
+        // Check if booking is linked to a selected studio via junction table
+        const linkedMatch = bookingStudioLinks.some(link => 
+          link.bookingId === booking.id && selectedStudioIds.includes(link.studioId)
+        );
+        
+        return directMatch || linkedMatch;
+      })
+    : rawBookings;
 
   // Handle cell click to create a new booking
   const handleSlotClick = (studio: Studio, time: string) => {
@@ -167,11 +192,6 @@ export default function DailyCalendar({
     queryKey: ['/api/pcr-rooms'],
   });
 
-  // Fetch booking-studio links to show multiple studios per booking
-  const { data: bookingStudioLinks = [] } = useQuery<BookingStudio[]>({
-    queryKey: ['/api/booking-studios'],
-  });
-  
   // Get a PCR room name by its ID
   const getPcrRoomName = (pcrRoomId: number | null) => {
     if (!pcrRoomId) return null;
@@ -233,7 +253,7 @@ export default function DailyCalendar({
         <DayChronView 
           date={currentDate}
           bookings={bookings}
-          studios={studios}
+          studios={filteredStudios}
           pcrRooms={pcrRooms}
           onBookingClick={handleBookingClick}
           readOnly={readOnly}
