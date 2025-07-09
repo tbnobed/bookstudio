@@ -216,7 +216,7 @@ function BookingTypesPanel() {
   const createBookingTypeMutation = useMutation({
     mutationFn: async (data: InsertBookingType) => {
       const response = await apiRequest('POST', '/api/booking-types', data);
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/booking-types'] });
@@ -233,7 +233,7 @@ function BookingTypesPanel() {
     mutationFn: async (data: InsertBookingType) => {
       if (!selectedBookingType?.id) throw new Error('No booking type selected');
       const response = await apiRequest('PUT', `/api/booking-types/${selectedBookingType.id}`, data);
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/booking-types'] });
