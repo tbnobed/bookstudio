@@ -7,6 +7,7 @@ import { format, isWithinInterval, addDays, startOfDay, endOfDay, parseISO, isSa
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { getFacilityTimezoneAsync } from "@/lib/timezoneConfig";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 
 interface Booking {
   id: number;
@@ -142,9 +143,10 @@ function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLi
 export default function CustomSignagePage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [facilityTimezone, setFacilityTimezone] = useState(BUILD_TIME_TIMEZONE);
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [forecast, setForecast] = useState<WeatherForecast | null>(null);
   const { siteName } = useSiteSettings();
+  
+  // Use the same weather hook as main signage page
+  const { forecast, weather, loading: weatherLoading } = useWeatherForecast();
 
   // Parse URL parameters
   const { studios: studioParam, title: titleParam, weather: weatherParam } = parseURLParams();
@@ -195,166 +197,7 @@ export default function CustomSignagePage() {
     loadTimezone();
   }, []);
 
-  // Weather fetching
-  useEffect(() => {
-    const fetchWeather = async () => {
-      console.log("[CUSTOM SIGNAGE] Starting weather fetch...");
-      console.log("[CUSTOM SIGNAGE] showWeather:", showWeather);
-      console.log("[CUSTOM SIGNAGE] weatherParam:", weatherParam);
-      
-      if (!showWeather) {
-        console.log("[CUSTOM SIGNAGE] Weather disabled, skipping fetch");
-        return;
-      }
-      
-      try {
-        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        console.log("[CUSTOM SIGNAGE] API key present:", !!apiKey);
-        if (!apiKey) {
-          console.log("[CUSTOM SIGNAGE] No API key found, skipping weather fetch");
-          return;
-        }
 
-        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX';
-        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`);
-        
-        if (response.ok) {
-          const data = await response.json();
-          setWeather({
-            temperature: Math.round(data.main.temp),
-            condition: data.weather[0].description,
-            humidity: data.main.humidity,
-            windSpeed: data.wind.speed,
-            icon: data.weather[0].icon,
-            location: data.name
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching weather:', error);
-      }
-    };
-
-    const fetchForecast = async () => {
-      if (!showWeather) return;
-      
-      try {
-        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        console.log("[SIGNAGE WEATHER] Weather API Key status:", apiKey ? "Available" : "Missing");
-        if (!apiKey) {
-          console.error("[SIGNAGE WEATHER] Weather integration disabled: API key not found");
-          return;
-        }
-
-        const location = import.meta.env.VITE_WEATHER_LOCATION;
-        console.log("[SIGNAGE WEATHER] Weather Location:", location || "Not configured");
-        if (!location) {
-          console.error("[SIGNAGE WEATHER] Weather integration disabled: Location not configured");
-          return;
-        }
-
-        console.log("[SIGNAGE WEATHER] Fetching forecast...");
-        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=imperial`);
-        
-        console.log("[SIGNAGE WEATHER] Forecast response status:", response.status);
-        
-        if (response.ok) {
-          const forecastData = await response.json();
-          console.log("[SIGNAGE WEATHER] Forecast data received:", forecastData);
-          
-          // Process forecast data - get daily forecasts by grouping hourly data
-          // Use facility timezone for proper date grouping
-          const dailyData = new Map<string, any[]>();
-          
-          forecastData.list.forEach((item: any) => {
-            const utcDate = new Date(item.dt * 1000);
-            // Convert to facility timezone for proper date grouping
-            const facilityDate = toZonedTime(utcDate, facilityTimezone);
-            const dateString = format(facilityDate, 'yyyy-MM-dd');
-            
-            if (!dailyData.has(dateString)) {
-              dailyData.set(dateString, []);
-            }
-            dailyData.get(dateString)!.push(item);
-          });
-          
-          console.log("[SIGNAGE WEATHER] Daily data grouped:", Array.from(dailyData.keys()));
-          
-          // Create daily forecasts for all 7 days with fallback for missing data
-          const dailyForecasts: ForecastDay[] = [];
-          
-          // Generate exactly 7 days starting from today
-          const now = new Date();
-          const facilityNow = toZonedTime(now, facilityTimezone);
-          const today = format(facilityNow, 'yyyy-MM-dd');
-          console.log("[SIGNAGE WEATHER] Today's date for filtering:", today);
-          console.log("[SIGNAGE WEATHER] Current UTC time:", now.toISOString());
-          console.log("[SIGNAGE WEATHER] Current facility time:", facilityNow.toISOString());
-          
-          // Generate all 7 dates from today
-          for (let i = 0; i < 7; i++) {
-            const targetDate = addDays(facilityNow, i);
-            const dateString = format(targetDate, 'yyyy-MM-dd');
-            const dayData = dailyData.get(dateString);
-            
-            if (dayData && dayData.length > 0) {
-              // Use API data
-              const temps = dayData.map(item => item.main.temp);
-              const minTemp = Math.min(...temps);
-              const maxTemp = Math.max(...temps);
-              
-              // Use midday data for condition and icon (around noon)
-              const middayData = dayData.find(item => {
-                const hour = new Date(item.dt * 1000).getHours();
-                return hour >= 11 && hour <= 13;
-              }) || dayData[Math.floor(dayData.length / 2)];
-              
-              dailyForecasts.push({
-                date: dateString,
-                temperature: {
-                  min: Math.round(minTemp),
-                  max: Math.round(maxTemp)
-                },
-                condition: middayData.weather[0].description,
-                icon: middayData.weather[0].icon
-              });
-            } else {
-              // Use fallback data for missing days
-              dailyForecasts.push({
-                date: dateString,
-                temperature: {
-                  min: 74,
-                  max: 74
-                },
-                condition: 'partly cloudy',
-                icon: '02d'
-              });
-            }
-          }
-          
-          const availableDates = Array.from(dailyData.keys()).filter(date => date >= today);
-          console.log("[SIGNAGE WEATHER] Filtered future dates:", availableDates);
-          console.log("[SIGNAGE WEATHER] Daily forecasts created:", dailyForecasts);
-          setForecast({ forecast: dailyForecasts });
-          console.log("[SIGNAGE WEATHER] Forecast state updated");
-        } else {
-          console.error("[SIGNAGE WEATHER] Forecast API failed:", response.status, await response.text());
-        }
-      } catch (error) {
-        console.error('Error fetching forecast:', error);
-      }
-    };
-
-    fetchWeather();
-    fetchForecast();
-    
-    // Refresh every 10 minutes
-    const interval = setInterval(() => {
-      fetchWeather();
-      fetchForecast();
-    }, 10 * 60 * 1000);
-    
-    return () => clearInterval(interval);
-  }, [facilityTimezone, weatherParam]);
 
   // Combine bookings and alerts
   const combinedBookings = useMemo(() => {
