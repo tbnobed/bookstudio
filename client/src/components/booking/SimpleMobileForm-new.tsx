@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery } from "@tanstack/react-query";
-import { Studio, Template, PcrRoom, InsertBooking, NotificationGroup, Booking } from "@shared/schema";
+import { Studio, Template, PcrRoom, InsertBooking, NotificationGroup, Booking, BookingType } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { formatTime, generateTimeOptions, timeToDate, formatDateForForm } from "@/lib/dateUtils";
 import { Camera, Monitor, Trash2 } from "lucide-react";
@@ -57,27 +57,31 @@ export default function SimpleMobileForm({
   const { data: templates = [] } = useQuery<Template[]>({ queryKey: ["/api/templates"] });
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({ queryKey: ["/api/pcr-rooms"] });
   const { data: notificationGroups = [] } = useQuery<NotificationGroup[]>({ queryKey: ["/api/notification-groups"] });
+  const { data: bookingTypes = [] } = useQuery<BookingType[]>({ queryKey: ["/api/booking-types"] });
 
 
 
   // Default form values for booking creation only
-  const getDefaultFormData = (): FormData => ({
-    title: "",
-    description: "",
-    date: formatDateForForm(selectedDate),
-    startTime: "9:00am",
-    endTime: "10:00am",
-    bookingType: "production", // Always production since this is booking-only
-    status: "confirmed",
-    // severity: removed - production bookings don't use severity
-    color: "#3b82f6",
-    templateId: "",
-    templateName: "",
-    pcrRoomId: "none",
-    studioIds: selectedStudio ? [selectedStudio.toString()] : [],
-    notifyList: [],
-    saveAsTemplate: false,
-  });
+  const getDefaultFormData = (): FormData => {
+    const defaultBookingType = bookingTypes.find(type => type.isActive)?.name.toLowerCase() || "production";
+    return {
+      title: "",
+      description: "",
+      date: formatDateForForm(selectedDate),
+      startTime: "9:00am",
+      endTime: "10:00am",
+      bookingType: defaultBookingType,
+      status: "confirmed",
+      // severity: removed - production bookings don't use severity
+      color: "#3b82f6",
+      templateId: "",
+      templateName: "",
+      pcrRoomId: "none",
+      studioIds: selectedStudio ? [selectedStudio.toString()] : [],
+      notifyList: [],
+      saveAsTemplate: false,
+    };
+  };
 
   const [formData, setFormData] = useState<FormData>(getDefaultFormData());
 
@@ -598,13 +602,16 @@ export default function SimpleMobileForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="production">Production</SelectItem>
-                  <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                  <SelectItem value="meeting">Meeting</SelectItem>
-                  <SelectItem value="training">Training</SelectItem>
-                  <SelectItem value="testing">Testing</SelectItem>
-                  <SelectItem value="setup">Setup</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  {bookingTypes
+                    .filter(type => type.isActive)
+                    .map(type => (
+                      <SelectItem key={type.id} value={type.name.toLowerCase()}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  {bookingTypes.length === 0 && (
+                    <SelectItem value="production">Production</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

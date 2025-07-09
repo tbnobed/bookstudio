@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { Studio, Template, PcrRoom, InsertBooking, NotificationGroup } from "@shared/schema";
+import { Studio, Template, PcrRoom, InsertBooking, NotificationGroup, BookingType } from "@shared/schema";
 import { z } from "zod";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { formatTime, generateTimeOptions, timeToDate } from "@/lib/dateUtils";
@@ -137,6 +137,11 @@ export default function BookingModal({
   // Fetch notification groups
   const { data: notificationGroups = [] } = useQuery<NotificationGroup[]>({
     queryKey: ["/api/notification-groups"],
+  });
+  
+  // Fetch booking types
+  const { data: bookingTypes = [] } = useQuery<BookingType[]>({
+    queryKey: ["/api/booking-types"],
   });
   
   // Log notification groups when they are fetched
@@ -1115,12 +1120,16 @@ export default function BookingModal({
                                 <SelectValue placeholder="Select type" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="production">Production</SelectItem>
-                                <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                                <SelectItem value="meeting">Meeting</SelectItem>
-                                <SelectItem value="training">Training</SelectItem>
-                                <SelectItem value="testing">Testing</SelectItem>
-                                <SelectItem value="setup">Setup</SelectItem>
+                                {bookingTypes
+                                  .filter(type => type.isActive)
+                                  .map(type => (
+                                    <SelectItem key={type.id} value={type.name.toLowerCase()}>
+                                      {type.name}
+                                    </SelectItem>
+                                  ))}
+                                {bookingTypes.length === 0 && (
+                                  <SelectItem value="production">Production</SelectItem>
+                                )}
                                 <SelectItem value="other">Other</SelectItem>
                               </SelectContent>
                             </Select>

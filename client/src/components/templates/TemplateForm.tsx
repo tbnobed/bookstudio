@@ -10,7 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
-import type { Template, InsertTemplate, Studio, PcrRoom, NotificationGroup } from "@shared/schema";
+import type { Template, InsertTemplate, Studio, PcrRoom, NotificationGroup, BookingType } from "@shared/schema";
 
 interface TemplateFormProps {
   isOpen: boolean;
@@ -45,6 +45,10 @@ export function TemplateForm({ isOpen, onClose, template }: TemplateFormProps) {
 
   const { data: notificationGroups = [] } = useQuery<NotificationGroup[]>({
     queryKey: ["/api/notification-groups"],
+  });
+
+  const { data: bookingTypes = [] } = useQuery<BookingType[]>({
+    queryKey: ["/api/booking-types"],
   });
 
   // Set initial form values when editing
@@ -223,10 +227,16 @@ export function TemplateForm({ isOpen, onClose, template }: TemplateFormProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="production">Production</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                    <SelectItem value="it_support">IT Support</SelectItem>
+                    {bookingTypes
+                      .filter(type => type.isActive)
+                      .map(type => (
+                        <SelectItem key={type.id} value={type.name.toLowerCase()}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    {bookingTypes.length === 0 && (
+                      <SelectItem value="production">Production</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
