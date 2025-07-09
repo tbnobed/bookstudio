@@ -1,89 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Radio, AlertTriangle } from "lucide-react";
+import { Clock, Calendar, Radio, AlertTriangle } from "lucide-react";
+import { format, isWithinInterval, addDays, startOfDay, endOfDay, parseISO, isSameDay } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+import { getFacilityTimezoneAsync } from "@/lib/timezoneConfig";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSearch } from 'wouter';
-import { format, parseISO, startOfDay, endOfDay, isWithinInterval, addDays, isSameDay } from 'date-fns';
-import { fromZonedTime, toZonedTime } from 'date-fns-tz';
-
-// Helper functions from utils/signage-utils.ts
-function getCurrentFacilityTime(timezone: string) {
-  const now = new Date();
-  const facilityTime = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
-  return facilityTime;
-}
-
-function formatFacilityTime(date: Date | string, formatStr: string, timezone: string) {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  
-  // Convert the date to the facility timezone
-  const zonedDate = toZonedTime(dateObj, timezone);
-  
-  return format(zonedDate, formatStr);
-}
-
-function isBookingActive(booking: any, currentTime: Date): boolean {
-  const bookingStart = parseISO(booking.start);
-  const bookingEnd = parseISO(booking.end);
-  return currentTime >= bookingStart && currentTime <= bookingEnd;
-}
-
-function getNextAvailable(studioId: number, bookings: any[], bookingStudioLinks: any[], timezone: string): string {
-  const now = getCurrentFacilityTime(timezone);
-  
-  // Find all bookings for this studio
-  const studioBookings = bookings
-    .filter(booking => {
-      const isDirectStudio = booking.studioId === studioId;
-      const hasLink = bookingStudioLinks.some(link => 
-        link.studioId === studioId && link.bookingId === booking.id
-      );
-      return isDirectStudio || hasLink;
-    })
-    .filter(booking => parseISO(booking.end) > now)
-    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-
-  if (studioBookings.length === 0) {
-    return "Available now";
-  }
-
-  const nextBooking = studioBookings[0];
-  const nextBookingStart = parseISO(nextBooking.start);
-  
-  if (nextBookingStart > now) {
-    return formatFacilityTime(nextBookingStart, 'h:mm a', timezone);
-  }
-  
-  const nextBookingEnd = parseISO(nextBooking.end);
-  return formatFacilityTime(nextBookingEnd, 'h:mm a', timezone);
-}
-
-function getStudioNames(booking: any, studios: any[], bookingStudioLinks: any[]) {
-  const studioNames: string[] = [];
-  
-  // Add direct studio
-  if (booking.studioId) {
-    const directStudio = studios.find(s => s.id === booking.studioId);
-    if (directStudio) {
-      studioNames.push(directStudio.name);
-    }
-  }
-  
-  // Add linked studios
-  const linkedStudioIds = bookingStudioLinks
-    .filter(link => link.bookingId === booking.id)
-    .map(link => link.studioId);
-  
-  linkedStudioIds.forEach(studioId => {
-    const studio = studios.find(s => s.id === studioId);
-    if (studio && !studioNames.includes(studio.name)) {
-      studioNames.push(studio.name);
-    }
-  });
-  
-  return studioNames.join(', ') || 'No studios assigned';
-}
 
 interface Booking {
   id: number;
@@ -118,27 +42,87 @@ interface WeatherData {
   location: string;
 }
 
-// Weather forecast interface
+interface ForecastDay {
+  date: string;
+  temperature: {
+    min: number;
+    max: number;
+  };
+  condition: string;
+  icon: string;
+}
+
 interface WeatherForecast {
-  forecast: Array<{
-    date: string;
-    temperature: {
-      max: number;
-      min: number;
-    };
-    condition: string;
-    icon: string;
-  }>;
+  forecast: ForecastDay[];
+}
+
+const BUILD_TIME_TIMEZONE = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+
+function getFacilityTime(timezone: string) {
+  const now = new Date();
+  return toZonedTime(now, timezone);
+}
+
+function formatFacilityTime(date: Date | string, formatStr: string, timezone: string) {
+  let facilityDate;
+  if (typeof date === 'string') {
+    facilityDate = toZonedTime(parseISO(date), timezone);
+  } else {
+    facilityDate = toZonedTime(date, timezone);
+  }
+  return format(facilityDate, formatStr);
+}
+
+function getCurrentFacilityTime(timezone: string) {
+  return new Date();
+}
+
+function getStudioNames(booking: Booking, studios: Studio[], bookingStudioLinks: BookingStudioLink[]) {
+  const studioIds = new Set<number>();
+  
+  if (booking.studioId) {
+    studioIds.add(booking.studioId);
+  }
+  
+  bookingStudioLinks
+    .filter(link => link.bookingId === booking.id)
+    .forEach(link => studioIds.add(link.studioId));
+  
+  const studioNames = Array.from(studioIds)
+    .map(id => studios.find(s => s.id === id)?.name)
+    .filter(Boolean);
+  
+  return studioNames.length > 0 ? studioNames.join(', ') : 'Unknown Studio';
+}
+
+function isBookingActive(booking: Booking, currentTime: Date): boolean {
+  const start = parseISO(booking.start);
+  const end = parseISO(booking.end);
+  return currentTime >= start && currentTime <= end;
+}
+
+function getNextAvailable(studioId: number, bookings: Booking[], bookingStudioLinks: BookingStudioLink[], timezone: string) {
+  const currentTime = getCurrentFacilityTime(timezone);
+  const futureBookings = bookings
+    .filter(booking => {
+      const isDirectStudio = booking.studioId === studioId;
+      const hasLink = bookingStudioLinks.some(link => link.studioId === studioId && link.bookingId === booking.id);
+      return (isDirectStudio || hasLink) && parseISO(booking.start) > currentTime;
+    })
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+  if (futureBookings.length > 0) {
+    return formatFacilityTime(futureBookings[0].start, 'h:mm a', timezone);
+  }
+  
+  return 'Ready';
 }
 
 export default function CustomSignagePage() {
   const search = useSearch();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [forecast, setForecast] = useState<WeatherForecast | null>(null);
-
-  // Parse URL parameters
   const searchParams = new URLSearchParams(search);
+  
+  // Parse URL parameters
   const studioIds = searchParams.get('studios');
   const customTitle = searchParams.get('title');
   const showWeather = searchParams.get('weather') !== 'false';
@@ -147,43 +131,41 @@ export default function CustomSignagePage() {
 
   const title = decodeURIComponent(customTitle || 'Custom Display');
 
-  // Get facility timezone from environment
-  const facilityTimezone = import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [forecast, setForecast] = useState<WeatherForecast | null>(null);
+  const [facilityTimezone, setFacilityTimezone] = useState<string>(BUILD_TIME_TIMEZONE);
 
-  // Update current time every minute
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(getCurrentFacilityTime(facilityTimezone));
-    }, 60000);
-    return () => clearInterval(timer);
-  }, [facilityTimezone]);
+  const { siteName } = useSiteSettings();
 
-  // Auto-refresh data every 2 minutes
+  // Fetch timezone
   useEffect(() => {
-    const refreshTimer = setInterval(() => {
-      window.location.reload();
-    }, 2 * 60 * 1000);
-    return () => clearInterval(refreshTimer);
+    const fetchTimezone = async () => {
+      const timezone = await getFacilityTimezoneAsync();
+      setFacilityTimezone(timezone);
+    };
+    fetchTimezone();
   }, []);
 
-  // Weather data fetching
+  // Update time every second
   useEffect(() => {
-    if (!showWeather) return;
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-    const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-    const lat = import.meta.env.VITE_WEATHER_LAT;
-    const lon = import.meta.env.VITE_WEATHER_LON;
-    
-    if (!apiKey || !lat || !lon) {
-      console.log('Weather API key or coordinates not configured');
-      return;
-    }
-
+  // Fetch weather data
+  useEffect(() => {
     const fetchWeather = async () => {
       try {
-        // Current weather
+        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        if (!apiKey) return;
+
+        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX,US';
+        
         const currentResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`
+          `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`
         );
         
         if (currentResponse.ok) {
@@ -198,163 +180,182 @@ export default function CustomSignagePage() {
           });
         }
 
-        // 5-day forecast
         const forecastResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`
+          `https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=imperial`
         );
         
         if (forecastResponse.ok) {
           const forecastData = await forecastResponse.json();
-          
-          // Process forecast data to get daily summaries
-          const dailyForecasts = new Map();
+          const dailyForecasts: { [key: string]: any } = {};
           
           forecastData.list.forEach((item: any) => {
-            // Use facility timezone for proper date calculation
-            const itemDate = new Date(item.dt * 1000);
-            const facilityDate = new Date(itemDate.toLocaleString("en-US", { timeZone: facilityTimezone }));
-            const dateKey = format(facilityDate, 'yyyy-MM-dd');
+            const facilityDateTime = toZonedTime(new Date(item.dt * 1000), facilityTimezone);
+            const dateKey = format(facilityDateTime, 'yyyy-MM-dd');
             
-            if (!dailyForecasts.has(dateKey)) {
-              dailyForecasts.set(dateKey, {
-                date: dateKey,
-                temperatures: [],
+            if (!dailyForecasts[dateKey]) {
+              dailyForecasts[dateKey] = {
+                temps: [],
                 conditions: [],
                 icons: []
-              });
+              };
             }
             
-            const dayData = dailyForecasts.get(dateKey);
-            dayData.temperatures.push(item.main.temp);
-            dayData.conditions.push(item.weather[0].description);
-            dayData.icons.push(item.weather[0].icon);
+            dailyForecasts[dateKey].temps.push(item.main.temp);
+            dailyForecasts[dateKey].conditions.push(item.weather[0].description);
+            dailyForecasts[dateKey].icons.push(item.weather[0].icon);
           });
-          
-          // Convert to final forecast format
-          const processedForecast = Array.from(dailyForecasts.values()).map(day => ({
-            date: day.date,
+
+          const forecastArray = Object.entries(dailyForecasts).map(([date, data]: [string, any]) => ({
+            date,
             temperature: {
-              max: Math.round(Math.max(...day.temperatures)),
-              min: Math.round(Math.min(...day.temperatures))
+              min: Math.round(Math.min(...data.temps)),
+              max: Math.round(Math.max(...data.temps))
             },
-            condition: day.conditions[0], // Use first condition of the day
-            icon: day.icons[0] // Use first icon of the day
+            condition: data.conditions[0],
+            icon: data.icons[0]
           }));
-          
-          setForecast({ forecast: processedForecast });
+
+          setForecast({ forecast: forecastArray });
         }
       } catch (error) {
         console.error('Weather fetch error:', error);
       }
     };
 
-    fetchWeather();
-    const weatherTimer = setInterval(fetchWeather, 5 * 60 * 1000); // Update every 5 minutes
-    return () => clearInterval(weatherTimer);
-  }, [showWeather, facilityTimezone]);
+    if (showWeather) {
+      fetchWeather();
+      const weatherTimer = setInterval(fetchWeather, 300000); // Update every 5 minutes
+      return () => clearInterval(weatherTimer);
+    }
+  }, [facilityTimezone, showWeather]);
 
-  // Fetch site name
-  const { data: siteData } = useQuery({
-    queryKey: ['/api/system/site-name'],
+  // Fetch bookings data
+  const { data: bookings = [] } = useQuery<Booking[]>({
+    queryKey: ['/api/public/bookings'],
   });
-  const siteName = siteData?.siteName || 'BookStud.io';
 
-  // Fetch all data
-  const { data: studios = [] } = useQuery({ queryKey: ['/api/studios'] });
-  const { data: bookings = [] } = useQuery({ queryKey: ['/api/public/bookings'] });
-  const { data: bookingStudioLinks = [] } = useQuery({ queryKey: ['/api/public/booking-studios'] });
-  const { data: alerts = [] } = useQuery({ queryKey: ['/api/alerts'] });
+  const { data: studios = [] } = useQuery<Studio[]>({
+    queryKey: ['/api/studios'],
+  });
 
-  // Filter studios if specific studios are requested
-  const filteredStudios = studioIds 
-    ? studios.filter((studio: Studio) => 
-        studioIds.split(',').map(id => parseInt(id.trim())).includes(studio.id)
-      )
-    : studios;
+  const { data: bookingStudioLinks = [] } = useQuery<BookingStudioLink[]>({
+    queryKey: ['/api/public/booking-studios'],
+  });
+
+  const { data: alerts = [] } = useQuery({
+    queryKey: ['/api/alerts'],
+  });
+
+  // Filter studios based on URL parameter
+  const filteredStudios = useMemo(() => {
+    return studioIds 
+      ? studios.filter(studio => 
+          studioIds.split(',').map(id => parseInt(id.trim())).includes(studio.id)
+        )
+      : studios;
+  }, [studios, studioIds]);
 
   // Create combined bookings and alerts data
-  const combinedBookings = [...bookings, ...alerts];
+  const combinedBookings = useMemo(() => [...bookings, ...alerts], [bookings, alerts]);
 
   // Calculate timezone-aware "today" for facility timezone
-  const nowInFacility = toZonedTime(new Date(), facilityTimezone);
-  const today = fromZonedTime(startOfDay(nowInFacility), facilityTimezone);
-  const todayEnd = fromZonedTime(endOfDay(nowInFacility), facilityTimezone);
+  const today = useMemo(() => {
+    const nowInFacility = toZonedTime(new Date(), facilityTimezone);
+    return fromZonedTime(startOfDay(nowInFacility), facilityTimezone);
+  }, [facilityTimezone]);
+
+  const todayEnd = useMemo(() => {
+    const nowInFacility = toZonedTime(new Date(), facilityTimezone);
+    return fromZonedTime(endOfDay(nowInFacility), facilityTimezone);
+  }, [facilityTimezone]);
 
   // Filter today's bookings with studio filter
-  const todaysBookings = combinedBookings.filter(booking => {
-    const bookingStart = parseISO(booking.start);
-    const withinToday = isWithinInterval(bookingStart, { start: today, end: todayEnd });
-    
-    if (!withinToday) return false;
-    
-    // Apply studio filter
-    if (studioIds) {
-      const selectedStudioIds = studioIds.split(',').map(id => parseInt(id.trim()));
-      const bookingStudioIds = bookingStudioLinks
-        .filter((bs: any) => bs.bookingId === booking.id)
-        .map((bs: any) => bs.studioId);
+  const todaysBookings = useMemo(() => {
+    return combinedBookings.filter(booking => {
+      const bookingStart = parseISO(booking.start);
+      const withinToday = isWithinInterval(bookingStart, { start: today, end: todayEnd });
       
-      const hasDirectStudio = selectedStudioIds.includes(booking.studioId);
-      const hasLinkedStudio = bookingStudioIds.some(id => selectedStudioIds.includes(id));
+      if (!withinToday) return false;
       
-      return hasDirectStudio || hasLinkedStudio;
-    }
-    
-    return true;
-  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+      // Apply studio filter
+      if (studioIds) {
+        const selectedStudioIds = studioIds.split(',').map(id => parseInt(id.trim()));
+        const bookingStudioIds = bookingStudioLinks
+          .filter((bs: any) => bs.bookingId === booking.id)
+          .map((bs: any) => bs.studioId);
+        
+        const hasDirectStudio = selectedStudioIds.includes(booking.studioId);
+        const hasLinkedStudio = bookingStudioIds.some(id => selectedStudioIds.includes(id));
+        
+        return hasDirectStudio || hasLinkedStudio;
+      }
+      
+      return true;
+    }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  }, [combinedBookings, today, todayEnd, studioIds, bookingStudioLinks]);
 
   // Filter today's alerts for site alerts section
-  const todaysAlerts = combinedBookings.filter(booking => {
-    const bookingStart = parseISO(booking.start);
-    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
-    const hasAlertKeyword = booking.title && (
-      booking.title.toLowerCase().includes('alert') ||
-      booking.title.toLowerCase().includes('outage') ||
-      booking.title.toLowerCase().includes('emergency') ||
-      booking.title.toLowerCase().includes('maintenance') ||
-      booking.title.toLowerCase().includes('notice') ||
-      booking.title.toLowerCase().includes('warning')
-    );
-    return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && (isMaintenanceType || hasAlertKeyword);
-  }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  const todaysAlerts = useMemo(() => {
+    return combinedBookings.filter(booking => {
+      const bookingStart = parseISO(booking.start);
+      const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
+      const hasAlertKeyword = booking.title && (
+        booking.title.toLowerCase().includes('alert') ||
+        booking.title.toLowerCase().includes('outage') ||
+        booking.title.toLowerCase().includes('emergency') ||
+        booking.title.toLowerCase().includes('maintenance') ||
+        booking.title.toLowerCase().includes('notice') ||
+        booking.title.toLowerCase().includes('warning')
+      );
+      return isWithinInterval(bookingStart, { start: today, end: todayEnd }) && (isMaintenanceType || hasAlertKeyword);
+    }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  }, [combinedBookings, today, todayEnd]);
 
   // Get weekly overview (next 7 days) - use proper timezone boundaries
-  const weeklyBookings = Array.from({ length: 7 }, (_, i) => {
-    const facilityDate = addDays(nowInFacility, i);
-    const date = fromZonedTime(startOfDay(facilityDate), facilityTimezone);
-    const dayEnd = fromZonedTime(endOfDay(facilityDate), facilityTimezone);
-    const dayBookings = combinedBookings.filter(booking => {
-      const bookingStart = parseISO(booking.start);
-      return isWithinInterval(bookingStart, { start: date, end: dayEnd });
-    }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-    return {
-      date,
-      bookings: dayBookings,
-    };
-  });
+  const weeklyBookings = useMemo(() => {
+    const nowInFacility = toZonedTime(new Date(), facilityTimezone);
+    
+    return Array.from({ length: 7 }, (_, i) => {
+      const facilityDate = addDays(nowInFacility, i);
+      const date = fromZonedTime(startOfDay(facilityDate), facilityTimezone);
+      const dayEnd = fromZonedTime(endOfDay(facilityDate), facilityTimezone);
+      const dayBookings = combinedBookings.filter(booking => {
+        const bookingStart = parseISO(booking.start);
+        return isWithinInterval(bookingStart, { start: date, end: dayEnd });
+      }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+      return {
+        date,
+        bookings: dayBookings,
+      };
+    });
+  }, [combinedBookings, facilityTimezone]);
 
   // Get current studio status
-  const studioStatus = filteredStudios.map(studio => {
-    const activeBooking = combinedBookings.find(booking => {
-      const isDirectStudio = booking.studioId === studio.id;
-      const hasLink = bookingStudioLinks.some(link => link.studioId === studio.id && link.bookingId === booking.id);
-      return (isDirectStudio || hasLink) && isBookingActive(booking, currentTime);
-    });
+  const studioStatus = useMemo(() => {
+    return filteredStudios.map(studio => {
+      const activeBooking = combinedBookings.find(booking => {
+        const isDirectStudio = booking.studioId === studio.id;
+        const hasLink = bookingStudioLinks.some(link => link.studioId === studio.id && link.bookingId === booking.id);
+        return (isDirectStudio || hasLink) && isBookingActive(booking, currentTime);
+      });
 
-    return {
-      ...studio,
-      currentBooking: activeBooking,
-      nextAvailable: getNextAvailable(studio.id, combinedBookings, bookingStudioLinks, facilityTimezone),
-    };
-  });
+      return {
+        ...studio,
+        currentBooking: activeBooking,
+        nextAvailable: getNextAvailable(studio.id, combinedBookings, bookingStudioLinks, facilityTimezone),
+      };
+    });
+  }, [filteredStudios, combinedBookings, bookingStudioLinks, currentTime, facilityTimezone]);
 
   // Get maintenance alerts from combined data
-  const maintenanceAlerts = combinedBookings.filter(booking => {
-    const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
-    return isMaintenanceType && 
-           parseISO(booking.start) >= today &&
-           parseISO(booking.start) <= addDays(today, 7);
-  });
+  const maintenanceAlerts = useMemo(() => {
+    return combinedBookings.filter(booking => {
+      const isMaintenanceType = booking.type === 'maintenance' || booking.type === 'all-day:maintenance';
+      return isMaintenanceType && 
+             parseISO(booking.start) >= today &&
+             parseISO(booking.start) <= addDays(today, 7);
+    });
+  }, [combinedBookings, today]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
@@ -422,7 +423,7 @@ export default function CustomSignagePage() {
             <CardHeader>
               <CardTitle className="flex items-center text-white text-3xl">
                 <Calendar className="mr-4 h-8 w-8" />
-                Today's Schedule
+                Today&apos;s Schedule
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -486,7 +487,7 @@ export default function CustomSignagePage() {
                           />
                         </div>
                         <div className="text-base text-slate-300 mb-1 truncate">
-                          {getStudioNames(booking, studios, bookingStudioLinks)}
+                          {!isAlert && getStudioNames(booking, studios, bookingStudioLinks)}
                         </div>
                         <div className="text-base text-slate-400">
                           {formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}
@@ -570,78 +571,78 @@ export default function CustomSignagePage() {
                         </div>
                         
                         <div className="space-y-1">
-                        {bookings.map((booking) => {
-                          const isAlert = booking.type === 'maintenance' || 
-                                         booking.type === 'all-day:maintenance' ||
-                                         booking.type === 'alert' ||
-                                         (booking.title && (
-                                           booking.title.toLowerCase().includes('alert') ||
-                                           booking.title.toLowerCase().includes('outage') ||
-                                           booking.title.toLowerCase().includes('emergency') ||
-                                           booking.title.toLowerCase().includes('maintenance') ||
-                                           booking.title.toLowerCase().includes('notice') ||
-                                           booking.title.toLowerCase().includes('warning')
-                                         ));
-                          
-                          return (
-                            <div
-                              key={booking.id}
-                              className={`text-xs p-2 rounded text-white ${
-                                isAlert 
-                                  ? 'animate-pulse border border-red-400 shadow-md' 
-                                  : ''
-                              }`}
-                              style={{ 
-                                backgroundColor: isAlert 
-                                  ? (booking.severity === 'critical' ? '#dc2626' : '#ea580c')
-                                  : booking.color 
-                              }}
-                              title={`${booking.title} - ${formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} to ${formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}`}
-                            >
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="font-medium truncate flex-1">
-                                  {isAlert && (
-                                    <span className="mr-1">⚠️</span>
-                                  )}
-                                  {booking.title}
-                                </div>
-                                <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
-                                  {booking.status === 'confirmed' && (
-                                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Confirmed" />
-                                  )}
-                                  {booking.status === 'tentative' && (
-                                    <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full" title="Tentative" />
-                                  )}
-                                  {booking.status === 'cancelled' && (
-                                    <div className="w-1.5 h-1.5 bg-red-400 rounded-full" title="Cancelled" />
-                                  )}
-                                </div>
-                              </div>
-                              <div className={`flex items-center text-xs opacity-90 ${isAlert ? 'justify-center' : 'justify-between'}`}>
-                                <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
-                                {!isAlert && (
-                                  <div className="flex items-center space-x-2">
-                                    {booking.type === 'maintenance' && (
-                                      <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
+                          {bookings.map((booking) => {
+                            const isAlert = booking.type === 'maintenance' || 
+                                           booking.type === 'all-day:maintenance' ||
+                                           booking.type === 'alert' ||
+                                           (booking.title && (
+                                             booking.title.toLowerCase().includes('alert') ||
+                                             booking.title.toLowerCase().includes('outage') ||
+                                             booking.title.toLowerCase().includes('emergency') ||
+                                             booking.title.toLowerCase().includes('maintenance') ||
+                                             booking.title.toLowerCase().includes('notice') ||
+                                             booking.title.toLowerCase().includes('warning')
+                                           ));
+                            
+                            return (
+                              <div
+                                key={booking.id}
+                                className={`text-xs p-2 rounded text-white ${
+                                  isAlert 
+                                    ? 'animate-pulse border border-red-400 shadow-md' 
+                                    : ''
+                                }`}
+                                style={{ 
+                                  backgroundColor: isAlert 
+                                    ? (booking.severity === 'critical' ? '#dc2626' : '#ea580c')
+                                    : booking.color 
+                                }}
+                                title={`${booking.title} - ${formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)} to ${formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="font-medium truncate flex-1">
+                                    {isAlert && (
+                                      <span className="mr-1">⚠️</span>
                                     )}
-                                    {/* Show studio names for regular bookings (not alerts) */}
-                                    <span className="text-xs opacity-80">
-                                      {getStudioNames(booking, studios, bookingStudioLinks)}
-                                    </span>
+                                    {booking.title}
+                                  </div>
+                                  <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
+                                    {booking.status === 'confirmed' && (
+                                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Confirmed" />
+                                    )}
+                                    {booking.status === 'tentative' && (
+                                      <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full" title="Tentative" />
+                                    )}
+                                    {booking.status === 'cancelled' && (
+                                      <div className="w-1.5 h-1.5 bg-red-400 rounded-full" title="Cancelled" />
+                                    )}
+                                  </div>
+                                </div>
+                                <div className={`flex items-center text-xs opacity-90 ${isAlert ? 'justify-center' : 'justify-between'}`}>
+                                  <span>{formatFacilityTime(booking.start, 'h:mm a', facilityTimezone)}-{formatFacilityTime(booking.end, 'h:mm a', facilityTimezone)}</span>
+                                  {!isAlert && (
+                                    <div className="flex items-center space-x-2">
+                                      {booking.type === 'maintenance' && (
+                                        <span className="bg-orange-600/50 px-1 rounded text-xs">MAINT</span>
+                                      )}
+                                      {/* Show studio names for regular bookings (not alerts) */}
+                                      <span className="text-xs opacity-80">
+                                        {getStudioNames(booking, studios, bookingStudioLinks)}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {isAlert && booking.type === 'maintenance' && (
+                                    <span className="bg-orange-600/50 px-1 rounded text-xs ml-2">MAINT</span>
+                                  )}
+                                </div>
+                                {booking.description && booking.description.trim() && (
+                                  <div className="text-xs opacity-80 mt-1 truncate">
+                                    {booking.description}
                                   </div>
                                 )}
-                                {isAlert && booking.type === 'maintenance' && (
-                                  <span className="bg-orange-600/50 px-1 rounded text-xs ml-2">MAINT</span>
-                                )}
                               </div>
-                              {booking.description && booking.description.trim() && (
-                                <div className="text-xs opacity-80 mt-1 truncate">
-                                  {booking.description}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
                         </div>
                       </div>
                     );
@@ -719,67 +720,66 @@ export default function CustomSignagePage() {
                           !isSameDay(parseISO(alert.start), today) && 
                           !todaysAlerts.some(todayAlert => todayAlert.id === alert.id)
                         )
-                        .slice(0, 2)
                         .map(alert => ({ ...alert, alertCategory: 'upcoming' }))
                     ]
-                    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-                    .map(alert => {
-                      if (alert.alertCategory === 'active') {
-                        return (
-                          <div key={`active-${alert.id}`} className="p-3 rounded-lg bg-red-900/60 border-2 border-red-500 shadow-lg animate-pulse">
-                            <div className="flex items-center gap-2 mb-2">
-                              <AlertTriangle className="h-4 w-4 text-red-300 animate-bounce" />
-                              <div className="text-sm font-bold text-red-100 uppercase tracking-wide">ACTIVE ALERT</div>
-                            </div>
-                            <div className="text-lg font-semibold text-red-50 mb-1">{alert.title}</div>
-                            <div className="text-sm text-red-200">
-                              {formatFacilityTime(alert.start, 'h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
-                            </div>
-                            {alert.description && alert.description.trim() && (
-                              <div className="text-sm text-red-300 mt-1">
-                                {alert.description}
+                      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+                      .map((alert) => {
+                        if (alert.alertCategory === 'active') {
+                          return (
+                            <div key={`active-${alert.id}`} className="p-3 rounded-lg bg-red-900/60 border-2 border-red-400 shadow-lg animate-pulse">
+                              <div className="flex items-center gap-2 mb-2">
+                                <AlertTriangle className="h-4 w-4 text-red-200" />
+                                <div className="text-sm font-bold text-red-100 uppercase tracking-wide">ACTIVE NOW</div>
                               </div>
-                            )}
-                          </div>
-                        );
-                      } else if (alert.alertCategory === 'today') {
-                        return (
-                          <div key={`today-${alert.id}`} className="p-3 rounded-lg bg-orange-900/50 border-2 border-orange-500 shadow-md">
-                            <div className="flex items-center gap-2 mb-2">
-                              <AlertTriangle className="h-4 w-4 text-orange-300" />
-                              <div className="text-sm font-bold text-orange-100 uppercase tracking-wide">UPCOMING</div>
-                            </div>
-                            <div className="text-lg font-semibold text-orange-50 mb-1">{alert.title}</div>
-                            <div className="text-sm text-orange-200">
-                              {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
-                            </div>
-                            {alert.description && alert.description.trim() && (
-                              <div className="text-sm text-orange-300 mt-1">
-                                {alert.description}
+                              <div className="text-lg font-semibold text-red-50 mb-1">{alert.title}</div>
+                              <div className="text-sm text-red-200">
+                                {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
                               </div>
-                            )}
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <div key={`upcoming-${alert.id}`} className="p-3 rounded-lg bg-yellow-900/40 border border-yellow-500 shadow-sm">
-                            <div className="flex items-center gap-2 mb-2">
-                              <AlertTriangle className="h-4 w-4 text-yellow-300" />
-                              <div className="text-sm font-bold text-yellow-100 uppercase tracking-wide">UPCOMING</div>
+                              {alert.description && alert.description.trim() && (
+                                <div className="text-sm text-red-300 mt-1">
+                                  {alert.description}
+                                </div>
+                              )}
                             </div>
-                            <div className="text-base font-semibold text-yellow-50 mb-1">{alert.title}</div>
-                            <div className="text-sm text-yellow-200">
-                              {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
-                            </div>
-                            {alert.description && alert.description.trim() && (
-                              <div className="text-sm text-yellow-300 mt-1">
-                                {alert.description}
+                          );
+                        } else if (alert.alertCategory === 'today') {
+                          return (
+                            <div key={`today-${alert.id}`} className="p-3 rounded-lg bg-orange-900/50 border-2 border-orange-500 shadow-md">
+                              <div className="flex items-center gap-2 mb-2">
+                                <AlertTriangle className="h-4 w-4 text-orange-300" />
+                                <div className="text-sm font-bold text-orange-100 uppercase tracking-wide">UPCOMING</div>
                               </div>
-                            )}
-                          </div>
-                        );
-                      }
-                    })}
+                              <div className="text-lg font-semibold text-orange-50 mb-1">{alert.title}</div>
+                              <div className="text-sm text-orange-200">
+                                {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                              </div>
+                              {alert.description && alert.description.trim() && (
+                                <div className="text-sm text-orange-300 mt-1">
+                                  {alert.description}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div key={`upcoming-${alert.id}`} className="p-3 rounded-lg bg-yellow-900/40 border border-yellow-500 shadow-sm">
+                              <div className="flex items-center gap-2 mb-2">
+                                <AlertTriangle className="h-4 w-4 text-yellow-300" />
+                                <div className="text-sm font-bold text-yellow-100 uppercase tracking-wide">UPCOMING</div>
+                              </div>
+                              <div className="text-base font-semibold text-yellow-50 mb-1">{alert.title}</div>
+                              <div className="text-sm text-yellow-200">
+                                {formatFacilityTime(alert.start, 'MMM d, h:mm a', facilityTimezone)} - {formatFacilityTime(alert.end, 'h:mm a', facilityTimezone)}
+                              </div>
+                              {alert.description && alert.description.trim() && (
+                                <div className="text-sm text-yellow-300 mt-1">
+                                  {alert.description}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+                      })}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-slate-400">
