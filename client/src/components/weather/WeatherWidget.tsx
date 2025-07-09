@@ -85,9 +85,10 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
         }
 
         const currentResponse = await fetch(weatherUrl);
+        let currentData = null;
         
         if (currentResponse.ok) {
-          const currentData = await currentResponse.json();
+          currentData = await currentResponse.json();
           setWeather({
             temperature: Math.round(currentData.main.temp),
             condition: currentData.weather[0].description,
@@ -136,7 +137,28 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
 
             const dailyForecasts: ForecastDay[] = [];
             
+            // First, add today's weather from current weather data
+            const today = new Date();
+            const todayInFacility = toZonedTime(today, FACILITY_TIMEZONE);
+            const todayString = format(todayInFacility, 'yyyy-MM-dd');
+            
+            if (currentData) {
+              dailyForecasts.push({
+                date: todayString,
+                temperature: {
+                  min: Math.round(currentData.main.temp_min || currentData.main.temp),
+                  max: Math.round(currentData.main.temp_max || currentData.main.temp)
+                },
+                condition: currentData.weather[0].description,
+                icon: currentData.weather[0].icon
+              });
+            }
+            
+            // Then add forecast data starting from tomorrow
             dailyData.forEach((data, dateString) => {
+              // Skip today since we already added current weather
+              if (dateString === todayString) return;
+              
               const minTemp = Math.min(...data.temps);
               const maxTemp = Math.max(...data.temps);
               
@@ -154,7 +176,9 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
               });
             });
             
-            setForecast({ forecast: dailyForecasts.slice(0, 7) });
+            // Sort by date and take first 6 days
+            dailyForecasts.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            setForecast({ forecast: dailyForecasts.slice(0, 6) });
           }
         }
 
@@ -237,48 +261,23 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
         <div className="mt-4">
           <h4 className={`font-semibold mb-2 ${sizeClasses[size]}`}>6-Day Forecast</h4>
           <div className="grid grid-cols-6 gap-2 justify-items-center">
-            {Array.from({ length: 6 }, (_, index) => {
-              const day = forecast.forecast[index];
+            {forecast.forecast.map((day, index) => {
+              const ForecastIcon = getWeatherIcon(day.icon);
+              const date = new Date(day.date);
+              const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
               
-              if (day) {
-                // Real forecast data available
-                const ForecastIcon = getWeatherIcon(day.icon);
-                const date = new Date(day.date);
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-                
-                return (
-                  <div key={day.date} className="text-center">
-                    <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
-                      {index === 0 ? 'Today' : dayName}
-                    </div>
-                    <ForecastIcon className={`${iconSizes[size]} mx-auto text-blue-500 my-1`} />
-                    <div className={`${sizeClasses[size]} text-gray-600`}>
-                      <div>{day.temperature.max}°</div>
-                      <div className="text-gray-400">{day.temperature.min}°</div>
-                    </div>
+              return (
+                <div key={day.date} className="text-center">
+                  <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
+                    {index === 0 ? 'Today' : dayName}
                   </div>
-                );
-              } else {
-                // Placeholder for missing forecast data (API limitation)
-                const today = new Date();
-                const futureDate = new Date(today);
-                futureDate.setDate(today.getDate() + index);
-                const dayName = futureDate.toLocaleDateString('en-US', { weekday: 'short' });
-                const CloudIcon = getWeatherIcon('03d'); // Generic cloud icon
-                
-                return (
-                  <div key={`placeholder-${index}`} className="text-center">
-                    <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
-                      {index === 0 ? 'Today' : dayName}
-                    </div>
-                    <CloudIcon className={`${iconSizes[size]} mx-auto text-gray-400 my-1`} />
-                    <div className={`${sizeClasses[size]} text-gray-400`}>
-                      <div>--°</div>
-                      <div>--°</div>
-                    </div>
+                  <ForecastIcon className={`${iconSizes[size]} mx-auto text-blue-500 my-1`} />
+                  <div className={`${sizeClasses[size]} text-gray-600`}>
+                    <div>{day.temperature.max}°</div>
+                    <div className="text-gray-400">{day.temperature.min}°</div>
                   </div>
-                );
-              }
+                </div>
+              );
             })}
           </div>
         </div>
