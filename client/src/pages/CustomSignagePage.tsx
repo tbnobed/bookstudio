@@ -148,9 +148,13 @@ export default function CustomSignagePage() {
 
   // Parse URL parameters
   const { studios: studioParam, title: titleParam, weather: weatherParam } = parseURLParams();
+  console.log("[SIGNAGE] URL Parameters:", { studioParam, titleParam, weatherParam });
 
   // Filter studios based on URL parameter
   const targetStudioIds = studioParam ? studioParam.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : [];
+  
+  // Determine if weather should be shown (default: true unless explicitly disabled)
+  const showWeather = weatherParam !== 'false';
 
   const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/public/bookings"],
@@ -194,7 +198,7 @@ export default function CustomSignagePage() {
   // Weather fetching
   useEffect(() => {
     const fetchWeather = async () => {
-      if (weatherParam === 'false') return;
+      if (!showWeather) return;
       
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
@@ -220,41 +224,95 @@ export default function CustomSignagePage() {
     };
 
     const fetchForecast = async () => {
-      if (weatherParam === 'false') return;
+      if (!showWeather) return;
       
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        if (!apiKey) return;
+        console.log("[SIGNAGE WEATHER] Weather API Key status:", apiKey ? "Available" : "Missing");
+        if (!apiKey) {
+          console.error("[SIGNAGE WEATHER] Weather integration disabled: API key not found");
+          return;
+        }
 
-        const location = import.meta.env.VITE_WEATHER_LOCATION || 'Dallas,TX';
+        const location = import.meta.env.VITE_WEATHER_LOCATION;
+        console.log("[SIGNAGE WEATHER] Weather Location:", location || "Not configured");
+        if (!location) {
+          console.error("[SIGNAGE WEATHER] Weather integration disabled: Location not configured");
+          return;
+        }
+
+        console.log("[SIGNAGE WEATHER] Fetching forecast...");
         const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=imperial`);
         
+        console.log("[SIGNAGE WEATHER] Forecast response status:", response.status);
+        
         if (response.ok) {
-          const data = await response.json();
+          const forecastData = await response.json();
+          console.log("[SIGNAGE WEATHER] Forecast data received:", forecastData);
           
-          // Process forecast data
-          const forecastDays: ForecastDay[] = [];
-          const processedDates = new Set<string>();
+          // Process forecast data - get daily forecasts by grouping hourly data
+          // Use facility timezone for proper date grouping
+          const dailyData = new Map<string, any[]>();
           
-          for (const item of data.list) {
-            const facilityDate = toZonedTime(new Date(item.dt * 1000), facilityTimezone);
-            const dateStr = format(facilityDate, 'yyyy-MM-dd');
+          forecastData.list.forEach((item: any) => {
+            const utcDate = new Date(item.dt * 1000);
+            // Convert to facility timezone for proper date grouping
+            const facilityDate = toZonedTime(utcDate, facilityTimezone);
+            const dateString = format(facilityDate, 'yyyy-MM-dd');
             
-            if (!processedDates.has(dateStr) && forecastDays.length < 7) {
-              forecastDays.push({
-                date: dateStr,
-                temperature: {
-                  min: Math.round(item.main.temp_min),
-                  max: Math.round(item.main.temp_max)
-                },
-                condition: item.weather[0].description,
-                icon: item.weather[0].icon
-              });
-              processedDates.add(dateStr);
+            if (!dailyData.has(dateString)) {
+              dailyData.set(dateString, []);
             }
-          }
+            dailyData.get(dateString)!.push(item);
+          });
           
-          setForecast({ forecast: forecastDays });
+          console.log("[SIGNAGE WEATHER] Daily data grouped:", Array.from(dailyData.keys()));
+          
+          // Create daily forecasts with proper min/max calculations
+          const dailyForecasts: ForecastDay[] = [];
+          
+          // Filter out past dates and only include today and future dates
+          // Use the same date calculation as the weekly view to ensure consistency
+          const now = new Date();
+          const facilityNow = toZonedTime(now, facilityTimezone);
+          const today = format(facilityNow, 'yyyy-MM-dd');
+          console.log("[SIGNAGE WEATHER] Today's date for filtering:", today);
+          console.log("[SIGNAGE WEATHER] Current UTC time:", now.toISOString());
+          console.log("[SIGNAGE WEATHER] Current facility time:", facilityNow.toISOString());
+          
+          const futureDates = Array.from(dailyData.entries())
+            .filter(([dateString]) => dateString >= today)
+            .slice(0, 7);
+          
+          console.log("[SIGNAGE WEATHER] Filtered future dates:", futureDates.map(([date]) => date));
+          
+          futureDates.forEach(([dateString, dayData]) => {
+            const temps = dayData.map(item => item.main.temp);
+            const minTemp = Math.min(...temps);
+            const maxTemp = Math.max(...temps);
+            
+            // Use midday data for condition and icon (around noon)
+            const middayData = dayData.find(item => {
+              const hour = new Date(item.dt * 1000).getHours();
+              return hour >= 11 && hour <= 13;
+            }) || dayData[Math.floor(dayData.length / 2)];
+            
+            dailyForecasts.push({
+              date: dateString,
+              temperature: {
+                min: Math.round(minTemp),
+                max: Math.round(maxTemp)
+              },
+              condition: middayData.weather[0].description,
+              icon: middayData.weather[0].icon
+            });
+          });
+          
+          console.log("[SIGNAGE WEATHER] Daily forecasts created:", dailyForecasts);
+          setForecast({ forecast: dailyForecasts });
+          console.log("[SIGNAGE WEATHER] Forecast state updated");
+        } else {
+          console.error("[SIGNAGE WEATHER] Forecast API failed:", response.status, await response.text());
         }
       } catch (error) {
         console.error('Error fetching forecast:', error);
@@ -376,7 +434,6 @@ export default function CustomSignagePage() {
   });
 
   const pageTitle = titleParam || siteName;
-  const showWeather = weatherParam !== 'false';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
@@ -539,6 +596,11 @@ export default function CustomSignagePage() {
                 {weeklyBookings.map(({ date, bookings }, index) => {
                   const dateString = format(date, 'yyyy-MM-dd');
                   const dayForecast = forecast?.forecast.find(f => f.date === dateString);
+                  
+                  // Debug logging for weather forecast availability
+                  if (index === 0) {
+                    console.log("[SIGNAGE WEATHER] Available forecast dates:", forecast?.forecast.map(f => f.date) || []);
+                  }
                   
                   return (
                     <div key={index} className="text-center">
