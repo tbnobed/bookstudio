@@ -229,32 +229,6 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
   return (
     <TooltipProvider>
       <div className="flex flex-col h-full bg-white">
-        {/* Alert Indicators */}
-        {alerts.length > 0 && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-            <h3 className="text-lg font-semibold text-red-800 mb-3">Facility Alerts</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {alerts.map((alert) => (
-                <div key={alert.id} className="bg-white rounded-lg p-3 shadow-sm border border-red-200">
-                  <div className="flex items-start space-x-2">
-                    <div className="flex-shrink-0 w-2 h-2 bg-red-500 rounded-full mt-2"></div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold text-red-900 truncate">{alert.title}</h4>
-                      {alert.description && (
-                        <p className="text-xs text-red-700 mt-1 line-clamp-2">{alert.description}</p>
-                      )}
-                      <div className="flex items-center justify-between mt-2 text-xs text-red-600">
-                        <span className="capitalize">{alert.severity} Priority</span>
-                        <span>{format(parseISO(alert.start), 'MMM d, h:mm a')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Calendar Grid */}
         <div className="flex-1 overflow-hidden">
           <div className="h-full overflow-auto">
