@@ -562,7 +562,7 @@ export default function EngineeringPage() {
         <div className="h-full overflow-auto">
           <div className="min-w-[1000px]">
             {/* Day Headers */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
+            <div className="sticky top-0 bg-white border-b border-gray-200 z-40 shadow-sm">
               <div className="flex">
                 {/* Time column header */}
                 <div className="w-16 border-r border-gray-200 bg-gray-50"></div>
@@ -575,7 +575,7 @@ export default function EngineeringPage() {
                   return (
                     <div
                       key={day.fullDate}
-                      className={`flex-1 min-w-[140px] border-r border-gray-200 ${
+                      className={`flex-1 min-w-[140px] border-r border-gray-200 relative ${
                         isToday ? 'bg-blue-50' : 'bg-white'
                       }`}
                     >

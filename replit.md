@@ -2,364 +2,7 @@
 
 ## Overview
 
-BookStud.io is a comprehensive web application for television studio management that provides intelligent scheduling, booking, and access control tools. The system features multi-studio booking capabilities, real-time status indicators, template-based booking creation, and role-based user management. It's designed specifically for television production facilities requiring sophisticated studio scheduling and notification management.
-
-## System Architecture
-
-### Frontend Architecture
-- **Framework**: React.js with TypeScript for type safety
-- **UI Components**: Radix UI with shadcn/ui component library
-- **Styling**: TailwindCSS for responsive design
-- **State Management**: React Query (@tanstack/react-query) for server state management
-- **Build Tool**: Vite for fast development and optimized production builds
-- **Form Handling**: React Hook Form with Zod validation
-
-### Backend Architecture
-- **Runtime**: Node.js with Express.js framework
-- **Language**: TypeScript with ES modules
-- **Authentication**: Passport.js with session-based authentication
-- **Session Storage**: PostgreSQL-backed sessions using connect-pg-simple
-- **File Handling**: Multer for file uploads with configurable storage
-
-### Data Storage Solutions
-- **Primary Database**: PostgreSQL with connection pooling
-- **ORM**: Drizzle ORM for type-safe database operations
-- **Schema Management**: Drizzle Kit for migrations and schema validation
-- **Session Store**: PostgreSQL-based session storage for scalability
-
-## Key Components
-
-### Studio Management System
-- Real-time studio status tracking (available, maintenance, in-use)
-- Multi-studio booking support with junction table relationships
-- Production Control Room (PCR) assignment and management
-- Calendar views (daily, weekly, monthly) with timezone handling
-
-### Booking Engine
-- Complex booking creation with multi-studio support
-- Template system for recurring production setups
-- Booking status management (confirmed, tentative, cancelled)
-- Color-coded booking visualization
-- Copy booking functionality with timezone-aware date handling
-
-### User Management & Authentication
-- Role-based access control (producer, engineer, it, site_manager, admin)
-- Secure password hashing using Node.js crypto module
-- Email-based user invitations with time-limited tokens
-- Password reset functionality with secure token validation
-
-### Notification System
-- Email notifications via SendGrid integration
-- Notification groups for targeted communications
-- Automated booking confirmations and updates
-- Facility-wide alert system for maintenance and outages
-- File attachment notifications
-
-### Template System
-- Reusable booking templates for common production setups
-- JSON-based configuration storage
-- Template migration system for legacy data conversion
-- User-specific template management
-
-## Data Flow
-
-### Booking Creation Flow
-1. User selects studios and time slots through React frontend
-2. Form validation occurs client-side using Zod schemas
-3. Backend validates booking conflicts and availability
-4. Database transaction creates booking and studio relationships
-5. Email notifications sent to relevant notification groups
-6. Real-time calendar updates via React Query cache invalidation
-
-### Authentication Flow
-1. User credentials validated against hashed passwords in PostgreSQL
-2. Passport.js creates secure session stored in database
-3. Session cookies with configurable security settings
-4. Role-based route protection on both frontend and backend
-
-### File Upload Flow
-1. Files uploaded via Multer to local filesystem
-2. Metadata stored in PostgreSQL with booking associations
-3. File access controlled through authenticated routes
-4. Notification system alerts relevant users of new attachments
-
-## External Dependencies
-
-### Email Service
-- **SendGrid**: Transactional email delivery
-- Configuration: API key and verified sender required
-- Features: Booking notifications, user invitations, password resets
-
-### Production Dependencies
-- **PostgreSQL**: Primary database with connection pooling
-- **Docker**: Containerized deployment with multi-stage builds
-- **Node.js 20**: Latest LTS runtime environment
-
-### Development Tools
-- **Vite**: Fast development server with HMR
-- **TypeScript**: Static type checking across full stack
-- **Drizzle Studio**: Database inspection and management
-
-## Deployment Strategy
-
-### Docker-First Approach
-- Multi-stage Dockerfile for optimized production builds
-- Docker Compose orchestration with PostgreSQL service
-- Environment-based configuration management
-- Health checks and logging configuration
-
-### Database Management
-- Automated migrations on container startup
-- Backup system with configurable retention
-- Schema validation and restoration scripts
-- Timezone handling (America/Chicago) for facility consistency
-
-### Production Features
-- Static file serving with caching headers
-- Request size limits for file uploads (50MB)
-- Security headers and HTTPS configuration
-- Automated database fixes for schema inconsistencies
-
-### Scalability Considerations
-- Connection pooling for database efficiency
-- Session storage in PostgreSQL for horizontal scaling
-- Static asset optimization and caching
-- Modular service architecture for easy maintenance
-
-## Production Deployment
-
-### Environment Configuration
-- Weather API integration requires VITE_OPENWEATHER_API_KEY in production .env
-- Location can be configured via VITE_WEATHER_LOCATION or coordinates
-- Docker environment includes all necessary weather variables
-- See PRODUCTION_WEATHER_SETUP.md for detailed setup instructions
-
-## Changelog
-- June 18, 2025: Initial setup
-- June 18, 2025: Calendar timezone display issue resolved - all bookings now appear on correct dates with proper America/Chicago timezone handling
-- June 18, 2025: Fixed timezone consistency - ALL dates now display in Chicago timezone regardless of user's local timezone
-- June 20, 2025: Site manager email notification system completed - all booking activities now trigger comprehensive emails with working links to actual Replit application URL
-- June 20, 2025: Email header visibility completely fixed - all email templates now display headers correctly with text shadows and proper contrast, replaced CSS class-based templates with inline HTML styling for maximum email client compatibility
-- June 20, 2025: FINAL email header fix implemented - replaced all invisible text headers with BookStud.io logo image for bulletproof visibility across all email clients, using assets/logo.png for consistent branding
-- June 21, 2025: Email templates upgraded to use actual BookStud.io logo - replaced all "BS" text placeholders with the authentic BookStud.io logo (assets/logo.png) for professional branding across all email notifications including booking confirmations, cancellations, maintenance alerts, and site manager notifications
-- June 21, 2025: Fixed critical deletion email bug - resolved ReferenceError where logoUrl was undefined in sendSiteManagerNotification function, now all booking deletion emails send properly with the BookStud.io logo
-- June 21, 2025: Enhanced email header visibility - added !important declarations, -webkit-text-fill-color, and mso-line-height-rule properties to ensure white text displays properly on colored backgrounds across all email clients including Outlook and mobile apps
-- June 21, 2025: FINAL email header visibility fix - added semi-transparent black background boxes behind all header text to ensure visibility regardless of email client text color overrides, with inline-block display and padding for perfect contrast
-- June 21, 2025: Applied header visibility fixes to ALL email templates - updated password reset and invitation emails with same background box solution for universal header visibility across all email types
-- June 21, 2025: SIMPLIFIED email templates - removed all header text and kept only BookStud.io logo for clean, universally compatible design across all email clients
-- June 21, 2025: Completed email template simplification - removed ALL remaining header text from maintenance alerts, facility alerts, and site manager notifications. Every email template now uses logo-only design for universal email client compatibility
-- June 21, 2025: FINAL fix for site manager notifications - removed header text from sendSiteManagerNotification function. ALL email templates across the entire system now use clean logo-only design with zero header text visibility issues
-- June 21, 2025: COMPLETELY FIXED all email templates - removed ALL remaining CSS-based headers from notification service including booking notifications, maintenance alerts, and facility alerts. Every single email in the entire system now uses the same logo-only design for universal compatibility
-- June 21, 2025: Consolidated redundant email functions - unified SendGrid initialization and email sending into single emailService, eliminated duplicate email template structures between server/email.ts and server/services/emailService.ts for cleaner, more maintainable code
-- June 21, 2025: FINAL notification group email cleanup - removed ALL remaining blue gradient backgrounds from notification group templates including booking notifications, maintenance alerts, and facility alerts. Every email template now uses clean logo-only design with authentic BookStud.io logo for universal email client compatibility
-- June 22, 2025: Fixed production email domain links - updated all email services to prioritize APP_DOMAIN environment variable over Replit domains, ensuring email links point to production domain instead of localhost:5000. Added APP_DOMAIN configuration to .env.example for easy production setup
-- June 22, 2025: COMPLETELY eliminated ALL localhost:5000 references from production email system - fixed remaining hardcoded localhost URLs in server/email.ts that were causing production emails to show incorrect links. All email notifications now properly use clean production domains without ports when APP_DOMAIN is set
-- June 22, 2025: VERIFIED email system is production-ready - confirmed all email templates generate dynamic URLs using getApplicationUrl() function which prioritizes APP_DOMAIN environment variable. No cached templates exist. System correctly uses Replit development domain when APP_DOMAIN is not set, and will use clean production domain when properly configured
-- June 22, 2025: Fixed Docker environment variable loading - added APP_DOMAIN and SITE_MANAGER_EMAIL to docker-compose.yml environment sections and created docker-compose.override.yml to automatically load .env files. Docker now properly reads production environment variables for email domain configuration
-- June 22, 2025: FINAL email logo fix completed - fixed missing logos in notification group emails by updating sendEmailToGroups function to use HTML templates with BookStud.io logo instead of plain text. All email types now consistently display the authentic BookStud.io logo across all email clients
-- June 22, 2025: VERIFIED notification group email logo fix - confirmed sendEmailToGroups function properly generates HTML templates with logo URLs using getApplicationUrl() for dynamic domain resolution. All notification group emails now include BookStud.io logo for consistent branding
-- June 22, 2025: FINAL removal of blue header from notification group emails - eliminated the remaining blue "NOTIFICATION" header bar from notification group email templates, ensuring ALL email types across the entire system use the same clean logo-only design for universal email client compatibility
-- June 22, 2025: FIXED logo image serving in emails - added Express static file serving to properly serve logo images from /public directory. Email templates now display actual BookStud.io logo image instead of alt text, with correct Content-Type: image/png headers
-- June 22, 2025: FINAL blue header removal from notification group emails - eliminated conflicting createEmailTemplate imports and replaced with createCleanEmailTemplate function that generates logo-only email design without any blue headers. All notification group emails now use consistent clean branding
-- June 22, 2025: Increased email logo size by 60% - updated all email templates across the system to use 128px height (up from 80px) for better visibility and brand presence in notification emails, booking confirmations, and site manager alerts
-- June 22, 2025: COMPLETELY FIXED maintenance alert system - maintenance bookings now properly send "MAINTENANCE SCHEDULED" alerts to ALL notification groups and facility management instead of regular booking notifications. Fixed missing getApplicationUrl import and ensured facility-wide alerts skip duplicate site manager notifications. System now correctly identifies maintenance bookings (studioId: null, type: maintenance) and sends proper orange maintenance alerts to all groups
-- June 22, 2025: Removed redundant "Notify Crew" section from maintenance alert modal - since maintenance alerts automatically notify ALL notification groups, the manual crew selection is no longer needed and was causing confusion
-- June 22, 2025: Fixed foreign key constraint error in booking creation - templateId now properly set to null when no template is selected (was causing constraint violations when set to 0)
-- June 22, 2025: COMPLETELY FIXED mobile booking foreign key constraints - resolved both templateId and pcrRoomId constraint violations by updating all mobile form components (SimpleMobileForm, BookingModal, DirectMobileForm, MobileBookingController, BookingFormSelector) to use null instead of 0 for foreign key fields, plus updated server-side validation to handle empty values properly
-- June 22, 2025: Enhanced mobile daily view to display day of the week names - updated the subtitle below the date header to show full day names (Sunday, Monday, etc.) using Chicago timezone for consistency
-- June 22, 2025: FIXED mobile timezone conversion issue - resolved timezone shifting where 8:00 AM selections displayed as 10:00 AM in forms by implementing proper Chicago timezone handling in SimpleMobileForm and DirectMobileForm time input processing, ensuring all mobile booking times display and save correctly in facility timezone
-- June 22, 2025: Fixed React null value warnings in mobile forms - updated SimpleMobileForm and DirectMobileForm to handle null templateId and pcrRoomId values properly, eliminating console warnings and runtime errors
-- June 22, 2025: FINAL mobile timezone fix - updated SimpleMobileForm and DirectMobileForm to use createFacilityDate function for proper Chicago timezone handling, ensuring all time selections display and save correctly without conversion errors
-- June 22, 2025: Mobile booking form timezone issues completely resolved - all mobile forms now properly handle time selection in Chicago timezone, verified working correctly with 7:03 AM selections saving as 7:03 AM facility time
-- June 22, 2025: FIXED foreign key constraint error in booking creation - resolved studioId=0 constraint violations by updating server-side validation and all mobile form components (SimpleMobileForm, DirectMobileForm, BookingFormSelector) to use null instead of 0 for invalid studio IDs, preventing database foreign key errors
-- June 22, 2025: Enhanced mobile form studio selection handling - added proper validation for studio dropdown changes in both SimpleMobileForm and DirectMobileForm to ensure selected studios are properly captured and never default to invalid ID 0
-- June 22, 2025: RESOLVED mobile form syntax error - fixed JavaScript runtime error in SimpleMobileForm handleSubmit function and ensured all mobile booking forms work correctly with proper studio selection validation
-- June 22, 2025: FIXED booking update JSON parsing error - resolved "Unexpected end of JSON input" error caused by empty update data by adding proper validation in both routes and storage layers to handle empty requests gracefully
-- June 23, 2025: FIXED studio selection validation regression - added mandatory studio selection validation to both mobile forms (SimpleMobileForm and DirectMobileForm) and server-side validation to prevent booking creation without studio selection, ensuring business requirements are enforced
-- June 23, 2025: CLEANED UP mobile app code - fixed redundant null conversion logic in form submissions, replaced manual API fetching with proper React Query hooks in SimpleMobileForm, corrected default studio ID logic to avoid hardcoded fallbacks, and improved code consistency across mobile components
-- June 23, 2025: ADDED DELETE functionality to mobile forms - added Delete button to both SimpleMobileForm and DirectMobileForm with proper permission handling, confirmation dialog, and error handling for users with delete rights to remove bookings from mobile interface
-- June 24, 2025: IMPLEMENTED FORCE DELETION capability for administrative cleanup - users and templates can now be deleted even with associated dependencies using ?force=true parameter, with safe reassignment of bookings and templates to admin user, comprehensive frontend dialogs showing dependency warnings and clear explanations of force deletion actions, ensuring data integrity while providing administrative flexibility for cleanup operations
-- June 24, 2025: FIXED calendar date initialization - resolved issue where calendar defaulted to June 19th instead of current date on page load
-- June 25, 2025: IDENTIFIED production weather integration issue - weather API works perfectly in development but fails in production Docker environment because VITE_OPENWEATHER_API_KEY must be embedded at build time, not runtime. Updated Dockerfile to copy .env file during build process, production deployment requires Docker rebuild to embed weather functionality
-- June 25, 2025: CONFIRMED weather API key not embedded in production - Network tab shows no api.openweathermap.org requests, indicating Docker build failed to embed VITE_OPENWEATHER_API_KEY. Enhanced Dockerfile debugging to show exact .env file contents during build process
-- June 25, 2025: WEATHER INTEGRATION ISSUE RESOLVED - hardcoded API key test confirmed weather API works perfectly, issue is Docker build not embedding VITE_OPENWEATHER_API_KEY from .env file. Fixed Dockerfile environment variable handling for proper production weather integration
-- June 25, 2025: Enhanced weather forecast processing and added fallback display for extended days - improved daily forecast accuracy by properly grouping hourly data and calculating min/max temperatures, added visual placeholders for days beyond 5-day API limit (Monday/Tuesday show cloud icon with "--/--" due to OpenWeatherMap free API limitation)
-- June 25, 2025: Fixed Docker Compose pkConstraint variable warning - resolved "pkConstraint variable is not set" warning by replacing JavaScript template literal with string concatenation to prevent Docker Compose from interpreting JavaScript variables as environment variables
-- June 25, 2025: FIXED Nashville deployment weather location issue - updated .env and docker-compose.yml to use correct Hendersonville, TN coordinates (36.3048, -86.6200) instead of Dallas coordinates, and modified signage page to use VITE_WEATHER_LOCATION environment variable instead of hardcoded Dallas location
-- June 25, 2025: REMOVED ALL hardcoded location defaults for multi-city deployment - eliminated all fallback weather coordinates from docker-compose.yml and made weather location completely configurable via environment variables, added validation to gracefully disable weather when location not configured, created DEPLOYMENT_MULTI_CITY.md guide for deploying in multiple cities
-- June 25, 2025: FIXED weather environment variable loading for both development and production - added client/.env file creation during Docker build process to ensure Vite can access weather variables in production deployments, verified working weather integration with Hendersonville, TN coordinates
-- June 25, 2025: COMPLETED production multi-city deployment configuration - enhanced Dockerfile to properly create client/.env during build, created PRODUCTION_MULTI_CITY_CHECKLIST.md with complete deployment guide, verified system works for any city with proper environment configuration
-- June 25, 2025: IMPROVED signage page layout efficiency - converted today's bookings from vertical list to compact 4-column grid layout to save vertical space when displaying many bookings, reduced card padding and font sizes while maintaining readability
-- June 25, 2025: CREATED smart TV compatible signage page - developed tv-signage.html using vanilla JavaScript and older browser patterns (XMLHttpRequest, ES5 syntax, table layouts) to ensure compatibility with Samsung TV built-in browsers and other embedded systems
-- June 25, 2025: ENHANCED TV signage page with complete feature replication - added weekly overview with 7-day calendar, studio status monitoring, active site alerts system, maintenance notifications, Chicago timezone formatting, and comprehensive booking display exactly matching the React signage page functionality for perfect Smart TV compatibility
-- June 25, 2025: OPTIMIZED Today's Schedule for compact 4-column layout - reduced TV signage booking cards to smaller, space-efficient design with 8px padding, 11px titles, and 9px detail text while maintaining studio status section in original 2-column format for optimal readability
-- June 25, 2025: SHORTENED TV signage URL - renamed tv-signage.html to tv.html for cleaner access at /tv.html
-- June 26, 2025: OPTIMIZED main signage page (/signage) for 1920x1080 displays - increased all font sizes for better readability from distance viewing, enhanced facility name to 6xl (56px), section titles to 3xl (30px), booking titles to lg (18px), time display to 4xl (36px), studio names to lg (18px), and improved overall spacing and contrast for professional TV display presentation, ensuring optimal viewing experience for facility monitors
-- June 26, 2025: REMOVED tv.html page - eliminated standalone Smart TV signage page, keeping only the main React signage page at /signage route for unified display system
-- June 25, 2025: FIXED Docker build environment variable embedding - resolved .env file access issue by using ARG and ENV in Dockerfile with build arguments passed from docker-compose.yml, ensuring VITE_* variables are properly embedded during build process for production weather functionality
-- June 25, 2025: ENHANCED signage page booking entries - added comprehensive information display including booking times, studio assignments, status indicators (confirmed/tentative/cancelled), maintenance badges, and descriptions to provide complete booking details at a glance for facility monitors
-- June 24, 2025: COMPLETELY FIXED foreign key constraint errors - implemented proper dependency checking for user and template deletion with meaningful error messages instead of database crashes. Users and templates with associated bookings now show clear error messages explaining the restriction and required actions
-- June 24, 2025: ENHANCED Day Chronological View booking cards - completely redesigned main booking cards to display comprehensive information directly on the card including status indicators with icons (confirmed/tentative/cancelled), full descriptions with smart truncation, color indicators, notification group names with badges, PCR room info, and creation timestamps, eliminating the need to hover for essential booking details
-- June 24, 2025: UPDATED studios icon to camera symbol - replaced generic Users icon with Camera icon for studio sections in booking cards, providing more appropriate visual representation for television production facilities
-- June 24, 2025: REMOVED color information display - eliminated color indicators and hex color codes from booking cards to create cleaner, more focused interface while retaining all essential booking information
-- June 24, 2025: MATCHED tentative booking styling across views - applied consistent visual styling for tentative bookings in day view to match weekly view with dashed borders, reduced opacity, gray background, and proper border coloring for visual consistency
-- June 24, 2025: UPDATED alerts section border to solid - changed alerts section border from conditional dashed to always solid for cleaner, more professional appearance
-- June 24, 2025: ENHANCED Recent Updates cards with comprehensive booking information - added studios list with camera icon, PCR room assignment with monitor icon, and booking times with clock icon to Recent Updates entries, replacing hover effects with permanent information display for better usability and fixed object display issues to show actual studio names and proper time formatting
-- June 24, 2025: FIXED Docker deployment templates schema - updated docker-migrate-db.cjs to create templates table with complete current schema including studio_ids, pcr_room_id, color, status, notify_list, start_time, end_time, and created_by columns to prevent "column does not exist" errors in fresh Docker deployments
-- June 24, 2025: FIXED user invitation email error - resolved ReferenceError where variable 'email' was undefined in sendInviteEmail function by correcting parameter reference from 'email' to 'to', ensuring invitation emails send successfully
-- June 24, 2025: FIXED password reset email error - resolved ReferenceError where logoUrl was undefined in sendPasswordResetEmail function by adding missing logoUrl definition, ensuring password reset emails send successfully
-- June 24, 2025: COMPLETELY FIXED email service integration - updated both sendInviteEmail and sendPasswordResetEmail functions to use proper sendEmail service instead of undefined mailService, ensuring all email functionality works correctly
-- June 24, 2025: FINAL email parameter fix - corrected sendEmail function calls to use proper parameter names (senderEmail, to) instead of undefined msg.from and msg.to, resolving "Provide at least one of to, cc or bcc" SendGrid errors
-- June 24, 2025: ULTIMATE email service fix - updated sendEmail function calls to use single-object parameter format matching working booking notification pattern, ensuring email invitations and password resets work correctly
-- June 24, 2025: FINAL COMPLETE email fix - restructured sendEmail calls to match exact working notification pattern with proper EmailParams object structure, resolving all undefined parameter issues for user invitations and password resets
-- June 24, 2025: ENHANCED day view with analytics sidebar - added comprehensive right sidebar with Day Overview statistics, Studio Utilization with progress bars, Quick Actions panel, and Studio Status overview to maximize screen space usage and provide valuable production facility insights
-- June 24, 2025: FIXED studio utilization calculation - updated to include multi-studio bookings via booking-studio junction table links, ensuring accurate utilization percentages for all studio assignments
-- June 24, 2025: STREAMLINED Quick Actions - removed redundant "Schedule Maintenance" button, keeping only "Create Alert" for cleaner interface
-- June 24, 2025: CREATED public signage display system - built /signage page with real-time facility information including today's schedule, weekly overview, live studio status with availability times, maintenance alerts, current Chicago time, and auto-refresh every 2 minutes for monitor displays throughout the facility
-- June 24, 2025: FIXED signage display data access - confirmed existing public API infrastructure works correctly for signage displays to access booking data without authentication
-- June 24, 2025: FIXED signage display timezone - corrected Central Time display to show accurate local time (5:25 PM CST instead of 7:25 PM UTC) using JavaScript Intl API for reliable timezone conversion
-- June 24, 2025: COMPLETED signage display with weather integration - implemented OpenWeatherMap API integration for Dallas weather data on signage display, with automatic retry mechanism every 5 minutes for new API key activation, displays temperature, humidity, wind speed and weather conditions alongside facility schedule and studio status information
-- June 24, 2025: OPTIMIZED studio status display for no-scroll viewing - redesigned studio status section to use 2-column grid layout with compact stacked cards showing studio name, status indicator, current booking title, and availability time in vertical format with smaller text and reduced padding, ensuring all studios visible without scrolling on signage monitors
-- June 24, 2025: REPLACED weather details with active site alerts - removed weather information display and added Active Site Alerts section showing maintenance-type bookings as facility alerts (active, today's upcoming, and future maintenance), while filtering these out of Today's Schedule to properly separate regular production bookings from facility maintenance alerts
-- June 24, 2025: REPLACED Studio Status with Recent Updates - removed studio status overview and added Recent Updates card showing last 5 bookings created within past 3 days, sorted by creation date with clickable booking tiles displaying status indicators and creation timestamps for better activity tracking
-- June 24, 2025: OPTIMIZED sidebar layout for maximum screen utilization - moved Quick Actions card to top for easy access, expanded Studio Utilization and Recent Updates cards with flex-1 classes to dynamically use available vertical screen space, improved overall day view ergonomics
-- June 24, 2025: ENHANCED Recent Updates with interactive hover effects - added smooth blue hover backgrounds, enhanced borders, subtle shadows, vibrant status indicators, coordinated text color changes, and 200ms transitions for professional user interaction feedback
-- June 24, 2025: IMPLEMENTED CSS-based hover effects with !important declarations - created dedicated .recent-update-item class with forced CSS styling to ensure hover effects override any conflicting styles and display properly
-- June 24, 2025: FILTERED Site Management groups from notification selection - hidden site_management group type from booking notification selection interface since these groups are automatically notified for all booking activities, improving UI clarity while maintaining automatic notification functionality
-- June 24, 2025: FIXED notification display in booking hover cards - resolved issue where notification groups showed as numeric IDs instead of readable names by implementing proper notification group name resolution across calendar components
-- June 23, 2025: Enhanced mobile form button styling - redesigned all form action buttons with modern gradients, improved spacing, rounded corners, and subtle hover animations for better visual appeal and professional appearance
-- June 23, 2025: Fixed mobile form deletion UI refresh - resolved issue where deleted bookings didn't disappear from the calendar view without manual page refresh by improving React Query cache invalidation and adding immediate page reload for reliable UI updates
-- June 23, 2025: FIXED maintenance booking modal routing - resolved issue where maintenance bookings were opening regular booking edit modal instead of maintenance/alert modal in mobile daily view by implementing proper booking type detection and modal routing based on booking type and studioId
-- June 23, 2025: FIXED mobile deletion cache refresh issue - eliminated window.location.reload() calls and implemented comprehensive React Query cache invalidation across all mobile forms (SimpleMobileForm, DirectMobileForm, AlertModal) to ensure deleted bookings and maintenance alerts disappear immediately without manual page refresh
-- June 23, 2025: FIXED template studio selection validation - resolved issue where loading templates with selected studios would fail validation by automatically setting primary studioId to first studio from template studioIds array, ensuring mobile forms work seamlessly with template-based booking creation
-- June 23, 2025: COMPREHENSIVE mobile view cache refresh fix - implemented advanced React Query pattern matching with predicate functions to invalidate ALL booking-related queries across the entire mobile app, ensuring deletions, additions, and changes appear immediately without requiring manual refresh
-- June 23, 2025: FIXED multi-studio template booking creation - updated both SimpleMobileForm and DirectMobileForm to properly pass studioIds array to booking creation API, ensuring templates with multiple studios create bookings on ALL selected studios instead of just the first one
-- June 23, 2025: DEBUGGING multi-studio mobile submission - enhanced MobileBookingController and useStudioBookings hook to properly pass studioIds array through the complete submission chain, added comprehensive debug logging to track data flow from mobile form to server API, identified that studioIds array needs to be preserved in booking creation mutation
-- June 23, 2025: CONFIRMED multi-studio bug - booking 173 "Test Studio A and F" created with only Studio A link despite user selecting both studios, no entries in booking_studios table proving studioIds array not reaching server, enhanced debug logging in submission chain to track exact data flow issue
-- June 26, 2025: IMPLEMENTED PCR room conflict validation - added checkPcrRoomConflicts method to both MemStorage and DatabaseStorage classes, integrated PCR room conflict checking into booking creation (POST /api/bookings) and update (PATCH /api/bookings/:id) API routes to prevent double-booking of PCR rooms during overlapping time periods, ensuring production facility resource integrity
-- June 26, 2025: MIGRATED BookingModal to professional notification system - replaced all toast messages with professional modal-based notifications using NotificationModal component and useNotification hook, providing better user experience with proper error handling, success confirmations, and warning messages for booking operations including creation, updates, deletion, and template saving
-- June 26, 2025: ENHANCED engineering page with complete 24-hour view and hover tooltips - expanded time display from 6 AM-10 PM to full midnight-11:59 PM view for complete daily visibility, added comprehensive hover tooltips to all booking entries showing title, description, time, studios, PCR room, type, and status, severity field now only displays for maintenance/site alert bookings to reduce clutter on regular production bookings
-- June 26, 2025: CLEANED UP engineering page header - removed unnecessary "Google Calendar Style View" badge from page header for cleaner, more professional appearance
-- June 26, 2025: IMPLEMENTED severity-based alert styling in engineering view - added color-coded backgrounds (yellow/orange/red) based on severity levels (low/medium/high/critical), distinctive alert badges with warning icons and severity indicators, enhanced borders and contrast for maintenance/alert bookings, ensuring immediate visual identification of critical facility issues
-- June 26, 2025: FIXED all-day maintenance display issue - resolved problem where all-day maintenance events (like "Coms Outage") only showed as tiny segments by implementing proper cross-midnight span detection and full-day height calculation, all-day alerts now properly span entire 24-hour day in engineering calendar view for maximum visibility
-- June 26, 2025: ADDED current time indicator line to engineering calendar - implemented real-time red line that tracks current Chicago/Dallas time position across the 24-hour schedule, updates every minute, includes time label and visual indicators, only displays when current day is visible in week view for immediate schedule awareness
-- June 26, 2025: IMPLEMENTED dedicated alerts row in engineering view - added prominent alerts section at top of page showing all maintenance and site alerts with severity-based coloring, separated alerts from time-based schedule similar to calendar week view, includes alert count badge and comprehensive hover tooltips for quick facility issue assessment
-- June 26, 2025: COMPLETED day-by-day alerts grid layout - transformed alerts row to show alerts organized by their scheduled days in column format, with "No alerts" display for empty days, matching engineering calendar layout for optimal visual consistency
-- June 26, 2025: FIXED time display format in engineering view - corrected 12-hour time conversion logic to properly show 12:00 AM to 11:59 PM instead of incorrect 2:00 AM to 1:59 AM format, ensuring standard time display throughout the facility schedule
-- June 27, 2025: COMPLETELY FIXED booking update email template "Changes Made" section - replaced raw database field output with professional formatting that matches the original booking information section, including proper field labels (Title, Start, End, Studios, Status, PCR Room), formatted dates in Chicago timezone, uppercase status values, and clean studio name display instead of technical field names like "studioIds: 5,6"
-- June 27, 2025: FIXED Sunday booking display issue in engineering calendar view - resolved critical bug where bookings scheduled on Sunday weren't appearing by updating week filtering logic to use endOfDay() for week end calculation, ensuring Sunday bookings throughout the entire day (not just midnight) are properly included in the weekly view
-- June 27, 2025: IMPLEMENTED comprehensive time validation across ALL booking forms - added real-time validation to prevent end times from being earlier than start times in SimpleMobileForm, DirectMobileForm, and BookingModal with user-friendly notification messages, ensuring data integrity and preventing invalid booking time ranges throughout the entire application
-- June 27, 2025: ENHANCED calendar booking overlap display - replaced equal-division algorithm with minimum readable width (40%) approach, implemented controlled overlap positioning with 15% offset, added shadows and z-index layering for visual separation, improved day filtering logic to prevent bookings appearing on incorrect days, added overflow containment to day columns for clean visual boundaries
-- June 27, 2025: IMPROVED time indicator visibility - increased time label size from text-xs to text-sm with font-bold styling, enhanced padding from px-2 py-1 to px-3 py-2, improved positioning with -top-5 offset for better readability and prominence in engineering calendar view
-- June 27, 2025: ENHANCED booking text readability in engineering view - added text shadows (1px 1px 2px rgba) for better contrast on colored backgrounds, upgraded all text from font-semibold to font-bold/font-semibold for stronger visibility, increased opacity levels from 75-80% to 85-95%, enhanced severity badge contrast with darker background opacity for optimal readability across all booking card colors
-- June 27, 2025: REVERTED to more original booking design appearance - restored subtle text styling with font-semibold titles, lighter text shadows (1px 1px 1px), reduced opacity levels back to 75-85% range, and lighter severity badge backgrounds for cleaner, less heavy visual appearance while maintaining readability
-- June 27, 2025: INCREASED text sizes on engineering booking entries - upgraded container from text-xs to text-sm, increased padding from p-1 to p-2, made booking titles text-base (16px), and all supporting text (studios, times, PCR rooms, status) to text-sm (14px) for much better readability and visibility in facility monitoring displays
-- June 28, 2025: RESOLVED critical TypeScript type mismatches across entire codebase - fixed interface alignment issues between client and server schemas including notification groups (description undefined vs null), form booking data types (studioId null handling), template property access patterns, and mobile form type safety, ensuring robust type checking and eliminating runtime type errors throughout the application
-- June 28, 2025: COMPLETED mobile form cleanup - removed all redundant mobile form files (SimpleMobileForm.tsx, DirectMobileForm.tsx, MobileDialogFix.tsx) and associated CSS files, streamlined architecture to use only SimpleMobileForm-new.tsx for creating bookings and MobileBookingForm.tsx for editing, updated all component imports and routing logic for cleaner codebase with working time validation and color picker functionality
-- June 28, 2025: FIXED Docker auto-creation of PCR rooms - eliminated automatic creation of PCR 1, 2, 3 during Docker build/rebuild process by removing default PCR room creation from scripts/migrate-pcr-rooms.ts, scripts/fix-db-all.js, and scripts/docker-migrate-pcr-rooms.cjs, ensuring PCR rooms are only created manually when needed
-- June 28, 2025: FIXED engineering calendar booking readability - removed all visual icons that were cluttering the display, implemented clean layout with proper spacing using space-y-1, organized information hierarchy with large bold titles and clearly labeled details (Studios:, PCR:, Status:), added word wrapping for long titles, improved line spacing with leading-tight and leading-relaxed for optimal readability without visual clutter
-- June 28, 2025: OPTIMIZED engineering calendar time range - changed from full 24-hour view to practical business hours (5 AM to 2 AM next day), eliminating 3+ hours of empty space from midnight to 5 AM, updated booking positioning logic and current time indicator to work with new time range, improved calendar efficiency while maintaining all functionality
-- June 28, 2025: INTEGRATED weather forecasts into Engineering view - added WeatherForecastCell components to day column headers showing temperature ranges and weather icons for each day of the week, ensuring consistent weather integration across all calendar views (daily, weekly, monthly, engineering, and public calendar views)
-- June 28, 2025: COMPLETED weather integration across ALL calendar views - added weather forecast display to mobile public calendar view in the date header section, now showing day name, current date, and weather information with temperature ranges and weather icons for complete weather consistency across desktop, mobile, engineering, and public calendar interfaces
-- June 28, 2025: FIXED mobile calendar booking color display - restored missing booking color assignments in mobile public calendar view, bookings now display their assigned colors with subtle background tinting (15% opacity) and proper border styling in both Timeline and Studios Status tabs for consistent visual identification
-- June 28, 2025: ADDED gradient background design to mobile app - implemented beautiful blue-to-purple diagonal gradient background, enhanced header with rich blue gradient, added semi-transparent content areas with backdrop blur effects, upgraded booking cards to modern rounded design with enhanced shadows and glass-like appearance for premium mobile experience
-- June 28, 2025: COMPLETED mobile gradient styling consistency - applied gradient background to authenticated mobile view (MobileDailyView), added weather forecast display to mobile date header, updated all headers and tabs with transparent glass effects, added site name banner to authenticated mobile interface with gradient styling, ensuring both public and authenticated mobile views have matching professional appearance
-- June 28, 2025: FIXED My Bookings page date navigation - replaced non-functional "upcoming/past" tabs with proper week-based filtering that responds to header date picker navigation, added week range display, updated empty state messages to be specific to selected week, ensuring date navigation controls actually filter displayed bookings
-- June 28, 2025: REMOVED mobile hamburger menu button - eliminated mobile menu button from App.tsx for cleaner mobile interface design
-- June 28, 2025: ENHANCED date navigation styling - redesigned header date controls with unified card-like container, improved button grouping, better hover effects, and professional appearance that integrates seamlessly with the overall design system
-- June 28, 2025: FIXED header layout responsiveness - resolved New Booking button cutoff issue by implementing responsive spacing, flexible text sizing, optimized element priorities, and smart text hiding on smaller screens while maintaining full functionality
-- June 28, 2025: REMOVED duplicate New Booking button - eliminated redundant New Booking button from My Bookings page content area, keeping only the header button for consistent user experience across all pages
-- June 28, 2025: REPOSITIONED date navigation to left side - moved date navigation controls (arrows, date display, Today button) to the left side of header for more intuitive primary navigation placement and better user accessibility
-- June 28, 2025: ADDED gradient background and site banner to My Bookings view - implemented consistent blue-to-purple gradient background with site name banner and semi-transparent content areas to match styling across all application views
-- June 28, 2025: FIXED My Bookings page header layout - removed timezone badge from header across the application and moved site name banner to top of My Bookings page above the header for proper visual hierarchy
-- June 28, 2025: COMPLETELY REMOVED timezone badge and matched banner styling - eliminated all TimezoneDisplay component references from Header component and updated My Bookings page banner to use identical styling as calendar pages (py-3 px-4 text-center sticky top-0 z-20, text-lg font-bold) for perfect visual consistency
-- June 28, 2025: FIXED view toggle button visibility across ALL pages - added showViewToggle prop to Header component, set to false on My Bookings, Templates, Reports, Settings, and User Management pages, ensuring Day/Week/Month view toggle buttons only appear on main calendar pages where they belong
-- June 28, 2025: FIXED desktop My Bookings page styling - removed gradient background from desktop version while maintaining mobile gradient styling, ensuring desktop has clean white background matching other pages while mobile keeps modern gradient design
-- June 28, 2025: CLEANED UP mobile timeline view - removed "Today's Schedule" banner from mobile daily view timeline tab for cleaner, more streamlined appearance
-- June 28, 2025: REORGANIZED mobile navigation for better screen utilization - created dedicated StudiosPage to house Real-Time Studio Status section, replaced Alert button in mobile navbar with Studios button (alert creation moved to menu drawer), removed studio status section from mobile daily view to maximize calendar space, improved mobile screen real estate management
-- June 28, 2025: OPTIMIZED Studios page for no-scroll viewing - redesigned studio status cards to use compact 2-5 column responsive grid layout, reduced card padding and text sizes, centered status information, made all studios visible on single screen without scrolling for better at-a-glance facility monitoring
-- June 29, 2025: MADE Studios page the default home page for mobile app - implemented mobile-specific routing logic so mobile users land on Studios page (/) instead of Calendar page, providing immediate studio status overview upon app launch while desktop users continue to see Calendar as home page
-- June 29, 2025: FIXED mobile navigation routing - updated mobile navbar so Studios button points to home (/) and Calendar button points to /calendar, ensuring both pages remain accessible with proper active state highlighting
-- June 29, 2025: ENHANCED mobile + button with dual functionality - replaced single "Create Booking" action with bottom sheet modal offering both "Create Booking" and "Create Alert" options, providing easy access to both booking and facility alert creation from main navigation, removed duplicate alert option from menu drawer
-- June 29, 2025: MADE Timeline view the default for mobile calendar - changed mobile calendar tab system to default to Timeline view instead of Studios Status, providing immediate schedule visibility when users navigate to calendar page
-- June 29, 2025: RESTORED full 24-hour display in engineering view - changed engineering calendar from 5 AM-2 AM (21 hours) back to complete midnight-to-midnight (24 hours) display, updated booking positioning logic and current time indicator to work with full day view for comprehensive facility scheduling visibility
-- June 29, 2025: ENHANCED monthly view booking entries with start and end times - updated monthly calendar to display both start time and end time for each booking entry instead of just start time, providing complete scheduling information at a glance
-- June 29, 2025: INCREASED weather widget size - enlarged weather badge text and icons across all size variants (compact/normal/large) for better visibility and readability on facility displays
-- June 29, 2025: FIXED critical weather widget timezone inconsistency - both WeatherWidget and useWeatherForecast components now use FACILITY_TIMEZONE for proper date handling, ensuring all weather widgets display consistent Sunday June 29th data in Central timezone instead of conflicting UTC-based dates
-- June 29, 2025: FIXED critical double timezone conversion bug - removed redundant `{ timeZone: FACILITY_TIMEZONE }` parameters from `format()` function calls that were causing incorrect date calculations when used with `toZonedTime()` conversion, ensuring all weather widgets show data for the same day consistently using FACILITY_TIMEZONE throughout
-- June 29, 2025: EXCLUDED cancelled bookings from engineering view - updated engineering calendar to filter out cancelled bookings from both regular booking display and alerts section, providing cleaner view focused on active facility operations
-- June 29, 2025: REDUCED text sizes in engineering view by 10% - decreased booking card text from text-base to text-sm, titles from text-lg to text-base, details from text-sm to text-xs, reduced padding from p-3 to p-2, and made alert icons and text smaller for more compact display
-- June 29, 2025: ADDED BookStudio logo to mobile banner - integrated bookstudio-logo.png to the left of site name in mobile banner with proper styling and spacing for enhanced branding on mobile pages
-- June 29, 2025: UPDATED mobile banner gradient to fade to transparent - changed gradient direction from diagonal (bg-gradient-to-br) to vertical (bg-gradient-to-b) with transparent bottom for cleaner visual integration
-- June 29, 2025: EXTENDED mobile banner height on My Bookings page only - created page-specific banner with py-6 padding (instead of global py-4) to provide better visual proportions specifically for the My Bookings page layout
-- June 29, 2025: ENHANCED Studios page card contrast - improved studio card visibility by removing low-opacity backgrounds, adding stronger borders (border-2), enhanced shadows, increased card spacing (gap-3), and added more padding (p-3) for better visual separation and readability
-- June 30, 2025: COMPLETED engineering view booking transparency - implemented transparent booking body sections with solid headers for better overlapping booking visibility, main container background removed and body sections made completely transparent so overlapping bookings can be seen through each other in engineering calendar view
-- June 30, 2025: ENHANCED engineering view transparency readability - fixed time display section (start/end times) to use bold white text with enhanced shadows for maximum visibility against transparent backgrounds, ensuring booking times remain clearly readable while maintaining transparency for overlapping booking visibility
-- June 30, 2025: COMPLETED booking height fill fix - resolved critical issue where bookings only displayed partial time duration by adding flex layout (flex flex-col) to booking containers and flex-1 to body sections, ensuring bookings visually fill their entire calculated time period in engineering view
-- June 30, 2025: ENHANCED booking body visibility - increased transparency opacity from 30% to 50% making booking body sections more visible while preserving transparency for overlapping booking detection
-- June 30, 2025: ENHANCED engineering view drop shadows - upgraded booking entry shadows from basic 2px to layered shadows (4px+12px) for default state and dramatic 20px+40px hover shadows for better visual depth and separation
-- June 30, 2025: MOVED booking details to header section - relocated time, studios, PCR info, and description from transparent body to solid header section for optimal readability while maintaining transparent area for overlapping booking visibility
-- June 30, 2025: FIXED production foreign key constraint error - added validation in PATCH route that converts 0 values to null for pcrRoomId, templateId, and studioId, preventing database constraint violations in production environment
-- June 30, 2025: VERIFIED system ready for multi-city deployment - confirmed all timezone handling uses FACILITY_TIMEZONE environment variable, created Tustin deployment guide with Pacific timezone configuration
-- June 30, 2025: COMPLETELY FIXED multi-site timezone support - replaced all 26+ hardcoded "America/Chicago" references with VITE_FACILITY_TIMEZONE environment variable throughout entire codebase including Header, utils/dateUtils, components, and pages, added VITE_FACILITY_TIMEZONE to .env files, system now fully configurable for any timezone deployment (Tustin=America/Los_Angeles, Nashville=America/Chicago, etc.), resolved development environment date mismatch where Replit system clock showed wrong date
-- June 30, 2025: FIXED calendar "today" highlighting across ALL components - updated CalendarPage initialization, MonthlyCalendar getDayClass function, Header goToToday function, MobileDailyView goToToday, MobilePublicDailyView goToToday, and PublicCalendarPage goToToday to consistently use VITE_FACILITY_TIMEZONE for "today" detection instead of browser local timezone, ensuring June 30th correctly highlights as today in facility timezone regardless of user's browser timezone settings
-- July 1, 2025: COMPLETELY FIXED MonthlyCalendar "today" highlighting - replaced toZonedTime conversion with Intl.DateTimeFormat approach using en-CA locale to get proper facility timezone date components, confirmed with debug logging that June 30th is correctly identified as today (isSame: true) while July 1st is not (isSame: false), resolving the final timezone conversion issue in monthly calendar view
-- July 1, 2025: REMOVED confusing timezone test component from Header - eliminated non-functional timezone test button and modal that was displaying misleading hardcoded test dates instead of actual current information, cleaned up Header component imports and state for better code maintainability
-- July 1, 2025: COMPLETELY FIXED timezone persistence across Docker restarts - replaced localStorage-based timezone storage with database-backed system using systemSettings table, implemented new API endpoints (GET/PUT/DELETE /api/system/timezone), updated timezoneConfig.ts to check database first with localStorage fallback, modified Settings page to use async database calls, added timezone initialization on app startup, ensuring timezone overrides survive container reboots and system restarts
-- July 1, 2025: FINAL Settings page timezone display fix - updated Settings page to show current effective timezone from database instead of build-time constant, added state synchronization for timezone buttons with toast notifications, enhanced debug display to show both build-time variable and current effective timezone, ensuring UI accurately reflects the database-backed timezone system
-- July 1, 2025: COMPLETELY FIXED Docker Compose timezone configuration - made ALL timezone settings fully configurable through environment variables by replacing hardcoded "America/Chicago" references in docker-compose.yml with ${TZ:-America/Chicago} and ${FACILITY_TIMEZONE:-America/Chicago} patterns, updated build args to include VITE_FACILITY_TIMEZONE and TZ, modified PostgreSQL container timezone settings, application container environments, and database initialization containers, ensuring complete multi-city deployment flexibility without rebuilding Docker images
-- July 1, 2025: FINAL client-side timezone cleanup completed - renamed `getDayRangeInChicago` function to `getDayRangeInFacilityTimezone` throughout codebase, updated all mobile components (MobileDailyView.tsx, MobilePublicDailyView.tsx) to use new function name, fixed all imports and function calls, updated comments to reference "facility timezone" instead of "Chicago timezone", verified all mobile form components already use proper configurable timezone system via getFacilityTimezone_Dynamic() - application is now completely free of hardcoded timezone references and ready for true multi-city deployment
-- July 1, 2025: COMPLETELY FIXED final hardcoded timezone references in public calendar components - updated PublicCalendarPage.tsx, MobilePublicDailyView.tsx, and MobileDailyView.tsx goToToday functions to use getFacilityTimezone() instead of hardcoded 'America/Chicago' fallbacks, ensuring ALL public and private calendar components now use database-backed dynamic timezone system for perfect multi-city deployment compatibility
-- July 1, 2025: FINAL EMAIL SYSTEM TIMEZONE FIX - eliminated ALL remaining hardcoded 'America/Chicago' references from email services including emailService.ts formatDate() function and notificationGroupService.ts formatDate() function, all facility alerts, maintenance notifications, booking confirmations, cancellations, updates, user invitations, and password reset emails now properly use VITE_FACILITY_TIMEZONE environment variable for true multi-city deployment support
-- July 4, 2025: FIXED mobile booking form date display issue - mobile form was using local formatDateForForm function that didn't handle timezone conversion properly, updated to use proper timezone-aware formatDateForForm from dateUtils.ts, resolved +1 day ahead display issue
-- July 4, 2025: IDENTIFIED signage page early morning booking visibility issue - signage page getCurrentFacilityTime function creates incorrect "today" boundary causing early morning bookings (like 1 AM) to appear outside of daily range, debug logging confirmed booking at 1 AM (2025-07-04T06:00:00.000Z) excluded because "today" starts at 2 AM (2025-07-04T07:00:00.000Z) due to improper timezone conversion in date boundary calculation
-- July 4, 2025: COMPLETELY FIXED signage page timezone boundary calculation - implemented proper facility timezone handling for both daily booking filtering and weekly overview display, fixed issue where early morning bookings weren't showing and all-day facility alerts displayed incorrect "2:00 AM to 1:59 AM" times instead of proper all-day formatting, system now correctly calculates UTC boundaries from facility timezone dates for accurate comparison with booking data
-- July 4, 2025: COMPLETED Alert Type dropdown removal from ALL forms - removed "Booking Type" dropdown from both desktop and mobile alert forms in BookingModal.tsx since alert types should not be user-modifiable after creation, alert forms now have cleaner interface with predetermined alert types
-- July 4, 2025: CLEANED UP signage page studio information display - removed ALL studio name sections from site alerts in signage page since facility alerts (maintenance/IT support) don't have studios assigned to them, eliminates confusing empty or incorrect studio information from alert displays
-- July 4, 2025: ENHANCED signage page alert descriptions - added description display to all Active Site Alerts sections (active, today's upcoming, and upcoming maintenance) with color-coded text styling for better visibility and information completeness
-- July 4, 2025: OPTIMIZED signage page booking layout - repositioned studio information to right side of time display for regular bookings while maintaining centered time display for facility alerts, removed width restrictions on studio names for full visibility, implemented conditional layout logic for optimal information presentation
-- July 4, 2025: FIXED mobile interface sidebar toggle visibility - hidden hamburger menu button from mobile views using `hidden lg:block` classes, ensuring desktop users retain sidebar functionality while mobile users get clean interface with bottom navigation
-- July 4, 2025: COMPLETELY FIXED toast notification visibility issue - updated ToastNotification component to use conditional rendering instead of CSS transforms, component now returns null when no message exists, eliminating persistent empty toast elements in mobile views
-- July 4, 2025: REMOVED PCR information from alerts in mobile view - added conditional rendering to hide PCR room details for facility alerts while preserving them for regular production bookings, improving mobile interface clarity
-- July 4, 2025: FIXED mobile facility alert editing - resolved issue where clicking existing facility alerts opened new alert form instead of edit form by implementing separate edit alert modal state (isEditAlertModalOpen) and proper modal routing logic, facility alerts now properly open in edit mode with pre-populated data
-- July 5, 2025: COMPLETELY FIXED mobile form time validation - resolved critical time format mismatch where timeToDate function expected AM/PM format ("9:00am") but form defaults used 24-hour format ("09:00"), updated default values to proper AM/PM format and fixed edit form initialization to convert formatTime output ("8:00 AM") to expected format ("8:00am"), eliminated all time parsing errors in mobile booking creation and editing
-- July 5, 2025: FIXED mobile edit form studio preservation - updated SimpleMobileForm-new.tsx to properly use booking.studioIds array instead of just primary booking.studioId when initializing edit form, ensuring multi-studio bookings retain all linked studios during editing instead of losing studio assignments
-- July 7, 2025: IMPLEMENTING PROPER ALERT/BOOKING ARCHITECTURAL SEPARATION - creating dedicated alerts table and API endpoints separate from bookings to fix critical data corruption issues where alert forms were inappropriately touching booking fields (studios, PCR) and booking forms were handling alert fields (severity), establishing clean separation between facility alerts and production bookings for proper system integrity
-- July 7, 2025: COMPLETED ALERT/BOOKING ARCHITECTURAL SEPARATION - implemented dedicated alerts table in shared/schema.ts with proper Alert/InsertAlert types, created complete alert CRUD methods in both MemStorage and DatabaseStorage classes, built comprehensive /api/alerts endpoints (GET, POST, PATCH, DELETE) with proper authentication and role-based access control, alerts system now completely independent from booking system with no shared fields or dependencies, ensuring data integrity and proper separation of concerns between facility alerts and production bookings for proper system integrity
-- July 7, 2025: RESOLVED DATABASE SCHEMA MISMATCH AND VERIFIED WORKING SYSTEM - fixed column name mismatches between schema definition (alert_type, start, end) and initial database table (type, start_time, end_time), recreated alerts table with exact schema match, successfully tested alert creation and API endpoint functionality, confirmed complete architectural separation is working with proper authentication and data integrity
-- July 7, 2025: COMPLETED COMPREHENSIVE ALERTS INTEGRATION ACROSS ALL SYSTEM COMPONENTS - successfully integrated alerts API across main calendar components (WeeklyCalendar, MonthlyCalendar, AlertsRow), engineering page, mobile views (MobileDailyView, MobilePublicDailyView), and signage page, implemented proper alert filtering logic for mobile daily views to show alerts overlapping with selected day, fixed Timeline tab to display combinedBookings including both regular bookings and facility alerts, console verification confirms alerts are now properly detected and displayed across all system views
-- July 7, 2025: CRITICAL TIMEZONE BUG IDENTIFIED - alert system has fundamental timezone conversion errors causing all-day alerts to display on wrong dates (July 8th alert appearing on July 7th) and incorrect time ranges (all-day alert showing as 7pm-10pm), both alert creation storage logic and display conversion logic require complete overhaul to properly handle facility timezone boundaries
-- July 7, 2025: COMPLETELY FIXED alert display classification bug - resolved overly aggressive isAllDayAlert function that was incorrectly classifying regular timed alerts (like 7:00am-10:30am) as "all-day" alerts, simplified logic to only consider alerts as all-day if they have "all-day:" type prefix, span 23+ hours, or truly run midnight-to-midnight, eliminated complex heuristics that caused false positives for early morning alerts
-- July 7, 2025: COMPLETELY FIXED mobile alert creation bug - resolved critical issue where mobile alert forms were storing "all-day:undefined" instead of proper alert types like "all-day:maintenance", strengthened fallback logic in AlertModal.tsx to prevent undefined template literal evaluation, fixed corrupted alert in database (ID 2) from "all-day:undefined" to "maintenance", mobile alerts now create and display with proper time ranges instead of incorrectly showing as "All Day"
-- July 7, 2025: COMPLETED ARCHITECTURAL CLEANUP - eliminated final alertMode parameter references from BookingFormSelector.tsx, conducted systematic review across all major view components (mobile, public, signage, engineering, calendar) confirming proper separation between booking system (SimpleMobileForm/BookingModal → /api/bookings) and alert system (AlertModal → /api/alerts), system now has clean architectural integrity with no cross-contamination between booking and alert workflows
-- July 7, 2025: FIXED alert form date initialization bug - resolved critical timezone conversion issue where New Facility Alert form displayed incorrect dates (showing tomorrow instead of current viewing date), implemented proper facility timezone handling in AlertModal.tsx using Intl.DateTimeFormat for both new alert creation and edit modes, ensuring alert forms always show correct date for currently viewed day in facility timezone instead of UTC-based calculation
-- July 7, 2025: REMOVED alerts header section from engineering view - eliminated "Active Alerts & Maintenance" title header and count badge from engineering page while preserving the functional day-by-day alerts grid, creating cleaner interface that still monitors facility alerts without unnecessary header text
-- July 7, 2025: FIXED chronological alert ordering in signage page - combined all alert categories (active, today's upcoming, future maintenance) into single chronologically sorted array, ensuring alerts display in proper time sequence (e.g., July 8th alerts appear before July 10th alerts) while preserving category-specific visual styling for optimal facility monitoring timeline view
-- July 7, 2025: COMPLETELY FIXED alert deletion functionality - resolved Drizzle ORM delete result handling issue by changing from result.count to returning() method pattern, added proper success/failure logging, enhanced error messages, alert deletion now works properly across entire system
-- July 7, 2025: ELIMINATED runtime error in BookingModal component - removed duplicate console.log statements and cleaned up debugging code that was causing JavaScript runtime errors in booking creation form
-- July 8, 2025: UPDATED Docker deployment configuration for alerts system - created comprehensive docker-migrate-alerts.cjs migration script with proper schema matching shared/schema.ts, added alerts table creation to docker-compose.yml initialization sequence, updated Dockerfile to copy alerts migration script, ensured Docker deployments include complete alerts system functionality with proper database migration and indexes
-- July 8, 2025: COMPLETELY CLEANED BookingModal component - removed ALL remaining alert-related code including 50+ alertsOnly parameter references, orphaned alert form sections, severity field contamination, and syntax errors, BookingModal now exclusively handles production bookings with clean architectural separation from alert system
-- July 8, 2025: COMPLETELY ELIMINATED severity contamination from production bookings - removed ALL remaining severity assignments from server-side storage operations, email service templates, and booking creation workflows, cleaned 17 contaminated production bookings from database (all now have NULL severity values), verified client-side mobile forms are clean with no severity field assignments, system now maintains perfect architectural separation between production bookings (no severity) and facility alerts (severity required)
-- July 9, 2025: COMPLETELY FIXED CustomSignagePage.tsx syntax errors - resolved persistent JSX syntax error by implementing proper weather state management with identical structure to main signage page, removed useWeatherForecast hook dependency and implemented direct weather API integration, fixed showWeather variable reference, both signage pages now use identical weather integration and booking display templates, custom signage page works properly with URL parameters for studio filtering (?studios=1,2,3)
-- July 8, 2025: FINAL CONTAMINATION CLEANUP COMPLETED - identified and eliminated root cause of ongoing severity contamination in notificationGroupService.ts where fallback assignments `${booking.severity || 'medium'}` were contaminating production bookings during email processing, fixed email templates to only display severity when it exists, cleaned final contaminated booking (ID 248), achieved 100% data integrity with 0 contaminated bookings out of 105 total records, architectural separation between production bookings (NULL severity) and facility alerts (severity field) fully restored
-- July 8, 2025: ULTIMATE ROOT CAUSE CONTAMINATION FIX - discovered and eliminated the true source of severity contamination: database-level DEFAULT 'medium' value in severity column created by scripts/fix-db-all.js, removed database default with ALTER TABLE command, updated migration script to prevent future contamination, cleaned newly contaminated booking ID 249, verified 100% data integrity with 0 contaminated bookings, database schema now properly configured for clean production booking creation
-- July 9, 2025: CRITICAL DOCKER BUILD FIX COMPLETED - resolved "column 'is_all_day' does not exist" error during Docker deployment by fixing consolidated migration script in scripts/consolidated-migration.cjs, added missing is_all_day, status, and created_by columns to createCoreAlerts() function with proper indexes, Docker builds now create complete alerts table schema matching shared/schema.ts exactly, eliminating database migration failures in containerized deployments
-- July 9, 2025: ENHANCED DOCKER MIGRATION RESILIENCE - improved consolidated migration script to handle existing alerts tables with missing columns, added intelligent schema detection and column addition logic, enhanced error handling for index creation to prevent migration failures, system now gracefully upgrades existing deployments while creating proper schema for new deployments
-- July 9, 2025: CRITICAL DOCKER RUNTIME FIX - resolved "null value in column user_id violates not-null constraint" error by creating docker-fix-alerts.cjs script that renames user_id column to created_by in existing Docker databases, added column name detection and automatic renaming logic to consolidated migration, updated docker-compose.yml to run alerts fix during initialization, Docker deployments now handle column naming mismatches between database and application schema
-- July 9, 2025: FINAL DOCKER ALERTS COLUMN FIX - enhanced docker-fix-alerts.cjs to handle edge case where both user_id and created_by columns exist simultaneously, script now removes the duplicate user_id column when both are present, resolving Docker deployment failure where NOT NULL constraint on user_id column prevented alert creation despite created_by column being properly populated by application code
-- July 9, 2025: CRITICAL EMAIL NOTIFICATION FIX FOR ALERTS SYSTEM - resolved major regression where facility alerts no longer sent emails to every notification group after architectural separation, added comprehensive email notification logic to both POST /api/alerts and PATCH /api/alerts endpoints using existing sendMaintenanceAlertToGroups function, facility alerts now properly notify ALL notification groups + site managers for both creation and updates, restoring essential operational communication that was lost during alerts/booking system separation
-- July 8, 2025: FINAL DOCKER MIGRATION CONTAMINATION FIX - discovered and eliminated DEFAULT 'medium' severity contamination in Docker deployment scripts, updated scripts/fix-db-all.js to include DROP DEFAULT command for existing databases, removed DEFAULT 'medium' from scripts/docker-migrate-db.cjs for fresh Docker installations, ensured both existing system upgrades and new multi-city deployments maintain clean production booking creation with NULL severity values, comprehensive testing verified 106 total bookings with 0 contaminated across desktop and mobile platforms
-- July 9, 2025: COMPLETED DYNAMIC BOOKING TYPES INTEGRATION - converted all booking forms to use API-driven booking types instead of hardcoded values, updated BookingModal.tsx, SimpleMobileForm-new.tsx, and TemplateForm.tsx to fetch booking types from /api/booking-types endpoint, implemented dynamic dropdown rendering with fallback to production type, forms now automatically reflect booking type changes made in settings page without requiring code updates
-- July 9, 2025: COMPLETELY FIXED CustomSignagePage visual consistency issue - replaced entire CustomSignagePage.tsx with exact HTML template from working signage-page.tsx including all sections (Today's Schedule, Week at a Glance, Studio Status, Active Site Alerts), maintained studio filtering functionality via URL parameters, custom signage page now has identical appearance to main signage page with proper weather integration, booking displays, and facility alerts
-- July 9, 2025: EMERGENCY FIX - main signage page had syntax errors causing display failure, completely replaced signage-page.tsx with clean working template matching CustomSignagePage structure, restored full functionality with proper weather integration, booking displays, studio status, and facility alerts for production signage displays
-- July 9, 2025: FIXED Docker booking types schema mismatch - resolved critical "column is_active does not exist" error by updating both consolidated-migration.cjs and schema-repair.cjs to properly handle booking_types table schema, added missing is_active and sort_order columns with proper defaults, enhanced schema-repair script to add missing columns to existing production tables, Docker deployments now successfully create complete booking types functionality without column errors
-- July 9, 2025: COMPLETELY RESOLVED Docker deployment schema issues - Docker migration now successfully adds missing columns (is_active, sort_order) to existing booking_types tables, application starts and runs properly with full booking types functionality, fixed reserved keyword issue with "end" column indexes by adding proper PostgreSQL quoting, production Docker deployments confirmed working with complete feature set
-- July 8, 2025: COMPLETED MIGRATION CONSOLIDATION - replaced 40+ individual Docker migration scripts with streamlined 2-script system (consolidated-migration.cjs for new deployments, schema-repair.cjs for existing systems), updated docker-compose.yml to use consolidated migration instead of 10+ sequential scripts, moved legacy scripts to backup folder for reference, updated Dockerfile to copy only essential consolidated scripts, maintained severity contamination fixes throughout consolidation process, dramatically simplified Docker deployment while preserving all functionality
-- July 9, 2025: IMPLEMENTED BOOKING TYPE EXPANSION AND SETTINGS MANAGEMENT - expanded booking type options from 5 to 7 types (added Training, Testing, Setup, Other), updated both desktop BookingModal.tsx and mobile SimpleMobileForm-new.tsx with new options, removed inappropriate "maintenance" and "alert" types to maintain clean separation from alert system, added comprehensive "Booking Types" tab to Settings page with visual overview of current types, usage statistics, and informational content about booking type management, prepared foundation for future custom booking type administration
-- July 9, 2025: COMPLETELY UPDATED DOCKER DEPLOYMENT FOR STUDIO FILTERING AND BOOKING TYPES - enhanced consolidated-migration.cjs and schema-repair.cjs scripts to include booking_types table creation with 7 default types (Production, Rehearsal, Meeting, Training, Testing, Setup, Other), integrated booking_types migration into both new deployment and existing system repair workflows, Docker deployments now support complete studio filtering functionality via booking_studios junction table and dynamic booking types management, ensuring all new features work seamlessly in production multi-city deployments
-- July 9, 2025: COMPLETED BOOKING TYPES CRUD SYSTEM - implemented full database-backed booking type management with booking_types table creation, complete CRUD API endpoints (GET, POST, PATCH, DELETE /api/booking-types), interactive Settings page BookingTypesPanel with add/edit/delete functionality, color picker integration, active/inactive status management, form validation, and proper authentication. System now supports custom booking type creation and management through intuitive interface while maintaining clean separation from alert system
-- July 9, 2025: FIXED booking type update error - resolved "Unexpected token" JSON parsing error in booking type mutations by removing duplicate response.json() calls since apiRequest already returns parsed JSON data, booking type creation and editing now work correctly through Settings interface
-- July 9, 2025: FIXED file attachment upload permissions for producers - resolved 403 Forbidden errors in file attachment uploads by adding "producer" role to allowed roles list in server/routes.ts upload endpoint, file attachments now work correctly for booking owners, producers, admins, engineers, IT staff, and site managers, ensuring proper role-based access control for file management
+BookStud.io is a comprehensive web application for television studio management providing intelligent scheduling, booking, and access control. It supports multi-studio booking, real-time status, template-based booking creation, and role-based user management. The system is designed for television production facilities needing sophisticated scheduling and notification management.
 
 ## User Preferences
 
@@ -372,3 +15,49 @@ Preferred communication style: Simple, everyday language.
 - Status checks and availability logic
 - Never use browser local timezone or UTC for comparisons
 - Always use the configured facility timezone in all date operations
+
+## System Architecture
+
+### Frontend
+- **Framework**: React.js with TypeScript
+- **UI Components**: Radix UI with shadcn/ui
+- **Styling**: TailwindCSS
+- **State Management**: React Query
+- **Build Tool**: Vite
+- **Form Handling**: React Hook Form with Zod validation
+- **Design Principles**: Gradient backgrounds, glass-like effects, enhanced shadows, responsive layouts, professional visual appeal for both desktop and mobile.
+
+### Backend
+- **Runtime**: Node.js with Express.js
+- **Language**: TypeScript with ES modules
+- **Authentication**: Passport.js (session-based)
+- **Session Storage**: PostgreSQL-backed sessions (connect-pg-simple)
+- **File Handling**: Multer for uploads
+
+### Data Storage
+- **Primary Database**: PostgreSQL with connection pooling
+- **ORM**: Drizzle ORM
+- **Schema Management**: Drizzle Kit
+
+### Key Features
+- **Studio Management**: Real-time status, multi-studio booking, PCR assignment, calendar views with timezone handling.
+- **Booking Engine**: Complex booking creation, template system, status management, color-coded visualization, copy functionality.
+- **User Management**: Role-based access control, secure password hashing, email-based invitations, password reset.
+- **Notification System**: Email notifications via SendGrid, notification groups, automated confirmations/updates, facility-wide alerts.
+- **Template System**: Reusable booking templates (JSON-based), user-specific management.
+- **Alerts System**: Dedicated alerts table and API for facility-wide alerts (maintenance, IT), separate from bookings, with severity-based styling and notifications.
+- **Signage Display**: Public-facing `/signage` and custom `/custom-signage` pages with real-time schedule, weekly overview, studio status, alerts, weather integration, and auto-refresh.
+- **Dynamic Booking Types**: API-driven booking types with CRUD management via Settings page, supporting custom types and active/inactive status.
+
+### Core Decisions
+- **Architectural Separation**: Strict separation between production bookings and facility alerts to ensure data integrity and prevent cross-contamination.
+- **Timezone Consistency**: All date/time operations are consistently handled using a configurable facility timezone (VITE_FACILITY_TIMEZONE) across frontend, backend, and database for multi-city deployment.
+- **Containerization**: Docker-first approach for deployment, simplifying environment setup and ensuring consistency.
+- **Mobile-First Design**: Optimized layouts, simplified navigation, and intuitive interactions for mobile users, including a dedicated Studios page as the mobile default home.
+
+## External Dependencies
+
+- **PostgreSQL**: Primary database.
+- **SendGrid**: Email delivery service for notifications and user management.
+- **OpenWeatherMap API**: Weather data integration for signage and calendar displays.
+- **Docker**: Containerization platform for deployment.
