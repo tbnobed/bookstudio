@@ -16,13 +16,13 @@ import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 type HeaderProps = {
   currentDate: Date;
   onDateChange: (date: Date) => void;
-  view: "day" | "week" | "month";
-  onViewChange: (view: "day" | "week" | "month") => void;
+  view: "day" | "week" | "month" | "timeline";
+  onViewChange: (view: "day" | "week" | "month" | "timeline") => void;
   onStudioFilterChange?: (studioIds: number[]) => void;
   selectedStudioIds?: number[];
   title?: string;
   showViewToggle?: boolean;
-  useMondayWeeks?: boolean; // For engineering page that uses Monday-based weeks
+  useMondayWeeks?: boolean; // For timeline view that uses Monday-based weeks
 };
 
 export function Header({
@@ -139,6 +139,11 @@ export function Header({
       // Generate fresh week text directly from current date
       const weekText = useMondayWeeks ? formatMondayWeekRangeText(currentDate) : formatWeekRangeText(currentDate);
       console.log(`Header - Generated ${useMondayWeeks ? 'Monday-based' : 'Sunday-based'} week text: ${weekText} for date ${currentDate.toISOString()}`);
+      return weekText;
+    } else if (view === "timeline") {
+      // Timeline always uses Monday-based weeks
+      const weekText = formatMondayWeekRangeText(currentDate);
+      console.log(`Header - Generated Monday-based week text for timeline: ${weekText} for date ${currentDate.toISOString()}`);
       return weekText;
     } else {
       return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: getFacilityTimezone_Dynamic() });
@@ -268,6 +273,17 @@ export function Header({
                 onClick={() => onViewChange("month")}
               >
                 Month
+              </button>
+              <button 
+                className={cn(
+                  "px-2 py-1.5 text-xs font-medium border",
+                  view === "timeline" 
+                    ? "bg-primary text-white border-primary" 
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                )}
+                onClick={() => onViewChange("timeline")}
+              >
+                Timeline
               </button>
             </div>
           )}

@@ -3,6 +3,7 @@ import CalendarHeader from "@/components/calendar/CalendarHeader";
 import WeeklyCalendar from "@/components/calendar/WeeklyCalendar";
 import DailyCalendar from "@/components/calendar/DailyCalendar";
 import MonthlyCalendar from "@/components/calendar/MonthlyCalendar";
+import TimelineCalendar from "@/components/calendar/TimelineCalendar";
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
@@ -49,10 +50,10 @@ export default function CalendarPage() {
     }
   });
   
-  const [view, setView] = useState<"day" | "week" | "month">(() => {
+  const [view, setView] = useState<"day" | "week" | "month" | "timeline">(() => {
     try {
-      const savedView = localStorage.getItem('calendarView') as "day" | "week" | "month";
-      return savedView && ['day', 'week', 'month'].includes(savedView) ? savedView : "week";
+      const savedView = localStorage.getItem('calendarView') as "day" | "week" | "month" | "timeline";
+      return savedView && ['day', 'week', 'month', 'timeline'].includes(savedView) ? savedView : "week";
     } catch (error) {
       console.error('Error loading view from localStorage', error);
       return "week";
@@ -113,7 +114,7 @@ export default function CalendarPage() {
   };
 
   // Handle view change with localStorage persistence
-  const handleViewChange = (newView: "day" | "week" | "month") => {
+  const handleViewChange = (newView: "day" | "week" | "month" | "timeline") => {
     setView(newView);
     
     // Save to localStorage
@@ -146,6 +147,7 @@ export default function CalendarPage() {
         onViewChange={handleViewChange}
         selectedStudioIds={selectedStudioIds}
         onStudioFilterChange={handleStudioFilterChange}
+        useMondayWeeks={view === "timeline"} // Use Monday weeks for timeline view
       />
       
       {view === "day" && (
@@ -169,6 +171,14 @@ export default function CalendarPage() {
         <MonthlyCalendarWrapper
           currentDate={currentDate}
           studios={studios}
+          selectedStudioIds={selectedStudioIds}
+        />
+      )}
+      
+      {view === "timeline" && (
+        <TimelineCalendar
+          key={currentDate.toISOString()} // Add key to force complete re-render on date change
+          currentDate={currentDate}
           selectedStudioIds={selectedStudioIds}
         />
       )}

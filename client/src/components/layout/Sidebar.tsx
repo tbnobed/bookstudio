@@ -123,23 +123,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
           )}
           
-          {/* Engineering view - available to engineers and admins */}
-          {(user?.role === "engineer" || user?.role === "it" || user?.role === "admin") && (
-            <div 
-              className={cn(
-                "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
-                location === "/engineering" 
-                  ? "text-white bg-primary" 
-                  : "text-gray-700 hover:bg-gray-100"
-              )}
-              onClick={() => handleNavigate("/engineering")}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-              </svg>
-              <span>Engineering</span>
-            </div>
-          )}
+
           
           {/* Admin section - only shown to admins */}
           {user?.role === "admin" && (
