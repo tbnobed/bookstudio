@@ -1043,6 +1043,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const booking = await storage.createBooking(bookingData);
       console.log("=== BOOKING CREATED ===");
       console.log("Created booking:", JSON.stringify(booking));
+      
+      // Log the creation to audit logs
+      try {
+        await AuditService.log(
+          getAuditContext(req),
+          "CREATE",
+          "booking",
+          booking.id,
+          booking.title,
+          {
+            bookingType: booking.type,
+            studioId: booking.studioId,
+            studioIds: studioIds,
+            startTime: booking.start,
+            endTime: booking.end,
+            pcrRoomId: booking.pcrRoomId,
+            templateId: booking.templateId,
+            linkedGroupId: booking.linkedGroupId,
+            notifyList: booking.notifyList
+          }
+        );
+      } catch (auditError) {
+        console.error("Failed to log booking creation:", auditError);
+      }
       console.log("Booking notifyList after creation:", booking.notifyList);
       console.log("[EMAIL DEBUG] About to check if email notifications should be sent...");
       
@@ -1529,6 +1553,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use the updated version of updateBooking that handles studio links
       const updatedBooking = await storage.updateBooking(id, updateData, parsedStudioIds);
 
+      // Log the update to audit logs
+      try {
+        await AuditService.log(
+          getAuditContext(req),
+          "UPDATE",
+          "booking",
+          id,
+          updatedBooking.title,
+          {
+            originalBooking: {
+              title: booking.title,
+              type: booking.type,
+              studioId: booking.studioId,
+              startTime: booking.start,
+              endTime: booking.end,
+              status: booking.status
+            },
+            updatedFields: updateData,
+            studioIds: parsedStudioIds,
+            linkedGroupId: booking.linkedGroupId,
+            hasLinked: booking.linkedGroupId && linkedBookings.length > 1
+          }
+        );
+      } catch (auditError) {
+        console.error("Failed to log booking update:", auditError);
+      }
+
       // If this booking is part of a linked group, update all other linked bookings
       if (booking.linkedGroupId && linkedBookings.length > 1) {
         try {
@@ -1777,6 +1828,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (success) {
+        // Log the deletion to audit logs
+        try {
+          await AuditService.log(
+            getAuditContext(req),
+            "DELETE",
+            "booking",
+            id,
+            booking.title,
+            {
+              deletedBookingIds: deleteLinked === 'true' && booking.linkedGroupId ? 
+                (await storage.getLinkedBookings(booking.linkedGroupId)).map(b => b.id) : [id],
+              bookingTitle: booking.title,
+              bookingType: booking.type,
+              studioId: booking.studioId,
+              startTime: booking.start,
+              endTime: booking.end,
+              linkedGroupId: booking.linkedGroupId,
+              deleteLinked: deleteLinked === 'true',
+              deletedCount
+            }
+          );
+        } catch (auditError) {
+          console.error("Failed to log booking deletion:", auditError);
+        }
+
         // Create notification for the booking owner if not the deleter
         // and if there is a valid userId (facility-wide alerts might not have one)
         if (booking.userId !== null && booking.userId !== undefined && booking.userId !== user.id) {
