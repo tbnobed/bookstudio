@@ -68,7 +68,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting BookStud.io application v1.5.0 with Linked Copy Features...' &&
+        echo 'Starting BookStud.io application v1.5.2 with Comprehensive Audit Logging...' &&
         echo \"Using timezone: ${TZ:-America/Chicago}\" &&
         echo 'Verifying database tables before startup...' &&
         node -e \"
@@ -208,6 +208,8 @@ services:
         node scripts/clean-invalid-notifications.cjs &&
         echo 'Running production migration v1.5.1 (alert fixes)...' &&
         node scripts/production-migration-v1.5.1.cjs &&
+        echo 'Running production migration v1.5.2 (audit logging system)...' &&
+        node scripts/production-migration-v1.5.2.cjs &&
         echo 'Database initialization completed successfully!'
       "
 
