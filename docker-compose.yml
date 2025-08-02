@@ -208,6 +208,8 @@ services:
         node scripts/clean-invalid-notifications.cjs &&
         echo 'Running production migration v1.5.1 (alert fixes)...' &&
         node scripts/production-migration-v1.5.1.cjs &&
+        echo 'Running Docker audit schema fix (for v1.5.2 compatibility)...' &&
+        node scripts/docker-audit-schema-fix.cjs &&
         echo 'Running production migration v1.5.2 (audit logging system)...' &&
         node scripts/production-migration-v1.5.2.cjs &&
         echo 'Database initialization completed successfully!'

@@ -4,7 +4,7 @@
 
 BookStud.io is a comprehensive web application for television studio management providing intelligent scheduling, booking, and access control. It supports multi-studio booking, real-time status, template-based booking creation, and role-based user management. The system is designed for television production facilities needing sophisticated scheduling and notification management.
 
-**Latest Version: 1.5.2** - Features comprehensive audit logging system tracking ALL system activities including user management, template operations, alert management, system configuration changes, studio/PCR room management, and notification group operations with enhanced UI display, user filtering capabilities, facility timezone display, and 90-day retention policy. Fully integrated with Docker deployment pipeline.
+**Latest Version: 1.5.2** - Features comprehensive audit logging system tracking ALL system activities including user management, template operations, alert management, system configuration changes, studio/PCR room management, and notification group operations with enhanced UI display, user filtering capabilities, facility timezone display, and 90-day retention policy. Fully integrated with Docker deployment pipeline with complete schema compatibility fixes.
 
 ## User Preferences
 
@@ -17,6 +17,8 @@ Preferred communication style: Simple, everyday language.
 - Status checks and availability logic
 - Never use browser local timezone or UTC for comparisons
 - Always use the configured facility timezone in all date operations
+
+**DOCKER DEPLOYMENT COMPATIBILITY**: All Docker deployment issues have been resolved including SSL connection handling, database schema mismatches, and audit logging system integration. Complete migration sequence ensures clean deployments.
 
 ## System Architecture
 

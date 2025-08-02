@@ -186,8 +186,8 @@ docker-compose exec app node scripts/fix-system-settings-schema.cjs
 If automated migration fails, run these commands:
 
 ```bash
-# Fix audit logs schema
-docker-compose exec app node scripts/fix-audit-schema.cjs
+# Fix audit logs schema (Docker-specific fix)
+docker-compose exec app node scripts/docker-audit-schema-fix.cjs
 
 # Fix system settings schema
 docker-compose exec app node scripts/fix-system-settings-schema.cjs
@@ -198,6 +198,19 @@ docker-compose exec app node scripts/production-migration-v1.5.2.cjs
 # Restart application
 docker-compose restart app
 ```
+
+### Migration Script Sequence
+
+The Docker deployment now runs the following migration scripts in order:
+
+1. `scripts/consolidated-migration.cjs` - Creates base tables
+2. `scripts/schema-repair.cjs` - Repairs schema inconsistencies
+3. `scripts/docker-fix-alerts.cjs` - Fixes alert table structure
+4. `scripts/docker-migrate-linked-bookings.cjs` - Adds v1.5.0 linked booking features
+5. `scripts/clean-invalid-notifications.cjs` - Cleans up invalid notifications
+6. `scripts/production-migration-v1.5.1.cjs` - Applies v1.5.1 fixes
+7. `scripts/docker-audit-schema-fix.cjs` - **NEW**: Fixes audit_logs schema for v1.5.2 compatibility
+8. `scripts/production-migration-v1.5.2.cjs` - Applies comprehensive audit logging system
 
 ## Security Considerations
 
