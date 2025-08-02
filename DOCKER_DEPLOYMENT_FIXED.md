@@ -203,7 +203,7 @@ docker-compose restart app
 
 The Docker deployment now runs the following migration scripts in order:
 
-1. `scripts/consolidated-migration.cjs` - Creates base tables
+1. `scripts/consolidated-migration.cjs` - Creates base tables (does NOT create default notification groups)
 2. `scripts/schema-repair.cjs` - Repairs schema inconsistencies
 3. `scripts/docker-fix-alerts.cjs` - Fixes alert table structure
 4. `scripts/docker-migrate-linked-bookings.cjs` - Adds v1.5.0 linked booking features
@@ -211,6 +211,16 @@ The Docker deployment now runs the following migration scripts in order:
 6. `scripts/production-migration-v1.5.1.cjs` - Applies v1.5.1 fixes
 7. `scripts/docker-audit-schema-fix.cjs` - **NEW**: Fixes audit_logs schema for v1.5.2 compatibility
 8. `scripts/production-migration-v1.5.2.cjs` - Applies comprehensive audit logging system
+
+### Notification Groups
+
+**IMPORTANT**: The current deployment does NOT create default notification groups automatically. This was changed to give facilities full control over their notification setup.
+
+- Default notification groups are no longer created during database initialization
+- The legacy `docker-init-db.cjs` script has been removed from `Dockerfile.fixed`
+- Facilities should create notification groups through the Settings page as needed
+
+**If you see default notification groups** in a fresh deployment, you may be using an older Docker image or deployment configuration. Rebuild with the latest code to resolve this.
 
 ## Security Considerations
 

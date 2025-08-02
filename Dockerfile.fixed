@@ -89,9 +89,8 @@ RUN npm ci
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/scripts ./scripts
 
-# Copy Docker-specific migration scripts
+# Copy Docker-specific migration scripts (legacy docker-init-db.cjs removed - it creates unwanted default notification groups)
 COPY scripts/docker-migrate-db.cjs ./scripts/
-COPY scripts/docker-init-db.cjs ./scripts/
 COPY scripts/docker-migrate-pcr-rooms.cjs ./scripts/
 COPY scripts/docker-create-booking-studios.cjs ./scripts/
 COPY scripts/docker-migrate-file-attachments.cjs ./scripts/
