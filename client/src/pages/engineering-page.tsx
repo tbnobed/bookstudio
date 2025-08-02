@@ -16,7 +16,6 @@ import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { Header } from "@/components/layout/Header";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
-import { useLocation } from "wouter";
 
 // Get severity-based styling for alerts and maintenance bookings
 function getSeverityStyle(booking: BookingData) {
@@ -460,17 +459,6 @@ export default function EngineeringPage() {
     }
   });
 
-  const [location, setLocation] = useLocation();
-
-  const handleViewChange = (view: "day" | "week" | "month" | "timeline") => {
-    if (view === "timeline") {
-      // Already on timeline, do nothing
-      return;
-    }
-    // Navigate to calendar with the selected view
-    setLocation(`/calendar?view=${view}`);
-  };
-
   return (
     <TooltipProvider>
       <div className="h-screen flex flex-col bg-gray-50">
@@ -478,10 +466,10 @@ export default function EngineeringPage() {
         <Header
           currentDate={currentWeek}
           onDateChange={setCurrentWeek}
-          view="timeline"
-          onViewChange={handleViewChange}
+          view="week"
+          onViewChange={() => {}} // Engineering view is always weekly
           title="Engineering Schedule"
-          showViewToggle={true} // Show view toggle to see Timeline button
+          showViewToggle={false} // Don't show view toggle for engineering
           useMondayWeeks={true} // Engineering page uses Monday-based weeks
         />
 
