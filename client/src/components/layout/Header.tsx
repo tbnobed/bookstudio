@@ -268,11 +268,11 @@ export function Header({
               <button 
                 className={cn(
                   "px-2 py-1.5 text-xs font-medium border",
-                  location === "/engineering"
+                  view === "timeline"
                     ? "bg-primary text-white border-primary" 
                     : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                 )}
-                onClick={() => setLocation("/engineering")}
+                onClick={() => onViewChange("timeline")}
               >
                 Timeline
               </button>
