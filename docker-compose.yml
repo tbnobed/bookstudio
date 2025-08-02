@@ -68,7 +68,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting BookStud.io application v1.4.1...' &&
+        echo 'Starting BookStud.io application v1.5.0 with Linked Copy Features...' &&
         echo \"Using timezone: ${TZ:-America/Chicago}\" &&
         echo 'Verifying database tables before startup...' &&
         node -e \"
@@ -202,6 +202,8 @@ services:
         node scripts/schema-repair.cjs &&
         echo 'Running Docker alerts column fix...' &&
         node scripts/docker-fix-alerts.cjs &&
+        echo 'Running linked bookings migration (v1.5.0)...' &&
+        node scripts/docker-migrate-linked-bookings.cjs &&
         echo 'Database initialization completed successfully!'
       "
 

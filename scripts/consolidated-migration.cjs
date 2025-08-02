@@ -58,6 +58,7 @@ async function consolidatedMigration() {
     await createCoreFileAttachments();
     await createCorePasswordResetTokens();
     await createCoreInviteTokens();
+    await createCoreLinkedBookings();
     
     // Step 2: Create default data
     await createDefaultAdmin();
@@ -536,6 +537,70 @@ async function createDefaultSystemSettings() {
       console.error(`❌ Failed to process system setting ${setting.key}:`, error.message);
       // Continue with other settings instead of failing completely
     }
+  }
+}
+
+async function createCoreLinkedBookings() {
+  console.log('Creating linked_bookings table...');
+  await query(`
+    CREATE TABLE IF NOT EXISTS linked_bookings (
+      id SERIAL PRIMARY KEY,
+      primary_booking_id INTEGER NOT NULL,
+      linked_booking_id INTEGER NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(primary_booking_id, linked_booking_id),
+      CHECK (primary_booking_id != linked_booking_id)
+    );
+  `);
+  
+  // Add foreign key constraints if they don't exist
+  try {
+    await query(`
+      ALTER TABLE linked_bookings 
+      ADD CONSTRAINT fk_linked_bookings_primary 
+      FOREIGN KEY (primary_booking_id) 
+      REFERENCES bookings(id) 
+      ON DELETE CASCADE;
+    `);
+  } catch (error) {
+    if (error.message.includes('already exists')) {
+      console.log('Primary booking foreign key constraint already exists');
+    } else {
+      console.error('Error adding primary booking foreign key:', error.message);
+    }
+  }
+  
+  try {
+    await query(`
+      ALTER TABLE linked_bookings 
+      ADD CONSTRAINT fk_linked_bookings_linked 
+      FOREIGN KEY (linked_booking_id) 
+      REFERENCES bookings(id) 
+      ON DELETE CASCADE;
+    `);
+  } catch (error) {
+    if (error.message.includes('already exists')) {
+      console.log('Linked booking foreign key constraint already exists');
+    } else {
+      console.error('Error adding linked booking foreign key:', error.message);
+    }
+  }
+  
+  // Create indexes for better performance
+  try {
+    await query(`CREATE INDEX IF NOT EXISTS idx_linked_bookings_primary ON linked_bookings(primary_booking_id);`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_linked_bookings_linked ON linked_bookings(linked_booking_id);`);
+  } catch (error) {
+    console.error('Error creating linked bookings indexes:', error.message);
+  }
+  
+  // Add linked booking fields to bookings table
+  try {
+    await query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS link_group_id TEXT;`);
+    await query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS is_primary_in_group BOOLEAN DEFAULT FALSE;`);
+    console.log('Added linked booking fields to bookings table');
+  } catch (error) {
+    console.error('Error adding linked booking fields:', error.message);
   }
 }
 

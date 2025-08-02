@@ -4,6 +4,8 @@
 
 BookStud.io is a comprehensive web application for television studio management providing intelligent scheduling, booking, and access control. It supports multi-studio booking, real-time status, template-based booking creation, and role-based user management. The system is designed for television production facilities needing sophisticated scheduling and notification management.
 
+**Latest Version: 1.5.0** - Features advanced linked copy functionality where users can create linked booking copies that automatically synchronize updates across all linked instances, with selective deletion options and enhanced modal architecture.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -42,12 +44,14 @@ Preferred communication style: Simple, everyday language.
 ### Key Features
 - **Studio Management**: Real-time status, multi-studio booking, PCR assignment, calendar views with timezone handling.
 - **Booking Engine**: Complex booking creation, template system, status management, color-coded visualization, copy functionality.
+- **Linked Copy System** (v1.5.0): Advanced linked booking copies where updates to one booking automatically update all linked copies, with selective deletion options and visual indicators.
 - **User Management**: Role-based access control, secure password hashing, email-based invitations, password reset.
 - **Notification System**: Email notifications via SendGrid, notification groups, automated confirmations/updates, facility-wide alerts.
 - **Template System**: Reusable booking templates (JSON-based), user-specific management.
 - **Alerts System**: Dedicated alerts table and API for facility-wide alerts (maintenance, IT), separate from bookings, with severity-based styling and notifications.
 - **Signage Display**: Public-facing `/signage` and custom `/custom-signage` pages with real-time schedule, weekly overview, studio status, alerts, weather integration, and auto-refresh.
 - **Dynamic Booking Types**: API-driven booking types with CRUD management via Settings page, supporting custom types and active/inactive status.
+- **Enhanced Modal Architecture** (v1.5.0): Improved responsive booking modals with proper routing between desktop/mobile forms and fixed day view new booking issues.
 
 ### Core Decisions
 - **Architectural Separation**: Strict separation between production bookings and facility alerts to ensure data integrity and prevent cross-contamination.

@@ -81,7 +81,7 @@ RUN echo "import express from 'express';" > server-prod.js && \
     echo "    console.log(`Server running on port ${port}`);" >> server-prod.js && \
     echo "    console.log(`Application timezone: ${process.env.TZ || 'UTC'}`);" >> server-prod.js && \
     echo "    console.log(`Facility timezone: ${process.env.FACILITY_TIMEZONE || process.env.TZ || 'UTC'}`);" >> server-prod.js && \
-    echo "    console.log('BookStudio Version: 1.4.1');" >> server-prod.js && \
+    echo "    console.log('BookStudio Version: 1.5.0 - Linked Copy Features');" >> server-prod.js && \
     echo "  });" >> server-prod.js && \
     echo "})();" >> server-prod.js && \
     npx esbuild server-prod.js --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
@@ -133,6 +133,7 @@ COPY --from=builder /app/scripts ./scripts
 # Copy consolidated migration scripts for Docker
 COPY scripts/consolidated-migration.cjs ./scripts/
 COPY scripts/schema-repair.cjs ./scripts/
+COPY scripts/docker-migrate-linked-bookings.cjs ./scripts/
 
 # Copy backup and restore scripts
 COPY scripts/production-backup.sh ./scripts/
