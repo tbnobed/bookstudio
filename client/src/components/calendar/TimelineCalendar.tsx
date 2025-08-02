@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, PcrRoom, Alert, BookingStudio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { format, parseISO, isSameDay, isWithinInterval, startOfWeek, endOfWeek, addDays } from "date-fns";
-import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
+
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
@@ -199,7 +199,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
 
   // Current time indicator
   const getCurrentTimePosition = () => {
-    const now = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+    const now = new Date();
     const currentHour = now.getHours();
     const currentMinutes = now.getMinutes();
     
@@ -211,12 +211,12 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
 
   // Check if we should show current time indicator
   const shouldShowCurrentTimeIndicator = () => {
-    const now = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+    const now = new Date();
     const currentHour = now.getHours();
     return currentHour >= 6 && currentHour < 24;
   };
 
-  const currentTime = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+  const currentTime = new Date();
 
   if (isLoading) {
     return (
@@ -241,7 +241,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                   
                   {/* Day headers */}
                   {weekDays.map((day) => {
-                    const today = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+                    const today = new Date();
                     const isToday = isSameDay(day.date, today);
                     
                     return (
@@ -294,8 +294,8 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                   {/* Day columns */}
                   {weekDays.map((day) => {
                     const dayBookings = weekBookings.filter(booking => {
-                      const bookingStartDate = new Date(parseISO(booking.start).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
-                      const bookingEndDate = new Date(parseISO(booking.end).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+                      const bookingStartDate = parseISO(booking.start);
+                      const bookingEndDate = parseISO(booking.end);
                       
                       // Only show booking on the day it starts, unless it truly spans multiple days
                       const startsOnDay = isSameDay(bookingStartDate, day.date);
@@ -332,7 +332,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                         ))}
 
                         {/* Current time indicator line */}
-                        {shouldShowCurrentTimeIndicator() && isSameDay(day.date, new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }))) && (
+                        {shouldShowCurrentTimeIndicator() && isSameDay(day.date, new Date()) && (
                           <div
                             className="absolute left-0 right-0 z-30 pointer-events-none"
                             style={{
