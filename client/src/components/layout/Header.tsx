@@ -85,6 +85,8 @@ export function Header({
       newDate = subtractDays(dateToUse, 1);
     } else if (view === "week") {
       newDate = subtractWeeks(dateToUse, 1);
+    } else if (view === "timeline") {
+      newDate = subtractWeeks(dateToUse, 1);
     } else if (view === "month") {
       newDate = subtractMonths(dateToUse, 1);
     } else {
@@ -107,6 +109,8 @@ export function Header({
     if (view === "day") {
       newDate = addDays(dateToUse, 1);
     } else if (view === "week") {
+      newDate = addWeeks(dateToUse, 1);
+    } else if (view === "timeline") {
       newDate = addWeeks(dateToUse, 1);
     } else if (view === "month") {
       newDate = addMonths(dateToUse, 1);
