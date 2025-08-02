@@ -92,7 +92,12 @@ export default function EngineeringPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <Header />
+      <Header 
+        currentDate={currentWeek}
+        onDateChange={setCurrentWeek}
+        view="timeline"
+        onViewChange={() => {}}
+      />
       
       <div className="flex-1 overflow-hidden">
         <div className="h-full p-4">
