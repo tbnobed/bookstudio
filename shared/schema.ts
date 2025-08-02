@@ -92,7 +92,7 @@ export const bookings = pgTable("bookings", {
   templateId: integer("template_id"), // optional, if using a template
   notifyList: json("notify_list").default([]), // array of user/group IDs to notify
   color: text("color"), // Custom color for booking (CSS color value)
-  linkedGroupId: text("linked_group_id"), // optional, groups linked bookings together
+  linkedGroupId: text("link_group_id"), // optional, groups linked bookings together
   createdAt: timestamp("created_at").defaultNow(),
 });
 
