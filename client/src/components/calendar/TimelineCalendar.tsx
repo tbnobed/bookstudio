@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, PcrRoom, Alert, BookingStudio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { format, parseISO, isSameDay, isWithinInterval, startOfWeek, endOfWeek, addDays } from "date-fns";
-import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
+import { getFacilityTimezone_Dynamic, formatTimeInFacilityTimezone } from "@/lib/dateUtils";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
@@ -200,8 +200,17 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
   // Current time indicator - convert UTC to facility timezone
   const getCurrentTimePosition = () => {
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinutes = now.getMinutes();
+    // Get current hour and minutes in facility timezone
+    const facilityTimeFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: getFacilityTimezone_Dynamic(),
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const facilityTimeParts = facilityTimeFormatter.formatToParts(now);
+    const currentHour = parseInt(facilityTimeParts.find(part => part.type === 'hour')?.value || '0');
+    const currentMinutes = parseInt(facilityTimeParts.find(part => part.type === 'minute')?.value || '0');
     
     // For 24-hour timeline, all times are valid
     const minutesFromStart = currentHour * 60 + currentMinutes;
@@ -343,7 +352,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                             <div
                               className="absolute left-4 -top-5 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded shadow-lg whitespace-nowrap z-50"
                             >
-                              {format(currentTime, 'h:mm a')}
+                              {formatTimeInFacilityTimezone(currentTime)}
                             </div>
                             {/* Arrow pointing to the line */}
                             <div
