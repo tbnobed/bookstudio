@@ -1,0 +1,46 @@
+# Exclude development files
+.git
+.gitignore
+README.md
+*.md
+.env.example
+
+# Exclude build outputs
+dist
+node_modules/.cache
+
+# Exclude development tools
+.vscode
+.idea
+
+# Exclude logs
+logs
+*.log
+npm-debug.log*
+
+# Exclude test files
+coverage
+.nyc_output
+
+# Exclude temporary files
+.tmp
+.temp
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
+
+# Exclude backup files
+backups
+*.backup
+*.sql
+
+# Exclude large attachment files
+attached_assets
+
+# Keep only necessary scripts
+!scripts/production-migration-v1.5.1.cjs
+!scripts/consolidated-migration.cjs
+!scripts/schema-repair.cjs
+!scripts/docker-migrate-linked-bookings.cjs
+!scripts/clean-invalid-notifications.cjs

@@ -1,0 +1,75 @@
+# Optimized Multi-stage build
+FROM node:20.18.1-alpine3.19 AS builder
+
+WORKDIR /app
+
+# Use faster Alpine mirrors
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories
+
+# Install build dependencies efficiently
+RUN apk update && apk add --no-cache python3 make g++
+
+# Copy package files first for better layer caching
+COPY package*.json ./
+
+# Use npm ci with caching optimizations
+RUN npm ci --prefer-offline --no-audit --no-fund
+
+# Copy source files (minimize layers)
+COPY . .
+
+# Build with environment variables
+ARG VITE_OPENWEATHER_API_KEY
+ARG VITE_WEATHER_LOCATION
+ARG VITE_WEATHER_LAT  
+ARG VITE_WEATHER_LON
+ARG VITE_FACILITY_TIMEZONE
+ARG TZ
+
+ENV VITE_OPENWEATHER_API_KEY=$VITE_OPENWEATHER_API_KEY \
+    VITE_WEATHER_LOCATION=$VITE_WEATHER_LOCATION \
+    VITE_WEATHER_LAT=$VITE_WEATHER_LAT \
+    VITE_WEATHER_LON=$VITE_WEATHER_LON \
+    VITE_FACILITY_TIMEZONE=$VITE_FACILITY_TIMEZONE \
+    TZ=$TZ
+
+# Build application
+RUN npm run build
+
+# Stage 2: Production
+FROM node:20.18.1-alpine3.19
+
+WORKDIR /app
+
+# Use faster Alpine mirrors
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories
+
+# Install production dependencies
+RUN apk add --no-cache curl tzdata
+
+# Create user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --production --prefer-offline --no-audit --no-fund
+
+# Copy built app and scripts
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/public ./public
+
+# Set ownership
+RUN chown -R appuser:appgroup /app
+USER appuser
+
+EXPOSE 5000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:5000/api/health || exit 1
+
+CMD ["node", "dist/index.js"]
