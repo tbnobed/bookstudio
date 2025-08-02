@@ -466,10 +466,10 @@ export default function EngineeringPage() {
         <Header
           currentDate={currentWeek}
           onDateChange={setCurrentWeek}
-          view="week"
+          view="timeline"
           onViewChange={() => {}} // Engineering view is always weekly
           title="Engineering Schedule"
-          showViewToggle={false} // Don't show view toggle for engineering
+          showViewToggle={true} // Show view toggle to see Timeline button
           useMondayWeeks={true} // Engineering page uses Monday-based weeks
         />
 
