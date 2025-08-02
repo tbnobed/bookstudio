@@ -206,6 +206,8 @@ services:
         node scripts/docker-migrate-linked-bookings.cjs &&
         echo 'Cleaning invalid notification references...' &&
         node scripts/clean-invalid-notifications.cjs &&
+        echo 'Running production migration v1.5.1 (alert fixes)...' &&
+        node scripts/production-migration-v1.5.1.cjs &&
         echo 'Database initialization completed successfully!'
       "
 
