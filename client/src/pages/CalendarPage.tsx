@@ -151,36 +151,44 @@ export default function CalendarPage() {
       />
       
       {view === "day" && (
-        <DailyCalendar
-          key={currentDate.toISOString()} // Add key to force complete re-render on date change
-          date={currentDate}
-          selectedStudioIds={selectedStudioIds}
-        />
+        <div className="flex-1 min-h-0">
+          <DailyCalendar
+            key={currentDate.toISOString()} // Add key to force complete re-render on date change
+            date={currentDate}
+            selectedStudioIds={selectedStudioIds}
+          />
+        </div>
       )}
       
       {view === "week" && (
-        <WeeklyCalendar
-          key={currentDate.toISOString()} // Add key to force complete re-render on date change
-          startDate={currentDate}
-          selectedStudioIds={selectedStudioIds}
-        />
+        <div className="flex-1 min-h-0">
+          <WeeklyCalendar
+            key={currentDate.toISOString()} // Add key to force complete re-render on date change
+            startDate={currentDate}
+            selectedStudioIds={selectedStudioIds}
+          />
+        </div>
       )}
       
       {/* For monthly view, use the wrapper component */}
       {view === "month" && (
-        <MonthlyCalendarWrapper
-          currentDate={currentDate}
-          studios={studios}
-          selectedStudioIds={selectedStudioIds}
-        />
+        <div className="flex-1 min-h-0">
+          <MonthlyCalendarWrapper
+            currentDate={currentDate}
+            studios={studios}
+            selectedStudioIds={selectedStudioIds}
+          />
+        </div>
       )}
       
       {view === "timeline" && (
-        <TimelineCalendar
-          key={currentDate.toISOString()} // Add key to force complete re-render on date change
-          currentDate={currentDate}
-          selectedStudioIds={selectedStudioIds}
-        />
+        <div className="flex-1 min-h-0">
+          <TimelineCalendar
+            key={currentDate.toISOString()} // Add key to force complete re-render on date change
+            currentDate={currentDate}
+            selectedStudioIds={selectedStudioIds}
+          />
+        </div>
       )}
     </div>
   );
