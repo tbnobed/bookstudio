@@ -242,7 +242,7 @@ export function Header({
           
           {/* Calendar View Options - Only show on calendar pages */}
           {showViewToggle && (
-            <div className="hidden lg:flex items-center shadow-sm rounded-md overflow-hidden" style={{zIndex: 10}}>
+            <div className="hidden lg:flex items-center shadow-sm rounded-md overflow-hidden">
               <button 
                 className={cn(
                   "px-2 py-1.5 text-xs font-medium border",
@@ -250,11 +250,7 @@ export function Header({
                     ? "bg-primary text-white border-primary" 
                     : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                 )}
-                onClick={() => {
-                  console.log("Header - Day button clicked, calling onViewChange('day')");
-                  alert("Day button clicked!"); // Temporary test
-                  onViewChange("day");
-                }}
+                onClick={() => onViewChange("day")}
               >
                 Day
               </button>
@@ -287,10 +283,7 @@ export function Header({
                     ? "bg-primary text-white border-primary" 
                     : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                 )}
-                onClick={() => {
-                  console.log("Header - Month button clicked, calling onViewChange('month')");
-                  onViewChange("month");
-                }}
+                onClick={() => onViewChange("month")}
               >
                 Month
               </button>
