@@ -67,6 +67,32 @@ export default function MyBookingsPage() {
     ).join(" ");
   };
 
+  // Function to get booking color - use assigned color if available, fallback to type color
+  const getBookingColor = (booking: any) => {
+    if (booking.color) {
+      // Return the actual assigned color as inline style
+      return {
+        backgroundColor: booking.color,
+        borderColor: booking.color
+      };
+    }
+    // Fallback to type-based color for the top border
+    return null; // Use default CSS classes
+  };
+
+  // Function to get the color stripe class or style for the top of booking cards
+  const getBookingStripeStyle = (booking: any) => {
+    if (booking.color) {
+      return {
+        backgroundColor: booking.color
+      };
+    }
+    // Extract just the background color class for the stripe
+    const typeColorClasses = getBookingTypeColor(booking.type);
+    const bgClass = typeColorClasses.split(' ')[0]; // Get bg-xxx-xxx part
+    return { className: bgClass };
+  };
+
   // Handle delete booking
   const handleDeleteBooking = async (id: number) => {
     if (confirm("Are you sure you want to delete this booking?")) {
@@ -140,9 +166,14 @@ export default function MyBookingsPage() {
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {upcomingBookings.map(booking => (
+                {upcomingBookings.map(booking => {
+                  const stripeStyle = getBookingStripeStyle(booking);
+                  return (
                   <Card key={booking.id} className="overflow-hidden">
-                    <div className={`h-2 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
+                    <div 
+                      className={`h-2 ${stripeStyle.className || ''}`}
+                      style={stripeStyle.className ? {} : stripeStyle}
+                    ></div>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-semibold text-lg">{booking.title}</h3>
@@ -169,7 +200,8 @@ export default function MyBookingsPage() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>
@@ -185,9 +217,14 @@ export default function MyBookingsPage() {
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {pastBookings.map(booking => (
+                {pastBookings.map(booking => {
+                  const stripeStyle = getBookingStripeStyle(booking);
+                  return (
                   <Card key={booking.id} className="overflow-hidden opacity-75">
-                    <div className={`h-2 ${getBookingTypeColor(booking.type).split(" ")[0]}`}></div>
+                    <div 
+                      className={`h-2 ${stripeStyle.className || ''}`}
+                      style={stripeStyle.className ? {} : stripeStyle}
+                    ></div>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-semibold text-lg">{booking.title}</h3>
@@ -202,7 +239,8 @@ export default function MyBookingsPage() {
                       )}
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
             </TabsContent>
