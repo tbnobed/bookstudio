@@ -17,13 +17,24 @@ export class AuditService {
     details?: Record<string, any>
   ) {
     try {
+      // Ensure details can be safely serialized to JSON
+      let safeDetails = {};
+      if (details) {
+        try {
+          safeDetails = JSON.parse(JSON.stringify(details));
+        } catch (jsonError) {
+          console.warn('Failed to serialize audit details, using fallback:', jsonError);
+          safeDetails = { error: 'Failed to serialize details', originalType: typeof details };
+        }
+      }
+
       const auditLog: InsertAuditLog = {
         userId: context.userId,
         action,
         entityType,
         entityId: entityId || null,
         entityTitle: entityTitle || null,
-        details: details || {},
+        details: safeDetails,
         ipAddress: context.ipAddress || null,
         userAgent: context.userAgent || null,
       };

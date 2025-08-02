@@ -800,11 +800,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const template = await storage.createTemplate(templateData);
       
-      // Add audit log
-      await AuditService.log('created', 'template', template.name, req, {
-        templateId: template.id,
-        isShared: template.isShared
-      });
+      // Add audit log before sending response
+      try {
+        const context = {
+          userId: user.id,
+          ipAddress: req.ip || req.connection?.remoteAddress,
+          userAgent: req.get('User-Agent')
+        };
+        
+        await AuditService.log(context, 'created', 'template', template.id, template.name, {
+          templateId: template.id,
+          isShared: template.isShared,
+          type: template.type,
+          duration: template.duration
+        });
+      } catch (auditError) {
+        console.error('Failed to log template creation audit:', auditError);
+        // Continue with response even if audit logging fails
+      }
       
       res.status(201).json(template);
     } catch (error) {
@@ -876,16 +889,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const success = await storage.deleteTemplate(id, force);
       if (success) {
-        // Add audit log
-        await AuditService.log('deleted', 'template', template.name, req, {
-          templateId: id,
-          isShared: template.isShared,
-          forceDelete: force
-        });
-        
         const message = force 
           ? "Template deleted successfully (removed from associated bookings)"
           : "Template deleted successfully";
+        
+        // Add audit log before sending response
+        try {
+          const context = {
+            userId: user.id,
+            ipAddress: req.ip || req.connection?.remoteAddress,
+            userAgent: req.get('User-Agent')
+          };
+          
+          await AuditService.log(context, 'deleted', 'template', template.id, template.name, {
+            templateId: id,
+            isShared: template.isShared,
+            forceDelete: force
+          });
+        } catch (auditError) {
+          console.error('Failed to log template deletion audit:', auditError);
+          // Continue with response even if audit logging fails
+        }
+        
         return res.json({ message });
       } else {
         return res.status(500).json({ message: "Failed to delete template" });
