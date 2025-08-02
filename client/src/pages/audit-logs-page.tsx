@@ -154,6 +154,16 @@ export default function AuditLogsPage() {
     }
   });
 
+  // Fetch users for filter dropdown
+  const { data: usersData } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      const response = await fetch("/api/users");
+      if (!response.ok) throw new Error("Failed to fetch users");
+      return response.json();
+    }
+  });
+
   // Cleanup mutation (admin only)
   const cleanupMutation = useMutation({
     mutationFn: async (daysToKeep: number) => {
@@ -335,7 +345,7 @@ export default function AuditLogsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -376,6 +386,21 @@ export default function AuditLogsPage() {
                 <SelectItem value="template">Templates</SelectItem>
                 <SelectItem value="authentication">Authentication</SelectItem>
                 <SelectItem value="system_setting">System Settings</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* User Filter */}
+            <Select value={getSelectValue(filters.userId)} onValueChange={(value) => setFilters({ ...filters, userId: value === "all" ? "" : value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Users" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                {usersData?.map((user: any) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.name || user.username} ({user.role})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
