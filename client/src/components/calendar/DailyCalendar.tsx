@@ -107,6 +107,18 @@ export default function DailyCalendar({
     if (!readOnly) {
       console.log("[DEBUG] Handling booking click:", booking);
       
+      // Special case: handle new booking requests
+      if (booking.isNew) {
+        console.log("[DEBUG] Creating new booking from day view");
+        // Create a fake studio object for selectedSlot
+        const studio = filteredStudios.find(s => s.id === booking.studioId) || filteredStudios[0];
+        if (studio) {
+          setSelectedSlot({ studio, time: "09:00" }); // Default time
+          setIsNewBookingModalOpen(true);
+        }
+        return;
+      }
+      
       // Special case: this could be a new alert request from the "Add Alert" button
       if (booking.type && booking.type === "all-day:maintenance" && !booking.id) {
         console.log("[DEBUG] Creating new alert from button click");

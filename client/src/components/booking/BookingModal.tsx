@@ -1218,7 +1218,7 @@ export default function BookingModal({
                   <DialogFooter className="pt-4">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex space-x-2">
-                        {booking && (
+                        {booking && booking.id > 0 && (
                           <>
                             <Button 
                               variant="outline" 
