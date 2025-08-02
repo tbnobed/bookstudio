@@ -30,6 +30,7 @@ import { FileAttachmentList } from "./FileAttachmentList";
 import CopyBookingModal from "./CopyBookingModal";
 import { BookingFormSelector } from "./BookingFormSelector";
 import LinkedBookingDeleteModal from "./LinkedBookingDeleteModal";
+import { useLinkedBookings } from "@/hooks/useLinkedBookings";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -161,6 +162,9 @@ export default function BookingModal({
     createTemplate, 
     templates = [] 
   } = useStudioBookings();
+
+  // Get linked bookings if this booking has a linkedGroupId
+  const { data: linkedBookings = [] } = useLinkedBookings(booking?.linkedGroupId);
 
   // Fetch linked studios for a booking (when editing)
   const fetchBookingStudios = async (bookingId: number) => {
@@ -816,6 +820,7 @@ export default function BookingModal({
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           booking={booking}
+          linkedBookingsCount={linkedBookings.length}
           onDelete={() => {
             setIsDeleteModalOpen(false);
             onClose();
