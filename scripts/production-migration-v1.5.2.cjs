@@ -48,15 +48,15 @@ async function runMigration() {
       await client.query(`
         CREATE TABLE IF NOT EXISTS audit_logs (
           id SERIAL PRIMARY KEY,
-          action VARCHAR(50) NOT NULL,
-          resource_type VARCHAR(50) NOT NULL,
-          resource_name VARCHAR(255),
-          user_id INTEGER,
-          user_name VARCHAR(100),
-          ip_address INET,
+          user_id INTEGER NOT NULL,
+          action TEXT NOT NULL,
+          entity_type TEXT NOT NULL,
+          entity_id INTEGER,
+          entity_title TEXT,
+          details JSON DEFAULT '{}',
+          ip_address TEXT,
           user_agent TEXT,
-          details JSONB,
-          timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          timestamp TIMESTAMP DEFAULT NOW()
         );
       `);
       
@@ -65,8 +65,8 @@ async function runMigration() {
         CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
         CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
         CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
-        CREATE INDEX IF NOT EXISTS idx_audit_logs_resource_type ON audit_logs(resource_type);
-        CREATE INDEX IF NOT EXISTS idx_audit_logs_user_name ON audit_logs(user_name);
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_type ON audit_logs(entity_type);
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_id ON audit_logs(entity_id);
       `);
       
       console.log('✅ Created audit_logs table with indexes');
@@ -75,9 +75,8 @@ async function runMigration() {
       
       const existingColumns = auditTableCheck.rows.map(row => row.column_name);
       const requiredColumns = [
-        'id', 'action', 'resource_type', 'resource_name', 
-        'user_id', 'user_name', 'ip_address', 'user_agent', 
-        'details', 'timestamp'
+        'id', 'user_id', 'action', 'entity_type', 'entity_id', 
+        'entity_title', 'details', 'ip_address', 'user_agent', 'timestamp'
       ];
       
       // Add missing columns
@@ -86,20 +85,29 @@ async function runMigration() {
           console.log(`➕ Adding missing column: ${column}`);
           
           switch (column) {
-            case 'user_name':
-              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} VARCHAR(100);`);
+            case 'entity_type':
+              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} TEXT NOT NULL DEFAULT 'unknown';`);
+              break;
+            case 'entity_id':
+              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} INTEGER;`);
+              break;
+            case 'entity_title':
+              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} TEXT;`);
               break;
             case 'ip_address':
-              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} INET;`);
+              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} TEXT;`);
               break;
             case 'user_agent':
               await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} TEXT;`);
               break;
             case 'details':
-              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} JSONB;`);
+              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} JSON DEFAULT '{}';`);
               break;
-            case 'resource_name':
-              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} VARCHAR(255);`);
+            case 'action':
+              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} TEXT NOT NULL DEFAULT 'unknown';`);
+              break;
+            case 'user_id':
+              await client.query(`ALTER TABLE audit_logs ADD COLUMN ${column} INTEGER NOT NULL DEFAULT 0;`);
               break;
           }
         }
@@ -110,8 +118,8 @@ async function runMigration() {
         CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
         CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
         CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
-        CREATE INDEX IF NOT EXISTS idx_audit_logs_resource_type ON audit_logs(resource_type);
-        CREATE INDEX IF NOT EXISTS idx_audit_logs_user_name ON audit_logs(user_name);
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_type ON audit_logs(entity_type);
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_id ON audit_logs(entity_id);
       `);
     }
 
@@ -129,8 +137,8 @@ async function runMigration() {
     console.log('🧪 Testing audit logging functionality...');
     
     const testLogResult = await client.query(`
-      INSERT INTO audit_logs (action, resource_type, resource_name, user_name, details)
-      VALUES ('migration_test', 'system', 'Migration v1.5.2', 'system', $1)
+      INSERT INTO audit_logs (user_id, action, entity_type, entity_title, details)
+      VALUES (0, 'migration_test', 'system', 'Migration v1.5.2', $1)
       RETURNING id;
     `, [JSON.stringify({ 
       migration: 'v1.5.2',
