@@ -149,6 +149,7 @@ export default function CalendarPage() {
   // Handle view change with localStorage persistence
   const handleViewChange = (newView: "day" | "week" | "month") => {
     console.log(`CalendarPage - handleViewChange called with: ${newView}, current view: ${view}`);
+    console.log(`CalendarPage - About to call setView(${newView})`);
     setView(newView);
     
     // Save to localStorage
