@@ -111,6 +111,7 @@ export default function MyBookingsPage() {
         onViewChange={() => {}}
         title="My Bookings"
         showViewToggle={false}
+        hideNavigation={true}
       />
       
       <div className="container mx-auto p-4 pb-16 overflow-auto">
@@ -149,7 +150,7 @@ export default function MyBookingsPage() {
                           {formatBookingType(booking.type)}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-500 mb-2">{getStudioName(booking.studioId)}</p>
+                      <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
                       <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
                       {booking.description && (
                         <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
@@ -161,7 +162,7 @@ export default function MyBookingsPage() {
                         <Button 
                           variant="destructive" 
                           size="sm" 
-                          onClick={() => handleDeleteBooking(booking.id)}
+                          onClick={() => booking.id && handleDeleteBooking(booking.id)}
                         >
                           Delete
                         </Button>
@@ -194,7 +195,7 @@ export default function MyBookingsPage() {
                           {formatBookingType(booking.type)}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-500 mb-2">{getStudioName(booking.studioId)}</p>
+                      <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
                       <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
                       {booking.description && (
                         <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>

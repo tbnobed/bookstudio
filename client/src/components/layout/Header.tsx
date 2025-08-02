@@ -23,6 +23,7 @@ type HeaderProps = {
   title?: string;
   showViewToggle?: boolean;
   useMondayWeeks?: boolean; // For timeline view that uses Monday-based weeks
+  hideNavigation?: boolean; // Hide date navigation arrows and "Today" button
 };
 
 export function Header({
@@ -34,7 +35,8 @@ export function Header({
   selectedStudioIds = [],
   title = "Calendar",
   showViewToggle = true,
-  useMondayWeeks = false
+  useMondayWeeks = false,
+  hideNavigation = false
 }: HeaderProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showAllStudios, setShowAllStudios] = useState(false);
@@ -202,34 +204,36 @@ export function Header({
             </svg>
           </button>
 
-          {/* Date Selector */}
-          <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-            <button 
-              className="p-2 hover:bg-gray-50 transition-colors border-r border-gray-200"
-              onClick={navigatePrevious}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-            </button>
-            <div className="px-3 py-2 min-w-[140px] lg:min-w-[180px] text-center">
-              <span className="text-xs lg:text-sm font-medium text-gray-800">{getDateDisplayText()}</span>
+          {/* Date Selector - Hidden when hideNavigation is true */}
+          {!hideNavigation && (
+            <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+              <button 
+                className="p-2 hover:bg-gray-50 transition-colors border-r border-gray-200"
+                onClick={navigatePrevious}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <div className="px-3 py-2 min-w-[140px] lg:min-w-[180px] text-center">
+                <span className="text-xs lg:text-sm font-medium text-gray-800">{getDateDisplayText()}</span>
+              </div>
+              <button 
+                className="p-2 hover:bg-gray-50 transition-colors border-l border-gray-200"
+                onClick={navigateNext}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+              <button 
+                className="ml-0 px-2 lg:px-3 py-2 text-xs lg:text-sm bg-gray-50 text-gray-700 border-l border-gray-200 hover:bg-gray-100 transition-colors font-medium"
+                onClick={goToToday}
+              >
+                Today
+              </button>
             </div>
-            <button 
-              className="p-2 hover:bg-gray-50 transition-colors border-l border-gray-200"
-              onClick={navigateNext}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-            <button 
-              className="ml-0 px-2 lg:px-3 py-2 text-xs lg:text-sm bg-gray-50 text-gray-700 border-l border-gray-200 hover:bg-gray-100 transition-colors font-medium"
-              onClick={goToToday}
-            >
-              Today
-            </button>
-          </div>
+          )}
 
           <div className="hidden lg:flex items-center">
             <h1 className="text-lg font-semibold text-gray-800">{title}</h1>

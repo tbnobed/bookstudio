@@ -2031,43 +2031,46 @@ export class DatabaseStorage implements IStorage {
       const { page = 1, limit = 20, fromToday = false } = options || {};
       const offset = (page - 1) * limit;
       
-      // Build base query
-      let query = db.select().from(bookings).where(eq(bookings.userId, userId));
+      console.log(`[getBookingsByUser] Fetching for user ${userId}, page ${page}, limit ${limit}, fromToday ${fromToday}`);
       
-      // Add date filter if fromToday is true
-      if (fromToday) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Start of today
-        query = query.where(and(
-          eq(bookings.userId, userId),
-          gte(bookings.start, today)
-        ));
-      }
+      // For simplicity and to avoid timestamp conversion issues, let's use the fallback approach
+      // Get all user bookings first
+      const allUserBookings = await db.select().from(bookings).where(eq(bookings.userId, userId));
       
-      // Get total count
-      const countQuery = db.select({ count: sql<number>`count(*)` }).from(bookings).where(
-        fromToday 
-          ? and(eq(bookings.userId, userId), gte(bookings.start, new Date().setHours(0, 0, 0, 0)))
-          : eq(bookings.userId, userId)
-      );
-      
-      const [userBookings, countResult] = await Promise.all([
-        query.orderBy(bookings.start).limit(limit).offset(offset),
-        countQuery
-      ]);
-      
-      const total = countResult[0]?.count || 0;
-      const hasMore = offset + userBookings.length < total;
+      console.log(`[getBookingsByUser] Found ${allUserBookings.length} total bookings for user ${userId}`);
       
       // Update cache
-      userBookings.forEach(booking => {
+      allUserBookings.forEach(booking => {
         this.bookings.set(booking.id, booking);
       });
       
-      return { bookings: userBookings, total, hasMore };
+      // Filter for today forward if needed
+      let filteredBookings = allUserBookings;
+      if (fromToday) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        console.log(`[getBookingsByUser] Filtering from today: ${today.toISOString()}`);
+        filteredBookings = allUserBookings.filter(booking => {
+          const bookingDate = new Date(booking.start);
+          return bookingDate >= today;
+        });
+        console.log(`[getBookingsByUser] After date filtering: ${filteredBookings.length} bookings`);
+      }
+      
+      // Sort chronologically by start date
+      filteredBookings.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+      
+      // Apply pagination
+      const paginatedBookings = filteredBookings.slice(offset, offset + limit);
+      const total = filteredBookings.length;
+      const hasMore = offset + paginatedBookings.length < total;
+      
+      console.log(`[getBookingsByUser] Returning ${paginatedBookings.length} bookings, total: ${total}, hasMore: ${hasMore}`);
+      
+      return { bookings: paginatedBookings, total, hasMore };
     } catch (error) {
       console.error(`Error getting bookings for user ID ${userId}:`, error);
-      // Fallback to memory cache with pagination
+      // Final fallback to memory cache
       const allUserBookings = Array.from(this.bookings.values())
         .filter(booking => booking.userId === userId);
       
