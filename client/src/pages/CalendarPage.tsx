@@ -3,7 +3,7 @@ import { Header } from "@/components/layout/Header";
 import WeeklyCalendar from "@/components/calendar/WeeklyCalendar";
 import DailyCalendar from "@/components/calendar/DailyCalendar";
 import MonthlyCalendar from "@/components/calendar/MonthlyCalendar";
-import TimelineCalendar from "@/components/calendar/TimelineCalendar";
+
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
@@ -53,20 +53,20 @@ export default function CalendarPage() {
     }
   });
   
-  const [view, setView] = useState<"day" | "week" | "month" | "timeline">(() => {
+  const [view, setView] = useState<"day" | "week" | "month">(() => {
     try {
       // First check for URL parameter
       const urlParams = new URLSearchParams(window.location.search);
-      const urlView = urlParams.get('view') as "day" | "week" | "month" | "timeline" | null;
+      const urlView = urlParams.get('view') as "day" | "week" | "month" | null;
       
-      if (urlView && ['day', 'week', 'month', 'timeline'].includes(urlView)) {
+      if (urlView && ['day', 'week', 'month'].includes(urlView)) {
         console.log(`CalendarPage - Using view from URL: ${urlView}`);
         return urlView;
       }
       
       // Fall back to localStorage
-      const savedView = localStorage.getItem('calendarView') as "day" | "week" | "month" | "timeline";
-      const finalView = savedView && ['day', 'week', 'month', 'timeline'].includes(savedView) ? savedView : "week";
+      const savedView = localStorage.getItem('calendarView') as "day" | "week" | "month";
+      const finalView = savedView && ['day', 'week', 'month'].includes(savedView) ? savedView : "week";
       console.log(`CalendarPage - Using view from localStorage: ${finalView}`);
       return finalView;
     } catch (error) {
@@ -147,7 +147,7 @@ export default function CalendarPage() {
   };
 
   // Handle view change with localStorage persistence
-  const handleViewChange = (newView: "day" | "week" | "month" | "timeline") => {
+  const handleViewChange = (newView: "day" | "week" | "month") => {
     console.log(`CalendarPage - handleViewChange called with: ${newView}, current view: ${view}`);
     setView(newView);
     
@@ -184,7 +184,7 @@ export default function CalendarPage() {
         onStudioFilterChange={handleStudioFilterChange}
         title="Calendar"
         showViewToggle={true}
-        useMondayWeeks={view === "timeline"} // Use Monday weeks for timeline view
+        useMondayWeeks={false} // Calendar page uses Sunday-based weeks
       />
       
       {view === "day" && (
@@ -212,13 +212,7 @@ export default function CalendarPage() {
         />
       )}
       
-      {view === "timeline" && (
-        <TimelineCalendar
-          key={currentDate.toISOString()} // Add key to force complete re-render on date change
-          currentDate={currentDate}
-          selectedStudioIds={selectedStudioIds}
-        />
-      )}
+
     </div>
   );
 }
