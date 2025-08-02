@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import CalendarHeader from "@/components/calendar/CalendarHeader";
+import { Header } from "@/components/layout/Header";
 import WeeklyCalendar from "@/components/calendar/WeeklyCalendar";
 import DailyCalendar from "@/components/calendar/DailyCalendar";
 import MonthlyCalendar from "@/components/calendar/MonthlyCalendar";
@@ -172,7 +172,7 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <CalendarHeader
+      <Header
         key={`header-${currentDate.toISOString()}-${view}`} // Add key to force re-render when date or view changes
         currentDate={currentDate}
         onDateChange={handleDateChange}
@@ -180,6 +180,8 @@ export default function CalendarPage() {
         onViewChange={handleViewChange}
         selectedStudioIds={selectedStudioIds}
         onStudioFilterChange={handleStudioFilterChange}
+        title="Calendar"
+        showViewToggle={true}
         useMondayWeeks={view === "timeline"} // Use Monday weeks for timeline view
       />
       
