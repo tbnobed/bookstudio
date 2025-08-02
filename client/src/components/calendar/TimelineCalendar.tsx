@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, PcrRoom, Alert, BookingStudio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { format, parseISO, isSameDay, isWithinInterval, startOfWeek, endOfWeek, addDays } from "date-fns";
-
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
@@ -77,17 +76,8 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
     return room ? room.name : `PCR ${pcrRoomId}`;
   };
 
-  // Get booking studios
-  const getBookingStudios = (bookingId: number) => {
-    const links = bookingStudioLinks.filter(link => link.bookingId === bookingId);
-    return links.map(link => {
-      const studio = studios.find(s => s.id === link.studioId);
-      return studio ? studio.name : `Studio ${link.studioId}`;
-    });
-  };
-
-  // Calculate booking position and style
-  const getBookingStyle = (booking: Booking, column: number, totalColumns: number) => {
+  // Calculate booking position and size
+  const getBookingStyle = (booking: any) => {
     const startTime = parseISO(booking.start);
     const endTime = parseISO(booking.end);
     
@@ -103,80 +93,93 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
     const top = (startOffset / 60) * 60; // 60px per hour
     const height = Math.max(20, (duration / 60) * 60);
     
-    const width = `calc(${100 / totalColumns}% - 4px)`;
-    const left = `calc(${(column * 100) / totalColumns}% + 2px)`;
-    
     return {
-      position: 'absolute' as const,
       top: `${top}px`,
-      height: `${height}px`,
-      width,
-      left,
-      backgroundColor: booking.color || '#3B82F6',
-      border: '1px solid rgba(0,0,0,0.1)',
-      borderRadius: '6px'
+      height: `${height}px`
     };
   };
 
-  // Arrange overlapping bookings in columns
-  const arrangeBookingsInColumns = (bookings: Booking[]) => {
-    const sortedBookings = [...bookings].sort((a, b) => 
-      new Date(a.start).getTime() - new Date(b.start).getTime()
-    );
-    
-    const columns: Booking[][] = [];
-    
-    for (const booking of sortedBookings) {
-      const bookingStart = new Date(booking.start);
-      const bookingEnd = new Date(booking.end);
-      
-      let placed = false;
-      for (let i = 0; i < columns.length; i++) {
-        const column = columns[i];
-        const lastBookingInColumn = column[column.length - 1];
-        
-        if (new Date(lastBookingInColumn.end) <= bookingStart) {
-          column.push(booking);
-          placed = true;
-          break;
-        }
-      }
-      
-      if (!placed) {
-        columns.push([booking]);
-      }
-    }
-    
-    return sortedBookings.map(booking => {
-      const columnIndex = columns.findIndex(column => column.includes(booking));
-      return {
-        booking,
-        column: columnIndex,
-        totalColumns: columns.length
-      };
-    });
+  // Get booking studios
+  const getBookingStudios = (bookingId: number) => {
+    return bookingStudioLinks
+      .filter(link => link.bookingId === bookingId)
+      .map(link => studios.find(studio => studio.id === link.studioId))
+      .filter(Boolean);
   };
 
-  // Get severity styling for alerts/maintenance
-  const getSeverityStyle = (booking: Booking) => {
-    if (!booking.severity || !['maintenance', 'all_day_maintenance'].some(type => booking.type.includes(type))) {
+  // Generate booking color based on type or status
+  const getBookingColor = (booking: any) => {
+    if (booking.color) {
+      return booking.color;
+    }
+    
+    // Default colors based on type
+    const typeColors: Record<string, string> = {
+      'meeting': '#3b82f6',
+      'production': '#10b981',
+      'maintenance': '#f59e0b',
+      'rehearsal': '#8b5cf6',
+      'live': '#ef4444',
+      'recording': '#06b6d4'
+    };
+    
+    return typeColors[booking.type?.toLowerCase()] || '#6b7280';
+  };
+
+  // Get severity styling for maintenance bookings
+  const getSeverityStyle = (booking: any) => {
+    if (!booking.severity || (!booking.type?.includes('maintenance') && booking.type !== 'all-day:maintenance')) {
       return null;
     }
+
+    const severityStyles = {
+      low: {
+        backgroundColor: '#FEF3C7',
+        borderColor: '#F59E0B',
+        color: '#92400E',
+        pattern: null
+      },
+      medium: {
+        backgroundColor: '#FED7AA',
+        borderColor: '#EA580C',
+        color: '#9A3412',
+        pattern: 'diagonal-stripes'
+      },
+      high: {
+        backgroundColor: '#FECACA',
+        borderColor: '#DC2626',
+        color: '#991B1B',
+        pattern: 'diagonal-stripes'
+      },
+      critical: {
+        backgroundColor: '#FCA5A5',
+        borderColor: '#B91C1C',
+        color: '#7F1D1D',
+        pattern: 'crosshatch'
+      }
+    };
+
+    return severityStyles[booking.severity as keyof typeof severityStyles] || severityStyles.medium;
+  };
+
+  // Get maintenance severity styling
+  const getMaintenanceSeverityStyle = (booking: any) => {
+    if (!booking.severity) return null;
     
     switch (booking.severity) {
       case 'low':
         return {
-          backgroundColor: '#10b981',
-          borderColor: '#059669',
-          color: '#ffffff',
+          backgroundColor: '#fef3c7',
+          borderColor: '#f59e0b',
+          color: '#92400e',
           pattern: null
         };
       case 'medium':
         return {
-          backgroundColor: '#f59e0b',
-          borderColor: '#d97706',
-          color: '#ffffff',
-          pattern: null
+          backgroundColor: '#fed7aa',
+          borderColor: '#ea580c',
+          color: '#9a3412',
+          pattern: 'diagonal-stripes'
         };
       case 'high':
         return {
@@ -276,17 +279,19 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                 </div>
               </div>
 
-              {/* Time Grid */}
+              {/* Timeline Body */}
               <div className="relative">
                 <div className="flex">
-                  {/* Time column */}
+                  {/* Time labels column */}
                   <div className="w-16 border-r border-gray-200 bg-gray-50">
                     {timeSlots.map((slot) => (
                       <div
                         key={slot.hour24}
-                        className="h-[60px] border-b border-gray-100 flex items-center justify-center text-xs text-gray-500 font-medium"
+                        className="h-[60px] border-b border-gray-100 flex items-start justify-center pt-1"
                       >
-                        {slot.label}
+                        <span className="text-xs font-medium text-gray-600">
+                          {slot.label}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -298,32 +303,18 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                       const bookingEndDate = parseISO(booking.end);
                       
                       // Only show booking on the day it starts, unless it truly spans multiple days
-                      const startsOnDay = isSameDay(bookingStartDate, day.date);
-                      
-                      // For genuine multi-day bookings, check if this day falls within the booking period
-                      const dayStart = new Date(day.date);
-                      dayStart.setHours(0, 0, 0, 0);
-                      const dayEnd = new Date(day.date);
-                      dayEnd.setHours(23, 59, 59, 999);
-                      
-                      const bookingSpansMultipleDays = !isSameDay(bookingStartDate, bookingEndDate);
-                      const bookingOverlapsThisDay = bookingStartDate <= dayEnd && bookingEndDate >= dayStart;
-                      
-                      // Show booking if it starts on this day OR if it's a genuine multi-day booking that overlaps this day
-                      const showOnThisDay = startsOnDay || (bookingSpansMultipleDays && bookingOverlapsThisDay);
-                      
-                      return showOnThisDay;
+                      return isSameDay(bookingStartDate, day.date) || 
+                             (isWithinInterval(day.date, { start: bookingStartDate, end: bookingEndDate }) && 
+                              !isSameDay(bookingStartDate, bookingEndDate));
                     });
-
-                    // Arrange bookings in columns for side-by-side display
-                    const arrangedBookings = arrangeBookingsInColumns(dayBookings);
 
                     return (
                       <div
                         key={day.fullDate}
                         className="flex-1 min-w-[140px] border-r border-gray-200 relative"
+                        style={{ height: `${18 * 60}px` }} // 18 hours * 60px per hour
                       >
-                        {/* Hour grid lines */}
+                        {/* Hour lines */}
                         {timeSlots.map((slot) => (
                           <div
                             key={slot.hour24}
@@ -338,7 +329,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                             style={{
                               top: `${getCurrentTimePosition()}px`,
                               height: '2px',
-                              backgroundColor: '#ef4444', // red-500
+                              backgroundColor: '#ef4444',
                               boxShadow: '0 0 4px rgba(239, 68, 68, 0.6)',
                             }}
                           >
@@ -348,167 +339,69 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                             >
                               {format(currentTime, 'h:mm a')}
                             </div>
-                            {/* Arrow pointing to the line */}
-                            <div
-                              className="absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full shadow-lg"
-                              style={{ transform: 'translateX(-50%) translateY(-50%)' }}
-                            />
                           </div>
                         )}
 
-                        {/* Bookings arranged in columns */}
-                        {arrangedBookings.map(({ booking, column, totalColumns }) => {
-                          const style = getBookingStyle(booking, column, totalColumns);
-                          const studios = getBookingStudios(booking.id);
-                          const pcrRoom = getPcrRoomName(booking.pcrRoomId);
+                        {/* Bookings */}
+                        {dayBookings.map((booking, index) => {
+                          const style = getBookingStyle(booking);
+                          const bookingStudios = getBookingStudios(booking.id);
                           const severityStyle = getSeverityStyle(booking);
+                          const maintenanceStyle = getMaintenanceSeverityStyle(booking);
+                          const finalStyle = severityStyle || maintenanceStyle;
                           
-                          // Apply severity styling for alerts/maintenance, otherwise use default booking style
-                          // Remove backgroundColor from main container - we'll apply it to header/body separately
-                          const { backgroundColor, ...styleWithoutBg } = style;
-                          const finalStyle = {
-                            ...styleWithoutBg,
-                            marginLeft: '2px',
-                            marginRight: '2px'
-                          };
-
                           return (
                             <Tooltip key={booking.id}>
                               <TooltipTrigger asChild>
                                 <div
-                                  className="absolute rounded text-sm cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-200 z-20 overflow-hidden flex flex-col shadow-lg"
+                                  className="absolute left-1 right-1 rounded px-2 py-1 text-xs cursor-pointer hover:shadow-lg transition-shadow z-20"
                                   style={{
-                                    ...styleWithoutBg,
-                                    marginLeft: '2px',
-                                    marginRight: '2px',
-                                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)'
+                                    ...style,
+                                    backgroundColor: finalStyle?.backgroundColor || getBookingColor(booking),
+                                    borderLeft: `3px solid ${finalStyle?.borderColor || getBookingColor(booking)}`,
+                                    color: finalStyle?.color || 'white',
                                   }}
                                 >
-                                  {/* Solid Header with All Booking Details */}
-                                  <div 
-                                    className={`p-2 ${severityStyle ? 'font-semibold' : 'text-white'} ${
-                                      severityStyle && severityStyle.pattern === 'diagonal-stripes' ? 'bg-stripe-pattern' : ''
-                                    }`}
-                                    style={{
-                                      backgroundColor: severityStyle ? severityStyle.backgroundColor : (booking.color || '#3B82F6'),
-                                      border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
-                                      color: severityStyle ? severityStyle.color : '#ffffff',
-                                      textShadow: severityStyle ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 2px rgba(0,0,0,0.7)',
-                                      borderRadius: '6px 6px 0 0'
-                                    }}
-                                  >
-                                    <div className="space-y-1">
-                                      {/* Title with severity badge */}
-                                      <div className="font-bold text-base leading-tight">
-                                        {severityStyle && (
-                                          <span className="text-xs px-1 py-0.5 rounded bg-black bg-opacity-20 font-bold mr-1">
-                                            ⚠ {booking.severity?.toUpperCase()}
-                                          </span>
-                                        )}
-                                        <span className="break-words">{booking.title}</span>
-                                      </div>
-                                      
-                                      {/* Time */}
-                                      <div className="font-bold text-sm">
-                                        {format(parseISO(booking.start), 'h:mm a')} - {format(parseISO(booking.end), 'h:mm a')}
-                                      </div>
-                                      
-                                      {/* Studios */}
-                                      {studios.length > 0 && (
-                                        <div className="text-sm font-medium">
-                                          {studios.join(', ')}
-                                        </div>
-                                      )}
-                                      
-                                      {/* PCR Room */}
-                                      {pcrRoom && (
-                                        <div className="text-sm font-medium">
-                                          {pcrRoom}
-                                        </div>
-                                      )}
-                                      
-                                      {/* Description (truncated) */}
-                                      {booking.description && (
-                                        <div className="text-xs leading-tight opacity-90">
-                                          {booking.description.length > 80 
-                                            ? `${booking.description.substring(0, 80)}...` 
-                                            : booking.description}
-                                        </div>
-                                      )}
-                                      
-                                      {/* Status if not confirmed */}
-                                      {booking.status && booking.status !== 'confirmed' && (
-                                        <div className="text-xs font-bold uppercase">
-                                          {booking.status}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Transparent Body - Minimal space for visual balance */}
-                                  <div 
-                                    className="relative flex-1"
-                                    style={{
-                                      border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
-                                      borderTop: 'none',
-                                      borderRadius: '0 0 6px 6px',
-                                      minHeight: '20px' // Just enough for visual balance
-                                    }}
-                                  >
-                                    {/* Transparent background layer */}
-                                    <div 
-                                      className="absolute inset-0 opacity-30"
-                                      style={{
-                                        backgroundColor: severityStyle 
-                                          ? severityStyle.backgroundColor 
-                                          : (booking.color || '#3B82F6'),
-                                        borderRadius: '0 0 6px 6px'
-                                      }}
-                                    ></div>
-                                  </div>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-sm p-4 bg-white border border-gray-200 shadow-lg">
-                                <div className="space-y-2">
-                                  <div className="font-semibold text-base text-gray-900">
+                                  <div className="font-semibold truncate">
                                     {booking.title}
                                   </div>
-                                  
+                                  <div className="text-xs opacity-90 truncate">
+                                    {format(parseISO(booking.start), 'h:mm a')} - {format(parseISO(booking.end), 'h:mm a')}
+                                  </div>
+                                  {bookingStudios.length > 0 && (
+                                    <div className="text-xs opacity-80 truncate">
+                                      {bookingStudios.map(studio => studio?.name).join(', ')}
+                                    </div>
+                                  )}
+                                  {getPcrRoomName(booking.pcrRoomId) && (
+                                    <div className="text-xs opacity-80 truncate">
+                                      {getPcrRoomName(booking.pcrRoomId)}
+                                    </div>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="max-w-xs">
+                                  <div className="font-semibold">{booking.title}</div>
                                   {booking.description && (
-                                    <div className="text-sm text-gray-700">
-                                      <strong>Description:</strong> {booking.description}
-                                    </div>
+                                    <div className="text-sm mt-1">{booking.description}</div>
                                   )}
-                                  
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Time:</strong> {format(parseISO(booking.start), 'MMM d, yyyy h:mm a')} - {format(parseISO(booking.end), 'h:mm a')}
+                                  <div className="text-sm mt-1">
+                                    {format(parseISO(booking.start), 'MMM d, h:mm a')} - {format(parseISO(booking.end), 'MMM d, h:mm a')}
                                   </div>
-                                  
-                                  {studios.length > 0 && (
-                                    <div className="text-sm text-gray-700">
-                                      <strong>Studios:</strong> {studios.join(', ')}
+                                  {bookingStudios.length > 0 && (
+                                    <div className="text-sm mt-1">
+                                      Studios: {bookingStudios.map(studio => studio?.name).join(', ')}
                                     </div>
                                   )}
-                                  
-                                  {pcrRoom && (
-                                    <div className="text-sm text-gray-700">
-                                      <strong>PCR Room:</strong> {pcrRoom}
+                                  {getPcrRoomName(booking.pcrRoomId) && (
+                                    <div className="text-sm mt-1">
+                                      PCR: {getPcrRoomName(booking.pcrRoomId)}
                                     </div>
                                   )}
-                                  
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Type:</strong> {booking.type.charAt(0).toUpperCase() + booking.type.slice(1)}
-                                  </div>
-                                  
                                   {booking.status && (
-                                    <div className="text-sm text-gray-700">
-                                      <strong>Status:</strong> {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                                    </div>
-                                  )}
-                                  
-                                  {booking.severity && (booking.type === 'maintenance' || booking.type === 'all_day_maintenance' || booking.type.includes('maintenance')) && (
-                                    <div className="text-sm text-gray-700">
-                                      <strong>Severity:</strong> {booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1)}
+                                    <div className="text-sm mt-1">
+                                      Status: {booking.status}
                                     </div>
                                   )}
                                 </div>
