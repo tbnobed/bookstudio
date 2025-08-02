@@ -40,11 +40,11 @@ interface AuditLog {
   ipAddress?: string;
   userAgent?: string;
   timestamp: string;
-  user: {
+  user?: {
     name: string;
     username: string;
     role: string;
-  };
+  } | null;
 }
 
 interface AuditLogStats {
@@ -181,14 +181,21 @@ export default function AuditLogsPage() {
     if (!auditData?.logs || !filters.searchTerm) return auditData?.logs || [];
     
     const searchLower = filters.searchTerm.toLowerCase();
-    return auditData.logs.filter((log: AuditLog) =>
-      log.user.name.toLowerCase().includes(searchLower) ||
-      log.user.username.toLowerCase().includes(searchLower) ||
-      log.action.toLowerCase().includes(searchLower) ||
-      log.entityType.toLowerCase().includes(searchLower) ||
-      log.entityTitle?.toLowerCase().includes(searchLower) ||
-      log.ipAddress?.toLowerCase().includes(searchLower)
-    );
+    return auditData.logs.filter((log: AuditLog) => {
+      const userName = log.user?.name?.toLowerCase() || '';
+      const userUsername = log.user?.username?.toLowerCase() || '';
+      const action = log.action?.toLowerCase() || '';
+      const entityType = log.entityType?.toLowerCase() || '';
+      const entityTitle = log.entityTitle?.toLowerCase() || '';
+      const ipAddress = log.ipAddress?.toLowerCase() || '';
+      
+      return userName.includes(searchLower) ||
+             userUsername.includes(searchLower) ||
+             action.includes(searchLower) ||
+             entityType.includes(searchLower) ||
+             entityTitle.includes(searchLower) ||
+             ipAddress.includes(searchLower);
+    });
   }, [auditData?.logs, filters.searchTerm]);
 
   // Helper function to get display value for Select components
@@ -453,7 +460,7 @@ export default function AuditLogsPage() {
                                   <span className="font-medium">{log.entityTitle || log.entityType}</span>
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  by {log.user.name} ({log.user.username}) • {formatTimestamp(log.timestamp)}
+                                  by {log.user?.name || 'System'} ({log.user?.username || 'N/A'}) • {formatTimestamp(log.timestamp)}
                                 </div>
                               </div>
                             </div>
@@ -546,7 +553,7 @@ export default function AuditLogsPage() {
                   <div>
                     <label className="text-sm font-medium">User</label>
                     <div className="mt-1">
-                      {selectedLog.user.name} ({selectedLog.user.username}) - {selectedLog.user.role}
+                      {selectedLog.user?.name || 'System'} ({selectedLog.user?.username || 'N/A'}) - {selectedLog.user?.role || 'System'}
                     </div>
                   </div>
 

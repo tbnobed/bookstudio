@@ -4,7 +4,7 @@
 
 BookStud.io is a comprehensive web application for television studio management providing intelligent scheduling, booking, and access control. It supports multi-studio booking, real-time status, template-based booking creation, and role-based user management. The system is designed for television production facilities needing sophisticated scheduling and notification management.
 
-**Latest Version: 1.5.0** - Features advanced linked copy functionality where users can create linked booking copies that automatically synchronize updates across all linked instances, with selective deletion options and enhanced modal architecture.
+**Latest Version: 1.5.2** - Features comprehensive audit logging system tracking ALL system activities including user management, template operations, alert management, system configuration changes, studio/PCR room management, and notification group operations with enhanced UI display and 90-day retention policy.
 
 ## User Preferences
 
@@ -52,6 +52,7 @@ Preferred communication style: Simple, everyday language.
 - **Signage Display**: Public-facing `/signage` and custom `/custom-signage` pages with real-time schedule, weekly overview, studio status, alerts, weather integration, and auto-refresh.
 - **Dynamic Booking Types**: API-driven booking types with CRUD management via Settings page, supporting custom types and active/inactive status.
 - **Enhanced Modal Architecture** (v1.5.0): Improved responsive booking modals with proper routing between desktop/mobile forms and fixed day view new booking issues.
+- **Comprehensive Audit Logging** (v1.5.2): Complete audit trail implementation across ALL system operations including user management (invite/create/update/delete), template CRUD operations, alert management, system configuration changes, studio/PCR room management, notification group operations, and booking management with 90-day retention policy and enhanced UI display.
 
 ### Core Decisions
 - **Architectural Separation**: Strict separation between production bookings and facility alerts to ensure data integrity and prevent cross-contamination.

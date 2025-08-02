@@ -173,6 +173,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Add audit log
+      await AuditService.log('invite_sent', 'user', 'User Invitation', req, {
+        targetEmail: email,
+        targetRole: role
+      });
+      
       res.json({ 
         success: true,
         message: `Invitation sent to ${email} with role: ${role}`,
@@ -205,6 +211,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const user = await storage.createUser(userData);
+      
+      // Add audit log
+      await AuditService.log('created', 'user', user.username, req, {
+        userId: user.id,
+        role: user.role,
+        email: user.email
+      });
+      
       res.status(201).json(user);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -218,6 +232,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const currentUser = req.user as any;
+      
+      // Get original user data for audit logging
+      const originalUser = await storage.getUser(id);
+      if (!originalUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
       
       // Check if the user is updating their own profile or has admin/site_manager rights
       if (currentUser.id !== id && currentUser.role !== "admin" && currentUser.role !== "site_manager") {
@@ -256,6 +276,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
+      // Add audit log with changes detected
+      const changes: any = {};
+      if (req.body.name && req.body.name !== originalUser.name) changes.name = { from: originalUser.name, to: req.body.name };
+      if (req.body.email && req.body.email !== originalUser.email) changes.email = { from: originalUser.email, to: req.body.email };
+      if (req.body.role && req.body.role !== originalUser.role) changes.role = { from: originalUser.role, to: req.body.role };
+      if (req.body.password) changes.password = 'changed';
+      
+      await AuditService.log('updated', 'user', updatedUser.username, req, {
+        userId: updatedUser.id,
+        changes
+      });
+      
       res.json(updatedUser);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -293,6 +325,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!deleted) {
         return res.status(404).json({ message: "User not found or could not be deleted" });
       }
+      
+      // Add audit log
+      await AuditService.log('deleted', 'user', userToDelete.username, req, {
+        userId: userToDelete.id,
+        role: userToDelete.role,
+        email: userToDelete.email,
+        forceDelete: force
+      });
       
       const message = force 
         ? "User deleted successfully (associated bookings and templates reassigned to admin)"
@@ -444,6 +484,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Invalidate token
       await invalidatePasswordResetToken(token);
       
+      // Add audit log (no user context since they're not logged in)
+      await AuditService.log('password_reset', 'user', user.username, req, {
+        userId: user.id,
+        method: 'token_reset'
+      });
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Reset password error:", error);
@@ -474,6 +520,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const studioData = insertStudioSchema.parse(req.body);
       const studio = await storage.createStudio(studioData);
+      
+      // Add audit log
+      await AuditService.log('created', 'studio', studio.name, req, {
+        studioId: studio.id,
+        description: studio.description
+      });
+      
       res.status(201).json(studio);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -488,10 +541,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { status } = z.object({ status: z.string() }).parse(req.body);
       
+      // Get current studio for audit logging
+      const currentStudio = await storage.getStudio(id);
+      if (!currentStudio) {
+        return res.status(404).json({ message: "Studio not found" });
+      }
+      
       const updatedStudio = await storage.updateStudioStatus(id, status);
       if (!updatedStudio) {
         return res.status(404).json({ message: "Studio not found" });
       }
+      
+      // Add audit log
+      await AuditService.log('status_updated', 'studio', updatedStudio.name, req, {
+        studioId: id,
+        oldStatus: currentStudio.status,
+        newStatus: status
+      });
       
       res.json(updatedStudio);
     } catch (error) {
@@ -505,6 +571,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/studios/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // Get current studio for audit logging
+      const currentStudio = await storage.getStudio(id);
+      if (!currentStudio) {
+        return res.status(404).json({ message: "Studio not found" });
+      }
+      
       // Allow updating name, description and status
       const updateSchema = z.object({
         name: z.string().optional(),
@@ -518,6 +591,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!updatedStudio) {
         return res.status(404).json({ message: "Studio not found" });
       }
+      
+      // Detect changes for audit logging
+      const changes: any = {};
+      if (req.body.name && req.body.name !== currentStudio.name) changes.name = { from: currentStudio.name, to: req.body.name };
+      if (req.body.description !== undefined && req.body.description !== currentStudio.description) changes.description = { from: currentStudio.description, to: req.body.description };
+      if (req.body.status && req.body.status !== currentStudio.status) changes.status = { from: currentStudio.status, to: req.body.status };
+      
+      await AuditService.log('updated', 'studio', updatedStudio.name, req, {
+        studioId: id,
+        changes
+      });
       
       res.json(updatedStudio);
     } catch (error) {
@@ -566,6 +650,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const pcrRoomData = insertPcrRoomSchema.parse(req.body);
       const pcrRoom = await storage.createPcrRoom(pcrRoomData);
+      
+      // Add audit log
+      await AuditService.log('created', 'pcr_room', pcrRoom.name, req, {
+        pcrRoomId: pcrRoom.id,
+        description: pcrRoom.description
+      });
+      
       res.status(201).json(pcrRoom);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -580,10 +671,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { status } = z.object({ status: z.string() }).parse(req.body);
       
+      // Get current PCR room for audit logging
+      const currentPcrRoom = await storage.getPcrRoom(id);
+      if (!currentPcrRoom) {
+        return res.status(404).json({ message: "PCR room not found" });
+      }
+      
       const updatedPcrRoom = await storage.updatePcrRoomStatus(id, status);
       if (!updatedPcrRoom) {
         return res.status(404).json({ message: "PCR room not found" });
       }
+      
+      // Add audit log
+      await AuditService.log('status_updated', 'pcr_room', updatedPcrRoom.name, req, {
+        pcrRoomId: id,
+        oldStatus: currentPcrRoom.status,
+        newStatus: status
+      });
       
       res.json(updatedPcrRoom);
     } catch (error) {
@@ -597,6 +701,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/pcr-rooms/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // Get current PCR room for audit logging
+      const currentPcrRoom = await storage.getPcrRoom(id);
+      if (!currentPcrRoom) {
+        return res.status(404).json({ message: "PCR room not found" });
+      }
+      
       // Allow updating name, description and status
       const updateSchema = z.object({
         name: z.string().optional(),
@@ -611,6 +722,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "PCR room not found" });
       }
       
+      // Detect changes for audit logging
+      const changes: any = {};
+      if (req.body.name && req.body.name !== currentPcrRoom.name) changes.name = { from: currentPcrRoom.name, to: req.body.name };
+      if (req.body.description !== undefined && req.body.description !== currentPcrRoom.description) changes.description = { from: currentPcrRoom.description, to: req.body.description };
+      if (req.body.status && req.body.status !== currentPcrRoom.status) changes.status = { from: currentPcrRoom.status, to: req.body.status };
+      
+      await AuditService.log('updated', 'pcr_room', updatedPcrRoom.name, req, {
+        pcrRoomId: id,
+        changes
+      });
+      
       res.json(updatedPcrRoom);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -624,10 +746,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       
+      // Get PCR room for audit logging before deletion
+      const pcrRoom = await storage.getPcrRoom(id);
+      
       // The deletePcrRoom method already checks for active bookings
       const success = await storage.deletePcrRoom(id);
       
-      if (success) {
+      if (success && pcrRoom) {
+        // Add audit log
+        await AuditService.log('deleted', 'pcr_room', pcrRoom.name, req, {
+          pcrRoomId: id,
+          description: pcrRoom.description
+        });
+        
         return res.json({ message: "PCR room deleted successfully" });
       } else {
         return res.status(400).json({ 
@@ -668,6 +799,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const template = await storage.createTemplate(templateData);
+      
+      // Add audit log
+      await AuditService.log('created', 'template', template.name, req, {
+        templateId: template.id,
+        isShared: template.isShared
+      });
+      
       res.status(201).json(template);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -697,6 +835,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedTemplate = await storage.updateTemplate(id, updateData);
       
       if (updatedTemplate) {
+        // Detect changes for audit logging
+        const changes: any = {};
+        if (req.body.name && req.body.name !== template.name) changes.name = { from: template.name, to: req.body.name };
+        if (req.body.isShared !== undefined && req.body.isShared !== template.isShared) changes.isShared = { from: template.isShared, to: req.body.isShared };
+        if (req.body.data && JSON.stringify(req.body.data) !== JSON.stringify(template.data)) changes.data = 'modified';
+        
+        await AuditService.log('updated', 'template', updatedTemplate.name, req, {
+          templateId: id,
+          changes
+        });
+        
         res.json(updatedTemplate);
       } else {
         res.status(500).json({ message: "Failed to update template" });
@@ -727,6 +876,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const success = await storage.deleteTemplate(id, force);
       if (success) {
+        // Add audit log
+        await AuditService.log('deleted', 'template', template.name, req, {
+          templateId: id,
+          isShared: template.isShared,
+          forceDelete: force
+        });
+        
         const message = force 
           ? "Template deleted successfully (removed from associated bookings)"
           : "Template deleted successfully";
@@ -2038,6 +2194,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Alert created by ${user.username} (ID: ${user.id}): "${alert.title}"`);
       
+      // Add audit log
+      await AuditService.log('created', 'alert', alert.title, req, {
+        alertId: alert.id,
+        alertType: alert.alertType,
+        severity: alert.severity,
+        start: alert.start,
+        end: alert.end
+      });
+      
       // Send facility-wide notifications for all alerts
       try {
         console.log(`Processing facility-wide alert notification: ${alert.title}`);
@@ -2145,6 +2310,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Alert ${id} updated successfully by ${user.username} (ID: ${user.id})`);
       
+      // Detect changes for audit logging
+      const changes: any = {};
+      if (req.body.title && req.body.title !== existingAlert.title) changes.title = { from: existingAlert.title, to: req.body.title };
+      if (req.body.description && req.body.description !== existingAlert.description) changes.description = 'modified';
+      if (req.body.severity && req.body.severity !== existingAlert.severity) changes.severity = { from: existingAlert.severity, to: req.body.severity };
+      if (req.body.status && req.body.status !== existingAlert.status) changes.status = { from: existingAlert.status, to: req.body.status };
+      
+      await AuditService.log('updated', 'alert', updatedAlert.title, req, {
+        alertId: id,
+        changes
+      });
+      
       // Send facility-wide notifications for updated alerts 
       try {
         console.log(`Processing facility-wide alert update notification: ${updatedAlert.title}`);
@@ -2245,6 +2422,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (success) {
         console.log(`Alert ${id} deleted by ${user.username} (ID: ${user.id})`);
+        
+        // Add audit log
+        await AuditService.log('deleted', 'alert', existingAlert.title, req, {
+          alertId: id,
+          alertType: existingAlert.alertType,
+          severity: existingAlert.severity
+        });
+        
         res.json({ message: "Alert deleted successfully" });
       } else {
         res.status(500).json({ message: "Failed to delete alert" });
@@ -2335,6 +2520,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate request body
       const groupData = insertNotificationGroupSchema.parse(req.body);
       const newGroup = await storage.createNotificationGroup(groupData);
+      
+      // Add audit log
+      await AuditService.log('created', 'notification_group', newGroup.name, req, {
+        groupId: newGroup.id,
+        groupType: newGroup.groupType,
+        email: newGroup.email,
+        enabled: newGroup.enabled
+      });
+      
       res.status(201).json(newGroup);
     } catch (error) {
       if (error instanceof ValidationError || error instanceof ZodError) {
@@ -2369,6 +2563,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedGroup = await storage.updateNotificationGroup(id, updateData);
       console.log(`[NotificationGroup] Update result:`, updatedGroup);
       
+      // Detect changes for audit logging
+      const changes: any = {};
+      if (req.body.name && req.body.name !== group.name) changes.name = { from: group.name, to: req.body.name };
+      if (req.body.email && req.body.email !== group.email) changes.email = { from: group.email, to: req.body.email };
+      if (req.body.enabled !== undefined && req.body.enabled !== group.enabled) changes.enabled = { from: group.enabled, to: req.body.enabled };
+      if (req.body.groupType && req.body.groupType !== group.groupType) changes.groupType = { from: group.groupType, to: req.body.groupType };
+      
+      await AuditService.log('updated', 'notification_group', updatedGroup.name, req, {
+        groupId: id,
+        changes
+      });
+      
       res.json(updatedGroup);
     } catch (error) {
       console.error(`[NotificationGroup] Update error for ID ${req.params.id}:`, error);
@@ -2398,6 +2604,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const success = await storage.deleteNotificationGroup(id);
       if (success) {
+        // Add audit log
+        await AuditService.log('deleted', 'notification_group', group.name, req, {
+          groupId: id,
+          groupType: group.groupType,
+          email: group.email
+        });
+        
         res.status(204).end();
       } else {
         res.status(500).json({ message: "Failed to delete notification group" });
@@ -2586,7 +2799,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Site name is required and must be a string" });
       }
       
+      // Get current site name for audit logging
+      const currentSiteName = await storage.getSiteName();
+      
       const setting = await storage.setSiteName(siteName);
+      
+      // Add audit log
+      await AuditService.log('updated', 'system_setting', 'Site Name', req, {
+        settingKey: 'siteName',
+        oldValue: currentSiteName,
+        newValue: siteName
+      });
+      
       res.json({ siteName: setting.value, message: "Site name updated successfully" });
     } catch (error) {
       console.error("Error setting site name:", error);
@@ -2640,9 +2864,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid timezone identifier" });
       }
       
+      // Get current timezone for audit logging
+      const currentTimezoneSetting = await storage.getSystemSetting('facilityTimezone');
+      const currentTimezone = currentTimezoneSetting?.value || process.env.VITE_FACILITY_TIMEZONE || process.env.FACILITY_TIMEZONE;
+      
       const setting = await storage.upsertSystemSetting({ 
         key: 'facilityTimezone', 
         value: timezone 
+      });
+      
+      // Add audit log
+      await AuditService.log('updated', 'system_setting', 'Facility Timezone', req, {
+        settingKey: 'facilityTimezone',
+        oldValue: currentTimezone,
+        newValue: timezone
       });
       
       res.json({ timezone: setting.value, message: "Facility timezone updated successfully" });
@@ -2654,9 +2889,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/system/timezone", isAuthenticated, hasRole(["admin"]), async (req, res) => {
     try {
+      // Get current timezone for audit logging
+      const currentTimezoneSetting = await storage.getSystemSetting('facilityTimezone');
+      const currentTimezone = currentTimezoneSetting?.value;
+      
       const deleted = await storage.deleteSystemSetting('facilityTimezone');
       
-      if (deleted) {
+      if (deleted && currentTimezone) {
+        // Add audit log only if there was actually a timezone to delete
+        await AuditService.log('deleted', 'system_setting', 'Facility Timezone', req, {
+          settingKey: 'facilityTimezone',
+          deletedValue: currentTimezone
+        });
         res.json({ message: "Facility timezone cleared successfully" });
       } else {
         res.json({ message: "No timezone setting found to clear" });
