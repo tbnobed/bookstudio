@@ -8,14 +8,14 @@
 
 const { Pool } = require('pg');
 
-// Create connection pool with SSL support for production
+// Create connection pool - no SSL for Docker internal connections
 const pool = new Pool({
   host: process.env.PGHOST || 'localhost',
   port: process.env.PGPORT || 5432,
   database: process.env.PGDATABASE || 'bookstudio',
   user: process.env.PGUSER || 'postgres',
   password: process.env.PGPASSWORD || 'postgres',
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: false, // Docker internal connections don't use SSL
 });
 
 async function fixColumnNaming() {
@@ -88,6 +88,44 @@ async function cleanInvalidNotifications() {
   }
 }
 
+async function fixSystemSettingsTable() {
+  console.log('=== Fixing system_settings table schema ===');
+  
+  try {
+    // Check if system_settings uses old column names
+    const oldSchemaCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'system_settings' 
+        AND column_name = 'setting_key'
+      );
+    `);
+    
+    const newSchemaCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'system_settings' 
+        AND column_name = 'key'
+      );
+    `);
+    
+    if (oldSchemaCheck.rows[0].exists && !newSchemaCheck.rows[0].exists) {
+      console.log('Updating system_settings table to new schema...');
+      await pool.query('ALTER TABLE system_settings RENAME COLUMN setting_key TO key;');
+      await pool.query('ALTER TABLE system_settings RENAME COLUMN setting_value TO value;');
+      console.log('System_settings table updated successfully');
+    } else if (newSchemaCheck.rows[0].exists) {
+      console.log('System_settings table already uses correct schema');
+    }
+    
+  } catch (error) {
+    console.error('Error fixing system_settings table:', error);
+    // Don't throw - this is a non-critical fix
+  }
+}
+
 async function ensureRequiredTables() {
   console.log('=== Ensuring required tables exist ===');
   
@@ -134,6 +172,7 @@ async function main() {
   try {
     await fixColumnNaming();
     await cleanInvalidNotifications();
+    await fixSystemSettingsTable();
     await ensureRequiredTables();
     
     console.log('=== Production Migration v1.5.1 completed successfully ===');
