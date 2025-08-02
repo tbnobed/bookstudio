@@ -158,8 +158,8 @@ async function runMigration() {
 
     // Add a migration completion audit log
     await client.query(`
-      INSERT INTO audit_logs (action, resource_type, resource_name, user_name, details)
-      VALUES ('migration_completed', 'system', 'Migration v1.5.2', 'system', $1);
+      INSERT INTO audit_logs (user_id, action, entity_type, entity_title, details)
+      VALUES (0, 'migration_completed', 'system', 'Migration v1.5.2', $1);
     `, [JSON.stringify({ 
       migration: 'v1.5.2',
       description: 'Comprehensive audit logging enhancement completed',

@@ -307,11 +307,10 @@ async function createCoreSystemSettings() {
   await query(`
     CREATE TABLE IF NOT EXISTS system_settings (
       id SERIAL PRIMARY KEY,
-      setting_key TEXT NOT NULL UNIQUE,
-      setting_value TEXT NOT NULL,
-      description TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      key TEXT NOT NULL UNIQUE,
+      value TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
     );
   `);
 }
@@ -480,11 +479,10 @@ async function createDefaultSystemSettings() {
   await query(`
     CREATE TABLE IF NOT EXISTS system_settings (
       id SERIAL PRIMARY KEY,
-      setting_key TEXT NOT NULL UNIQUE,
-      setting_value TEXT NOT NULL,
-      description TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      key TEXT NOT NULL UNIQUE,
+      value TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
     );
   `);
   
@@ -497,13 +495,13 @@ async function createDefaultSystemSettings() {
   
   for (const setting of defaultSettings) {
     try {
-      const exists = await query('SELECT id FROM system_settings WHERE setting_key = $1', [setting.key]);
+      const exists = await query('SELECT id FROM system_settings WHERE key = $1', [setting.key]);
       
       if (exists.rows.length === 0) {
         await query(`
-          INSERT INTO system_settings (setting_key, setting_value, description)
-          VALUES ($1, $2, $3)
-        `, [setting.key, setting.value, setting.description]);
+          INSERT INTO system_settings (key, value)
+          VALUES ($1, $2)
+        `, [setting.key, setting.value]);
         
         console.log(`✅ Created system setting: ${setting.key}`);
       } else {
