@@ -361,3 +361,32 @@ export const insertBookingTypeSchema = createInsertSchema(bookingTypes).omit({
 
 export type BookingType = typeof bookingTypes.$inferSelect;
 export type InsertBookingType = z.infer<typeof insertBookingTypeSchema>;
+
+// Audit Log schema - tracks all system activities
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(), // who performed the action
+  action: text("action").notNull(), // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.
+  entityType: text("entity_type").notNull(), // booking, user, alert, template, etc.
+  entityId: integer("entity_id"), // ID of the affected entity (nullable for system actions)
+  entityTitle: text("entity_title"), // title/name of affected entity for easy identification
+  details: json("details").default({}), // JSON object with action details (old values, new values, etc.)
+  ipAddress: text("ip_address"), // IP address of the user
+  userAgent: text("user_agent"), // browser/client information
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [auditLogs.userId],
+    references: [users.id],
+  }),
+}));
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;

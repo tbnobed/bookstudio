@@ -7,6 +7,7 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { verifyInviteToken, invalidateInviteToken } from "./email";
 import { User as SelectUser } from "@shared/schema";
+import { AuditService } from "./services/auditService";
 
 declare global {
   namespace Express {
@@ -149,17 +150,62 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", async (err: any, user: any, info: any) => {
       if (err) {
         return next(err);
       }
       if (!user) {
+        // Log failed login attempt
+        try {
+          await AuditService.log(
+            {
+              userId: null,
+              ipAddress: req.ip,
+              userAgent: req.get('User-Agent')
+            },
+            "LOGIN_FAILED",
+            "authentication",
+            undefined,
+            `Failed login attempt for username: ${req.body.username}`,
+            { 
+              username: req.body.username,
+              reason: info?.message || "Invalid credentials",
+              ipAddress: req.ip
+            }
+          );
+        } catch (auditError) {
+          console.error("Failed to log login attempt:", auditError);
+        }
         return res.status(401).json({ message: info?.message || "Login failed" });
       }
-      req.login(user, (err) => {
+      req.login(user, async (err: any) => {
         if (err) {
           return next(err);
         }
+        
+        // Log successful login
+        try {
+          await AuditService.log(
+            {
+              userId: user.id,
+              ipAddress: req.ip,
+              userAgent: req.get('User-Agent')
+            },
+            "LOGIN",
+            "authentication",
+            user.id,
+            `User ${user.username} logged in`,
+            {
+              username: user.username,
+              name: user.name,
+              role: user.role,
+              ipAddress: req.ip
+            }
+          );
+        } catch (auditError) {
+          console.error("Failed to log successful login:", auditError);
+        }
+        
         return res.json(user);
       });
     })(req, res, next);
@@ -167,32 +213,131 @@ export function setupAuth(app: Express) {
   
   // For backward compatibility
   app.post("/api/auth/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", async (err: any, user: any, info: any) => {
       if (err) {
         return next(err);
       }
       if (!user) {
+        // Log failed login attempt
+        try {
+          await AuditService.log(
+            {
+              userId: null,
+              ipAddress: req.ip,
+              userAgent: req.get('User-Agent')
+            },
+            "LOGIN_FAILED",
+            "authentication",
+            undefined,
+            `Failed login attempt for username: ${req.body.username}`,
+            { 
+              username: req.body.username,
+              reason: info?.message || "Invalid credentials",
+              ipAddress: req.ip
+            }
+          );
+        } catch (auditError) {
+          console.error("Failed to log login attempt:", auditError);
+        }
         return res.status(401).json({ message: info?.message || "Login failed" });
       }
-      req.login(user, (err) => {
+      req.login(user, async (err: any) => {
         if (err) {
           return next(err);
         }
+        
+        // Log successful login
+        try {
+          await AuditService.log(
+            {
+              userId: user.id,
+              ipAddress: req.ip,
+              userAgent: req.get('User-Agent')
+            },
+            "LOGIN",
+            "authentication",
+            user.id,
+            `User ${user.username} logged in`,
+            {
+              username: user.username,
+              name: user.name,
+              role: user.role,
+              ipAddress: req.ip
+            }
+          );
+        } catch (auditError) {
+          console.error("Failed to log successful login:", auditError);
+        }
+        
         return res.json({ user });
       });
     })(req, res, next);
   });
 
-  app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
+  app.post("/api/logout", async (req, res, next) => {
+    const user = req.user as SelectUser;
+    
+    // Log logout before actually logging out
+    if (user) {
+      try {
+        await AuditService.log(
+          {
+            userId: user.id,
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+          },
+          "LOGOUT",
+          "authentication",
+          user.id,
+          `User ${user.username} logged out`,
+          {
+            username: user.username,
+            name: user.name,
+            role: user.role,
+            ipAddress: req.ip
+          }
+        );
+      } catch (auditError) {
+        console.error("Failed to log logout:", auditError);
+      }
+    }
+    
+    req.logout((err: any) => {
       if (err) return next(err);
       res.sendStatus(200);
     });
   });
   
   // For backward compatibility
-  app.post("/api/auth/logout", (req, res, next) => {
-    req.logout((err) => {
+  app.post("/api/auth/logout", async (req, res, next) => {
+    const user = req.user as SelectUser;
+    
+    // Log logout before actually logging out
+    if (user) {
+      try {
+        await AuditService.log(
+          {
+            userId: user.id,
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+          },
+          "LOGOUT",
+          "authentication",
+          user.id,
+          `User ${user.username} logged out`,
+          {
+            username: user.username,
+            name: user.name,
+            role: user.role,
+            ipAddress: req.ip
+          }
+        );
+      } catch (auditError) {
+        console.error("Failed to log logout:", auditError);
+      }
+    }
+    
+    req.logout((err: any) => {
       if (err) return next(err);
       res.json({ message: "Logged out successfully" });
     });

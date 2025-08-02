@@ -153,6 +153,28 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </div>
             </>
           )}
+
+          {/* Admin and Site Manager sections */}
+          {(user?.role === "admin" || user?.role === "site_manager") && (
+            <>
+              <div 
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
+                  location === "/audit-logs" 
+                    ? "text-white bg-primary" 
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+                onClick={() => handleNavigate("/audit-logs")}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <path d="M16 10l-4 4-2-2"></path>
+                </svg>
+                <span>Audit Logs</span>
+              </div>
+            </>
+          )}
           
           {/* Site Manager section - only shown to site managers */}
           {user?.role === "site_manager" && (

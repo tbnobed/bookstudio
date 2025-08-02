@@ -10,7 +10,8 @@ import {
   bookingStudios, type BookingStudio, type InsertBookingStudio,
   systemSettings, type SystemSetting, type InsertSystemSetting,
   fileAttachments, type FileAttachment, type InsertFileAttachment,
-  bookingTypes, type BookingType, type InsertBookingType
+  bookingTypes, type BookingType, type InsertBookingType,
+  auditLogs, type AuditLog, type InsertAuditLog
 } from "@shared/schema";
 
 import { db, pool, ensureConnection } from "./db";
@@ -110,6 +111,26 @@ export interface IStorage {
   deleteBookingType(id: number): Promise<boolean>;
   getBookingTypeUsage(id: number): Promise<number>;
   reorderBookingTypes(orderedIds: number[]): Promise<boolean>;
+  
+  // Audit Log management
+  createAuditLog(auditLog: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(filters?: {
+    userId?: number;
+    action?: string;
+    entityType?: string;
+    startDate?: Date;
+    endDate?: Date;
+    limit?: number;
+    offset?: number;
+  }): Promise<AuditLog[]>;
+  getAuditLogCount(filters?: {
+    userId?: number;
+    action?: string;
+    entityType?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<number>;
+  cleanupOldAuditLogs(daysToKeep: number): Promise<number>;
   
   // Session management
   sessionStore: session.Store;
@@ -3268,6 +3289,153 @@ export class DatabaseStorage implements IStorage {
       console.error('Error reordering booking types:', error);
       return false;
     }
+  }
+  // Audit Log management
+  async createAuditLog(auditLog: InsertAuditLog): Promise<AuditLog> {
+    await ensureConnection();
+    const [newAuditLog] = await db.insert(auditLogs).values(auditLog).returning();
+    return newAuditLog;
+  }
+
+  async getAuditLogs(filters?: {
+    userId?: number;
+    action?: string;
+    entityType?: string;
+    startDate?: Date;
+    endDate?: Date;
+    limit?: number;
+    offset?: number;
+  }): Promise<AuditLog[]> {
+    await ensureConnection();
+    
+    let query = db.select({
+      id: auditLogs.id,
+      userId: auditLogs.userId,
+      action: auditLogs.action,
+      entityType: auditLogs.entityType,
+      entityId: auditLogs.entityId,
+      entityTitle: auditLogs.entityTitle,
+      details: auditLogs.details,
+      ipAddress: auditLogs.ipAddress,
+      userAgent: auditLogs.userAgent,
+      timestamp: auditLogs.timestamp,
+      userName: users.name,
+      userUsername: users.username,
+      userRole: users.role,
+    })
+    .from(auditLogs)
+    .leftJoin(users, eq(auditLogs.userId, users.id));
+
+    const conditions = [];
+    
+    if (filters?.userId) {
+      conditions.push(eq(auditLogs.userId, filters.userId));
+    }
+    
+    if (filters?.action) {
+      conditions.push(eq(auditLogs.action, filters.action));
+    }
+    
+    if (filters?.entityType) {
+      conditions.push(eq(auditLogs.entityType, filters.entityType));
+    }
+    
+    if (filters?.startDate) {
+      conditions.push(gte(auditLogs.timestamp, filters.startDate));
+    }
+    
+    if (filters?.endDate) {
+      conditions.push(lte(auditLogs.timestamp, filters.endDate));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    query = query.orderBy(desc(auditLogs.timestamp));
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    if (filters?.offset) {
+      query = query.offset(filters.offset);
+    }
+
+    const results = await query;
+    
+    // Transform the results to include user information
+    return results.map(row => ({
+      id: row.id,
+      userId: row.userId,
+      action: row.action,
+      entityType: row.entityType,
+      entityId: row.entityId,
+      entityTitle: row.entityTitle,
+      details: row.details,
+      ipAddress: row.ipAddress,
+      userAgent: row.userAgent,
+      timestamp: row.timestamp,
+      // Add user info to details for easy access
+      user: {
+        name: row.userName,
+        username: row.userUsername,
+        role: row.userRole,
+      }
+    } as AuditLog & { user: { name: string; username: string; role: string } }));
+  }
+
+  async getAuditLogCount(filters?: {
+    userId?: number;
+    action?: string;
+    entityType?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<number> {
+    await ensureConnection();
+    
+    let query = db.select({ count: sql`count(*)` }).from(auditLogs);
+
+    const conditions = [];
+    
+    if (filters?.userId) {
+      conditions.push(eq(auditLogs.userId, filters.userId));
+    }
+    
+    if (filters?.action) {
+      conditions.push(eq(auditLogs.action, filters.action));
+    }
+    
+    if (filters?.entityType) {
+      conditions.push(eq(auditLogs.entityType, filters.entityType));
+    }
+    
+    if (filters?.startDate) {
+      conditions.push(gte(auditLogs.timestamp, filters.startDate));
+    }
+    
+    if (filters?.endDate) {
+      conditions.push(lte(auditLogs.timestamp, filters.endDate));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const result = await query;
+    return Number(result[0].count) || 0;
+  }
+
+  async cleanupOldAuditLogs(daysToKeep: number = 90): Promise<number> {
+    await ensureConnection();
+    
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+    
+    const result = await db.delete(auditLogs)
+      .where(lte(auditLogs.timestamp, cutoffDate));
+    
+    return result.rowCount || 0;
   }
 }
 

@@ -13,7 +13,8 @@ import {
   insertAlertSchema,
   insertNotificationSchema,
   insertNotificationGroupSchema,
-  insertBookingTypeSchema
+  insertBookingTypeSchema,
+  insertAuditLogSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { ValidationError } from "zod-validation-error";
@@ -36,6 +37,7 @@ import {
 
   sendFileAttachmentNotificationToGroups
 } from "./services/notificationGroupService";
+import { AuditService, getAuditContext } from "./services/auditService";
 import { 
   generatePasswordResetToken, 
   verifyPasswordResetToken, 
@@ -2770,6 +2772,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ usage });
     } catch (error) {
       res.status(500).json({ message: "Failed to get booking type usage" });
+    }
+  });
+
+  // AUDIT LOG ROUTES - Only accessible to admin and site_manager roles
+  
+  // GET /api/audit-logs - Get audit logs with filtering and pagination
+  app.get("/api/audit-logs", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const {
+        userId,
+        action,
+        entityType,
+        startDate,
+        endDate,
+        limit = 50,
+        offset = 0
+      } = req.query;
+
+      const filters: any = {
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string)
+      };
+
+      if (userId) filters.userId = parseInt(userId as string);
+      if (action) filters.action = action as string;
+      if (entityType) filters.entityType = entityType as string;
+      if (startDate) filters.startDate = new Date(startDate as string);
+      if (endDate) filters.endDate = new Date(endDate as string);
+
+      const auditLogs = await storage.getAuditLogs(filters);
+      const totalCount = await storage.getAuditLogCount(filters);
+
+      res.json({
+        logs: auditLogs,
+        pagination: {
+          total: totalCount,
+          limit: filters.limit,
+          offset: filters.offset,
+          hasMore: filters.offset + filters.limit < totalCount
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
+  });
+
+  // GET /api/audit-logs/stats - Get audit log statistics
+  app.get("/api/audit-logs/stats", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const {
+        startDate,
+        endDate
+      } = req.query;
+
+      const filters: any = {};
+      if (startDate) filters.startDate = new Date(startDate as string);
+      if (endDate) filters.endDate = new Date(endDate as string);
+
+      // Get counts by action type
+      const actions = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'LOGIN_FAILED'];
+      const actionStats = await Promise.all(
+        actions.map(async (action) => ({
+          action,
+          count: await storage.getAuditLogCount({ ...filters, action })
+        }))
+      );
+
+      // Get counts by entity type
+      const entities = ['booking', 'user', 'alert', 'template', 'authentication', 'system_setting'];
+      const entityStats = await Promise.all(
+        entities.map(async (entityType) => ({
+          entityType,
+          count: await storage.getAuditLogCount({ ...filters, entityType })
+        }))
+      );
+
+      // Get total count
+      const totalCount = await storage.getAuditLogCount(filters);
+
+      res.json({
+        total: totalCount,
+        byAction: actionStats.filter(stat => stat.count > 0),
+        byEntity: entityStats.filter(stat => stat.count > 0)
+      });
+    } catch (error) {
+      console.error("Error fetching audit log stats:", error);
+      res.status(500).json({ message: "Failed to fetch audit log statistics" });
+    }
+  });
+
+  // POST /api/audit-logs/cleanup - Cleanup old audit logs (admin only)
+  app.post("/api/audit-logs/cleanup", isAuthenticated, hasRole(["admin"]), async (req, res) => {
+    try {
+      const { daysToKeep = 90 } = req.body;
+      
+      if (typeof daysToKeep !== 'number' || daysToKeep < 1) {
+        return res.status(400).json({ message: "Days to keep must be a positive number" });
+      }
+
+      const deletedCount = await storage.cleanupOldAuditLogs(daysToKeep);
+      
+      // Log the cleanup action
+      const auditContext = getAuditContext(req);
+      await AuditService.log(
+        auditContext,
+        "CLEANUP",
+        "audit_logs",
+        undefined,
+        "Audit Log Cleanup",
+        { deletedCount, daysToKeep }
+      );
+
+      res.json({
+        message: `Successfully cleaned up ${deletedCount} old audit log entries`,
+        deletedCount,
+        daysToKeep
+      });
+    } catch (error) {
+      console.error("Error cleaning up audit logs:", error);
+      res.status(500).json({ message: "Failed to cleanup audit logs" });
     }
   });
 
