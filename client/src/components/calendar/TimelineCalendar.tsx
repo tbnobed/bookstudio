@@ -560,7 +560,7 @@ export default function TimelineCalendar({ currentDate, onDateChange }: Timeline
       )}
 
       {/* Calendar Grid */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0">
         <div className="h-full overflow-auto">
           <div className="min-w-[1000px]">
             {/* Day Headers */}
