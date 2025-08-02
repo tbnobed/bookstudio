@@ -1218,26 +1218,30 @@ export default function BookingModal({
                   <DialogFooter className="pt-4">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          type="button" 
-                          size="sm" 
-                          className="text-red-500"
-                          onClick={() => setIsDeleteModalOpen(true)}
-                        >
-                          Delete
-                        </Button>
-                        
-                        <Button 
-                          onClick={handleOpenCopyModal} 
-                          variant="outline" 
-                          type="button" 
-                          size="sm" 
-                          className="space-x-1"
-                        >
-                          <Copy className="w-3.5 h-3.5 mr-1" />
-                          <span>Copy Booking</span>
-                        </Button>
+                        {booking && (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              type="button" 
+                              size="sm" 
+                              className="text-red-500"
+                              onClick={() => setIsDeleteModalOpen(true)}
+                            >
+                              Delete
+                            </Button>
+                            
+                            <Button 
+                              onClick={handleOpenCopyModal} 
+                              variant="outline" 
+                              type="button" 
+                              size="sm" 
+                              className="space-x-1"
+                            >
+                              <Copy className="w-3.5 h-3.5 mr-1" />
+                              <span>Copy Booking</span>
+                            </Button>
+                          </>
+                        )}
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
