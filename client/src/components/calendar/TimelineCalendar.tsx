@@ -348,36 +348,11 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
     return isAlertType || hasSeverity;
   };
 
-  // Combine bookings with alerts from API
-  const combinedBookings = useMemo(() => {
-    console.log(`EngineeringPage - Combining ${bookings.length} bookings with ${allAlerts.length} alerts`);
-    
-    // Convert alerts to booking format for display
-    const alertsAsBookings = allAlerts.map(alert => ({
-      id: `alert-${alert.id}`,
-      title: alert.title,
-      description: alert.description,
-      start: alert.start,
-      end: alert.end,
-      type: alert.alertType || 'maintenance',
-      severity: alert.severity,
-      status: alert.status || 'active',
-      studioId: null, // Alerts don't have studios
-      pcrRoomId: null,
-      userId: alert.createdBy,
-      templateId: null,
-      createdAt: alert.createdAt,
-      notifyList: alert.notifyList || [],
-      color: alert.severity === 'critical' ? '#f44336' : 
-             alert.severity === 'high' ? '#ff9800' : 
-             alert.severity === 'medium' ? '#ffc107' : 
-             alert.severity === 'low' ? '#2196f3' : '#ffc107'
-    }));
-    
-    console.log(`EngineeringPage - Converted ${alertsAsBookings.length} API alerts to booking format`);
-    
-    return [...bookings, ...alertsAsBookings];
-  }, [bookings, allAlerts]);
+  // Only use regular bookings for timeline calendar display - alerts are handled separately
+  const regularBookings = useMemo(() => {
+    console.log(`Timeline - Using ${bookings.length} regular bookings for calendar display`);
+    return bookings;
+  }, [bookings]);
 
   // Helper function to get studio IDs for a booking
   const getBookingStudioIds = (booking: BookingData): number[] => {
@@ -388,10 +363,8 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
       studioIds.push(booking.studioId);
     }
     
-    // Add studio IDs from booking-studio links
-    const bookingId = typeof booking.id === 'string' && booking.id.startsWith('alert-') 
-      ? parseInt(booking.id.replace('alert-', '')) 
-      : booking.id;
+    // Add studio IDs from booking-studio links (skip if booking ID is numeric)
+    const bookingId = typeof booking.id === 'number' ? booking.id : 0;
     
     const links = bookingStudios.filter(link => link.bookingId === bookingId);
     links.forEach(link => {
@@ -403,27 +376,26 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
     return studioIds;
   };
 
-  // Filter bookings for current week and exclude cancelled bookings (but keep alerts regardless of status)
+  // Filter regular bookings for current week and exclude cancelled bookings
   const weekBookings = useMemo(() => {
-    return combinedBookings.filter(booking => {
+    return regularBookings.filter(booking => {
       const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
       const weekStart = currentWeek;
       const weekEnd = endOfDay(addDays(currentWeek, 6)); // End of Sunday, not start of Sunday
       
       const inWeek = bookingDate >= weekStart && bookingDate <= weekEnd;
-      const isAlert = isAlertBooking(booking);
       const isNotCancelled = booking.status !== 'cancelled';
       
       // Studio filtering - if studios are selected, check if booking is associated with any of them
-      const studioMatch = selectedStudioIds.length === 0 || isAlert || (() => {
+      const studioMatch = selectedStudioIds.length === 0 || (() => {
         const bookingStudioIds = getBookingStudioIds(booking);
         return bookingStudioIds.some(studioId => selectedStudioIds.includes(studioId));
       })();
       
-      // Include if in week AND (is alert OR not cancelled) AND studio matches
-      return inWeek && (isAlert || isNotCancelled) && studioMatch;
+      // Include if in week AND not cancelled AND studio matches (no alerts in timeline)
+      return inWeek && isNotCancelled && studioMatch;
     });
-  }, [combinedBookings, currentWeek, selectedStudioIds, bookingStudios]);
+  }, [regularBookings, currentWeek, selectedStudioIds, bookingStudios]);
 
   const goToPreviousWeek = () => {
     setCurrentWeek(prev => subWeeks(prev, 1));
@@ -486,20 +458,6 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
   }, [allAlerts, currentWeek]);
 
   const alertBookings = combinedAlerts;
-  // Filter out cancelled bookings and legacy alert bookings since alerts come from new API
-  const regularBookings = weekBookings.filter(booking => 
-    booking.status !== 'cancelled' && !isAlertBooking(booking)
-  );
-  
-  console.log(`[ENGINEERING ALERTS] Found ${alertBookings.length} alerts out of ${weekBookings.length} total bookings`);
-  console.log(`[ENGINEERING ALERTS] Alert booking IDs:`, alertBookings.map(b => `${b.id}: ${b.title} (type: ${b.type}, severity: ${b.severity}, studioId: ${b.studioId})`));
-  
-  // Debug: show all bookings and their severity values
-  weekBookings.forEach(booking => {
-    if (booking.severity) {
-      console.log(`[ENGINEERING DEBUG] Booking ${booking.id} "${booking.title}" has severity: "${booking.severity}" (type: ${booking.type})`);
-    }
-  });
 
   return (
     <TooltipProvider>
