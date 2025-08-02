@@ -167,6 +167,18 @@ The audit logs interface supports:
 
 ## Troubleshooting
 
+### SSL Connection Issues (RESOLVED in v1.5.2)
+**Issue**: Migration fails with "The server does not support SSL connections"
+
+**Root Cause**: PostgreSQL in Docker doesn't support SSL by default, but migration scripts were trying to force SSL connections.
+
+**Solution**: Updated migration script to intelligently handle SSL:
+- Docker PostgreSQL: SSL disabled automatically
+- External services: SSL enabled when connection string contains `ssl=true`
+- Fixed in `scripts/production-migration-v1.5.2.cjs`
+
+**Resolution Status**: ✅ Fixed - No manual intervention required
+
 ### Audit Logs Not Appearing
 ```bash
 # Check if the audit_logs table exists

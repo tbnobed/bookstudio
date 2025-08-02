@@ -8,11 +8,19 @@
 
 const { Pool } = require('pg');
 
-// Database configuration
+// Database configuration - handle SSL more intelligently
 const dbConfig = {
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  connectionString: process.env.DATABASE_URL
 };
+
+// Only add SSL config if the connection string indicates it's needed
+// Docker local PostgreSQL doesn't need SSL, but external services might
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('ssl=true')) {
+  dbConfig.ssl = { rejectUnauthorized: false };
+} else {
+  // For Docker and local development, explicitly disable SSL
+  dbConfig.ssl = false;
+}
 
 async function runMigration() {
   const pool = new Pool(dbConfig);
