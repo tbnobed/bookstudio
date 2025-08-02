@@ -3,9 +3,9 @@
 --
 
 -- Dumped from database version 16.9
--- Dumped by pg_dump version 16.5
+-- Dumped by pg_dump version 16.9
 
--- Started on 2025-06-29 02:00:00 UTC
+-- Started on 2025-08-02 02:00:00 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -20,7 +20,7 @@ SET row_security = off;
 
 DROP DATABASE neondb;
 --
--- TOC entry 3487 (class 1262 OID 16389)
+-- TOC entry 3518 (class 1262 OID 16389)
 -- Name: neondb; Type: DATABASE; Schema: -; Owner: neondb_owner
 --
 
@@ -45,6 +45,54 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- TOC entry 241 (class 1259 OID 106512)
+-- Name: alerts; Type: TABLE; Schema: public; Owner: neondb_owner
+--
+
+CREATE TABLE public.alerts (
+    id integer NOT NULL,
+    title text NOT NULL,
+    description text,
+    alert_type text NOT NULL,
+    severity text NOT NULL,
+    start timestamp without time zone NOT NULL,
+    "end" timestamp without time zone NOT NULL,
+    is_all_day boolean DEFAULT false,
+    status text DEFAULT 'active'::text,
+    notify_list json DEFAULT '[]'::json,
+    created_by integer NOT NULL,
+    created_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.alerts OWNER TO neondb_owner;
+
+--
+-- TOC entry 240 (class 1259 OID 106511)
+-- Name: alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+--
+
+CREATE SEQUENCE public.alerts_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.alerts_id_seq OWNER TO neondb_owner;
+
+--
+-- TOC entry 3520 (class 0 OID 0)
+-- Dependencies: 240
+-- Name: alerts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+--
+
+ALTER SEQUENCE public.alerts_id_seq OWNED BY public.alerts.id;
+
 
 --
 -- TOC entry 235 (class 1259 OID 73738)
@@ -77,12 +125,56 @@ CREATE SEQUENCE public.booking_studios_id_seq
 ALTER SEQUENCE public.booking_studios_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3489 (class 0 OID 0)
+-- TOC entry 3521 (class 0 OID 0)
 -- Dependencies: 234
 -- Name: booking_studios_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.booking_studios_id_seq OWNED BY public.booking_studios.id;
+
+
+--
+-- TOC entry 243 (class 1259 OID 114689)
+-- Name: booking_types; Type: TABLE; Schema: public; Owner: neondb_owner
+--
+
+CREATE TABLE public.booking_types (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    description text,
+    color character varying(7) DEFAULT '#3B82F6'::character varying NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.booking_types OWNER TO neondb_owner;
+
+--
+-- TOC entry 242 (class 1259 OID 114688)
+-- Name: booking_types_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+--
+
+CREATE SEQUENCE public.booking_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.booking_types_id_seq OWNER TO neondb_owner;
+
+--
+-- TOC entry 3522 (class 0 OID 0)
+-- Dependencies: 242
+-- Name: booking_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+--
+
+ALTER SEQUENCE public.booking_types_id_seq OWNED BY public.booking_types.id;
 
 
 --
@@ -102,10 +194,11 @@ CREATE TABLE public.bookings (
     template_id integer,
     notify_list json DEFAULT '[]'::json,
     created_at timestamp without time zone DEFAULT now(),
-    severity text DEFAULT 'medium'::text,
+    severity text,
     pcr_room_id integer,
     status text DEFAULT 'confirmed'::text,
-    color text
+    color text,
+    linked_group_id text
 );
 
 
@@ -128,7 +221,7 @@ CREATE SEQUENCE public.bookings_id_seq
 ALTER SEQUENCE public.bookings_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3490 (class 0 OID 0)
+-- TOC entry 3523 (class 0 OID 0)
 -- Dependencies: 215
 -- Name: bookings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -173,7 +266,7 @@ CREATE SEQUENCE public.file_attachments_id_seq
 ALTER SEQUENCE public.file_attachments_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3491 (class 0 OID 0)
+-- TOC entry 3524 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: file_attachments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -217,7 +310,7 @@ CREATE SEQUENCE public.invite_tokens_id_seq
 ALTER SEQUENCE public.invite_tokens_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3492 (class 0 OID 0)
+-- TOC entry 3525 (class 0 OID 0)
 -- Dependencies: 228
 -- Name: invite_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -259,7 +352,7 @@ CREATE SEQUENCE public.notification_groups_id_seq
 ALTER SEQUENCE public.notification_groups_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3493 (class 0 OID 0)
+-- TOC entry 3526 (class 0 OID 0)
 -- Dependencies: 226
 -- Name: notification_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -303,7 +396,7 @@ CREATE SEQUENCE public.notifications_id_seq
 ALTER SEQUENCE public.notifications_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3494 (class 0 OID 0)
+-- TOC entry 3527 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -345,7 +438,7 @@ CREATE SEQUENCE public.password_reset_tokens_id_seq
 ALTER SEQUENCE public.password_reset_tokens_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3495 (class 0 OID 0)
+-- TOC entry 3528 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: password_reset_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -385,7 +478,7 @@ CREATE SEQUENCE public.pcr_rooms_id_seq
 ALTER SEQUENCE public.pcr_rooms_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3496 (class 0 OID 0)
+-- TOC entry 3529 (class 0 OID 0)
 -- Dependencies: 238
 -- Name: pcr_rooms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -439,7 +532,7 @@ CREATE SEQUENCE public.studios_id_seq
 ALTER SEQUENCE public.studios_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3497 (class 0 OID 0)
+-- TOC entry 3530 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: studios_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -480,7 +573,7 @@ CREATE SEQUENCE public.system_settings_id_seq
 ALTER SEQUENCE public.system_settings_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3498 (class 0 OID 0)
+-- TOC entry 3531 (class 0 OID 0)
 -- Dependencies: 236
 -- Name: system_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -529,7 +622,7 @@ CREATE SEQUENCE public.templates_id_seq
 ALTER SEQUENCE public.templates_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3499 (class 0 OID 0)
+-- TOC entry 3532 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: templates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -571,7 +664,7 @@ CREATE SEQUENCE public.users_id_seq
 ALTER SEQUENCE public.users_id_seq OWNER TO neondb_owner;
 
 --
--- TOC entry 3500 (class 0 OID 0)
+-- TOC entry 3533 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
@@ -580,7 +673,15 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- TOC entry 3265 (class 2604 OID 73741)
+-- TOC entry 3280 (class 2604 OID 106515)
+-- Name: alerts id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+--
+
+ALTER TABLE ONLY public.alerts ALTER COLUMN id SET DEFAULT nextval('public.alerts_id_seq'::regclass);
+
+
+--
+-- TOC entry 3274 (class 2604 OID 73741)
 -- Name: booking_studios id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -588,7 +689,15 @@ ALTER TABLE ONLY public.booking_studios ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 3239 (class 2604 OID 24580)
+-- TOC entry 3285 (class 2604 OID 114692)
+-- Name: booking_types id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+--
+
+ALTER TABLE ONLY public.booking_types ALTER COLUMN id SET DEFAULT nextval('public.booking_types_id_seq'::regclass);
+
+
+--
+-- TOC entry 3249 (class 2604 OID 24580)
 -- Name: bookings id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -596,7 +705,7 @@ ALTER TABLE ONLY public.bookings ALTER COLUMN id SET DEFAULT nextval('public.boo
 
 
 --
--- TOC entry 3263 (class 2604 OID 65540)
+-- TOC entry 3272 (class 2604 OID 65540)
 -- Name: file_attachments id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -604,7 +713,7 @@ ALTER TABLE ONLY public.file_attachments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3257 (class 2604 OID 57348)
+-- TOC entry 3266 (class 2604 OID 57348)
 -- Name: invite_tokens id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -612,7 +721,7 @@ ALTER TABLE ONLY public.invite_tokens ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 3255 (class 2604 OID 49156)
+-- TOC entry 3264 (class 2604 OID 49156)
 -- Name: notification_groups id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -620,7 +729,7 @@ ALTER TABLE ONLY public.notification_groups ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- TOC entry 3244 (class 2604 OID 24591)
+-- TOC entry 3253 (class 2604 OID 24591)
 -- Name: notifications id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -628,7 +737,7 @@ ALTER TABLE ONLY public.notifications ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 3260 (class 2604 OID 57361)
+-- TOC entry 3269 (class 2604 OID 57361)
 -- Name: password_reset_tokens id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -636,7 +745,7 @@ ALTER TABLE ONLY public.password_reset_tokens ALTER COLUMN id SET DEFAULT nextva
 
 
 --
--- TOC entry 3269 (class 2604 OID 73762)
+-- TOC entry 3278 (class 2604 OID 73762)
 -- Name: pcr_rooms id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -644,7 +753,7 @@ ALTER TABLE ONLY public.pcr_rooms ALTER COLUMN id SET DEFAULT nextval('public.pc
 
 
 --
--- TOC entry 3247 (class 2604 OID 24602)
+-- TOC entry 3256 (class 2604 OID 24602)
 -- Name: studios id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -652,7 +761,7 @@ ALTER TABLE ONLY public.studios ALTER COLUMN id SET DEFAULT nextval('public.stud
 
 
 --
--- TOC entry 3266 (class 2604 OID 73749)
+-- TOC entry 3275 (class 2604 OID 73749)
 -- Name: system_settings id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -660,7 +769,7 @@ ALTER TABLE ONLY public.system_settings ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 3249 (class 2604 OID 24614)
+-- TOC entry 3258 (class 2604 OID 24614)
 -- Name: templates id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -668,7 +777,7 @@ ALTER TABLE ONLY public.templates ALTER COLUMN id SET DEFAULT nextval('public.te
 
 
 --
--- TOC entry 3253 (class 2604 OID 24625)
+-- TOC entry 3262 (class 2604 OID 24625)
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
@@ -676,7 +785,19 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 3477 (class 0 OID 73738)
+-- TOC entry 3510 (class 0 OID 106512)
+-- Dependencies: 241
+-- Data for Name: alerts; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+--
+
+COPY public.alerts (id, title, description, alert_type, severity, start, "end", is_all_day, status, notify_list, created_by, created_at) FROM stdin;
+5	Test Alert	Test Description	maintenance	low	2025-07-09 14:44:32.988842	2025-07-09 15:44:32.988842	t	active	[]	1	2025-07-09 14:44:32.988842
+6	Test		all-day:maintenance	medium	2025-07-10 05:00:00	2025-07-11 04:59:59.999	f	active	[]	1	2025-07-09 14:45:33.472
+\.
+
+
+--
+-- TOC entry 3504 (class 0 OID 73738)
 -- Dependencies: 235
 -- Data for Name: booking_studios; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -688,7 +809,6 @@ COPY public.booking_studios (id, booking_id, studio_id) FROM stdin;
 5	24	5
 6	25	1
 7	26	3
-273	218	1
 9	20	5
 10	28	6
 11	29	5
@@ -702,17 +822,20 @@ COPY public.booking_studios (id, booking_id, studio_id) FROM stdin;
 287	214	1
 288	214	5
 290	224	13
-295	227	9
-296	227	1
+379	240	2
+380	240	1
+381	243	1
+382	243	2
 36	34	3
-297	228	7
-300	216	1
 41	35	6
 42	35	3
 43	36	5
-301	216	11
+304	216	1
 48	38	1
 49	38	2
+305	216	5
+390	248	7
+391	248	6
 54	49	2
 55	31	3
 56	31	6
@@ -721,22 +844,37 @@ COPY public.booking_studios (id, booking_id, studio_id) FROM stdin;
 59	50	6
 60	50	7
 61	51	1
+393	250	2
 63	27	6
 64	27	7
 65	33	2
 66	33	1
+310	215	1
+311	215	5
+394	250	1
 71	52	5
+316	218	1
+317	218	2
 76	60	6
+318	229	12
+319	229	11
 80	64	3
 81	65	9
 82	65	1
 83	23	2
+399	251	9
 86	67	2
 87	67	1
 88	68	2
 89	68	1
+401	253	11
+402	254	10
 92	70	2
 93	70	1
+403	255	10
+404	256	10
+405	244	10
+328	228	7
 100	74	2
 101	74	1
 102	75	2
@@ -755,12 +893,25 @@ COPY public.booking_studios (id, booking_id, studio_id) FROM stdin;
 115	79	2
 116	73	2
 117	73	1
+331	227	9
+332	227	1
+333	231	5
+334	232	12
+335	233	1
 123	83	2
+336	233	2
 126	84	6
 127	84	3
 128	82	1
 129	71	2
 130	71	1
+346	234	9
+347	234	14
+417	257	18
+418	252	3
+419	258	3
+422	259	2
+423	260	11
 152	116	5
 185	145	5
 186	146	7
@@ -775,8 +926,6 @@ COPY public.booking_studios (id, booking_id, studio_id) FROM stdin;
 226	205	12
 229	200	12
 245	203	12
-251	215	1
-252	215	5
 255	170	1
 256	170	5
 258	213	7
@@ -784,109 +933,153 @@ COPY public.booking_studios (id, booking_id, studio_id) FROM stdin;
 
 
 --
--- TOC entry 3458 (class 0 OID 24577)
--- Dependencies: 216
--- Data for Name: bookings; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- TOC entry 3512 (class 0 OID 114689)
+-- Dependencies: 243
+-- Data for Name: booking_types; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
 
-COPY public.bookings (id, title, description, studio_id, user_id, start, "end", type, template_id, notify_list, created_at, severity, pcr_room_id, status, color) FROM stdin;
-227	Test New mobile booking form		9	1	2025-06-30 05:30:00	2025-06-30 06:30:00	production	\N	[]	2025-06-28 17:33:18.921	low	1	confirmed	#3b82f6
-31	Test 5/14 1am to 6am 	This is a test entry	3	1	2025-05-14 06:00:00	2025-05-14 11:00:00	production	\N	[]	2025-05-11 07:18:50.304	medium	1	confirmed	#4B83E2
-30	Test 5/13 12:30 am to 12 pm 		6	1	2025-05-13 05:30:00	2025-05-13 17:00:00	production	\N	[]	2025-05-11 07:11:51.488	medium	\N	confirmed	#d84be2
-64	test	test	3	1	2025-05-11 16:00:00	2025-05-11 17:00:00	production	\N	[]	2025-06-04 17:53:42.753	medium	\N	confirmed	\N
-50	Test 5/13 11 am to 12 pm  - copy to 5/14, 5/15		6	1	2025-05-16 16:00:00	2025-05-16 17:00:00	production	\N	[]	2025-05-11 09:35:17.896	medium	\N	confirmed	#d84be2
-65	Test booking		9	1	2025-06-06 16:00:00	2025-06-06 17:00:00	production	\N	[1]	2025-06-05 20:06:53.345	medium	\N	confirmed	#4B83E2
-23	Morning news	MSM Morning news	2	1	2025-04-30 14:00:00	2025-04-30 17:00:00	production	\N	[null]	2025-05-04 01:34:04.572	medium	\N	confirmed	\N
-51	News Update		1	1	2025-05-08 16:00:00	2025-05-08 17:00:00	production	\N	[]	2025-05-11 16:26:11.722	medium	\N	confirmed	#4B83E2
-12	Better Together - Laurie with Sheyla		3	1	2025-04-27 16:00:00	2025-04-27 23:30:00	production	\N	["Camera Operators","Lighting Technicians","Directors","Sound Engineers","Production Assistants"]	2025-05-03 22:34:44.822	medium	\N	confirmed	\N
-14	Network update		\N	1	2025-05-01 05:00:00	2025-05-01 06:30:00	maintenance	\N	[]	2025-05-03 22:35:39.938	medium	\N	confirmed	\N
-15	DP Podcast		5	1	2025-04-28 16:00:00	2025-04-28 23:30:00	rehearsal	\N	[]	2025-05-03 22:43:52.254	medium	\N	confirmed	\N
-13	Comms Outage		\N	1	2025-04-29 07:00:00	2025-04-30 06:59:59.999	all-day:maintenance	\N	[]	2025-05-03 22:35:18.449	critical	\N	confirmed	\N
-16	Stacks Tonight		2	1	2025-04-30 23:00:00	2025-05-01 03:00:00	production	\N	["Camera Operators"]	2025-05-03 22:51:53.412	medium	\N	confirmed	\N
-19	MU2 TOA Space issue	MU2 TOA ran out of space.  Working on a fix	\N	1	2025-05-03 07:00:00	2025-05-04 06:59:59.999	all-day:maintenance	\N	[]	2025-05-03 23:36:16.646	medium	\N	confirmed	\N
-34	5/13 1am to 7am		3	1	2025-05-13 06:00:00	2025-05-13 12:00:00	production	\N	[1]	2025-05-11 07:52:58.677	medium	\N	confirmed	#06b17e
-24	DP Townhall		5	1	2025-04-29 02:30:00	2025-04-29 05:30:00	production	\N	[]	2025-05-04 01:41:26.296	medium	\N	confirmed	\N
-25	MSM PM News	Prep starts at 6pm then we walk away at 9pm	1	1	2025-05-02 01:00:00	2025-05-02 04:00:00	production	\N	["Engineering","Production Assistants","Sound Engineers"]	2025-05-04 02:54:42.986	medium	\N	confirmed	\N
-27	test 5/11 7am to 5pm 	test 5/11 7am to 5pm description 	6	1	2025-05-11 16:00:00	2025-05-11 17:00:00	production	\N	[]	2025-05-04 04:40:23.009	medium	1	confirmed	#069004
-33	New 5/11 6am to 7pm 	New 5/11 6am to 7pm 	2	1	2025-05-11 11:00:00	2025-05-12 00:00:00	production	\N	[]	2025-05-11 07:36:08.652	medium	1	confirmed	#d30da8
-26	Morning News 		3	1	2025-05-04 16:00:00	2025-05-04 21:30:00	production	\N	["Camera Operators","Lighting Technicians","Directors","Engineering","Sound Engineers","Production Assistants"]	2025-05-04 03:24:28.799	medium	\N	confirmed	\N
-67	News	Test template update	2	1	2025-05-13 11:00:00	2025-05-14 03:00:00	production	8	[1,5]	2025-06-05 20:38:35.904	medium	1	confirmed	#d30da8
-35	5/15 1am to 6am 	test 5/15 1am to 6am 	6	1	2025-05-15 06:00:00	2025-05-15 11:00:00	production	\N	[]	2025-05-11 07:57:32.171	medium	\N	confirmed	#be9a19
-36	Test 12:30am to 4am 		5	1	2025-05-11 05:30:00	2025-05-11 06:00:00	production	\N	[]	2025-05-11 08:02:28.493	medium	\N	confirmed	#2f3d56
-20	TCL 	TCL out of MU2	5	1	2025-05-03 23:00:00	2025-05-04 05:30:00	production	\N	["Engineering","Camera Operators","Production Assistants","Sound Engineers","Lighting Technicians","Directors"]	2025-05-03 23:36:58.731	medium	\N	confirmed	\N
-28	DP Podcast		6	1	2025-05-05 16:00:00	2025-05-05 18:00:00	production	\N	[]	2025-05-05 00:57:01.07	medium	\N	confirmed	\N
-29	Stacks Tonight		5	1	2025-05-07 00:00:00	2025-05-07 05:00:00	production	\N	[]	2025-05-05 05:59:54.617	medium	\N	confirmed	\N
-38	5/15 1am to 3:30am		1	1	2025-05-15 06:00:00	2025-05-15 08:30:00	production	\N	[1]	2025-05-11 08:29:20.68	medium	\N	confirmed	#d84be2
-68	News	Test template update	2	1	2025-05-14 16:00:00	2025-05-15 03:00:00	production	8	[1,5]	2025-06-05 22:59:41.676	medium	1	confirmed	#d30da8
-48	Test alert		\N	1	2025-05-11 14:00:00	2025-05-11 15:00:00	maintenance	\N	[]	2025-05-11 09:03:41.755	low	\N	confirmed	\N
-49	booking 5/16 1am to 3am		2	1	2025-05-16 06:00:00	2025-05-16 08:00:00	production	\N	[]	2025-05-11 09:13:34.127	medium	\N	confirmed	#33703a
-52	Test booking 5/11 am to 5pm test edit		5	1	2025-05-10 06:00:00	2025-05-10 17:00:00	production	\N	[]	2025-05-11 16:27:34.848	medium	\N	confirmed	#4B83E2
-70	News 2	New 5/11 6am to 7pm 	2	1	2025-06-10 11:00:00	2025-06-11 00:00:00	production	9	[]	2025-06-05 23:35:36.913	medium	1	confirmed	#d30da8
-60	5/20 1am to 4am		6	7	2025-05-20 06:00:00	2025-05-20 09:00:00	production	\N	[]	2025-05-14 16:17:37.889	medium	\N	confirmed	#4B83E2
-74	News 3	Test template update	2	1	2025-06-05 11:00:00	2025-06-06 03:00:00	production	11	[1,5]	2025-06-06 00:10:23.892	medium	1	confirmed	#d30da8
-75	News 3	Test template update	2	1	2025-06-04 11:00:00	2025-06-05 03:00:00	production	11	[1,5]	2025-06-06 00:10:35.201	medium	1	confirmed	#d30da8
-76	News 2	New 5/11 6am to 7pm 	2	1	2025-06-07 11:00:00	2025-06-08 00:00:00	production	9	[]	2025-06-06 00:13:13.263	medium	1	confirmed	#d30da8
-69	News 2	New 5/11 6am to 7pm 	2	1	2025-05-19 11:00:00	2025-05-20 00:00:00	production	9	[]	2025-06-05 23:35:25.998	medium	1	cancelled	#d30da8
-77	News 2	New 5/11 6am to 7pm 	2	1	2025-05-22 11:00:00	2025-05-23 00:00:00	production	9	[]	2025-06-12 06:33:24.67	medium	1	confirmed	#d30da8
-78	News 2	New 5/11 6am to 7pm 	1	1	2025-05-23 11:00:00	2025-05-24 00:00:00	production	9	[]	2025-06-12 06:34:51.896	medium	1	confirmed	#d30da8
-72	News 2	New 5/11 6am to 7pm 	2	1	2025-06-12 11:00:00	2025-06-13 00:00:00	production	9	[]	2025-06-05 23:35:37.039	medium	1	cancelled	#d30da8
-79	test june 12th 11am to 12pm	test june 12th 11am to 12pm	1	1	2025-06-12 16:00:00	2025-06-12 17:00:00	production	\N	[]	2025-06-12 07:12:27.704	medium	\N	confirmed	#4B83E2
-73	News 2	New 5/11 6am to 7pm 	2	1	2025-06-13 11:00:00	2025-06-14 00:00:00	production	9	[]	2025-06-05 23:35:37.102	medium	1	cancelled	#d30da8
-83	test3		2	1	2025-06-14 16:00:00	2025-06-14 17:00:00	production	\N	[7]	2025-06-12 10:15:20.518	medium	\N	confirmed	#4B83E2
-84	test 4		6	1	2025-06-14 16:00:00	2025-06-14 17:00:00	production	\N	[7]	2025-06-12 10:16:16.641	medium	1	confirmed	#4B83E2
-82	test 2		1	1	2025-06-14 16:00:00	2025-06-14 17:00:00	production	\N	[7]	2025-06-12 10:14:54.329	medium	\N	confirmed	#4B83E2
-71	News 2	New 5/11 6am to 7pm 	2	1	2025-06-11 11:00:00	2025-06-12 00:00:00	production	9	[7]	2025-06-05 23:35:36.974	medium	1	confirmed	#d30da8
-96	Notification Test Booking	Testing the fixed notification system	5	1	2025-06-14 15:00:00	2025-06-14 16:00:00	production	\N	[8]	2025-06-13 06:31:16.893	medium	\N	confirmed	\N
-98	Final Notification System Test	Testing the complete notification workflow	5	1	2025-06-15 14:00:00	2025-06-15 15:00:00	production	\N	[8]	2025-06-13 07:06:05.508	medium	\N	confirmed	\N
-100	Storage Layer Notification Test	Testing notifications from storage layer	5	1	2025-06-16 14:00:00	2025-06-16 15:00:00	production	\N	[8]	2025-06-13 07:11:06.379	medium	\N	confirmed	\N
-102	Final Email Fix Test	Testing complete notification system fix	5	1	2025-06-16 16:00:00	2025-06-16 17:00:00	production	\N	[8]	2025-06-13 07:13:48.517	medium	\N	confirmed	\N
-228	DP		7	1	2025-07-01 12:00:00	2025-07-01 22:00:00	production	3	[8]	2025-06-28 17:37:18.197	low	1	confirmed	#8000ff
-105	Final Test - No Duplicate Emails	Testing unified notification system without duplicates	5	1	2025-06-17 14:00:00	2025-06-17 15:00:00	production	\N	[8]	2025-06-13 07:23:37.998	medium	\N	confirmed	\N
-107	Styled Email Test - Production Booking	Testing the new stylized email format for all notification types	5	1	2025-06-17 16:00:00	2025-06-17 17:00:00	production	\N	[8]	2025-06-13 07:30:35.294	medium	\N	confirmed	\N
-216	test multiple studios A and W	test multiple studios A and W	1	1	2025-06-28 16:00:00	2025-06-29 03:30:00	production	\N	[8]	2025-06-26 18:00:37.741	medium	\N	confirmed	#4be27d
-110	Email Format Test - HVAC Maintenance	Testing HTML email formatting for site managers in maintenance alerts	\N	1	2025-06-20 09:00:00	2025-06-20 17:00:00	maintenance	\N	[]	2025-06-13 07:34:49.188	high	\N	confirmed	\N
-112	Test Maintenance Alert		\N	1	2025-06-14 14:00:00	2025-06-14 15:00:00	maintenance	\N	[]	2025-06-13 07:43:32.961	medium	\N	confirmed	\N
-116	test email 44		5	1	2025-06-13 16:00:00	2025-06-13 17:00:00	production	\N	[8]	2025-06-13 07:57:28.555	medium	\N	confirmed	#4B83E2
-118	test facility alert		\N	1	2025-06-19 12:00:00	2025-06-19 13:00:00	maintenance	\N	[]	2025-06-18 04:56:33.521	medium	\N	confirmed	\N
-145	test new 2222		5	1	2025-06-21 16:00:00	2025-06-21 17:00:00	production	\N	[]	2025-06-21 08:02:16.707	medium	\N	cancelled	#4B83E2
-146	test new 333		7	1	2025-06-21 16:00:00	2025-06-21 17:00:00	production	\N	[8]	2025-06-21 08:02:26.57	medium	\N	cancelled	#4B83E2
-148	test 62155		2	1	2025-06-21 16:00:00	2025-06-21 17:00:00	production	\N	[]	2025-06-22 05:33:32.62	medium	\N	confirmed	#4B83E2
-150	test 44444444		\N	1	2025-06-18 14:00:00	2025-06-18 15:00:00	maintenance	\N	[]	2025-06-22 06:50:35.61	medium	\N	confirmed	\N
-151	test larger logo		5	1	2025-06-22 16:00:00	2025-06-22 17:00:00	production	\N	[]	2025-06-22 06:51:30.441	medium	\N	confirmed	#4B83E2
-152	test maintenance		\N	1	2025-06-17 14:00:00	2025-06-17 15:00:00	maintenance	\N	[]	2025-06-22 06:57:48.785	medium	\N	confirmed	\N
-153	test maintenance		\N	1	2025-06-21 14:00:00	2025-06-21 15:00:00	maintenance	\N	[]	2025-06-22 07:01:47.742	critical	\N	confirmed	\N
-154	test maintenance 2		\N	1	2025-06-21 14:00:00	2025-06-21 15:00:00	maintenance	\N	[]	2025-06-22 07:05:44.845	high	\N	confirmed	\N
-156	News 3	Test template update	0	1	2025-06-22 07:15:41.557	2025-06-22 23:15:41.557	production	11	[1,5,"8"]	2025-06-22 07:21:22.16	low	1	confirmed	#d30da8
-157	test	test	3	1	2025-06-22 07:23:52.964	2025-06-22 08:23:52.964	production	0	[]	2025-06-22 07:24:02.065	low	0	draft	#3b82f6
-159	test	sttt	7	1	2025-06-22 07:41:52.54	2025-06-22 08:41:52.54	production	\N	[]	2025-06-22 07:42:03.861	low	\N	draft	#3b82f6
-161	dfddddddd		3	1	2025-06-21 16:00:00	2025-06-21 17:00:00	production	\N	[]	2025-06-22 08:05:24.205	medium	\N	confirmed	#4B83E2
-163	test mobile		\N	1	2025-06-22 15:22:26.537	2025-06-22 16:22:26.537	production	\N	[]	2025-06-22 15:22:47.197	low	\N	draft	#3b82f6
-149	test 77773		5	1	2025-06-20 16:00:00	2025-06-20 17:00:00	production	\N	[8]	2025-06-22 06:47:46.234	medium	\N	confirmed	#a87915
-187	Test Y and Z		7	1	2025-06-23 23:24:32.006	2025-06-24 00:24:32.006	production	\N	[]	2025-06-23 23:28:57.607	low	\N	draft	#3b82f6
-190	6/25 11-5		2	4	2025-06-26 16:00:00	2025-06-26 22:00:00	production	\N	[]	2025-06-24 09:48:20.172	medium	\N	confirmed	#4B83E2
-191	6/25 11-5		2	4	2025-06-27 16:00:00	2025-06-27 22:00:00	production	\N	[]	2025-06-24 09:48:20.24	medium	\N	confirmed	#4B83E2
-220	test 6/26		3	1	2025-06-26 16:00:00	2025-06-27 01:30:00	production	\N	[]	2025-06-27 21:57:03.446	medium	\N	confirmed	#b51bc0
-223	Test booking 5am to 5pm 6/26		13	1	2025-06-27 10:00:00	2025-06-27 22:00:00	production	\N	[]	2025-06-27 22:13:45.812	medium	\N	confirmed	#4B83E2
-204	News 3	Test template update	12	1	2025-06-27 11:00:00	2025-06-28 03:00:00	production	11	[1,5]	2025-06-25 18:40:06.016	medium	1	confirmed	#d30da8
-205	News 3	Test template update	12	1	2025-06-28 11:00:00	2025-06-29 03:00:00	production	11	[1,5]	2025-06-25 18:40:06.083	medium	1	confirmed	#d30da8
-219	Test booking 5am to 5pm 6/26		13	1	2025-06-26 10:00:00	2025-06-26 22:00:00	production	\N	[]	2025-06-27 21:55:03.648	medium	\N	confirmed	#4B83E2
-203	News 3	Test template update	12	1	2025-06-26 11:00:00	2025-06-27 03:00:00	production	11	[1,5]	2025-06-25 18:40:05.935	medium	1	confirmed	#d30da8
-199	Praise 		2	1	2025-06-24 15:00:00	2025-06-24 17:00:00	production	\N	[]	2025-06-24 23:09:33.689	medium	\N	confirmed	#8c5c08
-200	News 3	Test template update	12	1	2025-06-24 11:00:00	2025-06-25 03:00:00	production	11	[1,5]	2025-06-24 23:09:49.174	medium	1	confirmed	#d30da8
-214	test multiple studios A and W	test multiple studios A and W	1	1	2025-06-26 20:00:00	2025-06-27 03:30:00	production	\N	[8]	2025-06-26 18:00:37.572	medium	\N	confirmed	#4be27d
-218	Sunday entry		1	1	2025-06-29 16:00:00	2025-06-30 01:30:00	production	\N	[]	2025-06-27 21:32:01.119	medium	\N	confirmed	#4B83E2
-215	test multiple studios A and W	test multiple studios A and W	1	1	2025-06-27 16:00:00	2025-06-28 03:30:00	production	\N	[8]	2025-06-26 18:00:37.662	medium	\N	confirmed	#4be27d
-170	test multiple studios A and W	test multiple studios A and W	1	1	2025-06-24 16:00:00	2025-06-25 03:30:00	production	\N	[8]	2025-06-23 08:26:40.293	medium	\N	confirmed	#4be27d
-217	Test 5pm to 12am next day 	6-25	13	1	2025-06-25 22:00:00	2025-06-26 04:30:00	production	\N	[]	2025-06-27 07:26:05.957	medium	1	confirmed	#4B83E2
-213	DP		7	1	2025-06-26 18:30:00	2025-06-26 20:00:00	production	3	[]	2025-06-26 17:57:15.161	medium	2	confirmed	#8000ff
-224	program 6/24 11-6pm		13	1	2025-06-24 16:00:00	2025-06-24 23:00:00	production	\N	[]	2025-06-28 08:06:34.541	medium	2	confirmed	#4B83E2
-221	test 6/26		3	1	2025-06-27 16:00:00	2025-06-28 01:30:00	production	\N	[]	2025-06-27 22:13:36.706	medium	\N	confirmed	#b51bc0
-222	test 6/26		3	1	2025-06-28 16:00:00	2025-06-29 01:30:00	production	\N	[]	2025-06-27 22:13:36.77	medium	\N	confirmed	#b51bc0
+COPY public.booking_types (id, name, description, color, is_active, sort_order, created_at, updated_at) FROM stdin;
+1	Production	Core production activities	#4B83E2	t	1	2025-07-09 00:20:56.987531+00	2025-07-09 00:20:56.987531+00
+2	Rehearsal	Practice sessions	#10B981	t	2	2025-07-09 00:20:56.987531+00	2025-07-09 00:20:56.987531+00
+3	Meeting	Team meetings	#8B5CF6	t	3	2025-07-09 00:20:56.987531+00	2025-07-09 00:20:56.987531+00
+4	Training	Training sessions	#F59E0B	t	4	2025-07-09 00:20:56.987531+00	2025-07-09 00:20:56.987531+00
+6	Setup	Equipment setup	#F59E0B	t	6	2025-07-09 00:20:56.987531+00	2025-07-09 00:20:56.987531+00
+7	Other	Miscellaneous activities	#6B7280	t	7	2025-07-09 00:20:56.987531+00	2025-07-09 00:20:56.987531+00
+5	Strike	Equipment testing	#EF4444	t	5	2025-07-09 00:20:56.987531+00	2025-07-09 00:20:56.987531+00
+8	TBN		#0cedaa	t	0	2025-07-09 00:38:17.962903+00	2025-07-09 00:38:17.962903+00
 \.
 
 
 --
--- TOC entry 3475 (class 0 OID 65537)
+-- TOC entry 3485 (class 0 OID 24577)
+-- Dependencies: 216
+-- Data for Name: bookings; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+--
+
+COPY public.bookings (id, title, description, studio_id, user_id, start, "end", type, template_id, notify_list, created_at, severity, pcr_room_id, status, color, linked_group_id) FROM stdin;
+31	Test 5/14 1am to 6am 	This is a test entry	3	1	2025-05-14 06:00:00	2025-05-14 11:00:00	production	\N	[]	2025-05-11 07:18:50.304	\N	1	confirmed	#4B83E2	\N
+243	jul 7th 6pm to 8pm		1	1	2025-07-07 23:00:00	2025-07-08 01:00:00	production	\N	[]	2025-07-07 23:15:00.414	\N	\N	confirmed	#3b82f6	\N
+230	No Power		\N	1	2025-06-29 14:00:00	2025-06-29 15:00:00	maintenance	\N	[]	2025-06-29 06:27:00.34	\N	\N	confirmed	\N	\N
+14	Network update		\N	1	2025-05-01 05:00:00	2025-05-01 06:30:00	maintenance	\N	[]	2025-05-03 22:35:39.938	\N	\N	confirmed	\N	\N
+13	Comms Outage		\N	1	2025-04-29 07:00:00	2025-04-30 06:59:59.999	all-day:maintenance	\N	[]	2025-05-03 22:35:18.449	\N	\N	confirmed	\N	\N
+19	MU2 TOA Space issue	MU2 TOA ran out of space.  Working on a fix	\N	1	2025-05-03 07:00:00	2025-05-04 06:59:59.999	all-day:maintenance	\N	[]	2025-05-03 23:36:16.646	\N	\N	confirmed	\N	\N
+48	Test alert		\N	1	2025-05-11 14:00:00	2025-05-11 15:00:00	maintenance	\N	[]	2025-05-11 09:03:41.755	\N	\N	confirmed	\N	\N
+248	Regular booking 10am - 4:30pm		7	1	2025-07-10 15:00:00	2025-07-10 21:30:00	production	\N	[]	2025-07-08 23:29:54.128	\N	1	confirmed	#d8a313	\N
+251	Mobile booking test edit		9	1	2025-07-08 14:00:00	2025-07-08 15:00:00	setup	\N	[]	2025-07-08 23:37:02.63	\N	\N	confirmed	#3b82f6	\N
+254	Edit volume stage filtering		10	1	2025-07-10 16:00:00	2025-07-10 19:30:00	production	\N	[]	2025-07-09 07:49:47.88	\N	\N	confirmed	#a7510c	\N
+255	Edit volume stage filtering		10	1	2025-07-11 16:00:00	2025-07-11 19:30:00	production	\N	[]	2025-07-09 07:49:47.979	\N	\N	confirmed	#a7510c	\N
+256	Edit volume stage filtering		10	1	2025-07-12 16:00:00	2025-07-12 19:30:00	production	\N	[]	2025-07-09 07:49:48.039	\N	\N	confirmed	#a7510c	\N
+244	Edit volume stage filtering		10	1	2025-07-08 16:00:00	2025-07-08 19:30:00	production	\N	[]	2025-07-08 21:28:40.951	\N	\N	confirmed	#a7510c	\N
+252	TBN booking type		3	1	2025-07-09 16:00:00	2025-07-09 19:00:00	tbn	\N	[]	2025-07-09 00:38:35.032	\N	\N	confirmed	#4B83E2	\N
+258	attachment test	attachment test	3	8	2025-07-10 16:00:00	2025-07-10 17:00:00	production	\N	[]	2025-07-09 18:52:40.472	\N	\N	confirmed	#4B83E2	\N
+259	test	test	2	1	2025-08-01 12:00:00	2025-08-02 03:30:00	production	\N	[]	2025-08-01 23:09:13.965	\N	\N	confirmed	#4B83E2	\N
+260	test 2	test 2	11	1	2025-08-01 09:30:00	2025-08-02 02:30:00	production	\N	[]	2025-08-01 23:09:31.468	\N	\N	confirmed	#9b082d	\N
+261	Weekly Team Meeting	Regular team standup	1	1	2025-08-04 14:00:00	2025-08-04 15:00:00	meeting	\N	[]	2025-08-02 01:17:49.630651	\N	\N	confirmed	\N	weekly-meeting-001
+262	Weekly Team Meeting	Regular team standup	1	1	2025-08-11 14:00:00	2025-08-11 15:00:00	meeting	\N	[]	2025-08-02 01:17:49.630651	\N	\N	confirmed	\N	weekly-meeting-001
+263	Weekly Team Meeting	Regular team standup	1	1	2025-08-18 14:00:00	2025-08-18 15:00:00	meeting	\N	[]	2025-08-02 01:17:49.630651	\N	\N	confirmed	\N	weekly-meeting-001
+236	network outage	Test Site alert	\N	1	2025-07-04 05:00:00	2025-07-05 04:59:59.999	all-day:maintenance	\N	[]	2025-07-04 05:16:11.152	\N	\N	confirmed	\N	\N
+110	Email Format Test - HVAC Maintenance	Testing HTML email formatting for site managers in maintenance alerts	\N	1	2025-06-20 09:00:00	2025-06-20 17:00:00	maintenance	\N	[]	2025-06-13 07:34:49.188	\N	\N	confirmed	\N	\N
+112	Test Maintenance Alert		\N	1	2025-06-14 14:00:00	2025-06-14 15:00:00	maintenance	\N	[]	2025-06-13 07:43:32.961	\N	\N	confirmed	\N	\N
+118	test facility alert		\N	1	2025-06-19 12:00:00	2025-06-19 13:00:00	maintenance	\N	[]	2025-06-18 04:56:33.521	\N	\N	confirmed	\N	\N
+242	Test alert		\N	1	2025-07-05 22:30:00	2025-07-06 03:30:00	maintenance	\N	[]	2025-07-06 00:45:34.568	\N	\N	confirmed	\N	\N
+150	test 44444444		\N	1	2025-06-18 14:00:00	2025-06-18 15:00:00	maintenance	\N	[]	2025-06-22 06:50:35.61	\N	\N	confirmed	\N	\N
+152	test maintenance		\N	1	2025-06-17 14:00:00	2025-06-17 15:00:00	maintenance	\N	[]	2025-06-22 06:57:48.785	\N	\N	confirmed	\N	\N
+153	test maintenance		\N	1	2025-06-21 14:00:00	2025-06-21 15:00:00	maintenance	\N	[]	2025-06-22 07:01:47.742	\N	\N	confirmed	\N	\N
+154	test maintenance 2		\N	1	2025-06-21 14:00:00	2025-06-21 15:00:00	maintenance	\N	[]	2025-06-22 07:05:44.845	\N	\N	confirmed	\N	\N
+253	TBN 2		11	1	2025-07-11 14:00:00	2025-07-11 15:00:00	tbn	\N	[]	2025-07-09 00:40:50.173	\N	\N	confirmed	#3b82f6	\N
+30	Test 5/13 12:30 am to 12 pm 		6	1	2025-05-13 05:30:00	2025-05-13 17:00:00	production	\N	[]	2025-05-11 07:11:51.488	\N	\N	confirmed	#d84be2	\N
+64	test	test	3	1	2025-05-11 16:00:00	2025-05-11 17:00:00	production	\N	[]	2025-06-04 17:53:42.753	\N	\N	confirmed	\N	\N
+257	Custom signage		18	1	2025-07-09 16:00:00	2025-07-09 22:30:00	production	\N	[]	2025-07-09 07:50:43.897	\N	1	confirmed	#bec110	\N
+50	Test 5/13 11 am to 12 pm  - copy to 5/14, 5/15		6	1	2025-05-16 16:00:00	2025-05-16 17:00:00	production	\N	[]	2025-05-11 09:35:17.896	\N	\N	confirmed	#d84be2	\N
+65	Test booking		9	1	2025-06-06 16:00:00	2025-06-06 17:00:00	production	\N	[1]	2025-06-05 20:06:53.345	\N	\N	confirmed	#4B83E2	\N
+23	Morning news	MSM Morning news	2	1	2025-04-30 14:00:00	2025-04-30 17:00:00	production	\N	[null]	2025-05-04 01:34:04.572	\N	\N	confirmed	\N	\N
+51	News Update		1	1	2025-05-08 16:00:00	2025-05-08 17:00:00	production	\N	[]	2025-05-11 16:26:11.722	\N	\N	confirmed	#4B83E2	\N
+12	Better Together - Laurie with Sheyla		3	1	2025-04-27 16:00:00	2025-04-27 23:30:00	production	\N	["Camera Operators","Lighting Technicians","Directors","Sound Engineers","Production Assistants"]	2025-05-03 22:34:44.822	\N	\N	confirmed	\N	\N
+15	DP Podcast		5	1	2025-04-28 16:00:00	2025-04-28 23:30:00	rehearsal	\N	[]	2025-05-03 22:43:52.254	\N	\N	confirmed	\N	\N
+16	Stacks Tonight		2	1	2025-04-30 23:00:00	2025-05-01 03:00:00	production	\N	["Camera Operators"]	2025-05-03 22:51:53.412	\N	\N	confirmed	\N	\N
+34	5/13 1am to 7am		3	1	2025-05-13 06:00:00	2025-05-13 12:00:00	production	\N	[1]	2025-05-11 07:52:58.677	\N	\N	confirmed	#06b17e	\N
+24	DP Townhall		5	1	2025-04-29 02:30:00	2025-04-29 05:30:00	production	\N	[]	2025-05-04 01:41:26.296	\N	\N	confirmed	\N	\N
+25	MSM PM News	Prep starts at 6pm then we walk away at 9pm	1	1	2025-05-02 01:00:00	2025-05-02 04:00:00	production	\N	["Engineering","Production Assistants","Sound Engineers"]	2025-05-04 02:54:42.986	\N	\N	confirmed	\N	\N
+27	test 5/11 7am to 5pm 	test 5/11 7am to 5pm description 	6	1	2025-05-11 16:00:00	2025-05-11 17:00:00	production	\N	[]	2025-05-04 04:40:23.009	\N	1	confirmed	#069004	\N
+33	New 5/11 6am to 7pm 	New 5/11 6am to 7pm 	2	1	2025-05-11 11:00:00	2025-05-12 00:00:00	production	\N	[]	2025-05-11 07:36:08.652	\N	1	confirmed	#d30da8	\N
+26	Morning News 		3	1	2025-05-04 16:00:00	2025-05-04 21:30:00	production	\N	["Camera Operators","Lighting Technicians","Directors","Engineering","Sound Engineers","Production Assistants"]	2025-05-04 03:24:28.799	\N	\N	confirmed	\N	\N
+67	News	Test template update	2	1	2025-05-13 11:00:00	2025-05-14 03:00:00	production	8	[1,5]	2025-06-05 20:38:35.904	\N	1	confirmed	#d30da8	\N
+35	5/15 1am to 6am 	test 5/15 1am to 6am 	6	1	2025-05-15 06:00:00	2025-05-15 11:00:00	production	\N	[]	2025-05-11 07:57:32.171	\N	\N	confirmed	#be9a19	\N
+36	Test 12:30am to 4am 		5	1	2025-05-11 05:30:00	2025-05-11 06:00:00	production	\N	[]	2025-05-11 08:02:28.493	\N	\N	confirmed	#2f3d56	\N
+20	TCL 	TCL out of MU2	5	1	2025-05-03 23:00:00	2025-05-04 05:30:00	production	\N	["Engineering","Camera Operators","Production Assistants","Sound Engineers","Lighting Technicians","Directors"]	2025-05-03 23:36:58.731	\N	\N	confirmed	\N	\N
+28	DP Podcast		6	1	2025-05-05 16:00:00	2025-05-05 18:00:00	production	\N	[]	2025-05-05 00:57:01.07	\N	\N	confirmed	\N	\N
+29	Stacks Tonight		5	1	2025-05-07 00:00:00	2025-05-07 05:00:00	production	\N	[]	2025-05-05 05:59:54.617	\N	\N	confirmed	\N	\N
+38	5/15 1am to 3:30am		1	1	2025-05-15 06:00:00	2025-05-15 08:30:00	production	\N	[1]	2025-05-11 08:29:20.68	\N	\N	confirmed	#d84be2	\N
+68	News	Test template update	2	1	2025-05-14 16:00:00	2025-05-15 03:00:00	production	8	[1,5]	2025-06-05 22:59:41.676	\N	1	confirmed	#d30da8	\N
+49	booking 5/16 1am to 3am		2	1	2025-05-16 06:00:00	2025-05-16 08:00:00	production	\N	[]	2025-05-11 09:13:34.127	\N	\N	confirmed	#33703a	\N
+52	Test booking 5/11 am to 5pm test edit		5	1	2025-05-10 06:00:00	2025-05-10 17:00:00	production	\N	[]	2025-05-11 16:27:34.848	\N	\N	confirmed	#4B83E2	\N
+70	News 2	New 5/11 6am to 7pm 	2	1	2025-06-10 11:00:00	2025-06-11 00:00:00	production	9	[]	2025-06-05 23:35:36.913	\N	1	confirmed	#d30da8	\N
+60	5/20 1am to 4am		6	7	2025-05-20 06:00:00	2025-05-20 09:00:00	production	\N	[]	2025-05-14 16:17:37.889	\N	\N	confirmed	#4B83E2	\N
+74	News 3	Test template update	2	1	2025-06-05 11:00:00	2025-06-06 03:00:00	production	11	[1,5]	2025-06-06 00:10:23.892	\N	1	confirmed	#d30da8	\N
+75	News 3	Test template update	2	1	2025-06-04 11:00:00	2025-06-05 03:00:00	production	11	[1,5]	2025-06-06 00:10:35.201	\N	1	confirmed	#d30da8	\N
+76	News 2	New 5/11 6am to 7pm 	2	1	2025-06-07 11:00:00	2025-06-08 00:00:00	production	9	[]	2025-06-06 00:13:13.263	\N	1	confirmed	#d30da8	\N
+69	News 2	New 5/11 6am to 7pm 	2	1	2025-05-19 11:00:00	2025-05-20 00:00:00	production	9	[]	2025-06-05 23:35:25.998	\N	1	cancelled	#d30da8	\N
+77	News 2	New 5/11 6am to 7pm 	2	1	2025-05-22 11:00:00	2025-05-23 00:00:00	production	9	[]	2025-06-12 06:33:24.67	\N	1	confirmed	#d30da8	\N
+78	News 2	New 5/11 6am to 7pm 	1	1	2025-05-23 11:00:00	2025-05-24 00:00:00	production	9	[]	2025-06-12 06:34:51.896	\N	1	confirmed	#d30da8	\N
+72	News 2	New 5/11 6am to 7pm 	2	1	2025-06-12 11:00:00	2025-06-13 00:00:00	production	9	[]	2025-06-05 23:35:37.039	\N	1	cancelled	#d30da8	\N
+79	test june 12th 11am to 12pm	test june 12th 11am to 12pm	1	1	2025-06-12 16:00:00	2025-06-12 17:00:00	production	\N	[]	2025-06-12 07:12:27.704	\N	\N	confirmed	#4B83E2	\N
+73	News 2	New 5/11 6am to 7pm 	2	1	2025-06-13 11:00:00	2025-06-14 00:00:00	production	9	[]	2025-06-05 23:35:37.102	\N	1	cancelled	#d30da8	\N
+83	test3		2	1	2025-06-14 16:00:00	2025-06-14 17:00:00	production	\N	[7]	2025-06-12 10:15:20.518	\N	\N	confirmed	#4B83E2	\N
+84	test 4		6	1	2025-06-14 16:00:00	2025-06-14 17:00:00	production	\N	[7]	2025-06-12 10:16:16.641	\N	1	confirmed	#4B83E2	\N
+82	test 2		1	1	2025-06-14 16:00:00	2025-06-14 17:00:00	production	\N	[7]	2025-06-12 10:14:54.329	\N	\N	confirmed	#4B83E2	\N
+71	News 2	New 5/11 6am to 7pm 	2	1	2025-06-11 11:00:00	2025-06-12 00:00:00	production	9	[7]	2025-06-05 23:35:36.974	\N	1	confirmed	#d30da8	\N
+96	Notification Test Booking	Testing the fixed notification system	5	1	2025-06-14 15:00:00	2025-06-14 16:00:00	production	\N	[8]	2025-06-13 06:31:16.893	\N	\N	confirmed	\N	\N
+98	Final Notification System Test	Testing the complete notification workflow	5	1	2025-06-15 14:00:00	2025-06-15 15:00:00	production	\N	[8]	2025-06-13 07:06:05.508	\N	\N	confirmed	\N	\N
+100	Storage Layer Notification Test	Testing notifications from storage layer	5	1	2025-06-16 14:00:00	2025-06-16 15:00:00	production	\N	[8]	2025-06-13 07:11:06.379	\N	\N	confirmed	\N	\N
+102	Final Email Fix Test	Testing complete notification system fix	5	1	2025-06-16 16:00:00	2025-06-16 17:00:00	production	\N	[8]	2025-06-13 07:13:48.517	\N	\N	confirmed	\N	\N
+105	Final Test - No Duplicate Emails	Testing unified notification system without duplicates	5	1	2025-06-17 14:00:00	2025-06-17 15:00:00	production	\N	[8]	2025-06-13 07:23:37.998	\N	\N	confirmed	\N	\N
+107	Styled Email Test - Production Booking	Testing the new stylized email format for all notification types	5	1	2025-06-17 16:00:00	2025-06-17 17:00:00	production	\N	[8]	2025-06-13 07:30:35.294	\N	\N	confirmed	\N	\N
+227	Test New mobile booking form		9	1	2025-06-30 05:30:00	2025-06-30 06:30:00	production	\N	[]	2025-06-28 17:33:18.921	\N	1	confirmed	#19a108	\N
+231	Test los angeles time 9pm to 11pm 6/30		5	1	2025-07-01 02:00:00	2025-07-01 04:00:00	production	\N	[]	2025-07-01 05:43:50.586	\N	\N	confirmed	#4B83E2	\N
+216	test multiple studios A and W	test multiple studios A and W	1	1	2025-06-28 16:00:00	2025-06-29 03:30:00	production	\N	[8]	2025-06-26 18:00:37.741	\N	\N	confirmed	#4be27d	\N
+215	test multiple studios A and W	test multiple studios A and W	1	1	2025-06-27 16:00:00	2025-06-28 03:30:00	production	\N	[8]	2025-06-26 18:00:37.662	\N	\N	cancelled	#4be27d	\N
+218	Sunday entry		1	1	2025-06-29 16:00:00	2025-06-30 01:30:00	production	\N	[]	2025-06-27 21:32:01.119	\N	\N	confirmed	#4B83E2	\N
+116	test email 44		5	1	2025-06-13 16:00:00	2025-06-13 17:00:00	production	\N	[8]	2025-06-13 07:57:28.555	\N	\N	confirmed	#4B83E2	\N
+229	Studios status test	6/29 12:30-2am	12	1	2025-06-29 14:30:00	2025-06-30 03:30:00	production	\N	[]	2025-06-29 06:18:19.892	\N	\N	confirmed	#dd9e46	\N
+232	7/1 9am to 12pm		12	1	2025-07-01 16:00:00	2025-07-01 19:00:00	production	\N	[]	2025-07-01 19:48:47.835	\N	\N	confirmed	#4B83E2	\N
+233	LA time 4pm to 10pm	New 5/11 6am to 7pm 	1	1	2025-07-01 23:00:00	2025-07-02 02:00:00	production	9	[1,5]	2025-07-01 23:06:29.353	\N	1	confirmed	#d30da8	\N
+228	DP		7	1	2025-07-01 12:00:00	2025-07-01 23:00:00	production	3	[8]	2025-06-28 17:37:18.197	\N	1	confirmed	#8000ff	\N
+234	july 4th 1am	description goes here\n	9	1	2025-07-04 10:00:00	2025-07-05 04:30:00	production	\N	[]	2025-07-04 05:02:55.85	\N	\N	confirmed	#4B83E2	\N
+240	jul 5th new test		2	1	2025-07-05 14:00:00	2025-07-06 00:30:00	production	\N	[]	2025-07-05 20:42:10.768	\N	1	confirmed	#3b82f6	\N
+145	test new 2222		5	1	2025-06-21 16:00:00	2025-06-21 17:00:00	production	\N	[]	2025-06-21 08:02:16.707	\N	\N	cancelled	#4B83E2	\N
+146	test new 333		7	1	2025-06-21 16:00:00	2025-06-21 17:00:00	production	\N	[8]	2025-06-21 08:02:26.57	\N	\N	cancelled	#4B83E2	\N
+148	test 62155		2	1	2025-06-21 16:00:00	2025-06-21 17:00:00	production	\N	[]	2025-06-22 05:33:32.62	\N	\N	confirmed	#4B83E2	\N
+151	test larger logo		5	1	2025-06-22 16:00:00	2025-06-22 17:00:00	production	\N	[]	2025-06-22 06:51:30.441	\N	\N	confirmed	#4B83E2	\N
+156	News 3	Test template update	0	1	2025-06-22 07:15:41.557	2025-06-22 23:15:41.557	production	11	[1,5,"8"]	2025-06-22 07:21:22.16	\N	1	confirmed	#d30da8	\N
+157	test	test	3	1	2025-06-22 07:23:52.964	2025-06-22 08:23:52.964	production	0	[]	2025-06-22 07:24:02.065	\N	0	draft	#3b82f6	\N
+159	test	sttt	7	1	2025-06-22 07:41:52.54	2025-06-22 08:41:52.54	production	\N	[]	2025-06-22 07:42:03.861	\N	\N	draft	#3b82f6	\N
+161	dfddddddd		3	1	2025-06-21 16:00:00	2025-06-21 17:00:00	production	\N	[]	2025-06-22 08:05:24.205	\N	\N	confirmed	#4B83E2	\N
+163	test mobile		\N	1	2025-06-22 15:22:26.537	2025-06-22 16:22:26.537	production	\N	[]	2025-06-22 15:22:47.197	\N	\N	draft	#3b82f6	\N
+149	test 77773		5	1	2025-06-20 16:00:00	2025-06-20 17:00:00	production	\N	[8]	2025-06-22 06:47:46.234	\N	\N	confirmed	#a87915	\N
+187	Test Y and Z		7	1	2025-06-23 23:24:32.006	2025-06-24 00:24:32.006	production	\N	[]	2025-06-23 23:28:57.607	\N	\N	draft	#3b82f6	\N
+190	6/25 11-5		2	4	2025-06-26 16:00:00	2025-06-26 22:00:00	production	\N	[]	2025-06-24 09:48:20.172	\N	\N	confirmed	#4B83E2	\N
+191	6/25 11-5		2	4	2025-06-27 16:00:00	2025-06-27 22:00:00	production	\N	[]	2025-06-24 09:48:20.24	\N	\N	confirmed	#4B83E2	\N
+220	test 6/26		3	1	2025-06-26 16:00:00	2025-06-27 01:30:00	production	\N	[]	2025-06-27 21:57:03.446	\N	\N	confirmed	#b51bc0	\N
+223	Test booking 5am to 5pm 6/26		13	1	2025-06-27 10:00:00	2025-06-27 22:00:00	production	\N	[]	2025-06-27 22:13:45.812	\N	\N	confirmed	#4B83E2	\N
+204	News 3	Test template update	12	1	2025-06-27 11:00:00	2025-06-28 03:00:00	production	11	[1,5]	2025-06-25 18:40:06.016	\N	1	confirmed	#d30da8	\N
+205	News 3	Test template update	12	1	2025-06-28 11:00:00	2025-06-29 03:00:00	production	11	[1,5]	2025-06-25 18:40:06.083	\N	1	confirmed	#d30da8	\N
+219	Test booking 5am to 5pm 6/26		13	1	2025-06-26 10:00:00	2025-06-26 22:00:00	production	\N	[]	2025-06-27 21:55:03.648	\N	\N	confirmed	#4B83E2	\N
+203	News 3	Test template update	12	1	2025-06-26 11:00:00	2025-06-27 03:00:00	production	11	[1,5]	2025-06-25 18:40:05.935	\N	1	confirmed	#d30da8	\N
+199	Praise 		2	1	2025-06-24 15:00:00	2025-06-24 17:00:00	production	\N	[]	2025-06-24 23:09:33.689	\N	\N	confirmed	#8c5c08	\N
+200	News 3	Test template update	12	1	2025-06-24 11:00:00	2025-06-25 03:00:00	production	11	[1,5]	2025-06-24 23:09:49.174	\N	1	confirmed	#d30da8	\N
+214	test multiple studios A and W	test multiple studios A and W	1	1	2025-06-26 20:00:00	2025-06-27 03:30:00	production	\N	[8]	2025-06-26 18:00:37.572	\N	\N	confirmed	#4be27d	\N
+170	test multiple studios A and W	test multiple studios A and W	1	1	2025-06-24 16:00:00	2025-06-25 03:30:00	production	\N	[8]	2025-06-23 08:26:40.293	\N	\N	confirmed	#4be27d	\N
+217	Test 5pm to 12am next day 	6-25	13	1	2025-06-25 22:00:00	2025-06-26 04:30:00	production	\N	[]	2025-06-27 07:26:05.957	\N	1	confirmed	#4B83E2	\N
+213	DP		7	1	2025-06-26 18:30:00	2025-06-26 20:00:00	production	3	[]	2025-06-26 17:57:15.161	\N	2	confirmed	#8000ff	\N
+224	program 6/24 11-6pm		13	1	2025-06-24 16:00:00	2025-06-24 23:00:00	production	\N	[]	2025-06-28 08:06:34.541	\N	2	confirmed	#4B83E2	\N
+221	test 6/26		3	1	2025-06-27 16:00:00	2025-06-28 01:30:00	production	\N	[]	2025-06-27 22:13:36.706	\N	\N	confirmed	#b51bc0	\N
+222	test 6/26		3	1	2025-06-28 16:00:00	2025-06-29 01:30:00	production	\N	[]	2025-06-27 22:13:36.77	\N	\N	confirmed	#b51bc0	\N
+250	Regular booking 9am - 2:30pm		2	1	2025-07-10 14:00:00	2025-07-10 19:30:00	production	\N	[]	2025-07-08 23:34:13.658	\N	\N	confirmed	#e68600	\N
+\.
+
+
+--
+-- TOC entry 3502 (class 0 OID 65537)
 -- Dependencies: 233
 -- Data for Name: file_attachments; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -898,11 +1091,12 @@ COPY public.file_attachments (id, booking_id, file_name, file_size, mime_type, p
 4	29	playlists.csv	7875	text/csv	/home/runner/workspace/uploads/i5jym98fqflhgee8mlaem6nl.csv	1	2025-05-05 06:00:23.613364+00	\N
 6	84	test.txt	0	text/plain	/home/runner/workspace/uploads/elzrjbfnel01c3xh2xc93nxm.txt	1	2025-06-12 10:17:00.623945+00	\N
 8	82	test.txt	0	text/plain	/home/runner/workspace/uploads/j0beaf7pr4jkh7lbigusvqb3.txt	1	2025-06-12 10:25:35.10262+00	\N
+10	258	obview env2.txt	821	text/plain	/home/runner/workspace/uploads/zcxqg3re1pr2kqebrbeaeklo.txt	8	2025-07-09 18:52:50.200907+00	\N
 \.
 
 
 --
--- TOC entry 3471 (class 0 OID 57345)
+-- TOC entry 3498 (class 0 OID 57345)
 -- Dependencies: 229
 -- Data for Name: invite_tokens; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -929,7 +1123,7 @@ COPY public.invite_tokens (id, token, role, email, expires, created_by, created_
 
 
 --
--- TOC entry 3469 (class 0 OID 49153)
+-- TOC entry 3496 (class 0 OID 49153)
 -- Dependencies: 227
 -- Data for Name: notification_groups; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -943,7 +1137,7 @@ COPY public.notification_groups (id, name, email, group_type, description, enabl
 
 
 --
--- TOC entry 3460 (class 0 OID 24588)
+-- TOC entry 3487 (class 0 OID 24588)
 -- Dependencies: 218
 -- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -1330,11 +1524,104 @@ COPY public.notifications (id, user_id, title, message, type, read, booking_id, 
 381	8	New Booking Notification	A new booking "DP" has been created that requires your attention.	booking_created	f	228	2025-06-28 17:37:18.578
 382	1	Booking Updated	Your booking for "test multiple studios A and W" has been updated.	booking_updated	f	216	2025-06-28 17:48:31.339
 383	1	Booking Updated	Your booking for "test multiple studios A and W" has been updated.	booking_updated	f	216	2025-06-28 17:48:31.934
+384	1	Booking Updated	Your booking for "Sunday entry" has been updated.	booking_updated	f	218	2025-06-29 06:06:13.315
+385	1	Booking Updated	Your booking for "test multiple studios A and W" has been updated.	booking_updated	f	216	2025-06-29 06:06:39.61
+386	1	Booking Confirmation	Your booking for Studios status test has been created successfully.	booking_created	f	229	2025-06-29 06:18:20.022
+387	1	Booking Updated	Your booking for "Studios status test" has been updated.	booking_updated	f	229	2025-06-29 06:19:40.436
+388	1	Booking Confirmation	Your booking for No Power has been created successfully.	booking_created	f	230	2025-06-29 06:27:00.967
+389	1	Booking Updated	Your booking for "test multiple studios A and W" has been updated.	booking_updated	f	215	2025-06-29 07:01:21.034
+390	1	Booking Updated	Your booking for "Sunday entry" has been updated.	booking_updated	f	218	2025-06-29 15:51:18.123
+391	1	Booking Updated	Your booking for "Studios status test" has been updated.	booking_updated	f	229	2025-06-29 15:51:52.598
+392	1	Booking Updated	Your booking for "Sunday entry" has been updated.	booking_updated	f	218	2025-06-29 15:53:12.583
+393	1	Booking Updated	Your booking for "Studios status test" has been updated.	booking_updated	f	229	2025-06-30 02:23:41.458
+394	1	Booking Updated	Your booking for "DP" has been updated.	booking_updated	f	228	2025-06-30 05:51:49.413
+395	1	Booking Updated	Your booking for "DP" has been updated.	booking_updated	f	228	2025-06-30 06:35:17.489
+396	1	Booking Updated	Your booking for "Test New mobile booking form" has been updated.	booking_updated	f	227	2025-06-30 06:36:21.529
+397	1	Booking Updated	Your booking for "Test New mobile booking form" has been updated.	booking_updated	f	227	2025-06-30 06:36:30.625
+398	1	Booking Updated	Your booking for "DP" has been updated.	booking_updated	f	228	2025-06-30 06:36:37.106
+399	1	Booking Updated	Your booking for "DP" has been updated.	booking_updated	f	228	2025-06-30 06:39:05.342
+400	1	Booking Updated	Your booking for "DP" has been updated.	booking_updated	f	228	2025-06-30 06:39:10.878
+401	1	Booking Updated	Your booking for "Test New mobile booking form" has been updated.	booking_updated	f	227	2025-06-30 06:39:17.138
+402	1	Booking Updated	Your booking for "Test New mobile booking form" has been updated.	booking_updated	f	227	2025-06-30 06:39:22.934
+403	1	Booking Confirmation	Your booking for Test los angeles time 9pm to 11pm 6/30 has been created successfully.	booking_created	f	231	2025-07-01 05:43:50.749
+404	1	Booking Confirmation	Your booking for 7/1 9am to 12pm has been created successfully.	booking_created	f	232	2025-07-01 19:48:47.972
+405	1	Booking Confirmation	Your booking for LA time 4pm to 10pm has been created successfully.	booking_created	f	233	2025-07-01 23:06:29.452
+406	1	New Booking Notification	A new booking "LA time 4pm to 10pm" has been created that requires your attention.	booking_created	f	233	2025-07-01 23:06:29.538
+407	5	New Booking Notification	A new booking "LA time 4pm to 10pm" has been created that requires your attention.	booking_created	f	233	2025-07-01 23:06:29.57
+408	1	Booking Confirmation	Your booking for july 4th 1am has been created successfully.	booking_created	f	234	2025-07-04 05:02:55.963
+409	1	Booking Updated	Your booking for "july 4th 1am" has been updated.	booking_updated	f	234	2025-07-04 05:10:39.215
+410	1	Booking Confirmation	Your booking for Test all day has been created successfully.	booking_created	f	235	2025-07-04 05:13:41.516
+411	1	Booking Confirmation	Your booking for test all day 2 has been created successfully.	booking_created	f	236	2025-07-04 05:16:11.632
+412	1	Booking Updated	Your booking for "july 4th 1am" has been updated.	booking_updated	f	234	2025-07-04 05:18:33.81
+413	1	Booking Confirmation	Your booking for all day july 5th  has been created successfully.	booking_created	f	237	2025-07-04 05:20:35.408
+414	1	Booking Updated	Your booking for "test all day 2" has been updated.	booking_updated	f	236	2025-07-04 05:25:33.166
+415	1	Booking Updated	Your booking for "test all day 2" has been updated.	booking_updated	f	236	2025-07-04 06:08:54.393
+416	1	Booking Updated	Your booking for "test all day 2" has been updated.	booking_updated	f	236	2025-07-04 06:10:39.393
+417	1	Booking Updated	Your booking for "july 4th 1am" has been updated.	booking_updated	f	234	2025-07-04 06:24:40.324
+418	1	Booking Updated	Your booking for "july 4th 1am" has been updated.	booking_updated	f	234	2025-07-04 06:25:09.535
+419	1	Booking Updated	Your booking for "july 4th 1am" has been updated.	booking_updated	f	234	2025-07-04 06:30:09.868
+420	1	Booking Updated	Your booking for "july 4th 1am" has been updated.	booking_updated	f	234	2025-07-04 06:34:51.23
+421	1	Booking Confirmation	Your booking for July 5th  has been created successfully.	booking_created	f	238	2025-07-05 20:25:59.995
+422	1	Booking Confirmation	Your booking for new booking has been created successfully.	booking_created	f	239	2025-07-05 20:29:26.021
+423	1	Booking Updated	Your booking for "new booking" has been updated.	booking_updated	f	239	2025-07-05 20:41:12.634
+424	1	Booking Confirmation	Your booking for jul 5th new test has been created successfully.	booking_created	f	240	2025-07-05 20:42:10.87
+425	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 20:42:32.091
+426	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 20:42:45.562
+427	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 20:45:11.612
+428	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 20:45:27.982
+429	1	Booking Confirmation	Your booking for test pcr valication has been created successfully.	booking_created	f	241	2025-07-05 20:47:08.635
+430	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 22:34:59.998
+431	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 22:36:40.393
+432	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 22:37:14.354
+433	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 22:37:24.817
+434	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 22:37:54.865
+435	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 22:39:55.36
+436	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 22:53:11.143
+437	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 22:56:02.734
+438	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-05 22:56:32.462
+439	1	Booking Updated	Your booking for "jul 5th new test" has been updated.	booking_updated	f	240	2025-07-06 00:24:24.693
+440	1	Booking Confirmation	Your booking for Test alert has been created successfully.	booking_created	f	242	2025-07-06 00:45:35.222
+441	1	Booking Updated	Your booking for "test all day 2" has been updated.	booking_updated	f	236	2025-07-07 05:24:38.41
+442	1	Booking Confirmation	Your booking for jul 7th 6pm to 8pm has been created successfully.	booking_created	f	243	2025-07-07 23:15:00.557
+443	1	Booking Confirmation	Your booking for volume stage filtering has been created successfully.	booking_created	f	244	2025-07-08 21:28:41.058
+444	1	Booking Confirmation	Your booking for Regular booking 11am - 4pm has been created successfully.	booking_created	f	245	2025-07-08 23:05:11.54
+445	8	New Booking Notification	A new booking "Regular booking 11am - 4pm" has been created that requires your attention.	booking_created	f	245	2025-07-08 23:05:12.078
+446	1	Booking Confirmation	Your booking for regular booking 7/10 has been created successfully.	booking_created	f	246	2025-07-08 23:20:10.59
+447	1	Booking Confirmation	Your booking for Regular booking 11am - 4:30pm has been created successfully.	booking_created	f	247	2025-07-08 23:26:18.669
+448	1	Booking Confirmation	Your booking for Regular booking 10am - 4:30pm has been created successfully.	booking_created	f	248	2025-07-08 23:29:54.224
+449	1	Booking Confirmation	Your booking for Regular booking 11am - 4:30pm has been created successfully.	booking_created	f	249	2025-07-08 23:31:56.489
+450	1	Booking Confirmation	Your booking for Regular booking 9am - 2:30pm has been created successfully.	booking_created	f	250	2025-07-08 23:34:13.757
+451	1	Booking Confirmation	Your booking for Mobile booking test has been created successfully.	booking_created	f	251	2025-07-08 23:37:02.726
+452	1	Booking Updated	Your booking for "Mobile booking test" has been updated.	booking_updated	f	251	2025-07-08 23:38:09.694
+453	1	Booking Updated	Your booking for "volume stage filtering" has been updated.	booking_updated	f	244	2025-07-08 23:38:46.385
+454	1	Booking Updated	Your booking for "Mobile booking test edit" has been updated.	booking_updated	f	251	2025-07-09 00:21:40.236
+455	1	Booking Updated	Your booking for "Mobile booking test edit" has been updated.	booking_updated	f	251	2025-07-09 00:21:49.381
+456	1	Booking Confirmation	Your booking for TBN booking type has been created successfully.	booking_created	f	252	2025-07-09 00:38:35.181
+457	1	Booking Confirmation	Your booking for TBN 2 has been created successfully.	booking_created	f	253	2025-07-09 00:40:50.272
+458	1	Booking Updated	Your booking for "Edit volume stage filtering" has been updated.	booking_updated	f	244	2025-07-09 07:49:51.445
+459	1	Booking Confirmation	Your booking for Custom signage has been created successfully.	booking_created	f	257	2025-07-09 07:50:43.986
+460	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 07:52:00.786
+461	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 07:52:21.785
+462	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 17:01:12.17
+463	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 17:01:21.685
+464	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 17:11:14.192
+465	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 17:11:28.645
+466	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 17:11:39.682
+467	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 17:13:28.292
+468	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 17:13:41.009
+469	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 17:13:50.438
+470	1	Booking Updated	Your booking for "Custom signage" has been updated.	booking_updated	f	257	2025-07-09 17:47:39.633
+471	1	Booking Updated	Your booking for "TBN booking type" has been updated.	booking_updated	f	252	2025-07-09 17:48:47.898
+472	8	Booking Confirmation	Your booking for attachment test has been created successfully.	booking_created	f	258	2025-07-09 18:52:40.618
+473	1	Booking Confirmation	Your booking for test has been created successfully.	booking_created	f	259	2025-08-01 23:09:14.077
+474	1	Booking Confirmation	Your booking for test 2 has been created successfully.	booking_created	f	260	2025-08-01 23:09:31.562
+475	1	Booking Updated	Your booking for "test" has been updated.	booking_updated	f	259	2025-08-01 23:09:48.42
+476	1	Booking Updated	Your booking for "test 2" has been updated.	booking_updated	f	260	2025-08-01 23:09:57.428
 \.
 
 
 --
--- TOC entry 3473 (class 0 OID 57358)
+-- TOC entry 3500 (class 0 OID 57358)
 -- Dependencies: 231
 -- Data for Name: password_reset_tokens; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -1352,7 +1639,7 @@ COPY public.password_reset_tokens (id, token, user_id, expires, created_at, used
 
 
 --
--- TOC entry 3481 (class 0 OID 73759)
+-- TOC entry 3508 (class 0 OID 73759)
 -- Dependencies: 239
 -- Data for Name: pcr_rooms; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -1366,19 +1653,18 @@ COPY public.pcr_rooms (id, name, description, status) FROM stdin;
 
 
 --
--- TOC entry 3467 (class 0 OID 40960)
+-- TOC entry 3494 (class 0 OID 40960)
 -- Dependencies: 225
 -- Data for Name: session; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
 
 COPY public.session (sid, sess, expire) FROM stdin;
-vqncnURjkajrjkLPVMXbfNCyPuylG_ys	{"cookie":{"originalMaxAge":86400000,"expires":"2025-06-30T01:14:47.321Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2025-06-30 01:14:56
-zAHuzb0aVO0gEjXpjHwvQE-GQ8h41f7P	{"cookie":{"originalMaxAge":86400000,"expires":"2025-06-29T07:52:10.130Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2025-06-30 02:00:01
+U6vj9sQ21eFP4D3BD7NXYNzd_R_nkF82	{"cookie":{"originalMaxAge":86400000,"expires":"2025-08-02T23:08:19.134Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2025-08-03 02:00:00
 \.
 
 
 --
--- TOC entry 3462 (class 0 OID 24599)
+-- TOC entry 3489 (class 0 OID 24599)
 -- Dependencies: 220
 -- Data for Name: studios; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -1400,22 +1686,23 @@ COPY public.studios (id, name, description, status) FROM stdin;
 15	Studio I	\N	available
 16	Studio J	\N	available
 17	Studio K	\N	available
+18	Volume Stage 2	\N	available
 \.
 
 
 --
--- TOC entry 3479 (class 0 OID 73746)
+-- TOC entry 3506 (class 0 OID 73746)
 -- Dependencies: 237
 -- Data for Name: system_settings; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
 
 COPY public.system_settings (id, key, value, created_at, updated_at) FROM stdin;
-1	siteName	The Plex Studios	2025-05-11 06:49:47.529565	2025-05-11 06:49:47.529565
+1	siteName	Replit Dev	2025-05-11 06:49:47.529565	2025-07-01 20:02:48.179
 \.
 
 
 --
--- TOC entry 3464 (class 0 OID 24611)
+-- TOC entry 3491 (class 0 OID 24611)
 -- Dependencies: 222
 -- Data for Name: templates; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -1434,7 +1721,7 @@ COPY public.templates (id, name, description, type, duration, created_by, studio
 
 
 --
--- TOC entry 3466 (class 0 OID 24622)
+-- TOC entry 3493 (class 0 OID 24622)
 -- Dependencies: 224
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
@@ -1447,34 +1734,52 @@ COPY public.users (id, username, password, email, name, role) FROM stdin;
 
 
 --
--- TOC entry 3501 (class 0 OID 0)
+-- TOC entry 3534 (class 0 OID 0)
+-- Dependencies: 240
+-- Name: alerts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+--
+
+SELECT pg_catalog.setval('public.alerts_id_seq', 6, true);
+
+
+--
+-- TOC entry 3535 (class 0 OID 0)
 -- Dependencies: 234
 -- Name: booking_studios_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
 
-SELECT pg_catalog.setval('public.booking_studios_id_seq', 301, true);
+SELECT pg_catalog.setval('public.booking_studios_id_seq', 423, true);
 
 
 --
--- TOC entry 3502 (class 0 OID 0)
+-- TOC entry 3536 (class 0 OID 0)
+-- Dependencies: 242
+-- Name: booking_types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+--
+
+SELECT pg_catalog.setval('public.booking_types_id_seq', 8, true);
+
+
+--
+-- TOC entry 3537 (class 0 OID 0)
 -- Dependencies: 215
 -- Name: bookings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
 
-SELECT pg_catalog.setval('public.bookings_id_seq', 228, true);
+SELECT pg_catalog.setval('public.bookings_id_seq', 263, true);
 
 
 --
--- TOC entry 3503 (class 0 OID 0)
+-- TOC entry 3538 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: file_attachments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
 
-SELECT pg_catalog.setval('public.file_attachments_id_seq', 8, true);
+SELECT pg_catalog.setval('public.file_attachments_id_seq', 10, true);
 
 
 --
--- TOC entry 3504 (class 0 OID 0)
+-- TOC entry 3539 (class 0 OID 0)
 -- Dependencies: 228
 -- Name: invite_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
@@ -1483,7 +1788,7 @@ SELECT pg_catalog.setval('public.invite_tokens_id_seq', 17, true);
 
 
 --
--- TOC entry 3505 (class 0 OID 0)
+-- TOC entry 3540 (class 0 OID 0)
 -- Dependencies: 226
 -- Name: notification_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
@@ -1492,16 +1797,16 @@ SELECT pg_catalog.setval('public.notification_groups_id_seq', 10, true);
 
 
 --
--- TOC entry 3506 (class 0 OID 0)
+-- TOC entry 3541 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: notifications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
 
-SELECT pg_catalog.setval('public.notifications_id_seq', 383, true);
+SELECT pg_catalog.setval('public.notifications_id_seq', 476, true);
 
 
 --
--- TOC entry 3507 (class 0 OID 0)
+-- TOC entry 3542 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: password_reset_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
@@ -1510,7 +1815,7 @@ SELECT pg_catalog.setval('public.password_reset_tokens_id_seq', 8, true);
 
 
 --
--- TOC entry 3508 (class 0 OID 0)
+-- TOC entry 3543 (class 0 OID 0)
 -- Dependencies: 238
 -- Name: pcr_rooms_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
@@ -1519,25 +1824,25 @@ SELECT pg_catalog.setval('public.pcr_rooms_id_seq', 4, true);
 
 
 --
--- TOC entry 3509 (class 0 OID 0)
+-- TOC entry 3544 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: studios_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
 
-SELECT pg_catalog.setval('public.studios_id_seq', 17, true);
+SELECT pg_catalog.setval('public.studios_id_seq', 18, true);
 
 
 --
--- TOC entry 3510 (class 0 OID 0)
+-- TOC entry 3545 (class 0 OID 0)
 -- Dependencies: 236
 -- Name: system_settings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
 
-SELECT pg_catalog.setval('public.system_settings_id_seq', 1, true);
+SELECT pg_catalog.setval('public.system_settings_id_seq', 3, true);
 
 
 --
--- TOC entry 3511 (class 0 OID 0)
+-- TOC entry 3546 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: templates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
@@ -1546,7 +1851,7 @@ SELECT pg_catalog.setval('public.templates_id_seq', 11, true);
 
 
 --
--- TOC entry 3512 (class 0 OID 0)
+-- TOC entry 3547 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
@@ -1555,7 +1860,16 @@ SELECT pg_catalog.setval('public.users_id_seq', 9, true);
 
 
 --
--- TOC entry 3303 (class 2606 OID 73743)
+-- TOC entry 3333 (class 2606 OID 106523)
+-- Name: alerts alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+--
+
+ALTER TABLE ONLY public.alerts
+    ADD CONSTRAINT alerts_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3323 (class 2606 OID 73743)
 -- Name: booking_studios booking_studios_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1564,7 +1878,25 @@ ALTER TABLE ONLY public.booking_studios
 
 
 --
--- TOC entry 3272 (class 2606 OID 24586)
+-- TOC entry 3335 (class 2606 OID 114703)
+-- Name: booking_types booking_types_name_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+--
+
+ALTER TABLE ONLY public.booking_types
+    ADD CONSTRAINT booking_types_name_key UNIQUE (name);
+
+
+--
+-- TOC entry 3337 (class 2606 OID 114701)
+-- Name: booking_types booking_types_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+--
+
+ALTER TABLE ONLY public.booking_types
+    ADD CONSTRAINT booking_types_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3292 (class 2606 OID 24586)
 -- Name: bookings bookings_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1573,7 +1905,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- TOC entry 3301 (class 2606 OID 65545)
+-- TOC entry 3321 (class 2606 OID 65545)
 -- Name: file_attachments file_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1582,7 +1914,7 @@ ALTER TABLE ONLY public.file_attachments
 
 
 --
--- TOC entry 3293 (class 2606 OID 57354)
+-- TOC entry 3313 (class 2606 OID 57354)
 -- Name: invite_tokens invite_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1591,7 +1923,7 @@ ALTER TABLE ONLY public.invite_tokens
 
 
 --
--- TOC entry 3295 (class 2606 OID 57356)
+-- TOC entry 3315 (class 2606 OID 57356)
 -- Name: invite_tokens invite_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1600,7 +1932,7 @@ ALTER TABLE ONLY public.invite_tokens
 
 
 --
--- TOC entry 3289 (class 2606 OID 49163)
+-- TOC entry 3309 (class 2606 OID 49163)
 -- Name: notification_groups notification_groups_name_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1609,7 +1941,7 @@ ALTER TABLE ONLY public.notification_groups
 
 
 --
--- TOC entry 3291 (class 2606 OID 49161)
+-- TOC entry 3311 (class 2606 OID 49161)
 -- Name: notification_groups notification_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1618,7 +1950,7 @@ ALTER TABLE ONLY public.notification_groups
 
 
 --
--- TOC entry 3274 (class 2606 OID 24597)
+-- TOC entry 3294 (class 2606 OID 24597)
 -- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1627,7 +1959,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- TOC entry 3297 (class 2606 OID 57367)
+-- TOC entry 3317 (class 2606 OID 57367)
 -- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1636,7 +1968,7 @@ ALTER TABLE ONLY public.password_reset_tokens
 
 
 --
--- TOC entry 3299 (class 2606 OID 57369)
+-- TOC entry 3319 (class 2606 OID 57369)
 -- Name: password_reset_tokens password_reset_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1645,7 +1977,7 @@ ALTER TABLE ONLY public.password_reset_tokens
 
 
 --
--- TOC entry 3309 (class 2606 OID 73769)
+-- TOC entry 3329 (class 2606 OID 73769)
 -- Name: pcr_rooms pcr_rooms_name_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1654,7 +1986,7 @@ ALTER TABLE ONLY public.pcr_rooms
 
 
 --
--- TOC entry 3311 (class 2606 OID 73767)
+-- TOC entry 3331 (class 2606 OID 73767)
 -- Name: pcr_rooms pcr_rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1663,7 +1995,7 @@ ALTER TABLE ONLY public.pcr_rooms
 
 
 --
--- TOC entry 3287 (class 2606 OID 40966)
+-- TOC entry 3307 (class 2606 OID 40966)
 -- Name: session session_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1672,7 +2004,7 @@ ALTER TABLE ONLY public.session
 
 
 --
--- TOC entry 3276 (class 2606 OID 24609)
+-- TOC entry 3296 (class 2606 OID 24609)
 -- Name: studios studios_name_unique; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1681,7 +2013,7 @@ ALTER TABLE ONLY public.studios
 
 
 --
--- TOC entry 3278 (class 2606 OID 24607)
+-- TOC entry 3298 (class 2606 OID 24607)
 -- Name: studios studios_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1690,7 +2022,7 @@ ALTER TABLE ONLY public.studios
 
 
 --
--- TOC entry 3305 (class 2606 OID 73757)
+-- TOC entry 3325 (class 2606 OID 73757)
 -- Name: system_settings system_settings_key_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1699,7 +2031,7 @@ ALTER TABLE ONLY public.system_settings
 
 
 --
--- TOC entry 3307 (class 2606 OID 73755)
+-- TOC entry 3327 (class 2606 OID 73755)
 -- Name: system_settings system_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1708,7 +2040,7 @@ ALTER TABLE ONLY public.system_settings
 
 
 --
--- TOC entry 3280 (class 2606 OID 24620)
+-- TOC entry 3300 (class 2606 OID 24620)
 -- Name: templates templates_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1717,7 +2049,7 @@ ALTER TABLE ONLY public.templates
 
 
 --
--- TOC entry 3282 (class 2606 OID 24630)
+-- TOC entry 3302 (class 2606 OID 24630)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1726,7 +2058,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3284 (class 2606 OID 24632)
+-- TOC entry 3304 (class 2606 OID 24632)
 -- Name: users users_username_unique; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1735,7 +2067,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3285 (class 1259 OID 40967)
+-- TOC entry 3305 (class 1259 OID 40967)
 -- Name: IDX_session_expire; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
@@ -1743,7 +2075,16 @@ CREATE INDEX "IDX_session_expire" ON public.session USING btree (expire);
 
 
 --
--- TOC entry 3312 (class 2606 OID 65546)
+-- TOC entry 3340 (class 2606 OID 106524)
+-- Name: alerts alerts_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+--
+
+ALTER TABLE ONLY public.alerts
+    ADD CONSTRAINT alerts_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id);
+
+
+--
+-- TOC entry 3338 (class 2606 OID 65546)
 -- Name: file_attachments file_attachments_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1752,7 +2093,7 @@ ALTER TABLE ONLY public.file_attachments
 
 
 --
--- TOC entry 3313 (class 2606 OID 65551)
+-- TOC entry 3339 (class 2606 OID 65551)
 -- Name: file_attachments file_attachments_uploaded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -1761,8 +2102,8 @@ ALTER TABLE ONLY public.file_attachments
 
 
 --
--- TOC entry 3488 (class 0 OID 0)
--- Dependencies: 3487
+-- TOC entry 3519 (class 0 OID 0)
+-- Dependencies: 3518
 -- Name: DATABASE neondb; Type: ACL; Schema: -; Owner: neondb_owner
 --
 
@@ -1770,7 +2111,7 @@ GRANT ALL ON DATABASE neondb TO neon_superuser;
 
 
 --
--- TOC entry 2098 (class 826 OID 16392)
+-- TOC entry 2108 (class 826 OID 16392)
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: cloud_admin
 --
 
@@ -1778,14 +2119,14 @@ ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin IN SCHEMA public GRANT ALL ON SEQU
 
 
 --
--- TOC entry 2097 (class 826 OID 16391)
+-- TOC entry 2107 (class 826 OID 16391)
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: cloud_admin
 --
 
 ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin IN SCHEMA public GRANT ALL ON TABLES TO neon_superuser WITH GRANT OPTION;
 
 
--- Completed on 2025-06-29 02:00:03 UTC
+-- Completed on 2025-08-02 02:00:04 UTC
 
 --
 -- PostgreSQL database dump complete

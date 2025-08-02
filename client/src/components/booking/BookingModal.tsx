@@ -29,6 +29,7 @@ import { useNotification } from "@/hooks/use-notification";
 import { FileAttachmentList } from "./FileAttachmentList";
 import CopyBookingModal from "./CopyBookingModal";
 import { BookingFormSelector } from "./BookingFormSelector";
+import LinkedBookingDeleteModal from "./LinkedBookingDeleteModal";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -123,6 +124,7 @@ export default function BookingModal({
   // State for form fields
   const [formData, setFormData] = useState({ ...defaultValues });
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   // Fetch studios
   const { data: studios = [] } = useQuery<Studio[]>({
@@ -809,6 +811,18 @@ export default function BookingModal({
         />
       )}
       
+      {booking && (
+        <LinkedBookingDeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          booking={booking}
+          onDelete={() => {
+            setIsDeleteModalOpen(false);
+            onClose();
+          }}
+        />
+      )}
+      
       {isMobile ? (
         // Use our mobile-optimized form on smaller screens
         <BookingFormSelector
@@ -1199,48 +1213,15 @@ export default function BookingModal({
                   <DialogFooter className="pt-4">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex space-x-2">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" type="button" size="sm" className="text-red-500">
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the booking.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-red-500 hover:bg-red-600"
-                                onClick={() => {
-                                  deleteBooking.mutate(booking.id, {
-                                    onSuccess: () => {
-                                      showNotification({
-                                        type: "success",
-                                        title: "Success",
-                                        message: "Booking deleted successfully"
-                                      });
-                                      onClose();
-                                    },
-                                    onError: (error) => {
-                                      showNotification({
-                                        type: "error",
-                                        title: "Error",
-                                        message: "Failed to delete booking"
-                                      });
-                                    }
-                                  });
-                                }}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          size="sm" 
+                          className="text-red-500"
+                          onClick={() => setIsDeleteModalOpen(true)}
+                        >
+                          Delete
+                        </Button>
                         
                         <Button 
                           onClick={handleOpenCopyModal} 
