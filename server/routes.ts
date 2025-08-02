@@ -1012,9 +1012,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bookings/user", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const bookings = await storage.getBookingsByUser(user.id);
-      res.json(bookings);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const fromToday = req.query.fromToday === 'true';
+      
+      const result = await storage.getBookingsByUser(user.id, { page, limit, fromToday });
+      res.json(result);
     } catch (error) {
+      console.error("Error fetching user bookings:", error);
       res.status(500).json({ message: "Failed to fetch user bookings" });
     }
   });

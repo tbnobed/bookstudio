@@ -56,9 +56,16 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
     staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
-  // Fetch user's bookings
-  const userBookingsQuery = useQuery<Booking[]>({
-    queryKey: ["/api/bookings/user"],
+  // Fetch user's bookings with pagination
+  const userBookingsQuery = useQuery<{ bookings: Booking[]; total: number; hasMore: boolean }>({
+    queryKey: ["/api/bookings/user", { fromToday: true, page: 1, limit: 20 }],
+    queryFn: async () => {
+      const response = await fetch('/api/bookings/user?fromToday=true&page=1&limit=20');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user bookings');
+      }
+      return response.json();
+    },
     refetchOnWindowFocus: true,
     staleTime: 30000, // Consider data fresh for 30 seconds
   });
@@ -299,7 +306,8 @@ export function useStudioBookings(startDate?: Date, endDate?: Date) {
 
   return {
     bookings: bookingsQuery.data || [],
-    userBookings: userBookingsQuery.data || [],
+    userBookings: userBookingsQuery.data?.bookings || [],
+    userBookingsData: userBookingsQuery.data,
     templates: templatesQuery.data || [],
     isLoading: bookingsQuery.isLoading || userBookingsQuery.isLoading,
     isError: bookingsQuery.isError || userBookingsQuery.isError,

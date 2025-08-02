@@ -17,7 +17,7 @@ import {
 import { db, pool, ensureConnection } from "./db";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { eq, and, or, isNull, not, desc, gte, lte, inArray, sql } from "drizzle-orm";
+import { eq, and, or, isNull, not, desc, asc, gte, lte, inArray, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User management
@@ -2026,16 +2026,69 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async getBookingsByUser(userId: number): Promise<Booking[]> {
+  async getBookingsByUser(userId: number, options?: { page?: number; limit?: number; fromToday?: boolean }): Promise<{ bookings: Booking[]; total: number; hasMore: boolean }> {
     try {
-      const userBookings = await db.select().from(bookings).where(eq(bookings.userId, userId));
+      const { page = 1, limit = 20, fromToday = false } = options || {};
+      const offset = (page - 1) * limit;
+      
+      // Build base query
+      let query = db.select().from(bookings).where(eq(bookings.userId, userId));
+      
+      // Add date filter if fromToday is true
+      if (fromToday) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+        query = query.where(and(
+          eq(bookings.userId, userId),
+          gte(bookings.start, today)
+        ));
+      }
+      
+      // Get total count
+      const countQuery = db.select({ count: sql<number>`count(*)` }).from(bookings).where(
+        fromToday 
+          ? and(eq(bookings.userId, userId), gte(bookings.start, new Date().setHours(0, 0, 0, 0)))
+          : eq(bookings.userId, userId)
+      );
+      
+      const [userBookings, countResult] = await Promise.all([
+        query.orderBy(bookings.start).limit(limit).offset(offset),
+        countQuery
+      ]);
+      
+      const total = countResult[0]?.count || 0;
+      const hasMore = offset + userBookings.length < total;
+      
+      // Update cache
       userBookings.forEach(booking => {
         this.bookings.set(booking.id, booking);
       });
-      return userBookings;
+      
+      return { bookings: userBookings, total, hasMore };
     } catch (error) {
       console.error(`Error getting bookings for user ID ${userId}:`, error);
-      return Array.from(this.bookings.values()).filter(booking => booking.userId === userId);
+      // Fallback to memory cache with pagination
+      const allUserBookings = Array.from(this.bookings.values())
+        .filter(booking => booking.userId === userId);
+      
+      let filteredBookings = allUserBookings;
+      if (options?.fromToday) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        filteredBookings = allUserBookings.filter(booking => new Date(booking.start) >= today);
+      }
+      
+      filteredBookings.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+      
+      const { page = 1, limit = 20 } = options || {};
+      const offset = (page - 1) * limit;
+      const paginatedBookings = filteredBookings.slice(offset, offset + limit);
+      
+      return {
+        bookings: paginatedBookings,
+        total: filteredBookings.length,
+        hasMore: offset + paginatedBookings.length < filteredBookings.length
+      };
     }
   }
   
