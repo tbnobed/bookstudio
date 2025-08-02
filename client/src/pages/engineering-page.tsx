@@ -152,6 +152,8 @@ export default function EngineeringPage() {
     };
   });
 
+  console.log(`[ENGINEERING DEBUG] Generated ${timeSlots.length} time slots:`, timeSlots.map(slot => `${slot.hour24}:${slot.label}`));
+
   // Generate week days - ensure proper timezone handling
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(currentWeek, i);
@@ -559,8 +561,8 @@ export default function EngineeringPage() {
 
       {/* Calendar Grid */}
       <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-auto">
-          <div className="min-w-[1000px]">
+        <div className="overflow-auto" style={{ height: 'calc(100vh - 200px)' }}>
+          <div className="min-w-[1000px]" style={{ height: '1440px' }}>
             {/* Day Headers */}
             <div className="sticky top-0 bg-white border-b border-gray-200 z-40 shadow-sm">
               <div className="flex">
