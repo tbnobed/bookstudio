@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, PcrRoom, Alert, BookingStudio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
 import { format, parseISO, isSameDay, isWithinInterval, startOfWeek, endOfWeek, addDays } from "date-fns";
-import { getFacilityTimezone_Dynamic, formatTimeInFacilityTimezone } from "@/lib/dateUtils";
+import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
@@ -57,11 +57,11 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
     };
   });
 
-  // Time slots for the timeline (24 hours)
-  const timeSlots = Array.from({ length: 24 }, (_, i) => {
-    const hour = i; // 0-23 for 24-hour timeline
+  // Time slots for the timeline (6 AM to 11 PM)
+  const timeSlots = Array.from({ length: 18 }, (_, i) => {
+    const hour = i + 6; // Start from 6 AM
     const hour24 = hour;
-    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
     const ampm = hour >= 12 ? 'PM' : 'AM';
     return {
       hour24,
@@ -96,8 +96,8 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
     const endHour = endTime.getHours();
     const endMinutes = endTime.getMinutes();
     
-    const startOffset = Math.max(0, startHour * 60 + startMinutes);
-    const endOffset = Math.min(24 * 60, endHour * 60 + endMinutes);
+    const startOffset = Math.max(0, (startHour - 6) * 60 + startMinutes);
+    const endOffset = Math.min(18 * 60, (endHour - 6) * 60 + endMinutes);
     const duration = endOffset - startOffset;
     
     const top = (startOffset / 60) * 60; // 60px per hour
@@ -197,32 +197,26 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
     }
   };
 
-  // Current time indicator - convert UTC to facility timezone
+  // Current time indicator
   const getCurrentTimePosition = () => {
-    const now = new Date();
-    // Get current hour and minutes in facility timezone
-    const facilityTimeFormatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: getFacilityTimezone_Dynamic(),
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
     
-    const facilityTimeParts = facilityTimeFormatter.formatToParts(now);
-    const currentHour = parseInt(facilityTimeParts.find(part => part.type === 'hour')?.value || '0');
-    const currentMinutes = parseInt(facilityTimeParts.find(part => part.type === 'minute')?.value || '0');
+    if (currentHour < 6 || currentHour >= 24) return -1;
     
-    // For 24-hour timeline, all times are valid
-    const minutesFromStart = currentHour * 60 + currentMinutes;
+    const minutesFromStart = (currentHour - 6) * 60 + currentMinutes;
     return minutesFromStart; // 1 pixel per minute
   };
 
-  // Check if we should show current time indicator (always true for 24-hour timeline)
+  // Check if we should show current time indicator
   const shouldShowCurrentTimeIndicator = () => {
-    return true; // Always show for 24-hour timeline
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+    const currentHour = now.getHours();
+    return currentHour >= 6 && currentHour < 24;
   };
 
-  const currentTime = new Date();
+  const currentTime = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
 
   if (isLoading) {
     return (
@@ -247,7 +241,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                   
                   {/* Day headers */}
                   {weekDays.map((day) => {
-                    const today = new Date();
+                    const today = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
                     const isToday = isSameDay(day.date, today);
                     
                     return (
@@ -300,8 +294,8 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                   {/* Day columns */}
                   {weekDays.map((day) => {
                     const dayBookings = weekBookings.filter(booking => {
-                      const bookingStartDate = parseISO(booking.start);
-                      const bookingEndDate = parseISO(booking.end);
+                      const bookingStartDate = new Date(parseISO(booking.start).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+                      const bookingEndDate = new Date(parseISO(booking.end).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
                       
                       // Only show booking on the day it starts, unless it truly spans multiple days
                       const startsOnDay = isSameDay(bookingStartDate, day.date);
@@ -338,7 +332,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                         ))}
 
                         {/* Current time indicator line */}
-                        {shouldShowCurrentTimeIndicator() && isSameDay(day.date, new Date()) && (
+                        {shouldShowCurrentTimeIndicator() && isSameDay(day.date, new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }))) && (
                           <div
                             className="absolute left-0 right-0 z-30 pointer-events-none"
                             style={{
@@ -352,7 +346,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                             <div
                               className="absolute left-4 -top-5 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded shadow-lg whitespace-nowrap z-50"
                             >
-                              {formatTimeInFacilityTimezone(currentTime)}
+                              {format(currentTime, 'h:mm a')}
                             </div>
                             {/* Arrow pointing to the line */}
                             <div
