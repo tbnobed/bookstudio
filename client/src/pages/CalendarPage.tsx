@@ -8,6 +8,7 @@ import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
+import { useLocation } from "wouter";
 
 // Separate component to properly handle hooks for the monthly calendar
 function MonthlyCalendarWrapper({ currentDate, studios, selectedStudioIds }: { currentDate: Date, studios: Studio[], selectedStudioIds: number[] }) {
@@ -31,6 +32,8 @@ function MonthlyCalendarWrapper({ currentDate, studios, selectedStudioIds }: { c
 }
 
 export default function CalendarPage() {
+  const [location] = useLocation();
+  
   // Persist current date and view in localStorage
   const [currentDate, setCurrentDate] = useState(() => {
     try {
@@ -52,8 +55,20 @@ export default function CalendarPage() {
   
   const [view, setView] = useState<"day" | "week" | "month" | "timeline">(() => {
     try {
+      // First check for URL parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlView = urlParams.get('view') as "day" | "week" | "month" | "timeline" | null;
+      
+      if (urlView && ['day', 'week', 'month', 'timeline'].includes(urlView)) {
+        console.log(`CalendarPage - Using view from URL: ${urlView}`);
+        return urlView;
+      }
+      
+      // Fall back to localStorage
       const savedView = localStorage.getItem('calendarView') as "day" | "week" | "month" | "timeline";
-      return savedView && ['day', 'week', 'month', 'timeline'].includes(savedView) ? savedView : "week";
+      const finalView = savedView && ['day', 'week', 'month', 'timeline'].includes(savedView) ? savedView : "week";
+      console.log(`CalendarPage - Using view from localStorage: ${finalView}`);
+      return finalView;
     } catch (error) {
       console.error('Error loading view from localStorage', error);
       return "week";
@@ -90,6 +105,24 @@ export default function CalendarPage() {
       localStorage.setItem('selectedStudioIds', JSON.stringify(initialSelection));
     }
   }, [studios, selectedStudioIds]);
+
+  // Handle URL parameter changes for view
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlView = urlParams.get('view') as "day" | "week" | "month" | "timeline" | null;
+    
+    if (urlView && ['day', 'week', 'month', 'timeline'].includes(urlView) && urlView !== view) {
+      console.log(`CalendarPage - URL view parameter changed to: ${urlView}`);
+      setView(urlView);
+      
+      // Also save to localStorage for consistency
+      try {
+        localStorage.setItem('calendarView', urlView);
+      } catch (error) {
+        console.error('Error saving view to localStorage', error);
+      }
+    }
+  }, [location, view]); // React to location changes
 
   // Handle date change with enhanced debugging and force clean date object
   const handleDateChange = (date: Date) => {
