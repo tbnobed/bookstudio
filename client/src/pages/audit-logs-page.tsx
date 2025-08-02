@@ -191,6 +191,11 @@ export default function AuditLogsPage() {
     );
   }, [auditData?.logs, filters.searchTerm]);
 
+  // Helper function to get display value for Select components
+  const getSelectValue = (filterValue: string) => {
+    return filterValue === "" ? "all" : filterValue;
+  };
+
   const resetFilters = () => {
     setFilters({
       userId: "",
@@ -321,12 +326,12 @@ export default function AuditLogsPage() {
             </div>
 
             {/* Action Filter */}
-            <Select value={filters.action} onValueChange={(value) => setFilters({ ...filters, action: value })}>
+            <Select value={getSelectValue(filters.action)} onValueChange={(value) => setFilters({ ...filters, action: value === "all" ? "" : value })}>
               <SelectTrigger>
                 <SelectValue placeholder="All Actions" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Actions</SelectItem>
+                <SelectItem value="all">All Actions</SelectItem>
                 <SelectItem value="CREATE">Create</SelectItem>
                 <SelectItem value="UPDATE">Update</SelectItem>
                 <SelectItem value="DELETE">Delete</SelectItem>
@@ -337,12 +342,12 @@ export default function AuditLogsPage() {
             </Select>
 
             {/* Entity Type Filter */}
-            <Select value={filters.entityType} onValueChange={(value) => setFilters({ ...filters, entityType: value })}>
+            <Select value={getSelectValue(filters.entityType)} onValueChange={(value) => setFilters({ ...filters, entityType: value === "all" ? "" : value })}>
               <SelectTrigger>
                 <SelectValue placeholder="All Entities" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Entities</SelectItem>
+                <SelectItem value="all">All Entities</SelectItem>
                 <SelectItem value="booking">Bookings</SelectItem>
                 <SelectItem value="user">Users</SelectItem>
                 <SelectItem value="alert">Alerts</SelectItem>
