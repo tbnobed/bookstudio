@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { subtractDays, addDays, formatWeekRangeText, formatMondayWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
+import { useLocation } from "wouter";
 
 
 import WeatherWidget from "@/components/weather/WeatherWidget";
@@ -38,6 +39,7 @@ export function Header({
 }: HeaderProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showAllStudios, setShowAllStudios] = useState(false);
+  const [location, setLocation] = useLocation();
 
   const { sidebarVisible, toggleSidebar } = useSidebar();
   
@@ -266,11 +268,11 @@ export function Header({
               <button 
                 className={cn(
                   "px-2 py-1.5 text-xs font-medium border",
-                  view === "timeline" 
+                  location === "/engineering"
                     ? "bg-primary text-white border-primary" 
                     : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                 )}
-                onClick={() => onViewChange("timeline")}
+                onClick={() => setLocation("/engineering")}
               >
                 Timeline
               </button>
