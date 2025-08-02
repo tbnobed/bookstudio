@@ -12,6 +12,11 @@ This guide covers deployment of BookStud.io v1.5.2 with the new comprehensive au
 - **Facility Timezone Display**: All timestamps displayed in configured facility timezone
 - **Admin Dashboard**: Comprehensive audit log interface with statistics and export capabilities
 
+### 🚫 Removed: Default Notification Groups
+- **No Default Groups**: Docker deployment no longer creates default notification groups automatically
+- **Facility Customization**: Each facility should create their own notification groups based on their organizational structure
+- **Clean Deployment**: Reduces clutter and ensures each installation is tailored to the specific facility's needs
+
 ### Audit Log Coverage
 The system now tracks:
 - ✅ User Management (invite, create, update, delete)

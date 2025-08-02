@@ -420,33 +420,9 @@ async function createDefaultAdmin() {
 }
 
 async function createDefaultNotificationGroups() {
-  console.log('Creating default notification groups...');
-  
-  const defaultGroups = [
-    { name: 'Site Management', email: 'support@bookstud.io', type: 'site_management', description: 'Facility management and administrative notifications' },
-    { name: 'Engineering', email: 'engineering@bookstud.io', type: 'engineering', description: 'Technical operations and maintenance notifications' },
-    { name: 'Production', email: 'production@bookstud.io', type: 'production', description: 'Production scheduling and booking notifications' }
-  ];
-  
-  for (const group of defaultGroups) {
-    try {
-      const exists = await query('SELECT id FROM notification_groups WHERE name = $1', [group.name]);
-      
-      if (exists.rows.length === 0) {
-        await query(`
-          INSERT INTO notification_groups (name, email, group_type, description)
-          VALUES ($1, $2, $3, $4)
-        `, [group.name, group.email, group.type, group.description]);
-        
-        console.log(`✅ Created notification group: ${group.name}`);
-      } else {
-        console.log(`✅ Notification group already exists: ${group.name}`);
-      }
-    } catch (error) {
-      console.error(`❌ Failed to process notification group ${group.name}:`, error.message);
-      // Continue with other groups instead of failing completely
-    }
-  }
+  console.log('Skipping default notification groups creation for Docker deployment...');
+  // Default notification groups are no longer created automatically
+  // Facilities should create their own notification groups as needed
 }
 
 async function createDefaultBookingTypes() {

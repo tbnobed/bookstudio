@@ -82,6 +82,7 @@ docker-compose exec db psql -U $PGUSER -d $PGDATABASE -c "SELECT conname FROM pg
 - [ ] **Alerts**: Alert creation/updates create audit entries
 - [ ] **Weather**: Signage displays weather correctly
 - [ ] **Notifications**: Email notifications sent successfully
+- [ ] **Notification Groups**: Verify no default groups were created (clean deployment)
 
 ### 10. Performance and Security
 - [ ] Application responds within acceptable time limits
