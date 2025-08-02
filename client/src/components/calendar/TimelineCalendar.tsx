@@ -89,10 +89,11 @@ interface PcrRoom {
 
 interface TimelineCalendarProps {
   currentDate: Date;  
+  selectedStudioIds?: number[];
   onDateChange?: (date: Date) => void;
 }
 
-export default function TimelineCalendar({ currentDate, onDateChange }: TimelineCalendarProps) {
+export default function TimelineCalendar({ currentDate, selectedStudioIds = [], onDateChange }: TimelineCalendarProps) {
   const [currentWeek, setCurrentWeek] = useState(() => {
     return startOfWeek(currentDate, { weekStartsOn: 1 }); // Start on Monday
   });
@@ -378,19 +379,51 @@ export default function TimelineCalendar({ currentDate, onDateChange }: Timeline
     return [...bookings, ...alertsAsBookings];
   }, [bookings, allAlerts]);
 
+  // Helper function to get studio IDs for a booking
+  const getBookingStudioIds = (booking: BookingData): number[] => {
+    const studioIds: number[] = [];
+    
+    // Add direct studio ID if present
+    if (booking.studioId) {
+      studioIds.push(booking.studioId);
+    }
+    
+    // Add studio IDs from booking-studio links
+    const bookingId = typeof booking.id === 'string' && booking.id.startsWith('alert-') 
+      ? parseInt(booking.id.replace('alert-', '')) 
+      : booking.id;
+    
+    const links = bookingStudios.filter(link => link.bookingId === bookingId);
+    links.forEach(link => {
+      if (!studioIds.includes(link.studioId)) {
+        studioIds.push(link.studioId);
+      }
+    });
+    
+    return studioIds;
+  };
+
   // Filter bookings for current week and exclude cancelled bookings (but keep alerts regardless of status)
-  const weekBookings = combinedBookings.filter(booking => {
-    const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
-    const weekStart = currentWeek;
-    const weekEnd = endOfDay(addDays(currentWeek, 6)); // End of Sunday, not start of Sunday
-    
-    const inWeek = bookingDate >= weekStart && bookingDate <= weekEnd;
-    const isAlert = isAlertBooking(booking);
-    const isNotCancelled = booking.status !== 'cancelled';
-    
-    // Include if in week AND (is alert OR not cancelled)
-    return inWeek && (isAlert || isNotCancelled);
-  });
+  const weekBookings = useMemo(() => {
+    return combinedBookings.filter(booking => {
+      const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
+      const weekStart = currentWeek;
+      const weekEnd = endOfDay(addDays(currentWeek, 6)); // End of Sunday, not start of Sunday
+      
+      const inWeek = bookingDate >= weekStart && bookingDate <= weekEnd;
+      const isAlert = isAlertBooking(booking);
+      const isNotCancelled = booking.status !== 'cancelled';
+      
+      // Studio filtering - if studios are selected, check if booking is associated with any of them
+      const studioMatch = selectedStudioIds.length === 0 || isAlert || (() => {
+        const bookingStudioIds = getBookingStudioIds(booking);
+        return bookingStudioIds.some(studioId => selectedStudioIds.includes(studioId));
+      })();
+      
+      // Include if in week AND (is alert OR not cancelled) AND studio matches
+      return inWeek && (isAlert || isNotCancelled) && studioMatch;
+    });
+  }, [combinedBookings, currentWeek, selectedStudioIds, bookingStudios]);
 
   const goToPreviousWeek = () => {
     setCurrentWeek(prev => subWeeks(prev, 1));
