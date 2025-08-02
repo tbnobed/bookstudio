@@ -44,7 +44,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
   const { bookings: weekBookings, isLoading } = useStudioBookings(weekStart, weekEnd);
 
   // Get weather forecast
-  const { data: forecast } = useWeatherForecast();
+  const { forecast } = useWeatherForecast();
 
   // Generate week days (Monday to Sunday)
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -57,11 +57,11 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
     };
   });
 
-  // Time slots for the timeline (6 AM to 11 PM)
-  const timeSlots = Array.from({ length: 18 }, (_, i) => {
-    const hour = i + 6; // Start from 6 AM
+  // Time slots for the timeline (24 hours)
+  const timeSlots = Array.from({ length: 24 }, (_, i) => {
+    const hour = i; // 0-23 for 24-hour timeline
     const hour24 = hour;
-    const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     const ampm = hour >= 12 ? 'PM' : 'AM';
     return {
       hour24,
@@ -88,16 +88,16 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
 
   // Calculate booking position and style
   const getBookingStyle = (booking: Booking, column: number, totalColumns: number) => {
-    const startTime = new Date(parseISO(booking.start).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
-    const endTime = new Date(parseISO(booking.end).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+    const startTime = parseISO(booking.start);
+    const endTime = parseISO(booking.end);
     
     const startHour = startTime.getHours();
     const startMinutes = startTime.getMinutes();
     const endHour = endTime.getHours();
     const endMinutes = endTime.getMinutes();
     
-    const startOffset = Math.max(0, (startHour - 6) * 60 + startMinutes);
-    const endOffset = Math.min(18 * 60, (endHour - 6) * 60 + endMinutes);
+    const startOffset = Math.max(0, startHour * 60 + startMinutes);
+    const endOffset = Math.min(24 * 60, endHour * 60 + endMinutes);
     const duration = endOffset - startOffset;
     
     const top = (startOffset / 60) * 60; // 60px per hour
@@ -197,26 +197,23 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
     }
   };
 
-  // Current time indicator
+  // Current time indicator - convert UTC to facility timezone
   const getCurrentTimePosition = () => {
-    const now = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+    const now = new Date();
     const currentHour = now.getHours();
     const currentMinutes = now.getMinutes();
     
-    if (currentHour < 6 || currentHour >= 24) return -1;
-    
-    const minutesFromStart = (currentHour - 6) * 60 + currentMinutes;
+    // For 24-hour timeline, all times are valid
+    const minutesFromStart = currentHour * 60 + currentMinutes;
     return minutesFromStart; // 1 pixel per minute
   };
 
-  // Check if we should show current time indicator
+  // Check if we should show current time indicator (always true for 24-hour timeline)
   const shouldShowCurrentTimeIndicator = () => {
-    const now = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
-    const currentHour = now.getHours();
-    return currentHour >= 6 && currentHour < 24;
+    return true; // Always show for 24-hour timeline
   };
 
-  const currentTime = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+  const currentTime = new Date();
 
   if (isLoading) {
     return (
@@ -241,7 +238,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                   
                   {/* Day headers */}
                   {weekDays.map((day) => {
-                    const today = new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+                    const today = new Date();
                     const isToday = isSameDay(day.date, today);
                     
                     return (
@@ -265,7 +262,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                           <div className="mt-2">
                             <WeatherForecastCell 
                               date={day.date} 
-                              forecast={forecast?.forecast.find(f => f.date === day.fullDate) || null} 
+                              forecast={forecast?.forecast.find((f: any) => f.date === day.fullDate) || null} 
                               size="small"
                             />
                           </div>
@@ -294,8 +291,8 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                   {/* Day columns */}
                   {weekDays.map((day) => {
                     const dayBookings = weekBookings.filter(booking => {
-                      const bookingStartDate = new Date(parseISO(booking.start).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
-                      const bookingEndDate = new Date(parseISO(booking.end).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }));
+                      const bookingStartDate = parseISO(booking.start);
+                      const bookingEndDate = parseISO(booking.end);
                       
                       // Only show booking on the day it starts, unless it truly spans multiple days
                       const startsOnDay = isSameDay(bookingStartDate, day.date);
@@ -332,7 +329,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                         ))}
 
                         {/* Current time indicator line */}
-                        {shouldShowCurrentTimeIndicator() && isSameDay(day.date, new Date(new Date().toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() }))) && (
+                        {shouldShowCurrentTimeIndicator() && isSameDay(day.date, new Date()) && (
                           <div
                             className="absolute left-0 right-0 z-30 pointer-events-none"
                             style={{
@@ -410,7 +407,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                                       
                                       {/* Time */}
                                       <div className="font-bold text-sm">
-                                        {format(new Date(parseISO(booking.start).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() })), 'h:mm a')} - {format(new Date(parseISO(booking.end).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() })), 'h:mm a')}
+                                        {format(parseISO(booking.start), 'h:mm a')} - {format(parseISO(booking.end), 'h:mm a')}
                                       </div>
                                       
                                       {/* Studios */}
@@ -481,7 +478,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                                   )}
                                   
                                   <div className="text-sm text-gray-700">
-                                    <strong>Time:</strong> {format(new Date(parseISO(booking.start).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() })), 'MMM d, yyyy h:mm a')} - {format(new Date(parseISO(booking.end).toLocaleString("en-US", { timeZone: getFacilityTimezone_Dynamic() })), 'h:mm a')}
+                                    <strong>Time:</strong> {format(parseISO(booking.start), 'MMM d, yyyy h:mm a')} - {format(parseISO(booking.end), 'h:mm a')}
                                   </div>
                                   
                                   {studios.length > 0 && (
