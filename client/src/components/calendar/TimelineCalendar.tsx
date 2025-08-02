@@ -161,9 +161,6 @@ export default function TimelineCalendar({ currentDate, onDateChange }: Timeline
     };
   });
 
-  // Debug: Log time slots to verify all 24 hours are generated
-  console.log(`[TIMELINE DEBUG] Generated ${timeSlots.length} time slots:`, timeSlots.map(slot => `${slot.hour24}:${slot.label}`));
-
   // Generate week days - ensure proper timezone handling
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(currentWeek, i);
@@ -560,7 +557,7 @@ export default function TimelineCalendar({ currentDate, onDateChange }: Timeline
       )}
 
       {/* Calendar Grid */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-auto">
           <div className="min-w-[1000px]">
             {/* Day Headers */}
