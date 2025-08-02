@@ -134,6 +134,7 @@ COPY --from=builder /app/scripts ./scripts
 COPY scripts/consolidated-migration.cjs ./scripts/
 COPY scripts/schema-repair.cjs ./scripts/
 COPY scripts/docker-migrate-linked-bookings.cjs ./scripts/
+COPY scripts/clean-invalid-notifications.cjs ./scripts/
 
 # Copy backup and restore scripts
 COPY scripts/production-backup.sh ./scripts/

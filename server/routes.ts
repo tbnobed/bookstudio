@@ -1186,13 +1186,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const userId of booking.notifyList as number[]) {
           if (userId !== null && userId !== undefined) {
             try {
-              await storage.createNotification({
-                userId,
-                title: "New Booking Notification",
-                message: `A new booking "${booking.title}" has been created that requires your attention.`,
-                type: "booking_created",
-                bookingId: booking.id
-              });
+              // Validate that the user exists before creating notification
+              const user = await storage.getUser(userId);
+              if (user) {
+                await storage.createNotification({
+                  userId,
+                  title: "New Booking Notification",
+                  message: `A new booking "${booking.title}" has been created that requires your attention.`,
+                  type: "booking_created",
+                  bookingId: booking.id
+                });
+                console.log(`[BookingCreation] Notification created for user ${userId} (${user.username})`);
+              } else {
+                console.warn(`[BookingCreation] Skipping notification - User ${userId} not found in database`);
+              }
             } catch (notifyError) {
               console.error(`Error creating notification for user ${userId} in notify list:`, notifyError);
               // Continue with the next notification
@@ -1614,14 +1621,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (booking.userId !== null && booking.userId !== undefined) {
         try {
-          console.log(`Creating notification for user ID: ${booking.userId}`);
-          await storage.createNotification({
-            userId: booking.userId,
-            title: "Booking Updated",
-            message: `Your booking for "${booking.title}" has been updated.`,
-            type: "booking_updated",
-            bookingId: booking.id
-          });
+          // Validate that the user exists before creating notification
+          const user = await storage.getUser(booking.userId);
+          if (user) {
+            console.log(`Creating notification for user ID: ${booking.userId}`);
+            await storage.createNotification({
+              userId: booking.userId,
+              title: "Booking Updated",
+              message: `Your booking for "${booking.title}" has been updated.`,
+              type: "booking_updated",
+              bookingId: booking.id
+            });
+          } else {
+            console.warn(`[BookingUpdate] Skipping notification - User ${booking.userId} not found in database`);
+          }
           
           // Send email notification about the update if this is a standard booking with a studio
           if (updatedBooking && updatedBooking.studioId) {
@@ -1771,15 +1784,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           try {
-            await storage.createNotification({
-              userId: booking.userId,
-              title: booking.studioId === null ? "Alert Deleted" : "Booking Deleted",
-              message: booking.studioId === null
-                ? `Your facility alert "${booking.title}" has been deleted by ${deletedByRole}.`
-                : `Your booking for "${booking.title}" has been deleted by ${deletedByRole}.`,
-              type: "booking_deleted",
-              bookingId: booking.id
-            });
+            // Validate that the user exists before creating notification
+            const bookingUser = await storage.getUser(booking.userId);
+            if (bookingUser) {
+              await storage.createNotification({
+                userId: booking.userId,
+                title: booking.studioId === null ? "Alert Deleted" : "Booking Deleted",
+                message: booking.studioId === null
+                  ? `Your facility alert "${booking.title}" has been deleted by ${deletedByRole}.`
+                  : `Your booking for "${booking.title}" has been deleted by ${deletedByRole}.`,
+                type: "booking_deleted",
+                bookingId: booking.id
+              });
+            } else {
+              console.warn(`[BookingDeletion] Skipping notification - User ${booking.userId} not found in database`);
+            }
             
             // Send email notification about the deletion if this is a standard booking with a studio
             if (booking.studioId) {
