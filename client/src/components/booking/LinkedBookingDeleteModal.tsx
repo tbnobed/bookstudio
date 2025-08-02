@@ -22,6 +22,7 @@ interface LinkedBookingDeleteModalProps {
   onClose: () => void;
   booking: Booking;
   linkedBookingsCount?: number;
+  onDelete?: () => void;
 }
 
 export default function LinkedBookingDeleteModal({
@@ -29,6 +30,7 @@ export default function LinkedBookingDeleteModal({
   onClose,
   booking,
   linkedBookingsCount = 0,
+  onDelete,
 }: LinkedBookingDeleteModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -68,6 +70,11 @@ export default function LinkedBookingDeleteModal({
       // Reset state and close modal
       setDeleteOption("single");
       onClose();
+      
+      // Call onDelete callback to close parent modal if booking was deleted
+      if (onDelete) {
+        onDelete();
+      }
     },
     onError: (error: any) => {
       console.error("Error deleting booking:", error);
