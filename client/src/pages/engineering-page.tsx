@@ -463,7 +463,7 @@ export default function EngineeringPage() {
 
   return (
     <TooltipProvider>
-      <div className="h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-gray-50">
         {/* Header with sidebar toggle */}
         <Header
           currentDate={currentWeek}
@@ -560,9 +560,9 @@ export default function EngineeringPage() {
       )}
 
       {/* Calendar Grid */}
-      <div className="flex-1 overflow-hidden">
-        <div className="overflow-auto" style={{ height: 'calc(100vh - 200px)' }}>
-          <div className="min-w-[1000px]" style={{ height: '1440px' }}>
+      <div className="flex-1 min-h-0">
+        <div className="h-full overflow-auto">
+          <div className="min-w-[1000px]">
             {/* Day Headers */}
             <div className="sticky top-0 bg-white border-b border-gray-200 z-40 shadow-sm">
               <div className="flex">
