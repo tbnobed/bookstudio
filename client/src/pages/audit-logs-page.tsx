@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 
 interface AuditLog {
   id: number;
@@ -222,7 +223,21 @@ export default function AuditLogsPage() {
   };
 
   const formatTimestamp = (timestamp: string) => {
-    return format(new Date(timestamp), "MMM dd, yyyy HH:mm:ss");
+    const date = new Date(timestamp);
+    
+    // Format the date using facility timezone
+    const facilityTimezone = getFacilityTimezone_Dynamic();
+    
+    return date.toLocaleString('en-US', {
+      timeZone: facilityTimezone,
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
   };
 
   const getActionBadge = (action: string) => {
