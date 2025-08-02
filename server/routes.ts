@@ -746,6 +746,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Booking routes
+  // Get linked bookings by linkedGroupId
+  app.get("/api/bookings/linked/:linkedGroupId", isAuthenticated, async (req, res) => {
+    try {
+      const { linkedGroupId } = req.params;
+      const linkedBookings = await storage.getLinkedBookings(linkedGroupId);
+      res.json(linkedBookings);
+    } catch (error) {
+      console.error("Error fetching linked bookings:", error);
+      res.status(500).json({ message: "Failed to fetch linked bookings" });
+    }
+  });
+
   app.get("/api/bookings", isAuthenticated, async (req, res) => {
     try {
       let bookings;
@@ -1240,7 +1252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/bookings/copy", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const { bookingId, dates, titleSuffix } = req.body;
+      const { bookingId, dates, titleSuffix, createLinked } = req.body;
       
       if (!bookingId || !dates || !Array.isArray(dates) || dates.length === 0) {
         return res.status(400).json({ message: "Invalid request. Booking ID and at least one date required." });
@@ -1283,7 +1295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Use the storage method to copy the booking
-      const newBookings = await storage.copyBookingToMultipleDates(bookingId, datesToCopy);
+      const newBookings = await storage.copyBookingToMultipleDates(bookingId, datesToCopy, createLinked);
       
       // Apply title suffix if provided
       if (titleSuffix && newBookings.length > 0) {
@@ -1493,8 +1505,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? studioIds.map(id => typeof id === 'string' ? parseInt(id) : id)
         : undefined;
         
+      // Check if this booking is part of a linked group
+      let linkedBookings: Booking[] = [];
+      if (booking.linkedGroupId) {
+        try {
+          linkedBookings = await storage.getLinkedBookings(booking.linkedGroupId);
+          console.log(`Found ${linkedBookings.length} linked bookings for group ${booking.linkedGroupId}`);
+        } catch (error) {
+          console.error("Error fetching linked bookings:", error);
+          // Continue with single booking update if linked fetch fails
+        }
+      }
+
       // Use the updated version of updateBooking that handles studio links
       const updatedBooking = await storage.updateBooking(id, updateData, parsedStudioIds);
+
+      // If this booking is part of a linked group, update all other linked bookings
+      if (booking.linkedGroupId && linkedBookings.length > 1) {
+        try {
+          console.log(`Updating ${linkedBookings.length - 1} linked bookings...`);
+          
+          const updatePromises = linkedBookings
+            .filter(linkedBooking => linkedBooking.id !== id) // Don't update the original booking again
+            .map(async (linkedBooking) => {
+              // Calculate the time difference between the original booking and this linked booking
+              const originalStart = new Date(booking.start);
+              const originalEnd = new Date(booking.end);
+              const linkedStart = new Date(linkedBooking.start);
+              const linkedEnd = new Date(linkedBooking.end);
+              
+              // Prepare update data for linked booking
+              const linkedUpdateData = { ...updateData };
+              
+              // If updating times, adjust them relative to each linked booking's date
+              if (updateData.start || updateData.end) {
+                const newStart = updateData.start ? new Date(updateData.start) : originalStart;
+                const newEnd = updateData.end ? new Date(updateData.end) : originalEnd;
+                
+                // Calculate the date offset
+                const dateOffset = linkedStart.getDate() - originalStart.getDate();
+                const monthOffset = linkedStart.getMonth() - originalStart.getMonth();
+                const yearOffset = linkedStart.getFullYear() - originalStart.getFullYear();
+                
+                // Apply the same time but on the linked booking's date
+                const adjustedStart = new Date(newStart);
+                adjustedStart.setDate(newStart.getDate() + dateOffset);
+                adjustedStart.setMonth(newStart.getMonth() + monthOffset);
+                adjustedStart.setFullYear(newStart.getFullYear() + yearOffset);
+                
+                const adjustedEnd = new Date(newEnd);
+                adjustedEnd.setDate(newEnd.getDate() + dateOffset);
+                adjustedEnd.setMonth(newEnd.getMonth() + monthOffset);
+                adjustedEnd.setFullYear(newEnd.getFullYear() + yearOffset);
+                
+                linkedUpdateData.start = adjustedStart;
+                linkedUpdateData.end = adjustedEnd;
+              }
+              
+              return await storage.updateBooking(linkedBooking.id, linkedUpdateData, parsedStudioIds);
+            });
+            
+          await Promise.all(updatePromises);
+          console.log(`Successfully updated all linked bookings for group ${booking.linkedGroupId}`);
+        } catch (error) {
+          console.error("Error updating linked bookings:", error);
+          // Continue with the response even if linked updates fail
+        }
+      }
       
       if (parsedStudioIds && parsedStudioIds.length > 0) {
         console.log(`Updated studio links for booking ${id}: ${parsedStudioIds.join(', ')}`);
@@ -1637,6 +1714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/bookings/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const { deleteLinked } = req.query; // Query parameter to delete all linked bookings
       const booking = await storage.getBooking(id);
       
       if (!booking) {
@@ -1663,7 +1741,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      const success = await storage.deleteBooking(id);
+      // Check if this is a linked booking and handle accordingly
+      let success = false;
+      let deletedCount = 0;
+      
+      if (deleteLinked === 'true' && booking.linkedGroupId) {
+        // Delete all bookings with the same linkedGroupId
+        const linkedBookings = await storage.getLinkedBookings(booking.linkedGroupId);
+        console.log(`Deleting ${linkedBookings.length} linked bookings for group ${booking.linkedGroupId}`);
+        
+        for (const linkedBooking of linkedBookings) {
+          const deleteResult = await storage.deleteBooking(linkedBooking.id);
+          if (deleteResult) deletedCount++;
+        }
+        success = deletedCount > 0;
+      } else {
+        // Delete only this specific booking
+        success = await storage.deleteBooking(id);
+        deletedCount = success ? 1 : 0;
+      }
       
       if (success) {
         // Create notification for the booking owner if not the deleter
@@ -1750,7 +1846,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Continue execution even if site manager notification fails
         }
         
-        return res.json({ message: "Booking deleted successfully" });
+        const message = deletedCount > 1 
+          ? `Successfully deleted ${deletedCount} linked bookings` 
+          : "Booking deleted successfully";
+        return res.json({ message });
       } else {
         return res.status(500).json({ message: "Failed to delete booking" });
       }

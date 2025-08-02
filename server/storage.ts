@@ -59,6 +59,7 @@ export interface IStorage {
   getBookingsByDateRange(start: Date, end: Date): Promise<Booking[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: number, data: Partial<InsertBooking>, studioIds?: number[]): Promise<Booking | undefined>;
+  getLinkedBookings(linkedGroupId: string): Promise<Booking[]>;
   deleteBooking(id: number): Promise<boolean>;
   checkBookingConflicts(studioId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]>;
   copyBookingToMultipleDates(bookingId: number, dates: Date[]): Promise<Booking[]>;
@@ -564,6 +565,10 @@ export class MemStorage implements IStorage {
       console.error(`Error updating booking with ID ${id}:`, error);
       return undefined;
     }
+  }
+
+  async getLinkedBookings(linkedGroupId: string): Promise<Booking[]> {
+    return Array.from(this.bookings.values()).filter(booking => booking.linkedGroupId === linkedGroupId);
   }
 
   async deleteBooking(id: number): Promise<boolean> {
@@ -2209,6 +2214,20 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
+
+  async getLinkedBookings(linkedGroupId: string): Promise<Booking[]> {
+    try {
+      const result = await db.select()
+        .from(bookings)
+        .where(eq(bookings.linkedGroupId, linkedGroupId));
+      
+      return result;
+    } catch (error) {
+      console.error(`Error getting linked bookings for group ${linkedGroupId}:`, error);
+      // Fallback to memory cache
+      return Array.from(this.bookings.values()).filter(booking => booking.linkedGroupId === linkedGroupId);
+    }
+  }
   
   async deleteBooking(id: number): Promise<boolean> {
     try {
@@ -2469,7 +2488,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Copy a booking to multiple dates
-  async copyBookingToMultipleDates(bookingId: number, dates: Date[]): Promise<Booking[]> {
+  async copyBookingToMultipleDates(bookingId: number, dates: Date[], createLinked?: boolean): Promise<Booking[]> {
     try {
       // Get the original booking
       const originalBooking = await this.getBooking(bookingId);
@@ -2478,7 +2497,15 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      console.log(`Copying booking ${bookingId} (${originalBooking.title}) to ${dates.length} dates`);
+      console.log(`Copying booking ${bookingId} (${originalBooking.title}) to ${dates.length} dates${createLinked ? ' (linked)' : ''}`);
+      
+      // Generate linked group ID if creating linked copies
+      const linkedGroupId = createLinked ? `linked_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : null;
+      
+      // If creating linked copies, update the original booking to have the same linkedGroupId
+      if (createLinked && linkedGroupId) {
+        await this.updateBooking(bookingId, { linkedGroupId });
+      }
       
       // Get the studios linked to this booking
       const linkedStudios = await this.getStudiosForBooking(bookingId);
@@ -2550,7 +2577,8 @@ export class DatabaseStorage implements IStorage {
           templateId: originalBooking.templateId,
           notifyList: originalBooking.notifyList,
           // severity: REMOVED - production bookings don't use severity
-          color: originalBooking.color // Copy the original booking's color
+          color: originalBooking.color, // Copy the original booking's color
+          linkedGroupId: linkedGroupId // Set linked group ID if creating linked copies
         };
         
         // Create the new booking

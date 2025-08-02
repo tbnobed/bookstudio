@@ -30,13 +30,14 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [titleSuffix, setTitleSuffix] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
+  const [createLinked, setCreateLinked] = useState<boolean>(false);
   
   // Make sure booking.start is a valid date before creating a Date object
   const bookingDate = booking && booking.start ? new Date(booking.start) : new Date();
   
   // Mutation to copy a booking to multiple dates
   const copyBookingMutation = useMutation({
-    mutationFn: async (data: { bookingId: number; dates: string[]; titleSuffix?: string }) => {
+    mutationFn: async (data: { bookingId: number; dates: string[]; titleSuffix?: string; createLinked?: boolean }) => {
       const res = await apiRequest("POST", "/api/bookings/copy", data);
       return res.json();
     },
@@ -48,9 +49,10 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
       const successCount = results?.filter(r => r.success)?.length || 0;
       
       if (success) {
+        const linkedText = createLinked ? " (linked)" : "";
         toast({
           title: "Success!",
-          description: message || `Booking copied to ${successCount} date${successCount !== 1 ? 's' : ''}.`,
+          description: message || `Booking copied to ${successCount} date${successCount !== 1 ? 's' : ''}${linkedText}.`,
           variant: "default",
         });
         
@@ -62,6 +64,7 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
         // Reset state and close the modal
         setSelectedDates([]);
         setTitleSuffix("");
+        setCreateLinked(false);
         onClose();
       } else {
         // Some copies might have failed
@@ -115,6 +118,7 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
       bookingId: booking.id,
       dates: formattedDates,
       titleSuffix: titleSuffix.trim() || undefined,
+      createLinked: createLinked,
     });
   };
   
@@ -227,6 +231,35 @@ export default function CopyBookingModal({ isOpen, onClose, booking }: CopyBooki
                   <p className="text-sm">
                     Adding a suffix will help distinguish copied bookings. 
                     For example, "{booking.title} - Week 2".
+                  </p>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="createLinked"
+                checked={createLinked}
+                onCheckedChange={(checked) => setCreateLinked(checked as boolean)}
+              />
+              <Label htmlFor="createLinked" className="text-sm font-normal">
+                Create linked copies (updates to one will update all)
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" type="button" className="h-6 w-6">
+                    <Info className="h-3 w-3" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-2">
+                  <p className="text-sm">
+                    <strong>Linked copies:</strong> Changes to one booking (time, title, etc.) will automatically update all linked copies.
+                    You can delete individual occurrences or all linked copies at once.
+                  </p>
+                  <p className="text-sm mt-2">
+                    <strong>Independent copies:</strong> Each copy is separate and can be modified independently.
                   </p>
                 </PopoverContent>
               </Popover>
