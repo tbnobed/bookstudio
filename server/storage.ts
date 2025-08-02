@@ -483,6 +483,12 @@ export class MemStorage implements IStorage {
     });
   }
 
+  async getLinkedBookings(linkedGroupId: string): Promise<Booking[]> {
+    return Array.from(this.bookings.values()).filter(
+      (booking) => booking.linkedGroupId === linkedGroupId
+    ).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  }
+
   async createBooking(booking: InsertBooking): Promise<Booking> {
     const id = this.bookingIdCounter++;
     const newBooking: Booking = { 
@@ -2155,6 +2161,29 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error creating booking:", error);
       throw error;
+    }
+  }
+
+  async getLinkedBookings(linkedGroupId: string): Promise<Booking[]> {
+    try {
+      const linkedBookings = await db
+        .select()
+        .from(bookings)
+        .where(eq(bookings.linkedGroupId, linkedGroupId))
+        .orderBy(bookings.start);
+      
+      // Add to cache
+      linkedBookings.forEach(booking => {
+        this.bookings.set(booking.id, booking);
+      });
+      
+      return linkedBookings;
+    } catch (error) {
+      console.error(`Error getting linked bookings for group ${linkedGroupId}:`, error);
+      // Fallback to memory
+      return Array.from(this.bookings.values()).filter(
+        (booking) => booking.linkedGroupId === linkedGroupId
+      ).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
     }
   }
   
