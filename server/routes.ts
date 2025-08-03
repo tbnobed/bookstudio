@@ -3373,6 +3373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const members = await storage.getTeamMembers(teamId);
+      console.log('Team members retrieved from storage:', JSON.stringify(members, null, 2));
       res.json(members);
     } catch (error) {
       console.error("Error fetching team members:", error);

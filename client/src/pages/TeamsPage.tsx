@@ -90,6 +90,9 @@ export default function TeamsPage() {
   const { data: teamMembers = [], refetch: refetchMembers } = useQuery<TeamMember[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "members"],
     enabled: !!selectedTeam,
+    onSuccess: (data) => {
+      console.log('Team members data received:', data);
+    }
   });
 
   // Mutations
@@ -238,6 +241,7 @@ export default function TeamsPage() {
 
   const getUserName = (userId: number) => {
     const user = users.find(u => u.id === userId);
+    console.log('getUserName called with userId:', userId, 'found user:', user, 'all users:', users);
     return user ? (user.name || user.username) : `User ${userId}`;
   };
 
