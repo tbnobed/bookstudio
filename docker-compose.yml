@@ -68,7 +68,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting BookStud.io application v1.5.2 with Comprehensive Audit Logging...' &&
+        echo 'Starting BookStud.io application v1.5.3 with Teams Feature...' &&
         echo \"Using timezone: ${TZ:-America/Chicago}\" &&
         echo 'Verifying database tables before startup...' &&
         node -e \"
@@ -212,6 +212,10 @@ services:
         node scripts/docker-audit-schema-fix.cjs &&
         echo 'Running production migration v1.5.2 (audit logging system)...' &&
         node scripts/production-migration-v1.5.2.cjs &&
+        echo 'Running teams feature migration (v1.5.3)...' &&
+        node scripts/docker-migrate-teams-v1.5.3.cjs &&
+        echo 'Running teams schema audit fix (v1.5.3)...' &&
+        node scripts/docker-audit-schema-fix-v1.5.3.cjs &&
         echo 'Database initialization completed successfully!'
       "
 

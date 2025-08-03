@@ -81,7 +81,7 @@ RUN echo "import express from 'express';" > server-prod.js && \
     echo "    console.log(`Server running on port ${port}`);" >> server-prod.js && \
     echo "    console.log(`Application timezone: ${process.env.TZ || 'UTC'}`);" >> server-prod.js && \
     echo "    console.log(`Facility timezone: ${process.env.FACILITY_TIMEZONE || process.env.TZ || 'UTC'}`);" >> server-prod.js && \
-    echo "    console.log('BookStudio Version: 1.5.2 - Comprehensive Audit Logging');" >> server-prod.js && \
+    echo "    console.log('BookStudio Version: 1.5.3 - Teams Feature');" >> server-prod.js && \
     echo "  });" >> server-prod.js && \
     echo "})();" >> server-prod.js && \
     npx esbuild server-prod.js --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
@@ -137,6 +137,8 @@ COPY scripts/docker-migrate-linked-bookings.cjs ./scripts/
 COPY scripts/clean-invalid-notifications.cjs ./scripts/
 COPY scripts/production-migration-v1.5.1.cjs ./scripts/
 COPY scripts/production-migration-v1.5.2.cjs ./scripts/
+COPY scripts/docker-migrate-teams-v1.5.3.cjs ./scripts/
+COPY scripts/docker-audit-schema-fix-v1.5.3.cjs ./scripts/
 
 # Copy backup and restore scripts
 COPY scripts/production-backup.sh ./scripts/
