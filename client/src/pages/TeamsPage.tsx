@@ -60,6 +60,13 @@ export default function TeamsPage() {
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
   const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+
+  // Invalidate cache when team changes to ensure fresh member data
+  useEffect(() => {
+    if (selectedTeam?.id) {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam.id, "members"] });
+    }
+  }, [selectedTeam?.id, queryClient]);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 
   // Forms
@@ -96,6 +103,8 @@ export default function TeamsPage() {
       return response.json();
     },
     enabled: !!selectedTeam,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache the data
   });
 
 
