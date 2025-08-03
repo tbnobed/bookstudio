@@ -123,13 +123,20 @@ export default function MyBookingsPage() {
     return userRecord ? userRecord.name : `User ${userId}`;
   };
 
-  // Get team name by checking which teams the booking owner belongs to
+  // Get team name for a booking - find which team the booking belongs to
   const getTeamNameForBooking = (booking: any) => {
     if (!userTeams || userTeams.length === 0) return null;
-    // For team bookings, we'll show which team(s) the owner belongs to
-    // Since we already know this is a team booking, just return a generic label for now
-    // In a more advanced version, we could track which team the booking was made for
-    return "Team Member";
+    
+    // Check if this booking appears in team bookings
+    const teamBookingsList = teamBookingsData?.bookings || [];
+    const isTeamBooking = teamBookingsList.some(tb => tb.id === booking.id);
+    
+    if (!isTeamBooking) return null;
+    
+    // For now, we'll show the first team the current user belongs to
+    // In a more advanced version, we could track which specific team the booking was made for
+    const firstTeam = userTeams[0];
+    return firstTeam ? firstTeam.name : "Team Booking";
   };
 
   // Get color for booking type
@@ -387,7 +394,7 @@ export default function MyBookingsPage() {
                                 </Badge>
                               </div>
                               <p className="text-xs text-blue-600 mb-1">
-                                Created by {getUserName(booking.userId)} • Team Booking
+                                Created by {getUserName(booking.userId)} • {getTeamNameForBooking(booking) || "Team Booking"}
                               </p>
                               <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
                               <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
