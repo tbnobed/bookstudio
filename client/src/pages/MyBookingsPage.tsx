@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function MyBookingsPage() {
   const { user } = useAuth();
@@ -299,18 +300,40 @@ export default function MyBookingsPage() {
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {upcomingBookings.map(booking => {
                           const stripeStyle = getBookingStripeStyle(booking);
+                          const isCancelled = booking.status === 'cancelled';
+                          const isTentative = booking.status === 'tentative';
+                          
                           return (
-                            <Card key={booking.id} className="overflow-hidden">
+                            <Card key={booking.id} className={cn(
+                              "overflow-hidden",
+                              isCancelled && "opacity-60 bg-red-50 border-red-300",
+                              isTentative && "border-dashed opacity-80 bg-yellow-50"
+                            )}>
                               <div 
                                 className={`h-2 ${stripeStyle.className || ''}`}
                                 style={stripeStyle.className ? {} : stripeStyle}
                               ></div>
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-start mb-2">
-                                  <h3 className="font-semibold text-lg">{booking.title}</h3>
-                                  <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
-                                    {formatBookingType(booking.type)}
-                                  </Badge>
+                                  <h3 className={cn(
+                                    "font-semibold text-lg",
+                                    isCancelled && "line-through text-red-600"
+                                  )}>
+                                    {booking.title}
+                                  </h3>
+                                  <div className="flex gap-2">
+                                    <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                      {formatBookingType(booking.type)}
+                                    </Badge>
+                                    {booking.status !== 'confirmed' && (
+                                      <Badge variant={
+                                        booking.status === 'cancelled' ? 'destructive' : 
+                                        booking.status === 'tentative' ? 'secondary' : 'outline'
+                                      }>
+                                        {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                                 <p className="text-xs text-green-600 mb-1">Created by you</p>
                                 <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
@@ -351,18 +374,40 @@ export default function MyBookingsPage() {
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {pastBookings.map(booking => {
                           const stripeStyle = getBookingStripeStyle(booking);
+                          const isCancelled = booking.status === 'cancelled';
+                          const isTentative = booking.status === 'tentative';
+                          
                           return (
-                            <Card key={booking.id} className="overflow-hidden opacity-75">
+                            <Card key={booking.id} className={cn(
+                              "overflow-hidden opacity-75",
+                              isCancelled && "bg-red-50 border-red-300",
+                              isTentative && "border-dashed bg-yellow-50"
+                            )}>
                               <div 
                                 className={`h-2 ${stripeStyle.className || ''}`}
                                 style={stripeStyle.className ? {} : stripeStyle}
                               ></div>
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-start mb-2">
-                                  <h3 className="font-semibold text-lg">{booking.title}</h3>
-                                  <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
-                                    {formatBookingType(booking.type)}
-                                  </Badge>
+                                  <h3 className={cn(
+                                    "font-semibold text-lg",
+                                    isCancelled && "line-through text-red-600"
+                                  )}>
+                                    {booking.title}
+                                  </h3>
+                                  <div className="flex gap-2">
+                                    <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                      {formatBookingType(booking.type)}
+                                    </Badge>
+                                    {booking.status !== 'confirmed' && (
+                                      <Badge variant={
+                                        booking.status === 'cancelled' ? 'destructive' : 
+                                        booking.status === 'tentative' ? 'secondary' : 'outline'
+                                      }>
+                                        {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                                 <p className="text-xs text-green-600 mb-1">Created by you</p>
                                 <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
@@ -399,18 +444,40 @@ export default function MyBookingsPage() {
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                       {(teamBookingsData?.bookings || []).map(booking => {
                         const stripeStyle = getBookingStripeStyle(booking);
+                        const isCancelled = booking.status === 'cancelled';
+                        const isTentative = booking.status === 'tentative';
+                        
                         return (
-                          <Card key={booking.id} className="overflow-hidden border-l-4 border-blue-500">
+                          <Card key={booking.id} className={cn(
+                            "overflow-hidden border-l-4 border-blue-500",
+                            isCancelled && "opacity-60 bg-red-50 border-red-300",
+                            isTentative && "border-dashed opacity-80 bg-yellow-50"
+                          )}>
                             <div 
                               className={`h-2 ${stripeStyle.className || ''}`}
                               style={stripeStyle.className ? {} : stripeStyle}
                             ></div>
                             <CardContent className="p-4">
                               <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-semibold text-lg">{booking.title}</h3>
-                                <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
-                                  {formatBookingType(booking.type)}
-                                </Badge>
+                                <h3 className={cn(
+                                  "font-semibold text-lg",
+                                  isCancelled && "line-through text-red-600"
+                                )}>
+                                  {booking.title}
+                                </h3>
+                                <div className="flex gap-2">
+                                  <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                    {formatBookingType(booking.type)}
+                                  </Badge>
+                                  {booking.status !== 'confirmed' && (
+                                    <Badge variant={
+                                      booking.status === 'cancelled' ? 'destructive' : 
+                                      booking.status === 'tentative' ? 'secondary' : 'outline'
+                                    }>
+                                      {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                               <p className="text-xs text-blue-600 mb-1">
                                 Created by {getUserName(booking.userId)} • {getTeamNameForBooking(booking) || "Team Booking"}
@@ -477,18 +544,40 @@ export default function MyBookingsPage() {
                         {upcomingAllBookings.map(booking => {
                           const stripeStyle = getBookingStripeStyle(booking);
                           const isOwner = booking.userId === user?.id;
+                          const isCancelled = booking.status === 'cancelled';
+                          const isTentative = booking.status === 'tentative';
+                          
                           return (
-                            <Card key={booking.id} className="overflow-hidden border-l-4 border-purple-500">
+                            <Card key={booking.id} className={cn(
+                              "overflow-hidden border-l-4 border-purple-500",
+                              isCancelled && "opacity-60 bg-red-50 border-red-300",
+                              isTentative && "border-dashed opacity-80 bg-yellow-50"
+                            )}>
                               <div 
                                 className={`h-2 ${stripeStyle.className || ''}`}
                                 style={stripeStyle.className ? {} : stripeStyle}
                               ></div>
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-start mb-2">
-                                  <h3 className="font-semibold text-lg">{booking.title}</h3>
-                                  <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
-                                    {formatBookingType(booking.type)}
-                                  </Badge>
+                                  <h3 className={cn(
+                                    "font-semibold text-lg",
+                                    isCancelled && "line-through text-red-600"
+                                  )}>
+                                    {booking.title}
+                                  </h3>
+                                  <div className="flex gap-2">
+                                    <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                      {formatBookingType(booking.type)}
+                                    </Badge>
+                                    {booking.status !== 'confirmed' && (
+                                      <Badge variant={
+                                        booking.status === 'cancelled' ? 'destructive' : 
+                                        booking.status === 'tentative' ? 'secondary' : 'outline'
+                                      }>
+                                        {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                                 <p className="text-xs text-purple-600 mb-1">
                                   {isOwner ? "Created by you" : `Created by ${getUserName(booking.userId)}`} • Admin View
