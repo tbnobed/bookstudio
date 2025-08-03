@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,11 +89,18 @@ export default function TeamsPage() {
 
   const { data: teamMembers = [], refetch: refetchMembers } = useQuery<TeamMember[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "members"],
+    queryFn: async () => {
+      if (!selectedTeam?.id) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/members`);
+      if (!response.ok) throw new Error('Failed to fetch team members');
+      const data = await response.json();
+      console.log('Custom queryFn received team members data:', data);
+      return data;
+    },
     enabled: !!selectedTeam,
-    onSuccess: (data) => {
-      console.log('Team members data received:', data);
-    }
   });
+
+
 
   // Mutations
   const createTeamMutation = useMutation({
