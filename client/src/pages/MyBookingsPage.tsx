@@ -53,6 +53,34 @@ export default function MyBookingsPage() {
     staleTime: 30000,
   });
 
+  // Fetch all bookings for admin users
+  const [allBookingsPage, setAllBookingsPage] = useState(1);
+  const { data: allBookingsData, isLoading: allBookingsLoading } = useQuery<Booking[]>({
+    queryKey: ["/api/bookings"],
+    queryFn: async () => {
+      const response = await fetch('/api/bookings');
+      if (!response.ok) {
+        throw new Error('Failed to fetch all bookings');
+      }
+      return response.json();
+    },
+    enabled: user?.role === "admin" || user?.role === "site_manager",
+    refetchOnWindowFocus: true,
+    staleTime: 30000,
+  });
+
+  // Check if user is admin or site manager
+  const isAdminOrSiteManager = user?.role === "admin" || user?.role === "site_manager";
+
+  // Process all bookings for admin view
+  const allBookingsProcessed = allBookingsData || [];
+  const upcomingAllBookings = allBookingsProcessed.filter(booking => 
+    new Date(booking.end) >= new Date()
+  );
+  const pastAllBookings = allBookingsProcessed.filter(booking => 
+    new Date(booking.end) < new Date()
+  );
+
   // Fetch user's teams to show team info
   const { data: userTeams = [] } = useQuery({
     queryKey: ["/api/teams/my"],
@@ -217,6 +245,11 @@ export default function MyBookingsPage() {
               <TabsTrigger value="team">
                 Team Bookings ({teamBookingsData?.total || 0})
               </TabsTrigger>
+              {isAdminOrSiteManager && (
+                <TabsTrigger value="all">
+                  All Bookings ({allBookingsProcessed.length})
+                </TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="personal">
@@ -399,6 +432,56 @@ export default function MyBookingsPage() {
                 )}
               </div>
             </TabsContent>
+            
+            {/* Admin/Site Manager All Bookings Tab */}
+            {isAdminOrSiteManager && (
+              <TabsContent value="all">
+                <div className="mb-4">
+                  {allBookingsLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                  ) : upcomingAllBookings.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No upcoming bookings found in the system.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {upcomingAllBookings.map(booking => {
+                          const stripeStyle = getBookingStripeStyle(booking);
+                          const isOwner = booking.userId === user?.id;
+                          return (
+                            <Card key={booking.id} className="overflow-hidden border-l-4 border-purple-500">
+                              <div 
+                                className={`h-2 ${stripeStyle.className || ''}`}
+                                style={stripeStyle.className ? {} : stripeStyle}
+                              ></div>
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                  <h3 className="font-semibold text-lg">{booking.title}</h3>
+                                  <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                    {formatBookingType(booking.type)}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-purple-600 mb-1">
+                                  {isOwner ? "Created by you" : `Created by ${getUserName(booking.userId)}`} • Admin View
+                                </p>
+                                <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
+                                <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                                {booking.description && (
+                                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
+                                )}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
           
           {/* Pagination Controls */}
