@@ -502,10 +502,11 @@ export class MemStorage implements IStorage {
     );
   }
 
+  // This method is replaced by the paginated version below
+  // Keep for backward compatibility but redirect to paginated version
   async getBookingsByUser(userId: number): Promise<Booking[]> {
-    return Array.from(this.bookings.values()).filter(
-      (booking) => booking.userId === userId
-    );
+    const result = await this.getBookingsByUserPaginated(userId);
+    return result.bookings;
   }
 
   async getBookingsByDateRange(start: Date, end: Date): Promise<Booking[]> {
@@ -2046,7 +2047,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async getBookingsByUser(userId: number, options?: { page?: number; limit?: number; fromToday?: boolean }): Promise<{ bookings: Booking[]; total: number; hasMore: boolean }> {
+  async getBookingsByUserPaginated(userId: number, options?: { page?: number; limit?: number; fromToday?: boolean }): Promise<{ bookings: Booking[]; total: number; hasMore: boolean }> {
     try {
       const { page = 1, limit = 20, fromToday = false } = options || {};
       const offset = (page - 1) * limit;

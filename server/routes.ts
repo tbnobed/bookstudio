@@ -1056,7 +1056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = parseInt(req.query.limit as string) || 20;
       const fromToday = req.query.fromToday === 'true';
       
-      const result = await storage.getBookingsByUser(user.id, { page, limit, fromToday });
+      const result = await storage.getBookingsByUserPaginated(user.id, { page, limit, fromToday });
       res.json(result);
     } catch (error) {
       console.error("Error fetching user bookings:", error);
