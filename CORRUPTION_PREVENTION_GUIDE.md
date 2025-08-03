@@ -2,7 +2,9 @@
 
 ## Problem Summary
 
-A critical data integrity issue occurred where 62.8% of bookings (194 out of 309) were incorrectly assigned to admin (user_id = 1) instead of their actual creators. This happened due to migration scripts that defaulted NULL user_id values to 1.
+A critical data integrity issue occurred where 62.8% of bookings (194 out of 309) were incorrectly assigned to admin (user_id = 1) instead of their actual creators. 
+
+**CRITICAL DISCOVERY**: Backup comparison reveals this corruption existed since at least July 31st, 2025 (63.4% admin ownership), indicating it occurred during initial system setup or early migration work, not recent changes. This is a **legacy corruption issue** that needs immediate remediation.
 
 ## Root Cause
 

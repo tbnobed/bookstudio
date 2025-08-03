@@ -8,6 +8,8 @@ BookStud.io is a comprehensive web application for television studio management 
 
 **PRODUCTION BACKUP SYSTEM FIX** - Resolved backup system failures in production Docker environments by including PostgreSQL client tools (postgresql15-client) in Dockerfile and enhancing error handling in backup services to check for tool availability before attempting operations.
 
+**LEGACY DATA CORRUPTION DISCOVERY** - Critical finding through backup comparison analysis reveals that 62.8% of bookings incorrectly show admin ownership (user_id = 1). This corruption has existed since at least July 31st, 2025, indicating it occurred during initial system setup or early migration work, not recent changes. Comprehensive repair scripts and prevention measures have been developed based on real production data analysis.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

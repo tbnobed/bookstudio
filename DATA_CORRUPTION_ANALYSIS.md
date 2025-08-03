@@ -2,7 +2,9 @@
 
 ## Issue Description
 
-A critical data integrity issue has been identified in the production database where **93.6% of bookings** (117 out of 125) incorrectly show `user_id = 1` (admin) instead of the actual creator.
+A critical data integrity issue has been identified in the production database where **62.8% of bookings** (194 out of 309) incorrectly show `user_id = 1` (admin) instead of the actual creator.
+
+**CRITICAL DISCOVERY**: Backup comparison reveals this corruption has existed since at least July 31st, 2025 (63.4% admin ownership), making it a **legacy corruption issue** rather than recent damage.
 
 ## Impact
 
@@ -23,15 +25,22 @@ A critical data integrity issue has been identified in the production database w
 
 2. **Default Value Contamination**: Migration scripts appear to have defaulted `user_id` to 1 when fields were null or undefined during schema updates.
 
-3. **Timing**: The corruption affects bookings created before August 2nd, 2025, when the audit logging system was implemented.
+3. **Timing**: The corruption has existed since at least July 31st, 2025, indicating it occurred during initial system setup or early migration work - not recent changes.
 
 ## Current Statistics
 
 ```
-Total bookings: 125
-Admin bookings: 117 (93.60%)
-Correct ownership: 8 (6.40%)
+Total bookings: 309
+Admin bookings: 194 (62.8%)
+Correct ownership: 115 (37.2%)
 ```
+
+## Historical Analysis
+
+Backup comparison shows corruption timeline:
+- **July 31, 2025**: 196/309 admin bookings (63.4%) - corruption already present
+- **August 3, 2025**: 194/309 admin bookings (62.8%) - slight improvement
+- **Root cause**: Likely occurred during initial system setup or early migration work
 
 ### Bookings with Correct Ownership
 
