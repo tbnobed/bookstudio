@@ -247,7 +247,7 @@ export default function MyBookingsPage() {
               </TabsTrigger>
               {isAdminOrSiteManager && (
                 <TabsTrigger value="all">
-                  All Bookings ({allBookingsProcessed.length})
+                  All Bookings ({upcomingAllBookings.length})
                 </TabsTrigger>
               )}
             </TabsList>
