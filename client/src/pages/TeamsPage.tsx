@@ -238,7 +238,7 @@ export default function TeamsPage() {
 
   const getUserName = (userId: number) => {
     const user = users.find(u => u.id === userId);
-    return user?.name || `User ${userId}`;
+    return user ? (user.name || user.username) : `User ${userId}`;
   };
 
   if (teamsLoading) {

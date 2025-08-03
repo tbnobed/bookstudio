@@ -4,7 +4,7 @@
 
 BookStud.io is a comprehensive web application for television studio management providing intelligent scheduling, booking, and access control. It supports multi-studio booking, real-time status, template-based booking creation, and role-based user management. The system is designed for television production facilities needing sophisticated scheduling and notification management.
 
-**Latest Version: 1.5.2** - Features comprehensive audit logging system tracking ALL system activities including user management, template operations, alert management, system configuration changes, studio/PCR room management, and notification group operations with enhanced UI display, user filtering capabilities, facility timezone display, and 90-day retention policy. Fully integrated with Docker deployment pipeline with complete schema compatibility fixes.
+**Latest Version: 1.5.3** - Features comprehensive audit logging system tracking ALL system activities and NEW Teams feature allowing producers and other roles to collaborate by viewing each other's bookings. Teams feature includes full team management (create/edit/delete teams and manage members), team-based booking visibility in "My Bookings" page with tabs for personal vs team bookings, role-based access control for team management (admin/site manager), and visual indicators to distinguish team bookings from personal bookings. Fully integrated with Docker deployment pipeline with complete schema compatibility fixes.
 
 ## User Preferences
 
@@ -55,6 +55,7 @@ Preferred communication style: Simple, everyday language.
 - **Dynamic Booking Types**: API-driven booking types with CRUD management via Settings page, supporting custom types and active/inactive status.
 - **Enhanced Modal Architecture** (v1.5.0): Improved responsive booking modals with proper routing between desktop/mobile forms and fixed day view new booking issues.
 - **Comprehensive Audit Logging** (v1.5.2): Complete audit trail implementation across ALL system operations including user management (invite/create/update/delete), template CRUD operations, alert management, system configuration changes, studio/PCR room management, notification group operations, and booking management with 90-day retention policy and enhanced UI display.
+- **Teams Feature** (v1.5.3): Collaborative booking system allowing team members to view each other's bookings. Features include team creation/management, member invitation system, role-based team management (admin/site manager access), enhanced "My Bookings" page with personal vs team tabs, visual indicators for team bookings, and pagination support for large teams.
 
 ### Core Decisions
 - **Architectural Separation**: Strict separation between production bookings and facility alerts to ensure data integrity and prevent cross-contamination.
