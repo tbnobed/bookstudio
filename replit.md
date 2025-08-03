@@ -6,6 +6,8 @@ BookStud.io is a comprehensive web application for television studio management 
 
 **Latest Version: 1.5.3** - Features comprehensive audit logging system tracking ALL system activities and NEW Teams feature allowing producers and other roles to collaborate by viewing each other's bookings. Teams feature includes full team management (create/edit/delete teams and manage members), team-based booking visibility in "My Bookings" page with tabs for personal vs team bookings, role-based access control for team management (admin/site manager), visual indicators to distinguish team bookings from personal bookings, and enhanced status indicators for cancelled/tentative bookings with proper styling. Fully integrated with Docker deployment pipeline with complete schema compatibility fixes and production-ready migration scripts.
 
+**PRODUCTION BACKUP SYSTEM FIX** - Resolved backup system failures in production Docker environments by including PostgreSQL client tools (postgresql15-client) in Dockerfile and enhancing error handling in backup services to check for tool availability before attempting operations.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -18,7 +20,7 @@ Preferred communication style: Simple, everyday language.
 - Never use browser local timezone or UTC for comparisons
 - Always use the configured facility timezone in all date operations
 
-**DOCKER DEPLOYMENT COMPATIBILITY**: All Docker deployment issues have been resolved including SSL connection handling, database schema mismatches, and audit logging system integration. Complete migration sequence ensures clean deployments.
+**DOCKER DEPLOYMENT COMPATIBILITY**: All Docker deployment issues have been resolved including SSL connection handling, database schema mismatches, audit logging system integration, and backup system PostgreSQL client tools availability. Complete migration sequence ensures clean deployments with fully functional backup/restore capabilities.
 
 ## System Architecture
 

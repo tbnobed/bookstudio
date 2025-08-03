@@ -102,13 +102,16 @@ ENV NODE_ENV=production
 # Timezone will be set via build args and runtime environment
 
 # Install production-only dependencies with timeout and retry logic
-RUN timeout 300 sh -c 'apk update && apk add --no-cache curl wget tzdata' || \
+# Including PostgreSQL client tools for backup/restore functionality
+RUN timeout 300 sh -c 'apk update && apk add --no-cache curl wget tzdata postgresql15-client' || \
     (echo "Primary install failed, trying alternative approach..." && \
      echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories && \
      echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories && \
-     timeout 300 sh -c 'apk update && apk add --no-cache curl wget tzdata') || \
+     timeout 300 sh -c 'apk update && apk add --no-cache curl wget tzdata postgresql15-client') || \
+    (echo "Package install failed, trying with basic postgresql client..." && \
+     timeout 300 sh -c 'apk update && apk add --no-cache curl wget tzdata postgresql-client') || \
     (echo "All package installs failed, using minimal setup..." && \
-     echo "Healthcheck will use node instead of wget")
+     echo "Backup functionality will be disabled")
 
 # Timezone will be configured at runtime via environment variables
 

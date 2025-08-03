@@ -174,44 +174,75 @@ class BackupManager {
 
   private executeBackup(backupPath: string): Promise<{ success: boolean; error?: string }> {
     return new Promise((resolve) => {
-      // Use pg_dump to create database backup
-      const pgDump = spawn('pg_dump', [
-        '--host', process.env.PGHOST || 'localhost',
-        '--port', process.env.PGPORT || '5432',
-        '--username', process.env.PGUSER || 'postgres',
-        '--no-password',
-        '--clean',
-        '--create',
-        '--verbose',
-        process.env.PGDATABASE || 'bookstudio'
-      ], {
-        env: {
-          ...process.env,
-          PGPASSWORD: process.env.PGPASSWORD || 'postgres'
+      // First check if pg_dump is available
+      const which = spawn('which', ['pg_dump']);
+      
+      which.on('close', (code) => {
+        if (code !== 0) {
+          resolve({ 
+            success: false, 
+            error: 'PostgreSQL client tools (pg_dump) not found. Please ensure postgresql-client is installed in the container.' 
+          });
+          return;
         }
+        
+        // pg_dump is available, proceed with backup
+        console.log('Starting pg_dump with connection params:', {
+          host: process.env.PGHOST || 'localhost',
+          port: process.env.PGPORT || '5432',
+          user: process.env.PGUSER || 'postgres',
+          database: process.env.PGDATABASE || 'bookstudio'
+        });
+        
+        const pgDump = spawn('pg_dump', [
+          '--host', process.env.PGHOST || 'localhost',
+          '--port', process.env.PGPORT || '5432',
+          '--username', process.env.PGUSER || 'postgres',
+          '--no-password',
+          '--clean',
+          '--create',
+          '--verbose',
+          process.env.PGDATABASE || 'bookstudio'
+        ], {
+          env: {
+            ...process.env,
+            PGPASSWORD: process.env.PGPASSWORD || 'postgres'
+          }
+        });
+
+        const writeStream = fsSync.createWriteStream(backupPath);
+        pgDump.stdout.pipe(writeStream);
+
+        let errorOutput = '';
+        pgDump.stderr.on('data', (data) => {
+          const output = data.toString();
+          errorOutput += output;
+          console.log('pg_dump stderr:', output);
+        });
+
+        pgDump.on('close', (code) => {
+          writeStream.end();
+          if (code === 0) {
+            console.log('pg_dump completed successfully');
+            resolve({ success: true });
+          } else {
+            console.error(`pg_dump failed with code ${code}`);
+            resolve({ success: false, error: `pg_dump exited with code ${code}: ${errorOutput}` });
+          }
+        });
+
+        pgDump.on('error', (error) => {
+          writeStream.end();
+          console.error('pg_dump spawn error:', error);
+          resolve({ success: false, error: `Failed to start pg_dump: ${error.message}` });
+        });
       });
 
-      const writeStream = fsSync.createWriteStream(backupPath);
-      pgDump.stdout.pipe(writeStream);
-
-      let errorOutput = '';
-      pgDump.stderr.on('data', (data) => {
-        errorOutput += data.toString();
-        console.log('pg_dump:', data.toString());
-      });
-
-      pgDump.on('close', (code) => {
-        writeStream.end();
-        if (code === 0) {
-          resolve({ success: true });
-        } else {
-          resolve({ success: false, error: `pg_dump exited with code ${code}: ${errorOutput}` });
-        }
-      });
-
-      pgDump.on('error', (error) => {
-        writeStream.end();
-        resolve({ success: false, error: error.message });
+      which.on('error', (error) => {
+        resolve({ 
+          success: false, 
+          error: `Failed to check for pg_dump availability: ${error.message}` 
+        });
       });
     });
   }
