@@ -93,9 +93,7 @@ export default function TeamsPage() {
       if (!selectedTeam?.id) return [];
       const response = await fetch(`/api/teams/${selectedTeam.id}/members`);
       if (!response.ok) throw new Error('Failed to fetch team members');
-      const data = await response.json();
-      console.log('Custom queryFn received team members data:', data);
-      return data;
+      return response.json();
     },
     enabled: !!selectedTeam,
   });
@@ -108,8 +106,10 @@ export default function TeamsPage() {
       const res = await apiRequest("POST", "/api/teams", data);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (newTeam) => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.refetchQueries({ queryKey: ["/api/teams"] });
+      setSelectedTeam(newTeam); // Auto-select the newly created team
       setIsTeamDialogOpen(false);
       teamForm.reset();
       toast({
@@ -176,7 +176,8 @@ export default function TeamsPage() {
       return res.json();
     },
     onSuccess: () => {
-      refetchMembers();
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      queryClient.refetchQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
       setIsMemberDialogOpen(false);
       memberForm.reset();
       toast({
@@ -198,7 +199,8 @@ export default function TeamsPage() {
       await apiRequest("DELETE", `/api/teams/${teamId}/members/${userId}`);
     },
     onSuccess: () => {
-      refetchMembers();
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      queryClient.refetchQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
       toast({
         title: "Success",
         description: "Team member removed successfully",
@@ -248,7 +250,6 @@ export default function TeamsPage() {
 
   const getUserName = (userId: number) => {
     const user = users.find(u => u.id === userId);
-    console.log('getUserName called with userId:', userId, 'found user:', user, 'all users:', users);
     return user ? (user.name || user.username) : `User ${userId}`;
   };
 
