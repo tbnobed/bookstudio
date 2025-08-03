@@ -104,7 +104,7 @@ export default function TeamsPage() {
     },
     enabled: !!selectedTeam,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache the data
+    gcTime: 0, // Don't cache the data
   });
 
 
@@ -185,8 +185,10 @@ export default function TeamsPage() {
       return res.json();
     },
     onSuccess: () => {
+      // Force immediate cache invalidation and refetch
       queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
-      queryClient.refetchQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      queryClient.removeQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      refetchMembers();
       setIsMemberDialogOpen(false);
       memberForm.reset();
       toast({
@@ -208,8 +210,10 @@ export default function TeamsPage() {
       await apiRequest("DELETE", `/api/teams/${teamId}/members/${userId}`);
     },
     onSuccess: () => {
+      // Force immediate cache invalidation and refetch
       queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
-      queryClient.refetchQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      queryClient.removeQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      refetchMembers();
       toast({
         title: "Success",
         description: "Team member removed successfully",
@@ -444,7 +448,7 @@ export default function TeamsPage() {
                               </FormControl>
                               <SelectContent>
                                 {users
-                                  .filter(user => !teamMembers.some(member => member.userId === user.id))
+                                  .filter(user => !(teamMembers as TeamMember[]).some((member: TeamMember) => member.userId === user.id))
                                   .map((user) => (
                                     <SelectItem key={user.id} value={user.id.toString()}>
                                       {user.name} ({user.email})
@@ -497,7 +501,7 @@ export default function TeamsPage() {
           </div>
 
           {selectedTeam ? (
-            teamMembers.length === 0 ? (
+            (teamMembers as TeamMember[]).length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-8">
                   <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
@@ -508,7 +512,7 @@ export default function TeamsPage() {
               </Card>
             ) : (
               <div className="space-y-2">
-                {teamMembers.map((member) => (
+                {(teamMembers as TeamMember[]).map((member: TeamMember) => (
                   <Card key={`${member.teamId}-${member.userId}`}>
                     <CardContent className="flex justify-between items-center py-3">
                       <div>
