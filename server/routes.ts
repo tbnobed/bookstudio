@@ -105,6 +105,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch user names" });
     }
   });
+
+  // Get user team memberships for team name resolution
+  app.get("/api/users/team-memberships", isAuthenticated, async (req, res) => {
+    try {
+      const currentUser = req.user as any;
+      
+      // Get all users for team members who can see team bookings
+      const users = await storage.getAllUsers();
+      const userTeamMemberships: { [userId: number]: { id: number; name: string }[] } = {};
+      
+      for (const user of users) {
+        const teams = await storage.getUserTeams(user.id);
+        userTeamMemberships[user.id] = teams.map(team => ({
+          id: team.id,
+          name: team.name
+        }));
+      }
+      
+      res.json(userTeamMemberships);
+    } catch (error) {
+      console.error("Error fetching user team memberships:", error);
+      res.status(500).json({ message: "Failed to fetch team memberships" });
+    }
+  });
       
   // Route for site managers to get only producers
   app.get("/api/users/producers", isAuthenticated, hasRole(["site_manager"]), async (req, res) => {

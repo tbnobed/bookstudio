@@ -111,6 +111,18 @@ export default function MyBookingsPage() {
     },
   });
 
+  // Fetch user team memberships for accurate team name display
+  const { data: userTeamMemberships = {} } = useQuery({
+    queryKey: ["/api/users/team-memberships"],
+    queryFn: async () => {
+      const response = await fetch('/api/users/team-memberships');
+      if (!response.ok) {
+        throw new Error('Failed to fetch team memberships');
+      }
+      return response.json();
+    },
+  });
+
   // Get studio name by ID
   const getStudioName = (studioId: number) => {
     const studio = studios.find(s => s.id === studioId);
@@ -125,18 +137,25 @@ export default function MyBookingsPage() {
 
   // Get team name for a booking - find which team the booking belongs to
   const getTeamNameForBooking = (booking: any) => {
-    if (!userTeams || userTeams.length === 0) return null;
-    
     // Check if this booking appears in team bookings
     const teamBookingsList = teamBookingsData?.bookings || [];
     const isTeamBooking = teamBookingsList.some(tb => tb.id === booking.id);
     
     if (!isTeamBooking) return null;
     
-    // For now, we'll show the first team the current user belongs to
-    // In a more advanced version, we could track which specific team the booking was made for
-    const firstTeam = userTeams[0];
-    return firstTeam ? firstTeam.name : "Team Booking";
+    // Get the teams that the booking creator belongs to
+    const creatorTeams = userTeamMemberships[booking.userId] || [];
+    
+    if (creatorTeams.length === 0) return "Team Booking";
+    
+    // If the creator is part of multiple teams, show all teams or the most relevant one
+    if (creatorTeams.length === 1) {
+      return creatorTeams[0].name;
+    } else {
+      // For multiple teams, show the first one but could be enhanced to show all
+      // or determine which team the booking was made for specifically
+      return creatorTeams[0].name + (creatorTeams.length > 1 ? " (Multi-team)" : "");
+    }
   };
 
   // Get color for booking type
