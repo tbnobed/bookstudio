@@ -11,7 +11,9 @@ import {
   systemSettings, type SystemSetting, type InsertSystemSetting,
   fileAttachments, type FileAttachment, type InsertFileAttachment,
   bookingTypes, type BookingType, type InsertBookingType,
-  auditLogs, type AuditLog, type InsertAuditLog
+  auditLogs, type AuditLog, type InsertAuditLog,
+  teams, type Team, type InsertTeam,
+  teamMembers, type TeamMember, type InsertTeamMember
 } from "@shared/schema";
 
 import { db, pool, ensureConnection } from "./db";
@@ -131,6 +133,24 @@ export interface IStorage {
     endDate?: Date;
   }): Promise<number>;
   cleanupOldAuditLogs(daysToKeep: number): Promise<number>;
+  
+  // Team management
+  getTeam(id: number): Promise<Team | undefined>;
+  getAllTeams(): Promise<Team[]>;
+  getUserTeams(userId: number): Promise<Team[]>;
+  createTeam(team: InsertTeam): Promise<Team>;
+  updateTeam(id: number, data: Partial<InsertTeam>): Promise<Team | undefined>;
+  deleteTeam(id: number): Promise<boolean>;
+  
+  // Team membership management
+  getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined>;
+  getTeamMembers(teamId: number): Promise<TeamMember[]>;
+  getUserTeamMemberships(userId: number): Promise<TeamMember[]>;
+  addTeamMember(teamMember: InsertTeamMember): Promise<TeamMember>;
+  updateTeamMember(teamId: number, userId: number, data: Partial<InsertTeamMember>): Promise<TeamMember | undefined>;
+  removeTeamMember(teamId: number, userId: number): Promise<boolean>;
+  isUserTeamMember(teamId: number, userId: number): Promise<boolean>;
+  getTeamBookings(userId: number, options?: { page?: number; limit?: number; fromToday?: boolean }): Promise<{ bookings: Booking[]; total: number; hasMore: boolean }>;
   
   // Session management
   sessionStore: session.Store;
@@ -3421,6 +3441,199 @@ export class DatabaseStorage implements IStorage {
       .where(lte(auditLogs.timestamp, cutoffDate));
     
     return result.rowCount || 0;
+  }
+
+  // Team management methods
+  async getTeam(id: number): Promise<Team | undefined> {
+    await ensureConnection();
+    const [team] = await db.select().from(teams).where(eq(teams.id, id));
+    return team || undefined;
+  }
+
+  async getAllTeams(): Promise<Team[]> {
+    await ensureConnection();
+    return await db.select().from(teams).orderBy(teams.name);
+  }
+
+  async getUserTeams(userId: number): Promise<Team[]> {
+    await ensureConnection();
+    const userTeams = await db
+      .select({
+        id: teams.id,
+        name: teams.name,
+        description: teams.description,
+        createdBy: teams.createdBy,
+        createdAt: teams.createdAt,
+        updatedAt: teams.updatedAt,
+      })
+      .from(teams)
+      .innerJoin(teamMembers, eq(teams.id, teamMembers.teamId))
+      .where(eq(teamMembers.userId, userId))
+      .orderBy(teams.name);
+    
+    return userTeams;
+  }
+
+  async createTeam(team: InsertTeam): Promise<Team> {
+    await ensureConnection();
+    const [newTeam] = await db.insert(teams).values(team).returning();
+    
+    // Automatically add the creator as an admin member
+    await this.addTeamMember({
+      teamId: newTeam.id,
+      userId: team.createdBy,
+      role: 'admin'
+    });
+    
+    return newTeam;
+  }
+
+  async updateTeam(id: number, data: Partial<InsertTeam>): Promise<Team | undefined> {
+    await ensureConnection();
+    const [updatedTeam] = await db
+      .update(teams)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(teams.id, id))
+      .returning();
+    
+    return updatedTeam || undefined;
+  }
+
+  async deleteTeam(id: number): Promise<boolean> {
+    await ensureConnection();
+    
+    // First delete all team members
+    await db.delete(teamMembers).where(eq(teamMembers.teamId, id));
+    
+    // Then delete the team
+    const result = await db.delete(teams).where(eq(teams.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Team membership methods
+  async getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined> {
+    await ensureConnection();
+    const [member] = await db
+      .select()
+      .from(teamMembers)
+      .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)));
+    
+    return member || undefined;
+  }
+
+  async getTeamMembers(teamId: number): Promise<TeamMember[]> {
+    await ensureConnection();
+    return await db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.teamId, teamId))
+      .orderBy(teamMembers.joinedAt);
+  }
+
+  async getUserTeamMemberships(userId: number): Promise<TeamMember[]> {
+    await ensureConnection();
+    return await db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.userId, userId))
+      .orderBy(teamMembers.joinedAt);
+  }
+
+  async addTeamMember(teamMember: InsertTeamMember): Promise<TeamMember> {
+    await ensureConnection();
+    const [newMember] = await db.insert(teamMembers).values(teamMember).returning();
+    return newMember;
+  }
+
+  async updateTeamMember(teamId: number, userId: number, data: Partial<InsertTeamMember>): Promise<TeamMember | undefined> {
+    await ensureConnection();
+    const [updatedMember] = await db
+      .update(teamMembers)
+      .set(data)
+      .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)))
+      .returning();
+    
+    return updatedMember || undefined;
+  }
+
+  async removeTeamMember(teamId: number, userId: number): Promise<boolean> {
+    await ensureConnection();
+    const result = await db
+      .delete(teamMembers)
+      .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)));
+    
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async isUserTeamMember(teamId: number, userId: number): Promise<boolean> {
+    const member = await this.getTeamMember(teamId, userId);
+    return member !== undefined;
+  }
+
+  async getTeamBookings(userId: number, options?: { page?: number; limit?: number; fromToday?: boolean }): Promise<{ bookings: Booking[]; total: number; hasMore: boolean }> {
+    await ensureConnection();
+    
+    const { page = 1, limit = 20, fromToday = false } = options || {};
+    const offset = (page - 1) * limit;
+    
+    // Get all teams the user belongs to
+    const userTeamMemberships = await this.getUserTeamMemberships(userId);
+    const teamIds = userTeamMemberships.map(membership => membership.teamId);
+    
+    if (teamIds.length === 0) {
+      return { bookings: [], total: 0, hasMore: false };
+    }
+    
+    // Get all team member user IDs
+    const teamMemberIds = await db
+      .select({ userId: teamMembers.userId })
+      .from(teamMembers)
+      .where(inArray(teamMembers.teamId, teamIds));
+    
+    const memberUserIds = [...new Set(teamMemberIds.map(member => member.userId))];
+    
+    // Get all bookings from team members
+    let query = db
+      .select()
+      .from(bookings)
+      .where(inArray(bookings.userId, memberUserIds));
+    
+    // Filter for today forward if needed
+    if (fromToday) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      query = query.where(
+        and(
+          inArray(bookings.userId, memberUserIds),
+          gte(bookings.start, today)
+        )
+      );
+    }
+    
+    // Get total count
+    const totalQuery = db
+      .select({ count: sql<number>`count(*)` })
+      .from(bookings)
+      .where(
+        fromToday 
+          ? and(
+              inArray(bookings.userId, memberUserIds),
+              gte(bookings.start, new Date(new Date().setHours(0, 0, 0, 0)))
+            )
+          : inArray(bookings.userId, memberUserIds)
+      );
+    
+    const [{ count: total }] = await totalQuery;
+    
+    // Apply pagination and sorting
+    const paginatedBookings = await query
+      .orderBy(bookings.start)
+      .limit(limit)
+      .offset(offset);
+    
+    const hasMore = offset + paginatedBookings.length < total;
+    
+    return { bookings: paginatedBookings, total, hasMore };
   }
 }
 

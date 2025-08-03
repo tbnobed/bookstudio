@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, bigint } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, bigint, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -235,6 +235,10 @@ export const insertInviteTokenSchema = createInsertSchema(inviteTokens).omit({
 export const usersRelations = relations(users, ({ many }) => ({
   passwordResetTokens: many(passwordResetTokens),
   createdInviteTokens: many(inviteTokens, { relationName: "tokenCreator" }),
+  bookings: many(bookings),
+  templates: many(templates),
+  teamMemberships: many(teamMembers),
+  createdTeams: many(teams),
 }));
 
 export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
@@ -390,3 +394,64 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
 
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+
+// Teams schema - allows users to be grouped together for collaborative booking visibility
+export const teams = pgTable("teams", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdBy: integer("created_by").notNull(), // user id
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTeamSchema = createInsertSchema(teams).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = z.infer<typeof insertTeamSchema>;
+
+// Team Members schema - junction table for team membership
+export const teamMembers = pgTable("team_members", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull(),
+  userId: integer("user_id").notNull(),
+  role: text("role").default("member"), // 'admin', 'member'
+  joinedAt: timestamp("joined_at").defaultNow(),
+}, (table) => ({
+  // Unique constraint to prevent duplicate team memberships
+  teamUserUnique: unique().on(table.teamId, table.userId),
+}));
+
+export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+
+// Team relations
+export const teamsRelations = relations(teams, ({ many, one }) => ({
+  members: many(teamMembers),
+  creator: one(users, {
+    fields: [teams.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
+  team: one(teams, {
+    fields: [teamMembers.teamId],
+    references: [teams.id],
+  }),
+  user: one(users, {
+    fields: [teamMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+

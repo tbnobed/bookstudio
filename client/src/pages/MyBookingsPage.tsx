@@ -16,8 +16,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function MyBookingsPage() {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+  const [teamCurrentPage, setTeamCurrentPage] = useState(1);
   const [editBookingId, setEditBookingId] = useState<number | null>(null);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("personal");
   
   // Fetch paginated user bookings from today forward
   const { data: userBookingsData, isLoading, error, refetch } = useQuery<{ bookings: Booking[]; total: number; hasMore: boolean }>({
@@ -31,6 +33,37 @@ export default function MyBookingsPage() {
     },
     refetchOnWindowFocus: true,
     staleTime: 30000,
+  });
+
+  // Fetch team bookings
+  const { data: teamBookingsData, isLoading: teamLoading } = useQuery<{ bookings: Booking[]; total: number; hasMore: boolean }>({
+    queryKey: ["/api/bookings/team", { fromToday: true, page: teamCurrentPage, limit: 20 }],
+    queryFn: async () => {
+      const response = await fetch(`/api/bookings/team?fromToday=true&page=${teamCurrentPage}&limit=20`);
+      if (!response.ok) {
+        // If endpoint doesn't exist or user has no teams, return empty data
+        if (response.status === 404) {
+          return { bookings: [], total: 0, hasMore: false };
+        }
+        throw new Error('Failed to fetch team bookings');
+      }
+      return response.json();
+    },
+    refetchOnWindowFocus: true,
+    staleTime: 30000,
+  });
+
+  // Fetch user's teams to show team info
+  const { data: userTeams = [] } = useQuery({
+    queryKey: ["/api/teams/my"],
+    queryFn: async () => {
+      const response = await fetch('/api/teams/my');
+      if (!response.ok) {
+        if (response.status === 404) return [];
+        throw new Error('Failed to fetch teams');
+      }
+      return response.json();
+    },
   });
   
   // Fetch studios to display names
@@ -145,104 +178,195 @@ export default function MyBookingsPage() {
           <div className="mb-6">
             <h1 className="text-2xl font-bold">My Bookings</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Showing all bookings from today forward • {totalBookings} total bookings
+              View your personal bookings and team member bookings
             </p>
           </div>
 
-          <Tabs defaultValue="upcoming" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList>
-              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-              <TabsTrigger value="past">Past</TabsTrigger>
+              <TabsTrigger value="personal">
+                My Bookings ({totalBookings})
+              </TabsTrigger>
+              <TabsTrigger value="team">
+                Team Bookings ({teamBookingsData?.total || 0})
+              </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="upcoming">
-              {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                </div>
-              ) : upcomingBookings.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  You don't have any upcoming bookings.
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {upcomingBookings.map(booking => {
-                  const stripeStyle = getBookingStripeStyle(booking);
-                  return (
-                  <Card key={booking.id} className="overflow-hidden">
-                    <div 
-                      className={`h-2 ${stripeStyle.className || ''}`}
-                      style={stripeStyle.className ? {} : stripeStyle}
-                    ></div>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-lg">{booking.title}</h3>
-                        <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
-                          {formatBookingType(booking.type)}
-                        </Badge>
+            <TabsContent value="personal">
+              <div className="mb-4">
+                <Tabs defaultValue="upcoming" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+                    <TabsTrigger value="past">Past</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upcoming">
+                    {isLoading ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                       </div>
-                      <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                      <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
-                      {booking.description && (
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
-                      )}
-                      <div className="flex justify-end space-x-2 mt-2">
-                        <Button variant="outline" size="sm" onClick={() => setEditBookingId(booking.id)}>
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm" 
-                          onClick={() => booking.id && handleDeleteBooking(booking.id)}
-                        >
-                          Delete
-                        </Button>
+                    ) : upcomingBookings.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        You don't have any upcoming bookings.
                       </div>
-                    </CardContent>
-                  </Card>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="past">
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-              </div>
-            ) : pastBookings.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                You don't have any past bookings.
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {pastBookings.map(booking => {
-                  const stripeStyle = getBookingStripeStyle(booking);
-                  return (
-                  <Card key={booking.id} className="overflow-hidden opacity-75">
-                    <div 
-                      className={`h-2 ${stripeStyle.className || ''}`}
-                      style={stripeStyle.className ? {} : stripeStyle}
-                    ></div>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-lg">{booking.title}</h3>
-                        <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
-                          {formatBookingType(booking.type)}
-                        </Badge>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {upcomingBookings.map(booking => {
+                          const stripeStyle = getBookingStripeStyle(booking);
+                          return (
+                            <Card key={booking.id} className="overflow-hidden">
+                              <div 
+                                className={`h-2 ${stripeStyle.className || ''}`}
+                                style={stripeStyle.className ? {} : stripeStyle}
+                              ></div>
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                  <h3 className="font-semibold text-lg">{booking.title}</h3>
+                                  <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                    {formatBookingType(booking.type)}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
+                                <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                                {booking.description && (
+                                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
+                                )}
+                                <div className="flex justify-end space-x-2 mt-2">
+                                  <Button variant="outline" size="sm" onClick={() => setEditBookingId(booking.id)}>
+                                    Edit
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm" 
+                                    onClick={() => booking.id && handleDeleteBooking(booking.id)}
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </div>
-                      <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                      <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
-                      {booking.description && (
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
-                      )}
-                    </CardContent>
-                  </Card>
-                  );
-                })}
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="past">
+                    {isLoading ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                      </div>
+                    ) : pastBookings.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        You don't have any past bookings.
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {pastBookings.map(booking => {
+                          const stripeStyle = getBookingStripeStyle(booking);
+                          return (
+                            <Card key={booking.id} className="overflow-hidden opacity-75">
+                              <div 
+                                className={`h-2 ${stripeStyle.className || ''}`}
+                                style={stripeStyle.className ? {} : stripeStyle}
+                              ></div>
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                  <h3 className="font-semibold text-lg">{booking.title}</h3>
+                                  <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                    {formatBookingType(booking.type)}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
+                                <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                                {booking.description && (
+                                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
+                                )}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
-            )}
+            </TabsContent>
+            
+            <TabsContent value="team">
+              <div className="mb-4">
+                {teamLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                  </div>
+                ) : (teamBookingsData?.bookings || []).length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No team bookings found.</p>
+                    {userTeams.length === 0 && (
+                      <p className="text-sm mt-2">You're not part of any teams yet.</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {(teamBookingsData?.bookings || []).map(booking => {
+                        const stripeStyle = getBookingStripeStyle(booking);
+                        return (
+                          <Card key={booking.id} className="overflow-hidden border-l-4 border-blue-500">
+                            <div 
+                              className={`h-2 ${stripeStyle.className || ''}`}
+                              style={stripeStyle.className ? {} : stripeStyle}
+                            ></div>
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-semibold text-lg">{booking.title}</h3>
+                                <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                  {formatBookingType(booking.type)}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-blue-600 mb-1">Team Booking</p>
+                              <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
+                              <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                              {booking.description && (
+                                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Team Bookings Pagination */}
+                    {(teamBookingsData?.total || 0) > 20 && (
+                      <div className="flex justify-between items-center mt-6 pt-6 border-t">
+                        <div className="text-sm text-gray-600">
+                          Page {teamCurrentPage} • Showing {(teamBookingsData?.bookings || []).length} of {teamBookingsData?.total || 0} team bookings
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTeamCurrentPage(teamCurrentPage - 1)}
+                            disabled={teamCurrentPage === 1}
+                          >
+                            <ChevronLeft className="h-4 w-4 mr-1" />
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTeamCurrentPage(teamCurrentPage + 1)}
+                            disabled={!(teamBookingsData?.hasMore)}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
           

@@ -160,6 +160,25 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <div 
                 className={cn(
                   "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
+                  location === "/teams" 
+                    ? "text-white bg-primary" 
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+                onClick={() => handleNavigate("/teams")}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M9 21v-2a4 4 0 0 1 3-3.87"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                  <path d="M5 17a2 2 0 0 1 2-2h2"></path>
+                  <path d="M15 17a2 2 0 0 0-2-2h-2"></path>
+                </svg>
+                <span>Teams</span>
+              </div>
+              
+              <div 
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                   location === "/audit-logs" 
                     ? "text-white bg-primary" 
                     : "text-gray-700 hover:bg-gray-100"

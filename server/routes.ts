@@ -3246,5 +3246,242 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team Management Routes
+  
+  // GET /api/teams - Get all teams (admin/site_manager only)
+  app.get("/api/teams", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const teams = await storage.getAllTeams();
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+      res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+
+  // GET /api/teams/my - Get teams the current user belongs to
+  app.get("/api/teams/my", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teams = await storage.getUserTeams(user.id);
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching user teams:", error);
+      res.status(500).json({ message: "Failed to fetch user teams" });
+    }
+  });
+
+  // POST /api/teams - Create a new team
+  app.post("/api/teams", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teamData = { ...req.body, createdBy: user.id };
+      
+      const team = await storage.createTeam(teamData);
+      
+      // Log the creation
+      await AuditService.log(
+        getAuditContext(req),
+        "CREATE",
+        "team",
+        team.id,
+        team.name,
+        { teamData }
+      );
+      
+      res.status(201).json(team);
+    } catch (error) {
+      console.error("Error creating team:", error);
+      res.status(500).json({ message: "Failed to create team" });
+    }
+  });
+
+  // PUT /api/teams/:id - Update a team
+  app.put("/api/teams/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedTeam = await storage.updateTeam(id, req.body);
+      
+      if (!updatedTeam) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Log the update
+      await AuditService.log(
+        getAuditContext(req),
+        "UPDATE",
+        "team",
+        id,
+        updatedTeam.name,
+        { updatedFields: req.body }
+      );
+      
+      res.json(updatedTeam);
+    } catch (error) {
+      console.error("Error updating team:", error);
+      res.status(500).json({ message: "Failed to update team" });
+    }
+  });
+
+  // DELETE /api/teams/:id - Delete a team
+  app.delete("/api/teams/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const team = await storage.getTeam(id);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const success = await storage.deleteTeam(id);
+      
+      if (success) {
+        // Log the deletion
+        await AuditService.log(
+          getAuditContext(req),
+          "DELETE",
+          "team",
+          id,
+          team.name,
+          {}
+        );
+        
+        res.json({ message: "Team deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete team" });
+      }
+    } catch (error) {
+      console.error("Error deleting team:", error);
+      res.status(500).json({ message: "Failed to delete team" });
+    }
+  });
+
+  // Team Membership Routes
+  
+  // GET /api/teams/:id/members - Get team members
+  app.get("/api/teams/:id/members", isAuthenticated, async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      const user = req.user as any;
+      
+      // Check if user is team member or has admin/site_manager role
+      const isMember = await storage.isUserTeamMember(teamId, user.id);
+      const isAdmin = user.role === 'admin' || user.role === 'site_manager';
+      
+      if (!isMember && !isAdmin) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const members = await storage.getTeamMembers(teamId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  // POST /api/teams/:id/members - Add team member
+  app.post("/api/teams/:id/members", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      const { userId, role = 'member' } = req.body;
+      
+      const member = await storage.addTeamMember({ teamId, userId, role });
+      
+      // Log the addition
+      const user = await storage.getUser(userId);
+      await AuditService.log(
+        getAuditContext(req),
+        "CREATE",
+        "team_member",
+        member.id,
+        `${user?.name || userId} added to team`,
+        { teamId, userId, role }
+      );
+      
+      res.status(201).json(member);
+    } catch (error) {
+      console.error("Error adding team member:", error);
+      res.status(500).json({ message: "Failed to add team member" });
+    }
+  });
+
+  // PUT /api/teams/:teamId/members/:userId - Update team member role
+  app.put("/api/teams/:teamId/members/:userId", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const userId = parseInt(req.params.userId);
+      const { role } = req.body;
+      
+      const updatedMember = await storage.updateTeamMember(teamId, userId, { role });
+      
+      if (!updatedMember) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+      
+      // Log the update
+      const user = await storage.getUser(userId);
+      await AuditService.log(
+        getAuditContext(req),
+        "UPDATE",
+        "team_member",
+        updatedMember.id,
+        `${user?.name || userId} role updated`,
+        { teamId, userId, newRole: role }
+      );
+      
+      res.json(updatedMember);
+    } catch (error) {
+      console.error("Error updating team member:", error);
+      res.status(500).json({ message: "Failed to update team member" });
+    }
+  });
+
+  // DELETE /api/teams/:teamId/members/:userId - Remove team member
+  app.delete("/api/teams/:teamId/members/:userId", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const userId = parseInt(req.params.userId);
+      
+      const success = await storage.removeTeamMember(teamId, userId);
+      
+      if (success) {
+        // Log the removal
+        const user = await storage.getUser(userId);
+        await AuditService.log(
+          getAuditContext(req),
+          "DELETE",
+          "team_member",
+          undefined,
+          `${user?.name || userId} removed from team`,
+          { teamId, userId }
+        );
+        
+        res.json({ message: "Team member removed successfully" });
+      } else {
+        res.status(404).json({ message: "Team member not found" });
+      }
+    } catch (error) {
+      console.error("Error removing team member:", error);
+      res.status(500).json({ message: "Failed to remove team member" });
+    }
+  });
+
+  // GET /api/bookings/team - Get team bookings for current user
+  app.get("/api/bookings/team", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const fromToday = req.query.fromToday === 'true';
+      
+      const result = await storage.getTeamBookings(user.id, { page, limit, fromToday });
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching team bookings:", error);
+      res.status(500).json({ message: "Failed to fetch team bookings" });
+    }
+  });
+
   return httpServer;
 }
