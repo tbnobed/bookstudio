@@ -89,6 +89,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch users" });
     }
   });
+
+  // Endpoint to get user names for booking display - accessible to all authenticated users
+  app.get("/api/users/names", isAuthenticated, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      // Return only id, name, and username for privacy
+      const userNames = users.map(user => ({
+        id: user.id,
+        name: user.name || user.username,
+        username: user.username
+      }));
+      res.json(userNames);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user names" });
+    }
+  });
       
   // Route for site managers to get only producers
   app.get("/api/users/producers", isAuthenticated, hasRole(["site_manager"]), async (req, res) => {

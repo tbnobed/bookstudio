@@ -99,13 +99,13 @@ export default function MyBookingsPage() {
     queryKey: ["/api/studios"],
   });
   
-  // Fetch all users to display owner names
+  // Fetch user names to display owner names
   const { data: allUsers = [] } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ["/api/users/names"],
     queryFn: async () => {
-      const response = await fetch('/api/users');
+      const response = await fetch('/api/users/names');
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        throw new Error('Failed to fetch user names');
       }
       return response.json();
     },
