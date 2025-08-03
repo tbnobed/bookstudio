@@ -86,8 +86,10 @@ export default function TeamsPage() {
   });
 
   // Queries
-  const { data: teams = [], isLoading: teamsLoading } = useQuery<Team[]>({
+  const { data: teams = [], isLoading: teamsLoading, refetch: refetchTeams } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache the data
   });
 
   const { data: users = [] } = useQuery<User[]>({
@@ -116,8 +118,10 @@ export default function TeamsPage() {
       return res.json();
     },
     onSuccess: (newTeam) => {
+      // Force immediate cache invalidation and refresh
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-      queryClient.refetchQueries({ queryKey: ["/api/teams"] });
+      queryClient.removeQueries({ queryKey: ["/api/teams"] });
+      refetchTeams();
       setSelectedTeam(newTeam); // Auto-select the newly created team
       setIsTeamDialogOpen(false);
       teamForm.reset();
@@ -141,7 +145,10 @@ export default function TeamsPage() {
       return res.json();
     },
     onSuccess: () => {
+      // Force immediate cache invalidation and refresh
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.removeQueries({ queryKey: ["/api/teams"] });
+      refetchTeams();
       setIsTeamDialogOpen(false);
       setEditingTeam(null);
       teamForm.reset();
@@ -164,7 +171,11 @@ export default function TeamsPage() {
       await apiRequest("DELETE", `/api/teams/${id}`);
     },
     onSuccess: () => {
+      // Force immediate cache invalidation and refresh
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.removeQueries({ queryKey: ["/api/teams"] });
+      refetchTeams();
+      setSelectedTeam(null); // Clear selected team since it was deleted
       toast({
         title: "Success",
         description: "Team deleted successfully",
