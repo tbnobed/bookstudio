@@ -70,11 +70,38 @@ export default function MyBookingsPage() {
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
   });
+  
+  // Fetch all users to display owner names
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      return response.json();
+    },
+  });
 
   // Get studio name by ID
   const getStudioName = (studioId: number) => {
     const studio = studios.find(s => s.id === studioId);
     return studio ? studio.name : `Studio ${studioId}`;
+  };
+
+  // Get user name by ID
+  const getUserName = (userId: number) => {
+    const userRecord = allUsers.find((u: any) => u.id === userId);
+    return userRecord ? userRecord.name : `User ${userId}`;
+  };
+
+  // Get team name by checking which teams the booking owner belongs to
+  const getTeamNameForBooking = (booking: any) => {
+    if (!userTeams || userTeams.length === 0) return null;
+    // For team bookings, we'll show which team(s) the owner belongs to
+    // Since we already know this is a team booking, just return a generic label for now
+    // In a more advanced version, we could track which team the booking was made for
+    return "Team Member";
   };
 
   // Get color for booking type
@@ -226,6 +253,7 @@ export default function MyBookingsPage() {
                                     {formatBookingType(booking.type)}
                                   </Badge>
                                 </div>
+                                <p className="text-xs text-green-600 mb-1">Created by you</p>
                                 <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
                                 <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
                                 {booking.description && (
@@ -277,6 +305,7 @@ export default function MyBookingsPage() {
                                     {formatBookingType(booking.type)}
                                   </Badge>
                                 </div>
+                                <p className="text-xs text-green-600 mb-1">Created by you</p>
                                 <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
                                 <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
                                 {booking.description && (
@@ -324,7 +353,9 @@ export default function MyBookingsPage() {
                                   {formatBookingType(booking.type)}
                                 </Badge>
                               </div>
-                              <p className="text-sm text-blue-600 mb-1">Team Booking</p>
+                              <p className="text-xs text-blue-600 mb-1">
+                                Created by {getUserName(booking.userId)} • Team Booking
+                              </p>
                               <p className="text-sm text-gray-500 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
                               <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
                               {booking.description && (
