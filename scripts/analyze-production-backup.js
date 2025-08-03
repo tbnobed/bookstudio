@@ -170,10 +170,10 @@ function analyzebookingOwnership(booking, users) {
     if (user9) return user9;
   }
   
-  // Pattern 3: Centerpoint News Updates - likely belongs to specific users
+  // Pattern 3: Centerpoint News Updates - belongs to LMercado@tbn.tv (user 9)
   if (title.includes('centerpoint news') || text.includes('blynda lane')) {
-    const user8 = users.find(u => u.id === 8);
-    if (user8) return user8;
+    const user9 = users.find(u => u.id === 9);
+    if (user9) return user9;
   }
   
   // Pattern 4: Praise show - based on template data, likely user 9
@@ -205,7 +205,7 @@ function getRepairReason(booking, user) {
     return 'Stakelbeck Tonight typically belongs to this user based on correct examples';
   }
   if (title.includes('centerpoint news')) {
-    return 'Centerpoint News Updates pattern match';
+    return 'Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)';
   }
   if (title.includes('praise')) {
     return 'Praise show booking pattern match';

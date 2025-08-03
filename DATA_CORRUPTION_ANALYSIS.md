@@ -43,38 +43,53 @@ Only these bookings show correct user assignment:
 
 ## Solution
 
-### 1. Immediate Fix Script
+### 1. Production Data Analysis & Repair
 
-Created `scripts/fix-booking-user-ownership.js` which:
+Created `scripts/analyze-production-backup.js` which:
 
-- **Analyzes** corruption extent automatically
-- **Uses pattern matching** to identify likely creators based on:
-  - Username mentions in titles/descriptions
-  - Name patterns in booking content
-  - Role-based content matching (engineers for maintenance, producers for shoots)
-- **Provides dry-run mode** for safe testing
-- **Requires explicit confirmation** before making changes
-- **Creates audit trail** of all repairs made
+- **Analyzes real production backup data** (not development data)
+- **Identifies 84 high-confidence repairs** based on clear patterns:
+  - Stakelbeck Tonight → LMercado@tbn.tv (user 9)
+  - Trilogy productions → Sara Joyner (user 23)  
+  - Centerpoint News Updates → LMercado@tbn.tv (user 9)
+  - Praise shows → LMercado@tbn.tv (user 9)
+- **Generates transaction-safe SQL** repair script
+- **Provides detailed before/after statistics**
 
 ### 2. Usage Instructions
 
 ```bash
-# Analysis only (safe)
-node scripts/fix-booking-user-ownership.js --dry-run
+# Analyze production backup and generate repair script
+node scripts/analyze-production-backup.js
 
-# Apply fixes (requires backup first)
-node scripts/fix-booking-user-ownership.js --force
+# Review the generated SQL script
+cat scripts/repair-booking-ownership.sql
+
+# Apply to production (after backup!)
+psql $DATABASE_URL < scripts/repair-booking-ownership.sql
 ```
 
-### 3. Prevention Measures
+### 3. Comprehensive Prevention System
 
-To prevent this from happening again:
+Created comprehensive prevention measures:
 
-1. **Never use default user_id = 1** in migration scripts
-2. **Always preserve existing user_id values** during schema changes
-3. **Use audit logging** for all booking operations
-4. **Test migrations** on copy of production data first
-5. **Backup database** before any schema changes
+**Database-Level Protection** (`scripts/prevent-user-corruption.sql`):
+- NOT NULL constraints on user_id
+- Foreign key constraints ensuring valid users
+- Audit triggers logging all user_id changes  
+- Protection triggers blocking mass admin assignments (>60%)
+- Health monitoring views and functions
+
+**Code-Level Safeguards**:
+- Never default user_id to 1 in any code
+- Always use authenticated user context
+- Validate user assignments in APIs
+- Test with multiple user accounts
+
+**Monitoring & Alerts**:
+- Daily health checks detecting >30% admin ownership
+- Audit trail of all user_id changes
+- Automatic blocking of suspicious mass assignments
 
 ## Recovery Strategy
 

@@ -1,5 +1,5 @@
 -- BookStud.io Booking Ownership Repair Script
--- Generated: 2025-08-03T23:01:42.089Z
+-- Generated: 2025-08-03T23:04:26.547Z
 -- 
 -- This script fixes booking user_id corruption where bookings were
 -- incorrectly assigned to admin (user_id = 1) instead of actual creators.
@@ -20,10 +20,10 @@ SELECT
 FROM bookings;
 
 -- Fix booking #218: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 218 AND user_id = 1;
 
 -- Fix booking #492: "SHOOT: Team People Car Shoot"
@@ -174,31 +174,31 @@ SET user_id = 23
 WHERE id = 504 AND user_id = 1;
 
 -- Fix booking #461: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 461 AND user_id = 1;
 
 -- Fix booking #462: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 462 AND user_id = 1;
 
 -- Fix booking #463: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 463 AND user_id = 1;
 
 -- Fix booking #464: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 464 AND user_id = 1;
 
 -- Fix booking #487: "Stakelbeck Tonight"
@@ -216,17 +216,17 @@ SET user_id = 9
 WHERE id = 373 AND user_id = 1;
 
 -- Fix booking #465: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 465 AND user_id = 1;
 
 -- Fix booking #466: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 466 AND user_id = 1;
 
 -- Fix booking #372: "Praise"
@@ -237,80 +237,80 @@ SET user_id = 9
 WHERE id = 372 AND user_id = 1;
 
 -- Fix booking #467: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 467 AND user_id = 1;
 
 -- Fix booking #468: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 468 AND user_id = 1;
 
 -- Fix booking #469: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 469 AND user_id = 1;
 
 -- Fix booking #470: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 470 AND user_id = 1;
 
 -- Fix booking #471: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 471 AND user_id = 1;
 
 -- Fix booking #472: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 472 AND user_id = 1;
 
 -- Fix booking #473: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 473 AND user_id = 1;
 
 -- Fix booking #474: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 474 AND user_id = 1;
 
 -- Fix booking #475: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 475 AND user_id = 1;
 
 -- Fix booking #476: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 476 AND user_id = 1;
 
 -- Fix booking #512: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 512 AND user_id = 1;
 
 -- Fix booking #53: "Praise"
@@ -335,24 +335,24 @@ SET user_id = 23
 WHERE id = 437 AND user_id = 1;
 
 -- Fix booking #477: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 477 AND user_id = 1;
 
 -- Fix booking #478: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 478 AND user_id = 1;
 
 -- Fix booking #479: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 479 AND user_id = 1;
 
 -- Fix booking #438: "TRILOGY: FM Creator Camp"
@@ -398,52 +398,52 @@ SET user_id = 23
 WHERE id = 498 AND user_id = 1;
 
 -- Fix booking #217: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 217 AND user_id = 1;
 
 -- Fix booking #204: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 204 AND user_id = 1;
 
 -- Fix booking #433: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 433 AND user_id = 1;
 
 -- Fix booking #214: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 214 AND user_id = 1;
 
 -- Fix booking #206: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 206 AND user_id = 1;
 
 -- Fix booking #211: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 211 AND user_id = 1;
 
 -- Fix booking #219: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 219 AND user_id = 1;
 
 -- Fix booking #243: "Stakelbeck Tonight"
@@ -482,17 +482,17 @@ SET user_id = 9
 WHERE id = 247 AND user_id = 1;
 
 -- Fix booking #221: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 221 AND user_id = 1;
 
 -- Fix booking #222: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 222 AND user_id = 1;
 
 -- Fix booking #239: "Stakelbeck Tonight"
@@ -524,31 +524,31 @@ SET user_id = 9
 WHERE id = 248 AND user_id = 1;
 
 -- Fix booking #215: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 215 AND user_id = 1;
 
 -- Fix booking #223: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 223 AND user_id = 1;
 
 -- Fix booking #216: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 216 AND user_id = 1;
 
 -- Fix booking #226: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 226 AND user_id = 1;
 
 -- Fix booking #249: "Stakelbeck Tonight"
@@ -559,24 +559,24 @@ SET user_id = 9
 WHERE id = 249 AND user_id = 1;
 
 -- Fix booking #205: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 205 AND user_id = 1;
 
 -- Fix booking #224: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 224 AND user_id = 1;
 
 -- Fix booking #210: "Centerpoint News Updates"
--- Reason: Centerpoint News Updates pattern match
--- Current: user_id = 1 (admin) → New: user_id = 8 (DHarvilla)
+-- Reason: Centerpoint News Updates belongs to LMercado@tbn.tv (user 9)
+-- Current: user_id = 1 (admin) → New: user_id = 9 (LMercado@tbn.tv)
 UPDATE bookings 
-SET user_id = 8 
+SET user_id = 9 
 WHERE id = 210 AND user_id = 1;
 
 -- Fix booking #244: "Stakelbeck Tonight"
