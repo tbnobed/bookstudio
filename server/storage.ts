@@ -3757,9 +3757,7 @@ export class DatabaseStorage implements IStorage {
           .where(isNull(users.id)),
         
         // Invalid dates (end before start)
-        db.select({ count: sql<number>`count(*)` })
-          .from(bookings)
-          .where(sql`${bookings.end} <= ${bookings.start}`),
+        db.execute(sql`SELECT COUNT(*) as count FROM bookings WHERE "end" <= "start"`),
         
         // Duplicate records (same title, time, and user)
         db.select({ count: sql<number>`count(*) - count(distinct (title, start, end, user_id))` })
@@ -3811,11 +3809,11 @@ export class DatabaseStorage implements IStorage {
       const totalBookingsCount = totalBookings[0]?.count || 0;
       const orphanedBookingsCount = orphanedBookings[0]?.count || 0;
       const missingUsersCount = missingUsers[0]?.count || 0;
-      const invalidDatesCount = invalidDates[0]?.count || 0;
+      const invalidDatesCount = (invalidDates as any).rows?.[0]?.count || 0;
       const duplicateRecordsCount = duplicateRecords[0]?.count || 0;
       const totalUsersCount = totalUsers[0]?.count || 0;
       const recentBookingsCount = recentBookings[0]?.count || 0;
-      const conflictsCount = (bookingConflicts as any)[0]?.conflicts || 0;
+      const conflictsCount = (bookingConflicts as any).rows?.[0]?.conflicts || 0;
       
       // Calculate referential integrity score
       const referentialIntegrityScore = totalBookingsCount > 0 
@@ -3836,11 +3834,11 @@ export class DatabaseStorage implements IStorage {
         [dataIntegrityStatus, performanceStatus, storageStatus, businessLogicStatus].includes('WARNING') ? 'WARNING' : 'HEALTHY';
 
       // Process table sizes
-      const processedTableSizes = (tableSizes as any).map((row: any) => ({
+      const processedTableSizes = (tableSizes as any).rows?.map((row: any) => ({
         table: row.table_name,
         size_mb: Math.round((row.size_bytes || 0) / 1024 / 1024 * 100) / 100,
         rows: row.total_operations || 0
-      }));
+      })) || [];
 
       return {
         overall_status: overallStatus,
