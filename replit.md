@@ -10,7 +10,7 @@ BookStud.io is a comprehensive web application for television studio management 
 
 **PRODUCTION BACKUP SYSTEM FIX** - Resolved backup system failures in production Docker environments by including PostgreSQL client tools (postgresql15-client) in Dockerfile and enhancing error handling in backup services to check for tool availability before attempting operations.
 
-**LEGACY DATA CORRUPTION DISCOVERY** - Critical finding through backup comparison analysis reveals that 62.8% of bookings incorrectly show admin ownership (user_id = 1). This corruption has existed since at least July 31st, 2025, indicating it occurred during initial system setup or early migration work, not recent changes. Comprehensive repair scripts and prevention measures have been developed based on real production data analysis.
+**BOOKING OWNERSHIP BUG FIXED** (August 2025) - Completely resolved critical frontend bug where hardcoded `userId: 1` was sent in all booking creation requests from both desktop (`BookingModal.tsx`) and mobile (`SimpleMobileForm-new.tsx`) forms. Server now correctly assigns booking ownership based on authenticated user. Database sequence counter issues resolved to prevent ID conflicts during booking creation. All new bookings now correctly show actual creator ownership instead of admin ownership.
 
 ## User Preferences
 
