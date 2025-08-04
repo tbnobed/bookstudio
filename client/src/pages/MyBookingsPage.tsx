@@ -414,6 +414,18 @@ export default function MyBookingsPage() {
                                 {booking.description && (
                                   <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
                                 )}
+                                
+                                {/* Personal Booking Edit Button - User can always edit their own bookings */}
+                                <div className="flex justify-end pt-2 border-t">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setEditBookingId(booking.id)}
+                                    className="h-8 px-3 text-xs"
+                                  >
+                                    Edit
+                                  </Button>
+                                </div>
                               </CardContent>
                             </Card>
                           );
@@ -486,6 +498,18 @@ export default function MyBookingsPage() {
                               {booking.description && (
                                 <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
                               )}
+                              
+                              {/* Team Booking Edit Button - Team members can edit team bookings, admins can edit all */}
+                              <div className="flex justify-end pt-2 border-t">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setEditBookingId(booking.id)}
+                                  className="h-8 px-3 text-xs"
+                                >
+                                  Edit
+                                </Button>
+                              </div>
                             </CardContent>
                           </Card>
                         );
@@ -597,6 +621,18 @@ export default function MyBookingsPage() {
                                   {booking.description && (
                                     <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
                                   )}
+                                  
+                                  {/* Admin View Edit Button - Admins can edit all bookings */}
+                                  <div className="flex justify-end pt-2 border-t">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setEditBookingId(booking.id)}
+                                      className="h-8 px-3 text-xs"
+                                    >
+                                      Edit
+                                    </Button>
+                                  </div>
                                 </CardContent>
                               </Card>
                             );
@@ -662,6 +698,18 @@ export default function MyBookingsPage() {
                                   {booking.description && (
                                     <p className="text-sm text-gray-600 mb-4 line-clamp-2">{booking.description}</p>
                                   )}
+                                  
+                                  {/* Admin View Edit Button - Admins can edit all bookings */}
+                                  <div className="flex justify-end pt-2 border-t">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setEditBookingId(booking.id)}
+                                      className="h-8 px-3 text-xs"
+                                    >
+                                      Edit
+                                    </Button>
+                                  </div>
                                 </CardContent>
                               </Card>
                             );

@@ -1622,8 +1622,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Only admin, IT staff, and site managers can update IT support bookings" });
         }
       } else {
-        // For regular production bookings, only the creator, admin, producers, engineers, or site managers can update
-        if (booking.userId !== user.id && user.role !== "admin" && user.role !== "producer" && user.role !== "engineer" && user.role !== "site_manager") {
+        // For regular production bookings, check multiple permission levels
+        const isOwner = booking.userId === user.id;
+        const isAdmin = user.role === "admin";
+        const isAuthorizedRole = ["producer", "engineer", "site_manager"].includes(user.role);
+        
+        // Check if user is a team member with the booking creator
+        let isTeamMember = false;
+        if (!isOwner && !isAdmin && !isAuthorizedRole) {
+          const bookingCreatorTeams = await storage.getUserTeams(booking.userId);
+          const currentUserTeams = await storage.getUserTeams(user.id);
+          
+          // Check if they share any team
+          isTeamMember = bookingCreatorTeams.some(creatorTeam => 
+            currentUserTeams.some(userTeam => userTeam.id === creatorTeam.id)
+          );
+        }
+        
+        // Allow editing if: owner, admin, authorized role, or team member
+        if (!isOwner && !isAdmin && !isAuthorizedRole && !isTeamMember) {
           return res.status(403).json({ message: "You don't have permission to update this booking" });
         }
       }
