@@ -3775,12 +3775,12 @@ export class DatabaseStorage implements IStorage {
         db.execute(sql`
           SELECT 
             schemaname as schema,
-            tablename as table_name,
-            pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
-            pg_total_relation_size(schemaname||'.'||tablename) as size_bytes,
+            relname as table_name,
+            pg_size_pretty(pg_total_relation_size(schemaname||'.'||relname)) as size,
+            pg_total_relation_size(schemaname||'.'||relname) as size_bytes,
             n_tup_ins + n_tup_upd + n_tup_del as total_operations
           FROM pg_stat_user_tables
-          ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
+          ORDER BY pg_total_relation_size(schemaname||'.'||relname) DESC
           LIMIT 10
         `),
         
