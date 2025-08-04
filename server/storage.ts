@@ -3756,11 +3756,13 @@ export class DatabaseStorage implements IStorage {
           .leftJoin(users, eq(bookings.userId, users.id))
           .where(isNull(users.id)),
         
-        // Invalid dates (end before start)
-        db.execute(sql`SELECT COUNT(*) as count FROM bookings WHERE "end" <= "start"`),
+        // Invalid dates (end before start) - using Drizzle operators
+        db.select({ count: sql<number>`count(*)` })
+          .from(bookings)
+          .where(lte(bookings.end, bookings.start)),
         
         // Duplicate records (same title, time, and user)
-        db.select({ count: sql<number>`count(*) - count(distinct (title, start, end, user_id))` })
+        db.select({ count: sql<number>`count(*) - count(distinct (title, "start", "end", user_id))` })
           .from(bookings),
         
         // Total users
@@ -3910,7 +3912,7 @@ export class DatabaseStorage implements IStorage {
       // Check for invalid date ranges
       const invalidDates = await db.select({ count: sql<number>`count(*)` })
         .from(bookings)
-        .where(sql`${bookings.end} <= ${bookings.start}`);
+        .where(lte(bookings.end, bookings.start));
       
       const invalidDatesCount = invalidDates[0]?.count || 0;
       if (invalidDatesCount > 0) {
@@ -3937,9 +3939,9 @@ export class DatabaseStorage implements IStorage {
         AND b1.status IN ('confirmed', 'tentative')
         AND b2.status IN ('confirmed', 'tentative')
         AND (
-          (b1.start <= b2.start AND b1.end > b2.start) OR
-          (b1.start < b2.end AND b1.end >= b2.end) OR
-          (b1.start >= b2.start AND b1.end <= b2.end)
+          (b1.start <= b2.start AND b1."end" > b2.start) OR
+          (b1.start < b2."end" AND b1."end" >= b2."end") OR
+          (b1.start >= b2.start AND b1."end" <= b2."end")
         )
       `);
       
