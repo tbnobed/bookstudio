@@ -279,7 +279,7 @@ export default function SimpleMobileForm({
       end: endDate,
       notifyList: notifyListAsNumbers,
       color: formData.color,
-      userId: 1,
+      // userId will be set by the server from the authenticated user
     };
     
     // Set the primary studioId (same as desktop)
