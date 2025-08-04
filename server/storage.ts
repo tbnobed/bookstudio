@@ -3798,9 +3798,9 @@ export class DatabaseStorage implements IStorage {
           AND b1.status IN ('confirmed', 'tentative')
           AND b2.status IN ('confirmed', 'tentative')
           AND (
-            (b1.start <= b2.start AND b1.end > b2.start) OR
-            (b1.start < b2.end AND b1.end >= b2.end) OR
-            (b1.start >= b2.start AND b1.end <= b2.end)
+            (b1.start <= b2.start AND b1."end" > b2.start) OR
+            (b1.start < b2."end" AND b1."end" >= b2."end") OR
+            (b1.start >= b2.start AND b1."end" <= b2."end")
           )
         `)
       ]);

@@ -12,7 +12,7 @@ BookStud.io is a comprehensive web application for television studio management 
 
 **BOOKING OWNERSHIP BUG FIXED** (August 2025) - Completely resolved critical frontend bug where hardcoded `userId: 1` was sent in all booking creation requests from both desktop (`BookingModal.tsx`) and mobile (`SimpleMobileForm-new.tsx`) forms. Server now correctly assigns booking ownership based on authenticated user. Database sequence counter issues resolved to prevent ID conflicts during booking creation. All new bookings now correctly show actual creator ownership instead of admin ownership.
 
-**DATABASE HEALTH METRICS FIX** (August 2025) - Fixed PostgreSQL errors in database health monitoring system. Corrected column name references from "tablename" to "relname" in pg_stat_user_tables queries, and resolved SQL syntax issues with reserved keywords. Database health metrics at `/admin/database-health` now function properly without PostgreSQL query errors.
+**DATABASE HEALTH METRICS COMPLETELY FIXED** (August 2025) - Resolved all PostgreSQL syntax errors in database health monitoring system. Fixed "syntax error at or near 'end'" by properly escaping reserved keyword "end" with double quotes in raw SQL queries. Corrected column name references from "tablename" to "relname" in pg_stat_user_tables queries. Updated result parsing to handle db.execute() format with .rows array. Database health metrics at `/admin/database-health` now function completely without any PostgreSQL query errors.
 
 ## User Preferences
 
