@@ -351,10 +351,18 @@ export default function AdminBookingOwnership() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {format(new Date(booking.start), "MMM d, yyyy")}
+                          {booking.start && !isNaN(new Date(booking.start).getTime()) 
+                            ? format(new Date(booking.start), "MMM d, yyyy")
+                            : "Invalid Date"
+                          }
                           <br />
                           <span className="text-muted-foreground">
-                            {format(new Date(booking.start), "h:mm a")} - {format(new Date(booking.end), "h:mm a")}
+                            {booking.start && booking.end && 
+                             !isNaN(new Date(booking.start).getTime()) && 
+                             !isNaN(new Date(booking.end).getTime())
+                              ? `${format(new Date(booking.start), "h:mm a")} - ${format(new Date(booking.end), "h:mm a")}`
+                              : "Invalid Time"
+                            }
                           </span>
                         </div>
                       </TableCell>
@@ -367,7 +375,10 @@ export default function AdminBookingOwnership() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {format(new Date(booking.created_at), "MMM d, yyyy")}
+                        {booking.created_at && !isNaN(new Date(booking.created_at).getTime())
+                          ? format(new Date(booking.created_at), "MMM d, yyyy")
+                          : "Invalid Date"
+                        }
                       </TableCell>
                       <TableCell>
                         <Button
