@@ -375,9 +375,9 @@ export default function AdminBookingOwnership() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {booking.created_at && !isNaN(new Date(booking.created_at).getTime())
+                        {booking.created_at && booking.created_at !== null && !isNaN(new Date(booking.created_at).getTime())
                           ? format(new Date(booking.created_at), "MMM d, yyyy")
-                          : "Invalid Date"
+                          : "N/A"
                         }
                       </TableCell>
                       <TableCell>

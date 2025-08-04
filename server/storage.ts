@@ -3680,7 +3680,7 @@ export class DatabaseStorage implements IStorage {
       const adminBookings = await db.select()
         .from(bookings)
         .where(eq(bookings.userId, 1))
-        .orderBy(desc(bookings.createdAt));
+        .orderBy(desc(bookings.start));  // Use start date since createdAt might be null
       
       return adminBookings;
     } catch (error) {
