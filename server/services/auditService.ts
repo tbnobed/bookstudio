@@ -17,14 +17,21 @@ export class AuditService {
     details?: Record<string, any>
   ) {
     try {
-      // Ensure details can be safely serialized to JSON
+      // Ensure details can be safely serialized to JSON with deep cleaning
       let safeDetails = {};
       if (details) {
         try {
-          safeDetails = JSON.parse(JSON.stringify(details));
+          // Clean the details object to remove circular references and non-serializable data
+          safeDetails = this.cleanObjectForSerialization(details);
+          // Test serialization
+          JSON.stringify(safeDetails);
         } catch (jsonError) {
           console.warn('Failed to serialize audit details, using fallback:', jsonError);
-          safeDetails = { error: 'Failed to serialize details', originalType: typeof details };
+          safeDetails = { 
+            error: 'Failed to serialize details', 
+            originalType: typeof details,
+            errorMessage: jsonError instanceof Error ? jsonError.message : 'Unknown serialization error'
+          };
         }
       }
 
@@ -162,6 +169,47 @@ export class AuditService {
       username,
       reason,
     });
+  }
+
+  // Helper method to clean objects for safe JSON serialization
+  private static cleanObjectForSerialization(obj: any, seen = new WeakSet()): any {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+
+    // Prevent circular references
+    if (seen.has(obj)) {
+      return '[Circular Reference]';
+    }
+    seen.add(obj);
+
+    // Handle arrays
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.cleanObjectForSerialization(item, seen));
+    }
+
+    // Handle objects
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Skip functions, symbols, and known problematic properties
+      if (typeof value === 'function' || 
+          typeof value === 'symbol' ||
+          key === 'parser' || 
+          key === 'socket' || 
+          key === '_handle' ||
+          key === 'req' ||
+          key === 'res') {
+        continue;
+      }
+
+      try {
+        cleaned[key] = this.cleanObjectForSerialization(value, seen);
+      } catch (error) {
+        cleaned[key] = '[Unserializable]';
+      }
+    }
+
+    return cleaned;
   }
 
   // Helper method to identify what changed between old and new values

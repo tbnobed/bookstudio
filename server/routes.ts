@@ -2570,11 +2570,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await storage.updateBookingOwnership(booking_ids, new_user_id, req.user!.id);
       
-      // Log the ownership change
-      await AuditService.log('updated', 'booking_ownership', `${booking_ids.length} bookings`, req, {
+      // Log the ownership change with proper entityType
+      await AuditService.log('updated', 'booking', null, req, {
+        action: 'bulk_ownership_transfer',
         booking_ids,
         new_user_id,
-        updated_count: result.updated_count
+        updated_count: result.updated_count,
+        summary: `Updated ownership of ${result.updated_count} bookings to user ${new_user_id}`
       });
       
       res.json(result);

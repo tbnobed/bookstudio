@@ -1149,7 +1149,10 @@ export default function BookingModal({
                                 {bookingTypes.length === 0 && (
                                   <SelectItem value="production">Production</SelectItem>
                                 )}
-                                <SelectItem value="other">Other</SelectItem>
+                                {/* Only show "Other" option if no active booking type named "Other" exists */}
+                                {!bookingTypes.some(type => type.isActive && type.name.toLowerCase() === 'other') && (
+                                  <SelectItem key="hardcoded-other" value="other">Other</SelectItem>
+                                )}
                               </SelectContent>
                             </Select>
                           </div>
