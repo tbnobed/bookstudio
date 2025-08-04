@@ -303,9 +303,9 @@ export default function AdminBookingOwnership() {
               }
             </div>
           ) : (
-            <div className="border rounded-lg">
+            <div className="border rounded-lg max-h-[600px] overflow-y-auto">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
                     <TableHead className="w-12">
                       <input
