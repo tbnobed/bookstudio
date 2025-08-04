@@ -152,6 +152,11 @@ export interface IStorage {
   isUserTeamMember(teamId: number, userId: number): Promise<boolean>;
   getTeamBookings(userId: number, options?: { page?: number; limit?: number; fromToday?: boolean }): Promise<{ bookings: Booking[]; total: number; hasMore: boolean }>;
   
+  // Booking ownership management
+  getBookingOwnershipStats(): Promise<{ total_bookings: number, admin_bookings: number, admin_percentage: number, health_status: string }>;
+  getAdminOwnedBookings(): Promise<Booking[]>;
+  updateBookingOwnership(bookingIds: number[], newUserId: number, adminUserId: number): Promise<{ updated_count: number }>;
+  
   // Session management
   sessionStore: session.Store;
 }
@@ -3636,6 +3641,84 @@ export class DatabaseStorage implements IStorage {
     
     return { bookings: paginatedBookings, total, hasMore };
   }
+
+  // Booking ownership management implementation
+  async getBookingOwnershipStats(): Promise<{ total_bookings: number, admin_bookings: number, admin_percentage: number, health_status: string }> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          COUNT(*) as total_bookings,
+          COUNT(CASE WHEN user_id = 1 THEN 1 END) as admin_bookings,
+          ROUND(COUNT(CASE WHEN user_id = 1 THEN 1 END) * 100.0 / COUNT(*), 2) as admin_percentage
+        FROM bookings
+      `);
+      
+      const stats = result.rows[0] as any;
+      const adminPercentage = parseFloat(stats.admin_percentage) || 0;
+      
+      let health_status = 'HEALTHY';
+      if (adminPercentage > 60) {
+        health_status = 'CRITICAL';
+      } else if (adminPercentage > 30) {
+        health_status = 'WARNING';
+      }
+      
+      return {
+        total_bookings: parseInt(stats.total_bookings) || 0,
+        admin_bookings: parseInt(stats.admin_bookings) || 0,
+        admin_percentage: adminPercentage,
+        health_status
+      };
+    } catch (error) {
+      console.error("Error getting booking ownership stats:", error);
+      throw error;
+    }
+  }
+
+  async getAdminOwnedBookings(): Promise<Booking[]> {
+    try {
+      const adminBookings = await db.select()
+        .from(bookings)
+        .where(eq(bookings.userId, 1))
+        .orderBy(desc(bookings.createdAt));
+      
+      return adminBookings;
+    } catch (error) {
+      console.error("Error getting admin owned bookings:", error);
+      throw error;
+    }
+  }
+
+  async updateBookingOwnership(bookingIds: number[], newUserId: number, adminUserId: number): Promise<{ updated_count: number }> {
+    try {
+      // Verify the new user exists
+      const targetUser = await this.getUser(newUserId);
+      if (!targetUser) {
+        throw new Error(`Target user ID ${newUserId} does not exist`);
+      }
+      
+      // Update bookings ownership
+      const result = await db.update(bookings)
+        .set({ userId: newUserId })
+        .where(
+          and(
+            inArray(bookings.id, bookingIds),
+            eq(bookings.userId, 1) // Only update bookings currently owned by admin
+          )
+        );
+      
+      const updatedCount = result.rowCount || 0;
+      
+      console.log(`Updated ownership of ${updatedCount} bookings from admin to user ${newUserId} (${targetUser.username}) by admin ${adminUserId}`);
+      
+      return { updated_count: updatedCount };
+    } catch (error) {
+      console.error("Error updating booking ownership:", error);
+      throw error;
+    }
+  }
+
+  sessionStore = new PostgresSessionStore({ pool, createTableIfMissing: true });
 }
 
 // Use the database storage instead of memory storage

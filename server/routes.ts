@@ -2510,6 +2510,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin booking ownership management routes
+  app.get("/api/admin/booking-ownership/stats", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== 'admin') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const stats = await storage.getBookingOwnershipStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting booking ownership stats:", error);
+      res.status(500).json({ error: "Failed to get ownership statistics" });
+    }
+  });
+
+  app.get("/api/admin/booking-ownership/admin-bookings", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== 'admin') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const bookings = await storage.getAdminOwnedBookings();
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error getting admin bookings:", error);
+      res.status(500).json({ error: "Failed to get admin bookings" });
+    }
+  });
+
+  app.post("/api/admin/booking-ownership/update", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== 'admin') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const { booking_ids, new_user_id } = req.body;
+      
+      if (!Array.isArray(booking_ids) || !new_user_id) {
+        return res.status(400).json({ error: "booking_ids array and new_user_id are required" });
+      }
+
+      const result = await storage.updateBookingOwnership(booking_ids, new_user_id, req.user!.id);
+      
+      // Log the ownership change
+      await AuditService.log('updated', 'booking_ownership', `${booking_ids.length} bookings`, req, {
+        booking_ids,
+        new_user_id,
+        updated_count: result.updated_count
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error updating booking ownership:", error);
+      res.status(500).json({ error: "Failed to update booking ownership" });
+    }
+  });
+
   // Notification routes
   app.get("/api/notifications", isAuthenticated, async (req, res) => {
     try {
