@@ -2401,6 +2401,13 @@ export class DatabaseStorage implements IStorage {
       return newNotification;
     } catch (error) {
       console.error("Error creating notification:", error);
+      
+      // If we get a duplicate key error, try to sync sequences
+      if (error.code === '23505' && error.constraint === 'notifications_pkey') {
+        console.log('Sequence desync detected in notifications, attempting recovery...');
+        await this.syncSequences();
+      }
+      
       throw error;
     }
   }
@@ -2781,6 +2788,13 @@ export class DatabaseStorage implements IStorage {
       return createdLinks;
     } catch (error) {
       console.error(`Error creating booking-studio links for booking ID ${bookingId}:`, error);
+      
+      // If we get a duplicate key error, try to sync sequences
+      if (error.code === '23505' && error.constraint === 'booking_studios_pkey') {
+        console.log('Sequence desync detected in booking_studios, attempting recovery...');
+        await this.syncSequences();
+      }
+      
       return [];
     }
   }
@@ -4027,6 +4041,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   sessionStore = new PostgresSessionStore({ pool, createTableIfMissing: true });
+
+  // Sequence synchronization utility
+  async syncSequences(): Promise<void> {
+    try {
+      console.log('Synchronizing database sequences...');
+      
+      // Sync booking_studios sequence
+      await db.execute(sql`SELECT setval('booking_studios_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM booking_studios), false)`);
+      
+      // Sync notifications sequence  
+      await db.execute(sql`SELECT setval('notifications_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM notifications), false)`);
+      
+      // Sync bookings sequence (preventive)
+      await db.execute(sql`SELECT setval('bookings_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM bookings), false)`);
+      
+      console.log('Database sequences synchronized successfully');
+    } catch (error) {
+      console.error('Error synchronizing sequences:', error);
+    }
+  }
 }
 
 // Use the database storage instead of memory storage
