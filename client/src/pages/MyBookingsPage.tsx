@@ -239,8 +239,27 @@ export default function MyBookingsPage() {
     new Date(booking.end) < currentTime
   );
 
-  // Find the booking to edit
-  const bookingToEdit = userBookings.find(booking => booking.id === editBookingId);
+  // Find the booking to edit - search across all available booking arrays based on active tab
+  const bookingToEdit = (() => {
+    if (!editBookingId) return undefined;
+    
+    // Search in user bookings first
+    let found = userBookings.find(booking => booking.id === editBookingId);
+    if (found) return found;
+    
+    // Search in team bookings if available
+    const teamBookings = teamBookingsData?.bookings || [];
+    found = teamBookings.find(booking => booking.id === editBookingId);
+    if (found) return found;
+    
+    // Search in all bookings for admin view
+    if (isAdminOrSiteManager) {
+      found = allBookingsProcessed.find(booking => booking.id === editBookingId);
+      if (found) return found;
+    }
+    
+    return undefined;
+  })();
 
   return (
     <div className="flex flex-col h-screen">
