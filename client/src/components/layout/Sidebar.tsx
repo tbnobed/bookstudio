@@ -151,6 +151,40 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </svg>
                 <span>User Management</span>
               </div>
+              
+              <div 
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
+                  location === "/admin/booking-ownership" 
+                    ? "text-white bg-primary" 
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+                onClick={() => handleNavigate("/admin/booking-ownership")}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2m4-2h4a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"></path>
+                  <path d="M12 11l2 2 4-4"></path>
+                </svg>
+                <span>Booking Ownership</span>
+              </div>
+              
+              <div 
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
+                  location === "/admin/database-health" 
+                    ? "text-white bg-primary" 
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+                onClick={() => handleNavigate("/admin/database-health")}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"></path>
+                  <ellipse cx="12" cy="7" rx="8" ry="4"></ellipse>
+                  <path d="M12 17v-5"></path>
+                  <path d="M8 12l2 2 4-4"></path>
+                </svg>
+                <span>Database Health</span>
+              </div>
             </>
           )}
 

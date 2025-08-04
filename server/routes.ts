@@ -2567,6 +2567,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Database Health Monitoring Routes
+  app.get("/api/admin/database-health/metrics", hasRole(['admin']), async (req, res) => {
+    try {
+      const metrics = await storage.getDatabaseHealthMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching database health metrics:", error);
+      res.status(500).json({ error: "Failed to fetch database health metrics" });
+    }
+  });
+
+  app.get("/api/admin/database-health/issues", hasRole(['admin']), async (req, res) => {
+    try {
+      const issues = await storage.getDatabaseHealthIssues();
+      res.json(issues);
+    } catch (error) {
+      console.error("Error fetching database health issues:", error);
+      res.status(500).json({ error: "Failed to fetch database health issues" });
+    }
+  });
+
+  app.post("/api/admin/database-health/fix/:issueId", hasRole(['admin']), async (req, res) => {
+    try {
+      const issueId = req.params.issueId;
+      const result = await storage.autoFixDatabaseIssue(issueId);
+      
+      // Log the fix attempt
+      await AuditService.log('fixed', 'database_issue', issueId, req, {
+        issue_id: issueId,
+        fix_result: result
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error auto-fixing database issue:", error);
+      res.status(500).json({ error: "Failed to auto-fix database issue" });
+    }
+  });
+
   // Notification routes
   app.get("/api/notifications", isAuthenticated, async (req, res) => {
     try {
