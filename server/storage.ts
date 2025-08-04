@@ -3759,7 +3759,7 @@ export class DatabaseStorage implements IStorage {
         // Invalid dates (end before start)
         db.select({ count: sql<number>`count(*)` })
           .from(bookings)
-          .where(sql`"end" <= "start"`),
+          .where(sql`${bookings.end} <= ${bookings.start}`),
         
         // Duplicate records (same title, time, and user)
         db.select({ count: sql<number>`count(*) - count(distinct (title, start, end, user_id))` })
