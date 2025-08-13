@@ -17,39 +17,6 @@ export const insertNotificationGroupSchema = createInsertSchema(notificationGrou
   id: true,
 });
 
-// Site Configuration schema - for multi-site SSO setup
-export const sites = pgTable("sites", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  url: text("url").notNull().unique(),
-  timezone: text("timezone").notNull().default("America/Chicago"),
-  weatherLocation: text("weather_location"), // City for weather API
-  isActive: boolean("is_active").default(true),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const insertSiteSchema = createInsertSchema(sites).omit({
-  id: true,
-  createdAt: true,
-});
-
-// User-Site Access schema - defines which users can access which sites
-export const userSiteAccess = pgTable("user_site_access", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  siteId: integer("site_id").notNull(),
-  canEdit: boolean("can_edit").default(false), // read-only vs full access
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  uniqueUserSite: unique().on(table.userId, table.siteId),
-}));
-
-export const insertUserSiteAccessSchema = createInsertSchema(userSiteAccess).omit({
-  id: true,
-  createdAt: true,
-});
-
 // User schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -57,21 +24,14 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull(),
   name: text("name").notNull(),
-  role: text("role").notNull().default("producer"), // producer, engineer, it, site_manager, admin, viewer
-  homeSiteId: integer("home_site_id"), // preferred default site
+  role: text("role").notNull().default("producer"), // producer, engineer, it, site_manager, admin
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
 });
 
-// Type exports for multi-site system
-export type Site = typeof sites.$inferSelect;
-export type InsertSite = z.infer<typeof insertSiteSchema>;
-export type UserSiteAccess = typeof userSiteAccess.$inferSelect;
-export type InsertUserSiteAccess = z.infer<typeof insertUserSiteAccessSchema>;
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
+
 
 // Studios schema
 export const studios = pgTable("studios", {
@@ -274,34 +234,13 @@ export const insertInviteTokenSchema = createInsertSchema(inviteTokens).omit({
 });
 
 // Relations
-export const sitesRelations = relations(sites, ({ many }) => ({
-  userAccess: many(userSiteAccess),
-  homeUsers: many(users),
-}));
-
-export const userSiteAccessRelations = relations(userSiteAccess, ({ one }) => ({
-  user: one(users, {
-    fields: [userSiteAccess.userId],
-    references: [users.id],
-  }),
-  site: one(sites, {
-    fields: [userSiteAccess.siteId],
-    references: [sites.id],
-  }),
-}));
-
-export const usersRelations = relations(users, ({ many, one }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   passwordResetTokens: many(passwordResetTokens),
   createdInviteTokens: many(inviteTokens, { relationName: "tokenCreator" }),
   bookings: many(bookings),
   templates: many(templates),
   teamMemberships: many(teamMembers),
   createdTeams: many(teams),
-  siteAccess: many(userSiteAccess),
-  homeSite: one(sites, {
-    fields: [users.homeSiteId],
-    references: [sites.id],
-  }),
 }));
 
 export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
