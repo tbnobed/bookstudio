@@ -506,6 +506,7 @@ export default function UserManagement() {
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="viewer">Viewer</SelectItem>
                   <SelectItem value="producer">Producer</SelectItem>
                   <SelectItem value="engineer">Engineer</SelectItem>
                   <SelectItem value="it">IT</SelectItem>
@@ -577,6 +578,7 @@ export default function UserManagement() {
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="viewer">Viewer</SelectItem>
                   <SelectItem value="producer">Producer</SelectItem>
                   <SelectItem value="engineer">Engineer</SelectItem>
                   <SelectItem value="it">IT</SelectItem>
