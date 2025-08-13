@@ -451,6 +451,8 @@ export default function DayChronView({
         
         <BookingHoverCard 
           booking={booking} 
+          studios={studios}
+          pcrRooms={pcrRooms}
           notificationGroups={notificationGroups}
           bookingStudioLinks={bookingStudios}
           onEdit={() => onBookingClick(booking)}

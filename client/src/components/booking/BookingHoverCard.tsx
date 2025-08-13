@@ -12,20 +12,22 @@ const formatBookingType = (type: string) => {
 
 interface BookingHoverCardProps {
   booking: any;
-  studios: any[];
-  pcrRooms: any[];
+  studios?: any[];
+  pcrRooms?: any[];
   notificationGroups: any[];
   bookingStudioLinks: any[];
   isAlert?: boolean;
+  onEdit?: () => void;
 }
 
 export function BookingHoverCard({ 
   booking, 
-  studios, 
-  pcrRooms, 
+  studios = [], 
+  pcrRooms = [], 
   notificationGroups, 
   bookingStudioLinks,
-  isAlert = false 
+  isAlert = false,
+  onEdit 
 }: BookingHoverCardProps) {
   // Get studios for booking
   const getStudiosForBooking = (booking: any) => {

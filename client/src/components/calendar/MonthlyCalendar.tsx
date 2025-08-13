@@ -538,6 +538,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                           notificationGroups={notificationGroups}
                           bookingStudioLinks={bookingStudioLinks}
                           isAlert={isAlert}
+                          onEdit={() => handleBookingClick(booking, new Date())}
                         />
                       </HoverCard>
                     );
