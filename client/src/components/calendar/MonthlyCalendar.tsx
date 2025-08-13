@@ -364,18 +364,33 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
       borderStyle = "border border-red-300";
     }
     
+    // Handle tentative status styling
+    if (booking.status === "tentative") {
+      borderStyle = "border-dashed border-gray-400";
+      if (!booking.color && !isAlert) {
+        colorClass = "bg-gray-100 text-gray-700 opacity-80";
+      }
+    }
+    
     // Style object for custom colors (only apply for non-alerts and non-cancelled)
     const customStyle = !isAlert && booking.color && booking.status !== "cancelled" ? {
       backgroundColor: `${booking.color}20`,
       color: booking.color,
       borderColor: booking.color,
-      border: '1px solid'
+      border: booking.status === "tentative" ? '1px dashed' : '1px solid',
+      opacity: booking.status === "tentative" ? 0.8 : 1
     } : booking.status === "cancelled" ? {
       backgroundColor: "#fef2f2",
       color: "#dc2626",
       borderColor: "#fca5a5",
       textDecoration: "line-through",
       opacity: 0.7
+    } : booking.status === "tentative" ? {
+      backgroundColor: "#f3f4f6",
+      color: "#374151",
+      borderColor: "#9ca3af",
+      border: "1px dashed #9ca3af",
+      opacity: 0.8
     } : {};
     
     // Extract the main part of the booking type (remove "all-day:" prefix)
