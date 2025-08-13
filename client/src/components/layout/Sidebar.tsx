@@ -66,44 +66,50 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <span>Calendar</span>
           </div>
           
-          <div 
-            className={cn(
-              "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
-              location === "/my-bookings" 
-                ? "text-white bg-primary" 
-                : "text-gray-700 hover:bg-gray-100"
-            )}
-            onClick={() => handleNavigate("/my-bookings")}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-              <path d="M9 14l2 2 4-4"></path>
-            </svg>
-            <span>My Bookings</span>
-          </div>
+          {/* Hide My Bookings for viewers */}
+          {user?.role !== "viewer" && (
+            <div 
+              className={cn(
+                "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
+                location === "/my-bookings" 
+                  ? "text-white bg-primary" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+              onClick={() => handleNavigate("/my-bookings")}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                <path d="M9 14l2 2 4-4"></path>
+              </svg>
+              <span>My Bookings</span>
+            </div>
+          )}
           
-          <div 
-            className={cn(
-              "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
-              location === "/templates" 
-                ? "text-white bg-primary" 
-                : "text-gray-700 hover:bg-gray-100"
-            )}
-            onClick={() => handleNavigate("/templates")}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            <span>Templates</span>
-          </div>
+          {/* Hide Templates for viewers */}
+          {user?.role !== "viewer" && (
+            <div 
+              className={cn(
+                "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
+                location === "/templates" 
+                  ? "text-white bg-primary" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+              onClick={() => handleNavigate("/templates")}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <span>Templates</span>
+            </div>
+          )}
           
-          {/* Only show Reports for non-producers */}
-          {user?.role !== "producer" && (
+          {/* Hide Reports for producers and viewers */}
+          {user?.role !== "producer" && user?.role !== "viewer" && (
             <div 
               className={cn(
                 "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
