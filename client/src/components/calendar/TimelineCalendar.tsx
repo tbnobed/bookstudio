@@ -782,10 +782,10 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                             </HoverCardTrigger>
                             <BookingHoverCard
                               booking={booking}
-                              studios={allStudios}
+                              studios={studios}
                               pcrRooms={pcrRooms}
                               notificationGroups={[]}
-                              bookingStudioLinks={bookingStudioLinks}
+                              bookingStudioLinks={bookingStudios}
                               isAlert={booking.type?.includes('maintenance') || booking.type === 'alert'}
                             />
                           </HoverCard>
