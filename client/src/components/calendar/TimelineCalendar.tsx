@@ -493,10 +493,11 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                         const endTime = toZonedTime(parseISO(alert.end), getFacilityTimezone_Dynamic());
                         
                         return (
-                          <HoverCard key={alert.id}>
+                          <HoverCard key={alert.id} openDelay={300} closeDelay={100}>
                             <HoverCardTrigger asChild>
                               <div
                                 className="p-2 rounded text-xs cursor-pointer transition-all duration-200 hover:shadow-sm border"
+                                style={{ pointerEvents: 'auto' }}
                                 style={{
                                   backgroundColor: severityStyle?.backgroundColor || '#fed7aa',
                                   borderColor: severityStyle?.borderColor || '#fdba74',
@@ -541,7 +542,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
 
       {/* Calendar Grid */}
       <div className="flex-1 overflow-hidden min-h-0">
-        <div className="h-full overflow-auto">
+        <div className="h-full overflow-auto scroll-smooth" style={{ scrollBehavior: 'smooth' }}>
           <div className="min-w-[1000px]">
             {/* Day Headers */}
             <div className="sticky top-0 bg-white border-b border-gray-200 z-40 shadow-sm">
@@ -685,10 +686,11 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
 
 
                         return (
-                          <HoverCard key={booking.id}>
+                          <HoverCard key={booking.id} openDelay={300} closeDelay={100}>
                             <HoverCardTrigger asChild>
                               <div
                                 className="absolute rounded text-sm cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-200 z-20 overflow-hidden flex flex-col shadow-lg"
+                                style={{ pointerEvents: 'auto' }}
                                 style={{
                                   ...styleWithoutBg,
                                   marginLeft: '2px',
