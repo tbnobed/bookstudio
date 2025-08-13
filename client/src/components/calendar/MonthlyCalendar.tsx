@@ -4,7 +4,8 @@ import { Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { getMonthDays, MONTH_NAMES, isSameDay, formatTime, formatDate, FACILITY_TIMEZONE, isBookingActive, getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 import BookingModal from "../booking/BookingModal";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { BookingHoverCard } from "@/components/booking/BookingHoverCard";
 import { CalendarClock, Clock, FileText, User, Tag, Tv } from "lucide-react";
 import WeatherForecastCell from './WeatherForecastCell';
 import { useWeatherForecast } from '../../hooks/useWeatherForecast';
@@ -81,6 +82,11 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
   const { data: allAlerts = [] } = useQuery<any[]>({
     queryKey: ['/api/alerts'],
     refetchInterval: 5000, // Refetch every 5 seconds
+  });
+  
+  // Fetch notification groups for hover card details
+  const { data: notificationGroups = [] } = useQuery<any[]>({
+    queryKey: ["/api/notification-groups"],
   });
   
   // Function to get PCR room name from ID
@@ -525,71 +531,14 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                             </div>
                           </div>
                         </HoverCardTrigger>
-                        <HoverCardContent className="w-80 p-4">
-                          <div className="space-y-3">
-                            <h4 className="text-sm font-semibold">{booking.title}</h4>
-                            <div className="space-y-1">
-                              {isAlert && (
-                                <div className="flex items-center text-xs">
-                                  <span className={cn(
-                                    "px-2 py-0.5 rounded-full text-xs font-medium",
-                                    booking.severity === "critical" ? "bg-red-100 text-red-800" : 
-                                    booking.severity === "high" ? "bg-orange-100 text-orange-800" : 
-                                    booking.severity === "medium" ? "bg-amber-100 text-amber-800" : 
-                                    "bg-blue-100 text-blue-800"
-                                  )}>
-                                    {booking.severity || "Low"} Severity
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <CalendarClock className="mr-1 h-3 w-3" />
-                                <span>{formatDate(booking.start)}</span>
-                              </div>
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Clock className="mr-1 h-3 w-3" />
-                                <span>{formatTime(booking.start)} - {formatTime(booking.end)}</span>
-                              </div>
-                              {getStudiosForBooking(booking) && (
-                                <div className="flex items-center text-xs text-muted-foreground">
-                                  <Tv className="mr-1 h-3 w-3" />
-                                  <span>{getStudiosForBooking(booking)}</span>
-                                </div>
-                              )}
-                              {booking.pcrRoomId && (
-                                <div className="flex items-center text-xs text-muted-foreground">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 h-3 w-3">
-                                    <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"></path>
-                                  </svg>
-                                  <span>{getPcrRoomName(booking.pcrRoomId)}</span>
-                                </div>
-                              )}
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Tag className="mr-1 h-3 w-3" />
-                                <span className="capitalize">{bookingType?.replace('_', ' ')}</span>
-                              </div>
-                              {booking.description && (
-                                <div className="flex items-start mt-2 text-xs text-muted-foreground">
-                                  <FileText className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
-                                  <span>{booking.description}</span>
-                                </div>
-                              )}
-                              {booking.notifyList && Array.isArray(booking.notifyList) && booking.notifyList.length > 0 && (
-                                <div className="mt-2">
-                                  <div className="text-xs font-medium mb-1">Notifying:</div>
-                                  <div className="flex flex-wrap gap-1">
-                                    {booking.notifyList.map((crew: string, i: number) => (
-                                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
-                                        <User className="mr-1 h-3 w-3" />
-                                        {crew}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </HoverCardContent>
+                        <BookingHoverCard
+                          booking={booking}
+                          studios={allStudios}
+                          pcrRooms={pcrRooms}
+                          notificationGroups={notificationGroups}
+                          bookingStudioLinks={bookingStudioLinks}
+                          isAlert={isAlert}
+                        />
                       </HoverCard>
                     );
                   })}
