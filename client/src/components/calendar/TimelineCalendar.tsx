@@ -6,10 +6,52 @@ import { ChevronLeft, ChevronRight, Settings, Calendar, AlertTriangle, Camera, M
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { Header } from "@/components/layout/Header";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
+
+// Get severity-based styling for alerts and maintenance bookings
+function getSeverityStyle(booking: BookingData) {
+  if (!booking.severity || (!booking.type.includes('maintenance') && booking.type !== 'all-day:maintenance')) {
+    return null;
+  }
+
+  const severityStyles = {
+    low: {
+      backgroundColor: '#FEF3C7', // yellow-100
+      borderColor: '#F59E0B', // yellow-500
+      color: '#92400E', // yellow-800
+      pattern: 'none'
+    },
+    medium: {
+      backgroundColor: '#FED7AA', // orange-200
+      borderColor: '#EA580C', // orange-600
+      color: '#9A3412', // orange-800
+      pattern: 'diagonal-stripes'
+    },
+    high: {
+      backgroundColor: '#FECACA', // red-200
+      borderColor: '#DC2626', // red-600
+      color: '#991B1B', // red-800
+      pattern: 'diagonal-stripes'
+    },
+    critical: {
+      backgroundColor: '#FCA5A5', // red-300
+      borderColor: '#B91C1C', // red-700
+      color: '#7F1D1D', // red-900
+      pattern: 'crosshatch'
+    }
+  };
+
+  return severityStyles[booking.severity as keyof typeof severityStyles] || severityStyles.medium;
+}
 
 interface BookingData {
   id: number;
@@ -17,162 +59,483 @@ interface BookingData {
   description: string | null;
   start: string;
   end: string;
-  status: string;
   type: string;
-  severity?: string;
-  color?: string;
-  pcrRoomId?: number;
+  status: string | null;
+  severity: string | null;
+  color: string | null;
+  studioId: number | null;
+  pcrRoomId: number | null;
+}
+
+interface Studio {
+  id: number;
+  name: string;
+  description: string | null;
+  status: string;
+}
+
+interface BookingStudioLink {
+  id: number;
+  bookingId: number;
+  studioId: number;
+}
+
+interface PcrRoom {
+  id: number;
+  name: string;
+  description: string | null;
+  status: string;
 }
 
 interface TimelineCalendarProps {
-  currentDate?: Date;
+  currentDate: Date;  
   selectedStudioIds?: number[];
+  onDateChange?: (date: Date) => void;
 }
 
-export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }: TimelineCalendarProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [weekStart, setWeekStart] = useState(() => {
-    const validDate = currentDate || new Date();
-    return startOfWeek(validDate, { weekStartsOn: 0 });
+export default function TimelineCalendar({ currentDate, selectedStudioIds = [], onDateChange }: TimelineCalendarProps) {
+  const [currentWeek, setCurrentWeek] = useState(() => {
+    return startOfWeek(currentDate, { weekStartsOn: 1 }); // Start on Monday
   });
 
-  // Fetch weather forecast
+  const [currentTime, setCurrentTime] = useState(() => {
+    const now = new Date();
+    return toZonedTime(now, getFacilityTimezone_Dynamic());
+  });
+
+  // Update currentWeek when currentDate prop changes
+  useEffect(() => {
+    const newWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
+    setCurrentWeek(newWeek);
+  }, [currentDate]);
+
+
+
+  // Fetch weather forecast data
   const { forecast } = useWeatherForecast();
 
-  // Generate week days
-  const weekDays = useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const date = addDays(weekStart, i);
-      return {
-        date,
-        dayName: format(date, 'EEE'),
-        dayNumber: format(date, 'd'),
-        fullDate: format(date, 'yyyy-MM-dd')
-      };
-    });
-  }, [weekStart]);
+  // Update current time every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(toZonedTime(now, getFacilityTimezone_Dynamic()));
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch bookings
+  const { data: bookings = [] } = useQuery<BookingData[]>({
+    queryKey: ["/api/bookings"],
+  });
+
+  // Fetch alerts from the dedicated alerts API
+  const { data: allAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
 
   // Fetch studios
-  const { data: studios = [] } = useQuery({
-    queryKey: ['/api/studios'],
+  const { data: studios = [] } = useQuery<Studio[]>({
+    queryKey: ["/api/studios"],
   });
 
-  // Fetch bookings for the week
-  const startDate = weekStart;
-  const endDate = endOfDay(addDays(weekStart, 6));
-  
-  const { data: bookings = [] } = useQuery({
-    queryKey: ['/api/bookings', startDate?.toISOString(), endDate?.toISOString()],
-    queryFn: async () => {
-      if (!startDate || !endDate) return [];
-      const params = new URLSearchParams({
-        start: startDate.toISOString(),
-        end: endDate.toISOString(),
-      });
-      const response = await fetch(`/api/bookings?${params}`);
-      return response.json();
-    },
-    enabled: !!startDate && !!endDate
+  // Fetch booking-studio links
+  const { data: bookingStudios = [] } = useQuery<BookingStudioLink[]>({
+    queryKey: ["/api/booking-studios"],
   });
 
-  // Fetch alerts for the week
-  const { data: alertBookings = [] } = useQuery({
-    queryKey: ['/api/alerts'],
+  // Fetch PCR rooms
+  const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({
+    queryKey: ["/api/pcr-rooms"],
   });
 
-  // Navigation handlers
+  // Generate time slots for full 24-hour display (midnight to midnight)
+  const timeSlots = Array.from({ length: 24 }, (_, i) => {
+    const hour = i; // Start from midnight (0) to 11 PM (23)
+    const ampm = hour < 12 ? 'AM' : 'PM';
+    const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return {
+      hour24: hour,
+      label: `${displayHour} ${ampm}`,
+      value: hour
+    };
+  });
+
+  // Generate week days - ensure proper timezone handling
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const date = addDays(currentWeek, i);
+    // Ensure date is properly handled in facility timezone
+    const facilityDate = toZonedTime(date, getFacilityTimezone_Dynamic());
+    return {
+      date: facilityDate,
+      dayName: format(facilityDate, 'EEE').toUpperCase(),
+      dayNumber: format(facilityDate, 'd'),
+      fullDate: format(facilityDate, 'yyyy-MM-dd')
+    };
+  });
+
+
+
+  // Helper function to get studios for a booking
+  const getBookingStudios = (bookingId: number) => {
+    const studioLinks = bookingStudios.filter(link => link.bookingId === bookingId);
+    return studioLinks.map(link => {
+      const studio = studios.find(s => s.id === link.studioId);
+      return studio?.name || `Studio ${link.studioId}`;
+    });
+  };
+
+  // Helper function to get PCR room name
+  const getPcrRoomName = (pcrRoomId: number | null) => {
+    if (!pcrRoomId) return null;
+    const pcrRoom = pcrRooms.find(pcr => pcr.id === pcrRoomId);
+    return pcrRoom?.name || `PCR ${pcrRoomId}`;
+  };
+
+  // Helper function to convert any color to rgba with transparency
+  const hexToRgba = (hex: string, alpha: number): string => {
+    // Remove # if present
+    hex = hex.replace('#', '');
+    
+    // Convert 3-digit hex to 6-digit
+    if (hex.length === 3) {
+      hex = hex.split('').map(char => char + char).join('');
+    }
+    
+    // Parse hex to RGB
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  // Helper function to check if two bookings overlap
+  const bookingsOverlap = (booking1: BookingData, booking2: BookingData) => {
+    const start1 = new Date(booking1.start).getTime();
+    const end1 = new Date(booking1.end).getTime();
+    const start2 = new Date(booking2.start).getTime();
+    const end2 = new Date(booking2.end).getTime();
+    
+    return start1 < end2 && start2 < end1;
+  };
+
+  // Helper function to arrange overlapping bookings in columns
+  const arrangeBookingsInColumns = (dayBookings: BookingData[]) => {
+    // If no bookings or only one booking, no need for complex arrangement
+    if (dayBookings.length <= 1) {
+      return dayBookings.map(booking => ({ booking, column: 0, totalColumns: 1 }));
+    }
+
+    const arranged: Array<{ booking: BookingData; column: number; totalColumns: number }> = [];
+    
+    // Sort bookings by start time
+    const sortedBookings = [...dayBookings].sort((a, b) => 
+      new Date(a.start).getTime() - new Date(b.start).getTime()
+    );
+    
+    sortedBookings.forEach(booking => {
+      // Find overlapping bookings that are already arranged
+      const overlapping = arranged.filter(item => 
+        bookingsOverlap(item.booking, booking)
+      );
+      
+      if (overlapping.length === 0) {
+        // No overlap - this booking gets its own full width
+        arranged.push({ booking, column: 0, totalColumns: 1 });
+      } else {
+        // Find the first available column among overlapping bookings
+        const usedColumns = overlapping.map(item => item.column);
+        let column = 0;
+        while (usedColumns.includes(column)) {
+          column++;
+        }
+        
+        // Add this booking to the arrangement
+        arranged.push({ booking, column, totalColumns: 1 });
+        
+        // Update total columns for all overlapping bookings including this one
+        const allOverlapping = arranged.filter(item => 
+          bookingsOverlap(item.booking, booking) || item.booking.id === booking.id
+        );
+        
+        const maxColumn = Math.max(...allOverlapping.map(item => item.column));
+        allOverlapping.forEach(item => {
+          item.totalColumns = maxColumn + 1;
+        });
+      }
+    });
+    
+    return arranged;
+  };
+
+  // Helper function to calculate booking position and height with column support
+  const getBookingStyle = (booking: BookingData, column: number, totalColumns: number) => {
+    const startTime = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
+    const endTime = toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic());
+    
+    const startHour = startTime.getHours() + startTime.getMinutes() / 60;
+    const endHour = endTime.getHours() + endTime.getMinutes() / 60;
+    
+
+    
+    // Check if this is an all-day event or spans across midnight
+    const isAllDay = booking.type === 'all-day:maintenance' || booking.type.includes('all-day');
+    
+    // Check for cross-midnight spanning - only if start is later than end on same day
+    const spansAcrossMidnight = isSameDay(startTime, endTime) && endHour < startHour;
+    
+    let topPosition, height;
+    
+    if (isAllDay) {
+      // For all-day events, span the entire visible time range
+      topPosition = 0;
+      height = 24 * 60; // Full 24 hour view
+    } else if (spansAcrossMidnight) {
+      // Event spans across midnight on same calendar day
+      topPosition = startHour * 60;
+      height = (24 - startHour + endHour) * 60;
+    } else {
+      // Normal event - calculate direct duration
+      topPosition = Math.max(0, startHour * 60);
+      height = Math.max(30, (endHour - startHour) * 60);
+    }
+    
+    // Calculate width and left position
+    let width, leftPosition;
+    
+    if (totalColumns === 1) {
+      // Single booking - use full width
+      width = 100;
+      leftPosition = 0;
+    } else {
+      // Multiple overlapping bookings - use overlapping layout with minimum readable width
+      const minWidth = Math.max(60, 100 / totalColumns); // Minimum 60% width for readability
+      width = minWidth;
+      leftPosition = column * 20; // 20% offset for each column
+    }
+    
+    return {
+      top: `${topPosition}px`,
+      height: `${height}px`,
+      left: `${leftPosition}%`,
+      width: `${width}%`,
+      backgroundColor: booking.color || '#3B82F6',
+      opacity: booking.status === 'cancelled' ? 0.5 : 1,
+      border: booking.status === 'tentative' ? '2px dashed #666' : 'none',
+      zIndex: 10 + column, // Higher z-index for later columns to ensure visibility
+      boxShadow: totalColumns > 1 ? '0 1px 3px rgba(0,0,0,0.2)' : 'none' // Add shadow for better separation when overlapping
+    };
+  };
+
+  // Function to determine if a booking is an alert/maintenance
+  const isAlertBooking = (booking: BookingData) => {
+    // Consider a booking an alert if:
+    // 1. It has alert/maintenance type, OR
+    // 2. It has a severity field (indicates it was created via alert forms)
+    
+    const isAlertType = booking.type === 'maintenance' || 
+                        booking.type === 'all-day:maintenance' ||
+                        booking.type === 'site_alert' ||
+                        booking.type === 'alert' ||
+                        booking.type.includes('maintenance') ||
+                        booking.type.includes('alert');
+    
+    // Check if it has severity field (set by alert forms) - but only if it's not empty/null
+    const hasSeverity = booking.severity != null && booking.severity !== "";
+    
+    return isAlertType || hasSeverity;
+  };
+
+  // Only use regular bookings for timeline calendar display - alerts are handled separately
+  const regularBookings = useMemo(() => {
+    console.log(`Timeline - Using ${bookings.length} regular bookings for calendar display`);
+    return bookings;
+  }, [bookings]);
+
+  // Helper function to get studio IDs for a booking
+  const getBookingStudioIds = (booking: BookingData): number[] => {
+    const studioIds: number[] = [];
+    
+    // Add direct studio ID if present
+    if (booking.studioId) {
+      studioIds.push(booking.studioId);
+    }
+    
+    // Add studio IDs from booking-studio links (skip if booking ID is numeric)
+    const bookingId = typeof booking.id === 'number' ? booking.id : 0;
+    
+    const links = bookingStudios.filter(link => link.bookingId === bookingId);
+    links.forEach(link => {
+      if (!studioIds.includes(link.studioId)) {
+        studioIds.push(link.studioId);
+      }
+    });
+    
+    return studioIds;
+  };
+
+  // Filter regular bookings for current week and exclude cancelled bookings
+  const weekBookings = useMemo(() => {
+    return regularBookings.filter(booking => {
+      const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
+      const weekStart = currentWeek;
+      const weekEnd = endOfDay(addDays(currentWeek, 6)); // End of Sunday, not start of Sunday
+      
+      const inWeek = bookingDate >= weekStart && bookingDate <= weekEnd;
+      const isNotCancelled = booking.status !== 'cancelled';
+      
+      // Studio filtering - if studios are selected, check if booking is associated with any of them
+      const studioMatch = selectedStudioIds.length === 0 || (() => {
+        const bookingStudioIds = getBookingStudioIds(booking);
+        return bookingStudioIds.some(studioId => selectedStudioIds.includes(studioId));
+      })();
+      
+      // Include if in week AND not cancelled AND studio matches (no alerts in timeline)
+      return inWeek && isNotCancelled && studioMatch;
+    });
+  }, [regularBookings, currentWeek, selectedStudioIds, bookingStudios]);
+
   const goToPreviousWeek = () => {
-    const newWeekStart = subWeeks(weekStart, 1);
-    setWeekStart(newWeekStart);
+    setCurrentWeek(prev => subWeeks(prev, 1));
   };
 
   const goToNextWeek = () => {
-    const newWeekStart = addWeeks(weekStart, 1);
-    setWeekStart(newWeekStart);
+    setCurrentWeek(prev => addWeeks(prev, 1));
   };
 
-  const goToToday = () => {
-    const today = new Date();
-    const todayWeekStart = startOfWeek(today, { weekStartsOn: 0 });
-    setWeekStart(todayWeekStart);
+  const goToCurrentWeek = () => {
+    const now = new Date();
+    const chicagoTime = toZonedTime(now, getFacilityTimezone_Dynamic());
+    setCurrentWeek(startOfWeek(chicagoTime, { weekStartsOn: 1 }));
   };
+
+  // Helper function to calculate current time indicator position
+  const getCurrentTimePosition = () => {
+    const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
+    const viewStartHour = 0; // Starting from midnight
+    const adjustedHour = currentHour;
+    return adjustedHour * 60; // 60px per hour
+  };
+
+  // Check if current time should be shown (current day is in view)
+  const shouldShowCurrentTimeIndicator = () => {
+    const today = toZonedTime(new Date(), getFacilityTimezone_Dynamic());
+    return weekDays.some(day => isSameDay(day.date, today));
+  };
+
+  // Get alerts from new alerts API only (no legacy bookings)
+  const combinedAlerts = useMemo(() => {
+    // Filter new alerts for current week
+    const weekStart = currentWeek;
+    const weekEnd = endOfDay(addDays(currentWeek, 6));
+    
+    const weekAlerts = allAlerts.filter(alert => {
+      const alertStart = parseISO(alert.start);
+      const alertEnd = parseISO(alert.end);
+      return (alertStart <= weekEnd && alertEnd >= weekStart);
+    });
+
+    // Convert new alerts to display format compatible with booking structure
+    const convertedAlerts = weekAlerts.map(alert => ({
+      ...alert,
+      type: alert.alertType, // Convert alertType to type for consistency
+      id: `alert-${alert.id}`, // Prefix to avoid ID conflicts
+      studioId: null, // Alerts don't have studios
+      pcrRoomId: null, // Alerts don't have PCR rooms
+      color: alert.severity === 'critical' ? '#f44336' : 
+             alert.severity === 'high' ? '#ff9800' : 
+             alert.severity === 'medium' ? '#ffc107' : 
+             alert.severity === 'low' ? '#2196f3' : '#ffc107',
+      status: alert.status || 'active' // Use alert status
+    }));
+
+    console.log(`[ENGINEERING ALERTS] New alerts from API:`, convertedAlerts.length);
+    console.log(`[ENGINEERING ALERTS] Total alerts:`, convertedAlerts.length);
+    
+    return convertedAlerts;
+  }, [allAlerts, currentWeek]);
+
+  const alertBookings = combinedAlerts;
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-100 via-white to-blue-50">
+    <TooltipProvider>
+      <div className="h-full flex flex-col bg-gray-50">
 
-      {/* Top Navigation */}
-      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden"
-          >
-            {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={goToPreviousWeek}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToToday}>
-              Today
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToNextWeek}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <h1 className="text-2xl font-bold text-gray-900">
-            {format(weekStart, 'MMMM yyyy')}
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">
-            Timeline View
-          </span>
-        </div>
-      </div>
-
-      {/* Alerts Row */}
+      {/* Alerts Row - Day by Day */}
       {alertBookings.length > 0 && (
         <div className="bg-orange-50 border-b border-orange-200">
+          {/* Day-by-day alerts grid */}
           <div className="flex">
-            <div className="w-16 border-r border-orange-200 bg-orange-100 flex items-center justify-center p-2">
+            {/* Time column spacer - exact match with calendar grid */}
+            <div className="w-16 border-r border-gray-200 bg-gray-50 flex items-center justify-center py-4">
               <AlertTriangle className="w-4 h-4 text-orange-600" />
             </div>
             
+            {/* Day columns for alerts - exact match with calendar structure */}
             {weekDays.map((day) => {
               const dayAlerts = alertBookings.filter(alert => {
                 const alertDate = toZonedTime(parseISO(alert.start), getFacilityTimezone_Dynamic());
+                const alertEndDate = toZonedTime(parseISO(alert.end), getFacilityTimezone_Dynamic());
+                
+
+                
                 return isSameDay(alertDate, day.date);
               });
 
               return (
                 <div
                   key={day.fullDate}
-                  className="flex-1 min-w-[140px] border-r border-orange-200 min-h-[80px] relative"
+                  className="flex-1 min-w-[140px] border-r border-gray-200 min-h-[80px] relative"
                 >
                   {dayAlerts.length > 0 ? (
                     <div className="p-2 space-y-1">
-                      {dayAlerts.map((alert) => (
-                        <div
-                          key={alert.id}
-                          className="p-2 rounded text-xs cursor-pointer transition-all duration-200 hover:shadow-sm border bg-orange-100 border-orange-300 text-orange-800"
-                        >
-                          <div className="flex items-center gap-1 mb-1">
-                            <AlertTriangle className="w-2.5 h-2.5" />
-                            <span className="font-medium truncate text-xs">{alert.title}</span>
-                          </div>
-                          {alert.severity && (
-                            <div className="text-xs font-bold mt-1 px-1 py-0.5 rounded bg-black bg-opacity-20">
-                              {alert.severity.toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                      {dayAlerts.map((alert) => {
+                        const severityStyle = getSeverityStyle(alert);
+                        const startTime = toZonedTime(parseISO(alert.start), getFacilityTimezone_Dynamic());
+                        const endTime = toZonedTime(parseISO(alert.end), getFacilityTimezone_Dynamic());
+                        
+                        return (
+                          <Tooltip key={alert.id}>
+                            <TooltipTrigger asChild>
+                              <div
+                                className="p-2 rounded text-xs cursor-pointer transition-all duration-200 hover:shadow-sm border"
+                                style={{
+                                  backgroundColor: severityStyle?.backgroundColor || '#fed7aa',
+                                  borderColor: severityStyle?.borderColor || '#fdba74',
+                                  color: severityStyle?.color || '#9a3412'
+                                }}
+                              >
+                                <div className="flex items-center gap-1 mb-1">
+                                  <AlertTriangle className="w-2.5 h-2.5" />
+                                  <span className="font-medium truncate text-xs">{alert.title}</span>
+                                </div>
+                                <div className="text-xs opacity-75">
+                                  {format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}
+                                </div>
+                                {alert.severity && (
+                                  <div className="text-xs font-bold mt-1 px-1 py-0.5 rounded bg-black bg-opacity-20">
+                                    {alert.severity.toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="text-sm space-y-1">
+                                <div className="font-semibold">{alert.title}</div>
+                                {alert.description && <div>{alert.description}</div>}
+                                <div className="text-xs opacity-75">
+                                  {format(startTime, 'MMM d, h:mm a')} - {format(endTime, 'MMM d, h:mm a')}
+                                </div>
+                                <div className="text-xs opacity-75">Type: {alert.type}</div>
+                                <div className="text-xs opacity-75">Status: {alert.status}</div>
+                                {alert.severity && <div className="text-xs opacity-75">Severity: {alert.severity}</div>}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="p-2 text-xs text-orange-400 italic text-center">No alerts</div>
@@ -184,15 +547,17 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
         </div>
       )}
 
-      {/* Main Calendar Grid - SCROLLABLE */}
+      {/* Calendar Grid */}
       <div className="flex-1 overflow-hidden min-h-0">
-        <div className="h-full overflow-y-auto overflow-x-auto">
+        <div className="h-full overflow-auto">
           <div className="min-w-[1000px]">
             {/* Day Headers */}
             <div className="sticky top-0 bg-white border-b border-gray-200 z-40 shadow-sm">
               <div className="flex">
+                {/* Time column header */}
                 <div className="w-16 border-r border-gray-200 bg-gray-50"></div>
                 
+                {/* Day headers */}
                 {weekDays.map((day) => {
                   const today = toZonedTime(new Date(), getFacilityTimezone_Dynamic());
                   const isToday = isSameDay(day.date, today);
@@ -214,6 +579,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
                           {day.dayNumber}
                         </div>
                         
+                        {/* Weather forecast cell */}
                         <div className="mt-2">
                           <WeatherForecastCell 
                             date={day.date} 
@@ -228,64 +594,257 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }
               </div>
             </div>
 
-            {/* Studio Rows */}
-            <div className="min-h-[600px]">
-              {studios.map((studio) => (
-                <div key={studio.id} className="flex border-b border-gray-200">
-                  {/* Studio Label */}
-                  <div className="w-16 border-r border-gray-200 bg-gray-50 p-2 flex items-center justify-center">
-                    <div className="text-xs font-medium text-gray-600 transform -rotate-90 whitespace-nowrap">
-                      {studio.name}
+            {/* Time Grid */}
+            <div className="relative">
+              <div className="flex">
+                {/* Time column */}
+                <div className="w-16 border-r border-gray-200 bg-gray-50">
+                  {timeSlots.map((slot) => (
+                    <div
+                      key={slot.hour24}
+                      className="h-[60px] border-b border-gray-100 flex items-center justify-center text-xs text-gray-500 font-medium"
+                    >
+                      {slot.label}
                     </div>
-                  </div>
-                  
-                  {/* Studio Schedule Cells */}
-                  {weekDays.map((day) => {
-                    // Get bookings for this studio and day
-                    const dayBookings = bookings.filter(booking => {
-                      const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
-                      return isSameDay(bookingDate, day.date);
-                    });
+                  ))}
+                </div>
 
-                    return (
-                      <div
-                        key={`${studio.id}-${day.fullDate}`}
-                        className="flex-1 min-w-[140px] border-r border-gray-200 min-h-[100px] relative bg-white hover:bg-gray-50 transition-colors cursor-pointer"
-                      >
-                        {dayBookings.length > 0 ? (
-                          <div className="p-1 space-y-1">
-                            {dayBookings.slice(0, 3).map((booking) => (
+                {/* Day columns */}
+                {weekDays.map((day) => {
+                  const dayBookings = weekBookings.filter(booking => {
+                    const bookingStartDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
+                    const bookingEndDate = toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic());
+                    
+                    // Only show booking on the day it starts, unless it truly spans multiple days
+                    const startsOnDay = isSameDay(bookingStartDate, day.date);
+                    
+                    // For genuine multi-day bookings, check if this day falls within the booking period
+                    const dayStart = new Date(day.date);
+                    dayStart.setHours(0, 0, 0, 0);
+                    const dayEnd = new Date(day.date);
+                    dayEnd.setHours(23, 59, 59, 999);
+                    
+                    const bookingSpansMultipleDays = !isSameDay(bookingStartDate, bookingEndDate);
+                    const bookingOverlapsThisDay = bookingStartDate <= dayEnd && bookingEndDate >= dayStart;
+                    
+                    // Show booking if it starts on this day OR if it's a genuine multi-day booking that overlaps this day
+                    const showOnThisDay = startsOnDay || (bookingSpansMultipleDays && bookingOverlapsThisDay);
+                    
+                    return showOnThisDay;
+                  });
+
+                  // Arrange bookings in columns for side-by-side display
+                  const arrangedBookings = arrangeBookingsInColumns(dayBookings);
+
+                  return (
+                    <div
+                      key={day.fullDate}
+                      className="flex-1 min-w-[140px] border-r border-gray-200 relative"
+                    >
+                      {/* Hour grid lines */}
+                      {timeSlots.map((slot) => (
+                        <div
+                          key={slot.hour24}
+                          className="h-[60px] border-b border-gray-100"
+                        />
+                      ))}
+
+                      {/* Current time indicator line */}
+                      {shouldShowCurrentTimeIndicator() && isSameDay(day.date, toZonedTime(new Date(), getFacilityTimezone_Dynamic())) && (
+                        <div
+                          className="absolute left-0 right-0 z-30 pointer-events-none"
+                          style={{
+                            top: `${getCurrentTimePosition()}px`,
+                            height: '2px',
+                            backgroundColor: '#ef4444', // red-500
+                            boxShadow: '0 0 4px rgba(239, 68, 68, 0.6)',
+                          }}
+                        >
+                          {/* Time label */}
+                          <div
+                            className="absolute left-4 -top-5 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded shadow-lg whitespace-nowrap z-50"
+                          >
+                            {format(currentTime, 'h:mm a')}
+                          </div>
+                          {/* Arrow pointing to the line */}
+                          <div
+                            className="absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full shadow-lg"
+                            style={{ transform: 'translateX(-50%) translateY(-50%)' }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Bookings arranged in columns */}
+                      {arrangedBookings.map(({ booking, column, totalColumns }) => {
+                        const style = getBookingStyle(booking, column, totalColumns);
+                        const studios = getBookingStudios(booking.id);
+                        const pcrRoom = getPcrRoomName(booking.pcrRoomId);
+                        const severityStyle = getSeverityStyle(booking);
+                        
+                        // Apply severity styling for alerts/maintenance, otherwise use default booking style
+                        // Remove backgroundColor from main container - we'll apply it to header/body separately
+                        const { backgroundColor, ...styleWithoutBg } = style;
+                        const finalStyle = {
+                          ...styleWithoutBg,
+                          marginLeft: '2px',
+                          marginRight: '2px'
+                        };
+
+
+
+                        return (
+                          <Tooltip key={booking.id}>
+                            <TooltipTrigger asChild>
                               <div
-                                key={booking.id}
-                                className="p-1 rounded text-xs cursor-pointer transition-all bg-blue-100 border-blue-300 text-blue-800"
-                                style={{ backgroundColor: booking.color || '#3B82F6', color: 'white' }}
+                                className="absolute rounded text-sm cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-200 z-20 overflow-hidden flex flex-col shadow-lg"
+                                style={{
+                                  ...styleWithoutBg,
+                                  marginLeft: '2px',
+                                  marginRight: '2px',
+                                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)'
+                                }}
                               >
-                                <div className="font-medium truncate">{booking.title}</div>
-                                <div className="text-xs opacity-80">
-                                  {format(toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic()), 'h:mm a')}
+                                {/* Solid Header with All Booking Details */}
+                                <div 
+                                  className={`p-2 ${severityStyle ? 'font-semibold' : 'text-white'} ${
+                                    severityStyle && severityStyle.pattern === 'diagonal-stripes' ? 'bg-stripe-pattern' : ''
+                                  }`}
+                                  style={{
+                                    backgroundColor: severityStyle ? severityStyle.backgroundColor : (booking.color || '#3B82F6'),
+                                    border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
+                                    color: severityStyle ? severityStyle.color : '#ffffff',
+                                    textShadow: severityStyle ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 2px rgba(0,0,0,0.7)',
+                                    borderRadius: '6px 6px 0 0'
+                                  }}
+                                >
+                                  <div className="space-y-1">
+                                    {/* Title with severity badge */}
+                                    <div className="font-bold text-base leading-tight">
+                                      {severityStyle && (
+                                        <span className="text-xs px-1 py-0.5 rounded bg-black bg-opacity-20 font-bold mr-1">
+                                          ⚠ {booking.severity?.toUpperCase()}
+                                        </span>
+                                      )}
+                                      <span className="break-words">{booking.title}</span>
+                                    </div>
+                                    
+                                    {/* Time */}
+                                    <div className="font-bold text-sm">
+                                      {format(toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic()), 'h:mm a')} - {format(toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic()), 'h:mm a')}
+                                    </div>
+                                    
+                                    {/* Studios */}
+                                    {studios.length > 0 && (
+                                      <div className="text-sm font-medium">
+                                        {studios.join(', ')}
+                                      </div>
+                                    )}
+                                    
+                                    {/* PCR Room */}
+                                    {pcrRoom && (
+                                      <div className="text-sm font-medium">
+                                        {pcrRoom}
+                                      </div>
+                                    )}
+                                    
+                                    {/* Description (truncated) */}
+                                    {booking.description && (
+                                      <div className="text-xs leading-tight opacity-90">
+                                        {booking.description.length > 80 
+                                          ? `${booking.description.substring(0, 80)}...` 
+                                          : booking.description}
+                                      </div>
+                                    )}
+                                    
+                                    {/* Status if not confirmed */}
+                                    {booking.status && booking.status !== 'confirmed' && (
+                                      <div className="text-xs font-bold uppercase">
+                                        {booking.status}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {/* Transparent Body - Minimal space for visual balance */}
+                                <div 
+                                  className="relative flex-1"
+                                  style={{
+                                    border: severityStyle ? `2px solid ${severityStyle.borderColor}` : style.border,
+                                    borderTop: 'none',
+                                    borderRadius: '0 0 6px 6px',
+                                    minHeight: '20px' // Just enough for visual balance
+                                  }}
+                                >
+                                  {/* Transparent background layer */}
+                                  <div 
+                                    className="absolute inset-0 opacity-30"
+                                    style={{
+                                      backgroundColor: severityStyle 
+                                        ? severityStyle.backgroundColor 
+                                        : (booking.color || '#3B82F6'),
+                                      borderRadius: '0 0 6px 6px'
+                                    }}
+                                  ></div>
                                 </div>
                               </div>
-                            ))}
-                            {dayBookings.length > 3 && (
-                              <div className="text-xs text-gray-500 text-center">
-                                +{dayBookings.length - 3} more
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-sm p-4 bg-white border border-gray-200 shadow-lg">
+                              <div className="space-y-2">
+                                <div className="font-semibold text-base text-gray-900">
+                                  {booking.title}
+                                </div>
+                                
+                                {booking.description && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Description:</strong> {booking.description}
+                                  </div>
+                                )}
+                                
+                                <div className="text-sm text-gray-700">
+                                  <strong>Time:</strong> {format(toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic()), 'MMM d, yyyy h:mm a')} - {format(toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic()), 'h:mm a')}
+                                </div>
+                                
+                                {studios.length > 0 && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Studios:</strong> {studios.join(', ')}
+                                  </div>
+                                )}
+                                
+                                {pcrRoom && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>PCR Room:</strong> {pcrRoom}
+                                  </div>
+                                )}
+                                
+                                <div className="text-sm text-gray-700">
+                                  <strong>Type:</strong> {booking.type.charAt(0).toUpperCase() + booking.type.slice(1)}
+                                </div>
+                                
+                                {booking.status && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Status:</strong> {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                                  </div>
+                                )}
+                                
+                                {booking.severity && (booking.type === 'maintenance' || booking.type === 'all_day_maintenance' || booking.type.includes('maintenance')) && (
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Severity:</strong> {booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1)}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="p-2 text-xs text-gray-400 text-center">
-                            Available
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

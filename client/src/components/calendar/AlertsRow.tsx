@@ -9,8 +9,7 @@ import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import AlertModal from "../alerts/AlertModal";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient } from "@/lib/queryClient";
-import { HoverCard, HoverCardTrigger } from "@/components/ui/hover-card";
-import { BookingHoverCard } from "@/components/booking/BookingHoverCard";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { CalendarClock, Clock, FileText, AlertCircle, Bell } from "lucide-react";
 
 // Define an interface to match the API response format with snake_case
@@ -435,21 +434,64 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
                           </div>
                         </div>
                       </HoverCardTrigger>
-                      <BookingHoverCard
-                        booking={{
-                          ...alert,
-                          studioId: alert.studio_id,
-                          userId: alert.user_id,
-                          templateId: alert.template_id,
-                          createdAt: alert.created_at,
-                          notifyList: alert.notify_list
-                        }}
-                        studios={[]}
-                        pcrRooms={[]}
-                        notificationGroups={[]}
-                        bookingStudioLinks={[]}
-                        isAlert={true}
-                      />
+                      <HoverCardContent className="w-80 p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "w-3 h-3 rounded-full",
+                              alert.severity === "critical" ? "bg-red-500" : 
+                              alert.severity === "high" ? "bg-orange-500" :
+                              alert.severity === "medium" ? "bg-amber-500" : "bg-blue-500"
+                            )}></span>
+                            <h4 className="text-sm font-semibold">{alert.title}</h4>
+                          </div>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <AlertCircle className="mr-1 h-3 w-3" />
+                            <span className="capitalize">{alert.severity || "Low"} Severity</span>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <CalendarClock className="mr-1 h-3 w-3" />
+                              <span>{formatDate(new Date(alert.start))}</span>
+                            </div>
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <Clock className="mr-1 h-3 w-3" />
+                              {isAllDayAlert(alert) ? (
+                                <span className="font-medium">All Day</span>
+                              ) : (
+                                <span>
+                                  {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center text-xs text-muted-foreground mt-1">
+                              <Bell className="mr-1 h-3 w-3 flex-shrink-0" />
+                              <span className="capitalize">
+                                {alert.type?.replace("all-day:", "").replace("_", " ") === "undefined" ? "all-day" : 
+                                 alert.type?.replace("all-day:", "").replace("_", " ") || "alert"}
+                              </span>
+                            </div>
+                            {alert.description && (
+                              <div className="flex items-start mt-2 text-xs text-muted-foreground">
+                                <FileText className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
+                                <span>{alert.description}</span>
+                              </div>
+                            )}
+                            {alert.notify_list && Array.isArray(alert.notify_list) && alert.notify_list.length > 0 && (
+                              <div className="mt-2">
+                                <div className="text-xs font-medium mb-1">Notifying:</div>
+                                <div className="flex flex-wrap gap-1">
+                                  {alert.notify_list.map((person: string, i: number) => (
+                                    <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
+                                      {person}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </HoverCardContent>
                     </HoverCard>
                   );
                 })}
