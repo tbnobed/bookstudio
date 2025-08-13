@@ -5,6 +5,7 @@ import { Studio, Booking, PcrRoom } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import StudioRow from "./StudioRow";
 import AlertsRow from "./AlertsRow";
+import { BookingHoverCard } from "@/components/booking/BookingHoverCard";
 import WeatherForecastCell from "./WeatherForecastCell";
 import { ResponsiveBookingModal } from "@/components/booking";
 import AlertModal from "../alerts/AlertModal";

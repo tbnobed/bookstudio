@@ -6,12 +6,8 @@ import { ChevronLeft, ChevronRight, Settings, Calendar, AlertTriangle, Camera, M
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { HoverCard, HoverCardTrigger } from "@/components/ui/hover-card";
+import { BookingHoverCard } from "@/components/booking/BookingHoverCard";
 import { useWeatherForecast } from "@/hooks/useWeatherForecast";
 import WeatherForecastCell from "@/components/calendar/WeatherForecastCell";
 import { Header } from "@/components/layout/Header";
@@ -460,7 +456,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
   const alertBookings = combinedAlerts;
 
   return (
-    <TooltipProvider>
+    <div>
       <div className="h-full flex flex-col bg-gray-50">
 
       {/* Alerts Row - Day by Day */}
@@ -497,8 +493,8 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                         const endTime = toZonedTime(parseISO(alert.end), getFacilityTimezone_Dynamic());
                         
                         return (
-                          <Tooltip key={alert.id}>
-                            <TooltipTrigger asChild>
+                          <HoverCard key={alert.id}>
+                            <HoverCardTrigger asChild>
                               <div
                                 className="p-2 rounded text-xs cursor-pointer transition-all duration-200 hover:shadow-sm border"
                                 style={{
@@ -520,20 +516,16 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                                   </div>
                                 )}
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="text-sm space-y-1">
-                                <div className="font-semibold">{alert.title}</div>
-                                {alert.description && <div>{alert.description}</div>}
-                                <div className="text-xs opacity-75">
-                                  {format(startTime, 'MMM d, h:mm a')} - {format(endTime, 'MMM d, h:mm a')}
-                                </div>
-                                <div className="text-xs opacity-75">Type: {alert.type}</div>
-                                <div className="text-xs opacity-75">Status: {alert.status}</div>
-                                {alert.severity && <div className="text-xs opacity-75">Severity: {alert.severity}</div>}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
+                            </HoverCardTrigger>
+                            <BookingHoverCard
+                              booking={alert}
+                              studios={[]}
+                              pcrRooms={[]}
+                              notificationGroups={[]}
+                              bookingStudioLinks={[]}
+                              isAlert={true}
+                            />
+                          </HoverCard>
                         );
                       })}
                     </div>
@@ -693,8 +685,8 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
 
 
                         return (
-                          <Tooltip key={booking.id}>
-                            <TooltipTrigger asChild>
+                          <HoverCard key={booking.id}>
+                            <HoverCardTrigger asChild>
                               <div
                                 className="absolute rounded text-sm cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-200 z-20 overflow-hidden flex flex-col shadow-lg"
                                 style={{
@@ -787,53 +779,16 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                                   ></div>
                                 </div>
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-sm p-4 bg-white border border-gray-200 shadow-lg">
-                              <div className="space-y-2">
-                                <div className="font-semibold text-base text-gray-900">
-                                  {booking.title}
-                                </div>
-                                
-                                {booking.description && (
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Description:</strong> {booking.description}
-                                  </div>
-                                )}
-                                
-                                <div className="text-sm text-gray-700">
-                                  <strong>Time:</strong> {format(toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic()), 'MMM d, yyyy h:mm a')} - {format(toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic()), 'h:mm a')}
-                                </div>
-                                
-                                {studios.length > 0 && (
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Studios:</strong> {studios.join(', ')}
-                                  </div>
-                                )}
-                                
-                                {pcrRoom && (
-                                  <div className="text-sm text-gray-700">
-                                    <strong>PCR Room:</strong> {pcrRoom}
-                                  </div>
-                                )}
-                                
-                                <div className="text-sm text-gray-700">
-                                  <strong>Type:</strong> {booking.type.charAt(0).toUpperCase() + booking.type.slice(1)}
-                                </div>
-                                
-                                {booking.status && (
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Status:</strong> {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                                  </div>
-                                )}
-                                
-                                {booking.severity && (booking.type === 'maintenance' || booking.type === 'all_day_maintenance' || booking.type.includes('maintenance')) && (
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Severity:</strong> {booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1)}
-                                  </div>
-                                )}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
+                            </HoverCardTrigger>
+                            <BookingHoverCard
+                              booking={booking}
+                              studios={allStudios}
+                              pcrRooms={pcrRooms}
+                              notificationGroups={[]}
+                              bookingStudioLinks={bookingStudioLinks}
+                              isAlert={booking.type?.includes('maintenance') || booking.type === 'alert'}
+                            />
+                          </HoverCard>
                         );
                       })}
                     </div>
@@ -845,6 +800,6 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
         </div>
       </div>
     </div>
-    </TooltipProvider>
+    </div>
   );
 }
