@@ -497,11 +497,11 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                             <HoverCardTrigger asChild>
                               <div
                                 className="p-2 rounded text-xs cursor-pointer transition-all duration-200 hover:shadow-sm border"
-                                style={{ pointerEvents: 'auto' }}
                                 style={{
                                   backgroundColor: severityStyle?.backgroundColor || '#fed7aa',
                                   borderColor: severityStyle?.borderColor || '#fdba74',
-                                  color: severityStyle?.color || '#9a3412'
+                                  color: severityStyle?.color || '#9a3412',
+                                  pointerEvents: 'auto'
                                 }}
                               >
                                 <div className="flex items-center gap-1 mb-1">
@@ -690,12 +690,12 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                             <HoverCardTrigger asChild>
                               <div
                                 className="absolute rounded text-sm cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-200 z-20 overflow-hidden flex flex-col shadow-lg"
-                                style={{ pointerEvents: 'auto' }}
                                 style={{
                                   ...styleWithoutBg,
                                   marginLeft: '2px',
                                   marginRight: '2px',
-                                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)'
+                                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                                  pointerEvents: 'auto'
                                 }}
                               >
                                 {/* Solid Header with All Booking Details */}
