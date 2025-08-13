@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertCircle, XCircle, CalendarDays, Clock, Tag, Camera, Tv, User, AlertTriangle, Bookmark } from "lucide-react";
 import { format } from "date-fns";
 import { formatTime } from "@/lib/dateUtils";
+import { useQuery } from "@tanstack/react-query";
 
 // Helper function to format booking types
 const formatBookingType = (type: string) => {
@@ -29,6 +30,10 @@ export function BookingHoverCard({
   isAlert = false,
   onEdit 
 }: BookingHoverCardProps) {
+  // Fetch user names for creator display
+  const { data: userNames = [] } = useQuery<Array<{id: number, name: string, username: string}>>({
+    queryKey: ["/api/users/names"],
+  });
   // Get studios for booking
   const getStudiosForBooking = (booking: any) => {
     const studioList: typeof studios = [];
@@ -59,6 +64,12 @@ export function BookingHoverCard({
   const getPcrRoom = (booking: any) => {
     if (!booking.pcrRoomId) return null;
     return pcrRooms.find(pcr => pcr.id === booking.pcrRoomId);
+  };
+
+  // Get creator name
+  const getCreatorName = (userId: number) => {
+    const user = userNames.find(u => u.id === userId);
+    return user ? (user.name || user.username) : `User #${userId}`;
   };
 
   const studiosList = getStudiosForBooking(booking);
@@ -198,11 +209,14 @@ export function BookingHoverCard({
         </div>
       )}
       
-      {/* Created date */}
+      {/* Created date and creator */}
       {booking.createdAt && (
         <div className="mt-3 pt-2 border-t border-gray-100">
           <p className="text-[10px] text-gray-500">
             Created {format(new Date(booking.createdAt), 'MMM d, yyyy HH:mm')}
+            {booking.userId && (
+              <> by <span className="font-medium">{getCreatorName(booking.userId)}</span></>
+            )}
           </p>
         </div>
       )}
