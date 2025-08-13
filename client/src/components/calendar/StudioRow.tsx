@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio, PcrRoom, BookingStudio } from "@shared/schema";
 import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange, isBookingActive } from "@/lib/dateUtils";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { HoverCard, HoverCardTrigger } from "@/components/ui/hover-card";
+import { BookingHoverCard } from "@/components/booking/BookingHoverCard";
 import { CalendarClock, Clock, FileText, User, Tag } from "lucide-react";
 import { useBookingStudioLinks } from "@/hooks/useBookingStudioLinks";
 import { useNotificationGroups } from "@/hooks/useNotificationGroups";
@@ -174,7 +175,8 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
       notifyList: [],
       color: null,
       createdAt: null,
-      status: "confirmed" // Add status field
+      status: "confirmed", // Add status field
+      linkedGroupId: null // Add linkedGroupId field
     });
   };
 
@@ -398,84 +400,13 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                       </div>
                     </div>
                   </HoverCardTrigger>
-                  <HoverCardContent className="w-80 p-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-start">
-                        <h4 className="text-sm font-semibold">{booking.title}</h4>
-                        {!readOnly && (
-                          <div className="flex space-x-1">
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onBookingClick(booking);
-                              }}
-                              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                              title="Edit booking"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 hover:text-blue-500">
-                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                                <path d="m15 5 4 4"></path>
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <CalendarClock className="mr-1 h-3 w-3" />
-                          <span>{formatDate(booking.start)}</span>
-                        </div>
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <Clock className="mr-1 h-3 w-3" />
-                          <span>{formatTime(booking.start)} - {formatTime(booking.end)}</span>
-                        </div>
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <Tag className="mr-1 h-3 w-3" />
-                          <span className="capitalize">{booking.type.replace('_', ' ')}</span>
-                        </div>
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 h-3 w-3">
-                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-                            <path d="M12 8v4l3 3"></path>
-                          </svg>
-                          <span className="capitalize">{booking.status || "confirmed"}</span>
-                          {booking.status === "tentative" && (
-                            <span className="ml-1 text-[10px] px-1 py-0.5 bg-gray-200 text-gray-700 rounded">Pending confirmation</span>
-                          )}
-                        </div>
-                        {booking.pcrRoomId && (
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 h-3 w-3">
-                              <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"></path>
-                            </svg>
-                            <span>{getPcrRoomName(booking.pcrRoomId)}</span>
-                          </div>
-                        )}
-                        {booking.description && (
-                          <div className="flex items-start mt-2 text-xs text-muted-foreground">
-                            <FileText className="mr-1 h-3 w-3 mt-0.5 flex-shrink-0" />
-                            <span>{booking.description}</span>
-                          </div>
-                        )}
-                        {Array.isArray(booking.notifyList) && booking.notifyList.length > 0 && (
-                          <div className="mt-2">
-                            <div className="text-xs font-medium mb-1">Notifying:</div>
-                            <div className="flex flex-wrap gap-1">
-                              {booking.notifyList.map((groupId: string | number, i: number) => {
-                                const group = notificationGroups.find(g => g.id.toString() === groupId.toString());
-                                return (
-                                  <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
-                                    <User className="mr-1 h-3 w-3" />
-                                    {group ? group.name : `Group ${groupId}`}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </HoverCardContent>
+                  <BookingHoverCard 
+                    booking={booking} 
+                    notificationGroups={notificationGroups}
+                    bookingStudioLinks={bookingStudioLinks}
+                    readOnly={readOnly}
+                    onEdit={() => onBookingClick(booking)}
+                  />
                 </HoverCard>
               );
             })}
