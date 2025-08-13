@@ -25,14 +25,16 @@ interface BookingData {
 }
 
 interface TimelineCalendarProps {
-  currentDate: Date;
-  onDateChange: (date: Date) => void;
-  onSettingsClick: () => void;
+  currentDate?: Date;
+  selectedStudioIds?: number[];
 }
 
-export default function TimelineCalendar({ currentDate, onDateChange, onSettingsClick }: TimelineCalendarProps) {
+export default function TimelineCalendar({ currentDate, selectedStudioIds = [] }: TimelineCalendarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(currentDate, { weekStartsOn: 0 }));
+  const [weekStart, setWeekStart] = useState(() => {
+    const validDate = currentDate || new Date();
+    return startOfWeek(validDate, { weekStartsOn: 0 });
+  });
 
   // Fetch weather forecast
   const { forecast } = useWeatherForecast();
@@ -60,15 +62,17 @@ export default function TimelineCalendar({ currentDate, onDateChange, onSettings
   const endDate = endOfDay(addDays(weekStart, 6));
   
   const { data: bookings = [] } = useQuery({
-    queryKey: ['/api/bookings', startDate.toISOString(), endDate.toISOString()],
+    queryKey: ['/api/bookings', startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async () => {
+      if (!startDate || !endDate) return [];
       const params = new URLSearchParams({
         start: startDate.toISOString(),
         end: endDate.toISOString(),
       });
       const response = await fetch(`/api/bookings?${params}`);
       return response.json();
-    }
+    },
+    enabled: !!startDate && !!endDate
   });
 
   // Fetch alerts for the week
@@ -80,25 +84,21 @@ export default function TimelineCalendar({ currentDate, onDateChange, onSettings
   const goToPreviousWeek = () => {
     const newWeekStart = subWeeks(weekStart, 1);
     setWeekStart(newWeekStart);
-    onDateChange(newWeekStart);
   };
 
   const goToNextWeek = () => {
     const newWeekStart = addWeeks(weekStart, 1);
     setWeekStart(newWeekStart);
-    onDateChange(newWeekStart);
   };
 
   const goToToday = () => {
     const today = new Date();
     const todayWeekStart = startOfWeek(today, { weekStartsOn: 0 });
     setWeekStart(todayWeekStart);
-    onDateChange(todayWeekStart);
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-100 via-white to-blue-50">
-      <Header />
+    <div className="h-full flex flex-col bg-gradient-to-br from-slate-100 via-white to-blue-50">
 
       {/* Top Navigation */}
       <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
@@ -130,10 +130,9 @@ export default function TimelineCalendar({ currentDate, onDateChange, onSettings
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onSettingsClick}>
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
+          <span className="text-sm text-gray-600">
+            Timeline View
+          </span>
         </div>
       </div>
 
@@ -241,17 +240,46 @@ export default function TimelineCalendar({ currentDate, onDateChange, onSettings
                   </div>
                   
                   {/* Studio Schedule Cells */}
-                  {weekDays.map((day) => (
-                    <div
-                      key={`${studio.id}-${day.fullDate}`}
-                      className="flex-1 min-w-[140px] border-r border-gray-200 min-h-[100px] relative bg-white hover:bg-gray-50 transition-colors cursor-pointer"
-                    >
-                      {/* Booking blocks would go here */}
-                      <div className="p-2 text-xs text-gray-400 text-center">
-                        Available
+                  {weekDays.map((day) => {
+                    // Get bookings for this studio and day
+                    const dayBookings = bookings.filter(booking => {
+                      const bookingDate = toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic());
+                      return isSameDay(bookingDate, day.date);
+                    });
+
+                    return (
+                      <div
+                        key={`${studio.id}-${day.fullDate}`}
+                        className="flex-1 min-w-[140px] border-r border-gray-200 min-h-[100px] relative bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                      >
+                        {dayBookings.length > 0 ? (
+                          <div className="p-1 space-y-1">
+                            {dayBookings.slice(0, 3).map((booking) => (
+                              <div
+                                key={booking.id}
+                                className="p-1 rounded text-xs cursor-pointer transition-all bg-blue-100 border-blue-300 text-blue-800"
+                                style={{ backgroundColor: booking.color || '#3B82F6', color: 'white' }}
+                              >
+                                <div className="font-medium truncate">{booking.title}</div>
+                                <div className="text-xs opacity-80">
+                                  {format(toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic()), 'h:mm a')}
+                                </div>
+                              </div>
+                            ))}
+                            {dayBookings.length > 3 && (
+                              <div className="text-xs text-gray-500 text-center">
+                                +{dayBookings.length - 3} more
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="p-2 text-xs text-gray-400 text-center">
+                            Available
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ))}
             </div>
