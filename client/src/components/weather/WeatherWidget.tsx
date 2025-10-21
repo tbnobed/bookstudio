@@ -49,6 +49,19 @@ const getWeatherIcon = (iconCode: string) => {
   return IconComponent;
 };
 
+const getWeatherIconColor = (iconCode: string) => {
+  // Sun icons should be yellow
+  if (iconCode === '01d' || iconCode === '01n') {
+    return 'text-yellow-500';
+  }
+  // Rain/snow icons should be blue
+  if (iconCode.startsWith('09') || iconCode.startsWith('10') || iconCode.startsWith('11') || iconCode.startsWith('13')) {
+    return 'text-blue-500';
+  }
+  // Cloud icons should be gray
+  return 'text-gray-500';
+};
+
 export default function WeatherWidget({ showForecast = false, size = 'normal', className = '' }: WeatherWidgetProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<WeatherForecast | null>(null);
@@ -253,7 +266,7 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
             </div>
           )}
         </div>
-        <WeatherIcon className={`${iconSizes[size]} text-blue-500`} />
+        <WeatherIcon className={`${iconSizes[size]} ${getWeatherIconColor(weather.icon)}`} />
       </div>
 
       {/* Forecast */}
@@ -274,7 +287,7 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
                   <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
                     {index === 0 ? 'Today' : dayName}
                   </div>
-                  <ForecastIcon className={`${iconSizes[size]} mx-auto text-blue-500 my-1`} />
+                  <ForecastIcon className={`${iconSizes[size]} mx-auto ${getWeatherIconColor(day.icon)} my-1`} />
                   <div className={`${sizeClasses[size]} text-gray-600`}>
                     <div>{day.temperature.max}°</div>
                     <div className="text-gray-400">{day.temperature.min}°</div>
