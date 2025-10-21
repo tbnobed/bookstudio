@@ -327,10 +327,10 @@ export default function DayChronView({
         <HoverCardTrigger asChild>
           <div 
             className={cn(
-              "border rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors",
+              "border dark:border-gray-700 rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
               typeClass,
-              isTentative && "border-dashed opacity-80 bg-gray-100",
-              isCancelled && "opacity-60 bg-gray-100",
+              isTentative && "border-dashed opacity-80 bg-gray-100 dark:bg-gray-800",
+              isCancelled && "opacity-60 bg-gray-100 dark:bg-gray-800",
               isActive && "animate-pulse ring-2 ring-green-400 ring-opacity-75 shadow-lg"
             )}
             style={{
@@ -345,16 +345,16 @@ export default function DayChronView({
             {/* Header with title and status */}
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1">
-                <h3 className={cn("text-base font-bold", isCancelled && "line-through text-gray-500")}>
+                <h3 className={cn("text-base font-bold dark:text-gray-100", isCancelled && "line-through text-gray-500 dark:text-gray-400")}>
                   {booking.title}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
                   {/* Status indicator with icon */}
                   <div className="flex items-center gap-1">
-                    {booking.status === 'confirmed' && <CheckCircle className="h-3 w-3 text-green-600" />}
-                    {booking.status === 'tentative' && <AlertCircle className="h-3 w-3 text-yellow-600" />}
-                    {booking.status === 'cancelled' && <XCircle className="h-3 w-3 text-red-600" />}
-                    <span className="text-xs font-medium capitalize text-gray-600">{booking.status}</span>
+                    {booking.status === 'confirmed' && <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-400" />}
+                    {booking.status === 'tentative' && <AlertCircle className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />}
+                    {booking.status === 'cancelled' && <XCircle className="h-3 w-3 text-red-600 dark:text-red-400" />}
+                    <span className="text-xs font-medium capitalize text-gray-600 dark:text-gray-400">{booking.status}</span>
                   </div>
                 </div>
               </div>
@@ -374,7 +374,7 @@ export default function DayChronView({
             
             {/* Description */}
             {booking.description && (
-              <div className="mb-3 text-sm text-gray-600">
+              <div className="mb-3 text-sm text-gray-600 dark:text-gray-400">
                 {booking.description.length > 120 
                   ? `${booking.description.substring(0, 120)}...` 
                   : booking.description}
@@ -384,7 +384,7 @@ export default function DayChronView({
             {/* Main information grid */}
             <div className="grid grid-cols-1 gap-2 text-sm">
               {/* Time */}
-              <div className="flex items-center gap-2 text-gray-700">
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                 <Clock size={14} className="flex-shrink-0" />
                 <span className="font-medium">
                   {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
@@ -393,7 +393,7 @@ export default function DayChronView({
               
               {/* Studios - only show for non-alerts */}
               {!isAlert && studiosList.length > 0 && (
-                <div className="flex items-start gap-2 text-gray-700">
+                <div className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <Camera size={14} className="flex-shrink-0 mt-0.5" />
                   <div className="flex flex-wrap gap-1">
                     {studiosList.map(studio => (
@@ -411,7 +411,7 @@ export default function DayChronView({
               
               {/* PCR room - only show for non-alerts */}
               {!isAlert && pcrRoom && (
-                <div className="flex items-center gap-2 text-gray-700">
+                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                   <Tv size={14} className="flex-shrink-0" />
                   <span className="font-medium">{pcrRoom.name}</span>
                 </div>
@@ -419,7 +419,7 @@ export default function DayChronView({
               
               {/* Notification Groups */}
               {Array.isArray(booking.notifyList) && booking.notifyList.length > 0 && (
-                <div className="flex items-start gap-2 text-gray-700">
+                <div className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <User size={14} className="flex-shrink-0 mt-0.5" />
                   <div className="flex flex-wrap gap-1">
                     {booking.notifyList.slice(0, 3).map((groupId: string | number, i: number) => {
@@ -442,7 +442,7 @@ export default function DayChronView({
             
             {/* Footer with creation date */}
             {booking.createdAt && (
-              <div className="mt-3 pt-2 border-t border-gray-200 text-xs text-gray-500">
+              <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
                 Created {format(new Date(booking.createdAt), 'MMM d, yyyy HH:mm')}
               </div>
             )}
