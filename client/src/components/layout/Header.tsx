@@ -245,9 +245,6 @@ export function Header({
             <WeatherWidget size="compact" />
           </div>
           
-          {/* Theme Toggle */}
-          <ThemeToggle />
-          
           {/* Calendar View Options - Only show on calendar pages */}
           {showViewToggle && (
             <div className="hidden lg:flex items-center shadow-sm rounded-md overflow-hidden">
@@ -312,6 +309,9 @@ export function Header({
               <span className="hidden lg:inline">New Booking</span>
             </Button>
           </div>
+          
+          {/* Theme Toggle */}
+          <ThemeToggle />
         </div>
       </div>
       
