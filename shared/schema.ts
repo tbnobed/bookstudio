@@ -31,8 +31,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
 });
 
-
-
 // Studios schema
 export const studios = pgTable("studios", {
   id: serial("id").primaryKey(),
