@@ -461,16 +461,16 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
 
   return (
     <TooltipProvider>
-      <div className="h-full flex flex-col bg-gray-50">
+      <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
 
       {/* Alerts Row - Day by Day */}
       {alertBookings.length > 0 && (
-        <div className="bg-orange-50 border-b border-orange-200">
+        <div className="bg-orange-50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800">
           {/* Day-by-day alerts grid */}
           <div className="flex">
             {/* Time column spacer - exact match with calendar grid */}
-            <div className="w-16 border-r border-gray-200 bg-gray-50 flex items-center justify-center py-4">
-              <AlertTriangle className="w-4 h-4 text-orange-600" />
+            <div className="w-16 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-center py-4">
+              <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
             </div>
             
             {/* Day columns for alerts - exact match with calendar structure */}
@@ -487,7 +487,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
               return (
                 <div
                   key={day.fullDate}
-                  className="flex-1 min-w-[140px] border-r border-gray-200 min-h-[80px] relative"
+                  className="flex-1 min-w-[140px] border-r border-gray-200 dark:border-gray-700 min-h-[80px] relative"
                 >
                   {dayAlerts.length > 0 ? (
                     <div className="p-2 space-y-1">
@@ -538,7 +538,7 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                       })}
                     </div>
                   ) : (
-                    <div className="p-2 text-xs text-orange-400 italic text-center">No alerts</div>
+                    <div className="p-2 text-xs text-orange-400 dark:text-orange-500 italic text-center">No alerts</div>
                   )}
                 </div>
               );
@@ -552,10 +552,10 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
         <div className="h-full overflow-auto">
           <div className="min-w-[1000px]">
             {/* Day Headers */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 z-40 shadow-sm">
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-40 shadow-sm">
               <div className="flex">
                 {/* Time column header */}
-                <div className="w-16 border-r border-gray-200 bg-gray-50"></div>
+                <div className="w-16 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"></div>
                 
                 {/* Day headers */}
                 {weekDays.map((day) => {
@@ -565,16 +565,16 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                   return (
                     <div
                       key={day.fullDate}
-                      className={`flex-1 min-w-[140px] border-r border-gray-200 relative ${
-                        isToday ? 'bg-blue-50' : 'bg-white'
+                      className={`flex-1 min-w-[140px] border-r border-gray-200 dark:border-gray-700 relative ${
+                        isToday ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-900'
                       }`}
                     >
                       <div className="p-3 text-center">
-                        <div className="text-xs font-medium text-gray-500 mb-1">
+                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                           {day.dayName}
                         </div>
                         <div className={`text-lg font-semibold ${
-                          isToday ? 'text-blue-600' : 'text-gray-900'
+                          isToday ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'
                         }`}>
                           {day.dayNumber}
                         </div>
@@ -598,11 +598,11 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
             <div className="relative">
               <div className="flex">
                 {/* Time column */}
-                <div className="w-16 border-r border-gray-200 bg-gray-50">
+                <div className="w-16 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                   {timeSlots.map((slot) => (
                     <div
                       key={slot.hour24}
-                      className="h-[60px] border-b border-gray-100 flex items-center justify-center text-xs text-gray-500 font-medium"
+                      className="h-[60px] border-b border-gray-100 dark:border-gray-700 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400 font-medium"
                     >
                       {slot.label}
                     </div>
@@ -639,13 +639,13 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                   return (
                     <div
                       key={day.fullDate}
-                      className="flex-1 min-w-[140px] border-r border-gray-200 relative"
+                      className="flex-1 min-w-[140px] border-r border-gray-200 dark:border-gray-700 relative"
                     >
                       {/* Hour grid lines */}
                       {timeSlots.map((slot) => (
                         <div
                           key={slot.hour24}
-                          className="h-[60px] border-b border-gray-100"
+                          className="h-[60px] border-b border-gray-100 dark:border-gray-700"
                         />
                       ))}
 
@@ -788,46 +788,46 @@ export default function TimelineCalendar({ currentDate, selectedStudioIds = [], 
                                 </div>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-sm p-4 bg-white border border-gray-200 shadow-lg">
+                            <TooltipContent className="max-w-sm p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                               <div className="space-y-2">
-                                <div className="font-semibold text-base text-gray-900">
+                                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
                                   {booking.title}
                                 </div>
                                 
                                 {booking.description && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-gray-700 dark:text-gray-300">
                                     <strong>Description:</strong> {booking.description}
                                   </div>
                                 )}
                                 
-                                <div className="text-sm text-gray-700">
+                                <div className="text-sm text-gray-700 dark:text-gray-300">
                                   <strong>Time:</strong> {format(toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic()), 'MMM d, yyyy h:mm a')} - {format(toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic()), 'h:mm a')}
                                 </div>
                                 
                                 {studios.length > 0 && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-gray-700 dark:text-gray-300">
                                     <strong>Studios:</strong> {studios.join(', ')}
                                   </div>
                                 )}
                                 
                                 {pcrRoom && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-gray-700 dark:text-gray-300">
                                     <strong>PCR Room:</strong> {pcrRoom}
                                   </div>
                                 )}
                                 
-                                <div className="text-sm text-gray-700">
+                                <div className="text-sm text-gray-700 dark:text-gray-300">
                                   <strong>Type:</strong> {booking.type.charAt(0).toUpperCase() + booking.type.slice(1)}
                                 </div>
                                 
                                 {booking.status && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-gray-700 dark:text-gray-300">
                                     <strong>Status:</strong> {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                                   </div>
                                 )}
                                 
                                 {booking.severity && (booking.type === 'maintenance' || booking.type === 'all_day_maintenance' || booking.type.includes('maintenance')) && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-gray-700 dark:text-gray-300">
                                     <strong>Severity:</strong> {booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1)}
                                   </div>
                                 )}
