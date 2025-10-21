@@ -246,15 +246,15 @@ export default function DayChronView({
       console.log("[DEBUG] Alert booking with severity:", severity);
       switch (severity) {
         case 'critical':
-          return 'bg-red-100';
+          return 'bg-red-100 dark:bg-red-900/30';
         case 'high':
-          return 'bg-orange-100';
+          return 'bg-orange-100 dark:bg-orange-900/30';
         case 'medium':
-          return 'bg-yellow-100';
+          return 'bg-yellow-100 dark:bg-yellow-900/30';
         case 'low':
-          return 'bg-blue-100';
+          return 'bg-blue-100 dark:bg-blue-900/30';
         default:
-          return 'bg-yellow-100';
+          return 'bg-yellow-100 dark:bg-yellow-900/30';
       }
     }
     
@@ -264,15 +264,15 @@ export default function DayChronView({
     
     switch (mainType) {
       case 'production':
-        return 'bg-blue-50';
+        return 'bg-blue-50 dark:bg-blue-900/20';
       case 'maintenance':
-        return 'bg-amber-50';
+        return 'bg-amber-50 dark:bg-amber-900/20';
       case 'it_support':
-        return 'bg-red-50';
+        return 'bg-red-50 dark:bg-red-900/20';
       case 'rehearsal':
-        return 'bg-purple-50';
+        return 'bg-purple-50 dark:bg-purple-900/20';
       default:
-        return 'bg-gray-50';
+        return 'bg-gray-50 dark:bg-gray-800';
     }
   };
 
