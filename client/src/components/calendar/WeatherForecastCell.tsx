@@ -23,6 +23,19 @@ const getWeatherIcon = (iconCode: string) => {
   return iconMap[iconCode] || Cloud;
 };
 
+const getWeatherIconColor = (iconCode: string) => {
+  // Sun icons should be yellow
+  if (iconCode === '01d' || iconCode === '01n') {
+    return 'text-yellow-500';
+  }
+  // Rain/snow icons should be blue
+  if (iconCode.startsWith('09') || iconCode.startsWith('10') || iconCode.startsWith('11') || iconCode.startsWith('13')) {
+    return 'text-blue-500';
+  }
+  // Cloud icons should be gray
+  return 'text-gray-500';
+};
+
 export default function WeatherForecastCell({ date, forecast, size = 'normal' }: WeatherForecastCellProps) {
   if (!forecast) {
     return null;
@@ -33,11 +46,11 @@ export default function WeatherForecastCell({ date, forecast, size = 'normal' }:
   const isSmall = size === 'small';
   
   return (
-    <div className={`flex items-center justify-center space-x-1 ${isSmall ? 'text-xs' : 'text-sm'} text-gray-600 bg-blue-50/50 px-1 py-0.5 rounded`}>
-      <WeatherIcon className={`${isSmall ? 'h-3 w-3' : 'h-4 w-4'} text-blue-500`} />
+    <div className={`flex items-center justify-center space-x-1 ${isSmall ? 'text-xs' : 'text-sm'} text-gray-600 dark:text-gray-300 bg-blue-50/50 dark:bg-blue-900/20 px-1 py-0.5 rounded`}>
+      <WeatherIcon className={`${isSmall ? 'h-3 w-3' : 'h-4 w-4'} ${getWeatherIconColor(forecast.icon)}`} />
       <div className="flex items-center space-x-0.5">
         <span className="font-medium">{forecast.temperature.max}°</span>
-        <span className="text-gray-400">{forecast.temperature.min}°</span>
+        <span className="text-gray-400 dark:text-gray-500">{forecast.temperature.min}°</span>
       </div>
     </div>
   );
