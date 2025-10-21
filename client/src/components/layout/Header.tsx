@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { subtractDays, addDays, formatWeekRangeText, formatMondayWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
 import BookingModal from "@/components/booking/BookingModal";
-
-
+import { ThemeToggle } from "@/components/theme-toggle";
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, BookingStudio } from "@shared/schema";
@@ -183,18 +182,18 @@ export function Header({
   });
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-white dark:bg-gray-900 shadow-sm">
       <div className="flex justify-between items-center px-4 py-3 lg:px-6">
         <div className="flex items-center space-x-4">
           {/* Sidebar Toggle Button - Hidden on mobile */}
           <button
             onClick={toggleSidebar}
-            className="hidden lg:block p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="hidden lg:block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             title={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-5 w-5 text-gray-600" 
+              className="h-5 w-5 text-gray-600 dark:text-gray-300" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor" 
@@ -206,28 +205,28 @@ export function Header({
 
           {/* Date Selector - Hidden when hideNavigation is true */}
           {!hideNavigation && (
-            <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+            <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
               <button 
-                className="p-2 hover:bg-gray-50 transition-colors border-r border-gray-200"
+                className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-r border-gray-200 dark:border-gray-700"
                 onClick={navigatePrevious}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
               </button>
               <div className="px-3 py-2 min-w-[140px] lg:min-w-[180px] text-center">
-                <span className="text-xs lg:text-sm font-medium text-gray-800">{getDateDisplayText()}</span>
+                <span className="text-xs lg:text-sm font-medium text-gray-800 dark:text-gray-200">{getDateDisplayText()}</span>
               </div>
               <button 
-                className="p-2 hover:bg-gray-50 transition-colors border-l border-gray-200"
+                className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-l border-gray-200 dark:border-gray-700"
                 onClick={navigateNext}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
               </button>
               <button 
-                className="ml-0 px-2 lg:px-3 py-2 text-xs lg:text-sm bg-gray-50 text-gray-700 border-l border-gray-200 hover:bg-gray-100 transition-colors font-medium"
+                className="ml-0 px-2 lg:px-3 py-2 text-xs lg:text-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-l border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors font-medium"
                 onClick={goToToday}
               >
                 Today
@@ -236,7 +235,7 @@ export function Header({
           )}
 
           <div className="hidden lg:flex items-center">
-            <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
+            <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{title}</h1>
           </div>
         </div>
         
@@ -246,6 +245,9 @@ export function Header({
             <WeatherWidget size="compact" />
           </div>
           
+          {/* Theme Toggle */}
+          <ThemeToggle />
+          
           {/* Calendar View Options - Only show on calendar pages */}
           {showViewToggle && (
             <div className="hidden lg:flex items-center shadow-sm rounded-md overflow-hidden">
@@ -254,7 +256,7 @@ export function Header({
                   "px-2 py-1.5 text-xs font-medium border",
                   view === "day" 
                     ? "bg-primary text-white border-primary" 
-                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                 )}
                 onClick={() => onViewChange("day")}
               >
@@ -265,7 +267,7 @@ export function Header({
                   "px-2 py-1.5 text-xs font-medium border",
                   view === "week" 
                     ? "bg-primary text-white border-primary" 
-                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                 )}
                 onClick={() => onViewChange("week")}
               >
@@ -276,7 +278,7 @@ export function Header({
                   "px-2 py-1.5 text-xs font-medium border",
                   view === "timeline" 
                     ? "bg-primary text-white border-primary" 
-                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                 )}
                 onClick={() => onViewChange("timeline")}
               >
@@ -287,7 +289,7 @@ export function Header({
                   "px-2 py-1.5 text-xs font-medium border",
                   view === "month" 
                     ? "bg-primary text-white border-primary" 
-                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                 )}
                 onClick={() => onViewChange("month")}
               >
@@ -317,18 +319,18 @@ export function Header({
       
       {/* Studios Filter */}
       {onStudioFilterChange && (
-        <div className="px-4 py-2 bg-gray-50 border-y lg:px-6">
+        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-y dark:border-gray-700 lg:px-6">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Studios:</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Studios:</span>
             <div className="flex flex-wrap gap-1">
               {studiosToShow.map((studio) => (
                 <button
                   key={studio.id}
                   className={cn(
-                    "px-3 py-1.5 text-sm font-medium bg-white border rounded-md shadow-sm whitespace-nowrap",
+                    "px-3 py-1.5 text-sm font-medium bg-white dark:bg-gray-700 border rounded-md shadow-sm whitespace-nowrap",
                     selectedStudioIds.includes(studio.id)
                       ? "border-primary"
-                      : "border-gray-300 hover:bg-gray-50"
+                      : "border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-gray-200"
                   )}
                   onClick={() => toggleStudioFilter(studio.id)}
                 >
@@ -339,7 +341,7 @@ export function Header({
               
               {studios.length > 20 && (
                 <button 
-                  className="px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded-md"
+                  className="px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md"
                   onClick={() => setShowAllStudios(!showAllStudios)}
                 >
                   {showAllStudios ? "Show Less" : `+${studios.length - 20} more`}
@@ -351,15 +353,15 @@ export function Header({
 
               <div className="flex items-center">
                 <span className="h-3 w-3 rounded-full bg-green-500 mr-1"></span>
-                <span className="text-xs">Available</span>
+                <span className="text-xs dark:text-gray-200">Available</span>
               </div>
               <div className="flex items-center">
                 <span className="h-3 w-3 rounded-full bg-orange-500 mr-1"></span>
-                <span className="text-xs">Maintenance</span>
+                <span className="text-xs dark:text-gray-200">Maintenance</span>
               </div>
               <div className="flex items-center">
                 <span className="h-3 w-3 rounded-full bg-red-500 mr-1"></span>
-                <span className="text-xs">In-Use</span>
+                <span className="text-xs dark:text-gray-200">In-Use</span>
               </div>
             </div>
           </div>

@@ -215,7 +215,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
         
         return (
           <div 
-            className="border-b border-r flex items-center px-3 sticky left-0 z-20 bg-white w-[160px] min-w-[160px] max-w-[160px] overflow-hidden" 
+            className="border-b dark:border-gray-700 border-r dark:border-gray-700 flex items-center px-3 sticky left-0 z-20 bg-white dark:bg-gray-900 w-[160px] min-w-[160px] max-w-[160px] overflow-hidden" 
             style={{ height: `${rowHeight}px` }}
           >
             {/* Studio status indicator */}
@@ -248,7 +248,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
               
               return <div className={`w-2 h-2 rounded-full mr-2 flex-shrink-0 ${statusClass}`}></div>;
             })()}
-            <span className="text-sm font-medium text-gray-700 truncate flex-1 min-w-0">{studio.name}</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate flex-1 min-w-0">{studio.name}</span>
           </div>
         );
       })()}
@@ -294,17 +294,17 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
           <div 
             key={index} 
             className={cn(
-              "flex flex-col border-b border-r p-1", // Use flex column layout
-              isWeekend(date) ? "bg-gray-50" : "bg-white",
-              isSameDay(date, new Date()) ? "bg-blue-50 border-blue-200" : "",
-              "cursor-pointer hover:bg-gray-100 overflow-y-auto" // Added overflow-y-auto for scrolling
+              "flex flex-col border-b dark:border-gray-700 border-r dark:border-gray-700 p-1", // Use flex column layout
+              isWeekend(date) ? "bg-gray-50 dark:bg-gray-800" : "bg-white dark:bg-gray-900",
+              isSameDay(date, new Date()) ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700" : "",
+              "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 overflow-y-auto" // Added overflow-y-auto for scrolling
             )}
             style={{ minHeight: `${cellHeight}px` }}
             onClick={() => handleCellClick(date)}
           >
             {/* Display booking count if there are many */}
             {dayBookings.length > 5 && (
-              <div className="self-end px-1 text-xs font-semibold bg-gray-700 text-white rounded-md mb-1">
+              <div className="self-end px-1 text-xs font-semibold bg-gray-700 dark:bg-gray-600 text-white rounded-md mb-1">
                 {dayBookings.length} bookings
               </div>
             )}
@@ -350,10 +350,10 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                   <HoverCardTrigger asChild>
                     <div 
                       className={cn(
-                        "border rounded-md px-2 py-1 mb-1 overflow-hidden text-overflow-ellipsis text-xs z-10 transition-all hover:shadow-md",
+                        "border dark:border-gray-600 rounded-md px-2 py-1 mb-1 overflow-hidden text-overflow-ellipsis text-xs z-10 transition-all hover:shadow-md",
                         colorClass,
-                        booking.status === "tentative" && "border-dashed opacity-80 bg-gray-100",
-                        booking.status === "cancelled" && "opacity-60 bg-red-50 border-red-300 line-through text-red-600",
+                        booking.status === "tentative" && "border-dashed opacity-80 bg-gray-100 dark:bg-gray-800",
+                        booking.status === "cancelled" && "opacity-60 bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 line-through text-red-600 dark:text-red-400",
                         isActive && "animate-pulse ring-2 ring-green-400 ring-opacity-75 shadow-lg"
                       )}
                       style={{
@@ -391,7 +391,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
                           {booking.title}
                           {booking.pcrRoomId ? ` (${getPcrRoomName(booking.pcrRoomId)})` : ''}
                           {booking.status === "tentative" && (
-                            <span className="ml-1 text-[10px] px-1 py-0.5 bg-gray-200 text-gray-700 rounded">Tentative</span>
+                            <span className="ml-1 text-[10px] px-1 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">Tentative</span>
                           )}
                         </span>
                       </div>

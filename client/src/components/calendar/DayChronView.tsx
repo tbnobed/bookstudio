@@ -558,11 +558,11 @@ export default function DayChronView({
         </div>
       
       {/* ALERTS SECTION - Always shown regardless of other bookings */}
-      <div className="mb-6 p-4 border-2 border-red-400 bg-red-50 rounded-md shadow-md">
+      <div className="mb-6 p-4 border-2 border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-900/20 rounded-md shadow-md">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <AlertTriangle size={20} className="text-red-600" />
-            <h3 className="text-lg font-bold text-red-700">ALERTS & CRITICAL NOTICES</h3>
+            <AlertTriangle size={20} className="text-red-600 dark:text-red-400" />
+            <h3 className="text-lg font-bold text-red-700 dark:text-red-400">ALERTS & CRITICAL NOTICES</h3>
           </div>
           {!readOnly && (
             <Button 
@@ -586,7 +586,7 @@ export default function DayChronView({
         </div>
         
         {alerts.length === 0 ? (
-          <div className="text-center py-3 bg-white rounded-md text-gray-500">
+          <div className="text-center py-3 bg-white dark:bg-gray-800 rounded-md text-gray-500 dark:text-gray-400">
             <p>No alerts for this day</p>
           </div>
         ) : (
@@ -595,29 +595,29 @@ export default function DayChronView({
               <div 
                 key={alert.id} 
                 className={cn(
-                  "p-3 rounded-md border-l-4 bg-white shadow-sm cursor-pointer hover:bg-gray-50",
-                  alert.severity === "critical" ? "border-red-500" : 
-                  alert.severity === "high" ? "border-orange-500" : 
-                  alert.severity === "medium" ? "border-amber-500" : 
-                  "border-blue-500"
+                  "p-3 rounded-md border-l-4 bg-white dark:bg-gray-800 shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700",
+                  alert.severity === "critical" ? "border-red-500 dark:border-red-600" : 
+                  alert.severity === "high" ? "border-orange-500 dark:border-orange-600" : 
+                  alert.severity === "medium" ? "border-amber-500 dark:border-amber-600" : 
+                  "border-blue-500 dark:border-blue-600"
                 )}
                 onClick={() => onBookingClick(alert)}
               >
                 <div className={cn(
                   "font-medium",
-                  alert.severity === "critical" ? "text-red-700" : 
-                  alert.severity === "high" ? "text-orange-700" : 
-                  alert.severity === "medium" ? "text-amber-700" : 
-                  "text-blue-700"
+                  alert.severity === "critical" ? "text-red-700 dark:text-red-400" : 
+                  alert.severity === "high" ? "text-orange-700 dark:text-orange-400" : 
+                  alert.severity === "medium" ? "text-amber-700 dark:text-amber-400" : 
+                  "text-blue-700 dark:text-blue-400"
                 )}>
                   {alert.title}
                 </div>
-                <div className="text-sm text-gray-600 mt-1">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {alert.description && alert.description.substring(0, 100)}
                   {alert.description && alert.description.length > 100 ? '...' : ''}
                 </div>
                 <div className="mt-2 flex items-center text-xs">
-                  <div className="flex items-center gap-1 text-gray-700">
+                  <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
                     <Clock size={14} className="flex-shrink-0" />
                     <span>
                       {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
@@ -625,10 +625,10 @@ export default function DayChronView({
                   </div>
                   <span className={cn(
                     "inline-block px-2 py-1 ml-2 rounded-full text-xs font-semibold",
-                    alert.severity === "critical" ? "bg-red-100 text-red-700" : 
-                    alert.severity === "high" ? "bg-orange-100 text-orange-700" : 
-                    alert.severity === "medium" ? "bg-amber-100 text-amber-700" : 
-                    "bg-blue-100 text-blue-700"
+                    alert.severity === "critical" ? "bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300" : 
+                    alert.severity === "high" ? "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300" : 
+                    alert.severity === "medium" ? "bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300" : 
+                    "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
                   )}>
                     {alert.severity || 'info'}
                   </span>
@@ -641,12 +641,12 @@ export default function DayChronView({
       
       {/* REGULAR BOOKINGS SECTION */}
       {regularBookings.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-md">
-          <p className="text-gray-500">No regular bookings for this day</p>
+        <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-md">
+          <p className="text-gray-500 dark:text-gray-400">No regular bookings for this day</p>
         </div>
       ) : (
         <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-3">Bookings</h3>
+          <h3 className="text-lg font-semibold mb-3 dark:text-gray-100">Bookings</h3>
           <div className="space-y-3">
             {regularBookings.map(booking => (
               <BookingCard key={booking.id} booking={booking} />
@@ -659,43 +659,43 @@ export default function DayChronView({
       {/* Right Sidebar with Day Analytics */}
       <div className="w-80 flex-shrink-0 flex flex-col space-y-4 h-full">
         {/* Day Statistics Card */}
-        <div className="bg-white border rounded-lg p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <BarChart3 className="h-5 w-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Day Overview</h3>
+            <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Day Overview</h3>
           </div>
           
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Total Bookings</span>
-              <span className="font-semibold text-lg">{dayStats.totalBookings}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Total Bookings</span>
+              <span className="font-semibold text-lg dark:text-gray-100">{dayStats.totalBookings}</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Active Studios</span>
-              <span className="font-semibold">{dayStats.activeStudios}/{dayStats.totalStudios}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Active Studios</span>
+              <span className="font-semibold dark:text-gray-100">{dayStats.activeStudios}/{dayStats.totalStudios}</span>
             </div>
             
             {dayStats.totalAlerts > 0 && (
               <div className="flex justify-between items-center">
-                <span className="text-sm text-red-600">Active Alerts</span>
-                <span className="font-semibold text-red-600">{dayStats.totalAlerts}</span>
+                <span className="text-sm text-red-600 dark:text-red-400">Active Alerts</span>
+                <span className="font-semibold text-red-600 dark:text-red-400">{dayStats.totalAlerts}</span>
               </div>
             )}
             
-            <div className="pt-2 border-t border-gray-100">
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
               <div className="grid grid-cols-3 gap-2 text-xs">
                 <div className="text-center">
-                  <div className="font-semibold text-green-600">{dayStats.confirmedBookings}</div>
-                  <div className="text-gray-500">Confirmed</div>
+                  <div className="font-semibold text-green-600 dark:text-green-400">{dayStats.confirmedBookings}</div>
+                  <div className="text-gray-500 dark:text-gray-400">Confirmed</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-semibold text-yellow-600">{dayStats.tentativeBookings}</div>
-                  <div className="text-gray-500">Tentative</div>
+                  <div className="font-semibold text-yellow-600 dark:text-yellow-400">{dayStats.tentativeBookings}</div>
+                  <div className="text-gray-500 dark:text-gray-400">Tentative</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-semibold text-red-600">{dayStats.cancelledBookings}</div>
-                  <div className="text-gray-500">Cancelled</div>
+                  <div className="font-semibold text-red-600 dark:text-red-400">{dayStats.cancelledBookings}</div>
+                  <div className="text-gray-500 dark:text-gray-400">Cancelled</div>
                 </div>
               </div>
             </div>
@@ -703,10 +703,10 @@ export default function DayChronView({
         </div>
 
         {/* Quick Actions Card - Moved to Top */}
-        <div className="bg-white border rounded-lg p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <Zap className="h-5 w-5 text-purple-600" />
-            <h3 className="font-semibold text-gray-900">Quick Actions</h3>
+            <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h3>
           </div>
           
           <div className="space-y-2">
@@ -758,10 +758,10 @@ export default function DayChronView({
         </div>
 
         {/* Studio Utilization Card - Expanded Height */}
-        <div className="bg-white border rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col">
+        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="h-5 w-5 text-green-600" />
-            <h3 className="font-semibold text-gray-900">Studio Utilization</h3>
+            <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Studio Utilization</h3>
           </div>
           
           <div className="space-y-3 flex-1 overflow-y-auto min-h-0">
@@ -769,14 +769,14 @@ export default function DayChronView({
               <div key={item.studio.id} className="space-y-1">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <Camera className="h-3 w-3 text-gray-500" />
-                    <span className="text-sm font-medium truncate">{item.studio.name}</span>
+                    <Camera className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm font-medium truncate dark:text-gray-200">{item.studio.name}</span>
                   </div>
-                  <span className="text-xs text-gray-500">{item.bookings} bookings</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{item.bookings} bookings</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div 
                       className={cn(
                         "h-2 rounded-full transition-all",
@@ -788,12 +788,12 @@ export default function DayChronView({
                       style={{ width: `${item.utilization}%` }}
                     />
                   </div>
-                  <span className="text-xs font-medium text-gray-600 w-10 text-right">
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-10 text-right">
                     {item.utilization.toFixed(0)}%
                   </span>
                 </div>
                 
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-500 dark:text-gray-400">
                   {item.hours.toFixed(1)} hours booked
                 </div>
               </div>
@@ -802,10 +802,10 @@ export default function DayChronView({
         </div>
 
         {/* Recent Updates - Expanded Height */}
-        <div className="bg-white border rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col">
+        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
-            <Activity className="h-5 w-5 text-indigo-600" />
-            <h3 className="font-semibold text-gray-900">Recent Updates</h3>
+            <Activity className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Updates</h3>
           </div>
           
           <div className="space-y-2 flex-1 overflow-y-auto min-h-0">
@@ -826,7 +826,7 @@ export default function DayChronView({
                 return (
                   <div 
                     key={booking.id} 
-                    className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer mb-2 hover:bg-gray-50"
+                    className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 cursor-pointer mb-2 hover:bg-gray-50 dark:hover:bg-gray-800"
                     onClick={() => onBookingClick(booking)}
                   >
                     <div className="flex items-center justify-between">
@@ -836,28 +836,28 @@ export default function DayChronView({
                           booking.status === 'confirmed' ? 'bg-green-500' :
                           booking.status === 'tentative' ? 'bg-yellow-500' : 'bg-red-500'
                         )} />
-                        <span className="text-sm font-medium truncate">{booking.title}</span>
-                        {isToday && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Today</span>}
+                        <span className="text-sm font-medium truncate dark:text-gray-200">{booking.title}</span>
+                        {isToday && <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">Today</span>}
                       </div>
                     </div>
                     
                     {/* Studios and PCR Information */}
                     <div className="mt-2 space-y-1">
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                         <Camera className="h-3 w-3" />
                         <span className="font-medium">Studios:</span>
                         <span>{getStudiosForBooking(booking).map(studio => typeof studio === 'string' ? studio : studio.name || studio).join(', ')}</span>
                       </div>
                       
                       {booking.pcrRoomId && (
-                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                           <MonitorSpeaker className="h-3 w-3" />
                           <span className="font-medium">PCR:</span>
                           <span>{pcrRooms.find(pcr => pcr.id === booking.pcrRoomId)?.name || `PCR ${booking.pcrRoomId}`}</span>
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                         <Clock className="h-3 w-3" />
                         <span className="font-medium">Time:</span>
                         <span>
@@ -866,7 +866,7 @@ export default function DayChronView({
                       </div>
                     </div>
                     
-                    <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
                       {formatInFacilityTimezone(new Date(booking.start), 'MMM d')} • Created {formatInFacilityTimezone(createdDate, 'MMM d')}
                     </div>
                   </div>

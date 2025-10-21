@@ -35,15 +35,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   return (
     <div 
       className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-900 shadow-lg transform transition-transform duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}
     >
       <div className="flex flex-col h-full">
-        <div className="p-1 border-b">
+        <div className="p-1 border-b dark:border-gray-800">
           <div className="flex items-center justify-center flex-col">
             <img src={logoPath} alt="BookStud.io logo" className="h-36 w-auto" />
-            <h1 className="text-xl font-semibold text-gray-800 mb-2">{siteName || "BookStud.io"}</h1>
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">{siteName || "BookStud.io"}</h1>
           </div>
         </div>
         
@@ -53,7 +53,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
               location === "/calendar" || location === "/" 
                 ? "text-white bg-primary" 
-                : "text-gray-700 hover:bg-gray-100"
+                : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
             )}
             onClick={() => handleNavigate("/calendar")}
           >
@@ -73,7 +73,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                 location === "/my-bookings" 
                   ? "text-white bg-primary" 
-                  : "text-gray-700 hover:bg-gray-100"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
               )}
               onClick={() => handleNavigate("/my-bookings")}
             >
@@ -93,7 +93,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                 location === "/templates" 
                   ? "text-white bg-primary" 
-                  : "text-gray-700 hover:bg-gray-100"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
               )}
               onClick={() => handleNavigate("/templates")}
             >
@@ -115,7 +115,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                 location === "/reports" 
                   ? "text-white bg-primary" 
-                  : "text-gray-700 hover:bg-gray-100"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
               )}
               onClick={() => handleNavigate("/reports")}
             >
@@ -136,7 +136,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <>
               <div className="pt-4 pb-2">
                 <div className="flex items-center px-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Admin</h3>
+                  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Admin</h3>
                 </div>
               </div>
               
@@ -145,7 +145,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                   location === "/users" 
                     ? "text-white bg-primary" 
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
                 onClick={() => handleNavigate("/users")}
               >
@@ -163,7 +163,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                   location === "/admin/booking-ownership" 
                     ? "text-white bg-primary" 
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
                 onClick={() => handleNavigate("/admin/booking-ownership")}
               >
@@ -179,7 +179,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                   location === "/admin/database-health" 
                     ? "text-white bg-primary" 
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
                 onClick={() => handleNavigate("/admin/database-health")}
               >
@@ -202,7 +202,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                   location === "/teams" 
                     ? "text-white bg-primary" 
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
                 onClick={() => handleNavigate("/teams")}
               >
@@ -221,7 +221,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                   location === "/audit-logs" 
                     ? "text-white bg-primary" 
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
                 onClick={() => handleNavigate("/audit-logs")}
               >
@@ -240,7 +240,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <>
               <div className="pt-4 pb-2">
                 <div className="flex items-center px-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Site Manager</h3>
+                  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Site Manager</h3>
                 </div>
               </div>
               
@@ -249,7 +249,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                   location === "/producer-management" 
                     ? "text-white bg-primary" 
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
                 onClick={() => handleNavigate("/producer-management")}
               >
@@ -269,7 +269,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
               location === "/settings" 
                 ? "text-white bg-primary" 
-                : "text-gray-700 hover:bg-gray-100"
+                : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
             )}
             onClick={() => handleNavigate("/settings")}
           >
@@ -281,18 +281,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         </nav>
         
-        <div className="p-4 border-t">
+        <div className="p-4 border-t dark:border-gray-800">
           <div className="flex items-center">
-            <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
+            <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300">
               {user?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700">{user?.name || user?.username || 'User'}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role || 'User'}</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{user?.name || user?.username || 'User'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role || 'User'}</p>
             </div>
             <button 
               onClick={handleLogout}
-              className="ml-auto p-1 text-gray-400 hover:text-gray-600"
+              className="ml-auto p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>

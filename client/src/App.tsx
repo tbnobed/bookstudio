@@ -36,6 +36,7 @@ import MobileLayout from "@/components/layout/MobileLayout";
 import { DocumentTitle } from "@/components/global/DocumentTitle";
 import { NotificationProvider } from "@/hooks/use-notification";
 import { initializeFacilityTimezone } from "@/lib/timezoneConfig";
+import { ThemeProvider } from "@/components/theme-provider";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -137,23 +138,25 @@ function App() {
   }, []);
 
   return (
-    <TimezoneProvider>
-      <CalendarProvider>
-        <NotificationProvider>
-          <SidebarProvider>
-            <TooltipProvider>
-              {/* Add DocumentTitle to update the title when siteName changes */}
-              <DocumentTitle />
-              <AppLayout>
-                <Router />
-              </AppLayout>
-              <Toaster />
-              <ToastNotification />
-            </TooltipProvider>
-          </SidebarProvider>
-        </NotificationProvider>
-      </CalendarProvider>
-    </TimezoneProvider>
+    <ThemeProvider defaultTheme="system" storageKey="bookstudio-ui-theme">
+      <TimezoneProvider>
+        <CalendarProvider>
+          <NotificationProvider>
+            <SidebarProvider>
+              <TooltipProvider>
+                {/* Add DocumentTitle to update the title when siteName changes */}
+                <DocumentTitle />
+                <AppLayout>
+                  <Router />
+                </AppLayout>
+                <Toaster />
+                <ToastNotification />
+              </TooltipProvider>
+            </SidebarProvider>
+          </NotificationProvider>
+        </CalendarProvider>
+      </TimezoneProvider>
+    </ThemeProvider>
   );
 }
 

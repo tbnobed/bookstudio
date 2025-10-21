@@ -220,11 +220,11 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
   return (
     <>
       <div 
-        className="border-b border-r bg-white flex items-center sticky left-0 top-0 z-20 w-[160px] min-w-[160px] max-w-[160px] overflow-hidden"
+        className="border-b dark:border-gray-700 border-r dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center sticky left-0 top-0 z-20 w-[160px] min-w-[160px] max-w-[160px] overflow-hidden"
         style={{ height: `${rowHeight}px` }}
       >
         <div className="text-center w-full px-2">
-          <span className="text-xs font-bold uppercase text-gray-700">Facility Alerts</span>
+          <span className="text-xs font-bold uppercase text-gray-700 dark:text-gray-200">Facility Alerts</span>
         </div>
       </div>
       
@@ -360,9 +360,9 @@ export default function AlertsRow({ weekDates, alerts = [], onAlertClick, readOn
           <div 
             key={index} 
             className={cn(
-              "relative border-b border-r",
-              isWeekend(date) ? "bg-gray-50" : "bg-white",
-              "cursor-pointer hover:bg-gray-100"
+              "relative border-b dark:border-gray-700 border-r dark:border-gray-700",
+              isWeekend(date) ? "bg-gray-50 dark:bg-gray-800" : "bg-white dark:bg-gray-900",
+              "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
             )}
             style={{ height: `${rowHeight}px` }}
             onClick={() => handleCellClick(date)}

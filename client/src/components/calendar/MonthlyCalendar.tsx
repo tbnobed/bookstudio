@@ -428,10 +428,10 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
     const isToday = isSameDay(date, facilityToday);
     
     return cn(
-      "border p-1 transition-colors duration-200",
-      isCurrentMonth ? "bg-white" : "bg-gray-50 text-gray-400",
-      isToday && "bg-blue-50 border-blue-200",
-      readOnly ? "cursor-default" : "cursor-pointer hover:bg-gray-100"
+      "border dark:border-gray-700 p-1 transition-colors duration-200",
+      isCurrentMonth ? "bg-white dark:bg-gray-900 dark:text-gray-100" : "bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500",
+      isToday && "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700",
+      readOnly ? "cursor-default" : "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
     );
   };
 
@@ -440,7 +440,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
       <div className="h-[calc(100vh-8rem)] flex flex-col overflow-auto">
         <div className="p-2 flex-shrink-0">
           {/* Month Header */}
-          <h2 className="text-xl font-semibold mb-2">
+          <h2 className="text-xl font-semibold mb-2 dark:text-gray-100">
             {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h2>
         </div>
@@ -450,7 +450,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
           <div className="grid grid-cols-7 min-h-full" style={{ minHeight: '600px' }}>
             {/* Day names */}
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="text-center font-medium p-2 bg-gray-100 sticky top-0">
+              <div key={day} className="text-center font-medium p-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-200 sticky top-0">
                 {day}
               </div>
             ))}
@@ -462,10 +462,10 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                 className={`${getDayClass(date)} flex flex-col min-h-32`}
                 onClick={() => handleDayClick(date)}
               >
-                <div className="flex justify-between items-start p-1 sticky top-0 bg-white z-10">
+                <div className="flex justify-between items-start p-1 sticky top-0 bg-white dark:bg-gray-900 z-10">
                   <span className={cn(
-                    "text-sm font-semibold",
-                    isSameDay(date, new Date()) && "bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center"
+                    "text-sm font-semibold dark:text-gray-200",
+                    isSameDay(date, new Date()) && "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 w-6 h-6 rounded-full flex items-center justify-center"
                   )}>
                     {date.getDate()}
                   </span>
@@ -547,7 +547,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
                   {getBookingsForDay(date).length > getMaxDisplayCount() && (
                     <HoverCard>
                       <HoverCardTrigger asChild>
-                        <div className="text-xs text-gray-500 mt-1 bg-gray-50 hover:bg-gray-100 rounded p-1 text-center cursor-pointer">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1 text-center cursor-pointer">
                           +{getBookingsForDay(date).length - getMaxDisplayCount()} more
                         </div>
                       </HoverCardTrigger>

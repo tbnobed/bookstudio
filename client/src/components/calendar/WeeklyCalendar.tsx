@@ -306,8 +306,8 @@ export default function WeeklyCalendar({
       <div className="overflow-auto h-[calc(100vh-8rem)]">
         <div className="min-w-[1000px]">
           {/* Calendar Days Header with Weather Forecast */}
-          <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-30 bg-white shadow-sm">
-            <div className="h-20 border-b border-r bg-white z-30"></div>
+          <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-30 bg-white dark:bg-gray-900 shadow-sm">
+            <div className="h-20 border-b border-r dark:border-gray-700 bg-white dark:bg-gray-900 z-30"></div>
             {weekDates.map((date, index) => {
               const dateString = date.toISOString().split('T')[0];
               const dayForecast = forecast?.forecast.find(f => f.date === dateString);
@@ -320,15 +320,15 @@ export default function WeeklyCalendar({
                 <div 
                   key={index} 
                   className={cn(
-                    "h-20 border-b text-center flex flex-col justify-center z-30 p-1",
-                    isWeekend(date) ? "bg-gray-50" : "bg-white",
-                    isToday && "bg-blue-50 border-blue-200"
+                    "h-20 border-b text-center flex flex-col justify-center z-30 p-1 dark:border-gray-700",
+                    isWeekend(date) ? "bg-gray-50 dark:bg-gray-800" : "bg-white dark:bg-gray-900",
+                    isToday && "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700"
                   )}
                 >
-                  <div className="text-sm font-medium">{SHORT_DAY_NAMES[date.getDay()]}</div>
+                  <div className="text-sm font-medium dark:text-gray-200">{SHORT_DAY_NAMES[date.getDay()]}</div>
                   <div className={cn(
-                    "text-lg font-semibold mb-1",
-                    isToday && "text-blue-600 rounded-full w-8 h-8 mx-auto flex items-center justify-center bg-blue-100"
+                    "text-lg font-semibold mb-1 dark:text-gray-100",
+                    isToday && "text-blue-600 dark:text-blue-400 rounded-full w-8 h-8 mx-auto flex items-center justify-center bg-blue-100 dark:bg-blue-900"
                   )}>
                     {date.getDate()}
                   </div>
@@ -356,7 +356,7 @@ export default function WeeklyCalendar({
               </div>
               
               {/* Visual separator */}
-              <div className="col-span-8 h-2 bg-gray-200 border-b border-gray-300"></div>
+              <div className="col-span-8 h-2 bg-gray-200 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600"></div>
               
               {/* Studio Rows */}
               {filteredStudios.map((studio) => (
