@@ -921,12 +921,17 @@ export default function DayChronView({
                           <button
                             className={cn(
                               "absolute top-1 bottom-1 rounded cursor-pointer hover:opacity-80 transition-opacity",
-                              "flex items-center px-2 overflow-hidden shadow-sm",
+                              "flex items-center px-2 overflow-hidden shadow-sm gap-1",
                               !isTentative && !isCancelled && colorInfo.className
                             )}
                             style={combinedStyle}
                             onClick={() => onBookingClick(booking)}
                           >
+                            {isTentative && (
+                              <span className="text-[10px] font-bold text-yellow-300 uppercase flex-shrink-0">
+                                [T]
+                              </span>
+                            )}
                             <span className={cn(
                               "text-xs font-medium text-white truncate",
                               isCancelled && "line-through"
