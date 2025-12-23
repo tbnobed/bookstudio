@@ -158,9 +158,9 @@ export function Header({
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       {/* Main Header Row */}
-      <div className="flex items-center justify-between px-4 py-3 lg:px-6">
-        {/* Left Section */}
-        <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4 px-4 py-3 lg:px-6">
+        {/* Left Section - Date Navigation */}
+        <div className="flex items-center gap-3 flex-shrink-0">
           {/* Sidebar Toggle */}
           <button
             onClick={toggleSidebar}
@@ -345,8 +345,8 @@ export function Header({
           )}
         </div>
         
-        {/* Center Section - Studio Status Summary + Weather */}
-        <div className="hidden lg:flex items-center justify-center gap-4 lg:gap-6">
+        {/* Center Section - Studio Status Summary + Weather (flex-1 to fill space) */}
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-4">
           {/* Weather Widget */}
           <div className="hidden xl:block">
             <WeatherWidget size="compact" />
@@ -363,8 +363,8 @@ export function Header({
           )}
         </div>
 
-        {/* Right Section - View Toggle + Theme */}
-        <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0 ml-auto">
+        {/* Right Section - View Toggle + Theme (flex-shrink-0 to prevent squeezing) */}
+        <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
           
           {/* View Toggle - Day/Week/Timeline/Month */}
           <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
