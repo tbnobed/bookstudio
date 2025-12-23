@@ -364,32 +364,30 @@ export function Header({
         </div>
 
         {/* Right Section - View Toggle + Theme */}
-        <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0 ml-auto">
           
-          {/* View Toggle */}
-          {showViewToggle && (
-            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-              {viewOptions.map((option) => {
-                const Icon = option.icon;
-                return (
-                  <button
-                    key={option.key}
-                    className={cn(
-                      "flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 text-sm font-medium rounded-md transition-all",
-                      view === option.key
-                        ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                    )}
-                    onClick={() => onViewChange(option.key)}
-                    data-testid={`button-view-${option.key}`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden md:inline">{option.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* View Toggle - Day/Week/Timeline/Month */}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            {viewOptions.map((option) => {
+              const Icon = option.icon;
+              return (
+                <button
+                  key={option.key}
+                  className={cn(
+                    "flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+                    view === option.key
+                      ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                  onClick={() => onViewChange(option.key as "day" | "week" | "month" | "timeline")}
+                  data-testid={`button-view-${option.key}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden md:inline">{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
           
           {/* Theme Toggle */}
           <ThemeToggle />
