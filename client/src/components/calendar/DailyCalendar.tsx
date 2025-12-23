@@ -8,7 +8,6 @@ import AlertModal from "@/components/alerts/AlertModal";
 import { Clock, Users, Tv } from "lucide-react";
 import DayListView from "@/components/calendar/DayListView";
 import DayChronView from "@/components/calendar/DayChronView";
-import DayTimelineView from "@/components/calendar/DayTimelineView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 
@@ -258,34 +257,19 @@ export default function DailyCalendar({
     }
   };
 
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'chron'>('chron');
+
   return (
     <>
-      {/* Split Layout: Stats Sidebar + Timeline View */}
-      <div className="flex h-full gap-4">
-        {/* Left: Stats Sidebar */}
-        <div className="w-80 flex-shrink-0 overflow-y-auto hidden lg:block">
-          <DayChronView 
-            date={currentDate}
-            bookings={bookings}
-            studios={filteredStudios}
-            pcrRooms={pcrRooms}
-            onBookingClick={handleBookingClick}
-            readOnly={readOnly}
-            showSidebarOnly={true}
-          />
-        </div>
-        
-        {/* Right: Timeline View */}
-        <div className="flex-1 overflow-auto min-w-0">
-          <DayTimelineView 
-            date={currentDate}
-            bookings={bookings}
-            studios={filteredStudios}
-            pcrRooms={pcrRooms}
-            onBookingClick={handleBookingClick}
-            readOnly={readOnly}
-          />
-        </div>
+      <div className="overflow-auto h-full">
+        <DayChronView 
+          date={currentDate}
+          bookings={bookings}
+          studios={filteredStudios}
+          pcrRooms={pcrRooms}
+          onBookingClick={handleBookingClick}
+          readOnly={readOnly}
+        />
       </div>
 
       {/* Edit Booking Modal - for studio bookings */}
