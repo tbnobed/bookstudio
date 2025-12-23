@@ -345,8 +345,8 @@ export function Header({
           )}
         </div>
         
-        {/* Center Section - Studio Status Summary + Weather (flex-1 to fill space) */}
-        <div className="hidden lg:flex flex-1 items-center justify-center gap-4">
+        {/* Center Section - Studio Status Summary + Weather (flex-1 with min-w-0 to allow shrinking) */}
+        <div className="hidden lg:flex flex-1 min-w-0 items-center justify-center gap-4 overflow-hidden">
           {/* Weather Widget */}
           <div className="hidden xl:block">
             <WeatherWidget size="compact" />
@@ -363,11 +363,11 @@ export function Header({
           )}
         </div>
 
-        {/* Right Section - View Toggle + Theme (flex-shrink-0 to prevent squeezing) */}
-        <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+        {/* Right Section - View Toggle + Theme */}
+        <div className="flex items-center gap-2 lg:gap-3 min-w-[200px] lg:min-w-[280px]">
           
           {/* View Toggle - Day/Week/Timeline/Month */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1 flex-shrink-0">
             {viewOptions.map((option) => {
               const Icon = option.icon;
               return (
