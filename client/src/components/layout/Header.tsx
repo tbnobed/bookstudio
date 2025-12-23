@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
-import { ChevronLeft, ChevronRight, Menu, CalendarDays, LayoutGrid, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, CalendarDays, LayoutGrid, Calendar as CalendarIcon, Clock, Filter, Check } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import StudioStatusSummary from "./StudioStatusSummary";
@@ -243,6 +244,63 @@ export function Header({
               >
                 Today
               </Button>
+              
+              {/* Studio Filter Dropdown */}
+              {onStudioFilterChange && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "gap-1.5",
+                        selectedStudioIds.length > 0 && "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
+                      )}
+                      data-testid="button-studio-filter"
+                    >
+                      <Filter className="h-4 w-4" />
+                      <span className="hidden sm:inline">Studios</span>
+                      {selectedStudioIds.length > 0 && (
+                        <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium text-white">
+                          {selectedStudioIds.length}
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 max-h-80 overflow-y-auto">
+                    <DropdownMenuLabel>Filter by Studio</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {selectedStudioIds.length > 0 && (
+                      <>
+                        <button
+                          className="w-full px-2 py-1.5 text-sm text-left text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                          onClick={() => onStudioFilterChange([])}
+                          data-testid="button-clear-studio-filter"
+                        >
+                          Clear all filters
+                        </button>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    {studios.map((studio) => (
+                      <DropdownMenuCheckboxItem
+                        key={studio.id}
+                        checked={selectedStudioIds.includes(studio.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            onStudioFilterChange([...selectedStudioIds, studio.id]);
+                          } else {
+                            onStudioFilterChange(selectedStudioIds.filter(id => id !== studio.id));
+                          }
+                        }}
+                        data-testid={`checkbox-studio-${studio.id}`}
+                      >
+                        {studio.name}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           )}
         </div>
