@@ -80,8 +80,8 @@ export default function DayTimelineView({
   }, [currentTime, date]);
 
   const getBookingPosition = (booking: any) => {
-    const start = new Date(booking.start);
-    const end = new Date(booking.end);
+    const start = toZonedTime(new Date(booking.start), getFacilityTimezone());
+    const end = toZonedTime(new Date(booking.end), getFacilityTimezone());
     const startHour = start.getHours() + start.getMinutes() / 60;
     const endHour = end.getHours() + end.getMinutes() / 60;
     const left = startHour * HOUR_WIDTH;
@@ -303,7 +303,7 @@ export default function DayTimelineView({
                           <HoverCardTrigger asChild>
                             <div
                               className={cn(
-                                "absolute top-2 bottom-2 rounded-md px-3 py-1 cursor-pointer transition-all hover:brightness-110 hover:shadow-lg overflow-hidden",
+                                "absolute top-2 bottom-2 rounded-md px-3 py-1 cursor-pointer transition-all hover:brightness-110 hover:shadow-lg overflow-hidden z-10",
                                 !readOnly && "hover:ring-2 hover:ring-white/30"
                               )}
                               style={{
