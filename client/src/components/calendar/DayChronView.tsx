@@ -512,377 +512,218 @@ export default function DayChronView({
     };
   }, [regularBookings, alerts, studioUtilization, studios.length]);
 
+  // Generate time slots for the horizontal timeline (24 hours)
+  const timeSlots = Array.from({ length: 24 }, (_, i) => i);
+  
+  // Helper to calculate booking position and width as percentage of day
+  const getBookingStyle = (booking: any) => {
+    const startDate = new Date(booking.start);
+    const endDate = new Date(booking.end);
+    const startHour = startDate.getHours() + startDate.getMinutes() / 60;
+    const endHour = endDate.getHours() + endDate.getMinutes() / 60;
+    const left = (startHour / 24) * 100;
+    const width = ((endHour - startHour) / 24) * 100;
+    return { left: `${left}%`, width: `${Math.max(width, 2)}%` };
+  };
+
+  // Get bookings for a specific studio
+  const getBookingsForStudio = (studioId: number) => {
+    return regularBookings.filter(booking => {
+      const linkedStudios = bookingStudios.filter(bs => bs.bookingId === booking.id);
+      return linkedStudios.some(bs => bs.studioId === studioId);
+    });
+  };
+
+  // Get booking color based on type
+  const getBookingColor = (booking: any) => {
+    if (booking.color) return booking.color;
+    switch (booking.type) {
+      case "maintenance": return "bg-amber-500";
+      case "it_support": return "bg-red-500";
+      case "rehearsal": return "bg-purple-500";
+      case "production": return "bg-blue-500";
+      default: return "bg-gray-500";
+    }
+  };
+
   return (
-    <div className="w-full h-full flex gap-6 p-4">
-      {/* Main Content Area */}
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold">
-              {formatInFacilityTimezone(date, 'EEEE, MMMM d, yyyy')}
-            </h2>
-            <WeatherForecastCell 
-              date={date} 
-              forecast={forecast?.forecast.find(f => f.date === date.toISOString().split('T')[0]) || null} 
-              size="normal" 
-            />
-          </div>
-          
-          {!readOnly && (
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="ml-auto"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (studios.length > 0) {
-                  // Create proper Date objects for start and end times
-                  const startDate = new Date(date);
-                  startDate.setHours(9, 0, 0, 0);
-                  
-                  const endDate = new Date(date);
-                  endDate.setHours(10, 0, 0, 0);
-                  
-                  onBookingClick({
-                    isNew: true,
-                    start: startDate,
-                    end: endDate,
-                    studioId: studios[0]?.id // Default to first studio
-                  });
-                }
-              }}
-            >
-              + New Booking
-            </Button>
-          )}
-        </div>
-      
-      {/* ALERTS SECTION - Always shown regardless of other bookings */}
-      <div className="mb-6 p-4 border-2 border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-900/20 rounded-md shadow-md">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={20} className="text-red-600 dark:text-red-400" />
-            <h3 className="text-lg font-bold text-red-700 dark:text-red-400">ALERTS & CRITICAL NOTICES</h3>
-          </div>
-          {!readOnly && (
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              className="gap-1"
-              onClick={() => {
-                // Handle creating a new alert for the current date
-                const alertData = {
-                  type: "alert", // Using simpler alert type
-                  start: date,
-                  studioId: null
-                };
-                onBookingClick(alertData);
-              }}
-            >
-              <AlertTriangle className="h-4 w-4" />
-              <span>Add Alert</span>
-            </Button>
-          )}
+    <div className="w-full h-full flex flex-col">
+      {/* Header with Date and Weather */}
+      <div className="flex-shrink-0 flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-bold dark:text-white">
+            {formatInFacilityTimezone(date, 'EEEE, MMMM d, yyyy')}
+          </h2>
+          <WeatherForecastCell 
+            date={date} 
+            forecast={forecast?.forecast.find(f => f.date === date.toISOString().split('T')[0]) || null} 
+            size="normal" 
+          />
         </div>
         
-        {alerts.length === 0 ? (
-          <div className="text-center py-3 bg-white dark:bg-gray-800 rounded-md text-gray-500 dark:text-gray-400">
-            <p>No alerts for this day</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {alerts.map(alert => (
-              <div 
-                key={alert.id} 
-                className={cn(
-                  "p-3 rounded-md border-l-4 bg-white dark:bg-gray-800 shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700",
-                  alert.severity === "critical" ? "border-red-500 dark:border-red-600" : 
-                  alert.severity === "high" ? "border-orange-500 dark:border-orange-600" : 
-                  alert.severity === "medium" ? "border-amber-500 dark:border-amber-600" : 
-                  "border-blue-500 dark:border-blue-600"
-                )}
-                onClick={() => onBookingClick(alert)}
-              >
-                <div className={cn(
-                  "font-medium",
-                  alert.severity === "critical" ? "text-red-700 dark:text-red-400" : 
-                  alert.severity === "high" ? "text-orange-700 dark:text-orange-400" : 
-                  alert.severity === "medium" ? "text-amber-700 dark:text-amber-400" : 
-                  "text-blue-700 dark:text-blue-400"
-                )}>
-                  {alert.title}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {alert.description && alert.description.substring(0, 100)}
-                  {alert.description && alert.description.length > 100 ? '...' : ''}
-                </div>
-                <div className="mt-2 flex items-center text-xs">
-                  <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
-                    <Clock size={14} className="flex-shrink-0" />
-                    <span>
-                      {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
-                    </span>
-                  </div>
-                  <span className={cn(
-                    "inline-block px-2 py-1 ml-2 rounded-full text-xs font-semibold",
-                    alert.severity === "critical" ? "bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300" : 
-                    alert.severity === "high" ? "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300" : 
-                    alert.severity === "medium" ? "bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300" : 
-                    "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
-                  )}>
-                    {alert.severity || 'info'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+        {!readOnly && (
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (studios.length > 0) {
+                const startDate = new Date(date);
+                startDate.setHours(9, 0, 0, 0);
+                const endDate = new Date(date);
+                endDate.setHours(10, 0, 0, 0);
+                onBookingClick({
+                  isNew: true,
+                  start: startDate,
+                  end: endDate,
+                  studioId: studios[0]?.id
+                });
+              }
+            }}
+          >
+            + New Booking
+          </Button>
         )}
       </div>
-      
-      {/* REGULAR BOOKINGS SECTION */}
-      {regularBookings.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-md">
-          <p className="text-gray-500 dark:text-gray-400">No regular bookings for this day</p>
-        </div>
-      ) : (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-3 dark:text-gray-100">Bookings</h3>
-          <div className="space-y-3">
-            {regularBookings.map(booking => (
-              <BookingCard key={booking.id} booking={booking} />
-            ))}
+
+      {/* Alerts Section - Compact */}
+      {(alerts.length > 0 || !readOnly) && (
+        <div className="flex-shrink-0 p-3 border-b border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-900/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-red-600 dark:text-red-400" />
+              <span className="font-semibold text-red-700 dark:text-red-400 text-sm">
+                ALERTS ({alerts.length})
+              </span>
+              {alerts.length > 0 && (
+                <div className="flex gap-2 ml-2">
+                  {alerts.slice(0, 3).map(alert => (
+                    <button
+                      key={alert.id}
+                      onClick={() => onBookingClick(alert)}
+                      className="text-xs px-2 py-1 bg-white dark:bg-gray-800 rounded border border-red-300 dark:border-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 truncate max-w-32"
+                    >
+                      {alert.title}
+                    </button>
+                  ))}
+                  {alerts.length > 3 && (
+                    <span className="text-xs text-red-600 dark:text-red-400">+{alerts.length - 3} more</span>
+                  )}
+                </div>
+              )}
+            </div>
+            {!readOnly && (
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                className="gap-1 h-7 text-xs"
+                onClick={() => onBookingClick({ type: "alert", start: date, studioId: null })}
+              >
+                <AlertTriangle className="h-3 w-3" />
+                Add Alert
+              </Button>
+            )}
           </div>
         </div>
       )}
-      </div>
-      
-      {/* Right Sidebar with Day Analytics */}
-      <div className="w-80 flex-shrink-0 flex flex-col space-y-4 h-full">
-        {/* Day Statistics Card */}
-        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Day Overview</h3>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Total Bookings</span>
-              <span className="font-semibold text-lg dark:text-gray-100">{dayStats.totalBookings}</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Active Studios</span>
-              <span className="font-semibold dark:text-gray-100">{dayStats.activeStudios}/{dayStats.totalStudios}</span>
-            </div>
-            
-            {dayStats.totalAlerts > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-red-600 dark:text-red-400">Active Alerts</span>
-                <span className="font-semibold text-red-600 dark:text-red-400">{dayStats.totalAlerts}</span>
-              </div>
-            )}
-            
-            <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="text-center">
-                  <div className="font-semibold text-green-600 dark:text-green-400">{dayStats.confirmedBookings}</div>
-                  <div className="text-gray-500 dark:text-gray-400">Confirmed</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-yellow-600 dark:text-yellow-400">{dayStats.tentativeBookings}</div>
-                  <div className="text-gray-500 dark:text-gray-400">Tentative</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-red-600 dark:text-red-400">{dayStats.cancelledBookings}</div>
-                  <div className="text-gray-500 dark:text-gray-400">Cancelled</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Quick Actions Card - Moved to Top */}
-        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h3>
-          </div>
-          
-          <div className="space-y-2">
-            {!readOnly && (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start gap-2"
-                  onClick={() => {
-                    if (studios.length > 0) {
-                      const startDate = new Date(date);
-                      startDate.setHours(9, 0, 0, 0);
-                      const endDate = new Date(date);
-                      endDate.setHours(10, 0, 0, 0);
-                      
-                      onBookingClick({
-                        isNew: true,
-                        start: startDate,
-                        end: endDate,
-                        studioId: studios[0]?.id
-                      });
-                    }
-                  }}
-                >
-                  <Camera className="h-4 w-4" />
-                  Quick Booking
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start gap-2"
-                  onClick={() => {
-                    const alertData = {
-                      type: "alert",
-                      start: date,
-                      studioId: null
-                    };
-                    onBookingClick(alertData);
-                  }}
-                >
-                  <AlertTriangle className="h-4 w-4" />
-                  Create Alert
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Studio Utilization Card - Expanded Height */}
-        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Studio Utilization</h3>
-          </div>
-          
-          <div className="space-y-3 flex-1 overflow-y-auto min-h-0">
-            {studioUtilization.map((item, index) => (
-              <div key={item.studio.id} className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Camera className="h-3 w-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-sm font-medium truncate dark:text-gray-200">{item.studio.name}</span>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{item.bookings} bookings</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div 
-                      className={cn(
-                        "h-2 rounded-full transition-all",
-                        item.utilization > 80 ? "bg-red-500" :
-                        item.utilization > 60 ? "bg-orange-500" :
-                        item.utilization > 30 ? "bg-yellow-500" : 
-                        item.utilization > 0 ? "bg-green-500" : "bg-gray-300"
-                      )}
-                      style={{ width: `${item.utilization}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-10 text-right">
-                    {item.utilization.toFixed(0)}%
-                  </span>
-                </div>
-                
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {item.hours.toFixed(1)} hours booked
-                </div>
+      {/* Horizontal Timeline Grid */}
+      <div className="flex-1 min-h-0 overflow-auto">
+        <div className="min-w-[1200px]">
+          {/* Time Header Row */}
+          <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600">
+            <div className="flex">
+              <div className="w-40 flex-shrink-0 p-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600">
+                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">STUDIOS</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Updates - Expanded Height */}
-        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-          <div className="flex items-center gap-2 mb-3">
-            <Activity className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Updates</h3>
-          </div>
-          
-          <div className="space-y-2 flex-1 overflow-y-auto min-h-0">
-            {bookings
-              .filter(booking => {
-                // Show bookings from the last 3 days
-                const threeDaysAgo = new Date();
-                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-                const createdAt = new Date(booking.createdAt);
-                return createdAt >= threeDaysAgo;
-              })
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              .slice(0, 5)
-              .map((booking) => {
-                const isToday = isSameDay(new Date(booking.start), date);
-                const createdDate = new Date(booking.createdAt);
-                
-                return (
+              <div className="flex-1 flex">
+                {timeSlots.map(hour => (
                   <div 
-                    key={booking.id} 
-                    className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 cursor-pointer mb-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => onBookingClick(booking)}
+                    key={hour} 
+                    className="flex-1 min-w-[50px] border-r border-gray-200 dark:border-gray-700 p-1 text-center"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className={cn(
-                          "w-2.5 h-2.5 rounded-full flex-shrink-0",
-                          booking.status === 'confirmed' ? 'bg-green-500' :
-                          booking.status === 'tentative' ? 'bg-yellow-500' : 'bg-red-500'
-                        )} />
-                        <span className="text-sm font-medium truncate dark:text-gray-200">{booking.title}</span>
-                        {isToday && <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">Today</span>}
-                      </div>
-                    </div>
-                    
-                    {/* Studios and PCR Information */}
-                    <div className="mt-2 space-y-1">
-                      <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                        <Camera className="h-3 w-3" />
-                        <span className="font-medium">Studios:</span>
-                        <span>{getStudiosForBooking(booking).map(studio => typeof studio === 'string' ? studio : studio.name || studio).join(', ')}</span>
-                      </div>
-                      
-                      {booking.pcrRoomId && (
-                        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                          <MonitorSpeaker className="h-3 w-3" />
-                          <span className="font-medium">PCR:</span>
-                          <span>{pcrRooms.find(pcr => pcr.id === booking.pcrRoomId)?.name || `PCR ${booking.pcrRoomId}`}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                        <Clock className="h-3 w-3" />
-                        <span className="font-medium">Time:</span>
-                        <span>
-                          {formatTime(booking.start)} - {formatTime(booking.end)}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                      {formatInFacilityTimezone(new Date(booking.start), 'MMM d')} • Created {formatInFacilityTimezone(createdDate, 'MMM d')}
-                    </div>
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                      {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
+                    </span>
                   </div>
-                );
-              })}
-            
-            {bookings.filter(booking => {
-              const threeDaysAgo = new Date();
-              threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-              return new Date(booking.createdAt) >= threeDaysAgo;
-            }).length === 0 && (
-              <div className="text-center py-3 text-gray-500 text-sm">
-                No recent updates
+                ))}
               </div>
-            )}
+            </div>
           </div>
+
+          {/* Studio Rows with Bookings */}
+          {studios.map((studio, studioIndex) => {
+            const studioBookings = getBookingsForStudio(studio.id);
+            
+            return (
+              <div 
+                key={studio.id} 
+                className={cn(
+                  "flex border-b border-gray-200 dark:border-gray-700",
+                  studioIndex % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800/50"
+                )}
+              >
+                {/* Studio Name */}
+                <div className="w-40 flex-shrink-0 p-2 border-r border-gray-200 dark:border-gray-700 flex items-center">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full flex-shrink-0",
+                      studioBookings.length > 0 ? "bg-blue-500" : "bg-emerald-500"
+                    )} />
+                    <span className="text-sm font-medium truncate dark:text-gray-200">{studio.name}</span>
+                  </div>
+                </div>
+
+                {/* Timeline Area */}
+                <div className="flex-1 relative h-12">
+                  {/* Hour Grid Lines */}
+                  <div className="absolute inset-0 flex">
+                    {timeSlots.map(hour => (
+                      <div 
+                        key={hour} 
+                        className="flex-1 min-w-[50px] border-r border-gray-100 dark:border-gray-800"
+                      />
+                    ))}
+                  </div>
+
+                  {/* Booking Blocks */}
+                  {studioBookings.map(booking => {
+                    const style = getBookingStyle(booking);
+                    return (
+                      <HoverCard key={booking.id}>
+                        <HoverCardTrigger asChild>
+                          <button
+                            className={cn(
+                              "absolute top-1 bottom-1 rounded cursor-pointer hover:opacity-80 transition-opacity",
+                              "flex items-center px-1 overflow-hidden",
+                              getBookingColor(booking)
+                            )}
+                            style={style}
+                            onClick={() => onBookingClick(booking)}
+                          >
+                            <span className="text-xs font-medium text-white truncate">
+                              {booking.title}
+                            </span>
+                          </button>
+                        </HoverCardTrigger>
+                        <BookingHoverCard 
+                          booking={booking} 
+                          notificationGroups={notificationGroups}
+                          bookingStudioLinks={bookingStudios}
+                        />
+                      </HoverCard>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          {studios.length === 0 && (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              No studios available
+            </div>
+          )}
         </div>
       </div>
     </div>
