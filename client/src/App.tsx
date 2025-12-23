@@ -117,7 +117,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       )}
       
       {/* Main Content - adjust margin based on whether sidebar is showing */}
-      <div className={`flex-1 ${showSidebar ? 'lg:ml-64' : ''} p-0`}>
+      <div className={`flex-1 ${showSidebar ? 'lg:ml-72' : ''} p-0`}>
         {/* For mobile screens, wrap in MobileLayout to add the navbar at the bottom */}
         {isSmallScreen ? (
           <MobileLayout>
