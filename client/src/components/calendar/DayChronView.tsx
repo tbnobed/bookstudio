@@ -515,13 +515,8 @@ export default function DayChronView({
   // Generate time slots for the horizontal timeline (24 hours)
   const timeSlots = Array.from({ length: 24 }, (_, i) => i);
   
-  // Each hour column is 100px wide for better readability
-  const HOUR_WIDTH = 100;
-  
-  // Calculate current time position for NOW indicator
-  const now = new Date();
-  const nowHour = now.getHours() + now.getMinutes() / 60;
-  const nowPosition = nowHour * HOUR_WIDTH;
+  // Each hour column is 52px wide, so total timeline width is 52 * 24 = 1248px
+  const HOUR_WIDTH = 52;
   
   // Helper to calculate booking position and width in pixels
   const getBookingStyle = (booking: any) => {
@@ -641,36 +636,26 @@ export default function DayChronView({
       )}
 
       {/* Horizontal Timeline Grid */}
-      <div className="flex-1 min-h-0 overflow-auto bg-gray-900">
-        <div style={{ width: `${180 + (HOUR_WIDTH * 24)}px`, minWidth: '100%' }}>
-          {/* Time Header Row with NOW indicator */}
-          <div className="sticky top-0 z-20 bg-gray-800 border-b border-gray-600">
-            <div className="flex relative">
-              <div className="w-44 flex-shrink-0 py-3 px-4 bg-gray-800 border-r border-gray-600">
-                {/* Empty header cell */}
+      <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
+        <div className="inline-block" style={{ width: `${160 + (HOUR_WIDTH * 24)}px` }}>
+          {/* Time Header Row */}
+          <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600">
+            <div className="flex">
+              <div className="w-40 flex-shrink-0 p-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600">
+                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">STUDIOS</span>
               </div>
-              <div className="relative flex" style={{ width: `${HOUR_WIDTH * 24}px` }}>
+              <div className="flex flex-none" style={{ width: `${HOUR_WIDTH * 24}px` }}>
                 {timeSlots.map(hour => (
                   <div 
                     key={hour} 
-                    className="flex-shrink-0 border-r border-gray-700 py-3 text-center"
+                    className="flex-shrink-0 border-r border-gray-200 dark:border-gray-700 p-1 text-center"
                     style={{ width: `${HOUR_WIDTH}px` }}
                   >
-                    <span className="text-sm font-medium text-gray-400">
-                      {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                      {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
                     </span>
                   </div>
                 ))}
-                {/* NOW Indicator in header */}
-                <div 
-                  className="absolute top-0 bottom-0 flex flex-col items-center z-30"
-                  style={{ left: `${nowPosition}px`, transform: 'translateX(-50%)' }}
-                >
-                  <div className="bg-gray-800 px-2 py-0.5 rounded text-xs font-bold text-white border border-red-500">
-                    NOW
-                  </div>
-                  <div className="w-0.5 flex-1 bg-red-500" />
-                </div>
               </div>
             </div>
           </div>
@@ -682,58 +667,52 @@ export default function DayChronView({
             return (
               <div 
                 key={studio.id} 
-                className="flex border-b border-gray-700 relative"
+                className={cn(
+                  "flex border-b border-gray-200 dark:border-gray-700",
+                  studioIndex % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800/50"
+                )}
               >
                 {/* Studio Name */}
-                <div className="w-44 flex-shrink-0 py-4 px-4 border-r border-gray-700 bg-gray-800 flex items-center sticky left-0 z-10">
-                  <span className="text-sm font-medium text-gray-200 truncate">{studio.name}</span>
+                <div className="w-40 flex-shrink-0 p-2 border-r border-gray-200 dark:border-gray-700 flex items-center">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full flex-shrink-0",
+                      studioBookings.length > 0 ? "bg-blue-500" : "bg-emerald-500"
+                    )} />
+                    <span className="text-sm font-medium truncate dark:text-gray-200">{studio.name}</span>
+                  </div>
                 </div>
 
                 {/* Timeline Area */}
-                <div className="relative" style={{ width: `${HOUR_WIDTH * 24}px`, height: '60px' }}>
+                <div className="flex-none relative h-12" style={{ width: `${HOUR_WIDTH * 24}px` }}>
                   {/* Hour Grid Lines */}
                   <div className="absolute inset-0 flex">
                     {timeSlots.map(hour => (
                       <div 
                         key={hour} 
-                        className="flex-shrink-0 border-r border-gray-700/50"
+                        className="flex-shrink-0 border-r border-gray-100 dark:border-gray-800"
                         style={{ width: `${HOUR_WIDTH}px` }}
                       />
                     ))}
                   </div>
 
-                  {/* NOW line through this row */}
-                  <div 
-                    className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-20"
-                    style={{ left: `${nowPosition}px` }}
-                  />
-
                   {/* Booking Blocks */}
                   {studioBookings.map(booking => {
                     const style = getBookingStyle(booking);
-                    const bgColor = booking.color || (
-                      booking.status === 'cancelled' ? '#6b7280' :
-                      booking.type === 'production' ? '#ef5350' :
-                      booking.type === 'rehearsal' ? '#ab47bc' :
-                      booking.type === 'maintenance' ? '#ffa726' :
-                      '#26a69a'
-                    );
                     return (
                       <HoverCard key={booking.id}>
                         <HoverCardTrigger asChild>
                           <button
-                            className="absolute top-2 bottom-2 rounded-md cursor-pointer hover:brightness-110 transition-all shadow-lg flex flex-col justify-center px-3 overflow-hidden text-left"
-                            style={{ 
-                              ...style,
-                              backgroundColor: bgColor
-                            }}
+                            className={cn(
+                              "absolute top-1 bottom-1 rounded cursor-pointer hover:opacity-80 transition-opacity",
+                              "flex items-center px-1 overflow-hidden",
+                              getBookingColor(booking)
+                            )}
+                            style={style}
                             onClick={() => onBookingClick(booking)}
                           >
-                            <span className="text-sm font-semibold text-white truncate">
+                            <span className="text-xs font-medium text-white truncate">
                               {booking.title}
-                            </span>
-                            <span className="text-xs text-white/80 truncate">
-                              {formatTime(booking.start)} - {formatTime(booking.end)}
                             </span>
                           </button>
                         </HoverCardTrigger>
@@ -751,7 +730,7 @@ export default function DayChronView({
           })}
 
           {studios.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               No studios available
             </div>
           )}
