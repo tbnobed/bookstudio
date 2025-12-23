@@ -783,7 +783,7 @@ export default function DayChronView({
               <div className="w-28 flex-shrink-0 p-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600">
                 <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">STUDIOS</span>
               </div>
-              <div className="flex-1 flex">
+              <div className="flex-1 flex relative">
                 {timeSlots.map(hour => (
                   <div 
                     key={hour} 
@@ -794,6 +794,29 @@ export default function DayChronView({
                     </span>
                   </div>
                 ))}
+                {/* NOW indicator in header */}
+                {(() => {
+                  const now = toZonedTime(new Date(), facilityTimezone);
+                  const viewDate = toZonedTime(date, facilityTimezone);
+                  const isToday = now.getFullYear() === viewDate.getFullYear() &&
+                                 now.getMonth() === viewDate.getMonth() &&
+                                 now.getDate() === viewDate.getDate();
+                  if (!isToday) return null;
+                  const currentHour = now.getHours() + now.getMinutes() / 60;
+                  const leftPercent = (currentHour / 24) * 100;
+                  return (
+                    <div 
+                      className="absolute top-0 bottom-0 flex flex-col items-center z-30"
+                      style={{ left: `${leftPercent}%`, transform: 'translateX(-50%)' }}
+                    >
+                      <div className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">
+                        NOW
+                      </div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full -mt-0.5" />
+                      <div className="w-0.5 flex-1 bg-red-500" />
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -832,6 +855,24 @@ export default function DayChronView({
                       />
                     ))}
                   </div>
+
+                  {/* Current Time Indicator (red line) */}
+                  {(() => {
+                    const now = toZonedTime(new Date(), facilityTimezone);
+                    const viewDate = toZonedTime(date, facilityTimezone);
+                    const isToday = now.getFullYear() === viewDate.getFullYear() &&
+                                   now.getMonth() === viewDate.getMonth() &&
+                                   now.getDate() === viewDate.getDate();
+                    if (!isToday) return null;
+                    const currentHour = now.getHours() + now.getMinutes() / 60;
+                    const leftPercent = (currentHour / 24) * 100;
+                    return (
+                      <div 
+                        className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10"
+                        style={{ left: `${leftPercent}%` }}
+                      />
+                    );
+                  })()}
 
                   {/* Booking Blocks */}
                   {studioBookings.map(booking => {
