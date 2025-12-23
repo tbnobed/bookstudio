@@ -263,7 +263,7 @@ export default function DailyCalendar({
   return (
     <>
       <div className="overflow-auto h-full">
-        <DayTimelineView 
+        <DayChronView 
           date={currentDate}
           bookings={bookings}
           studios={filteredStudios}
