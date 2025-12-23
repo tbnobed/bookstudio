@@ -807,13 +807,13 @@ export default function DayChronView({
                 {timeSlots.map((hour, index) => (
                   <div 
                     key={hour} 
-                    className="flex-1 text-center min-w-0 relative"
+                    className="flex-1 min-w-0 relative"
                   >
-                    <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 block py-2">
+                    <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 block py-2 pl-1">
                       {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
                     </span>
-                    {/* Subtle tick mark at bottom */}
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-1.5 bg-gray-300 dark:bg-gray-600" />
+                    {/* Tick mark at left edge - aligns with booking start positions */}
+                    <div className="absolute bottom-0 left-0 w-px h-2 bg-gray-300 dark:bg-gray-600" />
                   </div>
                 ))}
                 {/* NOW indicator in header */}
