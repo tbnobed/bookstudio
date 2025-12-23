@@ -6,6 +6,7 @@ import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, BookingStudio } from "@shared/schema";
 import { cn } from "@/lib/utils";
+import { calculateStudioStatus } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
@@ -268,8 +269,47 @@ export function Header({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-56 max-h-80 overflow-y-auto">
-                    <DropdownMenuLabel>Filter by Studio</DropdownMenuLabel>
+                    <DropdownMenuLabel>Quick Filters</DropdownMenuLabel>
+                    <div className="flex gap-1 px-2 py-1.5">
+                      <button
+                        className="flex-1 px-2 py-1 text-xs font-medium rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
+                        onClick={() => {
+                          const availableIds = studios
+                            .filter(s => calculateStudioStatus(s, bookings, currentDate, bookingStudioLinks) === "available")
+                            .map(s => s.id);
+                          onStudioFilterChange(availableIds);
+                        }}
+                        data-testid="button-filter-available"
+                      >
+                        Available
+                      </button>
+                      <button
+                        className="flex-1 px-2 py-1 text-xs font-medium rounded bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors"
+                        onClick={() => {
+                          const inUseIds = studios
+                            .filter(s => calculateStudioStatus(s, bookings, currentDate, bookingStudioLinks) === "in-use")
+                            .map(s => s.id);
+                          onStudioFilterChange(inUseIds);
+                        }}
+                        data-testid="button-filter-in-use"
+                      >
+                        In Use
+                      </button>
+                      <button
+                        className="flex-1 px-2 py-1 text-xs font-medium rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
+                        onClick={() => {
+                          const maintIds = studios
+                            .filter(s => calculateStudioStatus(s, bookings, currentDate, bookingStudioLinks) === "maintenance")
+                            .map(s => s.id);
+                          onStudioFilterChange(maintIds);
+                        }}
+                        data-testid="button-filter-maintenance"
+                      >
+                        Maint.
+                      </button>
+                    </div>
                     <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Studios</DropdownMenuLabel>
                     {selectedStudioIds.length > 0 && (
                       <>
                         <button
