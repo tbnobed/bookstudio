@@ -262,15 +262,31 @@ export default function DailyCalendar({
 
   return (
     <>
-      <div className="overflow-auto h-full">
-        <DayChronView 
-          date={currentDate}
-          bookings={bookings}
-          studios={filteredStudios}
-          pcrRooms={pcrRooms}
-          onBookingClick={handleBookingClick}
-          readOnly={readOnly}
-        />
+      <div className="flex h-full gap-4 overflow-hidden">
+        {/* Left: Stats Sidebar from DayChronView */}
+        <div className="w-80 flex-shrink-0 overflow-y-auto hidden lg:block">
+          <DayChronView 
+            date={currentDate}
+            bookings={bookings}
+            studios={filteredStudios}
+            pcrRooms={pcrRooms}
+            onBookingClick={handleBookingClick}
+            readOnly={readOnly}
+            showSidebarOnly={true}
+          />
+        </div>
+        
+        {/* Right: Timeline View */}
+        <div className="flex-1 overflow-auto min-w-0">
+          <DayTimelineView 
+            date={currentDate}
+            bookings={bookings}
+            studios={filteredStudios}
+            pcrRooms={pcrRooms}
+            onBookingClick={handleBookingClick}
+            readOnly={readOnly}
+          />
+        </div>
       </div>
 
       {/* Edit Booking Modal - for studio bookings */}
