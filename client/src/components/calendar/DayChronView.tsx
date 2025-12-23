@@ -807,11 +807,13 @@ export default function DayChronView({
                 {timeSlots.map(hour => (
                   <div 
                     key={hour} 
-                    className="flex-1 p-1 text-center min-w-0"
+                    className="flex-1 text-center min-w-0 relative border-l border-gray-300 dark:border-gray-600 first:border-l-0"
                   >
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 block py-1">
                       {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
                     </span>
+                    {/* Hour tick mark */}
+                    <div className="absolute bottom-0 left-0 w-px h-2 bg-gray-400 dark:bg-gray-500" />
                   </div>
                 ))}
                 {/* NOW indicator in header */}
