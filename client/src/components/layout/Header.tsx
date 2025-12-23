@@ -346,7 +346,7 @@ export function Header({
         </div>
         
         {/* Center Section - Studio Status Summary + Weather */}
-        <div className="hidden md:flex flex-1 items-center justify-center gap-6">
+        <div className="flex flex-1 items-center justify-center gap-4 lg:gap-6">
           {/* Weather Widget */}
           <div className="hidden xl:block">
             <WeatherWidget size="compact" />
