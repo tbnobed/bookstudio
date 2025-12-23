@@ -258,33 +258,91 @@ export default function DailyCalendar({
     }
   };
 
+  const [dayViewMode, setDayViewMode] = useState<'timeline' | 'chron' | 'list'>('timeline');
+
   return (
     <>
-      {/* Split Layout: Stats Sidebar + Timeline View */}
-      <div className="flex h-full gap-4 overflow-hidden">
-        {/* Left: Stats Sidebar */}
-        <div className="w-80 flex-shrink-0 overflow-y-auto hidden lg:block">
-          <DayChronView 
-            date={currentDate}
-            bookings={bookings}
-            studios={filteredStudios}
-            pcrRooms={pcrRooms}
-            onBookingClick={handleBookingClick}
-            readOnly={readOnly}
-            showSidebarOnly={true}
-          />
+      {/* Day View Navigation Tabs */}
+      <div className="flex flex-col h-full">
+        {/* Tab Navigation Bar */}
+        <div className="flex items-center px-4 py-2 border-b bg-white dark:bg-gray-900 flex-shrink-0">
+          <Tabs value={dayViewMode} onValueChange={(v) => setDayViewMode(v as 'timeline' | 'chron' | 'list')} className="w-full">
+            <TabsList className="bg-gray-100 dark:bg-gray-800">
+              <TabsTrigger value="timeline" className="gap-1.5 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700" data-testid="tab-day-timeline">
+                <Clock className="h-4 w-4" />
+                <span className="hidden sm:inline">Timeline</span>
+              </TabsTrigger>
+              <TabsTrigger value="chron" className="gap-1.5 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700" data-testid="tab-day-chronological">
+                <Tv className="h-4 w-4" />
+                <span className="hidden sm:inline">Chronological</span>
+              </TabsTrigger>
+              <TabsTrigger value="list" className="gap-1.5 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700" data-testid="tab-day-list">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">List</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
-        
-        {/* Right: Timeline View */}
-        <div className="flex-1 overflow-auto min-w-0">
-          <DayTimelineView 
-            date={currentDate}
-            bookings={bookings}
-            studios={filteredStudios}
-            pcrRooms={pcrRooms}
-            onBookingClick={handleBookingClick}
-            readOnly={readOnly}
-          />
+
+        {/* Tab Content Area */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {/* Timeline View with Stats Sidebar */}
+          {dayViewMode === 'timeline' && (
+            <div className="flex h-full gap-4 overflow-hidden">
+              {/* Left: Stats Sidebar */}
+              <div className="w-80 flex-shrink-0 overflow-y-auto hidden lg:block">
+                <DayChronView 
+                  date={currentDate}
+                  bookings={bookings}
+                  studios={filteredStudios}
+                  pcrRooms={pcrRooms}
+                  onBookingClick={handleBookingClick}
+                  readOnly={readOnly}
+                  showSidebarOnly={true}
+                />
+              </div>
+              
+              {/* Right: Timeline View */}
+              <div className="flex-1 overflow-auto min-w-0">
+                <DayTimelineView 
+                  date={currentDate}
+                  bookings={bookings}
+                  studios={filteredStudios}
+                  pcrRooms={pcrRooms}
+                  onBookingClick={handleBookingClick}
+                  readOnly={readOnly}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Chronological View */}
+          {dayViewMode === 'chron' && (
+            <div className="h-full overflow-auto">
+              <DayChronView 
+                date={currentDate}
+                bookings={bookings}
+                studios={filteredStudios}
+                pcrRooms={pcrRooms}
+                onBookingClick={handleBookingClick}
+                readOnly={readOnly}
+              />
+            </div>
+          )}
+
+          {/* List View */}
+          {dayViewMode === 'list' && (
+            <div className="h-full overflow-auto">
+              <DayListView 
+                date={currentDate}
+                bookings={bookings}
+                studios={filteredStudios}
+                pcrRooms={pcrRooms}
+                onBookingClick={handleBookingClick}
+                readOnly={readOnly}
+              />
+            </div>
+          )}
         </div>
       </div>
 
