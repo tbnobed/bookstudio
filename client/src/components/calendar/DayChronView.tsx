@@ -724,44 +724,6 @@ export default function DayChronView({
 
       {/* Main Timeline Area */}
       <div className="flex-1 min-w-0 flex flex-col">
-      {/* Header with Date and Weather */}
-      <div className="flex-shrink-0 flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold dark:text-white">
-            {formatInFacilityTimezone(date, 'EEEE, MMMM d, yyyy')}
-          </h2>
-          <WeatherForecastCell 
-            date={date} 
-            forecast={forecast?.forecast.find(f => f.date === date.toISOString().split('T')[0]) || null} 
-            size="normal" 
-          />
-        </div>
-        
-        {!readOnly && (
-          <Button 
-            variant="default" 
-            size="sm" 
-            onClick={(e) => {
-              e.stopPropagation();
-              if (studios.length > 0) {
-                const startDate = new Date(date);
-                startDate.setHours(9, 0, 0, 0);
-                const endDate = new Date(date);
-                endDate.setHours(10, 0, 0, 0);
-                onBookingClick({
-                  isNew: true,
-                  start: startDate,
-                  end: endDate,
-                  studioId: studios[0]?.id
-                });
-              }
-            }}
-          >
-            + New Booking
-          </Button>
-        )}
-      </div>
-
       {/* Alerts Section - Compact */}
       {(alerts.length > 0 || !readOnly) && (
         <div className="flex-shrink-0 p-3 border-b border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-900/20">
