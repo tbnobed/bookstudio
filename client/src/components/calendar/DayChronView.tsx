@@ -787,7 +787,7 @@ export default function DayChronView({
                 {timeSlots.map(hour => (
                   <div 
                     key={hour} 
-                    className="flex-1 border-r border-gray-200 dark:border-gray-700 p-1 text-center min-w-0"
+                    className="flex-1 p-1 text-center min-w-0"
                   >
                     <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                       {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
@@ -846,15 +846,6 @@ export default function DayChronView({
 
                 {/* Timeline Area */}
                 <div className="flex-1 relative h-12">
-                  {/* Hour Grid Lines */}
-                  <div className="absolute inset-0 flex">
-                    {timeSlots.map(hour => (
-                      <div 
-                        key={hour} 
-                        className="flex-1 border-r border-gray-100 dark:border-gray-800"
-                      />
-                    ))}
-                  </div>
 
                   {/* Current Time Indicator (red line) */}
                   {(() => {
