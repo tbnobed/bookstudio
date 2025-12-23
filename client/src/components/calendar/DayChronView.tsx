@@ -803,17 +803,17 @@ export default function DayChronView({
               <div className="w-28 flex-shrink-0 p-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600">
                 <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">STUDIOS</span>
               </div>
-              <div className="flex-1 flex relative">
-                {timeSlots.map(hour => (
+              <div className="flex-1 flex relative border-b border-gray-200 dark:border-gray-700">
+                {timeSlots.map((hour, index) => (
                   <div 
                     key={hour} 
-                    className="flex-1 text-center min-w-0 relative border-l border-gray-300 dark:border-gray-600 first:border-l-0"
+                    className="flex-1 text-center min-w-0 relative"
                   >
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 block py-1">
+                    <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 block py-2">
                       {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
                     </span>
-                    {/* Hour tick mark */}
-                    <div className="absolute bottom-0 left-0 w-px h-2 bg-gray-400 dark:bg-gray-500" />
+                    {/* Subtle tick mark at bottom */}
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-1.5 bg-gray-300 dark:bg-gray-600" />
                   </div>
                 ))}
                 {/* NOW indicator in header */}
