@@ -368,14 +368,14 @@ export function Header({
           
           {/* View Toggle */}
           {showViewToggle && (
-            <div className="hidden lg:flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
               {viewOptions.map((option) => {
                 const Icon = option.icon;
                 return (
                   <button
                     key={option.key}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+                      "flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 text-sm font-medium rounded-md transition-all",
                       view === option.key
                         ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
                         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -384,7 +384,7 @@ export function Header({
                     data-testid={`button-view-${option.key}`}
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="hidden xl:inline">{option.label}</span>
+                    <span className="hidden md:inline">{option.label}</span>
                   </button>
                 );
               })}
