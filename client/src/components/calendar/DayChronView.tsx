@@ -516,9 +516,12 @@ export default function DayChronView({
   const timeSlots = Array.from({ length: 24 }, (_, i) => i);
   
   // Helper to calculate booking position and width as percentages (responsive)
+  // Uses facility timezone for correct positioning
+  const facilityTimezone = getFacilityTimezone();
   const getBookingStyle = (booking: any) => {
-    const startDate = new Date(booking.start);
-    const endDate = new Date(booking.end);
+    // Convert to facility timezone for correct hour calculation
+    const startDate = toZonedTime(new Date(booking.start), facilityTimezone);
+    const endDate = toZonedTime(new Date(booking.end), facilityTimezone);
     const startHour = startDate.getHours() + startDate.getMinutes() / 60;
     const endHour = endDate.getHours() + endDate.getMinutes() / 60;
     const duration = endHour - startHour;
