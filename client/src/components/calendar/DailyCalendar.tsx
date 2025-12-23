@@ -261,15 +261,17 @@ export default function DailyCalendar({
 
   return (
     <>
-      <div className="overflow-auto h-full">
-        <DayChronView 
-          date={currentDate}
-          bookings={bookings}
-          studios={filteredStudios}
-          pcrRooms={pcrRooms}
-          onBookingClick={handleBookingClick}
-          readOnly={readOnly}
-        />
+      <div className="flex flex-col h-full min-h-0">
+        <div className="flex-1 min-h-0 overflow-auto">
+          <DayChronView 
+            date={currentDate}
+            bookings={bookings}
+            studios={filteredStudios}
+            pcrRooms={pcrRooms}
+            onBookingClick={handleBookingClick}
+            readOnly={readOnly}
+          />
+        </div>
       </div>
 
       {/* Edit Booking Modal - for studio bookings */}
