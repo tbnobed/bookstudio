@@ -247,9 +247,14 @@ export function Header({
           )}
         </div>
         
-        {/* Center Section - Studio Status Summary */}
-        {onStudioFilterChange && (
-          <div className="hidden md:flex flex-1 justify-center">
+        {/* Center Section - Studio Status Summary + Weather */}
+        <div className="hidden md:flex flex-1 items-center justify-center gap-6">
+          {/* Weather Widget */}
+          <div className="hidden xl:block">
+            <WeatherWidget size="compact" />
+          </div>
+          
+          {onStudioFilterChange && (
             <StudioStatusSummary
               studios={studios}
               bookings={bookings}
@@ -257,15 +262,11 @@ export function Header({
               currentDate={currentDate}
               onFilterByStatus={onStudioFilterChange}
             />
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Right Section */}
         <div className="flex items-center gap-2 lg:gap-3">
-          {/* Weather Widget */}
-          <div className="hidden xl:block">
-            <WeatherWidget size="compact" />
-          </div>
           
           {/* View Toggle */}
           {showViewToggle && (
