@@ -766,8 +766,8 @@ export default function DayChronView({
       )}
 
       {/* Horizontal Timeline Grid */}
-      <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
-        <div className="inline-block" style={{ width: `${160 + (HOUR_WIDTH * 24)}px` }}>
+      <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="min-w-full" style={{ minWidth: `${160 + (HOUR_WIDTH * 24)}px` }}>
           {/* Time Header Row */}
           <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600">
             <div className="flex">
