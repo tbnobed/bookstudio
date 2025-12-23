@@ -310,18 +310,20 @@ export function Header({
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel>Studios</DropdownMenuLabel>
-                    {selectedStudioIds.length > 0 && (
-                      <>
-                        <button
-                          className="w-full px-2 py-1.5 text-sm text-left text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-                          onClick={() => onStudioFilterChange([])}
-                          data-testid="button-clear-studio-filter"
-                        >
-                          Show all studios
-                        </button>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
+                    <button
+                      className={cn(
+                        "w-full px-2 py-1.5 text-sm text-left hover:bg-gray-100 dark:hover:bg-gray-800",
+                        selectedStudioIds.length === 0 
+                          ? "text-gray-400 dark:text-gray-500" 
+                          : "text-blue-600 dark:text-blue-400"
+                      )}
+                      onClick={() => onStudioFilterChange([])}
+                      disabled={selectedStudioIds.length === 0}
+                      data-testid="button-clear-studio-filter"
+                    >
+                      Show all studios {selectedStudioIds.length > 0 && `(clear ${selectedStudioIds.length})`}
+                    </button>
+                    <DropdownMenuSeparator />
                     {studios.map((studio) => (
                       <DropdownMenuCheckboxItem
                         key={studio.id}
