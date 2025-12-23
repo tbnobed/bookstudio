@@ -529,6 +529,9 @@ export default function DayChronView({
   // Get bookings for a specific studio
   const getBookingsForStudio = (studioId: number) => {
     return regularBookings.filter(booking => {
+      // Check direct studioId on booking
+      if (booking.studioId === studioId) return true;
+      // Also check booking-studio links (many-to-many relationship)
       const linkedStudios = bookingStudios.filter(bs => bs.bookingId === booking.id);
       return linkedStudios.some(bs => bs.studioId === studioId);
     });
