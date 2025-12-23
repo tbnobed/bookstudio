@@ -258,61 +258,12 @@ export default function DailyCalendar({
     }
   };
 
-  const [viewMode, setViewMode] = useState<'timeline' | 'list' | 'chron'>('timeline');
-
   return (
     <>
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'timeline' | 'list' | 'chron')} className="flex flex-col h-full">
-        {/* Tab Navigation Bar */}
-        <div className="flex items-center justify-between px-4 py-2 border-b bg-white dark:bg-gray-900">
-          <TabsList className="bg-gray-100 dark:bg-gray-800">
-            <TabsTrigger value="timeline" className="gap-1.5" data-testid="tab-timeline">
-              <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Timeline</span>
-            </TabsTrigger>
-            <TabsTrigger value="chron" className="gap-1.5" data-testid="tab-chronological">
-              <Tv className="h-4 w-4" />
-              <span className="hidden sm:inline">Chronological</span>
-            </TabsTrigger>
-            <TabsTrigger value="list" className="gap-1.5" data-testid="tab-list">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">List</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        {/* Timeline Tab Content */}
-        <TabsContent value="timeline" className="flex-1 min-h-0 m-0">
-          <div className="flex h-full gap-4 overflow-hidden">
-            {/* Left: Stats Sidebar */}
-            <div className="w-80 flex-shrink-0 overflow-y-auto hidden lg:block">
-              <DayChronView 
-                date={currentDate}
-                bookings={bookings}
-                studios={filteredStudios}
-                pcrRooms={pcrRooms}
-                onBookingClick={handleBookingClick}
-                readOnly={readOnly}
-                showSidebarOnly={true}
-              />
-            </div>
-            
-            {/* Right: Timeline View */}
-            <div className="flex-1 overflow-auto min-w-0">
-              <DayTimelineView 
-                date={currentDate}
-                bookings={bookings}
-                studios={filteredStudios}
-                pcrRooms={pcrRooms}
-                onBookingClick={handleBookingClick}
-                readOnly={readOnly}
-              />
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Chronological Tab Content */}
-        <TabsContent value="chron" className="flex-1 min-h-0 overflow-auto m-0">
+      {/* Split Layout: Stats Sidebar + Timeline View */}
+      <div className="flex h-full gap-4 overflow-hidden">
+        {/* Left: Stats Sidebar */}
+        <div className="w-80 flex-shrink-0 overflow-y-auto hidden lg:block">
           <DayChronView 
             date={currentDate}
             bookings={bookings}
@@ -320,12 +271,13 @@ export default function DailyCalendar({
             pcrRooms={pcrRooms}
             onBookingClick={handleBookingClick}
             readOnly={readOnly}
+            showSidebarOnly={true}
           />
-        </TabsContent>
-
-        {/* List Tab Content */}
-        <TabsContent value="list" className="flex-1 min-h-0 overflow-auto m-0">
-          <DayListView 
+        </div>
+        
+        {/* Right: Timeline View */}
+        <div className="flex-1 overflow-auto min-w-0">
+          <DayTimelineView 
             date={currentDate}
             bookings={bookings}
             studios={filteredStudios}
@@ -333,8 +285,8 @@ export default function DailyCalendar({
             onBookingClick={handleBookingClick}
             readOnly={readOnly}
           />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       {/* Edit Booking Modal - for studio bookings */}
       {editBooking && (
