@@ -515,9 +515,10 @@ export default function DayChronView({
   // Generate time slots for the horizontal timeline (24 hours)
   const timeSlots = Array.from({ length: 24 }, (_, i) => i);
   
-  // Helper to calculate booking position and width in pixels
   // Each hour column is 52px wide, so total timeline width is 52 * 24 = 1248px
   const HOUR_WIDTH = 52;
+  
+  // Helper to calculate booking position and width in pixels
   const getBookingStyle = (booking: any) => {
     const startDate = new Date(booking.start);
     const endDate = new Date(booking.end);
@@ -636,18 +637,19 @@ export default function DayChronView({
 
       {/* Horizontal Timeline Grid */}
       <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
-        <div style={{ minWidth: '1400px' }}>
+        <div className="inline-block" style={{ width: `${160 + (HOUR_WIDTH * 24)}px` }}>
           {/* Time Header Row */}
           <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600">
             <div className="flex">
               <div className="w-40 flex-shrink-0 p-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600">
                 <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">STUDIOS</span>
               </div>
-              <div className="flex-1 flex">
+              <div className="flex flex-none" style={{ width: `${HOUR_WIDTH * 24}px` }}>
                 {timeSlots.map(hour => (
                   <div 
                     key={hour} 
-                    className="w-[52px] flex-shrink-0 border-r border-gray-200 dark:border-gray-700 p-1 text-center"
+                    className="flex-shrink-0 border-r border-gray-200 dark:border-gray-700 p-1 text-center"
+                    style={{ width: `${HOUR_WIDTH}px` }}
                   >
                     <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                       {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
@@ -682,13 +684,14 @@ export default function DayChronView({
                 </div>
 
                 {/* Timeline Area */}
-                <div className="flex-1 relative h-12" style={{ width: `${52 * 24}px` }}>
+                <div className="flex-none relative h-12" style={{ width: `${HOUR_WIDTH * 24}px` }}>
                   {/* Hour Grid Lines */}
                   <div className="absolute inset-0 flex">
                     {timeSlots.map(hour => (
                       <div 
                         key={hour} 
-                        className="w-[52px] flex-shrink-0 border-r border-gray-100 dark:border-gray-800"
+                        className="flex-shrink-0 border-r border-gray-100 dark:border-gray-800"
+                        style={{ width: `${HOUR_WIDTH}px` }}
                       />
                     ))}
                   </div>
