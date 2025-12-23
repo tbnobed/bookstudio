@@ -618,51 +618,6 @@ export default function DayChronView({
           </div>
         </div>
 
-        {/* Quick Actions Card */}
-        {!readOnly && (
-          <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h3>
-            </div>
-            
-            <div className="space-y-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full justify-start gap-2"
-                onClick={() => {
-                  if (studios.length > 0) {
-                    const startDate = new Date(date);
-                    startDate.setHours(9, 0, 0, 0);
-                    const endDate = new Date(date);
-                    endDate.setHours(10, 0, 0, 0);
-                    onBookingClick({
-                      isNew: true,
-                      start: startDate,
-                      end: endDate,
-                      studioId: studios[0]?.id
-                    });
-                  }
-                }}
-              >
-                <Camera className="h-4 w-4" />
-                Quick Booking
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full justify-start gap-2"
-                onClick={() => onBookingClick({ type: "alert", start: date, studioId: null })}
-              >
-                <AlertTriangle className="h-4 w-4" />
-                Create Alert
-              </Button>
-            </div>
-          </div>
-        )}
-
         {/* Studio Utilization Card */}
         <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4 shadow-sm flex-1 min-h-0 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
