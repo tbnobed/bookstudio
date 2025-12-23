@@ -127,7 +127,7 @@ export default function CalendarPage() {
         useMondayWeeks={view === "timeline"}
       />
       
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className={`flex-1 min-h-0 ${view === "day" ? "overflow-visible" : "overflow-hidden"}`}>
         {view === "day" && (
           <DailyCalendar
             key={currentDate.toISOString()}
