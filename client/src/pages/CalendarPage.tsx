@@ -61,7 +61,9 @@ export default function CalendarPage() {
     try {
       const savedStudios = localStorage.getItem('selectedStudioIds');
       if (savedStudios) {
-        return JSON.parse(savedStudios);
+        const parsed = JSON.parse(savedStudios);
+        // If saved selection contains all studios or is very large, treat as "show all" (empty)
+        return Array.isArray(parsed) ? parsed : [];
       }
       return [];
     } catch (error) {
@@ -70,13 +72,14 @@ export default function CalendarPage() {
     }
   });
 
+  // Clear old "all studios selected" state from localStorage on first load
   useEffect(() => {
-    if (studios.length > 0 && selectedStudioIds.length === 0) {
-      const initialSelection = studios.map(studio => studio.id);
-      setSelectedStudioIds(initialSelection);
-      localStorage.setItem('selectedStudioIds', JSON.stringify(initialSelection));
+    if (studios.length > 0 && selectedStudioIds.length === studios.length) {
+      // If all studios are selected, treat as "no filter" and clear
+      setSelectedStudioIds([]);
+      localStorage.removeItem('selectedStudioIds');
     }
-  }, [studios, selectedStudioIds]);
+  }, [studios.length]); // Only run when studios load
 
   const handleDateChange = (date: Date) => {
     const cleanDate = new Date(date.getTime());
