@@ -261,7 +261,7 @@ export default function DailyCalendar({
   return (
     <>
       {/* Split Layout: Stats Sidebar + Timeline View */}
-      <div className="flex h-full gap-4 overflow-hidden">
+      <div className="flex h-full gap-4">
         {/* Left: Stats Sidebar */}
         <div className="w-80 flex-shrink-0 overflow-y-auto hidden lg:block">
           <DayChronView 
