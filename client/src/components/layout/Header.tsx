@@ -1,20 +1,17 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { subtractDays, addDays, formatWeekRangeText, formatMondayWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
+import BookingModal from "@/components/booking/BookingModal";
 import { ThemeToggle } from "@/components/theme-toggle";
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, BookingStudio } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { calculateStudioStatus } from "@/lib/studioUtils";
+import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
-import { ChevronLeft, ChevronRight, Menu, CalendarDays, LayoutGrid, Calendar as CalendarIcon, Clock, Filter, Check } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import StudioStatusSummary from "./StudioStatusSummary";
+import { ChevronLeft, ChevronRight, Plus, Menu, CalendarDays, LayoutGrid, Calendar, Clock } from "lucide-react";
 
 type HeaderProps = {
   currentDate: Date;
@@ -41,6 +38,8 @@ export function Header({
   useMondayWeeks = false,
   hideNavigation = false
 }: HeaderProps) {
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [showAllStudios, setShowAllStudios] = useState(false);
 
   const { sidebarVisible, toggleSidebar } = useSidebar();
   
@@ -62,6 +61,8 @@ export function Header({
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
   });
+
+  const studiosToShow = showAllStudios || studios.length <= 20 ? studios : studios.slice(0, 20);
 
   const goToToday = () => {
     const facilityTz = getFacilityTimezone_Dynamic();
@@ -136,6 +137,17 @@ export function Header({
     }
   };
 
+  const toggleStudioFilter = (studioId: number) => {
+    if (!onStudioFilterChange) return;
+    
+    const isSelected = selectedStudioIds.includes(studioId);
+    const newSelectedIds = isSelected
+      ? selectedStudioIds.filter(id => id !== studioId)
+      : [...selectedStudioIds, studioId];
+    
+    onStudioFilterChange(newSelectedIds);
+  };
+
   const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
     refetchInterval: 60000, 
@@ -146,11 +158,9 @@ export function Header({
     refetchInterval: 60000,
   });
 
-  const [calendarOpen, setCalendarOpen] = useState(false);
-
   const viewOptions = [
     { key: "day", label: "Day", icon: CalendarDays },
-    { key: "week", label: "Week", icon: CalendarIcon },
+    { key: "week", label: "Week", icon: Calendar },
     { key: "timeline", label: "Timeline", icon: Clock },
     { key: "month", label: "Month", icon: LayoutGrid },
   ] as const;
@@ -182,51 +192,11 @@ export function Header({
                 >
                   <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 </button>
-                
-                {/* Mini Calendar Popover */}
-                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <button 
-                      className="px-3 py-1.5 min-w-[150px] lg:min-w-[200px] text-center border-x border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
-                      data-testid="button-date-picker"
-                    >
-                      <CalendarIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 hidden sm:block" />
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                        {getDateDisplayText()}
-                      </span>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={currentDate}
-                      onSelect={(date) => {
-                        if (date) {
-                          onDateChange(date);
-                          setCalendarOpen(false);
-                        }
-                      }}
-                      defaultMonth={currentDate}
-                      weekStartsOn={useMondayWeeks ? 1 : 0}
-                      className="rounded-lg"
-                    />
-                    <div className="p-2 border-t border-gray-200 dark:border-gray-700">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => {
-                          goToToday();
-                          setCalendarOpen(false);
-                        }}
-                        data-testid="button-calendar-today"
-                      >
-                        Go to Today
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                
+                <div className="px-3 py-1.5 min-w-[150px] lg:min-w-[200px] text-center border-x border-gray-200 dark:border-gray-700">
+                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    {getDateDisplayText()}
+                  </span>
+                </div>
                 <button 
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg transition-colors"
                   onClick={navigateNext}
@@ -245,126 +215,16 @@ export function Header({
               >
                 Today
               </Button>
-              
-              {/* Studio Filter Dropdown */}
-              {onStudioFilterChange && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={cn(
-                        "gap-1.5",
-                        selectedStudioIds.length > 0 && "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-                      )}
-                      data-testid="button-studio-filter"
-                    >
-                      <Filter className="h-4 w-4" />
-                      <span className="hidden sm:inline">Studios</span>
-                      {selectedStudioIds.length > 0 && (
-                        <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium text-white">
-                          {selectedStudioIds.length}
-                        </span>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56 max-h-80 overflow-y-auto">
-                    <DropdownMenuLabel>Quick Filters</DropdownMenuLabel>
-                    <div className="flex gap-1 px-2 py-1.5">
-                      <button
-                        className="flex-1 px-2 py-1 text-xs font-medium rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
-                        onClick={() => {
-                          const availableIds = studios
-                            .filter(s => calculateStudioStatus(s, bookings, currentDate, bookingStudioLinks) === "available")
-                            .map(s => s.id);
-                          onStudioFilterChange(availableIds);
-                        }}
-                        data-testid="button-filter-available"
-                      >
-                        Available
-                      </button>
-                      <button
-                        className="flex-1 px-2 py-1 text-xs font-medium rounded bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors"
-                        onClick={() => {
-                          const inUseIds = studios
-                            .filter(s => calculateStudioStatus(s, bookings, currentDate, bookingStudioLinks) === "in-use")
-                            .map(s => s.id);
-                          onStudioFilterChange(inUseIds);
-                        }}
-                        data-testid="button-filter-in-use"
-                      >
-                        In Use
-                      </button>
-                      <button
-                        className="flex-1 px-2 py-1 text-xs font-medium rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
-                        onClick={() => {
-                          const maintIds = studios
-                            .filter(s => calculateStudioStatus(s, bookings, currentDate, bookingStudioLinks) === "maintenance")
-                            .map(s => s.id);
-                          onStudioFilterChange(maintIds);
-                        }}
-                        data-testid="button-filter-maintenance"
-                      >
-                        Maint.
-                      </button>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Studios</DropdownMenuLabel>
-                    {selectedStudioIds.length > 0 && (
-                      <>
-                        <button
-                          className="w-full px-2 py-1.5 text-sm text-left text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-                          onClick={() => onStudioFilterChange([])}
-                          data-testid="button-clear-studio-filter"
-                        >
-                          Show all studios
-                        </button>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-                    {studios.map((studio) => (
-                      <DropdownMenuCheckboxItem
-                        key={studio.id}
-                        checked={selectedStudioIds.includes(studio.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            onStudioFilterChange([...selectedStudioIds, studio.id]);
-                          } else {
-                            onStudioFilterChange(selectedStudioIds.filter(id => id !== studio.id));
-                          }
-                        }}
-                        data-testid={`checkbox-studio-${studio.id}`}
-                      >
-                        {studio.name}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
             </div>
           )}
         </div>
         
-        {/* Center Section - Studio Status Summary + Weather */}
-        <div className="hidden md:flex flex-1 items-center justify-center gap-6">
+        {/* Right Section */}
+        <div className="flex items-center gap-2 lg:gap-3">
           {/* Weather Widget */}
           <div className="hidden xl:block">
             <WeatherWidget size="compact" />
           </div>
-          
-          {onStudioFilterChange && (
-            <StudioStatusSummary
-              studios={studios}
-              bookings={bookings}
-              bookingStudioLinks={bookingStudioLinks}
-              currentDate={currentDate}
-              onFilterByStatus={onStudioFilterChange}
-            />
-          )}
-        </div>
-
-        {/* Right Section */}
-        <div className="flex items-center gap-2 lg:gap-3">
           
           {/* View Toggle */}
           {showViewToggle && (
@@ -391,11 +251,92 @@ export function Header({
             </div>
           )}
           
+          {/* New Booking Button */}
+          <Button 
+            onClick={() => setIsBookingModalOpen(true)}
+            size="sm"
+            className="gap-1.5"
+            data-testid="button-new-booking"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">New Booking</span>
+          </Button>
+          
           {/* Theme Toggle */}
           <ThemeToggle />
         </div>
       </div>
+      
+      {/* Studios Filter Bar */}
+      {onStudioFilterChange && (
+        <div className="px-4 py-2.5 bg-gray-50/80 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 lg:px-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Studios:
+            </span>
+            
+            <div className="flex flex-wrap gap-1.5">
+              {studiosToShow.map((studio) => {
+                const status = calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks);
+                const isSelected = selectedStudioIds.includes(studio.id);
+                
+                return (
+                  <button
+                    key={studio.id}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-all",
+                      isSelected
+                        ? "bg-white dark:bg-gray-700 border-2 border-primary shadow-sm text-gray-900 dark:text-white"
+                        : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500"
+                    )}
+                    onClick={() => toggleStudioFilter(studio.id)}
+                    data-testid={`button-studio-filter-${studio.id}`}
+                  >
+                    <span className={cn(
+                      "w-2 h-2 rounded-full flex-shrink-0",
+                      getStudioStatusColor(status)
+                    )} />
+                    {studio.name}
+                  </button>
+                );
+              })}
+              
+              {studios.length > 20 && (
+                <button 
+                  className="px-2 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                  onClick={() => setShowAllStudios(!showAllStudios)}
+                  data-testid="button-show-more-studios"
+                >
+                  {showAllStudios ? "Show Less" : `+${studios.length - 20} more`}
+                </button>
+              )}
+            </div>
+            
+            {/* Status Legend */}
+            <div className="ml-auto hidden md:flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                <span className="text-gray-600 dark:text-gray-400">Available</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                <span className="text-gray-600 dark:text-gray-400">Maintenance</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                <span className="text-gray-600 dark:text-gray-400">In-Use</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
+      {/* Booking Modal */}
+      <BookingModal 
+        isOpen={isBookingModalOpen} 
+        onClose={() => setIsBookingModalOpen(false)}
+        selectedDate={currentDate}
+      />
     </header>
   );
 }

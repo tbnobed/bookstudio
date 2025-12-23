@@ -4,11 +4,9 @@ import WeeklyCalendar from "@/components/calendar/WeeklyCalendar";
 import DailyCalendar from "@/components/calendar/DailyCalendar";
 import MonthlyCalendar from "@/components/calendar/MonthlyCalendar";
 import TimelineCalendar from "@/components/calendar/TimelineCalendar";
-import NewBookingFab from "@/components/booking/NewBookingFab";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
-import { useDevice } from "@/hooks/use-mobile";
 
 function MonthlyCalendarWrapper({ currentDate, studios, selectedStudioIds }: { currentDate: Date, studios: Studio[], selectedStudioIds: number[] }) {
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -61,9 +59,7 @@ export default function CalendarPage() {
     try {
       const savedStudios = localStorage.getItem('selectedStudioIds');
       if (savedStudios) {
-        const parsed = JSON.parse(savedStudios);
-        // If saved selection contains all studios or is very large, treat as "show all" (empty)
-        return Array.isArray(parsed) ? parsed : [];
+        return JSON.parse(savedStudios);
       }
       return [];
     } catch (error) {
@@ -72,14 +68,13 @@ export default function CalendarPage() {
     }
   });
 
-  // Clear old "all studios selected" state from localStorage on first load
   useEffect(() => {
-    if (studios.length > 0 && selectedStudioIds.length === studios.length) {
-      // If all studios are selected, treat as "no filter" and clear
-      setSelectedStudioIds([]);
-      localStorage.removeItem('selectedStudioIds');
+    if (studios.length > 0 && selectedStudioIds.length === 0) {
+      const initialSelection = studios.map(studio => studio.id);
+      setSelectedStudioIds(initialSelection);
+      localStorage.setItem('selectedStudioIds', JSON.stringify(initialSelection));
     }
-  }, [studios.length]); // Only run when studios load
+  }, [studios, selectedStudioIds]);
 
   const handleDateChange = (date: Date) => {
     const cleanDate = new Date(date.getTime());
@@ -111,8 +106,6 @@ export default function CalendarPage() {
       console.error('Error saving studio selection to localStorage', error);
     }
   };
-
-  const { isSmallScreen } = useDevice();
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
@@ -160,8 +153,6 @@ export default function CalendarPage() {
           />
         )}
       </div>
-
-      {!isSmallScreen && <NewBookingFab />}
     </div>
   );
 }
