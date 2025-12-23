@@ -626,35 +626,70 @@ export default function DayChronView({
           </div>
           
           <div className="space-y-3 flex-1 overflow-y-auto min-h-0">
-            {studioUtilization.slice(0, 8).map((item) => (
-              <div key={item.studio.id} className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Camera className="h-3 w-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-sm font-medium truncate dark:text-gray-200">{item.studio.name}</span>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{item.bookings} bookings</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div 
-                      className={cn(
-                        "h-2 rounded-full transition-all",
-                        item.utilization > 80 ? "bg-red-500" :
-                        item.utilization > 60 ? "bg-orange-500" :
-                        item.utilization > 30 ? "bg-yellow-500" : 
-                        item.utilization > 0 ? "bg-green-500" : "bg-gray-300"
+            {studioUtilization.slice(0, 8).map((item) => {
+              // Find active booking for this studio
+              const studioBookingsForUtil = bookings.filter(b => {
+                const studioLinks = bookingStudios?.filter(bs => bs.bookingId === b.id) || [];
+                return studioLinks.some(link => link.studioId === item.studio.id);
+              });
+              const activeBooking = studioBookingsForUtil.find(b => isBookingActive(b, currentTime));
+              
+              // Calculate remaining time if there's an active booking
+              let remainingTime = '';
+              if (activeBooking) {
+                const endTime = new Date(activeBooking.end);
+                const diffMs = endTime.getTime() - currentTime.getTime();
+                if (diffMs > 0) {
+                  const diffMins = Math.floor(diffMs / 60000);
+                  const hours = Math.floor(diffMins / 60);
+                  const mins = diffMins % 60;
+                  if (hours > 0) {
+                    remainingTime = `${hours}h ${mins}m left`;
+                  } else {
+                    remainingTime = `${mins}m left`;
+                  }
+                }
+              }
+              
+              return (
+                <div key={item.studio.id} className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <Camera className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm font-medium truncate dark:text-gray-200">{item.studio.name}</span>
+                      {activeBooking && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                          IN USE
+                        </span>
                       )}
-                      style={{ width: `${item.utilization}%` }}
-                    />
+                    </div>
+                    {activeBooking && remainingTime ? (
+                      <span className="text-xs font-medium text-green-600 dark:text-green-400">{remainingTime}</span>
+                    ) : (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{item.bookings} bookings</span>
+                    )}
                   </div>
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-10 text-right">
-                    {item.utilization.toFixed(0)}%
-                  </span>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className={cn(
+                          "h-2 rounded-full transition-all",
+                          item.utilization > 80 ? "bg-red-500" :
+                          item.utilization > 60 ? "bg-orange-500" :
+                          item.utilization > 30 ? "bg-yellow-500" : 
+                          item.utilization > 0 ? "bg-green-500" : "bg-gray-300"
+                        )}
+                        style={{ width: `${item.utilization}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-10 text-right">
+                      {item.utilization.toFixed(0)}%
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
