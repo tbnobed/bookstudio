@@ -86,7 +86,7 @@ export default function StudioStatusSummary({
   ];
 
   return (
-    <div className="flex items-center justify-center gap-4 py-2">
+    <div className="flex items-center justify-center gap-3">
       {statusConfig.map((config) => {
         const group = statusGroups[config.key];
         
@@ -97,9 +97,9 @@ export default function StudioStatusSummary({
                 onClick={() => handleStatusClick(config.key)}
                 className={cn(
                   "flex flex-col items-center justify-center",
-                  "w-16 h-16 sm:w-20 sm:h-20",
+                  "w-12 h-12 lg:w-14 lg:h-14",
                   "rounded-full bg-white dark:bg-gray-800",
-                  "ring-2 ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-900",
+                  "ring-2 ring-offset-1 ring-offset-white dark:ring-offset-gray-900",
                   config.ringColor,
                   config.bgHover,
                   "transition-all duration-200 cursor-pointer",
@@ -107,10 +107,10 @@ export default function StudioStatusSummary({
                 )}
                 data-testid={`status-badge-${config.key}`}
               >
-                <span className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+                <span className="text-base lg:text-lg font-bold text-gray-800 dark:text-white">
                   {group.count}
                 </span>
-                <span className={cn("text-[9px] sm:text-[10px] font-semibold tracking-wide", config.textColor)}>
+                <span className={cn("text-[7px] lg:text-[8px] font-semibold tracking-wide", config.textColor)}>
                   {config.label}
                 </span>
               </button>

@@ -247,6 +247,19 @@ export function Header({
           )}
         </div>
         
+        {/* Center Section - Studio Status Summary */}
+        {onStudioFilterChange && (
+          <div className="hidden md:flex flex-1 justify-center">
+            <StudioStatusSummary
+              studios={studios}
+              bookings={bookings}
+              bookingStudioLinks={bookingStudioLinks}
+              currentDate={currentDate}
+              onFilterByStatus={onStudioFilterChange}
+            />
+          </div>
+        )}
+
         {/* Right Section */}
         <div className="flex items-center gap-2 lg:gap-3">
           {/* Weather Widget */}
@@ -283,19 +296,6 @@ export function Header({
           <ThemeToggle />
         </div>
       </div>
-      
-      {/* Studio Status Summary */}
-      {onStudioFilterChange && (
-        <div className="bg-gray-50/50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-800">
-          <StudioStatusSummary
-            studios={studios}
-            bookings={bookings}
-            bookingStudioLinks={bookingStudioLinks}
-            currentDate={currentDate}
-            onFilterByStatus={onStudioFilterChange}
-          />
-        </div>
-      )}
 
     </header>
   );
