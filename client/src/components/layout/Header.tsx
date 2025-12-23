@@ -6,13 +6,13 @@ import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking, BookingStudio } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
 import { ChevronLeft, ChevronRight, Menu, CalendarDays, LayoutGrid, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import StudioStatusSummary from "./StudioStatusSummary";
 
 type HeaderProps = {
   currentDate: Date;
@@ -39,7 +39,6 @@ export function Header({
   useMondayWeeks = false,
   hideNavigation = false
 }: HeaderProps) {
-  const [showAllStudios, setShowAllStudios] = useState(false);
 
   const { sidebarVisible, toggleSidebar } = useSidebar();
   
@@ -61,8 +60,6 @@ export function Header({
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
   });
-
-  const studiosToShow = showAllStudios || studios.length <= 20 ? studios : studios.slice(0, 20);
 
   const goToToday = () => {
     const facilityTz = getFacilityTimezone_Dynamic();
@@ -135,17 +132,6 @@ export function Header({
     } else {
       return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: getFacilityTimezone_Dynamic() });
     }
-  };
-
-  const toggleStudioFilter = (studioId: number) => {
-    if (!onStudioFilterChange) return;
-    
-    const isSelected = selectedStudioIds.includes(studioId);
-    const newSelectedIds = isSelected
-      ? selectedStudioIds.filter(id => id !== studioId)
-      : [...selectedStudioIds, studioId];
-    
-    onStudioFilterChange(newSelectedIds);
   };
 
   const { data: bookings = [] } = useQuery<Booking[]>({
@@ -298,61 +284,16 @@ export function Header({
         </div>
       </div>
       
-      {/* Studios Filter Bar - Compact horizontal scroll */}
+      {/* Studio Status Summary */}
       {onStudioFilterChange && (
-        <div className="px-3 py-1.5 bg-gray-50/50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-800 lg:px-4">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-            {/* Status Legend - Compact */}
-            <div className="flex-shrink-0 hidden sm:flex items-center gap-2 pr-2 border-r border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-1" title="Available">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              </div>
-              <div className="flex items-center gap-1" title="Maintenance">
-                <span className="h-2 w-2 rounded-full bg-amber-500" />
-              </div>
-              <div className="flex items-center gap-1" title="In-Use">
-                <span className="h-2 w-2 rounded-full bg-red-500" />
-              </div>
-            </div>
-            
-            {/* Studio Pills */}
-            <div className="flex items-center gap-1 flex-nowrap">
-              {studiosToShow.map((studio) => {
-                const status = calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks);
-                const isSelected = selectedStudioIds.includes(studio.id);
-                
-                return (
-                  <button
-                    key={studio.id}
-                    className={cn(
-                      "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full transition-all whitespace-nowrap",
-                      isSelected
-                        ? "bg-primary/10 dark:bg-primary/20 text-primary border border-primary/30"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-transparent hover:bg-gray-200 dark:hover:bg-gray-700"
-                    )}
-                    onClick={() => toggleStudioFilter(studio.id)}
-                    data-testid={`button-studio-filter-${studio.id}`}
-                  >
-                    <span className={cn(
-                      "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                      getStudioStatusColor(status)
-                    )} />
-                    {studio.name}
-                  </button>
-                );
-              })}
-              
-              {studios.length > 20 && (
-                <button 
-                  className="px-2 py-0.5 text-xs font-medium text-primary hover:bg-primary/10 rounded-full transition-colors whitespace-nowrap"
-                  onClick={() => setShowAllStudios(!showAllStudios)}
-                  data-testid="button-show-more-studios"
-                >
-                  {showAllStudios ? "Less" : `+${studios.length - 20}`}
-                </button>
-              )}
-            </div>
-          </div>
+        <div className="bg-gray-50/50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-800">
+          <StudioStatusSummary
+            studios={studios}
+            bookings={bookings}
+            bookingStudioLinks={bookingStudioLinks}
+            currentDate={currentDate}
+            onFilterByStatus={onStudioFilterChange}
+          />
         </div>
       )}
 
