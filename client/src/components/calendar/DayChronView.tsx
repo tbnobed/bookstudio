@@ -805,21 +805,57 @@ export default function DayChronView({
                 ))}
                 {/* NOW indicator in header */}
                 {(() => {
-                  const now = toZonedTime(currentTime, facilityTimezone);
                   const viewDate = toZonedTime(date, facilityTimezone);
-                  const isToday = now.getFullYear() === viewDate.getFullYear() &&
-                                 now.getMonth() === viewDate.getMonth() &&
-                                 now.getDate() === viewDate.getDate();
-                  if (!isToday) return null;
-                  const nowHour = now.getHours() + now.getMinutes() / 60;
+                  // Get current time in facility timezone using toLocaleString
+                  const facilityTimeStr = currentTime.toLocaleString('en-US', { 
+                    timeZone: facilityTimezone,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                  });
+                  const facilityHourStr = currentTime.toLocaleString('en-US', { 
+                    timeZone: facilityTimezone,
+                    hour: 'numeric',
+                    hour12: false
+                  });
+                  const facilityMinuteStr = currentTime.toLocaleString('en-US', { 
+                    timeZone: facilityTimezone,
+                    minute: '2-digit'
+                  });
+                  const facilityDateStr = currentTime.toLocaleString('en-US', { 
+                    timeZone: facilityTimezone,
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric'
+                  });
+                  
+                  // Check if viewing today
+                  const todayStr = new Date().toLocaleString('en-US', {
+                    timeZone: facilityTimezone,
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric'
+                  });
+                  const viewDateStr = date.toLocaleString('en-US', {
+                    timeZone: facilityTimezone,
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric'
+                  });
+                  
+                  if (viewDateStr !== todayStr) return null;
+                  
+                  // Calculate position using facility timezone hours
+                  const nowHour = parseInt(facilityHourStr) + parseInt(facilityMinuteStr) / 60;
                   const leftPercent = (nowHour / 24) * 100;
+                  
                   return (
                     <div 
                       className="absolute top-0 bottom-0 flex flex-col items-center z-30 pointer-events-none"
                       style={{ left: `${leftPercent}%`, transform: 'translateX(-50%)' }}
                     >
                       <div className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm whitespace-nowrap">
-                        NOW
+                        {facilityTimeStr}
                       </div>
                       <div className="w-2 h-2 bg-red-500 rounded-full -mt-0.5" />
                       <div className="w-0.5 flex-1 bg-red-500" />
@@ -858,13 +894,34 @@ export default function DayChronView({
 
                   {/* Current Time Indicator (red line) */}
                   {(() => {
-                    const now = toZonedTime(currentTime, facilityTimezone);
-                    const viewDate = toZonedTime(date, facilityTimezone);
-                    const isToday = now.getFullYear() === viewDate.getFullYear() &&
-                                   now.getMonth() === viewDate.getMonth() &&
-                                   now.getDate() === viewDate.getDate();
-                    if (!isToday) return null;
-                    const nowHour = now.getHours() + now.getMinutes() / 60;
+                    // Get current time in facility timezone
+                    const facilityHourStr = currentTime.toLocaleString('en-US', { 
+                      timeZone: facilityTimezone,
+                      hour: 'numeric',
+                      hour12: false
+                    });
+                    const facilityMinuteStr = currentTime.toLocaleString('en-US', { 
+                      timeZone: facilityTimezone,
+                      minute: '2-digit'
+                    });
+                    
+                    // Check if viewing today
+                    const todayStr = new Date().toLocaleString('en-US', {
+                      timeZone: facilityTimezone,
+                      year: 'numeric',
+                      month: 'numeric',
+                      day: 'numeric'
+                    });
+                    const viewDateStr = date.toLocaleString('en-US', {
+                      timeZone: facilityTimezone,
+                      year: 'numeric',
+                      month: 'numeric',
+                      day: 'numeric'
+                    });
+                    
+                    if (viewDateStr !== todayStr) return null;
+                    
+                    const nowHour = parseInt(facilityHourStr) + parseInt(facilityMinuteStr) / 60;
                     const leftPercent = (nowHour / 24) * 100;
                     return (
                       <div 
