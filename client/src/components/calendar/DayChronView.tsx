@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatTime, isSameDay, formatInFacilityTimezone, isBookingActive } from '@/lib/dateUtils';
@@ -59,6 +59,15 @@ export default function DayChronView({
   const { notificationGroups } = useNotificationGroups();
   const { data: bookingStudios = [] } = useBookingStudioLinks();
   const { forecast } = useWeatherForecast();
+  
+  // Current time state that updates every minute for the NOW indicator
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+    return () => clearInterval(timer);
+  }, []);
   
   // Debug weather data
   console.log('DayChronView - Weather forecast data:', forecast);
@@ -796,20 +805,20 @@ export default function DayChronView({
                 ))}
                 {/* NOW indicator in header */}
                 {(() => {
-                  const now = toZonedTime(new Date(), facilityTimezone);
+                  const now = toZonedTime(currentTime, facilityTimezone);
                   const viewDate = toZonedTime(date, facilityTimezone);
                   const isToday = now.getFullYear() === viewDate.getFullYear() &&
                                  now.getMonth() === viewDate.getMonth() &&
                                  now.getDate() === viewDate.getDate();
                   if (!isToday) return null;
-                  const currentHour = now.getHours() + now.getMinutes() / 60;
-                  const leftPercent = (currentHour / 24) * 100;
+                  const nowHour = now.getHours() + now.getMinutes() / 60;
+                  const leftPercent = (nowHour / 24) * 100;
                   return (
                     <div 
-                      className="absolute top-0 bottom-0 flex flex-col items-center z-30"
+                      className="absolute top-0 bottom-0 flex flex-col items-center z-30 pointer-events-none"
                       style={{ left: `${leftPercent}%`, transform: 'translateX(-50%)' }}
                     >
-                      <div className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">
+                      <div className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm whitespace-nowrap">
                         NOW
                       </div>
                       <div className="w-2 h-2 bg-red-500 rounded-full -mt-0.5" />
@@ -849,17 +858,17 @@ export default function DayChronView({
 
                   {/* Current Time Indicator (red line) */}
                   {(() => {
-                    const now = toZonedTime(new Date(), facilityTimezone);
+                    const now = toZonedTime(currentTime, facilityTimezone);
                     const viewDate = toZonedTime(date, facilityTimezone);
                     const isToday = now.getFullYear() === viewDate.getFullYear() &&
                                    now.getMonth() === viewDate.getMonth() &&
                                    now.getDate() === viewDate.getDate();
                     if (!isToday) return null;
-                    const currentHour = now.getHours() + now.getMinutes() / 60;
-                    const leftPercent = (currentHour / 24) * 100;
+                    const nowHour = now.getHours() + now.getMinutes() / 60;
+                    const leftPercent = (nowHour / 24) * 100;
                     return (
                       <div 
-                        className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10"
+                        className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 pointer-events-none"
                         style={{ left: `${leftPercent}%` }}
                       />
                     );
