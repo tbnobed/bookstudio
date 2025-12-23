@@ -274,8 +274,10 @@ export function Header({
                       <button
                         className="flex-1 px-2 py-1 text-xs font-medium rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
                         onClick={() => {
+                          // Use actual current time for real-time status filtering
+                          const now = new Date();
                           const availableIds = studios
-                            .filter(s => calculateStudioStatus(s, bookings, currentDate, bookingStudioLinks) === "available")
+                            .filter(s => calculateStudioStatus(s, bookings, now, bookingStudioLinks) === "available")
                             .map(s => s.id);
                           onStudioFilterChange(availableIds);
                         }}
@@ -286,8 +288,10 @@ export function Header({
                       <button
                         className="flex-1 px-2 py-1 text-xs font-medium rounded bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors"
                         onClick={() => {
+                          // Use actual current time for real-time status filtering
+                          const now = new Date();
                           const inUseIds = studios
-                            .filter(s => calculateStudioStatus(s, bookings, currentDate, bookingStudioLinks) === "in-use")
+                            .filter(s => calculateStudioStatus(s, bookings, now, bookingStudioLinks) === "in-use")
                             .map(s => s.id);
                           onStudioFilterChange(inUseIds);
                         }}
@@ -298,8 +302,10 @@ export function Header({
                       <button
                         className="flex-1 px-2 py-1 text-xs font-medium rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
                         onClick={() => {
+                          // Use actual current time for real-time status filtering
+                          const now = new Date();
                           const maintIds = studios
-                            .filter(s => calculateStudioStatus(s, bookings, currentDate, bookingStudioLinks) === "maintenance")
+                            .filter(s => calculateStudioStatus(s, bookings, now, bookingStudioLinks) === "maintenance")
                             .map(s => s.id);
                           onStudioFilterChange(maintIds);
                         }}

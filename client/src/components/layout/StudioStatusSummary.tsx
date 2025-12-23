@@ -30,6 +30,9 @@ export default function StudioStatusSummary({
   currentDate,
   onFilterByStatus,
 }: StudioStatusSummaryProps) {
+  // Use actual current time for real-time status display, not the calendar viewing date
+  const now = useMemo(() => new Date(), []);
+  
   const statusGroups = useMemo(() => {
     const groups: Record<StudioStatus, StatusGroup> = {
       available: { count: 0, studios: [] },
@@ -38,7 +41,7 @@ export default function StudioStatusSummary({
     };
 
     studios.forEach((studio) => {
-      const status = calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks);
+      const status = calculateStudioStatus(studio, bookings, now, bookingStudioLinks);
       if (status === "available") {
         groups.available.count++;
         groups.available.studios.push(studio);
@@ -52,7 +55,7 @@ export default function StudioStatusSummary({
     });
 
     return groups;
-  }, [studios, bookings, bookingStudioLinks, currentDate]);
+  }, [studios, bookings, bookingStudioLinks, now]);
 
   const handleStatusClick = (status: StudioStatus) => {
     if (onFilterByStatus) {
