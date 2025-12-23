@@ -124,12 +124,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <img 
               src={logoPath} 
               alt="BookStud.io" 
-              className="h-28 w-auto object-contain dark:hidden" 
+              className="h-28 w-auto object-contain dark:hidden scale-200 origin-center" 
             />
             <img 
               src={logoDarkPath} 
               alt="BookStud.io" 
-              className="h-28 w-auto object-contain hidden dark:block" 
+              className="h-28 w-auto object-contain hidden dark:block scale-200 origin-center" 
             />
             <h1 className="text-lg font-bold text-gray-900 dark:text-white mt-1">
               {siteName || "BookStud.io"}
