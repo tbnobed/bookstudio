@@ -261,7 +261,7 @@ export default function DailyCalendar({
 
   return (
     <>
-      <div className="overflow-auto h-[calc(100vh-8rem)]">
+      <div className="overflow-auto h-full">
         <DayChronView 
           date={currentDate}
           bookings={bookings}

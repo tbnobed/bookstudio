@@ -303,7 +303,7 @@ export default function WeeklyCalendar({
 
   return (
     <>
-      <div className="overflow-auto h-[calc(100vh-8rem)]">
+      <div className="overflow-auto h-full">
         <div className="min-w-[1000px]">
           {/* Calendar Days Header with Weather Forecast */}
           <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-30 bg-white dark:bg-gray-900 shadow-sm">

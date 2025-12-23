@@ -437,7 +437,7 @@ export default function MonthlyCalendar({ date: currentDate, studios: studiosPro
 
   return (
     <>
-      <div className="h-[calc(100vh-8rem)] flex flex-col overflow-auto">
+      <div className="h-full flex flex-col overflow-auto">
         <div className="p-2 flex-shrink-0">
           {/* Month Header */}
           <h2 className="text-xl font-semibold mb-2 dark:text-gray-100">
