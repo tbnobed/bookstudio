@@ -528,11 +528,32 @@ export default function DayChronView({
   // Uses facility timezone for correct positioning
   const facilityTimezone = getFacilityTimezone();
   const getBookingStyle = (booking: any) => {
-    // Convert to facility timezone for correct hour calculation
-    const startDate = toZonedTime(new Date(booking.start), facilityTimezone);
-    const endDate = toZonedTime(new Date(booking.end), facilityTimezone);
-    const startHour = startDate.getHours() + startDate.getMinutes() / 60;
-    const endHour = endDate.getHours() + endDate.getMinutes() / 60;
+    // Use toLocaleString to get correct hours in facility timezone
+    const startDate = new Date(booking.start);
+    const endDate = new Date(booking.end);
+    
+    // Extract hours in facility timezone
+    const startHourStr = startDate.toLocaleString('en-US', { 
+      timeZone: facilityTimezone,
+      hour: 'numeric',
+      hour12: false
+    });
+    const startMinuteStr = startDate.toLocaleString('en-US', { 
+      timeZone: facilityTimezone,
+      minute: '2-digit'
+    });
+    const endHourStr = endDate.toLocaleString('en-US', { 
+      timeZone: facilityTimezone,
+      hour: 'numeric',
+      hour12: false
+    });
+    const endMinuteStr = endDate.toLocaleString('en-US', { 
+      timeZone: facilityTimezone,
+      minute: '2-digit'
+    });
+    
+    const startHour = parseInt(startHourStr) + parseInt(startMinuteStr) / 60;
+    const endHour = parseInt(endHourStr) + parseInt(endMinuteStr) / 60;
     const duration = endHour - startHour;
     
     // Calculate percentage positions (24 hours = 100%)
