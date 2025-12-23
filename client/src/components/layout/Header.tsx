@@ -277,7 +277,7 @@ export function Header({
                           onClick={() => onStudioFilterChange([])}
                           data-testid="button-clear-studio-filter"
                         >
-                          Clear all filters
+                          Show all studios
                         </button>
                         <DropdownMenuSeparator />
                       </>
