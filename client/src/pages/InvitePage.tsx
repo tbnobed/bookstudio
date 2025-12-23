@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../assets/logo.png";
+import logoDarkPath from "../assets/logo-dark.png";
 
 import {
   Card,
@@ -173,7 +174,8 @@ export default function InvitePage() {
         <Card className="w-full max-w-md mx-auto">
           <CardHeader>
             <div className="mb-4 flex justify-center">
-              <img src={logoPath} alt="BookStud.io logo" className="h-20" />
+              <img src={logoPath} alt="BookStud.io logo" className="h-20 dark:hidden" />
+              <img src={logoDarkPath} alt="BookStud.io logo" className="h-20 hidden dark:block" />
             </div>
             <CardTitle className="text-2xl text-center">Invalid Invitation</CardTitle>
           </CardHeader>
@@ -204,7 +206,8 @@ export default function InvitePage() {
         <Card className="w-full">
           <CardHeader className="space-y-1">
             <div className="mb-4 flex justify-center">
-              <img src={logoPath} alt="BookStud.io logo" className="h-20" />
+              <img src={logoPath} alt="BookStud.io logo" className="h-20 dark:hidden" />
+              <img src={logoDarkPath} alt="BookStud.io logo" className="h-20 hidden dark:block" />
             </div>
             <CardTitle className="text-2xl text-center">Complete Your Registration</CardTitle>
             <CardDescription className="text-center">

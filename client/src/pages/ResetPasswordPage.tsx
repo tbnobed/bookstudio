@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import logoPath from "../assets/logo.png";
+import logoDarkPath from "../assets/logo-dark.png";
 
 export default function ResetPasswordPage() {
   const params = useParams<{ token: string }>();
@@ -125,7 +126,8 @@ export default function ResetPasswordPage() {
         <Card className="w-[350px]">
           <CardHeader>
             <div className="flex justify-center mb-4">
-              <img src={logoPath} alt="BookStud.io logo" className="h-24 w-auto" />
+              <img src={logoPath} alt="BookStud.io logo" className="h-24 w-auto dark:hidden" />
+              <img src={logoDarkPath} alt="BookStud.io logo" className="h-24 w-auto hidden dark:block" />
             </div>
             <CardTitle className="text-center">Validating reset link...</CardTitle>
           </CardHeader>
@@ -146,7 +148,8 @@ export default function ResetPasswordPage() {
         <Card className="w-[400px]">
           <CardHeader>
             <div className="flex justify-center mb-4">
-              <img src={logoPath} alt="BookStud.io logo" className="h-24 w-auto" />
+              <img src={logoPath} alt="BookStud.io logo" className="h-24 w-auto dark:hidden" />
+              <img src={logoDarkPath} alt="BookStud.io logo" className="h-24 w-auto hidden dark:block" />
             </div>
             <CardTitle className="text-center">Reset Link Expired</CardTitle>
             <CardDescription className="text-center">
@@ -177,7 +180,8 @@ export default function ResetPasswordPage() {
         <Card className="w-[400px]">
           <CardHeader>
             <div className="flex justify-center mb-4">
-              <img src={logoPath} alt="BookStud.io logo" className="h-24 w-auto" />
+              <img src={logoPath} alt="BookStud.io logo" className="h-24 w-auto dark:hidden" />
+              <img src={logoDarkPath} alt="BookStud.io logo" className="h-24 w-auto hidden dark:block" />
             </div>
             <CardTitle className="text-center">Password Reset Complete</CardTitle>
             <CardDescription className="text-center">
@@ -207,7 +211,8 @@ export default function ResetPasswordPage() {
       <Card className="w-[400px]">
         <CardHeader>
           <div className="flex justify-center mb-4">
-            <img src={logoPath} alt="BookStud.io logo" className="h-24 w-auto" />
+            <img src={logoPath} alt="BookStud.io logo" className="h-24 w-auto dark:hidden" />
+            <img src={logoDarkPath} alt="BookStud.io logo" className="h-24 w-auto hidden dark:block" />
           </div>
           <CardTitle className="text-center">Reset Your Password</CardTitle>
           <CardDescription className="text-center">

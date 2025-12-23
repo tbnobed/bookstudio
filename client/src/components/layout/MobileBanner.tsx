@@ -24,7 +24,12 @@ export function MobileBanner() {
           <img 
             src="/bookstudio-logo.png" 
             alt="BookStudio Logo" 
-            className="w-8 h-8 object-contain drop-shadow-sm"
+            className="w-8 h-8 object-contain drop-shadow-sm dark:hidden"
+          />
+          <img 
+            src="/bookstudio-logo-dark.png" 
+            alt="BookStudio Logo" 
+            className="w-8 h-8 object-contain drop-shadow-sm hidden dark:block"
           />
           <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-sm">
             {siteName}

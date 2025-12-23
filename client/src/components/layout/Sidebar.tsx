@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPath from "../../assets/logo.png";
+import logoDarkPath from "../../assets/logo-dark.png";
 import { 
   Calendar, 
   ClipboardCheck, 
@@ -18,7 +19,7 @@ import {
   ChevronDown,
   Wrench
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type SidebarProps = {
   isOpen: boolean;
@@ -123,7 +124,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <img 
               src={logoPath} 
               alt="BookStud.io" 
-              className="h-28 w-auto object-contain" 
+              className="h-28 w-auto object-contain dark:hidden" 
+            />
+            <img 
+              src={logoDarkPath} 
+              alt="BookStud.io" 
+              className="h-28 w-auto object-contain hidden dark:block" 
             />
             <h1 className="text-lg font-bold text-gray-900 dark:text-white mt-1">
               {siteName || "BookStud.io"}

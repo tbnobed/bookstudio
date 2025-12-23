@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../assets/logo.png";
+import logoDarkPath from "../assets/logo-dark.png";
 import { Calendar, FileText, Bell, ArrowLeft, Loader2 } from "lucide-react";
 
 export default function AuthPage() {
@@ -141,13 +142,15 @@ export default function AuthPage() {
         <div className="w-full max-w-md">
           {/* Logo for mobile */}
           <div className="flex justify-center mb-8 lg:hidden">
-            <img src={logoPath} alt="BookStud.io" className="h-24 w-auto" />
+            <img src={logoPath} alt="BookStud.io" className="h-24 w-auto dark:hidden" />
+            <img src={logoDarkPath} alt="BookStud.io" className="h-24 w-auto hidden dark:block" />
           </div>
           
           <Card className="border-0 shadow-xl bg-white dark:bg-gray-900">
             <CardHeader className="space-y-1 pb-6">
               <div className="flex justify-center mb-4 lg:hidden">
-                <img src={logoPath} alt="BookStud.io" className="h-16 w-auto" />
+                <img src={logoPath} alt="BookStud.io" className="h-16 w-auto dark:hidden" />
+                <img src={logoDarkPath} alt="BookStud.io" className="h-16 w-auto hidden dark:block" />
               </div>
               <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
                 {activeTab === "login" && "Welcome back"}
@@ -424,7 +427,8 @@ export default function AuthPage() {
         
         <div className="relative z-10 max-w-lg space-y-8">
           <div className="flex justify-center mb-6">
-            <img src={logoPath} alt="BookStud.io" className="h-32 w-auto drop-shadow-xl" />
+            <img src={logoPath} alt="BookStud.io" className="h-32 w-auto drop-shadow-xl dark:hidden" />
+            <img src={logoDarkPath} alt="BookStud.io" className="h-32 w-auto drop-shadow-xl hidden dark:block" />
           </div>
           
           <p className="text-xl text-white/90 text-center leading-relaxed">
