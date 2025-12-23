@@ -515,18 +515,19 @@ export default function DayChronView({
   // Generate time slots for the horizontal timeline (24 hours)
   const timeSlots = Array.from({ length: 24 }, (_, i) => i);
   
-  // Each hour column is 52px wide, so total timeline width is 52 * 24 = 1248px
-  const HOUR_WIDTH = 52;
-  
-  // Helper to calculate booking position and width in pixels
+  // Helper to calculate booking position and width as percentages (responsive)
   const getBookingStyle = (booking: any) => {
     const startDate = new Date(booking.start);
     const endDate = new Date(booking.end);
     const startHour = startDate.getHours() + startDate.getMinutes() / 60;
     const endHour = endDate.getHours() + endDate.getMinutes() / 60;
-    const left = startHour * HOUR_WIDTH;
-    const width = (endHour - startHour) * HOUR_WIDTH;
-    return { left: `${left}px`, width: `${Math.max(width, HOUR_WIDTH)}px` };
+    const duration = endHour - startHour;
+    
+    // Calculate percentage positions (24 hours = 100%)
+    const leftPercent = (startHour / 24) * 100;
+    const widthPercent = Math.max((duration / 24) * 100, 100 / 24); // Minimum 1-hour width
+    
+    return { left: `${leftPercent}%`, width: `${widthPercent}%` };
   };
 
   // Get bookings for a specific studio
@@ -766,20 +767,19 @@ export default function DayChronView({
       )}
 
       {/* Horizontal Timeline Grid */}
-      <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-        <div className="min-w-full" style={{ minWidth: `${160 + (HOUR_WIDTH * 24)}px` }}>
+      <div className="flex-1 min-h-0 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="min-w-full">
           {/* Time Header Row */}
           <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600">
             <div className="flex">
-              <div className="w-40 flex-shrink-0 p-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600">
+              <div className="w-28 flex-shrink-0 p-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600">
                 <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">STUDIOS</span>
               </div>
-              <div className="flex flex-none" style={{ width: `${HOUR_WIDTH * 24}px` }}>
+              <div className="flex-1 flex">
                 {timeSlots.map(hour => (
                   <div 
                     key={hour} 
-                    className="flex-shrink-0 border-r border-gray-200 dark:border-gray-700 p-1 text-center"
-                    style={{ width: `${HOUR_WIDTH}px` }}
+                    className="flex-1 border-r border-gray-200 dark:border-gray-700 p-1 text-center min-w-0"
                   >
                     <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                       {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
@@ -803,7 +803,7 @@ export default function DayChronView({
                 )}
               >
                 {/* Studio Name */}
-                <div className="w-40 flex-shrink-0 p-2 border-r border-gray-200 dark:border-gray-700 flex items-center">
+                <div className="w-28 flex-shrink-0 p-2 border-r border-gray-200 dark:border-gray-700 flex items-center">
                   <div className="flex items-center gap-2 min-w-0">
                     <div className={cn(
                       "w-2 h-2 rounded-full flex-shrink-0",
@@ -814,14 +814,13 @@ export default function DayChronView({
                 </div>
 
                 {/* Timeline Area */}
-                <div className="flex-none relative h-12" style={{ width: `${HOUR_WIDTH * 24}px` }}>
+                <div className="flex-1 relative h-12">
                   {/* Hour Grid Lines */}
                   <div className="absolute inset-0 flex">
                     {timeSlots.map(hour => (
                       <div 
                         key={hour} 
-                        className="flex-shrink-0 border-r border-gray-100 dark:border-gray-800"
-                        style={{ width: `${HOUR_WIDTH}px` }}
+                        className="flex-1 border-r border-gray-100 dark:border-gray-800"
                       />
                     ))}
                   </div>
