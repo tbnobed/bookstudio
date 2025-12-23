@@ -4,9 +4,11 @@ import WeeklyCalendar from "@/components/calendar/WeeklyCalendar";
 import DailyCalendar from "@/components/calendar/DailyCalendar";
 import MonthlyCalendar from "@/components/calendar/MonthlyCalendar";
 import TimelineCalendar from "@/components/calendar/TimelineCalendar";
+import NewBookingFab from "@/components/booking/NewBookingFab";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
 import { useStudioBookings } from "@/hooks/useStudioBookings";
+import { useDevice } from "@/hooks/use-mobile";
 
 function MonthlyCalendarWrapper({ currentDate, studios, selectedStudioIds }: { currentDate: Date, studios: Studio[], selectedStudioIds: number[] }) {
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -107,6 +109,8 @@ export default function CalendarPage() {
     }
   };
 
+  const { isSmallScreen } = useDevice();
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
       <CalendarHeader
@@ -153,6 +157,8 @@ export default function CalendarPage() {
           />
         )}
       </div>
+
+      {!isSmallScreen && <NewBookingFab />}
     </div>
   );
 }

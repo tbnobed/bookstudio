@@ -11,7 +11,9 @@ import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
-import { ChevronLeft, ChevronRight, Plus, Menu, CalendarDays, LayoutGrid, Calendar, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Menu, CalendarDays, LayoutGrid, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type HeaderProps = {
   currentDate: Date;
@@ -158,9 +160,11 @@ export function Header({
     refetchInterval: 60000,
   });
 
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
   const viewOptions = [
     { key: "day", label: "Day", icon: CalendarDays },
-    { key: "week", label: "Week", icon: Calendar },
+    { key: "week", label: "Week", icon: CalendarIcon },
     { key: "timeline", label: "Timeline", icon: Clock },
     { key: "month", label: "Month", icon: LayoutGrid },
   ] as const;
@@ -192,11 +196,51 @@ export function Header({
                 >
                   <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 </button>
-                <div className="px-3 py-1.5 min-w-[150px] lg:min-w-[200px] text-center border-x border-gray-200 dark:border-gray-700">
-                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                    {getDateDisplayText()}
-                  </span>
-                </div>
+                
+                {/* Mini Calendar Popover */}
+                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <button 
+                      className="px-3 py-1.5 min-w-[150px] lg:min-w-[200px] text-center border-x border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                      data-testid="button-date-picker"
+                    >
+                      <CalendarIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 hidden sm:block" />
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {getDateDisplayText()}
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={currentDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          onDateChange(date);
+                          setCalendarOpen(false);
+                        }
+                      }}
+                      defaultMonth={currentDate}
+                      weekStartsOn={useMondayWeeks ? 1 : 0}
+                      className="rounded-lg"
+                    />
+                    <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          goToToday();
+                          setCalendarOpen(false);
+                        }}
+                        data-testid="button-calendar-today"
+                      >
+                        Go to Today
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                
                 <button 
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg transition-colors"
                   onClick={navigateNext}
