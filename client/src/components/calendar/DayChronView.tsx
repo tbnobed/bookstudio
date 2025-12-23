@@ -890,9 +890,30 @@ export default function DayChronView({
                   {studioBookings.map(booking => {
                     const positionStyle = getBookingStyle(booking);
                     const colorInfo = getBookingColor(booking);
-                    const combinedStyle = colorInfo.style 
-                      ? { ...positionStyle, ...colorInfo.style }
-                      : positionStyle;
+                    const isTentative = booking.status === 'tentative';
+                    const isCancelled = booking.status === 'cancelled';
+                    
+                    // For tentative bookings, override with muted gray style
+                    const tentativeStyle = isTentative ? {
+                      backgroundColor: '#6b7280',
+                      opacity: 0.6,
+                      borderStyle: 'dashed' as const,
+                      borderWidth: '2px',
+                      borderColor: '#9ca3af'
+                    } : {};
+                    
+                    const cancelledStyle = isCancelled ? {
+                      backgroundColor: '#4b5563',
+                      opacity: 0.5,
+                      textDecoration: 'line-through'
+                    } : {};
+                    
+                    const combinedStyle = {
+                      ...positionStyle,
+                      ...(colorInfo.style || {}),
+                      ...tentativeStyle,
+                      ...cancelledStyle
+                    };
                     
                     return (
                       <HoverCard key={booking.id}>
@@ -901,12 +922,15 @@ export default function DayChronView({
                             className={cn(
                               "absolute top-1 bottom-1 rounded cursor-pointer hover:opacity-80 transition-opacity",
                               "flex items-center px-2 overflow-hidden shadow-sm",
-                              colorInfo.className
+                              !isTentative && !isCancelled && colorInfo.className
                             )}
                             style={combinedStyle}
                             onClick={() => onBookingClick(booking)}
                           >
-                            <span className="text-xs font-medium text-white truncate">
+                            <span className={cn(
+                              "text-xs font-medium text-white truncate",
+                              isCancelled && "line-through"
+                            )}>
                               {booking.title}
                             </span>
                           </button>
