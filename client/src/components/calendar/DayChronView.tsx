@@ -461,6 +461,177 @@ export default function DayChronView({
     );
   };
 
+  // Horizontal Timeline Component for Bookings
+  const BookingsTimeline = ({ 
+    bookings, 
+    date, 
+    studios, 
+    bookingStudios, 
+    onBookingClick, 
+    readOnly,
+    notificationGroups 
+  }: { 
+    bookings: any[], 
+    date: Date, 
+    studios: any[], 
+    bookingStudios: any[], 
+    onBookingClick: (booking: any) => void,
+    readOnly: boolean,
+    notificationGroups: any[]
+  }) => {
+    const HOUR_WIDTH = 100;
+    const ROW_HEIGHT = 48;
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    
+    const facilityTimezone = getFacilityTimezone();
+    const now = toZonedTime(new Date(), facilityTimezone);
+    const isToday = isSameDay(now, date);
+    const nowHours = now.getHours() + now.getMinutes() / 60;
+    const nowPosition = isToday ? nowHours * HOUR_WIDTH : null;
+    
+    const getBookingColor = (booking: any) => {
+      if (booking.color) return booking.color;
+      switch (booking.type) {
+        case 'production': return '#3b82f6';
+        case 'rehearsal': return '#8b5cf6';
+        case 'maintenance': return '#f59e0b';
+        case 'it_support': return '#ef4444';
+        case 'live': return '#ef4444';
+        default: return '#22c55e';
+      }
+    };
+
+    const getBookingPosition = (booking: any) => {
+      const start = typeof booking.start === 'string' ? parseISO(booking.start) : booking.start;
+      const end = typeof booking.end === 'string' ? parseISO(booking.end) : booking.end;
+      const startInFacility = toZonedTime(start, facilityTimezone);
+      const endInFacility = toZonedTime(end, facilityTimezone);
+      
+      const startHours = startInFacility.getHours() + startInFacility.getMinutes() / 60;
+      const endHours = endInFacility.getHours() + endInFacility.getMinutes() / 60;
+      
+      const left = startHours * HOUR_WIDTH;
+      const width = Math.max((endHours - startHours) * HOUR_WIDTH, 50);
+      
+      return { left, width };
+    };
+
+    const getBookingStudiosNames = (bookingId: number) => {
+      const links = bookingStudios.filter((bs: any) => bs.bookingId === bookingId);
+      return links.map((link: any) => {
+        const studio = studios.find((s: any) => s.id === link.studioId);
+        return studio?.name || `Studio ${link.studioId}`;
+      });
+    };
+
+    if (bookings.length === 0) {
+      return (
+        <div className="text-center py-8 bg-gray-800 rounded-md border border-gray-700">
+          <p className="text-gray-400">No bookings for this day. Click & drag on timeline to book.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <div style={{ width: 24 * HOUR_WIDTH, minHeight: bookings.length * (ROW_HEIGHT + 8) + 80 }} className="relative">
+            {/* Hour Headers */}
+            <div className="sticky top-0 z-10 flex bg-gray-800 border-b border-gray-700" style={{ height: 40 }}>
+              {hours.map((hour) => (
+                <div 
+                  key={hour} 
+                  className="flex-shrink-0 border-r border-gray-700 flex items-end pb-1 pl-2"
+                  style={{ width: HOUR_WIDTH }}
+                >
+                  <span className="text-xs text-gray-400 font-medium">
+                    {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Grid Lines */}
+            <div className="absolute inset-0 top-10 flex pointer-events-none">
+              {hours.map((hour) => (
+                <div 
+                  key={hour} 
+                  className="flex-shrink-0 border-r border-gray-800"
+                  style={{ width: HOUR_WIDTH }}
+                />
+              ))}
+            </div>
+
+            {/* NOW Indicator */}
+            {nowPosition !== null && (
+              <div 
+                className="absolute z-20 flex flex-col items-center pointer-events-none"
+                style={{ 
+                  left: nowPosition,
+                  top: 0,
+                  bottom: 0,
+                  transform: 'translateX(-50%)'
+                }}
+              >
+                <div className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded shadow-lg">
+                  NOW
+                </div>
+                <div className="w-0.5 bg-red-500 flex-1" />
+                <div className="w-2 h-2 rounded-full bg-red-500" />
+              </div>
+            )}
+
+            {/* Booking Bars */}
+            <div className="relative pt-2" style={{ paddingTop: 48 }}>
+              {bookings.map((booking, index) => {
+                const { left, width } = getBookingPosition(booking);
+                const color = getBookingColor(booking);
+                const studioNames = getBookingStudiosNames(booking.id);
+                const primaryStudio = booking.studioId ? studios.find((s: any) => s.id === booking.studioId)?.name : null;
+                const displayStudios = studioNames.length > 0 ? studioNames : (primaryStudio ? [primaryStudio] : []);
+                
+                return (
+                  <HoverCard key={booking.id} openDelay={200} closeDelay={100}>
+                    <HoverCardTrigger asChild>
+                      <div
+                        className="absolute cursor-pointer rounded px-3 py-1.5 text-white shadow-lg hover:brightness-110 transition-all overflow-hidden"
+                        style={{
+                          left,
+                          width,
+                          top: index * (ROW_HEIGHT + 8),
+                          height: ROW_HEIGHT,
+                          backgroundColor: color,
+                        }}
+                        onClick={() => !readOnly && onBookingClick(booking)}
+                        data-testid={`booking-timeline-bar-${booking.id}`}
+                      >
+                        <div className="text-sm font-semibold truncate">
+                          {booking.type === 'live' && 'LIVE: '}{booking.title}
+                        </div>
+                        <div className="text-xs opacity-90 truncate">
+                          {displayStudios.length > 0 && `${displayStudios.join(', ')} • `}
+                          {formatTime(booking.start)} - {formatTime(booking.end)}
+                        </div>
+                      </div>
+                    </HoverCardTrigger>
+                    <BookingHoverCard 
+                      booking={booking} 
+                      studios={studios}
+                      pcrRooms={pcrRooms}
+                      notificationGroups={notificationGroups}
+                      bookingStudioLinks={bookingStudios}
+                      onEdit={() => onBookingClick(booking)}
+                    />
+                  </HoverCard>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Calculate studio utilization for the day
   const studioUtilization = useMemo(() => {
     return studios.map(studio => {
@@ -639,21 +810,19 @@ export default function DayChronView({
         )}
       </div>
       
-      {/* REGULAR BOOKINGS SECTION */}
-      {regularBookings.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-md">
-          <p className="text-gray-500 dark:text-gray-400">No regular bookings for this day</p>
-        </div>
-      ) : (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-3 dark:text-gray-100">Bookings</h3>
-          <div className="space-y-3">
-            {regularBookings.map(booking => (
-              <BookingCard key={booking.id} booking={booking} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* REGULAR BOOKINGS SECTION - Horizontal Timeline */}
+      <div className="mt-4">
+        <h3 className="text-lg font-semibold mb-3 dark:text-gray-100">Bookings</h3>
+        <BookingsTimeline 
+          bookings={regularBookings} 
+          date={date}
+          studios={studios}
+          bookingStudios={bookingStudios}
+          onBookingClick={onBookingClick}
+          readOnly={readOnly}
+          notificationGroups={notificationGroups}
+        />
+      </div>
       </div>
       
       {/* Right Sidebar with Day Analytics */}

@@ -7,7 +7,7 @@ import BookingModal from "@/components/booking/BookingModal";
 import AlertModal from "@/components/alerts/AlertModal";
 import { Clock, Users, Tv } from "lucide-react";
 import DayListView from "@/components/calendar/DayListView";
-import DayTimelineView from "@/components/calendar/DayTimelineView";
+import DayChronView from "@/components/calendar/DayChronView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 
@@ -262,7 +262,7 @@ export default function DailyCalendar({
   return (
     <>
       <div className="overflow-auto h-full">
-        <DayTimelineView 
+        <DayChronView 
           date={currentDate}
           bookings={bookings}
           studios={filteredStudios}
