@@ -1,34 +1,229 @@
-/* Custom styles for bookstud.io */
+/* BookStud.io - Modern Design System */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles for bookstud.io */
-/* Removed custom hover styles - using Tailwind classes instead */
+/* Modern Font Stack */
+@layer base {
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Light Mode - Clean, Modern Palette */
+:root {
+  --background: 0 0% 98%;
+  --foreground: 224 71% 4%;
+  
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71% 4%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 224 71% 4%;
+  
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  
+  /* Modern Blue Primary */
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  
+  /* Subtle Secondary */
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 220 9% 20%;
+  
+  /* Accent - Indigo */
+  --accent: 243 75% 59%;
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --ring: 221 83% 53%;
+  --radius: 0.75rem;
+  
+  /* Extended Palette */
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
+  --info: 199 89% 48%;
+  --info-foreground: 0 0% 100%;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Dark Mode - Rich, Modern */
+.dark {
+  --background: 224 71% 4%;
+  --foreground: 213 31% 91%;
+  
+  --muted: 223 47% 11%;
+  --muted-foreground: 215 20% 65%;
+  
+  --popover: 224 71% 4%;
+  --popover-foreground: 215 20% 95%;
+  
+  --card: 223 47% 8%;
+  --card-foreground: 213 31% 91%;
+  
+  --border: 216 34% 17%;
+  --input: 216 34% 17%;
+  
+  /* Blue Primary for Dark */
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 11%;
+  
+  --secondary: 222 47% 11%;
+  --secondary-foreground: 215 20% 85%;
+  
+  /* Accent - Indigo for Dark */
+  --accent: 243 75% 59%;
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: 0 62% 50%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --ring: 217 91% 60%;
+  
+  /* Extended Palette Dark */
+  --success: 142 71% 45%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
+  --info: 199 89% 48%;
+  --info-foreground: 0 0% 100%;
+  
+  /* Shadows for Dark */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-3xl lg:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl lg:text-3xl;
+  }
+  
+  h3 {
+    @apply text-xl lg:text-2xl;
+  }
+  
+  h4 {
+    @apply text-lg lg:text-xl;
+  }
+}
+
+/* Modern Component Utilities */
+@layer components {
+  /* Glass Effect */
+  .glass {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/30;
+  }
+  
+  /* Gradient Backgrounds */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-blue-600 to-indigo-600;
+  }
+  
+  .gradient-subtle {
+    @apply bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-gray-900 dark:to-slate-800;
+  }
+  
+  /* Modern Card Styles */
+  .card-modern {
+    @apply bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700/50 transition-all duration-200;
+  }
+  
+  .card-modern:hover {
+    @apply shadow-md border-gray-200 dark:border-gray-600/50;
+  }
+  
+  .card-elevated {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg border-0;
+  }
+  
+  /* Sidebar Styles */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150;
+  }
+  
+  .sidebar-item-active {
+    @apply bg-primary text-primary-foreground shadow-sm;
+  }
+  
+  .sidebar-item-inactive {
+    @apply text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/60;
+  }
+  
+  /* Input Focus Styles */
+  .input-modern {
+    @apply rounded-lg border-gray-200 dark:border-gray-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+  }
+  
+  /* Button Styles */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white shadow-md hover:shadow-lg transition-all duration-200;
+  }
+}
 
 /* Mobile gradient background */
 .mobile-gradient-bg {
-  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 30%, #ede9fe 70%, #f3e8ff 100%) !important;
+  background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 30%, #f5f3ff 70%, #faf5ff 100%) !important;
   min-height: 100vh !important;
   background-attachment: fixed !important;
 }
 
 /* Force gradient on mobile routes */
 body.mobile-page {
-  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 30%, #ede9fe 70%, #f3e8ff 100%) !important;
+  background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 30%, #f5f3ff 70%, #faf5ff 100%) !important;
   background-attachment: fixed !important;
 }
 
+/* Dark mode mobile gradient */
+.dark .mobile-gradient-bg,
+.dark body.mobile-page {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
+}
 
-
+/* Booking Card Styles */
 .booking-card {
-  transition: all 0.3s ease;
-  border-left: 4px solid theme('colors.primary.DEFAULT');
+  @apply transition-all duration-200 ease-out;
+  border-left-width: 4px;
+  border-left-color: hsl(var(--primary));
 }
 
 .booking-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  @apply shadow-lg;
   transform: translateY(-2px);
 }
 
@@ -45,77 +240,85 @@ body.mobile-page {
 }
 
 .notify-group-button {
-  padding: 0.35rem 0.7rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  background-color: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  color: #374151;
-  transition: all 0.2s ease;
+  @apply px-3 py-1.5 rounded-lg text-sm transition-all duration-150;
+  @apply bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
+  @apply text-gray-700 dark:text-gray-300;
 }
 
 .notify-group-button:hover {
-  background-color: #e5e7eb;
+  @apply bg-gray-200 dark:bg-gray-700;
 }
 
 .notify-group-button.selected {
-  background-color: #dbeafe;
-  border: 1px solid #93c5fd;
-  color: #1e40af;
-  font-weight: 500;
+  @apply bg-blue-100 dark:bg-blue-900/50 border-blue-300 dark:border-blue-700;
+  @apply text-blue-700 dark:text-blue-300 font-medium;
 }
 
-:root {
-      --background: 0 0% 100%;
---foreground: 20 14.3% 4.1%;
---muted: 60 4.8% 95.9%;
---muted-foreground: 25 5.3% 44.7%;
---popover: 0 0% 100%;
---popover-foreground: 20 14.3% 4.1%;
---card: 0 0% 100%;
---card-foreground: 20 14.3% 4.1%;
---border: 20 5.9% 90%;
---input: 20 5.9% 90%;
---primary: 200 98% 39%;
---primary-foreground: 211 100% 99%;
---secondary: 60 4.8% 95.9%;
---secondary-foreground: 24 9.8% 10%;
---accent: 60 4.8% 95.9%;
---accent-foreground: 24 9.8% 10%;
---destructive: 0 84.2% 60.2%;
---destructive-foreground: 60 9.1% 97.8%;
---ring: 20 14.3% 4.1%;
---radius: 0.5rem;
-  }
-  .dark {
-      --background: 240 10% 3.9%;
---foreground: 0 0% 98%;
---muted: 240 3.7% 15.9%;
---muted-foreground: 240 5% 64.9%;
---popover: 240 10% 3.9%;
---popover-foreground: 0 0% 98%;
---card: 240 10% 3.9%;
---card-foreground: 0 0% 98%;
---border: 240 3.7% 15.9%;
---input: 240 3.7% 15.9%;
---primary: 200 98% 39%;
---primary-foreground: 211 100% 99%;
---secondary: 240 3.7% 15.9%;
---secondary-foreground: 0 0% 98%;
---accent: 240 3.7% 15.9%;
---accent-foreground: 0 0% 98%;
---destructive: 0 62.8% 30.6%;
---destructive-foreground: 0 0% 98%;
---ring: 240 4.9% 83.9%;
---radius: 0.5rem;
-  }
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
 
-  body {
-    @apply font-sans antialiased bg-background text-foreground;
-  }
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* Focus Ring Utility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background;
+}
+
+/* Smooth Transitions */
+.transition-smooth {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Status Colors */
+.status-available {
+  @apply bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400;
+}
+
+.status-in-use {
+  @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400;
+}
+
+.status-upcoming {
+  @apply bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400;
+}
+
+/* Animation Utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.15s ease-out;
 }

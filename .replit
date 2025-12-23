@@ -36,9 +36,5 @@ waitForPort = 5000
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 43227
-externalPort = 3001
-
 [agent]
 integrations = ["javascript_sendgrid:1.0.0", "javascript_websocket:1.0.0"]

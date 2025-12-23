@@ -11,6 +11,7 @@ import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
+import { ChevronLeft, ChevronRight, Plus, Menu, CalendarDays, LayoutGrid, Calendar, Clock } from "lucide-react";
 
 type HeaderProps = {
   currentDate: Date;
@@ -21,8 +22,8 @@ type HeaderProps = {
   selectedStudioIds?: number[];
   title?: string;
   showViewToggle?: boolean;
-  useMondayWeeks?: boolean; // For timeline view that uses Monday-based weeks
-  hideNavigation?: boolean; // Hide date navigation arrows and "Today" button
+  useMondayWeeks?: boolean;
+  hideNavigation?: boolean;
 };
 
 export function Header({
@@ -42,7 +43,6 @@ export function Header({
 
   const { sidebarVisible, toggleSidebar } = useSidebar();
   
-  // Display a message about the timezone testing feature when the component mounts
   useEffect(() => {
     console.log(
       "%c📆 BookStud.io Timezone Testing %c\n" +
@@ -58,27 +58,20 @@ export function Header({
     );
   }, []);
 
-  // Fetch all studios
   const { data: studios = [] } = useQuery<Studio[]>({
     queryKey: ["/api/studios"],
   });
 
-  // Show all studios by default if we have 20 or fewer
-  // Only use pagination when we have more than 20 studios
   const studiosToShow = showAllStudios || studios.length <= 20 ? studios : studios.slice(0, 20);
 
-  // Navigate to today
   const goToToday = () => {
-    // Use facility timezone for today as instructed
     const facilityTz = getFacilityTimezone_Dynamic();
     const now = new Date();
     const facilityToday = new Date(now.toLocaleString("en-US", { timeZone: facilityTz }));
     onDateChange(facilityToday);
   };
 
-  // Navigate based on view - using clean date objects
   const navigatePrevious = () => {
-    // Create a clean copy of the date to ensure we're working with a fresh object
     const dateToUse = new Date(currentDate.getTime());
     let newDate: Date;
     
@@ -91,19 +84,15 @@ export function Header({
     } else if (view === "month") {
       newDate = subtractMonths(dateToUse, 1);
     } else {
-      return; // Shouldn't happen
+      return;
     }
     
-    // Generate timestamp for unique logging
     const timestamp = Date.now();
     console.log(`Header - [Timestamp: ${timestamp}] Navigate Previous - From: ${dateToUse.toISOString()}, To: ${newDate.toISOString()}, View: ${view}`);
-    
-    // Make sure we're passing a clean date object
     onDateChange(new Date(newDate.getTime()));
   };
 
   const navigateNext = () => {
-    // Create a clean copy of the date to ensure we're working with a fresh object
     const dateToUse = new Date(currentDate.getTime());
     let newDate: Date;
     
@@ -116,19 +105,14 @@ export function Header({
     } else if (view === "month") {
       newDate = addMonths(dateToUse, 1);
     } else {
-      return; // Shouldn't happen
+      return;
     }
     
-    // Generate timestamp for unique logging
     const timestamp = Date.now();
     console.log(`Header - [Timestamp: ${timestamp}] Navigate Next - From: ${dateToUse.toISOString()}, To: ${newDate.toISOString()}, View: ${view}`);
-    
-    // Make sure we're passing a clean date object
     onDateChange(new Date(newDate.getTime()));
   };
 
-  // Calculate date display text directly instead of using state
-  // This ensures the text is always in sync with the currentDate prop
   const getDateDisplayText = () => {
     console.log(`Header - Calculating display text for date: ${currentDate.toISOString()}, view: ${view}`);
     
@@ -141,12 +125,10 @@ export function Header({
         timeZone: getFacilityTimezone_Dynamic()
       });
     } else if (view === "week") {
-      // Generate fresh week text directly from current date
       const weekText = useMondayWeeks ? formatMondayWeekRangeText(currentDate) : formatWeekRangeText(currentDate);
       console.log(`Header - Generated ${useMondayWeeks ? 'Monday-based' : 'Sunday-based'} week text: ${weekText} for date ${currentDate.toISOString()}`);
       return weekText;
     } else if (view === "timeline") {
-      // Timeline always uses Monday-based weeks
       const weekText = formatMondayWeekRangeText(currentDate);
       console.log(`Header - Generated Monday-based week text for timeline: ${weekText} for date ${currentDate.toISOString()}`);
       return weekText;
@@ -155,7 +137,6 @@ export function Header({
     }
   };
 
-  // Handle studio filter change
   const toggleStudioFilter = (studioId: number) => {
     if (!onStudioFilterChange) return;
     
@@ -167,201 +148,183 @@ export function Header({
     onStudioFilterChange(newSelectedIds);
   };
 
-  // Fetch ALL bookings for status calculation (no date filters)
   const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
-    // Only used for status calculation, so no need to refetch often
     refetchInterval: 60000, 
-    // Don't add any query params so we get all bookings across all date ranges
   });
   
-  // Fetch booking-studio links for multi-studio booking support
   const { data: bookingStudioLinks = [] } = useQuery<BookingStudio[]>({
     queryKey: ["/api/booking-studios"],
     refetchInterval: 60000,
   });
 
+  const viewOptions = [
+    { key: "day", label: "Day", icon: CalendarDays },
+    { key: "week", label: "Week", icon: Calendar },
+    { key: "timeline", label: "Timeline", icon: Clock },
+    { key: "month", label: "Month", icon: LayoutGrid },
+  ] as const;
+
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm">
-      <div className="flex justify-between items-center px-4 py-3 lg:px-6">
-        <div className="flex items-center space-x-4">
-          {/* Sidebar Toggle Button - Hidden on mobile */}
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      {/* Main Header Row */}
+      <div className="flex items-center justify-between px-4 py-3 lg:px-6">
+        {/* Left Section */}
+        <div className="flex items-center gap-3">
+          {/* Sidebar Toggle */}
           <button
             onClick={toggleSidebar}
-            className="hidden lg:block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+            className="hidden lg:flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             title={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
+            data-testid="button-toggle-sidebar"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-5 w-5 text-gray-600 dark:text-gray-300" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor" 
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
 
-          {/* Date Selector - Hidden when hideNavigation is true */}
+          {/* Date Navigation */}
           {!hideNavigation && (
-            <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
-              <button 
-                className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-r border-gray-200 dark:border-gray-700"
-                onClick={navigatePrevious}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </button>
-              <div className="px-3 py-2 min-w-[140px] lg:min-w-[180px] text-center">
-                <span className="text-xs lg:text-sm font-medium text-gray-800 dark:text-gray-200">{getDateDisplayText()}</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <button 
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-lg transition-colors"
+                  onClick={navigatePrevious}
+                  data-testid="button-previous-date"
+                >
+                  <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                </button>
+                <div className="px-3 py-1.5 min-w-[150px] lg:min-w-[200px] text-center border-x border-gray-200 dark:border-gray-700">
+                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    {getDateDisplayText()}
+                  </span>
+                </div>
+                <button 
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg transition-colors"
+                  onClick={navigateNext}
+                  data-testid="button-next-date"
+                >
+                  <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                </button>
               </div>
-              <button 
-                className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-l border-gray-200 dark:border-gray-700"
-                onClick={navigateNext}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
-              <button 
-                className="ml-0 px-2 lg:px-3 py-2 text-xs lg:text-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-l border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors font-medium"
+              
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={goToToday}
+                className="hidden sm:flex"
+                data-testid="button-today"
               >
                 Today
-              </button>
+              </Button>
             </div>
           )}
-
-          <div className="hidden lg:flex items-center">
-            <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{title}</h1>
-          </div>
         </div>
         
-        <div className="flex items-center space-x-2 lg:space-x-4">
+        {/* Right Section */}
+        <div className="flex items-center gap-2 lg:gap-3">
           {/* Weather Widget */}
           <div className="hidden xl:block">
             <WeatherWidget size="compact" />
           </div>
           
-          {/* Calendar View Options - Only show on calendar pages */}
+          {/* View Toggle */}
           {showViewToggle && (
-            <div className="hidden lg:flex items-center shadow-sm rounded-md overflow-hidden">
-              <button 
-                className={cn(
-                  "px-2 py-1.5 text-xs font-medium border",
-                  view === "day" 
-                    ? "bg-primary text-white border-primary" 
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                )}
-                onClick={() => onViewChange("day")}
-              >
-                Day
-              </button>
-              <button 
-                className={cn(
-                  "px-2 py-1.5 text-xs font-medium border",
-                  view === "week" 
-                    ? "bg-primary text-white border-primary" 
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                )}
-                onClick={() => onViewChange("week")}
-              >
-                Week
-              </button>
-              <button 
-                className={cn(
-                  "px-2 py-1.5 text-xs font-medium border",
-                  view === "timeline" 
-                    ? "bg-primary text-white border-primary" 
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                )}
-                onClick={() => onViewChange("timeline")}
-              >
-                Timeline
-              </button>
-              <button 
-                className={cn(
-                  "px-2 py-1.5 text-xs font-medium border",
-                  view === "month" 
-                    ? "bg-primary text-white border-primary" 
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                )}
-                onClick={() => onViewChange("month")}
-              >
-                Month
-              </button>
+            <div className="hidden lg:flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              {viewOptions.map((option) => {
+                const Icon = option.icon;
+                return (
+                  <button
+                    key={option.key}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+                      view === option.key
+                        ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    )}
+                    onClick={() => onViewChange(option.key)}
+                    data-testid={`button-view-${option.key}`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden xl:inline">{option.label}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
           
           {/* New Booking Button */}
-          <div className="flex-shrink-0">
-            <Button 
-              onClick={() => setIsBookingModalOpen(true)}
-              className="inline-flex items-center px-3 lg:px-4 py-2"
-              size="sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 lg:mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              <span className="hidden lg:inline">New Booking</span>
-            </Button>
-          </div>
+          <Button 
+            onClick={() => setIsBookingModalOpen(true)}
+            size="sm"
+            className="gap-1.5"
+            data-testid="button-new-booking"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">New Booking</span>
+          </Button>
           
           {/* Theme Toggle */}
           <ThemeToggle />
         </div>
       </div>
       
-
-      
-      {/* Studios Filter */}
+      {/* Studios Filter Bar */}
       {onStudioFilterChange && (
-        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-y dark:border-gray-700 lg:px-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Studios:</span>
-            <div className="flex flex-wrap gap-1">
-              {studiosToShow.map((studio) => (
-                <button
-                  key={studio.id}
-                  className={cn(
-                    "px-3 py-1.5 text-sm font-medium bg-white dark:bg-gray-700 border rounded-md shadow-sm whitespace-nowrap",
-                    selectedStudioIds.includes(studio.id)
-                      ? "border-primary"
-                      : "border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-gray-200"
-                  )}
-                  onClick={() => toggleStudioFilter(studio.id)}
-                >
-                  <span className={cn("w-2 h-2 inline-block rounded-full mr-2 flex-shrink-0", getStudioStatusColor(calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks)))}></span>
-                  {studio.name}
-                </button>
-              ))}
+        <div className="px-4 py-2.5 bg-gray-50/80 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 lg:px-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Studios:
+            </span>
+            
+            <div className="flex flex-wrap gap-1.5">
+              {studiosToShow.map((studio) => {
+                const status = calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks);
+                const isSelected = selectedStudioIds.includes(studio.id);
+                
+                return (
+                  <button
+                    key={studio.id}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-all",
+                      isSelected
+                        ? "bg-white dark:bg-gray-700 border-2 border-primary shadow-sm text-gray-900 dark:text-white"
+                        : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500"
+                    )}
+                    onClick={() => toggleStudioFilter(studio.id)}
+                    data-testid={`button-studio-filter-${studio.id}`}
+                  >
+                    <span className={cn(
+                      "w-2 h-2 rounded-full flex-shrink-0",
+                      getStudioStatusColor(status)
+                    )} />
+                    {studio.name}
+                  </button>
+                );
+              })}
               
               {studios.length > 20 && (
                 <button 
-                  className="px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md"
+                  className="px-2 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
                   onClick={() => setShowAllStudios(!showAllStudios)}
+                  data-testid="button-show-more-studios"
                 >
                   {showAllStudios ? "Show Less" : `+${studios.length - 20} more`}
                 </button>
               )}
             </div>
             
-            <div className="ml-auto flex items-center space-x-2 text-sm">
-
-              <div className="flex items-center">
-                <span className="h-3 w-3 rounded-full bg-green-500 mr-1"></span>
-                <span className="text-xs dark:text-gray-200">Available</span>
+            {/* Status Legend */}
+            <div className="ml-auto hidden md:flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                <span className="text-gray-600 dark:text-gray-400">Available</span>
               </div>
-              <div className="flex items-center">
-                <span className="h-3 w-3 rounded-full bg-orange-500 mr-1"></span>
-                <span className="text-xs dark:text-gray-200">Maintenance</span>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                <span className="text-gray-600 dark:text-gray-400">Maintenance</span>
               </div>
-              <div className="flex items-center">
-                <span className="h-3 w-3 rounded-full bg-red-500 mr-1"></span>
-                <span className="text-xs dark:text-gray-200">In-Use</span>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                <span className="text-gray-600 dark:text-gray-400">In-Use</span>
               </div>
             </div>
           </div>
@@ -374,8 +337,6 @@ export function Header({
         onClose={() => setIsBookingModalOpen(false)}
         selectedDate={currentDate}
       />
-
-
     </header>
   );
 }
