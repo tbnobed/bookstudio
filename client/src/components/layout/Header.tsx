@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { subtractDays, addDays, formatWeekRangeText, formatMondayWeekRangeText, subtractWeeks, addWeeks, subtractMonths, addMonths, testTimezoneHandling } from "@/lib/dateUtils";
-import BookingModal from "@/components/booking/BookingModal";
 import { ThemeToggle } from "@/components/theme-toggle";
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +10,7 @@ import { calculateStudioStatus, getStudioStatusColor } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
-import { ChevronLeft, ChevronRight, Plus, Menu, CalendarDays, LayoutGrid, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, CalendarDays, LayoutGrid, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -40,7 +39,6 @@ export function Header({
   useMondayWeeks = false,
   hideNavigation = false
 }: HeaderProps) {
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showAllStudios, setShowAllStudios] = useState(false);
 
   const { sidebarVisible, toggleSidebar } = useSidebar();
@@ -295,17 +293,6 @@ export function Header({
             </div>
           )}
           
-          {/* New Booking Button */}
-          <Button 
-            onClick={() => setIsBookingModalOpen(true)}
-            size="sm"
-            className="gap-1.5"
-            data-testid="button-new-booking"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">New Booking</span>
-          </Button>
-          
           {/* Theme Toggle */}
           <ThemeToggle />
         </div>
@@ -375,12 +362,6 @@ export function Header({
         </div>
       )}
 
-      {/* Booking Modal */}
-      <BookingModal 
-        isOpen={isBookingModalOpen} 
-        onClose={() => setIsBookingModalOpen(false)}
-        selectedDate={currentDate}
-      />
     </header>
   );
 }
