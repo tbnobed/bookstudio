@@ -346,7 +346,7 @@ export function Header({
         </div>
         
         {/* Center Section - Studio Status Summary + Weather */}
-        <div className="flex flex-1 items-center justify-center gap-4 lg:gap-6">
+        <div className="hidden lg:flex items-center justify-center gap-4 lg:gap-6">
           {/* Weather Widget */}
           <div className="hidden xl:block">
             <WeatherWidget size="compact" />
@@ -363,8 +363,8 @@ export function Header({
           )}
         </div>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-2 lg:gap-3">
+        {/* Right Section - View Toggle + Theme */}
+        <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
           
           {/* View Toggle */}
           {showViewToggle && (
