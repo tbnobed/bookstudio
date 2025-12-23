@@ -544,16 +544,21 @@ export default function DayChronView({
     });
   };
 
-  // Get booking color based on type
+  // Get booking color - returns object with either className or inline style
   const getBookingColor = (booking: any) => {
-    if (booking.color) return booking.color;
-    switch (booking.type) {
-      case "maintenance": return "bg-amber-500";
-      case "it_support": return "bg-red-500";
-      case "rehearsal": return "bg-purple-500";
-      case "production": return "bg-blue-500";
-      default: return "bg-gray-500";
+    // If booking has a hex color, return it for inline style
+    if (booking.color && booking.color.startsWith('#')) {
+      return { style: { backgroundColor: booking.color } };
     }
+    // Otherwise return Tailwind class
+    let className = 'bg-gray-500';
+    switch (booking.type) {
+      case "maintenance": className = "bg-amber-500"; break;
+      case "it_support": className = "bg-red-500"; break;
+      case "rehearsal": className = "bg-purple-500"; break;
+      case "production": className = "bg-blue-500"; break;
+    }
+    return { className };
   };
 
   return (
@@ -830,17 +835,22 @@ export default function DayChronView({
 
                   {/* Booking Blocks */}
                   {studioBookings.map(booking => {
-                    const style = getBookingStyle(booking);
+                    const positionStyle = getBookingStyle(booking);
+                    const colorInfo = getBookingColor(booking);
+                    const combinedStyle = colorInfo.style 
+                      ? { ...positionStyle, ...colorInfo.style }
+                      : positionStyle;
+                    
                     return (
                       <HoverCard key={booking.id}>
                         <HoverCardTrigger asChild>
                           <button
                             className={cn(
                               "absolute top-1 bottom-1 rounded cursor-pointer hover:opacity-80 transition-opacity",
-                              "flex items-center px-1 overflow-hidden",
-                              getBookingColor(booking)
+                              "flex items-center px-2 overflow-hidden shadow-sm",
+                              colorInfo.className
                             )}
-                            style={style}
+                            style={combinedStyle}
                             onClick={() => onBookingClick(booking)}
                           >
                             <span className="text-xs font-medium text-white truncate">
