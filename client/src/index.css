@@ -196,6 +196,15 @@
   }
 }
 
+/* Hide scrollbar but keep scrollability */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Mobile gradient background */
 .mobile-gradient-bg {
   background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 30%, #f5f3ff 70%, #faf5ff 100%) !important;

@@ -298,15 +298,25 @@ export function Header({
         </div>
       </div>
       
-      {/* Studios Filter Bar */}
+      {/* Studios Filter Bar - Compact horizontal scroll */}
       {onStudioFilterChange && (
-        <div className="px-4 py-2.5 bg-gray-50/80 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 lg:px-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Studios:
-            </span>
+        <div className="px-3 py-1.5 bg-gray-50/50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-800 lg:px-4">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            {/* Status Legend - Compact */}
+            <div className="flex-shrink-0 hidden sm:flex items-center gap-2 pr-2 border-r border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-1" title="Available">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              </div>
+              <div className="flex items-center gap-1" title="Maintenance">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+              </div>
+              <div className="flex items-center gap-1" title="In-Use">
+                <span className="h-2 w-2 rounded-full bg-red-500" />
+              </div>
+            </div>
             
-            <div className="flex flex-wrap gap-1.5">
+            {/* Studio Pills */}
+            <div className="flex items-center gap-1 flex-nowrap">
               {studiosToShow.map((studio) => {
                 const status = calculateStudioStatus(studio, bookings, currentDate, bookingStudioLinks);
                 const isSelected = selectedStudioIds.includes(studio.id);
@@ -315,16 +325,16 @@ export function Header({
                   <button
                     key={studio.id}
                     className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-all",
+                      "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full transition-all whitespace-nowrap",
                       isSelected
-                        ? "bg-white dark:bg-gray-700 border-2 border-primary shadow-sm text-gray-900 dark:text-white"
-                        : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500"
+                        ? "bg-primary/10 dark:bg-primary/20 text-primary border border-primary/30"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-transparent hover:bg-gray-200 dark:hover:bg-gray-700"
                     )}
                     onClick={() => toggleStudioFilter(studio.id)}
                     data-testid={`button-studio-filter-${studio.id}`}
                   >
                     <span className={cn(
-                      "w-2 h-2 rounded-full flex-shrink-0",
+                      "w-1.5 h-1.5 rounded-full flex-shrink-0",
                       getStudioStatusColor(status)
                     )} />
                     {studio.name}
@@ -334,29 +344,13 @@ export function Header({
               
               {studios.length > 20 && (
                 <button 
-                  className="px-2 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                  className="px-2 py-0.5 text-xs font-medium text-primary hover:bg-primary/10 rounded-full transition-colors whitespace-nowrap"
                   onClick={() => setShowAllStudios(!showAllStudios)}
                   data-testid="button-show-more-studios"
                 >
-                  {showAllStudios ? "Show Less" : `+${studios.length - 20} more`}
+                  {showAllStudios ? "Less" : `+${studios.length - 20}`}
                 </button>
               )}
-            </div>
-            
-            {/* Status Legend */}
-            <div className="ml-auto hidden md:flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                <span className="text-gray-600 dark:text-gray-400">Available</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                <span className="text-gray-600 dark:text-gray-400">Maintenance</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                <span className="text-gray-600 dark:text-gray-400">In-Use</span>
-              </div>
             </div>
           </div>
         </div>
