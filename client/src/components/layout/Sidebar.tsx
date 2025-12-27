@@ -19,7 +19,7 @@ import {
   ChevronDown,
   Wrench
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 type SidebarProps = {
   isOpen: boolean;

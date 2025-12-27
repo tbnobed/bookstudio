@@ -359,15 +359,13 @@ export function Header({
             <WeatherWidget size="compact" />
           </div>
           
-          {onStudioFilterChange && (
-            <StudioStatusSummary
-              studios={studios}
-              bookings={bookings}
-              bookingStudioLinks={bookingStudioLinks}
-              currentDate={currentDate}
-              onFilterByStatus={onStudioFilterChange}
-            />
-          )}
+          <StudioStatusSummary
+            studios={studios}
+            bookings={bookings}
+            bookingStudioLinks={bookingStudioLinks}
+            currentDate={currentDate}
+            onFilterByStatus={onStudioFilterChange}
+          />
         </div>
 
         {/* Right Section */}
