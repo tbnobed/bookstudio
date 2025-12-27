@@ -55,7 +55,7 @@ type NavSectionProps = {
   defaultOpen?: boolean;
 };
 
-function NavSection({ title, children, defaultOpen = true }: NavSectionProps) {
+function NavSection({ title, children, defaultOpen = false }: NavSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   
   return (
