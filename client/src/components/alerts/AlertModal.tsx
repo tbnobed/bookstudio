@@ -33,12 +33,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
+import { Trash2, CalendarIcon, X } from "lucide-react";
 import { generateTimeOptions, timeToDate } from "@/lib/dateUtils";
 import { getFacilityTimezone } from "@/lib/timezoneConfig";
 import { startOfDay, endOfDay, parseISO, format } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { queryClient } from "@/lib/queryClient";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface AlertModalProps {
   isOpen: boolean;
@@ -61,6 +69,8 @@ export default function AlertModal({
   const [alertType, setAlertType] = useState("maintenance");
   const [severity, setSeverity] = useState("medium");
   const [date, setDate] = useState("");
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [startTime, setStartTime] = useState("9:00am");
   const [endTime, setEndTime] = useState("10:00am");
   const [isAllDay, setIsAllDay] = useState(false);
@@ -184,11 +194,14 @@ export default function AlertModal({
           });
           const facilityDateStr = dateFormatter.format(selectedDate);
           setDate(facilityDateStr);
+          setSelectedDates([selectedDate]);
           console.log("AlertModal - Setting date for new alert:", {
             selectedDate: selectedDate.toISOString(),
             facilityTimezone,
             facilityDateStr
           });
+        } else {
+          setSelectedDates([new Date()]);
         }
       }
     }
@@ -223,6 +236,7 @@ export default function AlertModal({
         day: '2-digit'
       });
       setDate(dateFormatter.format(selectedDate));
+      setSelectedDates([selectedDate]);
     } else {
       // Default to current date in facility timezone
       const facilityTimezone = getFacilityTimezone();
@@ -233,20 +247,33 @@ export default function AlertModal({
         day: '2-digit'
       });
       setDate(dateFormatter.format(new Date()));
+      setSelectedDates([new Date()]);
     }
     setStartTime("9:00am");
     setEndTime("10:00am");
     setNotifyList([]);
+    setDatePickerOpen(false);
   };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate that at least one date is selected for new alerts
+    if (!alert && selectedDates.length === 0) {
+      showNotification({
+        type: "error",
+        title: "No Dates Selected",
+        message: "Please select at least one date for the alert.",
+      });
+      return;
+    }
+    
     // Validate that end time is not earlier than start time (only for non-all-day alerts)
     if (!isAllDay) {
-      const startDate = timeToDate(date, startTime);
-      const endDate = timeToDate(date, endTime);
+      const testDate = alert ? date : format(selectedDates[0], 'yyyy-MM-dd');
+      const startDate = timeToDate(testDate, startTime);
+      const endDate = timeToDate(testDate, endTime);
       
       if (endDate <= startDate) {
         showNotification({
@@ -379,23 +406,87 @@ export default function AlertModal({
         return;
       }
     } else {
-      // Create new alert
-      console.log("Creating alert with data:", alertData);
-      try {
-        const result = await createAlert.mutateAsync(alertData as InsertAlert);
-        console.log("Alert creation result:", result);
+      // Create new alert(s) - handle multiple dates
+      const datesToCreate = selectedDates.length > 0 ? selectedDates : [new Date(date)];
+      
+      console.log(`Creating ${datesToCreate.length} alert(s) for selected dates`);
+      
+      let successCount = 0;
+      let errorCount = 0;
+      
+      for (const selectedDateItem of datesToCreate) {
+        try {
+          const facilityTimezone = getFacilityTimezone();
+          const dateFormatter = new Intl.DateTimeFormat('en-CA', { 
+            timeZone: facilityTimezone,
+            year: 'numeric',
+            month: '2-digit', 
+            day: '2-digit'
+          });
+          const dateStr = dateFormatter.format(selectedDateItem);
+          
+          let alertStart, alertEnd;
+          let perDateAlertType = alertType;
+          
+          if (isAllDay) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const facilityStartOfDay = new Date();
+            facilityStartOfDay.setFullYear(year, month - 1, day);
+            facilityStartOfDay.setHours(0, 0, 0, 0);
+            
+            const facilityEndOfDay = new Date();
+            facilityEndOfDay.setFullYear(year, month - 1, day);
+            facilityEndOfDay.setHours(23, 59, 59, 999);
+            
+            alertStart = fromZonedTime(facilityStartOfDay, facilityTimezone);
+            alertEnd = fromZonedTime(facilityEndOfDay, facilityTimezone);
+            
+            const validType = alertType && alertType !== 'undefined' && alertType.trim() !== '' ? alertType : 'maintenance';
+            perDateAlertType = `all-day:${validType}`;
+          } else {
+            alertStart = timeToDate(dateStr, startTime);
+            alertEnd = timeToDate(dateStr, endTime);
+            perDateAlertType = alertType && alertType !== 'undefined' && alertType.trim() !== '' ? alertType : 'maintenance';
+          }
+          
+          const singleAlertData: Partial<InsertAlert> = {
+            title,
+            description,
+            alertType: perDateAlertType,
+            start: alertStart,
+            end: alertEnd,
+            notifyList: notifyList,
+            severity: severity
+          };
+          
+          console.log(`Creating alert for date ${dateStr}:`, singleAlertData);
+          await createAlert.mutateAsync(singleAlertData as InsertAlert);
+          successCount++;
+        } catch (error) {
+          console.error(`Error creating alert for date:`, error);
+          errorCount++;
+        }
+      }
+      
+      if (successCount > 0) {
         showNotification({
           type: "success",
-          title: "Alert Created",
-          message: "The facility alert has been successfully created.",
+          title: successCount > 1 ? "Alerts Created" : "Alert Created",
+          message: successCount > 1 
+            ? `Successfully created ${successCount} facility alert(s).`
+            : "The facility alert has been successfully created.",
         });
-      } catch (error) {
-        console.error("Error creating alert:", error);
+      }
+      
+      if (errorCount > 0) {
         showNotification({
           type: "error",
-          title: "Creation Failed",
-          message: "Failed to create the alert. Please try again.",
+          title: "Some Alerts Failed",
+          message: `Failed to create ${errorCount} alert(s). Please try again.`,
         });
+      }
+      
+      if (successCount === 0 && errorCount > 0) {
         return;
       }
     }
@@ -510,60 +601,187 @@ export default function AlertModal({
           </div>
           
           <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
+            {/* Date Selection - Single date for edit, multi-date for create */}
+            {alert ? (
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className={isAllDay ? "opacity-50" : ""}>
+                  <Label htmlFor="start-time">Start Time</Label>
+                  <Select 
+                    value={startTime} 
+                    onValueChange={setStartTime} 
+                    required
+                    disabled={isAllDay}
+                  >
+                    <SelectTrigger id="start-time">
+                      <SelectValue placeholder="Select start time" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {generateTimeOptions().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className={isAllDay ? "opacity-50" : ""}>
+                  <Label htmlFor="end-time">End Time</Label>
+                  <Select 
+                    value={endTime} 
+                    onValueChange={setEndTime} 
+                    required
+                    disabled={isAllDay}
+                  >
+                    <SelectTrigger id="end-time">
+                      <SelectValue placeholder="Select end time" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {generateTimeOptions().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              
-              <div className={isAllDay ? "opacity-50" : ""}>
-                <Label htmlFor="start-time">Start Time</Label>
-                <Select 
-                  value={startTime} 
-                  onValueChange={setStartTime} 
-                  required
-                  disabled={isAllDay}
-                >
-                  <SelectTrigger id="start-time">
-                    <SelectValue placeholder="Select start time" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {generateTimeOptions().map((time) => (
-                      <SelectItem key={time} value={time}>
-                        {time}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <Label>Dates (select one or more)</Label>
+                  <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          selectedDates.length === 0 && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedDates.length === 0
+                          ? "Select dates"
+                          : selectedDates.length === 1
+                          ? format(selectedDates[0], "MMM d, yyyy")
+                          : `${selectedDates.length} dates selected`}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="multiple"
+                        selected={selectedDates}
+                        onSelect={(dates) => {
+                          setSelectedDates(dates || []);
+                          if (dates && dates.length > 0) {
+                            const facilityTimezone = getFacilityTimezone();
+                            const dateFormatter = new Intl.DateTimeFormat('en-CA', { 
+                              timeZone: facilityTimezone,
+                              year: 'numeric',
+                              month: '2-digit', 
+                              day: '2-digit'
+                            });
+                            setDate(dateFormatter.format(dates[0]));
+                          }
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  {selectedDates.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {[...selectedDates]
+                        .sort((a, b) => a.getTime() - b.getTime())
+                        .map((d, idx) => (
+                          <Badge 
+                            key={idx} 
+                            variant="secondary"
+                            className="flex items-center gap-1 px-2 py-1"
+                          >
+                            {format(d, "MMM d")}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newDates = selectedDates.filter((_, i) => i !== idx);
+                                setSelectedDates(newDates);
+                                if (newDates.length > 0) {
+                                  const facilityTimezone = getFacilityTimezone();
+                                  const dateFormatter = new Intl.DateTimeFormat('en-CA', { 
+                                    timeZone: facilityTimezone,
+                                    year: 'numeric',
+                                    month: '2-digit', 
+                                    day: '2-digit'
+                                  });
+                                  setDate(dateFormatter.format(newDates[0]));
+                                }
+                              }}
+                              className="hover:text-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={isAllDay ? "opacity-50" : ""}>
+                    <Label htmlFor="start-time">Start Time</Label>
+                    <Select 
+                      value={startTime} 
+                      onValueChange={setStartTime} 
+                      required
+                      disabled={isAllDay}
+                    >
+                      <SelectTrigger id="start-time">
+                        <SelectValue placeholder="Select start time" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[200px]">
+                        {generateTimeOptions().map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className={isAllDay ? "opacity-50" : ""}>
+                    <Label htmlFor="end-time">End Time</Label>
+                    <Select 
+                      value={endTime} 
+                      onValueChange={setEndTime} 
+                      required
+                      disabled={isAllDay}
+                    >
+                      <SelectTrigger id="end-time">
+                        <SelectValue placeholder="Select end time" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[200px]">
+                        {generateTimeOptions().map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
-              
-              <div className={isAllDay ? "opacity-50" : ""}>
-                <Label htmlFor="end-time">End Time</Label>
-                <Select 
-                  value={endTime} 
-                  onValueChange={setEndTime} 
-                  required
-                  disabled={isAllDay}
-                >
-                  <SelectTrigger id="end-time">
-                    <SelectValue placeholder="Select end time" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {generateTimeOptions().map((time) => (
-                      <SelectItem key={time} value={time}>
-                        {time}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            )}
             
             <div className="flex items-center space-x-2 ml-1">
               <Checkbox
