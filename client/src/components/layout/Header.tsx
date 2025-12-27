@@ -339,6 +339,7 @@ export function Header({
                             onStudioFilterChange(selectedStudioIds.filter(id => id !== studio.id));
                           }
                         }}
+                        onSelect={(e) => e.preventDefault()}
                         data-testid={`checkbox-studio-${studio.id}`}
                       >
                         {studio.name}
