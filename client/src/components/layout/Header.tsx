@@ -158,7 +158,7 @@ export function Header({
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       {/* Main Header Row */}
-      <div className="flex items-center justify-between px-4 py-3 lg:px-6">
+      <div className="relative flex items-center justify-between px-4 py-3 lg:px-6">
         {/* Left Section */}
         <div className="flex items-center gap-3">
           {/* Sidebar Toggle */}
@@ -352,8 +352,8 @@ export function Header({
           )}
         </div>
         
-        {/* Center Section - Studio Status Summary + Weather */}
-        <div className="hidden md:flex flex-1 items-center justify-center gap-6">
+        {/* Center Section - Studio Status Summary + Weather - Absolutely positioned for consistent placement */}
+        <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-6 pointer-events-auto">
           {/* Weather Widget */}
           <div className="hidden xl:block">
             <WeatherWidget size="compact" />
