@@ -459,6 +459,9 @@ export default function AuthPage() {
             </TabsContent>
           </Tabs>
           </div>
+          <p className="text-2xl font-bold text-white mt-6 tracking-wide drop-shadow-lg text-center">
+            Production Starts Here.
+          </p>
         </div>
         
         <div className="hidden lg:flex lg:flex-col lg:items-center lg:justify-center w-full lg:flex-[3]">
@@ -474,9 +477,6 @@ export default function AuthPage() {
               Your browser does not support the video tag.
             </video>
           </div>
-          <p className="text-3xl font-bold text-white mt-6 tracking-wide drop-shadow-lg">
-            Production Starts Here.
-          </p>
         </div>
       </div>
     </div>
