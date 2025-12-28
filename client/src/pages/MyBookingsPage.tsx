@@ -649,7 +649,7 @@ export default function MyBookingsPage() {
                       {allUpcomingBookings.length > ITEMS_PER_PAGE && (
                         <div className="flex justify-between items-center mt-4 pt-4 border-t">
                           <div className="text-sm text-gray-600 dark:text-gray-300">
-                            Page {adminUpcomingPage} of {totalUpcomingPages} • Showing {upcomingAllBookings.length} of {allUpcomingBookings.length}
+                            Page {adminUpcomingPage} of {totalUpcomingPages} • Showing {(adminUpcomingPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(adminUpcomingPage * ITEMS_PER_PAGE, allUpcomingBookings.length)} of {allUpcomingBookings.length}
                           </div>
                           <div className="flex space-x-2">
                             <Button variant="outline" size="sm" onClick={() => setAdminUpcomingPage(adminUpcomingPage - 1)} disabled={adminUpcomingPage === 1}>
@@ -735,7 +735,7 @@ export default function MyBookingsPage() {
                       {allPastBookings.length > ITEMS_PER_PAGE && (
                         <div className="flex justify-between items-center mt-4 pt-4 border-t">
                           <div className="text-sm text-gray-600 dark:text-gray-300">
-                            Page {adminPastPage} of {totalPastPages} • Showing {pastAllBookings.length} of {allPastBookings.length}
+                            Page {adminPastPage} of {totalPastPages} • Showing {(adminPastPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(adminPastPage * ITEMS_PER_PAGE, allPastBookings.length)} of {allPastBookings.length}
                           </div>
                           <div className="flex space-x-2">
                             <Button variant="outline" size="sm" onClick={() => setAdminPastPage(adminPastPage - 1)} disabled={adminPastPage === 1}>
