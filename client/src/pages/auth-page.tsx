@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,10 @@ export default function AuthPage() {
   
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+
+  const { data: siteNameData } = useQuery<{ siteName: string }>({
+    queryKey: ['/api/system/site-name'],
+  });
 
   const loginSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -179,9 +184,9 @@ export default function AuthPage() {
         <div className="flex flex-col items-center mb-8">
           <img src={logoPath} alt="BookStud.io" className="h-60 w-auto dark:hidden drop-shadow-2xl" />
           <img src={logoDarkPath} alt="BookStud.io" className="h-60 w-auto hidden dark:block drop-shadow-2xl" />
-          {import.meta.env.VITE_FACILITY_NAME && (
+          {siteNameData?.siteName && (
             <h2 className="text-2xl font-semibold text-white/90 mt-4 text-center drop-shadow-lg">
-              {import.meta.env.VITE_FACILITY_NAME}
+              {siteNameData.siteName}
             </h2>
           )}
         </div>
