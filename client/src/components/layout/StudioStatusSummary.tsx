@@ -128,7 +128,7 @@ export default function StudioStatusSummary({
                   {config.label} ({group.count})
                 </p>
                 {group.studios.length > 0 ? (
-                  <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5 max-h-40 overflow-y-auto">
+                  <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5">
                     {group.studios.map((studio) => (
                       <li key={studio.id} className="truncate">
                         • {studio.name}
