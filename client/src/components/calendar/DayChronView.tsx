@@ -736,10 +736,25 @@ export default function DayChronView({
                 {/* Studio Name */}
                 <div className="w-28 flex-shrink-0 p-2 border-r border-gray-200 dark:border-gray-700 flex items-center">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className={cn(
-                      "w-2 h-2 rounded-full flex-shrink-0",
-                      studioBookings.length > 0 ? "bg-blue-500" : "bg-emerald-500"
-                    )} />
+                    {(() => {
+                      // Check if studio is in maintenance mode
+                      if (studio.status === 'maintenance') {
+                        return <div className="w-2 h-2 rounded-full flex-shrink-0 bg-orange-500" />;
+                      }
+                      // Check if any booking is CURRENTLY active (now is between start and end)
+                      const hasActiveBooking = studioBookings.some(booking => {
+                        if (booking.status === 'cancelled') return false;
+                        const start = new Date(booking.start);
+                        const end = new Date(booking.end);
+                        return currentTime >= start && currentTime <= end;
+                      });
+                      return (
+                        <div className={cn(
+                          "w-2 h-2 rounded-full flex-shrink-0",
+                          hasActiveBooking ? "bg-red-500" : "bg-emerald-500"
+                        )} />
+                      );
+                    })()}
                     <span className="text-sm font-medium truncate dark:text-gray-200">{studio.name}</span>
                   </div>
                 </div>
