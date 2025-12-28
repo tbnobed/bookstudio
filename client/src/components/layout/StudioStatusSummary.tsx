@@ -120,7 +120,7 @@ export default function StudioStatusSummary({
             </TooltipTrigger>
             <TooltipContent 
               side="bottom" 
-              className="max-w-xs p-3"
+              className="max-w-xl p-3"
               data-testid={`tooltip-${config.key}`}
             >
               <div className="space-y-1">
@@ -128,13 +128,13 @@ export default function StudioStatusSummary({
                   {config.label} ({group.count})
                 </p>
                 {group.studios.length > 0 ? (
-                  <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5">
+                  <div className="grid grid-cols-4 gap-x-3 gap-y-0.5 text-xs text-gray-600 dark:text-gray-300">
                     {group.studios.map((studio) => (
-                      <li key={studio.id} className="truncate">
+                      <span key={studio.id} className="truncate">
                         • {studio.name}
-                      </li>
+                      </span>
                     ))}
-                  </ul>
+                  </div>
                 ) : (
                   <p className="text-xs text-gray-500 dark:text-gray-400 italic">
                     No studios
