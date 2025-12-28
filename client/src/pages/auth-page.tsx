@@ -135,14 +135,53 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#003366] dark:bg-gray-950 p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-[#003366] dark:bg-gray-950 p-4 relative overflow-hidden">
+      <style>{`
+        @keyframes float1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(50px, -80px) scale(1.1); }
+          50% { transform: translate(-30px, -120px) scale(0.9); }
+          75% { transform: translate(-60px, -40px) scale(1.05); }
+        }
+        @keyframes float2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(-80px, 60px) scale(1.15); }
+          50% { transform: translate(40px, 100px) scale(0.85); }
+          75% { transform: translate(70px, 30px) scale(1.1); }
+        }
+        @keyframes float3 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(100px, -60px) scale(1.2); }
+          66% { transform: translate(-50px, 80px) scale(0.8); }
+        }
+        @keyframes float4 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          20% { transform: translate(-40px, -100px) scale(1.1); }
+          40% { transform: translate(60px, -50px) scale(0.95); }
+          60% { transform: translate(30px, 70px) scale(1.15); }
+          80% { transform: translate(-70px, 40px) scale(0.9); }
+        }
+        .orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+          opacity: 0.6;
+          mix-blend-mode: screen;
+        }
+      `}</style>
+      
+      <div className="orb w-96 h-96 bg-blue-500/40 top-[-10%] left-[-10%]" style={{ animation: 'float1 20s ease-in-out infinite' }} />
+      <div className="orb w-80 h-80 bg-cyan-400/30 bottom-[-5%] right-[-5%]" style={{ animation: 'float2 25s ease-in-out infinite' }} />
+      <div className="orb w-72 h-72 bg-indigo-500/35 top-[20%] right-[10%]" style={{ animation: 'float3 18s ease-in-out infinite' }} />
+      <div className="orb w-64 h-64 bg-purple-500/25 bottom-[20%] left-[15%]" style={{ animation: 'float4 22s ease-in-out infinite' }} />
+      
+      <div className="w-full max-w-md relative z-10">
         <div className="flex justify-center mb-8">
-          <img src={logoPath} alt="BookStud.io" className="h-60 w-auto dark:hidden" />
-          <img src={logoDarkPath} alt="BookStud.io" className="h-60 w-auto hidden dark:block" />
+          <img src={logoPath} alt="BookStud.io" className="h-60 w-auto dark:hidden drop-shadow-2xl" />
+          <img src={logoDarkPath} alt="BookStud.io" className="h-60 w-auto hidden dark:block drop-shadow-2xl" />
         </div>
         
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8">
+        <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {activeTab === "login" && "Sign In"}
