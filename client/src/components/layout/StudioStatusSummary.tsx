@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Studio, Booking, BookingStudio } from "@shared/schema";
 import { calculateStudioStatus } from "@/lib/studioUtils";
@@ -31,7 +31,16 @@ export default function StudioStatusSummary({
   onFilterByStatus,
 }: StudioStatusSummaryProps) {
   // Use actual current time for real-time status display, not the calendar viewing date
-  const now = useMemo(() => new Date(), []);
+  // Update every 30 seconds to keep status indicators current
+  const [now, setNow] = useState(() => new Date());
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 30000); // Update every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
   
   const statusGroups = useMemo(() => {
     const groups: Record<StudioStatus, StatusGroup> = {
