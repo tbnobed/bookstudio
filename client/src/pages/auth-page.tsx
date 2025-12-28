@@ -186,7 +186,7 @@ export default function AuthPage() {
         <img src={logoDarkPath} alt="BookStud.io" className="h-64 w-auto hidden dark:block drop-shadow-xl" />
       </div>
       
-      <div className="w-full max-w-6xl relative z-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-12 px-4">
+      <div className="w-full max-w-[1600px] relative z-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-16 px-8">
         <div className="w-full lg:flex-[1] lg:max-w-[420px]">
           <div className="flex flex-col items-center mb-6">
             {siteNameData?.siteName && (
@@ -461,7 +461,7 @@ export default function AuthPage() {
           </div>
         </div>
         
-        <div className="hidden lg:flex lg:flex-col lg:items-center lg:justify-center w-full lg:flex-[2] lg:max-w-[900px]">
+        <div className="hidden lg:flex lg:flex-col lg:items-center lg:justify-center w-full lg:flex-[3]">
           <div className="rounded-2xl overflow-hidden shadow-2xl w-full">
             <video 
               autoPlay 
