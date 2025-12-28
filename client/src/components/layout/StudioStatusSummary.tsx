@@ -120,7 +120,7 @@ export default function StudioStatusSummary({
             </TooltipTrigger>
             <TooltipContent 
               side="bottom" 
-              className="max-w-xs p-3 z-[100]"
+              className="max-w-xs p-3"
               data-testid={`tooltip-${config.key}`}
             >
               <div className="space-y-1">
