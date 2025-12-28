@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../assets/logo.png";
 import logoDarkPath from "../assets/logo-dark.png";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import promoVideo from "@assets/bookstudioPromo_1766899495039.mp4";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -180,36 +181,37 @@ export default function AuthPage() {
       <div className="orb w-72 h-72 bg-indigo-500/35 top-[20%] right-[10%]" style={{ animation: 'float3 18s ease-in-out infinite' }} />
       <div className="orb w-64 h-64 bg-purple-500/25 bottom-[20%] left-[15%]" style={{ animation: 'float4 22s ease-in-out infinite' }} />
       
-      <div className="absolute top-6 right-6 z-20">
-        <img src={logoPath} alt="BookStud.io" className="h-16 w-auto dark:hidden drop-shadow-xl" />
-        <img src={logoDarkPath} alt="BookStud.io" className="h-16 w-auto hidden dark:block drop-shadow-xl" />
+      <div className="absolute top-6 left-6 z-20">
+        <img src={logoPath} alt="BookStud.io" className="h-64 w-auto dark:hidden drop-shadow-xl" />
+        <img src={logoDarkPath} alt="BookStud.io" className="h-64 w-auto hidden dark:block drop-shadow-xl" />
       </div>
       
-      <div className="w-full max-w-md relative z-10">
-        <div className="flex flex-col items-center mb-8">
-          {siteNameData?.siteName && (
-            <h1 className="text-5xl font-bold text-white mt-4 text-center drop-shadow-xl tracking-tight">
-              {siteNameData.siteName}
-            </h1>
-          )}
-          <p className="text-white/70 mt-2 text-lg">Television Studio Management</p>
-        </div>
-        
-        <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {activeTab === "login" && "Sign In"}
-              {activeTab === "forgot-password" && "Reset Password"}
-              {activeTab === "register" && "Create Account"}
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-              {activeTab === "login" && "Welcome back to BookStud.io"}
-              {activeTab === "forgot-password" && "We'll send you a reset link"}
-              {activeTab === "register" && "Get started with studio booking"}
-            </p>
+      <div className="w-full max-w-6xl relative z-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-12 px-4">
+        <div className="w-full lg:w-1/2 max-w-md">
+          <div className="flex flex-col items-center mb-6">
+            {siteNameData?.siteName && (
+              <h1 className="text-4xl lg:text-5xl font-bold text-white text-center drop-shadow-xl tracking-tight">
+                {siteNameData.siteName}
+              </h1>
+            )}
+            <p className="text-white/70 mt-2 text-lg">Television Studio Management</p>
           </div>
+          
+          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {activeTab === "login" && "Sign In"}
+                {activeTab === "forgot-password" && "Reset Password"}
+                {activeTab === "register" && "Create Account"}
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
+                {activeTab === "login" && "Welcome back to BookStud.io"}
+                {activeTab === "forgot-password" && "We'll send you a reset link"}
+                {activeTab === "register" && "Get started with studio booking"}
+              </p>
+            </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsContent value="login" className="mt-0">
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
                 <div className="space-y-4">
@@ -457,6 +459,22 @@ export default function AuthPage() {
               </form>
             </TabsContent>
           </Tabs>
+          </div>
+        </div>
+        
+        <div className="hidden lg:block w-full lg:w-1/2">
+          <div className="rounded-2xl overflow-hidden shadow-2xl">
+            <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+              className="w-full h-auto"
+            >
+              <source src={promoVideo} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
         </div>
       </div>
     </div>
