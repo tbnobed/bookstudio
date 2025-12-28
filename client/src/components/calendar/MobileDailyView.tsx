@@ -483,7 +483,7 @@ export default function MobileDailyView({
       <MobileBanner />
       
       {/* Header with date navigation */}
-      <div className="border-b p-4 bg-white/90 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b dark:border-gray-700 p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm sticky top-0 z-10">
         {/* Date navigation buttons */}
         <div className="flex justify-between items-center mb-2">
           <Button variant="ghost" size="icon" onClick={goToPreviousDay}>
@@ -496,7 +496,7 @@ export default function MobileDailyView({
             <h1 className="text-lg font-bold">
               {isToday(currentDate) ? "Today" : formatDate(currentDate)}
             </h1>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {currentDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: import.meta.env.VITE_FACILITY_TIMEZONE || 'America/Chicago' })}
             </span>
             <WeatherForecastCell 
@@ -521,7 +521,7 @@ export default function MobileDailyView({
             <Button 
               variant="outline" 
               size="sm"
-              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+              className="text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
               onClick={goToToday}
             >
               <Calendar className="h-4 w-4 mr-1" /> Today
@@ -536,8 +536,8 @@ export default function MobileDailyView({
 
       {/* Alerts section - facility-wide alerts */}
       {facilityAlerts.length > 0 && (
-        <div className="p-4 bg-red-50 border-b border-red-100">
-          <h2 className="text-sm font-semibold text-red-800 mb-2 flex items-center gap-2">
+        <div className="p-4 bg-red-50 dark:bg-red-950/50 border-b border-red-100 dark:border-red-900">
+          <h2 className="text-sm font-semibold text-red-800 dark:text-red-300 mb-2 flex items-center gap-2">
             <AlertTriangle size={16} />
             Facility Alerts
           </h2>
@@ -545,11 +545,11 @@ export default function MobileDailyView({
             {facilityAlerts.map(alert => (
               <div 
                 key={alert.id} 
-                className="bg-white p-3 rounded-md border border-red-200 shadow-sm"
+                className="bg-white dark:bg-gray-800 p-3 rounded-md border border-red-200 dark:border-red-800 shadow-sm"
                 onClick={() => handleBookingClick(alert)}
               >
-                <div className="font-medium text-red-700">{alert.title}</div>
-                <div className="text-xs text-gray-500">
+                <div className="font-medium text-red-700 dark:text-red-400">{alert.title}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
                   {formatTimeRange(new Date(alert.start), new Date(alert.end))}
                 </div>
               </div>
@@ -560,7 +560,7 @@ export default function MobileDailyView({
 
       {/* Main content - Studios and bookings */}
       <Tabs defaultValue="timeline" className="flex-1 overflow-hidden flex flex-col">
-        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10 bg-white/90 backdrop-blur-sm">
+        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
           <TabsTrigger value="studios">Studios Status</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
@@ -573,8 +573,8 @@ export default function MobileDailyView({
               const { statusInfo } = studio;
               
               return (
-                <div key={studio.id} className="bg-white rounded-lg border shadow-sm overflow-hidden touch-pan-y">
-                  <div className="flex items-center p-4 border-b sticky top-0 bg-white">
+                <div key={studio.id} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 shadow-sm overflow-hidden touch-pan-y">
+                  <div className="flex items-center p-4 border-b dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
                     <div className={`w-3 h-3 rounded-full mr-2 ${statusInfo.color}`}></div>
                     <h3 className="font-medium flex-1">{studio.name}</h3>
                     <Badge 
@@ -605,7 +605,7 @@ export default function MobileDailyView({
                               key={booking.id}
                               onClick={() => handleBookingClick(booking)}
                               className={cn(
-                                "p-3 rounded-md border cursor-pointer transition-colors active:bg-gray-100",
+                                "p-3 rounded-md border cursor-pointer transition-colors active:bg-gray-100 dark:active:bg-gray-700",
                                 booking.status === "tentative" ? "border-dashed" : "",
                                 booking.color 
                                   ? { 
@@ -613,10 +613,10 @@ export default function MobileDailyView({
                                       "border-current": true
                                     }
                                   : isActive 
-                                    ? "bg-red-50 border-red-200" 
+                                    ? "bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800" 
                                     : isUpcoming 
-                                      ? "bg-amber-50 border-amber-200" 
-                                      : "bg-gray-50 border-gray-200"
+                                      ? "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800" 
+                                      : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
                               )}
                               style={booking.color ? { 
                                 backgroundColor: `${booking.color}20`, /* 12.5% opacity */
@@ -627,21 +627,21 @@ export default function MobileDailyView({
                               <div className="font-medium text-sm" style={booking.color ? { color: booking.color } : {}}>
                                 {booking.title}
                               </div>
-                              <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                              <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
                                 <Clock size={12} />
                                 {formatTimeRange(bookingStart, bookingEnd)}
                               </div>
                               
                               {/* Show linked studios display for this booking if multiple */}
                               {getLinkedStudiosForBooking(booking).length > 1 && (
-                                <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
                                   <Tv size={12} />
                                   {getAllStudiosForBooking(booking)}
                                 </div>
                               )}
 
                               {/* PCR Room Information */}
-                              <div className="text-xs text-gray-500 flex items-center gap-1 mt-1 bg-gray-100 p-1 rounded">
+                              <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1 bg-gray-100 dark:bg-gray-700 p-1 rounded">
                                 <MonitorPlay size={12} className="text-blue-500" />
                                 PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"}
                               </div>
@@ -655,11 +655,11 @@ export default function MobileDailyView({
                                   Cancelled
                                 </div>
                               ) : isUpcoming ? (
-                                <div className="text-xs text-amber-700 mt-1">
+                                <div className="text-xs text-amber-700 dark:text-amber-400 mt-1">
                                   Starts in {formatDistance(bookingStart, now)}
                                 </div>
                               ) : isActive ? (
-                                <div className="text-xs text-red-700 mt-1">
+                                <div className="text-xs text-red-700 dark:text-red-400 mt-1">
                                   Ends in {formatDistance(bookingEnd, now)}
                                 </div>
                               ) : null}
@@ -672,12 +672,12 @@ export default function MobileDailyView({
                         {/* Show current status summary */}
                         <div className={cn(
                           "rounded-md py-3 px-4 border flex flex-col gap-2",
-                          statusInfo.status === 'in-use' ? 'bg-red-50 border-red-200' : 
-                          statusInfo.status === 'upcoming' ? 'bg-amber-50 border-amber-200' : 
-                          'bg-green-50 border-green-200'
+                          statusInfo.status === 'in-use' ? 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800' : 
+                          statusInfo.status === 'upcoming' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800' : 
+                          'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800'
                         )}>
                           {/* PCR Room Information */}
-                          <div className="text-xs text-gray-500 flex items-center gap-1 bg-gray-100 p-1 rounded mb-1">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded mb-1">
                             <MonitorPlay size={14} className="text-blue-500" />
                             <span>PCR: None assigned</span>
                           </div>
@@ -685,9 +685,9 @@ export default function MobileDailyView({
                           {/* Current status */}
                           <div className={cn(
                             "font-medium",
-                            statusInfo.status === 'in-use' ? 'text-red-600' : 
-                            statusInfo.status === 'upcoming' ? 'text-amber-600' : 
-                            'text-green-600'
+                            statusInfo.status === 'in-use' ? 'text-red-600 dark:text-red-400' : 
+                            statusInfo.status === 'upcoming' ? 'text-amber-600 dark:text-amber-400' : 
+                            'text-green-600 dark:text-green-400'
                           )}>
                             {statusInfo.status === 'in-use' 
                               ? statusInfo.currentBooking?.title || 'In Use' 
@@ -698,7 +698,7 @@ export default function MobileDailyView({
                           
                           {/* Time information for status */}
                           {statusInfo.status === 'in-use' && statusInfo.currentBooking && (
-                            <div className="text-xs text-gray-600 mt-1 flex items-center gap-1">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-1">
                               <Clock size={12} />
                               {formatTimeRange(
                                 new Date(statusInfo.currentBooking.start), 
@@ -709,14 +709,14 @@ export default function MobileDailyView({
                           
                           {/* Show linked studios if applicable */}
                           {statusInfo.currentBooking && getLinkedStudiosForBooking(statusInfo.currentBooking).length > 1 && (
-                            <div className="text-xs text-gray-600 flex items-center gap-1 mt-1">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-1">
                               <Tv size={12} />
                               {getAllStudiosForBooking(statusInfo.currentBooking)}
                             </div>
                           )}
                           
                           {statusInfo.status === 'upcoming' && statusInfo.nextBooking && (
-                            <div className="text-xs text-amber-600 mt-1">
+                            <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                               Starts in {formatDistance(new Date(statusInfo.nextBooking.start), now)}
                             </div>
                           )}
@@ -757,20 +757,20 @@ export default function MobileDailyView({
                         key={booking.id}
                         onClick={() => handleBookingClick(booking)}
                         className={cn(
-                          "p-4 rounded-lg border shadow-sm cursor-pointer transition-colors active:bg-gray-100",
+                          "p-4 rounded-lg border shadow-sm cursor-pointer transition-colors active:bg-gray-100 dark:active:bg-gray-700",
                           booking.status === "tentative" ? "border-dashed" : "",
                           isFacilityAlert 
-                            ? "bg-rose-50 border-rose-300" 
+                            ? "bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800" 
                             : booking.color 
                               ? {
                                   "bg-opacity-15 border-opacity-30": true,
                                   "border-current": true
                                 }
                               : isActive 
-                                ? "bg-red-50 border-red-200" 
+                                ? "bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800" 
                                 : isUpcoming 
-                                  ? "bg-amber-50 border-amber-200" 
-                                  : "bg-gray-50 border-gray-200"
+                                  ? "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800" 
+                                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                         )}
                         style={!isFacilityAlert && booking.color ? { 
                           backgroundColor: `${booking.color}20`, /* 12.5% opacity */
@@ -794,14 +794,14 @@ export default function MobileDailyView({
                           )}
                         </div>
                         
-                        <div className="text-sm text-gray-500 flex items-center gap-1 mt-2">
+                        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-2">
                           <Clock size={14} />
                           {formatTimeRange(bookingStart, bookingEnd)}
                         </div>
                         
                         {/* Show detailed studio list for all non-facility bookings */}
                         {!isFacilityAlert && getLinkedStudiosForBooking(booking).length > 0 && (
-                          <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-2">
                             <Tv size={14} />
                             {getAllStudiosForBooking(booking)}
                           </div>
@@ -809,7 +809,7 @@ export default function MobileDailyView({
 
                         {/* PCR Room - Only for regular bookings, not alerts */}
                         {!isFacilityAlert && (
-                          <div className="text-xs text-gray-500 flex items-center gap-1 mt-2 bg-gray-100 p-1 rounded">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-2 bg-gray-100 dark:bg-gray-700 p-1 rounded">
                             <MonitorPlay size={14} className="text-blue-500" />
                             <div>
                               PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"} 
@@ -818,14 +818,14 @@ export default function MobileDailyView({
                         )}
                         
                         {isFacilityAlert && booking.severity && (
-                          <div className="text-xs text-red-600 mt-1 flex items-center">
+                          <div className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center">
                             <AlertTriangle size={12} className="mr-1" />
                             <span className="capitalize">{booking.severity} severity</span>
                           </div>
                         )}
                         
                         {booking.status === 'cancelled' ? (
-                          <div className="text-xs text-red-600 mt-2 flex items-center gap-1">
+                          <div className="text-xs text-red-600 dark:text-red-400 mt-2 flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <circle cx="12" cy="12" r="10" />
                               <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
@@ -833,7 +833,7 @@ export default function MobileDailyView({
                             Cancelled
                           </div>
                         ) : isUpcoming ? (
-                          <div className="text-xs text-amber-700 mt-2 flex items-center gap-1">
+                          <div className="text-xs text-amber-700 dark:text-amber-400 mt-2 flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <circle cx="12" cy="12" r="10" />
                               <polyline points="12 6 12 12 16 14" />
@@ -841,7 +841,7 @@ export default function MobileDailyView({
                             Starts in {formatDistance(bookingStart, now)}
                           </div>
                         ) : isActive ? (
-                          <div className="text-xs text-red-700 mt-2 flex items-center gap-1">
+                          <div className="text-xs text-red-700 dark:text-red-400 mt-2 flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M10 2h4v4h-4z" />
                               <path d="M4.6 10.4L2.5 8.3l2.8-2.9L7.4 7.5z" />
@@ -857,8 +857,8 @@ export default function MobileDailyView({
                   })}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Calendar size={48} className="mx-auto mb-2 text-gray-400" />
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Calendar size={48} className="mx-auto mb-2 text-gray-400 dark:text-gray-500" />
                 <p>No bookings scheduled for today</p>
               </div>
             )}
