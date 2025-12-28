@@ -138,8 +138,8 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#003366] dark:bg-gray-950 p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <img src={logoPath} alt="BookStud.io" className="h-20 w-auto dark:hidden" />
-          <img src={logoDarkPath} alt="BookStud.io" className="h-20 w-auto hidden dark:block" />
+          <img src={logoPath} alt="BookStud.io" className="h-60 w-auto dark:hidden" />
+          <img src={logoDarkPath} alt="BookStud.io" className="h-60 w-auto hidden dark:block" />
         </div>
         
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8">
