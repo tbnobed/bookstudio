@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Booking, Studio, PcrRoom, BookingStudio } from "@shared/schema";
 import { formatTime, formatDate, isWeekend, isSameDay, formatDateTimeRange, isBookingActive } from "@/lib/dateUtils";
@@ -68,8 +68,16 @@ function getStudioStatus(studio: Studio, bookings: Booking[], bookingStudioLinks
 }
 
 export default function StudioRow({ studio, weekDates, bookings, onBookingClick, readOnly = false }: StudioRowProps) {
-  // Remove state from the component to prevent re-renders
-  // State will be managed by the parent WeeklyCalendar component
+  // Live clock for real-time status updates - updates every 30 seconds
+  const [now, setNow] = useState(() => new Date());
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 30000); // Update every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
   
   // Fetch all booking-studio links to determine which bookings are associated with this studio via junction table
   // Use public endpoint if in readOnly mode (public calendar view)
@@ -221,7 +229,7 @@ export default function StudioRow({ studio, weekDates, bookings, onBookingClick,
             {/* Studio status indicator */}
             {(() => {
               // Determine if studio is currently in use by checking both direct assignments and junction table
-              const now = new Date();
+              // Uses the live 'now' state from the component for real-time updates
               const hasActiveBooking = bookings.some(booking => {
                 // Check if linked directly or through junction table
                 const directMatch = booking.studioId === studio.id;
