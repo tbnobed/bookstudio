@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 const logoPath = '/bookstuio.png';
 import { calculateStudioStatus, getStudioStatusColor } from '@/lib/studioUtils';
 import { usePublicBookingStudioLinks } from '@/hooks/useBookingStudioLinks';
+import StudioStatusSummary from '@/components/layout/StudioStatusSummary';
 import { useDevice } from '@/hooks/use-mobile';
 import { useLocation } from 'wouter';
 // Import isSameDay directly from our dateUtils to use for timezone-aware comparison
@@ -346,24 +347,20 @@ function PublicCalendarPage() {
             {getDateRangeLabel()}
           </div>
           
+          {/* Studio Status Summary Badges */}
+          <div className="mb-4">
+            <StudioStatusSummary
+              studios={studios}
+              bookings={allBookings as Booking[]}
+              bookingStudioLinks={bookingStudioLinks}
+              currentDate={new Date()}
+            />
+          </div>
+          
           {/* Studio Selector Pills */}
-          <div className="bg-gray-50 p-3 mb-4 rounded-md border">
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 mb-4 rounded-md border dark:border-gray-700">
             <div className="flex items-center mb-2 justify-between">
-              <h3 className="text-sm font-medium">Studios:</h3>
-              <div className="flex items-center space-x-2 text-sm">
-                <div className="flex items-center">
-                  <span className="h-3 w-3 rounded-full bg-green-500 mr-1"></span>
-                  <span className="text-xs">Available</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="h-3 w-3 rounded-full bg-orange-500 mr-1"></span>
-                  <span className="text-xs">Maintenance</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="h-3 w-3 rounded-full bg-red-500 mr-1"></span>
-                  <span className="text-xs">In-Use</span>
-                </div>
-              </div>
+              <h3 className="text-sm font-medium dark:text-gray-200">Filter Studios:</h3>
             </div>
             <div className="flex flex-wrap gap-2">
               {studios.map((studio) => {
