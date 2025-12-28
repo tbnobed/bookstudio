@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../assets/logo.png";
 import logoDarkPath from "../assets/logo-dark.png";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import promoVideo from "@/assets/promo.mp4";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -461,6 +462,21 @@ export default function AuthPage() {
           <p className="text-2xl font-bold text-white mt-6 tracking-wide drop-shadow-lg text-center">
             Production Starts Here.
           </p>
+        </div>
+        
+        <div className="hidden lg:flex lg:flex-col lg:items-center lg:justify-center w-full lg:flex-[3]">
+          <div className="rounded-2xl overflow-hidden shadow-2xl w-full">
+            <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+              className="w-full h-auto"
+            >
+              <source src={promoVideo} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
         </div>
       </div>
     </div>
