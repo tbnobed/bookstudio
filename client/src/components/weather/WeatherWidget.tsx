@@ -250,11 +250,11 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
       <div className="flex items-center justify-end space-x-4">
         <div className={`text-right ${sizeClasses[size]}`}>
           <div className="flex items-center justify-end space-x-2">
-            <span className="text-gray-600 capitalize text-lg">{weather.condition}</span>
-            <span className="font-bold text-2xl">{weather.temperature}°F</span>
+            <span className="text-gray-600 dark:text-gray-300 capitalize text-lg">{weather.condition}</span>
+            <span className="font-bold text-2xl dark:text-white">{weather.temperature}°F</span>
           </div>
           {size !== 'compact' && (
-            <div className="flex items-center justify-end space-x-4 text-gray-500 mt-2">
+            <div className="flex items-center justify-end space-x-4 text-gray-500 dark:text-gray-400 mt-2">
               <div className="flex items-center space-x-1">
                 <Droplets className="h-4 w-4" />
                 <span className="text-base">{weather.humidity}%</span>
@@ -272,7 +272,7 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
       {/* Forecast */}
       {showForecast && forecast && forecast.forecast.length > 0 && (
         <div className="mt-4">
-          <h4 className={`font-semibold mb-2 ${sizeClasses[size]}`}>6-Day Forecast</h4>
+          <h4 className={`font-semibold mb-2 ${sizeClasses[size]} dark:text-gray-200`}>6-Day Forecast</h4>
           <div className="grid grid-cols-6 gap-2 justify-items-center">
             {forecast.forecast.map((day, index) => {
               const ForecastIcon = getWeatherIcon(day.icon);
@@ -284,13 +284,13 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
               
               return (
                 <div key={day.date} className="text-center">
-                  <div className={`${sizeClasses[size]} font-medium text-gray-700`}>
+                  <div className={`${sizeClasses[size]} font-medium text-gray-700 dark:text-gray-300`}>
                     {index === 0 ? 'Today' : dayName}
                   </div>
                   <ForecastIcon className={`${iconSizes[size]} mx-auto ${getWeatherIconColor(day.icon)} my-1`} />
-                  <div className={`${sizeClasses[size]} text-gray-600`}>
+                  <div className={`${sizeClasses[size]} text-gray-600 dark:text-gray-400`}>
                     <div>{day.temperature.max}°</div>
-                    <div className="text-gray-400">{day.temperature.min}°</div>
+                    <div className="text-gray-400 dark:text-gray-500">{day.temperature.min}°</div>
                   </div>
                 </div>
               );

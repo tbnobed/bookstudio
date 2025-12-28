@@ -216,7 +216,7 @@ export default function StudiosPage() {
       <div className={`flex-1 overflow-auto p-3 ${isMobile ? 'pb-20' : ''} space-y-4`}>
         {/* Weather Section - Only on mobile - Floating */}
         {isMobile && (
-          <div className="bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg rounded-2xl p-4 mx-3">
+          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-lg rounded-2xl p-4 mx-3">
             <WeatherWidget 
               showForecast={true} 
               size="normal" 
@@ -226,12 +226,12 @@ export default function StudiosPage() {
         )}
 
         {/* Header Section - Floating */}
-        <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white shadow-lg border'} rounded-2xl p-4 mx-3`}>
-          <h1 className="text-xl font-bold flex items-center gap-2">
+        <div className={`${isMobile ? 'bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-lg' : 'bg-white dark:bg-gray-800 shadow-lg border dark:border-gray-700'} rounded-2xl p-4 mx-3`}>
+          <h1 className="text-xl font-bold flex items-center gap-2 dark:text-white">
             <Tv className="h-5 w-5" />
             Studio Status
           </h1>
-          <p className="text-gray-600 text-sm mt-1">
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             Real-time status and availability of all studios
           </p>
         </div>
@@ -245,14 +245,14 @@ export default function StudiosPage() {
               <Card key={studio.id} className={cn(
                 "transition-all hover:shadow-xl border-2 shadow-lg",
                 studioStatus.status === "in-use" 
-                  ? "bg-red-50 border-red-300 hover:border-red-400" 
-                  : "bg-green-50 border-green-300 hover:border-green-400"
+                  ? "bg-red-50 dark:bg-red-950/50 border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-700" 
+                  : "bg-green-50 dark:bg-green-950/50 border-green-300 dark:border-green-800 hover:border-green-400 dark:hover:border-green-700"
               )}>
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5">
-                      <Tv className="h-3 w-3" />
-                      <span className="font-semibold text-xs">{studio.name}</span>
+                      <Tv className="h-3 w-3 dark:text-gray-300" />
+                      <span className="font-semibold text-xs dark:text-white">{studio.name}</span>
                     </div>
                     <div className={cn(
                       "w-2.5 h-2.5 rounded-full",
@@ -268,21 +268,21 @@ export default function StudiosPage() {
                       {studioStatus.label}
                     </Badge>
                     
-                    <div className="text-xs text-gray-600 text-center">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 text-center">
                       {studioStatus.detail}
                     </div>
                     
                     {studioStatus.booking && (
                       <div className="text-xs text-center">
-                        <div className="font-medium text-gray-900 truncate">
+                        <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
                           {studioStatus.booking.title}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           {formatTime(studioStatus.booking.start)}
                         </div>
 
                         {getOtherLinkedStudios(studioStatus.booking, studio.id) && (
-                          <div className="text-xs text-blue-600 mt-0.5 truncate">
+                          <div className="text-xs text-blue-600 dark:text-blue-400 mt-0.5 truncate">
                             {getOtherLinkedStudios(studioStatus.booking, studio.id)}
                           </div>
                         )}
@@ -297,9 +297,9 @@ export default function StudiosPage() {
         
         {/* Empty State - Floating */}
         {studios.length === 0 && (
-          <div className={`${isMobile ? 'bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg' : 'bg-white shadow-lg border'} rounded-2xl p-12 mx-3`}>
-            <div className="text-center text-gray-500">
-              <Tv className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <div className={`${isMobile ? 'bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-lg' : 'bg-white dark:bg-gray-800 shadow-lg border dark:border-gray-700'} rounded-2xl p-12 mx-3`}>
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              <Tv className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
               <p>No studios found</p>
             </div>
           </div>
