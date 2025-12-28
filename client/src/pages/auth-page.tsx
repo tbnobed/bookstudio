@@ -141,7 +141,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#003366] dark:bg-gray-950 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#003366] dark:bg-gray-950 px-4 py-0 relative overflow-hidden">
       <style>{`
         @keyframes float1 {
           0%, 100% { transform: translate(0, 0) scale(1); }
@@ -181,7 +181,7 @@ export default function AuthPage() {
       <div className="orb w-72 h-72 bg-indigo-500/35 top-[20%] right-[10%]" style={{ animation: 'float3 18s ease-in-out infinite' }} />
       <div className="orb w-64 h-64 bg-purple-500/25 bottom-[20%] left-[15%]" style={{ animation: 'float4 22s ease-in-out infinite' }} />
       
-      <div className="absolute top-0 left-6 z-20">
+      <div className="absolute top-0 left-0 z-20 p-0 m-0">
         <img src={logoPath} alt="BookStud.io" className="h-64 w-auto dark:hidden drop-shadow-xl" />
         <img src={logoDarkPath} alt="BookStud.io" className="h-64 w-auto hidden dark:block drop-shadow-xl" />
       </div>
