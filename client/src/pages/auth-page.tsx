@@ -176,9 +176,14 @@ export default function AuthPage() {
       <div className="orb w-64 h-64 bg-purple-500/25 bottom-[20%] left-[15%]" style={{ animation: 'float4 22s ease-in-out infinite' }} />
       
       <div className="w-full max-w-md relative z-10">
-        <div className="flex justify-center mb-8">
+        <div className="flex flex-col items-center mb-8">
           <img src={logoPath} alt="BookStud.io" className="h-60 w-auto dark:hidden drop-shadow-2xl" />
           <img src={logoDarkPath} alt="BookStud.io" className="h-60 w-auto hidden dark:block drop-shadow-2xl" />
+          {import.meta.env.VITE_FACILITY_NAME && (
+            <h2 className="text-2xl font-semibold text-white/90 mt-4 text-center drop-shadow-lg">
+              {import.meta.env.VITE_FACILITY_NAME}
+            </h2>
+          )}
         </div>
         
         <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
