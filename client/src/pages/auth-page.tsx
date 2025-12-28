@@ -181,7 +181,7 @@ export default function AuthPage() {
       <div className="orb w-72 h-72 bg-indigo-500/35 top-[20%] right-[10%]" style={{ animation: 'float3 18s ease-in-out infinite' }} />
       <div className="orb w-64 h-64 bg-purple-500/25 bottom-[20%] left-[15%]" style={{ animation: 'float4 22s ease-in-out infinite' }} />
       
-      <div className="absolute top-6 left-6 z-20">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20">
         <img src={logoPath} alt="BookStud.io" className="h-64 w-auto dark:hidden drop-shadow-xl" />
         <img src={logoDarkPath} alt="BookStud.io" className="h-64 w-auto hidden dark:block drop-shadow-xl" />
       </div>
