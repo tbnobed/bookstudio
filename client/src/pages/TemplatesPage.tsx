@@ -180,7 +180,7 @@ export default function TemplatesPage() {
         showViewToggle={false}
       />
       
-      <div className="container mx-auto p-4 pb-16 overflow-auto">
+      <div className="w-full px-4 pb-16 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Booking Templates</h1>
           <Button onClick={() => setIsCreateModalOpen(true)}>
@@ -204,11 +204,11 @@ export default function TemplatesPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : userTemplates.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 You haven't created any templates yet.
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {userTemplates.map(template => (
                   <TemplateCard 
                     key={template.id}
@@ -230,11 +230,11 @@ export default function TemplatesPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : otherTemplates.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 No templates available from other users.
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {otherTemplates.map(template => (
                   <TemplateCard 
                     key={template.id}

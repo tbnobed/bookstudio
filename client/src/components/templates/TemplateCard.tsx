@@ -65,11 +65,11 @@ export default function TemplateCard({
     }
     
     return (
-      <div className="mb-3">
-        <p className="text-xs font-semibold text-gray-500 mb-1">Notification Groups:</p>
+      <div className="mb-1">
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Notification Groups:</p>
         <div className="flex flex-wrap gap-1">
           {template.notifyList.map((groupId, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
+            <Badge key={index} variant="secondary" className="text-xs px-1.5 py-0">
               Group {groupId}
             </Badge>
           ))}
@@ -91,11 +91,11 @@ export default function TemplateCard({
     });
 
     return (
-      <div className="mb-3">
-        <p className="text-xs font-semibold text-gray-500 mb-1">Studios:</p>
+      <div className="mb-1">
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Studios:</p>
         <div className="flex flex-wrap gap-1">
           {studioNames.map((name, index) => (
-            <Badge key={index} variant="outline" className="text-xs">
+            <Badge key={index} variant="outline" className="text-xs px-1.5 py-0">
               {name}
             </Badge>
           ))}
@@ -113,9 +113,9 @@ export default function TemplateCard({
     const pcrRoomName = pcrRoom ? pcrRoom.name : `PCR Room ${template.pcrRoomId}`;
 
     return (
-      <div className="mb-3">
-        <p className="text-xs font-semibold text-gray-500 mb-1">PCR Room:</p>
-        <Badge variant="outline" className="text-xs">
+      <div className="mb-1">
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">PCR Room:</p>
+        <Badge variant="outline" className="text-xs px-1.5 py-0">
           {pcrRoomName}
         </Badge>
       </div>
@@ -127,16 +127,16 @@ export default function TemplateCard({
     if (!template.startTime && !template.endTime) return null;
 
     return (
-      <div className="mb-3">
-        <p className="text-xs font-semibold text-gray-500 mb-1">Default Times:</p>
+      <div className="mb-1">
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Default Times:</p>
         <div className="flex flex-wrap gap-1">
           {template.startTime && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs px-1.5 py-0">
               Start: {template.startTime}
             </Badge>
           )}
           {template.endTime && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs px-1.5 py-0">
               End: {template.endTime}
             </Badge>
           )}
@@ -153,16 +153,16 @@ export default function TemplateCard({
     if (!hasStatus && !hasColor) return null;
 
     return (
-      <div className="mb-3">
-        <p className="text-xs font-semibold text-gray-500 mb-1">Settings:</p>
+      <div className="mb-1">
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Settings:</p>
         <div className="flex flex-wrap gap-1">
           {hasStatus && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs px-1.5 py-0">
               Status: {template.status}
             </Badge>
           )}
           {hasColor && (
-            <Badge variant="outline" className="text-xs flex items-center gap-1">
+            <Badge variant="outline" className="text-xs px-1.5 py-0 flex items-center gap-1">
               <div 
                 className="w-2 h-2 rounded-full border border-gray-300" 
                 style={{ backgroundColor: template.color || undefined }}
@@ -187,18 +187,18 @@ export default function TemplateCard({
   return (
     <Card className="overflow-hidden">
       <div className={`h-2 ${getTemplateTypeColor(template.type).split(" ")[0]}`}></div>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-lg">{template.name}</h3>
-          <Badge variant="outline" className={getTemplateTypeColor(template.type)}>
+      <CardContent className="p-3">
+        <div className="flex justify-between items-start mb-1">
+          <h3 className="font-semibold text-sm">{template.name}</h3>
+          <Badge variant="outline" className={`text-xs px-1.5 py-0 ${getTemplateTypeColor(template.type)}`}>
             {formatTemplateType(template.type)}
           </Badge>
         </div>
         
-        <p className="text-sm text-gray-500 mb-2">Duration: {formatDuration(template.duration)}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Duration: {formatDuration(template.duration)}</p>
         
         {template.description && (
-          <p className="text-sm text-gray-600 mb-4">{template.description}</p>
+          <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{template.description}</p>
         )}
         
         {renderStudioInfo()}
@@ -208,16 +208,9 @@ export default function TemplateCard({
         {renderNotificationGroups()}
         
         {isEditable && (
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button variant="outline" size="sm" onClick={handleEdit}>
+          <div className="flex justify-end space-x-1 mt-2">
+            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={handleEdit}>
               Edit
-            </Button>
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              onClick={handleDelete}
-            >
-              Delete
             </Button>
           </div>
         )}
