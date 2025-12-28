@@ -194,7 +194,6 @@ export default function AuthPage() {
                 {siteNameData.siteName}
               </h1>
             )}
-            <p className="text-white/70 mt-2 text-lg">Television Studio Management</p>
           </div>
           
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
@@ -462,7 +461,7 @@ export default function AuthPage() {
           </div>
         </div>
         
-        <div className="hidden lg:flex lg:flex-col lg:items-center w-full lg:w-[60%]">
+        <div className="hidden lg:flex lg:flex-col lg:items-center w-full lg:w-[70%] scale-110">
           <div className="rounded-2xl overflow-hidden shadow-2xl w-full">
             <video 
               autoPlay 
