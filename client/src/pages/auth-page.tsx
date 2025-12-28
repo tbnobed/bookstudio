@@ -187,7 +187,7 @@ export default function AuthPage() {
       </div>
       
       <div className="w-full max-w-6xl relative z-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-12 px-4">
-        <div className="w-full lg:w-1/2 max-w-md">
+        <div className="w-full lg:flex-[1] lg:max-w-[420px]">
           <div className="flex flex-col items-center mb-6">
             {siteNameData?.siteName && (
               <h1 className="text-4xl lg:text-5xl font-bold text-white text-center drop-shadow-xl tracking-tight">
@@ -461,7 +461,7 @@ export default function AuthPage() {
           </div>
         </div>
         
-        <div className="hidden lg:flex lg:flex-col lg:items-center w-full lg:w-[70%] scale-110">
+        <div className="hidden lg:flex lg:flex-col lg:items-center lg:justify-center w-full lg:flex-[2] lg:max-w-[900px]">
           <div className="rounded-2xl overflow-hidden shadow-2xl w-full">
             <video 
               autoPlay 
