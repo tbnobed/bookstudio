@@ -181,20 +181,20 @@ export default function AuthPage() {
       <div className="orb w-72 h-72 bg-indigo-500/35 top-[20%] right-[10%]" style={{ animation: 'float3 18s ease-in-out infinite' }} />
       <div className="orb w-64 h-64 bg-purple-500/25 bottom-[20%] left-[15%]" style={{ animation: 'float4 22s ease-in-out infinite' }} />
       
-      <div className="absolute top-6 left-6 z-20">
-        <img src={logoPath} alt="BookStud.io" className="h-64 w-auto dark:hidden drop-shadow-xl" />
-        <img src={logoDarkPath} alt="BookStud.io" className="h-64 w-auto hidden dark:block drop-shadow-xl" />
+      <div className="absolute top-8 left-8 z-20">
+        <img src={logoPath} alt="BookStud.io" className="h-48 w-auto dark:hidden drop-shadow-xl" />
+        <img src={logoDarkPath} alt="BookStud.io" className="h-48 w-auto hidden dark:block drop-shadow-xl" />
       </div>
       
-      <div className="w-full max-w-6xl relative z-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-12 px-4">
-        <div className="w-full lg:w-1/2 max-w-md">
-          <div className="flex flex-col items-center mb-6">
+      <div className="w-full max-w-7xl relative z-10 flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-16 px-8 pt-32 lg:pt-0">
+        <div className="w-full lg:w-[45%] max-w-lg flex flex-col items-center">
+          <div className="flex flex-col items-center mb-8 w-full">
             {siteNameData?.siteName && (
               <h1 className="text-4xl lg:text-5xl font-bold text-white text-center drop-shadow-xl tracking-tight">
                 {siteNameData.siteName}
               </h1>
             )}
-            <p className="text-white/70 mt-2 text-lg">Television Studio Management</p>
+            <p className="text-white/60 mt-3 text-lg font-light">Television Studio Management</p>
           </div>
           
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
@@ -462,7 +462,7 @@ export default function AuthPage() {
           </div>
         </div>
         
-        <div className="hidden lg:flex lg:flex-col lg:items-center w-full lg:w-[60%]">
+        <div className="hidden lg:flex lg:flex-col lg:items-center w-full lg:w-[45%]">
           <div className="rounded-2xl overflow-hidden shadow-2xl w-full">
             <video 
               autoPlay 
@@ -475,7 +475,7 @@ export default function AuthPage() {
               Your browser does not support the video tag.
             </video>
           </div>
-          <p className="text-3xl font-bold text-white mt-6 tracking-wide drop-shadow-lg">
+          <p className="text-2xl font-semibold text-white/90 mt-8 tracking-wider drop-shadow-lg text-center">
             Production Starts Here.
           </p>
         </div>
