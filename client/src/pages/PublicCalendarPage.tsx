@@ -318,6 +318,116 @@ function PublicCalendarPage() {
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
+              
+              {/* Studio Filter Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "gap-1.5 h-8",
+                      selectedStudioIds.length > 0 && "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
+                    )}
+                    data-testid="button-studio-filter"
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span className="hidden sm:inline">Studios</span>
+                    {selectedStudioIds.length > 0 && (
+                      <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium text-white">
+                        {selectedStudioIds.length}
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 max-h-80 overflow-y-auto">
+                  <DropdownMenuLabel>Quick Filters</DropdownMenuLabel>
+                  <div className="flex gap-1 px-2 py-1.5">
+                    <button
+                      className="flex-1 px-2 py-1 text-xs font-medium rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
+                      onClick={() => {
+                        const now = new Date();
+                        const availableIds = studios
+                          .filter(s => calculateStudioStatus(s, allBookings as Booking[], now, bookingStudioLinks) === "available")
+                          .map(s => s.id);
+                        setSelectedStudioIds(availableIds);
+                      }}
+                      data-testid="button-filter-available"
+                    >
+                      Available
+                    </button>
+                    <button
+                      className="flex-1 px-2 py-1 text-xs font-medium rounded bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors"
+                      onClick={() => {
+                        const now = new Date();
+                        const inUseIds = studios
+                          .filter(s => calculateStudioStatus(s, allBookings as Booking[], now, bookingStudioLinks) === "in-use")
+                          .map(s => s.id);
+                        setSelectedStudioIds(inUseIds);
+                      }}
+                      data-testid="button-filter-in-use"
+                    >
+                      In Use
+                    </button>
+                    <button
+                      className="flex-1 px-2 py-1 text-xs font-medium rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
+                      onClick={() => {
+                        const now = new Date();
+                        const maintIds = studios
+                          .filter(s => calculateStudioStatus(s, allBookings as Booking[], now, bookingStudioLinks) === "maintenance")
+                          .map(s => s.id);
+                        setSelectedStudioIds(maintIds);
+                      }}
+                      data-testid="button-filter-maintenance"
+                    >
+                      Maint.
+                    </button>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Studios</DropdownMenuLabel>
+                  {selectedStudioIds.length > 0 && (
+                    <>
+                      <button
+                        className="w-full px-2 py-1.5 text-sm text-left text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        onClick={() => setSelectedStudioIds([])}
+                        data-testid="button-clear-studio-filter"
+                      >
+                        Show all studios
+                      </button>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  {studios.map((studio) => {
+                    const studioStatus = calculateStudioStatus(
+                      studio,
+                      allBookings as Booking[],
+                      new Date(),
+                      bookingStudioLinks
+                    );
+                    const statusColor = getStudioStatusColor(studioStatus);
+                    
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={studio.id}
+                        checked={selectedStudioIds.includes(studio.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedStudioIds([...selectedStudioIds, studio.id]);
+                          } else {
+                            setSelectedStudioIds(selectedStudioIds.filter(id => id !== studio.id));
+                          }
+                        }}
+                        onSelect={(e) => e.preventDefault()}
+                        data-testid={`checkbox-studio-${studio.id}`}
+                      >
+                        <div className={cn("w-2 h-2 rounded-full mr-2", statusColor)} />
+                        {studio.name}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <div className="hidden text-base font-semibold md:block">
                 {getDateRangeLabel()}
               </div>
@@ -356,124 +466,13 @@ function PublicCalendarPage() {
           </div>
           
           {/* Studio Status Summary Badges */}
-          <div className="mb-4">
+          <div className="mb-2">
             <StudioStatusSummary
               studios={studios}
               bookings={allBookings as Booking[]}
               bookingStudioLinks={bookingStudioLinks}
               currentDate={new Date()}
             />
-          </div>
-          
-          {/* Studio Filter Dropdown - matches authenticated view */}
-          <div className="mb-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "gap-1.5",
-                    selectedStudioIds.length > 0 && "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-                  )}
-                  data-testid="button-studio-filter"
-                >
-                  <Filter className="h-4 w-4" />
-                  <span>Studios</span>
-                  {selectedStudioIds.length > 0 && (
-                    <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium text-white">
-                      {selectedStudioIds.length}
-                    </span>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 max-h-80 overflow-y-auto">
-                <DropdownMenuLabel>Quick Filters</DropdownMenuLabel>
-                <div className="flex gap-1 px-2 py-1.5">
-                  <button
-                    className="flex-1 px-2 py-1 text-xs font-medium rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
-                    onClick={() => {
-                      const now = new Date();
-                      const availableIds = studios
-                        .filter(s => calculateStudioStatus(s, allBookings as Booking[], now, bookingStudioLinks) === "available")
-                        .map(s => s.id);
-                      setSelectedStudioIds(availableIds);
-                    }}
-                    data-testid="button-filter-available"
-                  >
-                    Available
-                  </button>
-                  <button
-                    className="flex-1 px-2 py-1 text-xs font-medium rounded bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors"
-                    onClick={() => {
-                      const now = new Date();
-                      const inUseIds = studios
-                        .filter(s => calculateStudioStatus(s, allBookings as Booking[], now, bookingStudioLinks) === "in-use")
-                        .map(s => s.id);
-                      setSelectedStudioIds(inUseIds);
-                    }}
-                    data-testid="button-filter-in-use"
-                  >
-                    In Use
-                  </button>
-                  <button
-                    className="flex-1 px-2 py-1 text-xs font-medium rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
-                    onClick={() => {
-                      const now = new Date();
-                      const maintIds = studios
-                        .filter(s => calculateStudioStatus(s, allBookings as Booking[], now, bookingStudioLinks) === "maintenance")
-                        .map(s => s.id);
-                      setSelectedStudioIds(maintIds);
-                    }}
-                    data-testid="button-filter-maintenance"
-                  >
-                    Maint.
-                  </button>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Studios</DropdownMenuLabel>
-                {selectedStudioIds.length > 0 && (
-                  <>
-                    <button
-                      className="w-full px-2 py-1.5 text-sm text-left text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={() => setSelectedStudioIds([])}
-                      data-testid="button-clear-studio-filter"
-                    >
-                      Show all studios
-                    </button>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                {studios.map((studio) => {
-                  const studioStatus = calculateStudioStatus(
-                    studio,
-                    allBookings as Booking[],
-                    new Date(),
-                    bookingStudioLinks
-                  );
-                  const statusColor = getStudioStatusColor(studioStatus);
-                  
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={studio.id}
-                      checked={selectedStudioIds.includes(studio.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedStudioIds([...selectedStudioIds, studio.id]);
-                        } else {
-                          setSelectedStudioIds(selectedStudioIds.filter(id => id !== studio.id));
-                        }
-                      }}
-                      onSelect={(e) => e.preventDefault()}
-                      data-testid={`checkbox-studio-${studio.id}`}
-                    >
-                      <div className={cn("w-2 h-2 rounded-full mr-2", statusColor)} />
-                      {studio.name}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
 
           {/* Calendar Views */}
