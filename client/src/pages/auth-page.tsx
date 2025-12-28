@@ -180,15 +180,19 @@ export default function AuthPage() {
       <div className="orb w-72 h-72 bg-indigo-500/35 top-[20%] right-[10%]" style={{ animation: 'float3 18s ease-in-out infinite' }} />
       <div className="orb w-64 h-64 bg-purple-500/25 bottom-[20%] left-[15%]" style={{ animation: 'float4 22s ease-in-out infinite' }} />
       
+      <div className="absolute top-6 right-6 z-20">
+        <img src={logoPath} alt="BookStud.io" className="h-16 w-auto dark:hidden drop-shadow-xl" />
+        <img src={logoDarkPath} alt="BookStud.io" className="h-16 w-auto hidden dark:block drop-shadow-xl" />
+      </div>
+      
       <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col items-center mb-8">
-          <img src={logoPath} alt="BookStud.io" className="h-60 w-auto dark:hidden drop-shadow-2xl" />
-          <img src={logoDarkPath} alt="BookStud.io" className="h-60 w-auto hidden dark:block drop-shadow-2xl" />
           {siteNameData?.siteName && (
-            <h2 className="text-2xl font-semibold text-white/90 mt-4 text-center drop-shadow-lg">
+            <h1 className="text-5xl font-bold text-white mt-4 text-center drop-shadow-xl tracking-tight">
               {siteNameData.siteName}
-            </h2>
+            </h1>
           )}
+          <p className="text-white/70 mt-2 text-lg">Television Studio Management</p>
         </div>
         
         <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
@@ -454,10 +458,6 @@ export default function AuthPage() {
             </TabsContent>
           </Tabs>
         </div>
-        
-        <p className="text-center text-white/70 dark:text-gray-400 text-sm mt-6">
-          Television Studio Management System
-        </p>
       </div>
     </div>
   );
