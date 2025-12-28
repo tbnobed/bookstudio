@@ -24,9 +24,9 @@ export default function MyBookingsPage() {
   
   // Fetch paginated user bookings from today forward
   const { data: userBookingsData, isLoading, error, refetch } = useQuery<{ bookings: Booking[]; total: number; hasMore: boolean }>({
-    queryKey: ["/api/bookings/user", { fromToday: true, page: currentPage, limit: 20 }],
+    queryKey: ["/api/bookings/user", { fromToday: true, page: currentPage, limit: 50 }],
     queryFn: async () => {
-      const response = await fetch(`/api/bookings/user?fromToday=true&page=${currentPage}&limit=20`);
+      const response = await fetch(`/api/bookings/user?fromToday=true&page=${currentPage}&limit=50`);
       if (!response.ok) {
         throw new Error('Failed to fetch user bookings');
       }
@@ -38,9 +38,9 @@ export default function MyBookingsPage() {
 
   // Fetch team bookings
   const { data: teamBookingsData, isLoading: teamLoading } = useQuery<{ bookings: Booking[]; total: number; hasMore: boolean }>({
-    queryKey: ["/api/bookings/team", { fromToday: true, page: teamCurrentPage, limit: 20 }],
+    queryKey: ["/api/bookings/team", { fromToday: true, page: teamCurrentPage, limit: 50 }],
     queryFn: async () => {
-      const response = await fetch(`/api/bookings/team?fromToday=true&page=${teamCurrentPage}&limit=20`);
+      const response = await fetch(`/api/bookings/team?fromToday=true&page=${teamCurrentPage}&limit=50`);
       if (!response.ok) {
         // If endpoint doesn't exist or user has no teams, return empty data
         if (response.status === 404) {
@@ -273,8 +273,8 @@ export default function MyBookingsPage() {
         hideNavigation={true}
       />
       
-      <div className="container mx-auto p-4 pb-16 overflow-auto">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+      <div className="w-full px-4 pb-16 overflow-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Bookings</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -315,7 +315,7 @@ export default function MyBookingsPage() {
                         You don't have any upcoming bookings.
                       </div>
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {upcomingBookings.map(booking => {
                           const stripeStyle = getBookingStripeStyle(booking);
                           const isCancelled = booking.status === 'cancelled';
@@ -331,44 +331,37 @@ export default function MyBookingsPage() {
                                 className={`h-2 ${stripeStyle.className || ''}`}
                                 style={stripeStyle.className ? {} : stripeStyle}
                               ></div>
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start mb-2">
+                              <CardContent className="p-3">
+                                <div className="flex justify-between items-start mb-1">
                                   <h3 className={cn(
-                                    "font-semibold text-lg",
+                                    "font-semibold text-sm",
                                     isCancelled && "line-through text-red-600"
                                   )}>
                                     {booking.title}
                                   </h3>
-                                  <div className="flex gap-2">
-                                    <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                  <div className="flex gap-1">
+                                    <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
                                       {formatBookingType(booking.type)}
                                     </Badge>
                                     {booking.status !== 'confirmed' && (
                                       <Badge variant={
                                         booking.status === 'cancelled' ? 'destructive' : 
                                         booking.status === 'tentative' ? 'secondary' : 'outline'
-                                      }>
+                                      } className="text-xs px-1.5 py-0">
                                         {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
                                       </Badge>
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-xs text-green-600 mb-1">Created by you</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                                <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                                <p className="text-xs text-green-600">Created by you</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
+                                <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
                                 {booking.description && (
-                                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{booking.description}</p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
                                 )}
-                                <div className="flex justify-end space-x-2 mt-2">
-                                  <Button variant="outline" size="sm" onClick={() => setEditBookingId(booking.id)}>
+                                <div className="flex justify-end space-x-1 mt-2">
+                                  <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
                                     Edit
-                                  </Button>
-                                  <Button 
-                                    variant="destructive" 
-                                    size="sm" 
-                                    onClick={() => booking.id && handleDeleteBooking(booking.id)}
-                                  >
-                                    Delete
                                   </Button>
                                 </div>
                               </CardContent>
@@ -389,7 +382,7 @@ export default function MyBookingsPage() {
                         You don't have any past bookings.
                       </div>
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {pastBookings.map(booking => {
                           const stripeStyle = getBookingStripeStyle(booking);
                           const isCancelled = booking.status === 'cancelled';
@@ -405,43 +398,36 @@ export default function MyBookingsPage() {
                                 className={`h-2 ${stripeStyle.className || ''}`}
                                 style={stripeStyle.className ? {} : stripeStyle}
                               ></div>
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start mb-2">
+                              <CardContent className="p-3">
+                                <div className="flex justify-between items-start mb-1">
                                   <h3 className={cn(
-                                    "font-semibold text-lg",
+                                    "font-semibold text-sm",
                                     isCancelled && "line-through text-red-600"
                                   )}>
                                     {booking.title}
                                   </h3>
-                                  <div className="flex gap-2">
-                                    <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                  <div className="flex gap-1">
+                                    <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
                                       {formatBookingType(booking.type)}
                                     </Badge>
                                     {booking.status !== 'confirmed' && (
                                       <Badge variant={
                                         booking.status === 'cancelled' ? 'destructive' : 
                                         booking.status === 'tentative' ? 'secondary' : 'outline'
-                                      }>
+                                      } className="text-xs px-1.5 py-0">
                                         {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
                                       </Badge>
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-xs text-green-600 mb-1">Created by you</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                                <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                                <p className="text-xs text-green-600">Created by you</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
+                                <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
                                 {booking.description && (
-                                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{booking.description}</p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
                                 )}
-                                
-                                {/* Personal Booking Edit Button - User can always edit their own bookings */}
-                                <div className="flex justify-end pt-2 border-t">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setEditBookingId(booking.id)}
-                                    className="h-8 px-3 text-xs"
-                                  >
+                                <div className="flex justify-end mt-2">
+                                  <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
                                     Edit
                                   </Button>
                                 </div>
@@ -471,7 +457,7 @@ export default function MyBookingsPage() {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {(teamBookingsData?.bookings || []).map(booking => {
                         const stripeStyle = getBookingStripeStyle(booking);
                         const isCancelled = booking.status === 'cancelled';
@@ -487,45 +473,38 @@ export default function MyBookingsPage() {
                               className={`h-2 ${stripeStyle.className || ''}`}
                               style={stripeStyle.className ? {} : stripeStyle}
                             ></div>
-                            <CardContent className="p-4">
-                              <div className="flex justify-between items-start mb-2">
+                            <CardContent className="p-3">
+                              <div className="flex justify-between items-start mb-1">
                                 <h3 className={cn(
-                                  "font-semibold text-lg",
+                                  "font-semibold text-sm",
                                   isCancelled && "line-through text-red-600"
                                 )}>
                                   {booking.title}
                                 </h3>
-                                <div className="flex gap-2">
-                                  <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                <div className="flex gap-1">
+                                  <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
                                     {formatBookingType(booking.type)}
                                   </Badge>
                                   {booking.status !== 'confirmed' && (
                                     <Badge variant={
                                       booking.status === 'cancelled' ? 'destructive' : 
                                       booking.status === 'tentative' ? 'secondary' : 'outline'
-                                    }>
+                                    } className="text-xs px-1.5 py-0">
                                       {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
                                     </Badge>
                                   )}
                                 </div>
                               </div>
-                              <p className="text-xs text-blue-600 mb-1">
+                              <p className="text-xs text-blue-600">
                                 Created by {getUserName(booking.userId)} • {getTeamNameForBooking(booking) || "Team Booking"}
                               </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                              <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
+                              <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
                               {booking.description && (
-                                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{booking.description}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
                               )}
-                              
-                              {/* Team Booking Edit Button - Team members can edit team bookings, admins can edit all */}
-                              <div className="flex justify-end pt-2 border-t">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setEditBookingId(booking.id)}
-                                  className="h-8 px-3 text-xs"
-                                >
+                              <div className="flex justify-end mt-2">
+                                <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
                                   Edit
                                 </Button>
                               </div>
@@ -536,7 +515,7 @@ export default function MyBookingsPage() {
                     </div>
                     
                     {/* Team Bookings Pagination */}
-                    {(teamBookingsData?.total || 0) > 20 && (
+                    {(teamBookingsData?.total || 0) > 50 && (
                       <div className="flex justify-between items-center mt-6 pt-6 border-t">
                         <div className="text-sm text-gray-600 dark:text-gray-300">
                           Page {teamCurrentPage} • Showing {(teamBookingsData?.bookings || []).length} of {teamBookingsData?.total || 0} team bookings
@@ -593,7 +572,7 @@ export default function MyBookingsPage() {
                           No upcoming bookings found in the system.
                         </div>
                       ) : (
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                           {upcomingAllBookings.map(booking => {
                             const stripeStyle = getBookingStripeStyle(booking);
                             const isOwner = booking.userId === user?.id;
@@ -610,45 +589,38 @@ export default function MyBookingsPage() {
                                   className={`h-2 ${stripeStyle.className || ''}`}
                                   style={stripeStyle.className ? {} : stripeStyle}
                                 ></div>
-                                <CardContent className="p-4">
-                                  <div className="flex justify-between items-start mb-2">
+                                <CardContent className="p-3">
+                                  <div className="flex justify-between items-start mb-1">
                                     <h3 className={cn(
-                                      "font-semibold text-lg",
+                                      "font-semibold text-sm",
                                       isCancelled && "line-through text-red-600"
                                     )}>
                                       {booking.title}
                                     </h3>
-                                    <div className="flex gap-2">
-                                      <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                    <div className="flex gap-1">
+                                      <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
                                         {formatBookingType(booking.type)}
                                       </Badge>
                                       {booking.status !== 'confirmed' && (
                                         <Badge variant={
                                           booking.status === 'cancelled' ? 'destructive' : 
                                           booking.status === 'tentative' ? 'secondary' : 'outline'
-                                        }>
+                                        } className="text-xs px-1.5 py-0">
                                           {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
                                         </Badge>
                                       )}
                                     </div>
                                   </div>
-                                  <p className="text-xs text-purple-600 mb-1">
+                                  <p className="text-xs text-purple-600">
                                     {isOwner ? "Created by you" : `Created by ${getUserName(booking.userId)}`} • Admin View
                                   </p>
-                                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                                  <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
+                                  <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
                                   {booking.description && (
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{booking.description}</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
                                   )}
-                                  
-                                  {/* Admin View Edit Button - Admins can edit all bookings */}
-                                  <div className="flex justify-end pt-2 border-t">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => setEditBookingId(booking.id)}
-                                      className="h-8 px-3 text-xs"
-                                    >
+                                  <div className="flex justify-end mt-2">
+                                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
                                       Edit
                                     </Button>
                                   </div>
@@ -670,7 +642,7 @@ export default function MyBookingsPage() {
                           No past bookings found in the system.
                         </div>
                       ) : (
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                           {pastAllBookings.map(booking => {
                             const stripeStyle = getBookingStripeStyle(booking);
                             const isOwner = booking.userId === user?.id;
@@ -687,45 +659,38 @@ export default function MyBookingsPage() {
                                   className={`h-2 ${stripeStyle.className || ''}`}
                                   style={stripeStyle.className ? {} : stripeStyle}
                                 ></div>
-                                <CardContent className="p-4">
-                                  <div className="flex justify-between items-start mb-2">
+                                <CardContent className="p-3">
+                                  <div className="flex justify-between items-start mb-1">
                                     <h3 className={cn(
-                                      "font-semibold text-lg",
+                                      "font-semibold text-sm",
                                       isCancelled && "line-through text-red-600"
                                     )}>
                                       {booking.title}
                                     </h3>
-                                    <div className="flex gap-2">
-                                      <Badge variant="outline" className={getBookingTypeColor(booking.type)}>
+                                    <div className="flex gap-1">
+                                      <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
                                         {formatBookingType(booking.type)}
                                       </Badge>
                                       {booking.status !== 'confirmed' && (
                                         <Badge variant={
                                           booking.status === 'cancelled' ? 'destructive' : 
                                           booking.status === 'tentative' ? 'secondary' : 'outline'
-                                        }>
+                                        } className="text-xs px-1.5 py-0">
                                           {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
                                         </Badge>
                                       )}
                                     </div>
                                   </div>
-                                  <p className="text-xs text-purple-600 mb-1">
+                                  <p className="text-xs text-purple-600">
                                     {isOwner ? "Created by you" : `Created by ${getUserName(booking.userId)}`} • Admin View
                                   </p>
-                                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                                  <p className="text-sm mb-4">{formatDateTimeRange(booking.start, booking.end)}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
+                                  <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
                                   {booking.description && (
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{booking.description}</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
                                   )}
-                                  
-                                  {/* Admin View Edit Button - Admins can edit all bookings */}
-                                  <div className="flex justify-end pt-2 border-t">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => setEditBookingId(booking.id)}
-                                      className="h-8 px-3 text-xs"
-                                    >
+                                  <div className="flex justify-end mt-2">
+                                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
                                       Edit
                                     </Button>
                                   </div>
@@ -744,7 +709,7 @@ export default function MyBookingsPage() {
           </Tabs>
           
           {/* Pagination Controls */}
-          {totalBookings > 20 && (
+          {totalBookings > 50 && (
             <div className="flex justify-between items-center mt-6 pt-6 border-t">
               <div className="text-sm text-gray-600 dark:text-gray-300">
                 Page {currentPage} • Showing {userBookings.length} of {totalBookings} bookings
