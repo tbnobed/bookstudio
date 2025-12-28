@@ -18,9 +18,12 @@ export default function MyBookingsPage() {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [teamCurrentPage, setTeamCurrentPage] = useState(1);
+  const [adminUpcomingPage, setAdminUpcomingPage] = useState(1);
+  const [adminPastPage, setAdminPastPage] = useState(1);
   const [editBookingId, setEditBookingId] = useState<number | null>(null);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const ITEMS_PER_PAGE = 50;
   
   // Fetch paginated user bookings from today forward
   const { data: userBookingsData, isLoading, error, refetch } = useQuery<{ bookings: Booking[]; total: number; hasMore: boolean }>({
@@ -74,12 +77,24 @@ export default function MyBookingsPage() {
 
   // Process all bookings for admin view (separate from personal bookings)
   const allBookingsProcessed = allBookingsData || [];
-  const upcomingAllBookings = allBookingsProcessed.filter(booking => 
+  const allUpcomingBookings = allBookingsProcessed.filter(booking => 
     new Date(booking.end) >= new Date()
   );
-  const pastAllBookings = allBookingsProcessed.filter(booking => 
+  const allPastBookings = allBookingsProcessed.filter(booking => 
     new Date(booking.end) < new Date()
   );
+  
+  // Paginate admin view bookings client-side
+  const upcomingAllBookings = allUpcomingBookings.slice(
+    (adminUpcomingPage - 1) * ITEMS_PER_PAGE,
+    adminUpcomingPage * ITEMS_PER_PAGE
+  );
+  const pastAllBookings = allPastBookings.slice(
+    (adminPastPage - 1) * ITEMS_PER_PAGE,
+    adminPastPage * ITEMS_PER_PAGE
+  );
+  const totalUpcomingPages = Math.ceil(allUpcomingBookings.length / ITEMS_PER_PAGE);
+  const totalPastPages = Math.ceil(allPastBookings.length / ITEMS_PER_PAGE);
 
   // Fetch user's teams to show team info
   const { data: userTeams = [] } = useQuery({
@@ -558,8 +573,8 @@ export default function MyBookingsPage() {
                   
                   <Tabs defaultValue="upcoming" className="w-full">
                     <TabsList>
-                      <TabsTrigger value="upcoming">Upcoming ({upcomingAllBookings.length})</TabsTrigger>
-                      <TabsTrigger value="past">Past ({pastAllBookings.length})</TabsTrigger>
+                      <TabsTrigger value="upcoming">Upcoming ({allUpcomingBookings.length})</TabsTrigger>
+                      <TabsTrigger value="past">Past ({allPastBookings.length})</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="upcoming">
@@ -630,6 +645,22 @@ export default function MyBookingsPage() {
                           })}
                         </div>
                       )}
+                      {/* Upcoming Admin Pagination */}
+                      {allUpcomingBookings.length > ITEMS_PER_PAGE && (
+                        <div className="flex justify-between items-center mt-4 pt-4 border-t">
+                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                            Page {adminUpcomingPage} of {totalUpcomingPages} • Showing {upcomingAllBookings.length} of {allUpcomingBookings.length}
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button variant="outline" size="sm" onClick={() => setAdminUpcomingPage(adminUpcomingPage - 1)} disabled={adminUpcomingPage === 1}>
+                              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setAdminUpcomingPage(adminUpcomingPage + 1)} disabled={adminUpcomingPage >= totalUpcomingPages}>
+                              Next <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </TabsContent>
                     
                     <TabsContent value="past">
@@ -698,6 +729,22 @@ export default function MyBookingsPage() {
                               </Card>
                             );
                           })}
+                        </div>
+                      )}
+                      {/* Past Admin Pagination */}
+                      {allPastBookings.length > ITEMS_PER_PAGE && (
+                        <div className="flex justify-between items-center mt-4 pt-4 border-t">
+                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                            Page {adminPastPage} of {totalPastPages} • Showing {pastAllBookings.length} of {allPastBookings.length}
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button variant="outline" size="sm" onClick={() => setAdminPastPage(adminPastPage - 1)} disabled={adminPastPage === 1}>
+                              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setAdminPastPage(adminPastPage + 1)} disabled={adminPastPage >= totalPastPages}>
+                              Next <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </TabsContent>
