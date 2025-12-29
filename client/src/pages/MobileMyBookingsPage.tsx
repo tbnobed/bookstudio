@@ -105,14 +105,9 @@ export default function MobileMyBookingsPage() {
         <div className="relative px-6 py-6 text-center flex items-center justify-center min-h-[5rem]">
           <div className="flex items-center justify-center gap-3">
             <img 
-              src="/bookstudio-logo.png" 
-              alt="BookStudio Logo" 
-              className="w-8 h-8 object-contain drop-shadow-sm dark:hidden"
-            />
-            <img 
-              src="/bookstudio-logo-dark.png" 
-              alt="BookStudio Logo" 
-              className="w-8 h-8 object-contain drop-shadow-sm hidden dark:block"
+              src="/bookstudio-logo-new.png" 
+              alt="BookStud.io Logo" 
+              className="w-8 h-8 object-contain drop-shadow-sm rounded-lg"
             />
             <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-sm">
               {siteName}
