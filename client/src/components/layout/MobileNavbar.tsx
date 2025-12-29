@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Calendar, BookOpen, ListTodo, Settings, Menu, PlusCircle, Bell, BarChart, Tv, Users, LogOut } from "lucide-react";
+import { Calendar, BookOpen, ListTodo, Settings, Menu, PlusCircle, Bell, BarChart, Tv, Users, LogOut, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -10,6 +10,7 @@ import SimpleMobileFormNew from "@/components/booking/SimpleMobileForm-new";
 import AlertModal from "@/components/alerts/AlertModal";
 import { useCalendarContext } from "@/contexts/CalendarContext";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/theme-provider";
 
 export default function MobileNavbar() {
   const [location, navigate] = useLocation();
@@ -18,6 +19,11 @@ export default function MobileNavbar() {
   const [isNewAlertModalOpen, setIsNewAlertModalOpen] = useState(false);
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const { selectedDate } = useCalendarContext();
+  const { theme, setTheme } = useTheme();
+  
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
   
   const handleLogout = () => {
     logoutMutation.mutate();
@@ -223,7 +229,28 @@ export default function MobileNavbar() {
                 </button>
               </nav>
               
-              <div className="mt-auto pt-6">
+              <Separator className="my-4" />
+              
+              {/* Theme Toggle */}
+              <button 
+                onClick={toggleTheme}
+                className="flex items-center justify-between p-3 rounded-lg w-full text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors mb-2"
+                data-testid="button-theme-toggle"
+              >
+                <div className="flex items-center">
+                  {theme === "dark" ? (
+                    <Moon className="mr-3 h-5 w-5" />
+                  ) : (
+                    <Sun className="mr-3 h-5 w-5" />
+                  )}
+                  <span className="font-medium">Theme</span>
+                </div>
+                <span className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                  {theme === "dark" ? "Dark" : "Light"}
+                </span>
+              </button>
+              
+              <div className="pt-2">
                 <Button 
                   variant="outline" 
                   className="w-full gap-2" 
