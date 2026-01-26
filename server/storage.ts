@@ -13,7 +13,9 @@ import {
   bookingTypes, type BookingType, type InsertBookingType,
   auditLogs, type AuditLog, type InsertAuditLog,
   teams, type Team, type InsertTeam,
-  teamMembers, type TeamMember, type InsertTeamMember
+  teamMembers, type TeamMember, type InsertTeamMember,
+  passwordResetTokens,
+  inviteTokens
 } from "@shared/schema";
 
 import { db, pool, ensureConnection } from "./db";
@@ -1517,6 +1519,14 @@ export class DatabaseStorage implements IStorage {
           throw new Error(`Cannot delete user: User has ${userTemplates.length} associated templates. Please delete or reassign these templates first.`);
         }
       }
+      
+      // Delete password reset tokens for this user (always delete these)
+      await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, id));
+      console.log(`Deleted password reset tokens for user ${id}`);
+      
+      // Delete invite tokens created by this user (always delete these)
+      await db.delete(inviteTokens).where(eq(inviteTokens.createdBy, id));
+      console.log(`Deleted invite tokens created by user ${id}`);
       
       // Proceed with user deletion
       const [deletedUser] = await db.delete(users).where(eq(users.id, id)).returning();
