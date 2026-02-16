@@ -528,6 +528,101 @@ export async function sendMaintenanceAlertToGroups(
   return results;
 }
 
+export async function sendMultiDateAlertToGroups(
+  alertInfo: { title: string; description: string; alertType: string; severity: string },
+  dates: Array<{ start: Date | string; end: Date | string }>,
+  groupIds: number[],
+  alwaysNotifySiteManagers: boolean = true
+): Promise<boolean[]> {
+  console.log(`[sendMultiDateAlertToGroups] Sending consolidated alert "${alertInfo.title}" covering ${dates.length} date(s)`);
+  
+  const subject = `${APP_NAME} - Facility Alert: ${alertInfo.title}`;
+  
+  const facilityTimezone = process.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+  
+  const formatDateOnly = (date: Date | string): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', {
+      timeZone: facilityTimezone,
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const dateListHtml = dates.map(d => {
+    const startDate = typeof d.start === 'string' ? new Date(d.start) : d.start;
+    const endDate = typeof d.end === 'string' ? new Date(d.end) : d.end;
+    const startStr = formatDate(startDate);
+    const endStr = formatDate(endDate);
+    const dayStr = formatDateOnly(startDate);
+    return `<li style="padding: 6px 0; color: #1f2937;">${dayStr} — ${startStr} to ${endStr}</li>`;
+  }).join('');
+
+  const dateListText = dates.map(d => {
+    const startDate = typeof d.start === 'string' ? new Date(d.start) : d.start;
+    const endDate = typeof d.end === 'string' ? new Date(d.end) : d.end;
+    return `  - ${formatDate(startDate)} to ${formatDate(endDate)}`;
+  }).join('\n');
+
+  const htmlContent = `
+    <div style="background-color: #f59e0b; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">FACILITY ALERT</div>
+    
+    <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 20px 0;">${alertInfo.title}</h2>
+    
+    <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <div style="margin-bottom: 12px;">
+            <strong style="color: #4b5563; display: inline-block; width: 100px;">Type:</strong>
+            <span style="color: #1f2937;">${alertInfo.alertType.replace('all-day:', '').replace('_', ' ')}</span>
+        </div>
+        ${alertInfo.severity ? `<div style="margin-bottom: 12px;">
+            <strong style="color: #4b5563; display: inline-block; width: 100px;">Severity:</strong>
+            <span style="color: #1f2937;">${alertInfo.severity}</span>
+        </div>` : ''}
+        <div style="margin-bottom: 12px;">
+            <strong style="color: #4b5563; display: inline-block; width: 100px;">Dates:</strong>
+            <span style="color: #1f2937;">${dates.length} date(s) scheduled</span>
+        </div>
+        ${alertInfo.description ? `
+        <div style="margin-bottom: 12px;">
+            <strong style="color: #4b5563; display: inline-block; width: 100px;">Description:</strong>
+            <span style="color: #1f2937;">${alertInfo.description}</span>
+        </div>` : ''}
+    </div>
+    
+    <h3 style="color: #1f2937; font-size: 18px; font-weight: 600; margin: 24px 0 12px 0;">Scheduled Dates:</h3>
+    <ul style="list-style: none; padding: 0; margin: 0 0 20px 0; background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px 20px;">
+        ${dateListHtml}
+    </ul>
+    
+    <p style="color: #6b7280; font-size: 14px; margin: 20px 0;"><strong>⚠️ Important:</strong> This alert may affect studio availability on the dates listed above. Please plan accordingly.</p>
+    <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">This notification has been sent to your notification group.</p>
+  `;
+
+  const textMessage = `
+    Facility Alert
+    
+    ${alertInfo.title}
+    
+    Type: ${alertInfo.alertType.replace('all-day:', '').replace('_', ' ')}
+    ${alertInfo.severity ? `Severity: ${alertInfo.severity}` : ''}
+    ${alertInfo.description ? `Description: ${alertInfo.description}` : ''}
+    
+    Scheduled Dates:
+${dateListText}
+    
+    ⚠️ Important: This alert may affect studio availability. Please plan accordingly.
+    
+    Thank you,
+    ${APP_NAME}
+  `;
+  
+  const results = await sendStyledEmailToGroups(groupIds, subject, htmlContent, textMessage, alwaysNotifySiteManagers);
+  console.log(`[sendMultiDateAlertToGroups] Email sending results:`, results);
+  return results;
+}
+
 /**
  * Send a facility-wide alert to specified notification groups
  * @param booking The facility alert information

@@ -34,7 +34,7 @@ import {
   sendMaintenanceAlertToGroups,
   sendFacilityAlertToGroups,
   sendCustomNotificationToGroups,
-
+  sendMultiDateAlertToGroups,
   sendFileAttachmentNotificationToGroups
 } from "./services/notificationGroupService";
 import { AuditService, getAuditContext } from "./services/auditService";
@@ -2354,6 +2354,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // POST /api/alerts/bulk - Create multiple alerts (one per date) with a single consolidated email
+  app.post("/api/alerts/bulk", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
+        return res.status(403).json({ 
+          message: "Only admin, engineers, IT staff, and site managers can create alerts" 
+        });
+      }
+      
+      const { alerts: alertItems } = req.body;
+      
+      if (!Array.isArray(alertItems) || alertItems.length === 0) {
+        return res.status(400).json({ message: "No alert data provided" });
+      }
+      
+      console.log(`[BULK ALERT] Creating ${alertItems.length} alert(s) with single notification`);
+      
+      const createdAlerts: any[] = [];
+      const dateRanges: Array<{ start: Date; end: Date }> = [];
+      
+      for (const item of alertItems) {
+        try {
+          const alertData = insertAlertSchema.parse({
+            ...item,
+            createdBy: user.id
+          });
+          
+          const alert = await storage.createAlert(alertData);
+          createdAlerts.push(alert);
+          dateRanges.push({ start: new Date(alert.start), end: new Date(alert.end) });
+          
+          await AuditService.log('created', 'alert', alert.title, req, {
+            alertId: alert.id,
+            alertType: alert.alertType,
+            severity: alert.severity,
+            start: alert.start,
+            end: alert.end,
+            bulkCreation: true,
+            totalInBatch: alertItems.length
+          });
+          
+          console.log(`[BULK ALERT] Created alert ID ${alert.id} for date range`);
+        } catch (itemError: any) {
+          console.error(`[BULK ALERT] Error creating individual alert:`, itemError);
+        }
+      }
+      
+      if (createdAlerts.length === 0) {
+        return res.status(500).json({ message: "Failed to create any alerts" });
+      }
+      
+      // Send ONE consolidated email notification for all dates
+      try {
+        const allNotificationGroups = await storage.getAllNotificationGroups();
+        const allGroupIds = allNotificationGroups.map(group => group.id);
+        
+        if (allGroupIds.length > 0) {
+          const firstAlert = createdAlerts[0];
+          await sendMultiDateAlertToGroups(
+            {
+              title: firstAlert.title,
+              description: firstAlert.description || '',
+              alertType: firstAlert.alertType,
+              severity: firstAlert.severity || 'medium'
+            },
+            dateRanges,
+            allGroupIds,
+            true
+          );
+          console.log(`[BULK ALERT] Sent ONE consolidated email covering ${dateRanges.length} date(s)`);
+        }
+      } catch (emailError) {
+        console.error("[BULK ALERT] Error sending consolidated email:", emailError);
+      }
+      
+      res.status(201).json({ 
+        alerts: createdAlerts, 
+        count: createdAlerts.length,
+        message: `Created ${createdAlerts.length} alert(s) with a single notification`
+      });
+    } catch (error: any) {
+      console.error("Error creating bulk alerts:", error);
+      res.status(500).json({ message: "Failed to create alerts" });
+    }
+  });
+
   // PATCH /api/alerts/:id - Update alert
   app.patch("/api/alerts/:id", isAuthenticated, async (req, res) => {
     try {

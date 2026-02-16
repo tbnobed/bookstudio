@@ -78,7 +78,7 @@ export default function AlertModal({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Alert mutations
-  const { createAlert, updateAlert, deleteAlert } = useAlerts();
+  const { createAlert, createBulkAlerts, updateAlert, deleteAlert } = useAlerts();
   const { toast } = useToast();
   const { showNotification } = useNotification();
 
@@ -411,82 +411,76 @@ export default function AlertModal({
       
       console.log(`Creating ${datesToCreate.length} alert(s) for selected dates`);
       
-      let successCount = 0;
-      let errorCount = 0;
+      const alertItems: Partial<InsertAlert>[] = [];
       
       for (const selectedDateItem of datesToCreate) {
-        try {
-          const facilityTimezone = getFacilityTimezone();
-          const dateFormatter = new Intl.DateTimeFormat('en-CA', { 
-            timeZone: facilityTimezone,
-            year: 'numeric',
-            month: '2-digit', 
-            day: '2-digit'
-          });
-          const dateStr = dateFormatter.format(selectedDateItem);
+        const facilityTimezone = getFacilityTimezone();
+        const dateFormatter = new Intl.DateTimeFormat('en-CA', { 
+          timeZone: facilityTimezone,
+          year: 'numeric',
+          month: '2-digit', 
+          day: '2-digit'
+        });
+        const dateStr = dateFormatter.format(selectedDateItem);
+        
+        let alertStart, alertEnd;
+        let perDateAlertType = alertType;
+        
+        if (isAllDay) {
+          const [year, month, day] = dateStr.split('-').map(Number);
+          const facilityStartOfDay = new Date();
+          facilityStartOfDay.setFullYear(year, month - 1, day);
+          facilityStartOfDay.setHours(0, 0, 0, 0);
           
-          let alertStart, alertEnd;
-          let perDateAlertType = alertType;
+          const facilityEndOfDay = new Date();
+          facilityEndOfDay.setFullYear(year, month - 1, day);
+          facilityEndOfDay.setHours(23, 59, 59, 999);
           
-          if (isAllDay) {
-            const [year, month, day] = dateStr.split('-').map(Number);
-            const facilityStartOfDay = new Date();
-            facilityStartOfDay.setFullYear(year, month - 1, day);
-            facilityStartOfDay.setHours(0, 0, 0, 0);
-            
-            const facilityEndOfDay = new Date();
-            facilityEndOfDay.setFullYear(year, month - 1, day);
-            facilityEndOfDay.setHours(23, 59, 59, 999);
-            
-            alertStart = fromZonedTime(facilityStartOfDay, facilityTimezone);
-            alertEnd = fromZonedTime(facilityEndOfDay, facilityTimezone);
-            
-            const validType = alertType && alertType !== 'undefined' && alertType.trim() !== '' ? alertType : 'maintenance';
-            perDateAlertType = `all-day:${validType}`;
-          } else {
-            alertStart = timeToDate(dateStr, startTime);
-            alertEnd = timeToDate(dateStr, endTime);
-            perDateAlertType = alertType && alertType !== 'undefined' && alertType.trim() !== '' ? alertType : 'maintenance';
-          }
+          alertStart = fromZonedTime(facilityStartOfDay, facilityTimezone);
+          alertEnd = fromZonedTime(facilityEndOfDay, facilityTimezone);
           
-          const singleAlertData: Partial<InsertAlert> = {
-            title,
-            description,
-            alertType: perDateAlertType,
-            start: alertStart,
-            end: alertEnd,
-            notifyList: notifyList,
-            severity: severity
-          };
-          
-          console.log(`Creating alert for date ${dateStr}:`, singleAlertData);
-          await createAlert.mutateAsync(singleAlertData as InsertAlert);
-          successCount++;
-        } catch (error) {
-          console.error(`Error creating alert for date:`, error);
-          errorCount++;
+          const validType = alertType && alertType !== 'undefined' && alertType.trim() !== '' ? alertType : 'maintenance';
+          perDateAlertType = `all-day:${validType}`;
+        } else {
+          alertStart = timeToDate(dateStr, startTime);
+          alertEnd = timeToDate(dateStr, endTime);
+          perDateAlertType = alertType && alertType !== 'undefined' && alertType.trim() !== '' ? alertType : 'maintenance';
         }
+        
+        alertItems.push({
+          title,
+          description,
+          alertType: perDateAlertType,
+          start: alertStart,
+          end: alertEnd,
+          notifyList: notifyList,
+          severity: severity
+        });
       }
       
-      if (successCount > 0) {
+      try {
+        if (alertItems.length === 1) {
+          // Single date - use regular endpoint
+          await createAlert.mutateAsync(alertItems[0] as InsertAlert);
+        } else {
+          // Multiple dates - use bulk endpoint (sends ONE email with all dates)
+          await createBulkAlerts.mutateAsync(alertItems as InsertAlert[]);
+        }
+        
         showNotification({
           type: "success",
-          title: successCount > 1 ? "Alerts Created" : "Alert Created",
-          message: successCount > 1 
-            ? `Successfully created ${successCount} facility alert(s).`
+          title: alertItems.length > 1 ? "Alerts Created" : "Alert Created",
+          message: alertItems.length > 1 
+            ? `Successfully created ${alertItems.length} facility alerts. One notification email was sent with all dates listed.`
             : "The facility alert has been successfully created.",
         });
-      }
-      
-      if (errorCount > 0) {
+      } catch (error) {
+        console.error(`Error creating alert(s):`, error);
         showNotification({
           type: "error",
-          title: "Some Alerts Failed",
-          message: `Failed to create ${errorCount} alert(s). Please try again.`,
+          title: "Alert Creation Failed",
+          message: `Failed to create alert(s). Please try again.`,
         });
-      }
-      
-      if (successCount === 0 && errorCount > 0) {
         return;
       }
     }
