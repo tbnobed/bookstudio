@@ -25,8 +25,7 @@ import {
   sendBookingConfirmation, 
   sendBookingUpdate, 
   sendBookingCancellation, 
-  sendMaintenanceAlert,
-  sendSiteManagerNotification
+  sendMaintenanceAlert
 } from "./services/emailService";
 
 import {
@@ -1403,24 +1402,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               console.log(`[BookingCreation] Final notification group IDs:`, notifyGroupIds);
               
-              if (notifyGroupIds.length > 0) {
-                try {
-                  console.log(`[BookingCreation] Sending notification to ${notifyGroupIds.length} groups:`, notifyGroupIds);
-                  const result = await sendBookingNotificationToGroups(
-                    booking,
-                    studio,
-                    notifyGroupIds,
-                    'created',
-                    false  // Disable automatic site manager notifications since notifySiteManagers handles this
-                  );
-                  console.log(`[BookingCreation] Notification result:`, result);
-                  console.log(`Notification sent to ${notifyGroupIds.length} groups about new booking`);
-                } catch (notifyError) {
-                  console.error("Error sending notification to groups:", notifyError);
-                  // Continue execution even if notification failed
-                }
-              } else {
-                console.log(`[BookingCreation] Skipping notification groups - no valid notification group IDs found`);
+              try {
+                console.log(`[BookingCreation] Sending notification to ${notifyGroupIds.length} groups (+ site managers):`, notifyGroupIds);
+                const result = await sendBookingNotificationToGroups(
+                  booking,
+                  studio,
+                  notifyGroupIds,
+                  'created',
+                  true  // Always include site managers via notification group system
+                );
+                console.log(`[BookingCreation] Notification result:`, result);
+              } catch (notifyError) {
+                console.error("Error sending notification to groups:", notifyError);
               }
               console.log(`[BookingCreation] ===== NOTIFICATION PROCESSING END =====`);
             }
@@ -1459,39 +1452,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-      }
-      
-      // Send site manager notification for regular bookings ONLY (not for facility-wide maintenance alerts)
-      // Facility-wide maintenance alerts are handled separately above
-      if (!(booking.studioId === null && (booking.type === "maintenance" || booking.type === "it_support" || booking.type === "all-day:maintenance"))) {
-        console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION START =====');
-        try {
-          const studios = await storage.getBookingStudios(booking.id);
-          const bookingUser = await storage.getUser(booking.userId);
-          if (bookingUser) {
-            console.log(`[BookingCreation] Sending site manager email notification for regular booking ${booking.id}`);
-            console.log('[BookingCreation] User for notification:', bookingUser.username, bookingUser.email);
-            console.log('[BookingCreation] Studios for notification:', studios.map(s => s.name));
-            console.log('[BookingCreation] Booking details:', {
-              title: booking.title,
-              type: booking.type,
-              start: booking.start,
-              end: booking.end
-            });
-            
-            const siteManagerResult = await sendSiteManagerNotification(booking, studios, bookingUser, 'created');
-            console.log('[BookingCreation] Site manager email notification result:', siteManagerResult);
-          } else {
-            console.log('[BookingCreation] ERROR: Missing booking user for site manager notification');
-          }
-        } catch (siteManagerError) {
-          console.error('[BookingCreation] ERROR sending site manager email notification:', siteManagerError);
-          console.error('[BookingCreation] Site manager error stack:', siteManagerError.stack);
-          // Continue with response even if site manager notification fails
-        }
-        console.log('[BookingCreation] ===== SITE MANAGER EMAIL NOTIFICATION END =====');
-      } else {
-        console.log('[BookingCreation] Skipping regular site manager notification for facility-wide maintenance alert - handled by maintenance alert system');
       }
       
       res.status(201).json(booking);
@@ -1991,23 +1951,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.log(`[BookingUpdate] Checking notification groups - notifyList:`, notifyList);
                 console.log(`[BookingUpdate] notifyList type:`, typeof notifyList, 'isArray:', Array.isArray(notifyList));
                 
-                if (notifyList && Array.isArray(notifyList) && notifyList.length > 0) {
-                  try {
-                    console.log(`[BookingUpdate] Sending notification to ${notifyList.length} groups:`, notifyList);
-                    await sendBookingNotificationToGroups(
-                      updatedBooking,
-                      studio,
-                      notifyList as number[],
-                      'updated',
-                      false  // Disable automatic site manager notifications since sendSiteManagerNotification handles this
-                    );
-                    console.log(`Notification sent to ${notifyList.length} groups about booking update`);
-                  } catch (notifyError) {
-                    console.error("Error sending notification to groups:", notifyError);
-                    // Continue execution even if notification failed
-                  }
-                } else {
-                  console.log(`[BookingUpdate] Skipping notification groups - no valid notifyList found`);
+                try {
+                  const groupIds = (notifyList && Array.isArray(notifyList)) ? notifyList as number[] : [];
+                  console.log(`[BookingUpdate] Sending notification to ${groupIds.length} groups (+ site managers):`, groupIds);
+                  await sendBookingNotificationToGroups(
+                    updatedBooking,
+                    studio,
+                    groupIds,
+                    'updated',
+                    true  // Always include site managers via notification group system
+                  );
+                } catch (notifyError) {
+                  console.error("Error sending notification to groups:", notifyError);
                 }
               }
             } catch (emailError) {
@@ -2021,39 +1976,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         console.log(`Skipping notification creation - no valid userId found (userId = ${booking.userId})`);
-      }
-      
-      // Send site manager notification for booking update
-      try {
-        const studios = [];
-        if (parsedStudioIds && parsedStudioIds.length > 0) {
-          for (const studioId of parsedStudioIds) {
-            const studio = await storage.getStudio(studioId);
-            if (studio) studios.push(studio);
-          }
-        } else if (updatedBooking && updatedBooking.studioId) {
-          const studio = await storage.getStudio(updatedBooking.studioId);
-          if (studio) studios.push(studio);
-        }
-        
-        if (studios.length > 0 && updatedBooking) {
-          const bookingUser = booking.userId ? await storage.getUser(booking.userId) : req.user;
-          if (bookingUser) {
-            // Track what was changed for the notification
-            const changes = {};
-            Object.keys(updateData).forEach(key => {
-              if (updateData[key] !== undefined) {
-                changes[key] = updateData[key];
-              }
-            });
-            
-            await sendSiteManagerNotification(updatedBooking, studios, bookingUser, 'updated', changes);
-            console.log(`Site manager notification sent for updated booking ${updatedBooking.id}`);
-          }
-        }
-      } catch (siteManagerError) {
-        console.error("Error sending site manager notification for booking update:", siteManagerError);
-        // Continue execution even if site manager notification fails
       }
       
       res.json(updatedBooking);
@@ -2174,20 +2096,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   console.log(`Sending booking cancellation email to user ${bookingUser.email} for booking "${booking.title}"`);
                   await sendBookingCancellation(booking, studio, bookingUser);
                   
-                  // Send notification to notification groups if they exist
-                  if (booking.notifyList && Array.isArray(booking.notifyList) && booking.notifyList.length > 0) {
-                    try {
-                      await sendBookingNotificationToGroups(
-                        booking,
-                        studio,
-                        booking.notifyList as number[],
-                        'cancelled'
-                      );
-                      console.log(`Notification sent to ${booking.notifyList.length} groups about booking cancellation`);
-                    } catch (notifyError) {
-                      console.error("Error sending cancellation notification to groups:", notifyError);
-                      // Continue execution even if notification failed
-                    }
+                  try {
+                    const groupIds = (booking.notifyList && Array.isArray(booking.notifyList)) ? booking.notifyList as number[] : [];
+                    await sendBookingNotificationToGroups(
+                      booking,
+                      studio,
+                      groupIds,
+                      'cancelled',
+                      true  // Always include site managers
+                    );
+                  } catch (notifyError) {
+                    console.error("Error sending cancellation notification to groups:", notifyError);
                   }
                 }
               } catch (emailError) {
@@ -2199,33 +2118,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error("Error creating notification for deletion:", notificationError);
             // Continue with the response even if notification creation fails
           }
-        }
-        
-        // Send site manager notification for booking deletion
-        try {
-          const studios = [];
-          // Get studio information for the deleted booking
-          if (booking.studioId) {
-            const studio = await storage.getStudio(booking.studioId);
-            if (studio) studios.push(studio);
-          } else {
-            // For multi-studio bookings, get all associated studios
-            try {
-              const bookingStudios = await storage.getStudiosForBooking(booking.id);
-              studios.push(...bookingStudios);
-            } catch (studioError) {
-              console.error("Error getting studios for deleted booking:", studioError);
-            }
-          }
-          
-          if (studios.length > 0) {
-            const deletingUser = user;
-            await sendSiteManagerNotification(booking, studios, deletingUser, 'deleted');
-            console.log(`Site manager notification sent for deleted booking ${booking.id}`);
-          }
-        } catch (siteManagerError) {
-          console.error("Error sending site manager notification for booking deletion:", siteManagerError);
-          // Continue execution even if site manager notification fails
         }
         
         const message = deletedCount > 1 

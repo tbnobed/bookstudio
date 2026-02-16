@@ -301,6 +301,18 @@ export async function sendStyledEmailToGroups(
       index === self.findIndex(g => g.id === group.id)
     );
     
+    // Also deduplicate by email address to prevent the same recipient getting multiple emails
+    const seenEmails = new Set<string>();
+    validGroups = validGroups.filter(group => {
+      const email = group.email.toLowerCase();
+      if (seenEmails.has(email)) {
+        console.log(`[sendStyledEmailToGroups] Skipping duplicate email ${group.email} (group: ${group.name})`);
+        return false;
+      }
+      seenEmails.add(email);
+      return true;
+    });
+    
     console.log(`[sendStyledEmailToGroups] Final recipient list: ${validGroups.length} notification groups`);
     console.log(`[sendStyledEmailToGroups] Recipients:`, validGroups.map(g => `${g.name} (${g.email})`));
     
