@@ -172,7 +172,7 @@ const NotificationGroupDialog: React.FC<{
                   <FormLabel>Group Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
