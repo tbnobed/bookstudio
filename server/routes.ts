@@ -2373,19 +2373,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[BULK ALERT] Creating ${alertItems.length} alert(s) with single notification`);
       
+      const parsedAlerts: any[] = [];
+      for (const item of alertItems) {
+        const alertData = insertAlertSchema.parse({
+          ...item,
+          createdBy: user.id
+        });
+        parsedAlerts.push(alertData);
+      }
+      
       const createdAlerts: any[] = [];
       const dateRanges: Array<{ start: Date; end: Date }> = [];
       
-      for (const item of alertItems) {
+      for (let i = 0; i < parsedAlerts.length; i++) {
         try {
-          const alertData = insertAlertSchema.parse({
-            ...item,
-            createdBy: user.id
-          });
-          
-          const alert = await storage.createAlert(alertData);
+          const alert = await storage.createAlert(parsedAlerts[i]);
           createdAlerts.push(alert);
           dateRanges.push({ start: new Date(alert.start), end: new Date(alert.end) });
+          
+          console.log(`[BULK ALERT] Created alert ID ${alert.id} (${i + 1}/${parsedAlerts.length})`);
           
           await AuditService.log('created', 'alert', alert.title, req, {
             alertId: alert.id,
@@ -2394,12 +2400,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             start: alert.start,
             end: alert.end,
             bulkCreation: true,
-            totalInBatch: alertItems.length
+            totalInBatch: parsedAlerts.length
           });
           
-          console.log(`[BULK ALERT] Created alert ID ${alert.id} for date range`);
+          if (i < parsedAlerts.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
         } catch (itemError: any) {
-          console.error(`[BULK ALERT] Error creating individual alert:`, itemError);
+          console.error(`[BULK ALERT] Error creating alert ${i + 1}/${parsedAlerts.length}:`, itemError);
         }
       }
       

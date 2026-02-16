@@ -3169,8 +3169,7 @@ export class DatabaseStorage implements IStorage {
         .insert(alerts)
         .values({
           ...alertData,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: new Date()
         })
         .returning();
         
