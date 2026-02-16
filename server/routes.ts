@@ -2385,27 +2385,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const createdAlerts: any[] = [];
       const dateRanges: Array<{ start: Date; end: Date }> = [];
       
+      // Step 1: Create all alerts sequentially (no audit logging yet to avoid connection corruption)
       for (let i = 0; i < parsedAlerts.length; i++) {
         try {
           const alert = await storage.createAlert(parsedAlerts[i]);
           createdAlerts.push(alert);
           dateRanges.push({ start: new Date(alert.start), end: new Date(alert.end) });
-          
           console.log(`[BULK ALERT] Created alert ID ${alert.id} (${i + 1}/${parsedAlerts.length})`);
-          
-          await AuditService.log('created', 'alert', alert.title, req, {
-            alertId: alert.id,
-            alertType: alert.alertType,
-            severity: alert.severity,
-            start: alert.start,
-            end: alert.end,
-            bulkCreation: true,
-            totalInBatch: parsedAlerts.length
-          });
-          
-          if (i < parsedAlerts.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
         } catch (itemError: any) {
           console.error(`[BULK ALERT] Error creating alert ${i + 1}/${parsedAlerts.length}:`, itemError);
         }
@@ -2415,7 +2401,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to create any alerts" });
       }
       
-      // Send ONE consolidated email notification for all dates
+      // Step 2: Log audit entries after all alerts are created (fire-and-forget to avoid connection issues)
+      for (const alert of createdAlerts) {
+        AuditService.log('created', 'alert', alert.title, req, {
+          alertId: alert.id,
+          alertType: alert.alertType,
+          severity: alert.severity,
+          start: alert.start,
+          end: alert.end,
+          bulkCreation: true,
+          totalInBatch: parsedAlerts.length
+        }).catch(err => console.error(`[BULK ALERT] Audit log error for alert ${alert.id}:`, err.message));
+      }
+      
+      // Step 3: Send ONE consolidated email notification for all dates
       try {
         const allNotificationGroups = await storage.getAllNotificationGroups();
         const allGroupIds = allNotificationGroups.map(group => group.id);
