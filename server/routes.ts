@@ -35,6 +35,7 @@ import {
   sendFacilityAlertToGroups,
   sendCustomNotificationToGroups,
   sendMultiDateAlertToGroups,
+  sendMultiDateBookingCopyToGroups,
   sendFileAttachmentNotificationToGroups
 } from "./services/notificationGroupService";
 import { AuditService, getAuditContext } from "./services/auditService";
@@ -1587,6 +1588,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allResults = [...results, ...failedResults];
       const successCount = results.length;
       const failCount = failedResults.length;
+      
+      // Send ONE consolidated email listing all copied dates (only if copies succeeded)
+      if (successCount > 0) {
+        try {
+          const copiedDates = newBookings
+            .map(b => ({ start: b.start, end: b.end }))
+            .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+          
+          // Get the studio name for the email
+          const bookingStudios = await storage.getBookingStudios(bookingId);
+          let studioName = 'Multiple Studios';
+          if (bookingStudios && bookingStudios.length > 0) {
+            const studioNames: string[] = [];
+            for (const bs of bookingStudios) {
+              const studio = await storage.getStudio(bs.studioId);
+              if (studio) studioNames.push(studio.name);
+            }
+            studioName = studioNames.length > 0 ? studioNames.join(', ') : 'Multiple Studios';
+          }
+          
+          // Determine notification group IDs from the booking's notifyList
+          let notifyGroupIds: number[] = [];
+          if (originalBooking.notifyList && Array.isArray(originalBooking.notifyList) && originalBooking.notifyList.length > 0) {
+            notifyGroupIds = originalBooking.notifyList
+              .map((id: any) => typeof id === 'string' ? parseInt(id) : id)
+              .filter((id: any) => !isNaN(id) && id > 0);
+          }
+          
+          // Send consolidated email (site managers are always included via alwaysNotifySiteManagers=true)
+          await sendMultiDateBookingCopyToGroups(
+            originalBooking,
+            studioName,
+            copiedDates,
+            notifyGroupIds,
+            true
+          );
+          console.log(`[BookingCopy] Sent ONE consolidated email covering ${copiedDates.length} copied date(s)`);
+        } catch (emailError) {
+          console.error("[BookingCopy] Error sending consolidated copy email:", emailError);
+        }
+      }
       
       res.status(201).json({ 
         success: successCount > 0,

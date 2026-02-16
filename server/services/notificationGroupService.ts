@@ -624,6 +624,134 @@ ${dateListText}
 }
 
 /**
+ * Send a consolidated booking copy notification listing all dates
+ */
+export async function sendMultiDateBookingCopyToGroups(
+  originalBooking: Booking,
+  studioName: string,
+  copiedDates: Array<{ start: Date | string; end: Date | string }>,
+  groupIds: number[],
+  alwaysNotifySiteManagers: boolean = true
+): Promise<boolean[]> {
+  console.log(`[sendMultiDateBookingCopyToGroups] Sending consolidated booking copy notification for "${originalBooking.title}" covering ${copiedDates.length} date(s)`);
+  
+  const subject = `${APP_NAME} - Booking Copied to ${copiedDates.length} Dates`;
+  
+  const facilityTimezone = process.env.VITE_FACILITY_TIMEZONE || 'America/Chicago';
+
+  const formatDateOnly = (date: Date | string): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', {
+      timeZone: facilityTimezone,
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTimeOnly = (date: Date | string): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleString('en-US', {
+      timeZone: facilityTimezone,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const dateListHtml = copiedDates.map(d => {
+    const startDate = typeof d.start === 'string' ? new Date(d.start) : d.start;
+    const endDate = typeof d.end === 'string' ? new Date(d.end) : d.end;
+    const dayStr = formatDateOnly(startDate);
+    const timeStr = `${formatTimeOnly(startDate)} – ${formatTimeOnly(endDate)}`;
+    return `<li style="padding: 6px 0; color: #1f2937;">${dayStr} — ${timeStr}</li>`;
+  }).join('');
+
+  const dateListText = copiedDates.map(d => {
+    const startDate = typeof d.start === 'string' ? new Date(d.start) : d.start;
+    const endDate = typeof d.end === 'string' ? new Date(d.end) : d.end;
+    return `  - ${formatDateOnly(startDate)}: ${formatTimeOnly(startDate)} – ${formatTimeOnly(endDate)}`;
+  }).join('\n');
+
+  const getAppUrl = () => {
+    if (process.env.REPLIT_DEV_DOMAIN) return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    if (process.env.APP_DOMAIN) return process.env.APP_DOMAIN;
+    return `http://localhost:${process.env.PORT || 5000}`;
+  };
+  const appUrl = getAppUrl();
+  const logoUrl = `${appUrl}/assets/logo.png`;
+
+  const htmlContent = `
+    <tr>
+        <td style="padding: 32px 24px; text-align: center;">
+            <img src="${logoUrl}" alt="BookStud.io Logo" style="height: 128px; width: auto; margin-bottom: 24px;" />
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 32px 24px;">
+            <div style="background-color: #2563eb; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">BOOKING COPIED</div>
+            
+            <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 20px 0;">${originalBooking.title}</h2>
+            
+            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #4b5563; display: inline-block; width: 120px;">Studio:</strong>
+                    <span style="color: #1f2937;">${studioName}</span>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #4b5563; display: inline-block; width: 120px;">Type:</strong>
+                    <span style="color: #1f2937;">${originalBooking.type}</span>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #4b5563; display: inline-block; width: 120px;">Original Date:</strong>
+                    <span style="color: #1f2937;">${formatDate(originalBooking.start)}</span>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #4b5563; display: inline-block; width: 120px;">Copies Created:</strong>
+                    <span style="color: #1f2937;">${copiedDates.length} date(s)</span>
+                </div>
+                ${originalBooking.description ? `
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #4b5563; display: inline-block; width: 120px;">Description:</strong>
+                    <span style="color: #1f2937;">${originalBooking.description}</span>
+                </div>` : ''}
+            </div>
+            
+            <h3 style="color: #1f2937; font-size: 18px; font-weight: 600; margin: 24px 0 12px 0;">Copied to the Following Dates:</h3>
+            <ul style="list-style: none; padding: 0; margin: 0 0 20px 0; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px 20px;">
+                ${dateListHtml}
+            </ul>
+            
+            <p style="color: #6b7280; font-size: 14px; margin: 20px 0;">A studio booking has been copied to multiple dates. This notification has been sent to your notification group.</p>
+        </td>
+    </tr>`;
+
+  const textMessage = `
+    Booking Copied to ${copiedDates.length} Dates
+    
+    "${originalBooking.title}" has been copied to the following dates:
+    
+    Studio: ${studioName}
+    Type: ${originalBooking.type}
+    Original Date: ${formatDate(originalBooking.start)}
+    ${originalBooking.description ? `Description: ${originalBooking.description}` : ''}
+    
+    Copied Dates:
+${dateListText}
+    
+    This notification has been sent to your notification group.
+    
+    Thank you,
+    ${APP_NAME}
+  `;
+
+  const results = await sendStyledEmailToGroups(groupIds, subject, htmlContent, textMessage, alwaysNotifySiteManagers);
+  console.log(`[sendMultiDateBookingCopyToGroups] Email sending results:`, results);
+  return results;
+}
+
+/**
  * Send a facility-wide alert to specified notification groups
  * @param booking The facility alert information
  * @param groupIds Array of notification group IDs
