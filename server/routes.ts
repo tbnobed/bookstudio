@@ -2879,23 +2879,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Notification group not found" });
       }
       
-      const { name, email, groupType, description, enabled } = req.body;
-      const updateData: any = {};
-      if (name !== undefined) updateData.name = name;
-      if (email !== undefined) updateData.email = email;
-      if (groupType !== undefined) updateData.groupType = groupType;
-      if (description !== undefined) updateData.description = description;
-      if (enabled !== undefined) updateData.enabled = enabled;
-      
-      console.log(`[NotificationGroup] Updating group ${id} with sanitized data:`, updateData);
+      const updateData = req.body;
+      console.log(`[NotificationGroup] Updating group ${id} with data:`, updateData);
       
       const updatedGroup = await storage.updateNotificationGroup(id, updateData);
-      
-      if (!updatedGroup) {
-        console.error(`[NotificationGroup] Update returned undefined for group ${id}`);
-        return res.status(500).json({ message: "Failed to update notification group - update returned no result" });
-      }
-      
       console.log(`[NotificationGroup] Update result:`, updatedGroup);
       
       // Detect changes for audit logging
@@ -2905,10 +2892,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.body.enabled !== undefined && req.body.enabled !== group.enabled) changes.enabled = { from: group.enabled, to: req.body.enabled };
       if (req.body.groupType && req.body.groupType !== group.groupType) changes.groupType = { from: group.groupType, to: req.body.groupType };
       
-      AuditService.log('updated', 'notification_group', updatedGroup.name, req, {
+      await AuditService.log('updated', 'notification_group', updatedGroup.name, req, {
         groupId: id,
         changes
-      }).catch(err => console.error('[NotificationGroup] Audit log error:', err));
+      });
       
       res.json(updatedGroup);
     } catch (error) {
