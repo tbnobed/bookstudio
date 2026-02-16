@@ -988,7 +988,7 @@ export default function BookingModal({
                           ) : (
                             <div className="space-y-1 mt-1.5 border rounded-md p-2 max-h-[150px] overflow-y-auto">
                               {notificationGroups
-                                .filter((group: NotificationGroup) => group.groupType !== 'site_management')
+                                .filter((group: NotificationGroup) => group.groupType !== 'site_management' && group.enabled !== false)
                                 .map((group: NotificationGroup) => (
                                 <div key={group.id} className="flex items-center justify-between">
                                   <div className="flex items-center">

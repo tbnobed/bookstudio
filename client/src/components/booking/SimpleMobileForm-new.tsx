@@ -414,7 +414,7 @@ export default function SimpleMobileForm({
 
   // Filter notification groups (same as desktop)
   const filteredNotificationGroups = notificationGroups.filter(group => 
-    group.groupType !== 'site_management'
+    group.groupType !== 'site_management' && group.enabled !== false
   );
 
   return (
