@@ -305,7 +305,10 @@ export default function AssetsPage() {
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Table header */}
             <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_auto] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              <span>Name</span>
+              <div className="flex items-center gap-3">
+                <div className="w-1 shrink-0 invisible" />
+                <span>Name</span>
+              </div>
               <span>Category</span>
               <span>Status</span>
               <span className="hidden md:block">Serial / Tag</span>
