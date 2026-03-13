@@ -20,8 +20,21 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive } from "lucide-react";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+type EnrichedCheckout = {
+  id: number;
+  assetId: number;
+  checkedOutBy: number;
+  checkedOutAt: string | null;
+  checkedInAt: string | null;
+  checkedInBy: number | null;
+  notes: string | null;
+  purpose: string | null;
+  checkedOutByName: string;
+  checkedInByName: string | null;
+};
 
 const CATEGORIES = [
   { value: "camera", label: "Camera", icon: Camera },
@@ -82,10 +95,25 @@ export default function AssetsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Asset | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
 
+  // Checkout system state
+  const [checkoutTarget, setCheckoutTarget] = useState<Asset | null>(null);
+  const [checkoutForm, setCheckoutForm] = useState({ purpose: "", notes: "" });
+  const [historyAsset, setHistoryAsset] = useState<Asset | null>(null);
+
   const canDelete = user?.role === "admin" || user?.role === "site_manager";
 
   const { data: assets = [], isLoading } = useQuery<Asset[]>({
     queryKey: ["/api/assets"],
+  });
+
+  const { data: activeCheckouts = [] } = useQuery<EnrichedCheckout[]>({
+    queryKey: ["/api/assets/checkouts/active"],
+  });
+
+  const { data: assetHistory = [], isLoading: historyLoading } = useQuery<EnrichedCheckout[]>({
+    queryKey: ["/api/assets", historyAsset?.id, "checkouts"],
+    queryFn: () => fetch(`/api/assets/${historyAsset!.id}/checkouts`, { credentials: "include" }).then(r => r.json()),
+    enabled: !!historyAsset,
   });
 
   const createAsset = useMutation({
@@ -130,6 +158,33 @@ export default function AssetsPage() {
     onError: () => toast({ title: "Error", description: "Failed to update status.", variant: "destructive" }),
   });
 
+  const checkoutMutation = useMutation({
+    mutationFn: ({ id, purpose, notes }: { id: number; purpose: string; notes: string }) =>
+      apiRequest("POST", `/api/assets/${id}/checkout`, { purpose, notes }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assets/checkouts/active"] });
+      toast({ title: "Checked out", description: `${checkoutTarget?.name} is now checked out to you.` });
+      setCheckoutTarget(null);
+      setCheckoutForm({ purpose: "", notes: "" });
+    },
+    onError: (err: any) => {
+      const msg = err?.message || "Failed to check out asset.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    },
+  });
+
+  const checkinMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("POST", `/api/assets/${id}/checkin`),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assets/checkouts/active"] });
+      const name = assets.find(a => a.id === id)?.name ?? "Asset";
+      toast({ title: "Checked in", description: `${name} has been returned.` });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to check in asset.", variant: "destructive" }),
+  });
+
   const openCreate = () => {
     setEditAsset(null);
     setForm({ ...EMPTY_FORM });
@@ -169,6 +224,13 @@ export default function AssetsPage() {
       createAsset.mutate(form);
     }
   };
+
+  // Build a fast lookup: assetId → active checkout
+  const checkoutMap = useMemo(() => {
+    const map = new Map<number, EnrichedCheckout>();
+    for (const c of activeCheckouts) map.set(c.assetId, c);
+    return map;
+  }, [activeCheckouts]);
 
   // Stats counts
   const statCounts = useMemo(() => {
@@ -368,11 +430,17 @@ export default function AssetsPage() {
                         <span className="hidden sm:inline">{getCategoryLabel(asset.category)}</span>
                       </div>
 
-                      {/* Status */}
-                      <div>
+                      {/* Status + checkout info */}
+                      <div className="space-y-1">
                         <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getStatusStyle(asset.status))}>
                           {STATUSES.find(s => s.value === asset.status)?.label ?? asset.status}
                         </Badge>
+                        {checkoutMap.get(asset.id) && (
+                          <div className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400">
+                            <User className="h-2.5 w-2.5 shrink-0" />
+                            <span className="truncate">{checkoutMap.get(asset.id)!.checkedOutByName}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Serial / Tag */}
@@ -387,30 +455,84 @@ export default function AssetsPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => openEdit(asset)}>
-                          <Pencil className="h-3 w-3" />
-                          Edit
-                        </Button>
-                        {canDelete && (
+                      <div className="flex items-center gap-1 shrink-0 flex-wrap">
+                        {asset.status === "available" ? (
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 px-2 text-xs gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
-                            onClick={() => setDeleteTarget(asset)}
+                            className="h-7 px-2 text-xs gap-1 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700"
+                            onClick={() => { setCheckoutTarget(asset); setCheckoutForm({ purpose: "", notes: "" }); }}
                           >
-                            <Trash2 className="h-3 w-3" />
-                            Delete
+                            <LogOut className="h-3 w-3" />
+                            Check Out
+                          </Button>
+                        ) : asset.status === "in-use" && checkoutMap.get(asset.id) ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs gap-1 text-blue-700 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-300 dark:border-blue-700"
+                            disabled={checkinMutation.isPending}
+                            onClick={() => checkinMutation.mutate(asset.id)}
+                          >
+                            <LogIn className="h-3 w-3" />
+                            Check In
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => openEdit(asset)}>
+                            <Pencil className="h-3 w-3" />
+                            Edit
                           </Button>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700"
+                          title="Checkout history"
+                          onClick={() => setHistoryAsset(asset)}
+                        >
+                          <History className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </div>
                   </ContextMenuTrigger>
 
-                  <ContextMenuContent className="w-52">
+                  <ContextMenuContent className="w-56">
                     <ContextMenuLabel className="text-xs text-gray-500 font-normal truncate">
                       {asset.name}
                     </ContextMenuLabel>
+                    {checkoutMap.get(asset.id) && (
+                      <div className="px-2 py-1 flex items-center gap-1.5 text-[10px] text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 mx-1 rounded">
+                        <User className="h-3 w-3 shrink-0" />
+                        <span className="truncate">Checked out by {checkoutMap.get(asset.id)!.checkedOutByName}</span>
+                      </div>
+                    )}
+                    <ContextMenuSeparator />
+                    {asset.status === "available" && (
+                      <ContextMenuItem
+                        className="gap-2 cursor-pointer text-emerald-700 focus:text-emerald-700 focus:bg-emerald-50 dark:focus:bg-emerald-900/20"
+                        onSelect={() => { setCheckoutTarget(asset); setCheckoutForm({ purpose: "", notes: "" }); }}
+                      >
+                        <LogOut className="h-4 w-4 shrink-0" />
+                        Check Out
+                      </ContextMenuItem>
+                    )}
+                    {asset.status === "in-use" && checkoutMap.get(asset.id) && (
+                      <ContextMenuItem
+                        className="gap-2 cursor-pointer text-blue-700 focus:text-blue-700 focus:bg-blue-50 dark:focus:bg-blue-900/20"
+                        disabled={checkinMutation.isPending}
+                        onSelect={() => checkinMutation.mutate(asset.id)}
+                      >
+                        <LogIn className="h-4 w-4 shrink-0" />
+                        Check In
+                      </ContextMenuItem>
+                    )}
+                    <ContextMenuItem
+                      className="gap-2 cursor-pointer"
+                      onSelect={() => setHistoryAsset(asset)}
+                    >
+                      <History className="h-4 w-4 shrink-0 text-gray-500" />
+                      View checkout history
+                    </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuLabel className="text-xs">Set Status</ContextMenuLabel>
                     {STATUSES.map(s => {
@@ -617,6 +739,138 @@ export default function AssetsPage() {
             >
               {deleteAsset.isPending ? "Deleting..." : "Delete Asset"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Check Out Modal */}
+      <Dialog open={!!checkoutTarget} onOpenChange={open => { if (!open) { setCheckoutTarget(null); setCheckoutForm({ purpose: "", notes: "" }); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LogOut className="h-5 w-5 text-emerald-600" />
+              Check Out Asset
+            </DialogTitle>
+            <DialogDescription>
+              Checking out <strong>{checkoutTarget?.name}</strong> to you. Fill in the details below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="co-purpose">Purpose / Project</Label>
+              <Input
+                id="co-purpose"
+                placeholder="e.g. Morning news shoot, Studio B setup"
+                value={checkoutForm.purpose}
+                onChange={e => setCheckoutForm(f => ({ ...f, purpose: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="co-notes">Notes (optional)</Label>
+              <Textarea
+                id="co-notes"
+                placeholder="Any notes about the condition of the item"
+                value={checkoutForm.notes}
+                onChange={e => setCheckoutForm(f => ({ ...f, notes: e.target.value }))}
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setCheckoutTarget(null); setCheckoutForm({ purpose: "", notes: "" }); }} disabled={checkoutMutation.isPending}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={() => checkoutTarget && checkoutMutation.mutate({ id: checkoutTarget.id, ...checkoutForm })}
+              disabled={checkoutMutation.isPending}
+            >
+              {checkoutMutation.isPending ? "Checking out..." : "Check Out"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Checkout History Modal */}
+      <Dialog open={!!historyAsset} onOpenChange={open => { if (!open) setHistoryAsset(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-gray-500" />
+              Checkout History
+            </DialogTitle>
+            <DialogDescription>{historyAsset?.name}</DialogDescription>
+          </DialogHeader>
+
+          {historyLoading ? (
+            <div className="py-8 text-center text-sm text-gray-400">Loading history...</div>
+          ) : assetHistory.length === 0 ? (
+            <div className="py-8 text-center">
+              <History className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">No checkout history yet</p>
+              <p className="text-xs text-gray-400 mt-1">Records will appear here when the asset is checked out.</p>
+            </div>
+          ) : (
+            <div className="space-y-2 py-2">
+              {assetHistory.map(entry => (
+                <div
+                  key={entry.id}
+                  className={cn(
+                    "rounded-lg border p-3 text-sm",
+                    entry.checkedInAt
+                      ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
+                      : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+                      <User className="h-3.5 w-3.5 text-gray-500 shrink-0" />
+                      {entry.checkedOutByName}
+                    </div>
+                    {entry.checkedInAt ? (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-700 dark:text-gray-300 shrink-0">
+                        Returned
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">
+                        Active
+                      </Badge>
+                    )}
+                  </div>
+                  {entry.purpose && (
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{entry.purpose}</p>
+                  )}
+                  {entry.notes && (
+                    <p className="text-xs text-gray-400 italic mt-0.5">{entry.notes}</p>
+                  )}
+                  <div className="flex flex-col gap-0.5 mt-2 text-[10px] text-gray-400 dark:text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <LogOut className="h-2.5 w-2.5 shrink-0" />
+                      Out: {entry.checkedOutAt ? new Date(entry.checkedOutAt).toLocaleString() : "—"}
+                    </div>
+                    {entry.checkedInAt && (
+                      <div className="flex items-center gap-1">
+                        <LogIn className="h-2.5 w-2.5 shrink-0" />
+                        In: {new Date(entry.checkedInAt).toLocaleString()}
+                        {entry.checkedInByName && entry.checkedInByName !== entry.checkedOutByName && (
+                          <span className="text-gray-400"> by {entry.checkedInByName}</span>
+                        )}
+                      </div>
+                    )}
+                    {!entry.checkedInAt && entry.checkedOutAt && (
+                      <div className="flex items-center gap-1 text-blue-500 dark:text-blue-400">
+                        <Clock className="h-2.5 w-2.5 shrink-0" />
+                        Out for {Math.round((Date.now() - new Date(entry.checkedOutAt).getTime()) / 3600000)} hr(s)
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHistoryAsset(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

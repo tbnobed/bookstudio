@@ -3726,5 +3726,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Asset checkout history
+  app.get("/api/assets/:id/checkouts", isAuthenticated, async (req, res) => {
+    try {
+      const assetId = parseInt(req.params.id);
+      const checkouts = await storage.getAssetCheckouts(assetId);
+      const allUsers = await storage.getAllUsers();
+      const userMap = Object.fromEntries(allUsers.map(u => [u.id, u.fullName || u.username]));
+      const enriched = checkouts.map(c => ({
+        ...c,
+        checkedOutByName: userMap[c.checkedOutBy] ?? `User #${c.checkedOutBy}`,
+        checkedInByName: c.checkedInBy ? (userMap[c.checkedInBy] ?? `User #${c.checkedInBy}`) : null,
+      }));
+      res.json(enriched);
+    } catch (error) {
+      console.error("Error fetching asset checkouts:", error);
+      res.status(500).json({ message: "Failed to fetch checkout history" });
+    }
+  });
+
+  // Active checkouts for all assets
+  app.get("/api/assets/checkouts/active", isAuthenticated, async (req, res) => {
+    try {
+      const checkouts = await storage.getAllActiveCheckouts();
+      const allUsers = await storage.getAllUsers();
+      const userMap = Object.fromEntries(allUsers.map(u => [u.id, u.fullName || u.username]));
+      const enriched = checkouts.map(c => ({
+        ...c,
+        checkedOutByName: userMap[c.checkedOutBy] ?? `User #${c.checkedOutBy}`,
+      }));
+      res.json(enriched);
+    } catch (error) {
+      console.error("Error fetching active checkouts:", error);
+      res.status(500).json({ message: "Failed to fetch active checkouts" });
+    }
+  });
+
+  // Check out an asset
+  app.post("/api/assets/:id/checkout", isAuthenticated, async (req, res) => {
+    try {
+      const assetId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      const asset = await storage.getAsset(assetId);
+      if (!asset) return res.status(404).json({ message: "Asset not found" });
+      const existing = await storage.getActiveCheckout(assetId);
+      if (existing) return res.status(409).json({ message: "Asset is already checked out" });
+      const checkout = await storage.checkoutAsset({
+        assetId,
+        checkedOutBy: userId,
+        purpose: req.body.purpose,
+        notes: req.body.notes,
+      });
+      res.status(201).json(checkout);
+    } catch (error) {
+      console.error("Error checking out asset:", error);
+      res.status(500).json({ message: "Failed to check out asset" });
+    }
+  });
+
+  // Check in an asset
+  app.post("/api/assets/:id/checkin", isAuthenticated, async (req, res) => {
+    try {
+      const assetId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      const result = await storage.checkinAsset(assetId, userId);
+      if (!result) return res.status(409).json({ message: "Asset is not currently checked out" });
+      res.json(result);
+    } catch (error) {
+      console.error("Error checking in asset:", error);
+      res.status(500).json({ message: "Failed to check in asset" });
+    }
+  });
+
   return httpServer;
 }

@@ -15,6 +15,7 @@ import {
   teams, type Team, type InsertTeam,
   teamMembers, type TeamMember, type InsertTeamMember,
   assets, type Asset, type InsertAsset,
+  assetCheckouts, type AssetCheckout, type InsertAssetCheckout,
   passwordResetTokens,
   inviteTokens
 } from "@shared/schema";
@@ -171,6 +172,13 @@ export interface IStorage {
   createAsset(asset: InsertAsset): Promise<Asset>;
   updateAsset(id: number, data: Partial<InsertAsset>): Promise<Asset | undefined>;
   deleteAsset(id: number): Promise<boolean>;
+
+  // Asset checkout/checkin
+  getAssetCheckouts(assetId: number): Promise<AssetCheckout[]>;
+  getActiveCheckout(assetId: number): Promise<AssetCheckout | undefined>;
+  getAllActiveCheckouts(): Promise<AssetCheckout[]>;
+  checkoutAsset(data: { assetId: number; checkedOutBy: number; purpose?: string; notes?: string }): Promise<AssetCheckout>;
+  checkinAsset(assetId: number, checkedInBy: number): Promise<AssetCheckout | undefined>;
 
   // Session management
   sessionStore: session.Store;
@@ -1081,6 +1089,12 @@ export class MemStorage implements IStorage {
   async createAsset(asset: InsertAsset): Promise<Asset> { throw new Error("Not implemented in MemStorage"); }
   async updateAsset(id: number, data: Partial<InsertAsset>): Promise<Asset | undefined> { return undefined; }
   async deleteAsset(id: number): Promise<boolean> { return false; }
+
+  async getAssetCheckouts(_assetId: number): Promise<AssetCheckout[]> { return []; }
+  async getActiveCheckout(_assetId: number): Promise<AssetCheckout | undefined> { return undefined; }
+  async getAllActiveCheckouts(): Promise<AssetCheckout[]> { return []; }
+  async checkoutAsset(_data: { assetId: number; checkedOutBy: number; purpose?: string; notes?: string }): Promise<AssetCheckout> { throw new Error("Not implemented in MemStorage"); }
+  async checkinAsset(_assetId: number, _checkedInBy: number): Promise<AssetCheckout | undefined> { return undefined; }
 }
 
 // Database storage implementation
@@ -4107,6 +4121,52 @@ export class DatabaseStorage implements IStorage {
   async deleteAsset(id: number): Promise<boolean> {
     const result = await db.delete(assets).where(eq(assets.id, id)).returning();
     return result.length > 0;
+  }
+
+  async getAssetCheckouts(assetId: number): Promise<AssetCheckout[]> {
+    return db
+      .select()
+      .from(assetCheckouts)
+      .where(eq(assetCheckouts.assetId, assetId))
+      .orderBy(desc(assetCheckouts.checkedOutAt));
+  }
+
+  async getActiveCheckout(assetId: number): Promise<AssetCheckout | undefined> {
+    const result = await db
+      .select()
+      .from(assetCheckouts)
+      .where(and(eq(assetCheckouts.assetId, assetId), isNull(assetCheckouts.checkedInAt)))
+      .limit(1);
+    return result[0];
+  }
+
+  async getAllActiveCheckouts(): Promise<AssetCheckout[]> {
+    return db
+      .select()
+      .from(assetCheckouts)
+      .where(isNull(assetCheckouts.checkedInAt))
+      .orderBy(desc(assetCheckouts.checkedOutAt));
+  }
+
+  async checkoutAsset(data: { assetId: number; checkedOutBy: number; purpose?: string; notes?: string }): Promise<AssetCheckout> {
+    const [checkout] = await db
+      .insert(assetCheckouts)
+      .values({ assetId: data.assetId, checkedOutBy: data.checkedOutBy, purpose: data.purpose, notes: data.notes })
+      .returning();
+    await db.update(assets).set({ status: "in-use", updatedAt: new Date() }).where(eq(assets.id, data.assetId));
+    return checkout;
+  }
+
+  async checkinAsset(assetId: number, checkedInBy: number): Promise<AssetCheckout | undefined> {
+    const active = await this.getActiveCheckout(assetId);
+    if (!active) return undefined;
+    const [updated] = await db
+      .update(assetCheckouts)
+      .set({ checkedInAt: new Date(), checkedInBy })
+      .where(eq(assetCheckouts.id, active.id))
+      .returning();
+    await db.update(assets).set({ status: "available", updatedAt: new Date() }).where(eq(assets.id, assetId));
+    return updated;
   }
 }
 

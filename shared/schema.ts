@@ -482,3 +482,25 @@ export const insertAssetSchema = createInsertSchema(assets).omit({
 export type Asset = typeof assets.$inferSelect;
 export type InsertAsset = z.infer<typeof insertAssetSchema>;
 
+// Asset Checkout / Check-in schema
+export const assetCheckouts = pgTable("asset_checkouts", {
+  id: serial("id").primaryKey(),
+  assetId: integer("asset_id").notNull(),
+  checkedOutBy: integer("checked_out_by").notNull(),
+  checkedOutAt: timestamp("checked_out_at").defaultNow(),
+  checkedInAt: timestamp("checked_in_at"),
+  checkedInBy: integer("checked_in_by"),
+  notes: text("notes"),
+  purpose: text("purpose"),
+});
+
+export const insertAssetCheckoutSchema = createInsertSchema(assetCheckouts).omit({
+  id: true,
+  checkedOutAt: true,
+  checkedInAt: true,
+  checkedInBy: true,
+});
+
+export type AssetCheckout = typeof assetCheckouts.$inferSelect;
+export type InsertAssetCheckout = z.infer<typeof insertAssetCheckoutSchema>;
+
