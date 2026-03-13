@@ -385,7 +385,7 @@ export default function AssetsPage() {
         ) : (
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_130px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               <div className="flex items-center gap-3">
                 <div className="w-1 shrink-0 invisible" />
                 <span>Name</span>
@@ -403,7 +403,7 @@ export default function AssetsPage() {
                 <ContextMenu key={asset.id}>
                   <ContextMenuTrigger asChild>
                     <div
-                      className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_130px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none"
+                      className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none"
                     >
                       {/* Name + category color indicator */}
                       <div className="flex items-center gap-3 min-w-0">
@@ -455,8 +455,8 @@ export default function AssetsPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-1 shrink-0 flex-wrap">
-                        {asset.status === "available" ? (
+                      <div className="flex items-center gap-1 shrink-0">
+                        {asset.status === "available" && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -466,7 +466,8 @@ export default function AssetsPage() {
                             <LogOut className="h-3 w-3" />
                             Check Out
                           </Button>
-                        ) : asset.status === "in-use" && checkoutMap.get(asset.id) ? (
+                        )}
+                        {asset.status === "in-use" && checkoutMap.get(asset.id) && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -477,12 +478,11 @@ export default function AssetsPage() {
                             <LogIn className="h-3 w-3" />
                             Check In
                           </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => openEdit(asset)}>
-                            <Pencil className="h-3 w-3" />
-                            Edit
-                          </Button>
                         )}
+                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => openEdit(asset)}>
+                          <Pencil className="h-3 w-3" />
+                          Edit
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
