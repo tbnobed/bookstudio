@@ -157,14 +157,15 @@ export function Header({
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-      {/* Main Header Row */}
-      <div className="relative flex items-center justify-between px-4 py-3 lg:px-6 min-h-[72px]">
+      {/* Main Header Row — 3-column grid so center never overlaps left/right */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 py-3 lg:px-6 min-h-[72px] gap-2">
+
         {/* Left Section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 min-w-0">
           {/* Sidebar Toggle */}
           <button
             onClick={toggleSidebar}
-            className="hidden lg:flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="hidden lg:flex shrink-0 items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             title={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
             data-testid="button-toggle-sidebar"
           >
@@ -173,8 +174,8 @@ export function Header({
 
           {/* Date Navigation */}
           {!hideNavigation && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shrink-0">
                 <button 
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-lg transition-colors"
                   onClick={navigatePrevious}
@@ -187,11 +188,11 @@ export function Header({
                 <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                   <PopoverTrigger asChild>
                     <button 
-                      className="px-3 py-1.5 min-w-[150px] lg:min-w-[200px] text-center border-x border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                      className="px-3 py-1.5 min-w-[120px] lg:min-w-[180px] text-center border-x border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
                       data-testid="button-date-picker"
                     >
-                      <CalendarIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 hidden sm:block" />
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                      <CalendarIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 hidden sm:block shrink-0" />
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                         {getDateDisplayText()}
                       </span>
                     </button>
@@ -240,7 +241,7 @@ export function Header({
                 variant="outline"
                 size="sm"
                 onClick={goToToday}
-                className="hidden sm:flex"
+                className="hidden md:flex shrink-0"
                 data-testid="button-today"
               >
                 Today
@@ -254,13 +255,13 @@ export function Header({
                       variant="outline"
                       size="sm"
                       className={cn(
-                        "gap-1.5",
+                        "gap-1.5 shrink-0",
                         selectedStudioIds.length > 0 && "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
                       )}
                       data-testid="button-studio-filter"
                     >
                       <Filter className="h-4 w-4" />
-                      <span className="hidden sm:inline">Studios</span>
+                      <span className="hidden lg:inline">Studios</span>
                       {selectedStudioIds.length > 0 && (
                         <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium text-white">
                           {selectedStudioIds.length}
@@ -274,7 +275,6 @@ export function Header({
                       <button
                         className="flex-1 px-2 py-1 text-xs font-medium rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
                         onClick={() => {
-                          // Use actual current time for real-time status filtering
                           const now = new Date();
                           const availableIds = studios
                             .filter(s => calculateStudioStatus(s, bookings, now, bookingStudioLinks) === "available")
@@ -288,7 +288,6 @@ export function Header({
                       <button
                         className="flex-1 px-2 py-1 text-xs font-medium rounded bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors"
                         onClick={() => {
-                          // Use actual current time for real-time status filtering
                           const now = new Date();
                           const inUseIds = studios
                             .filter(s => calculateStudioStatus(s, bookings, now, bookingStudioLinks) === "in-use")
@@ -302,7 +301,6 @@ export function Header({
                       <button
                         className="flex-1 px-2 py-1 text-xs font-medium rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
                         onClick={() => {
-                          // Use actual current time for real-time status filtering
                           const now = new Date();
                           const maintIds = studios
                             .filter(s => calculateStudioStatus(s, bookings, now, bookingStudioLinks) === "maintenance")
@@ -351,14 +349,12 @@ export function Header({
             </div>
           )}
         </div>
-        
-        {/* Center Section - Studio Status Summary + Weather - Absolutely positioned for consistent placement */}
-        <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-6 pointer-events-auto">
-          {/* Weather Widget */}
+
+        {/* Center Section — naturally centered by grid, never overlaps left/right */}
+        <div className="hidden lg:flex items-center justify-center gap-4">
           <div className="hidden xl:block">
             <WeatherWidget size="compact" />
           </div>
-          
           <StudioStatusSummary
             studios={studios}
             bookings={bookings}
@@ -369,7 +365,7 @@ export function Header({
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-2 lg:gap-3">
+        <div className="flex items-center justify-end gap-2 lg:gap-3">
           
           {/* View Toggle */}
           {showViewToggle && (
@@ -399,8 +395,8 @@ export function Header({
           {/* Theme Toggle */}
           <ThemeToggle />
         </div>
-      </div>
 
+      </div>
     </header>
   );
 }
