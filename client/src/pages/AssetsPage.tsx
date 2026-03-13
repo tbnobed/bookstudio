@@ -630,9 +630,17 @@ export default function AssetsPage() {
                           {STATUSES.find(s => s.value === asset.status)?.label ?? asset.status}
                         </Badge>
                         {checkoutMap.get(asset.id) && (
-                          <div className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400">
-                            <User className="h-2.5 w-2.5 shrink-0" />
-                            <span className="truncate">{checkoutMap.get(asset.id)!.checkedOutByName}</span>
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400">
+                              <User className="h-2.5 w-2.5 shrink-0" />
+                              <span className="truncate">{checkoutMap.get(asset.id)!.checkedOutByName}</span>
+                            </div>
+                            {checkoutMap.get(asset.id)!.purpose && (
+                              <div className="flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400">
+                                <Tv className="h-2.5 w-2.5 shrink-0" />
+                                <span className="truncate">{checkoutMap.get(asset.id)!.purpose}</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -695,9 +703,17 @@ export default function AssetsPage() {
                       {asset.name}
                     </ContextMenuLabel>
                     {checkoutMap.get(asset.id) && (
-                      <div className="px-2 py-1 flex items-center gap-1.5 text-[10px] text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 mx-1 rounded">
-                        <User className="h-3 w-3 shrink-0" />
-                        <span className="truncate">Checked out by {checkoutMap.get(asset.id)!.checkedOutByName}</span>
+                      <div className="px-2 py-1.5 space-y-1 mx-1 rounded bg-blue-50 dark:bg-blue-900/20">
+                        <div className="flex items-center gap-1.5 text-[10px] text-blue-600 dark:text-blue-400">
+                          <User className="h-3 w-3 shrink-0" />
+                          <span className="truncate">Checked out by {checkoutMap.get(asset.id)!.checkedOutByName}</span>
+                        </div>
+                        {checkoutMap.get(asset.id)!.purpose && (
+                          <div className="flex items-center gap-1.5 text-[10px] text-indigo-600 dark:text-indigo-400">
+                            <Tv className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{checkoutMap.get(asset.id)!.purpose}</span>
+                          </div>
+                        )}
                       </div>
                     )}
                     <ContextMenuSeparator />
