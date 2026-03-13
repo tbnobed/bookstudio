@@ -284,23 +284,34 @@ export default function AssetsPage() {
   const [bulkPending, setBulkPending] = useState(false);
 
   const handleBulkCheckout = async () => {
-    const targets = filtered.filter(a => selectedIds.has(a.id) && a.status === "available");
+    // Snapshot the targets at click-time using selectedAvailable (already computed)
+    const targets = assets.filter(a => selectedIds.has(a.id) && a.status === "available");
     if (targets.length === 0) return;
     setBulkPending(true);
     try {
-      await Promise.all(
+      const results = await Promise.allSettled(
         targets.map(a =>
           apiRequest("POST", `/api/assets/${a.id}/checkout`, { purpose: bulkForm.purpose, notes: bulkForm.notes })
         )
       );
-      queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/assets/checkouts/active"] });
-      toast({ title: "Checked out", description: `${targets.length} item${targets.length > 1 ? "s" : ""} checked out successfully.` });
+      const succeeded = results.filter(r => r.status === "fulfilled").length;
+      const failed = results.filter(r => r.status === "rejected").length;
+      // Reset UI first, then refresh data
       setSelectedIds(new Set());
       setBulkCheckoutOpen(false);
       setBulkForm({ purpose: "", notes: "" });
-    } catch {
-      toast({ title: "Error", description: "Some items could not be checked out.", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assets/checkouts/active"] });
+      if (failed === 0) {
+        toast({ title: "Checked out", description: `${succeeded} item${succeeded !== 1 ? "s" : ""} checked out successfully.` });
+      } else if (succeeded > 0) {
+        toast({ title: "Partial success", description: `${succeeded} checked out, ${failed} already in use or unavailable.`, variant: "destructive" });
+      } else {
+        toast({ title: "Checkout failed", description: "None of the selected items could be checked out.", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Bulk checkout error:", err);
+      toast({ title: "Error", description: "An unexpected error occurred during checkout.", variant: "destructive" });
     } finally {
       setBulkPending(false);
     }
