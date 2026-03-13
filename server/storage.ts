@@ -14,6 +14,7 @@ import {
   auditLogs, type AuditLog, type InsertAuditLog,
   teams, type Team, type InsertTeam,
   teamMembers, type TeamMember, type InsertTeamMember,
+  assets, type Asset, type InsertAsset,
   passwordResetTokens,
   inviteTokens
 } from "@shared/schema";
@@ -163,7 +164,14 @@ export interface IStorage {
   getDatabaseHealthMetrics(): Promise<any>;
   getDatabaseHealthIssues(): Promise<any[]>;
   autoFixDatabaseIssue(issueId: string): Promise<any>;
-  
+
+  // Asset management
+  getAsset(id: number): Promise<Asset | undefined>;
+  getAllAssets(): Promise<Asset[]>;
+  createAsset(asset: InsertAsset): Promise<Asset>;
+  updateAsset(id: number, data: Partial<InsertAsset>): Promise<Asset | undefined>;
+  deleteAsset(id: number): Promise<boolean>;
+
   // Session management
   sessionStore: session.Store;
 }
@@ -1067,6 +1075,12 @@ export class MemStorage implements IStorage {
     // This would need to be implemented with a position field in the schema
     return true;
   }
+
+  async getAsset(id: number): Promise<Asset | undefined> { return undefined; }
+  async getAllAssets(): Promise<Asset[]> { return []; }
+  async createAsset(asset: InsertAsset): Promise<Asset> { throw new Error("Not implemented in MemStorage"); }
+  async updateAsset(id: number, data: Partial<InsertAsset>): Promise<Asset | undefined> { return undefined; }
+  async deleteAsset(id: number): Promise<boolean> { return false; }
 }
 
 // Database storage implementation
@@ -4069,6 +4083,30 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error synchronizing sequences:', error);
     }
+  }
+
+  async getAsset(id: number): Promise<Asset | undefined> {
+    const result = await db.select().from(assets).where(eq(assets.id, id));
+    return result[0];
+  }
+
+  async getAllAssets(): Promise<Asset[]> {
+    return db.select().from(assets).orderBy(asc(assets.name));
+  }
+
+  async createAsset(asset: InsertAsset): Promise<Asset> {
+    const result = await db.insert(assets).values(asset).returning();
+    return result[0];
+  }
+
+  async updateAsset(id: number, data: Partial<InsertAsset>): Promise<Asset | undefined> {
+    const result = await db.update(assets).set({ ...data, updatedAt: new Date() }).where(eq(assets.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteAsset(id: number): Promise<boolean> {
+    const result = await db.delete(assets).where(eq(assets.id, id)).returning();
+    return result.length > 0;
   }
 }
 

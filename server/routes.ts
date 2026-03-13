@@ -3667,5 +3667,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ─── Asset Management ────────────────────────────────────────────────────────
+  app.get("/api/assets", isAuthenticated, async (req, res) => {
+    try {
+      const allAssets = await storage.getAllAssets();
+      res.json(allAssets);
+    } catch (error) {
+      console.error("Error fetching assets:", error);
+      res.status(500).json({ message: "Failed to fetch assets" });
+    }
+  });
+
+  app.get("/api/assets/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const asset = await storage.getAsset(id);
+      if (!asset) return res.status(404).json({ message: "Asset not found" });
+      res.json(asset);
+    } catch (error) {
+      console.error("Error fetching asset:", error);
+      res.status(500).json({ message: "Failed to fetch asset" });
+    }
+  });
+
+  app.post("/api/assets", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const data = { ...req.body, createdBy: user.id };
+      const asset = await storage.createAsset(data);
+      res.status(201).json(asset);
+    } catch (error) {
+      console.error("Error creating asset:", error);
+      res.status(500).json({ message: "Failed to create asset" });
+    }
+  });
+
+  app.put("/api/assets/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const asset = await storage.updateAsset(id, req.body);
+      if (!asset) return res.status(404).json({ message: "Asset not found" });
+      res.json(asset);
+    } catch (error) {
+      console.error("Error updating asset:", error);
+      res.status(500).json({ message: "Failed to update asset" });
+    }
+  });
+
+  app.delete("/api/assets/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteAsset(id);
+      if (!deleted) return res.status(404).json({ message: "Asset not found" });
+      res.json({ message: "Asset deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting asset:", error);
+      res.status(500).json({ message: "Failed to delete asset" });
+    }
+  });
+
   return httpServer;
 }

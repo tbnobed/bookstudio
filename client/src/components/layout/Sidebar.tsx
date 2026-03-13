@@ -17,7 +17,8 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  Wrench
+  Wrench,
+  Package
 } from "lucide-react";
 import { useState } from "react";
 
@@ -178,6 +179,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 path="/reports"
                 isActive={location === "/reports"}
                 onClick={() => handleNavigate("/reports")}
+              />
+            )}
+
+            {user?.role !== "viewer" && (
+              <NavItem
+                icon={<Package className={iconSize} />}
+                label="Assets"
+                path="/assets"
+                isActive={location === "/assets"}
+                onClick={() => handleNavigate("/assets")}
               />
             )}
           </div>

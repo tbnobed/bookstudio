@@ -454,4 +454,31 @@ export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   }),
 }));
 
+// Asset Management schema
+export const assets = pgTable("assets", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // camera, lighting, audio, video, cable, accessory, other
+  status: text("status").notNull().default("available"), // available, in-use, maintenance, retired
+  serialNumber: text("serial_number"),
+  assetTag: text("asset_tag"),
+  location: text("location"),
+  description: text("description"),
+  notes: text("notes"),
+  purchaseDate: text("purchase_date"),
+  lastMaintenanceDate: text("last_maintenance_date"),
+  assignedTo: integer("assigned_to"), // user id, nullable
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAssetSchema = createInsertSchema(assets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Asset = typeof assets.$inferSelect;
+export type InsertAsset = z.infer<typeof insertAssetSchema>;
 
