@@ -93,27 +93,33 @@ type ProductionPickerProps = {
 };
 
 function ProductionPicker({ value, onChange, productions }: ProductionPickerProps) {
-  const now = new Date();
-  const upcoming = productions
-    .filter(b => new Date(b.start as string) >= now)
-    .sort((a, b) => new Date(a.start as string).getTime() - new Date(b.start as string).getTime())
+  // Deduplicate by title, sort most recent first, take top 40
+  const seen = new Set<string>();
+  const recent = productions
+    .slice()
+    .sort((a, b) => new Date(b.start as string).getTime() - new Date(a.start as string).getTime())
+    .filter(b => {
+      if (seen.has(b.title)) return false;
+      seen.add(b.title);
+      return true;
+    })
     .slice(0, 40);
 
   return (
     <div className="space-y-2">
-      {upcoming.length > 0 && (
+      {recent.length > 0 && (
         <Select
-          value={upcoming.find(b => b.title === value) ? value : "__custom__"}
+          value={recent.find(b => b.title === value) ? value : "__custom__"}
           onValueChange={v => { if (v !== "__custom__") onChange(v); }}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Pick an upcoming production..." />
+            <SelectValue placeholder="Pick a recent production..." />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__custom__" className="text-gray-400 italic">
               — type a custom name below —
             </SelectItem>
-            {upcoming.map(b => (
+            {recent.map(b => (
               <SelectItem key={b.id} value={b.title}>
                 <div className="flex items-center gap-2">
                   <Tv className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
@@ -126,7 +132,7 @@ function ProductionPicker({ value, onChange, productions }: ProductionPickerProp
         </Select>
       )}
       <Input
-        placeholder={upcoming.length > 0 ? "Or type a custom production name..." : "e.g. Morning news shoot, Studio B setup"}
+        placeholder={recent.length > 0 ? "Or type a custom production name..." : "e.g. Morning news shoot, Studio B setup"}
         value={value}
         onChange={e => onChange(e.target.value)}
       />
