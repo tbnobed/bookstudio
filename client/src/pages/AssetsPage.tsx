@@ -9,8 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -23,7 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, ChevronsUpDown, Tv, PenLine } from "lucide-react";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type EnrichedCheckout = {
@@ -84,86 +82,55 @@ const EMPTY_FORM = {
 };
 
 function formatBookingDate(dateStr: string | Date) {
-  const d = new Date(dateStr);
+  const d = new Date(dateStr as string);
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
-type ProductionComboboxProps = {
+type ProductionPickerProps = {
   value: string;
   onChange: (val: string) => void;
   productions: Booking[];
 };
 
-function ProductionCombobox({ value, onChange, productions }: ProductionComboboxProps) {
-  const [open, setOpen] = useState(false);
-  const [inputVal, setInputVal] = useState(value);
-
+function ProductionPicker({ value, onChange, productions }: ProductionPickerProps) {
   const now = new Date();
   const upcoming = productions
-    .filter(b => new Date(b.start) >= now)
-    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-    .slice(0, 30);
-
-  function select(title: string) {
-    setInputVal(title);
-    onChange(title);
-    setOpen(false);
-  }
+    .filter(b => new Date(b.start as string) >= now)
+    .sort((a, b) => new Date(a.start as string).getTime() - new Date(b.start as string).getTime())
+    .slice(0, 40);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <div className="relative">
-          <Input
-            placeholder="Select a production or type a custom name"
-            value={inputVal}
-            onChange={e => { setInputVal(e.target.value); onChange(e.target.value); }}
-            onFocus={() => setOpen(true)}
-            className="pr-8"
-          />
-          <ChevronsUpDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
-        </div>
-      </PopoverTrigger>
-      <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start" onOpenAutoFocus={e => e.preventDefault()}>
-        <Command>
-          <CommandInput placeholder="Search productions..." value={inputVal} onValueChange={v => { setInputVal(v); onChange(v); }} />
-          <CommandList>
-            {upcoming.length === 0 ? (
-              <CommandEmpty>No upcoming productions found.</CommandEmpty>
-            ) : (
-              <CommandGroup heading="Upcoming Productions">
-                {upcoming.map(b => (
-                  <CommandItem
-                    key={b.id}
-                    value={b.title}
-                    onSelect={() => select(b.title)}
-                    className="flex flex-col items-start gap-0.5 py-2"
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      <Tv className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-                      <span className="font-medium truncate">{b.title}</span>
-                      {value === b.title && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 ml-auto shrink-0" />}
-                    </div>
-                    <span className="text-xs text-gray-400 pl-5">{formatBookingDate(b.start)}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-            {inputVal.trim() && !upcoming.find(b => b.title.toLowerCase() === inputVal.trim().toLowerCase()) && (
-              <>
-                <CommandSeparator />
-                <CommandGroup heading="Custom">
-                  <CommandItem value={`__custom__${inputVal}`} onSelect={() => select(inputVal.trim())} className="gap-2">
-                    <PenLine className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                    Use &ldquo;<span className="font-medium">{inputVal.trim()}</span>&rdquo;
-                  </CommandItem>
-                </CommandGroup>
-              </>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <div className="space-y-2">
+      {upcoming.length > 0 && (
+        <Select
+          value={upcoming.find(b => b.title === value) ? value : "__custom__"}
+          onValueChange={v => { if (v !== "__custom__") onChange(v); }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Pick an upcoming production..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__custom__" className="text-gray-400 italic">
+              — type a custom name below —
+            </SelectItem>
+            {upcoming.map(b => (
+              <SelectItem key={b.id} value={b.title}>
+                <div className="flex items-center gap-2">
+                  <Tv className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                  <span className="truncate">{b.title}</span>
+                  <span className="ml-2 text-xs text-gray-400 shrink-0">{formatBookingDate(b.start)}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+      <Input
+        placeholder={upcoming.length > 0 ? "Or type a custom production name..." : "e.g. Morning news shoot, Studio B setup"}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+      />
+    </div>
   );
 }
 
@@ -980,7 +947,7 @@ export default function AssetsPage() {
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label>Production / Purpose</Label>
-              <ProductionCombobox
+              <ProductionPicker
                 value={checkoutForm.purpose}
                 onChange={val => setCheckoutForm(f => ({ ...f, purpose: val }))}
                 productions={bookings}
@@ -1123,7 +1090,7 @@ export default function AssetsPage() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Production / Purpose</Label>
-              <ProductionCombobox
+              <ProductionPicker
                 value={bulkForm.purpose}
                 onChange={val => setBulkForm(f => ({ ...f, purpose: val }))}
                 productions={bookings}
