@@ -304,7 +304,7 @@ export default function AssetsPage() {
         ) : (
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_auto] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_130px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               <div className="flex items-center gap-3">
                 <div className="w-1 shrink-0 invisible" />
                 <span>Name</span>
@@ -321,7 +321,7 @@ export default function AssetsPage() {
               {filtered.map(asset => (
                 <div
                   key={asset.id}
-                  className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+                  className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_130px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
                 >
                   {/* Name + category color indicator */}
                   <div className="flex items-center gap-3 min-w-0">
