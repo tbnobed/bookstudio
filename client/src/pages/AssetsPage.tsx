@@ -302,67 +302,69 @@ export default function AssetsPage() {
             )}
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filtered.map(asset => (
-              <div
-                key={asset.id}
-                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-              >
-                {/* Category color bar */}
-                <div className={cn("h-1.5", {
-                  "bg-blue-500": asset.category === "camera",
-                  "bg-yellow-500": asset.category === "lighting",
-                  "bg-purple-500": asset.category === "audio",
-                  "bg-indigo-500": asset.category === "video",
-                  "bg-gray-500": asset.category === "cable",
-                  "bg-teal-500": asset.category === "accessory",
-                  "bg-orange-500": asset.category === "other",
-                })} />
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {/* Table header */}
+            <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_auto] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <span>Name</span>
+              <span>Category</span>
+              <span>Status</span>
+              <span className="hidden md:block">Serial / Tag</span>
+              <span className="hidden lg:block">Location</span>
+              <span></span>
+            </div>
 
-                <div className="p-4">
-                  {/* Name + status */}
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <h3 className="font-semibold text-sm text-gray-900 dark:text-white leading-tight flex-1 min-w-0 truncate">
-                      {asset.name}
-                    </h3>
-                    <Badge variant="outline" className={cn("text-xs px-1.5 py-0 shrink-0", getStatusStyle(asset.status))}>
+            {/* Rows */}
+            <div className="divide-y divide-gray-100 dark:divide-gray-700/60">
+              {filtered.map(asset => (
+                <div
+                  key={asset.id}
+                  className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+                >
+                  {/* Name + category color indicator */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={cn("w-1 self-stretch rounded-full shrink-0", {
+                      "bg-blue-500": asset.category === "camera",
+                      "bg-yellow-500": asset.category === "lighting",
+                      "bg-purple-500": asset.category === "audio",
+                      "bg-indigo-500": asset.category === "video",
+                      "bg-gray-400": asset.category === "cable",
+                      "bg-teal-500": asset.category === "accessory",
+                      "bg-orange-500": asset.category === "other",
+                    })} />
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm text-gray-900 dark:text-white truncate">{asset.name}</p>
+                      {asset.description && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{asset.description}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Category */}
+                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    {getCategoryIcon(asset.category)}
+                    <span className="hidden sm:inline">{getCategoryLabel(asset.category)}</span>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getStatusStyle(asset.status))}>
                       {STATUSES.find(s => s.value === asset.status)?.label ?? asset.status}
                     </Badge>
                   </div>
 
-                  {/* Category */}
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-2">
-                    {getCategoryIcon(asset.category)}
-                    <span>{getCategoryLabel(asset.category)}</span>
+                  {/* Serial / Tag */}
+                  <div className="hidden md:block text-xs text-gray-600 dark:text-gray-300 space-y-0.5">
+                    {asset.serialNumber && <p className="font-mono truncate">{asset.serialNumber}</p>}
+                    {asset.assetTag && <p className="text-gray-400 truncate">{asset.assetTag}</p>}
                   </div>
 
-                  {/* Details */}
-                  <div className="space-y-1 text-xs text-gray-600 dark:text-gray-300">
-                    {asset.serialNumber && (
-                      <div className="flex gap-1">
-                        <span className="text-gray-400 shrink-0">S/N:</span>
-                        <span className="font-mono truncate">{asset.serialNumber}</span>
-                      </div>
-                    )}
-                    {asset.assetTag && (
-                      <div className="flex gap-1">
-                        <span className="text-gray-400 shrink-0">Tag:</span>
-                        <span className="font-mono truncate">{asset.assetTag}</span>
-                      </div>
-                    )}
-                    {asset.location && (
-                      <div className="flex gap-1">
-                        <span className="text-gray-400 shrink-0">Location:</span>
-                        <span className="truncate">{asset.location}</span>
-                      </div>
-                    )}
-                    {asset.description && (
-                      <p className="text-gray-500 dark:text-gray-400 line-clamp-2 pt-0.5">{asset.description}</p>
-                    )}
+                  {/* Location */}
+                  <div className="hidden lg:block text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {asset.location ?? <span className="italic text-gray-300 dark:text-gray-600">—</span>}
                   </div>
 
                   {/* Actions */}
-                  <div className="flex justify-end gap-1.5 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => openEdit(asset)}>
                       <Pencil className="h-3 w-3" />
                       Edit
@@ -380,8 +382,8 @@ export default function AssetsPage() {
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>
