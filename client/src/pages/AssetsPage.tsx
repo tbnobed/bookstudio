@@ -20,7 +20,8 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type EnrichedCheckout = {
@@ -99,6 +100,11 @@ export default function AssetsPage() {
   const [checkoutTarget, setCheckoutTarget] = useState<Asset | null>(null);
   const [checkoutForm, setCheckoutForm] = useState({ purpose: "", notes: "" });
   const [historyAsset, setHistoryAsset] = useState<Asset | null>(null);
+
+  // Multi-select state
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkCheckoutOpen, setBulkCheckoutOpen] = useState(false);
+  const [bulkForm, setBulkForm] = useState({ purpose: "", notes: "" });
 
   const canDelete = user?.role === "admin" || user?.role === "site_manager";
 
@@ -185,6 +191,41 @@ export default function AssetsPage() {
     onError: () => toast({ title: "Error", description: "Failed to check in asset.", variant: "destructive" }),
   });
 
+  const [bulkPending, setBulkPending] = useState(false);
+
+  const handleBulkCheckout = async () => {
+    const targets = filtered.filter(a => selectedIds.has(a.id) && a.status === "available");
+    if (targets.length === 0) return;
+    setBulkPending(true);
+    try {
+      await Promise.all(
+        targets.map(a =>
+          apiRequest("POST", `/api/assets/${a.id}/checkout`, { purpose: bulkForm.purpose, notes: bulkForm.notes })
+        )
+      );
+      queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assets/checkouts/active"] });
+      toast({ title: "Checked out", description: `${targets.length} item${targets.length > 1 ? "s" : ""} checked out successfully.` });
+      setSelectedIds(new Set());
+      setBulkCheckoutOpen(false);
+      setBulkForm({ purpose: "", notes: "" });
+    } catch {
+      toast({ title: "Error", description: "Some items could not be checked out.", variant: "destructive" });
+    } finally {
+      setBulkPending(false);
+    }
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
   const openCreate = () => {
     setEditAsset(null);
     setForm({ ...EMPTY_FORM });
@@ -263,6 +304,28 @@ export default function AssetsPage() {
     setSearchQuery("");
     setCategoryFilter("all");
     setStatusFilter("all");
+  };
+
+  // Selection helpers — depend on filtered, so defined after it
+  const availableInFiltered = filtered.filter(a => a.status === "available");
+  const selectedAvailable = filtered.filter(a => selectedIds.has(a.id) && a.status === "available");
+  const allAvailableSelected = availableInFiltered.length > 0 && availableInFiltered.every(a => selectedIds.has(a.id));
+  const someAvailableSelected = availableInFiltered.some(a => selectedIds.has(a.id)) && !allAvailableSelected;
+
+  const toggleSelectAll = () => {
+    if (allAvailableSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        availableInFiltered.forEach(a => next.delete(a.id));
+        return next;
+      });
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        availableInFiltered.forEach(a => next.add(a.id));
+        return next;
+      });
+    }
   };
 
   const isPending = createAsset.isPending || updateAsset.isPending;
@@ -383,9 +446,50 @@ export default function AssetsPage() {
             )}
           </div>
         ) : (
+          <>
+          {/* Floating bulk action bar */}
+          {selectedIds.size > 0 && (
+            <div className="flex items-center justify-between gap-3 mb-3 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+              <div className="flex items-center gap-2 text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>
+                  {selectedAvailable.length} item{selectedAvailable.length !== 1 ? "s" : ""} selected for checkout
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                  onClick={clearSelection}
+                >
+                  Clear
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-7 px-3 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={() => { setBulkForm({ purpose: "", notes: "" }); setBulkCheckoutOpen(true); }}
+                  disabled={selectedAvailable.length === 0}
+                >
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                  Check Out {selectedAvailable.length} Item{selectedAvailable.length !== 1 ? "s" : ""}
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="grid grid-cols-[28px_3fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <div className="flex items-center">
+                <Checkbox
+                  checked={allAvailableSelected}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="Select all available"
+                  className={cn(someAvailableSelected && "opacity-60")}
+                  disabled={availableInFiltered.length === 0}
+                />
+              </div>
               <div className="flex items-center gap-3">
                 <div className="w-1 shrink-0 invisible" />
                 <span>Name</span>
@@ -403,8 +507,24 @@ export default function AssetsPage() {
                 <ContextMenu key={asset.id}>
                   <ContextMenuTrigger asChild>
                     <div
-                      className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none"
+                      className={cn(
+                        "grid grid-cols-[28px_3fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none",
+                        selectedIds.has(asset.id) && "bg-emerald-50/60 dark:bg-emerald-900/10"
+                      )}
                     >
+                      {/* Checkbox (only for available assets) */}
+                      <div className="flex items-center" onClick={e => e.stopPropagation()}>
+                        {asset.status === "available" ? (
+                          <Checkbox
+                            checked={selectedIds.has(asset.id)}
+                            onCheckedChange={() => toggleSelect(asset.id)}
+                            aria-label={`Select ${asset.name}`}
+                          />
+                        ) : (
+                          <div className="w-4 h-4" />
+                        )}
+                      </div>
+
                       {/* Name + category color indicator */}
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={cn("w-1 self-stretch rounded-full shrink-0", {
@@ -575,6 +695,7 @@ export default function AssetsPage() {
               ))}
             </div>
           </div>
+          </>
         )}
       </div>
 
@@ -871,6 +992,68 @@ export default function AssetsPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setHistoryAsset(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Check Out Modal */}
+      <Dialog open={bulkCheckoutOpen} onOpenChange={open => { if (!open) { setBulkCheckoutOpen(false); setBulkForm({ purpose: "", notes: "" }); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5 text-emerald-600" />
+              Bulk Check Out
+            </DialogTitle>
+            <DialogDescription>
+              Checking out <strong>{selectedAvailable.length} item{selectedAvailable.length !== 1 ? "s" : ""}</strong> to you. The same purpose and notes will be applied to all.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Item list preview */}
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 max-h-40 overflow-y-auto text-sm">
+            {selectedAvailable.map(a => (
+              <div key={a.id} className="flex items-center gap-2 px-3 py-2">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                <span className="truncate font-medium text-gray-800 dark:text-gray-200">{a.name}</span>
+                <span className="ml-auto text-xs text-gray-400 shrink-0">{getCategoryLabel(a.category)}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="bulk-purpose">Purpose / Project</Label>
+              <Input
+                id="bulk-purpose"
+                placeholder="e.g. Morning news shoot, Studio B setup"
+                value={bulkForm.purpose}
+                onChange={e => setBulkForm(f => ({ ...f, purpose: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="bulk-notes">Notes (optional)</Label>
+              <Textarea
+                id="bulk-notes"
+                placeholder="Any condition notes or reminders"
+                value={bulkForm.notes}
+                onChange={e => setBulkForm(f => ({ ...f, notes: e.target.value }))}
+                rows={2}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setBulkCheckoutOpen(false); setBulkForm({ purpose: "", notes: "" }); }} disabled={bulkPending}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+              onClick={handleBulkCheckout}
+              disabled={bulkPending || selectedAvailable.length === 0}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {bulkPending ? "Checking out..." : `Check Out ${selectedAvailable.length} Item${selectedAvailable.length !== 1 ? "s" : ""}`}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
