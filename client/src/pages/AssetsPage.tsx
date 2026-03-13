@@ -9,10 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal } from "lucide-react";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -26,10 +34,10 @@ const CATEGORIES = [
 ];
 
 const STATUSES = [
-  { value: "available", label: "Available", color: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700" },
-  { value: "in-use", label: "In Use", color: "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700" },
-  { value: "maintenance", label: "Maintenance", color: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700" },
-  { value: "retired", label: "Retired", color: "bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600" },
+  { value: "available", label: "Available", color: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700", icon: CheckCircle2, iconClass: "text-emerald-600" },
+  { value: "in-use", label: "In Use", color: "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700", icon: CircleDot, iconClass: "text-blue-600" },
+  { value: "maintenance", label: "Maintenance", color: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700", icon: AlertTriangle, iconClass: "text-amber-600" },
+  { value: "retired", label: "Retired", color: "bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600", icon: Archive, iconClass: "text-gray-500" },
 ];
 
 function getStatusStyle(status: string) {
@@ -109,6 +117,17 @@ export default function AssetsPage() {
       setDeleteTarget(null);
     },
     onError: () => toast({ title: "Error", description: "Failed to delete asset.", variant: "destructive" }),
+  });
+
+  const quickSetStatus = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) =>
+      apiRequest("PUT", `/api/assets/${id}`, { status }),
+    onSuccess: (_data, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
+      const label = STATUSES.find(s => s.value === status)?.label ?? status;
+      toast({ title: "Status updated", description: `Asset marked as ${label}.` });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to update status.", variant: "destructive" }),
   });
 
   const openCreate = () => {
@@ -319,72 +338,118 @@ export default function AssetsPage() {
             {/* Rows */}
             <div className="divide-y divide-gray-100 dark:divide-gray-700/60">
               {filtered.map(asset => (
-                <div
-                  key={asset.id}
-                  className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_130px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
-                >
-                  {/* Name + category color indicator */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={cn("w-1 self-stretch rounded-full shrink-0", {
-                      "bg-blue-500": asset.category === "camera",
-                      "bg-yellow-500": asset.category === "lighting",
-                      "bg-purple-500": asset.category === "audio",
-                      "bg-indigo-500": asset.category === "video",
-                      "bg-gray-400": asset.category === "cable",
-                      "bg-teal-500": asset.category === "accessory",
-                      "bg-orange-500": asset.category === "other",
-                    })} />
-                    <div className="min-w-0">
-                      <p className="font-medium text-sm text-gray-900 dark:text-white truncate">{asset.name}</p>
-                      {asset.description && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{asset.description}</p>
-                      )}
+                <ContextMenu key={asset.id}>
+                  <ContextMenuTrigger asChild>
+                    <div
+                      className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_130px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none"
+                    >
+                      {/* Name + category color indicator */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={cn("w-1 self-stretch rounded-full shrink-0", {
+                          "bg-blue-500": asset.category === "camera",
+                          "bg-yellow-500": asset.category === "lighting",
+                          "bg-purple-500": asset.category === "audio",
+                          "bg-indigo-500": asset.category === "video",
+                          "bg-gray-400": asset.category === "cable",
+                          "bg-teal-500": asset.category === "accessory",
+                          "bg-orange-500": asset.category === "other",
+                        })} />
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm text-gray-900 dark:text-white truncate">{asset.name}</p>
+                          {asset.description && (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{asset.description}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Category */}
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                        {getCategoryIcon(asset.category)}
+                        <span className="hidden sm:inline">{getCategoryLabel(asset.category)}</span>
+                      </div>
+
+                      {/* Status */}
+                      <div>
+                        <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getStatusStyle(asset.status))}>
+                          {STATUSES.find(s => s.value === asset.status)?.label ?? asset.status}
+                        </Badge>
+                      </div>
+
+                      {/* Serial / Tag */}
+                      <div className="hidden md:block text-xs text-gray-600 dark:text-gray-300 space-y-0.5">
+                        {asset.serialNumber && <p className="font-mono truncate">{asset.serialNumber}</p>}
+                        {asset.assetTag && <p className="text-gray-400 truncate">{asset.assetTag}</p>}
+                      </div>
+
+                      {/* Location */}
+                      <div className="hidden lg:block text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {asset.location ?? <span className="italic text-gray-300 dark:text-gray-600">—</span>}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => openEdit(asset)}>
+                          <Pencil className="h-3 w-3" />
+                          Edit
+                        </Button>
+                        {canDelete && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
+                            onClick={() => setDeleteTarget(asset)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </ContextMenuTrigger>
 
-                  {/* Category */}
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                    {getCategoryIcon(asset.category)}
-                    <span className="hidden sm:inline">{getCategoryLabel(asset.category)}</span>
-                  </div>
-
-                  {/* Status */}
-                  <div>
-                    <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getStatusStyle(asset.status))}>
-                      {STATUSES.find(s => s.value === asset.status)?.label ?? asset.status}
-                    </Badge>
-                  </div>
-
-                  {/* Serial / Tag */}
-                  <div className="hidden md:block text-xs text-gray-600 dark:text-gray-300 space-y-0.5">
-                    {asset.serialNumber && <p className="font-mono truncate">{asset.serialNumber}</p>}
-                    {asset.assetTag && <p className="text-gray-400 truncate">{asset.assetTag}</p>}
-                  </div>
-
-                  {/* Location */}
-                  <div className="hidden lg:block text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {asset.location ?? <span className="italic text-gray-300 dark:text-gray-600">—</span>}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => openEdit(asset)}>
-                      <Pencil className="h-3 w-3" />
-                      Edit
-                    </Button>
+                  <ContextMenuContent className="w-52">
+                    <ContextMenuLabel className="text-xs text-gray-500 font-normal truncate">
+                      {asset.name}
+                    </ContextMenuLabel>
+                    <ContextMenuSeparator />
+                    <ContextMenuLabel className="text-xs">Set Status</ContextMenuLabel>
+                    {STATUSES.map(s => {
+                      const Icon = s.icon;
+                      const isCurrent = asset.status === s.value;
+                      return (
+                        <ContextMenuItem
+                          key={s.value}
+                          disabled={isCurrent || quickSetStatus.isPending}
+                          onSelect={() => quickSetStatus.mutate({ id: asset.id, status: s.value })}
+                          className={cn("gap-2 cursor-pointer", isCurrent && "opacity-50 cursor-default")}
+                        >
+                          <Icon className={cn("h-4 w-4 shrink-0", s.iconClass)} />
+                          <span>{s.label}</span>
+                          {isCurrent && (
+                            <span className="ml-auto text-[10px] text-gray-400">current</span>
+                          )}
+                        </ContextMenuItem>
+                      );
+                    })}
+                    <ContextMenuSeparator />
+                    <ContextMenuItem
+                      className="gap-2 cursor-pointer"
+                      onSelect={() => openEdit(asset)}
+                    >
+                      <Pencil className="h-4 w-4 shrink-0 text-gray-500" />
+                      Edit asset
+                    </ContextMenuItem>
                     {canDelete && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 px-2 text-xs gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
-                        onClick={() => setDeleteTarget(asset)}
+                      <ContextMenuItem
+                        className="gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
+                        onSelect={() => setDeleteTarget(asset)}
                       >
-                        <Trash2 className="h-3 w-3" />
-                        Delete
-                      </Button>
+                        <Trash2 className="h-4 w-4 shrink-0" />
+                        Delete asset
+                      </ContextMenuItem>
                     )}
-                  </div>
-                </div>
+                  </ContextMenuContent>
+                </ContextMenu>
               ))}
             </div>
           </div>
