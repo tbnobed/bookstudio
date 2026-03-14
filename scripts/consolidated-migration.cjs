@@ -59,6 +59,8 @@ async function consolidatedMigration() {
     await createCorePasswordResetTokens();
     await createCoreInviteTokens();
     await createCoreLinkedBookings();
+    await createCoreAssets();
+    await createCoreAssetCheckouts();
     
     // Step 2: Create default data
     await createDefaultAdmin();
@@ -576,6 +578,58 @@ async function createCoreLinkedBookings() {
   } catch (error) {
     console.error('Error adding linked booking fields:', error.message);
   }
+}
+
+async function createCoreAssets() {
+  console.log('Creating assets table...');
+  await query(`
+    CREATE TABLE IF NOT EXISTS assets (
+      id                    SERIAL PRIMARY KEY,
+      name                  TEXT NOT NULL,
+      category              TEXT NOT NULL,
+      status                TEXT NOT NULL DEFAULT 'available',
+      serial_number         TEXT,
+      asset_tag             TEXT,
+      location              TEXT,
+      description           TEXT,
+      notes                 TEXT,
+      purchase_date         TEXT,
+      last_maintenance_date TEXT,
+      assigned_to           INTEGER,
+      created_by            INTEGER NOT NULL,
+      created_at            TIMESTAMP DEFAULT NOW(),
+      updated_at            TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  await query(`CREATE INDEX IF NOT EXISTS idx_assets_status   ON assets(status);`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_assets_category ON assets(category);`);
+}
+
+async function createCoreAssetCheckouts() {
+  console.log('Creating asset_checkouts table...');
+  await query(`
+    CREATE TABLE IF NOT EXISTS asset_checkouts (
+      id             SERIAL PRIMARY KEY,
+      asset_id       INTEGER NOT NULL,
+      checked_out_by INTEGER NOT NULL,
+      checked_out_at TIMESTAMP DEFAULT NOW(),
+      checked_in_at  TIMESTAMP,
+      checked_in_by  INTEGER,
+      notes          TEXT,
+      purpose        TEXT
+    );
+  `);
+  try {
+    await query(`
+      ALTER TABLE asset_checkouts
+      ADD CONSTRAINT asset_checkouts_asset_id_fkey
+      FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE;
+    `);
+  } catch (e) {
+    if (!e.message.includes('already exists')) throw e;
+  }
+  await query(`CREATE INDEX IF NOT EXISTS idx_checkouts_asset_id   ON asset_checkouts(asset_id);`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_checkouts_checked_in ON asset_checkouts(checked_in_at);`);
 }
 
 // Run the migration

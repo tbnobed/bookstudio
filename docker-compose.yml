@@ -68,7 +68,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting BookStud.io application v1.5.3 with Teams Feature...' &&
+        echo 'Starting BookStud.io application v1.5.4 with Asset Management...' &&
         echo \"Using timezone: ${TZ:-America/Chicago}\" &&
         echo 'Verifying database tables before startup...' &&
         node -e \"
@@ -216,6 +216,8 @@ services:
         node scripts/docker-migrate-teams-v1.5.3.cjs &&
         echo 'Running teams schema audit fix (v1.5.3)...' &&
         node scripts/docker-audit-schema-fix-v1.5.3.cjs &&
+        echo 'Running asset management migration (v1.5.4)...' &&
+        node scripts/production-migration-v1.5.4.cjs &&
         echo 'Database initialization completed successfully!'
       "
 
