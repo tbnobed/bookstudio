@@ -355,13 +355,13 @@ export default function MyBookingsPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
       <Header
         currentDate={new Date()} onDateChange={() => {}} view="week" onViewChange={() => {}}
         title="My Bookings" showViewToggle={false} hideNavigation={true}
       />
 
-      <div className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 pb-16 space-y-6">
+      <div className="flex-1 overflow-auto w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 pb-16 space-y-6">
 
         {/* ── Page title + stats ─────────────────────────────────────────── */}
         <div className="space-y-4">
