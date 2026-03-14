@@ -678,7 +678,22 @@ export default function MobileAssetsPage() {
   };
 
   // ── OCR helpers ─────────────────────────────────────────────────────────────
+
+  // Pre-process: collapse spaces that OCR inserts within digit sequences
+  // e.g. "02 70107155" → "0270107155", "02 701 07155" → "0270107155"
+  const normalizeOcrText = (text: string): string => {
+    let out = text;
+    for (let i = 0; i < 10; i++) {
+      const prev = out;
+      out = out.replace(/(\d) +(\d)/g, "$1$2");
+      if (out === prev) break;
+    }
+    return out;
+  };
+
   const extractSerialCandidates = (text: string): string[] => {
+    const normalized = normalizeOcrText(text);
+
     const SKIP = new Set([
       "JAPAN", "CHINA", "MADE", "MODEL", "SERIAL", "NUMBER", "CORP", "CORPORATION",
       "INC", "LTD", "WITH", "FROM", "THIS", "THAT", "HAVE", "WILL", "VOLTAGE",
@@ -690,22 +705,21 @@ export default function MobileAssetsPage() {
     const pure: string[] = [];
     const alphan: string[] = [];
 
-    // Stage 1: pull every run of 5+ consecutive digits from raw OCR text
-    // (catches pure serials like 0270107155 even with surrounding noise)
-    for (const m of text.matchAll(/\d{5,}/g)) {
+    // Stage 1: pull every run of 5+ consecutive digits from the NORMALIZED text
+    // (after collapsing spaces, "02 70107155" → "0270107155" is now found as one run)
+    for (const m of normalized.matchAll(/\d{5,}/g)) {
       const v = m[0];
       if (!seen.has(v)) { seen.add(v); pure.push(v); }
     }
 
     // Stage 2: token-based extraction for alphanumeric serials (e.g. DS126231)
-    // Split on whitespace AND common punctuation INCLUDING periods
-    for (const raw of text.split(/[\s\n\r,;:()\[\]/\\|.]+/)) {
+    for (const raw of normalized.split(/[\s\n\r,;:()\[\]/\\|.]+/)) {
       const t = raw.replace(/[^A-Za-z0-9\-]/g, "").trim();
       if (
         t.length >= 4 &&
         /[0-9]/.test(t) &&
         !SKIP.has(t.toUpperCase()) &&
-        !/^\d{5,}$/.test(t)  // already captured pure digits in stage 1
+        !/^\d{5,}$/.test(t)  // already captured in stage 1
       ) {
         if (!seen.has(t)) { seen.add(t); alphan.push(t); }
       }
@@ -1187,7 +1201,7 @@ export default function MobileAssetsPage() {
 
       {/* ── OCR processing / results overlay ─────────────────────────────────── */}
       {ocrPhase !== "idle" && (
-        <div className="fixed inset-0 z-[75] bg-black/90 flex flex-col items-center justify-center p-6">
+        <div className="fixed inset-0 z-[85] bg-black flex flex-col items-center justify-center p-6">
           {ocrPhase === "processing" ? (
             <div className="text-white text-center space-y-5 w-full max-w-xs">
               <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mx-auto">
