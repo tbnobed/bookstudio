@@ -127,7 +127,6 @@ export default function MobileNavbar() {
             </Sheet>
           </div>
           
-          <NavButton path="/mobile/assets" icon={Package} label="Assets" />
           <NavButton path="/" icon={Tv} label="Studios" />
           
           {/* Menu */}

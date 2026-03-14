@@ -102,14 +102,16 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                      location.startsWith("/reset-password/") ||
                      location.startsWith("/invite/");
   
+  // Fully standalone pages — no sidebar, no header, no mobile navbar
+  const isStandalonePage = location === "/mobile/assets";
+
   // Check if we're on the mobile-specific page (no sidebar needed)
   const isMobilePage = location === "/mobile" || 
-                    location === "/mobile/assets" ||
                     location === "/calendar/mobile" ||
                     (isSmallScreen && (location === "/" || location === "/calendar"));
   
   // Only show the sidebar when not on public pages or mobile pages AND when globally visible
-  const showSidebar = !isPublicPage && !isMobilePage && sidebarVisible;
+  const showSidebar = !isPublicPage && !isStandalonePage && !isMobilePage && sidebarVisible;
   
   return (
     <div className="flex h-screen overflow-hidden">
@@ -123,8 +125,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       
       {/* Main Content - adjust margin based on whether sidebar is showing */}
       <div className={`flex-1 ${showSidebar ? 'lg:ml-72' : ''} p-0`}>
-        {/* For mobile screens, wrap in MobileLayout to add the navbar at the bottom */}
-        {isSmallScreen ? (
+        {/* Standalone pages render with zero chrome */}
+        {isStandalonePage ? (
+          children
+        ) : isSmallScreen ? (
           <MobileLayout>
             {children}
           </MobileLayout>

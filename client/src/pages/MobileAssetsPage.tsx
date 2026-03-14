@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Asset, AssetCheckout } from "@shared/schema";
@@ -6,13 +7,12 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
-  Search, X, Plus, Camera, ArrowLeft, Barcode,
-  LogIn, LogOut as LogOutIcon, Package, ChevronRight,
-  Loader2, Check, ScanLine, AlertCircle, Tag
+  Search, X, Plus, ArrowLeft, Barcode,
+  LogIn, LogOut as LogOutIcon, Package,
+  Loader2, Check, ScanLine, Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -324,6 +324,7 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
 export default function MobileAssetsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
@@ -427,12 +428,18 @@ export default function MobileAssetsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col pb-20">
-      {/* ── Top bar ─────────────────────────────────────────────────────────── */}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+      {/* ── Standalone header ────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 pt-4 pb-3 space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white">Assets</h1>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/")}
+            className="p-2 -ml-1 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:scale-95 transition-all text-gray-600 dark:text-gray-400"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">Equipment</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">{assets.length} items in inventory</p>
           </div>
           <button
@@ -484,7 +491,7 @@ export default function MobileAssetsPage() {
       </div>
 
       {/* ── Asset list ──────────────────────────────────────────────────────── */}
-      <div className="flex-1 p-4 space-y-3">
+      <div className="flex-1 p-4 pb-8 space-y-3">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
