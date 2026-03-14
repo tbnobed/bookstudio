@@ -281,7 +281,7 @@ function compressImage(file: File): Promise<string> {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
-      const MAX = 1200;
+      const MAX = 1000;
       let { width, height } = img;
       if (width > MAX || height > MAX) {
         if (width >= height) { height = Math.round(height * MAX / width); width = MAX; }
@@ -292,7 +292,15 @@ function compressImage(file: File): Promise<string> {
       canvas.height = height;
       canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.75));
+      // Iteratively reduce quality until output is under 600 000 chars
+      const TARGET = 600_000;
+      let quality = 0.75;
+      let result = canvas.toDataURL("image/jpeg", quality);
+      while (result.length > TARGET && quality > 0.2) {
+        quality = Math.round((quality - 0.07) * 100) / 100;
+        result = canvas.toDataURL("image/jpeg", quality);
+      }
+      resolve(result);
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Image load failed")); };
     img.src = url;
