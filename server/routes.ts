@@ -58,13 +58,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve dedicated HTML for /mobile/assets so iOS Safari reads the correct
   // manifest and apple-mobile-web-app-title BEFORE any JS runs.
-  app.get("/mobile/assets", async (_req, res) => {
+  // In development, pass through to Vite so it can inject the React Fast Refresh
+  // preamble and HMR client (serving raw HTML skips that pipeline and breaks the page).
+  app.get("/mobile/assets", async (_req, res, next) => {
+    if (process.env.NODE_ENV !== "production") {
+      return next();
+    }
     try {
-      const isDev = process.env.NODE_ENV !== "production";
-      const htmlPath = isDev
-        ? path.resolve(process.cwd(), "client", "index.html")
-        : path.resolve(import.meta.dirname, "public", "index.html");
-
+      const htmlPath = path.resolve(import.meta.dirname, "public", "index.html");
       let html = await fs.promises.readFile(htmlPath, "utf-8");
 
       // Swap manifest link
