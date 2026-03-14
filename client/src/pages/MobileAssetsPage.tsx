@@ -703,8 +703,7 @@ export default function MobileAssetsPage() {
     setOcrPhase("idle");
     setOcrResults([]);
     setOcrProgress(0);
-    // Trigger file input (camera) immediately
-    setTimeout(() => ocrFileRef.current?.click(), 50);
+    ocrFileRef.current?.click();
   };
 
   const handleOcrFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1196,10 +1195,9 @@ export default function MobileAssetsPage() {
               <div className="flex gap-2 p-4 border-t border-gray-100 dark:border-gray-800">
                 <button
                   onClick={() => {
-                    setOcrPhase("idle");
                     setOcrResults([]);
                     setOcrProgress(0);
-                    setTimeout(() => ocrFileRef.current?.click(), 80);
+                    ocrFileRef.current?.click();
                   }}
                   className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
                 >
