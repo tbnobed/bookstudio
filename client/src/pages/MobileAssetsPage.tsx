@@ -65,51 +65,61 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
 
   useEffect(() => {
     if (!videoRef.current) return;
+    let cancelled = false;
 
-    const reader = new BrowserMultiFormatReader();
-
-    reader.decodeFromConstraints(
-      {
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      },
-      videoRef.current,
-      (result, err, controls) => {
-        controlsRef.current = controls;
-        if (!ready) setReady(true);
-
-        if (result) {
-          handleDetected(result.getText());
-        }
-        if (err && !(err instanceof NotFoundException)) {
-          // real error — ignore decode misses (NotFoundException is normal)
-        }
-      }
-    ).catch((err: any) => {
-      const isHttps = location.protocol === "https:";
-      if (!isHttps) {
-        setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
-      } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-        const isStandalone = window.matchMedia("(display-mode: standalone)").matches
-          || (navigator as { standalone?: boolean }).standalone === true;
-        setError(
-          isStandalone
-            ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
-            : "Camera access denied. Check your browser's site settings and allow camera access."
+    (async () => {
+      try {
+        const reader = new BrowserMultiFormatReader();
+        const controls = await reader.decodeFromConstraints(
+          {
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+          },
+          videoRef.current!,
+          (result, err) => {
+            if (cancelled) return;
+            if (result) {
+              handleDetected(result.getText());
+            }
+            // NotFoundException fires every frame when no barcode is in view — that's normal
+          }
         );
-      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-        setError("No camera found on this device.");
-      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
-        setError("Camera is in use by another app. Close it and try again.");
-      } else {
-        setError("Could not start camera. Enter the value manually below.");
+        if (!cancelled) {
+          controlsRef.current = controls;
+          setReady(true);
+        } else {
+          controls.stop();
+        }
+      } catch (err: any) {
+        if (cancelled) return;
+        const isHttps = location.protocol === "https:";
+        if (!isHttps) {
+          setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
+        } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+          const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+            || (navigator as { standalone?: boolean }).standalone === true;
+          setError(
+            isStandalone
+              ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
+              : "Camera access denied. Check your browser's site settings and allow camera access."
+          );
+        } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+          setError("No camera found on this device.");
+        } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+          setError("Camera is in use by another app. Close it and try again.");
+        } else {
+          setError("Could not start camera. Enter the value manually below.");
+        }
       }
-    });
+    })();
 
-    return stopScanner;
+    return () => {
+      cancelled = true;
+      stopScanner();
+    };
   }, [handleDetected, stopScanner]);
 
   return (
