@@ -114,6 +114,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // Only show the sidebar when not on public pages or mobile pages AND when globally visible
   const showSidebar = !isPublicPage && !isStandalonePage && !isMobilePage && sidebarVisible;
   
+  // Standalone pages escape the h-screen/overflow-hidden shell entirely
+  if (isStandalonePage) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Only show sidebar when appropriate */}
@@ -126,10 +131,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       
       {/* Main Content - adjust margin based on whether sidebar is showing */}
       <div className={`flex-1 ${showSidebar ? 'lg:ml-72' : ''} p-0`}>
-        {/* Standalone pages render with zero chrome */}
-        {isStandalonePage ? (
-          children
-        ) : isSmallScreen ? (
+        {isSmallScreen ? (
           <MobileLayout>
             {children}
           </MobileLayout>
