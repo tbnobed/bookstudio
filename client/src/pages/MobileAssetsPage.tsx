@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { BarcodeDetectorPolyfill } from "@undecaf/barcode-detector-polyfill";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -728,14 +729,47 @@ export default function MobileAssetsPage() {
     return [...pure, ...alphan];
   };
 
+  // Preprocess image on a canvas: grayscale + strong contrast boost
+  // This dramatically helps Tesseract read dark/small label text
+  const preprocessImageForOcr = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1600;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, w, h);
+        // Convert to grayscale + boost contrast via filter
+        ctx.filter = "grayscale(100%) contrast(200%) brightness(110%)";
+        ctx.drawImage(canvas, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+
   // Opens a fresh file-picker each time — avoids iOS Safari's block on
   // reusing the same <input> element programmatically after first use.
+  // Appending to body is required for iOS to fire the onchange callback.
   const openOcrCamera = () => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
+    input.style.cssText = "position:fixed;top:-200px;left:-200px;width:1px;height:1px;opacity:0;";
+    document.body.appendChild(input);
+
+    const cleanup = () => {
+      if (document.body.contains(input)) document.body.removeChild(input);
+    };
+
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
+      cleanup();
       if (!file) return;
       setOcrPhase("processing");
       setOcrProgress(0);
@@ -748,9 +782,14 @@ export default function MobileAssetsPage() {
             }
           },
         });
-        const imageUrl = URL.createObjectURL(file);
-        const { data } = await worker.recognize(imageUrl);
-        URL.revokeObjectURL(imageUrl);
+        // Preprocess for better accuracy, fall back to raw file on error
+        let imageData: string;
+        try {
+          imageData = await preprocessImageForOcr(file);
+        } catch {
+          imageData = URL.createObjectURL(file);
+        }
+        const { data } = await worker.recognize(imageData);
         await worker.terminate();
         const candidates = extractSerialCandidates(data.text);
         setOcrResults(candidates);
@@ -761,6 +800,9 @@ export default function MobileAssetsPage() {
         setOcrTarget(null);
       }
     };
+
+    // Cleanup after 2 minutes if user never picks a file
+    setTimeout(cleanup, 120_000);
     input.click();
   };
 
@@ -1200,7 +1242,8 @@ export default function MobileAssetsPage() {
       />
 
       {/* ── OCR processing / results overlay ─────────────────────────────────── */}
-      {ocrPhase !== "idle" && (
+      {/* Rendered via portal to escape Radix Sheet's aria-hidden focus trap */}
+      {ocrPhase !== "idle" && createPortal(
         <div className="fixed inset-0 z-[85] bg-black flex flex-col items-center justify-center p-6">
           {ocrPhase === "processing" ? (
             <div className="text-white text-center space-y-5 w-full max-w-xs">
@@ -1274,7 +1317,7 @@ export default function MobileAssetsPage() {
             </div>
           )}
         </div>
-      )}
+      , document.body)}
 
       {/* ── Barcode scanner overlay ──────────────────────────────────────────── */}
       {scannerOpen && scanTarget && (
