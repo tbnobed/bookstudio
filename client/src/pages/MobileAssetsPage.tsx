@@ -1244,7 +1244,8 @@ export default function MobileAssetsPage() {
       {/* ── OCR processing / results overlay ─────────────────────────────────── */}
       {/* Rendered via portal to escape Radix Sheet's aria-hidden focus trap */}
       {ocrPhase !== "idle" && createPortal(
-        <div className="fixed inset-0 z-[85] bg-black flex flex-col items-center justify-center p-6">
+        <div className="fixed inset-0 z-[85] bg-black flex flex-col items-center justify-center p-6"
+          style={{ pointerEvents: "auto", touchAction: "auto" }}>
           {ocrPhase === "processing" ? (
             <div className="text-white text-center space-y-5 w-full max-w-xs">
               <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mx-auto">
@@ -1285,7 +1286,7 @@ export default function MobileAssetsPage() {
                   {ocrResults.map(r => (
                     <button
                       key={r}
-                      onClick={() => applyOcrResult(r)}
+                      onPointerDown={() => applyOcrResult(r)}
                       className="w-full px-5 py-3.5 text-left flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-emerald-900/20 active:bg-emerald-100 transition-colors"
                     >
                       <span className="font-mono font-medium tracking-wide text-sm">{r}</span>
@@ -1298,7 +1299,7 @@ export default function MobileAssetsPage() {
               {/* Footer actions */}
               <div className="flex gap-2 p-4 border-t border-gray-100 dark:border-gray-800">
                 <button
-                  onClick={() => {
+                  onPointerDown={() => {
                     setOcrResults([]);
                     setOcrProgress(0);
                     openOcrCamera();
@@ -1308,7 +1309,7 @@ export default function MobileAssetsPage() {
                   Scan again
                 </button>
                 <button
-                  onClick={() => { setOcrPhase("idle"); setOcrTarget(null); setOcrResults([]); }}
+                  onPointerDown={() => { setOcrPhase("idle"); setOcrTarget(null); setOcrResults([]); }}
                   className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
                 >
                   Cancel
