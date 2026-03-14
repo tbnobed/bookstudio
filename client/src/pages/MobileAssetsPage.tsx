@@ -5,7 +5,6 @@ import { Asset, AssetCheckout } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
@@ -48,22 +47,30 @@ interface ScannerProps {
 
 const SCANNER_DIV_ID = "h5q-scanner";
 
-const SCAN_FORMATS = [
-  Html5QrcodeSupportedFormats.QR_CODE,
-  Html5QrcodeSupportedFormats.CODE_128,
-  Html5QrcodeSupportedFormats.CODE_39,
-  Html5QrcodeSupportedFormats.CODE_93,
-  Html5QrcodeSupportedFormats.EAN_13,
-  Html5QrcodeSupportedFormats.EAN_8,
-  Html5QrcodeSupportedFormats.UPC_A,
-  Html5QrcodeSupportedFormats.UPC_E,
-  Html5QrcodeSupportedFormats.DATA_MATRIX,
-  Html5QrcodeSupportedFormats.ITF,
-  Html5QrcodeSupportedFormats.CODABAR,
-];
+// html5-qrcode is loaded as a plain <script> (not an ESM import) to avoid
+// corrupting Vite's module graph during development. The min.js sets
+// window.Html5Qrcode and window.Html5QrcodeSupportedFormats as globals.
+declare const Html5Qrcode: any;
+declare const Html5QrcodeSupportedFormats: any;
+
+let scriptLoadPromise: Promise<void> | null = null;
+function loadHtml5QrcodeScript(): Promise<void> {
+  if (scriptLoadPromise) return scriptLoadPromise;
+  if (typeof window !== "undefined" && (window as any).Html5Qrcode) {
+    return (scriptLoadPromise = Promise.resolve());
+  }
+  scriptLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "/html5-qrcode.min.js";
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Failed to load scanner library"));
+    document.head.appendChild(s);
+  });
+  return scriptLoadPromise;
+}
 
 function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState("");
@@ -81,39 +88,53 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
 
   useEffect(() => {
     let cancelled = false;
-    const scanner = new Html5Qrcode(SCANNER_DIV_ID, { verbose: false, formatsToSupport: SCAN_FORMATS });
-    scannerRef.current = scanner;
 
-    scanner.start(
-      { facingMode: "environment" },
-      { fps: 15, aspectRatio: 1.7778 },
-      (decodedText) => {
-        if (!cancelled) handleDetected(decodedText);
-      },
-      () => { /* per-frame not-found errors — ignore */ }
-    ).then(() => {
-      if (!cancelled) setReady(true);
-    }).catch((err: any) => {
+    loadHtml5QrcodeScript().then(() => {
       if (cancelled) return;
-      const msg = typeof err === "string" ? err : (err?.message ?? "");
-      const isHttps = location.protocol === "https:";
-      if (!isHttps) {
-        setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
-      } else if (/NotAllowed|PermissionDenied/i.test(msg + (err?.name ?? ""))) {
-        const isStandalone = window.matchMedia("(display-mode: standalone)").matches
-          || (navigator as { standalone?: boolean }).standalone === true;
-        setError(
-          isStandalone
-            ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
-            : "Camera access denied. Check your browser's site settings and allow camera access."
-        );
-      } else if (/NotFound|DevicesNotFound/i.test(msg + (err?.name ?? ""))) {
-        setError("No camera found on this device.");
-      } else if (/NotReadable|TrackStart/i.test(msg + (err?.name ?? ""))) {
-        setError("Camera is in use by another app. Close it and try again.");
-      } else {
-        setError("Could not start camera. Enter the value manually below.");
-      }
+
+      const F = Html5QrcodeSupportedFormats;
+      const formats = [
+        F.QR_CODE, F.CODE_128, F.CODE_39, F.CODE_93,
+        F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E,
+        F.DATA_MATRIX, F.ITF, F.CODABAR,
+      ];
+
+      const scanner = new Html5Qrcode(SCANNER_DIV_ID, { verbose: false, formatsToSupport: formats });
+      scannerRef.current = scanner;
+
+      scanner.start(
+        { facingMode: "environment" },
+        { fps: 15, aspectRatio: 1.7778 },
+        (decodedText: string) => {
+          if (!cancelled) handleDetected(decodedText);
+        },
+        () => { /* per-frame not-found errors — ignore */ }
+      ).then(() => {
+        if (!cancelled) setReady(true);
+      }).catch((err: any) => {
+        if (cancelled) return;
+        const msg = typeof err === "string" ? err : (err?.message ?? "");
+        const isHttps = location.protocol === "https:";
+        if (!isHttps) {
+          setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
+        } else if (/NotAllowed|PermissionDenied/i.test(msg + (err?.name ?? ""))) {
+          const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+            || (navigator as { standalone?: boolean }).standalone === true;
+          setError(
+            isStandalone
+              ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
+              : "Camera access denied. Check your browser's site settings and allow camera access."
+          );
+        } else if (/NotFound|DevicesNotFound/i.test(msg + (err?.name ?? ""))) {
+          setError("No camera found on this device.");
+        } else if (/NotReadable|TrackStart/i.test(msg + (err?.name ?? ""))) {
+          setError("Camera is in use by another app. Close it and try again.");
+        } else {
+          setError("Could not start camera. Enter the value manually below.");
+        }
+      });
+    }).catch((err: any) => {
+      if (!cancelled) setError(err?.message ?? "Could not load scanner.");
     });
 
     return () => {
