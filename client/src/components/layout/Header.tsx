@@ -351,10 +351,7 @@ export function Header({
         </div>
 
         {/* Center Section — naturally centered by grid, never overlaps left/right */}
-        <div className="hidden lg:flex items-center justify-center gap-4">
-          <div className="hidden xl:block">
-            <WeatherWidget size="compact" />
-          </div>
+        <div className="hidden lg:flex flex-col items-center justify-center gap-1">
           <StudioStatusSummary
             studios={studios}
             bookings={bookings}
@@ -362,6 +359,9 @@ export function Header({
             currentDate={currentDate}
             onFilterByStatus={onStudioFilterChange}
           />
+          <div className="hidden xl:block">
+            <WeatherWidget size="compact" />
+          </div>
         </div>
 
         {/* Right Section */}

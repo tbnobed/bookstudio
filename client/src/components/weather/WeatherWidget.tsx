@@ -213,25 +213,22 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
   if (loading) {
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-300 rounded w-24"></div>
-        </div>
+        <div className="animate-pulse flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 w-32 h-7" />
       </div>
     );
   }
 
   if (!weather) {
-    // Show a fallback when weather data is not available
     return (
-      <div className={`flex items-center space-x-2 text-gray-500 ${className}`}>
-        <Cloud className="h-4 w-4" />
-        <span className="text-xs">Weather unavailable</span>
+      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 ${className}`}>
+        <Cloud className="h-3.5 w-3.5" />
+        <span className="text-xs">Unavailable</span>
       </div>
     );
   }
 
   const WeatherIcon = getWeatherIcon(weather.icon);
-  
+
   const sizeClasses = {
     compact: 'text-sm',
     normal: 'text-base',
@@ -239,32 +236,58 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
   };
 
   const iconSizes = {
-    compact: 'h-5 w-5',
+    compact: 'h-4 w-4',
     normal: 'h-6 w-6',
     large: 'h-8 w-8'
   };
 
+  // Compact mode: fun pill badge
+  if (size === 'compact') {
+    const isSunny = weather.icon === '01d' || weather.icon === '01n';
+    const isRainy = weather.icon.startsWith('09') || weather.icon.startsWith('10') || weather.icon.startsWith('11');
+    const isSnowy = weather.icon.startsWith('13');
+
+    const pillBg = isSunny
+      ? 'from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/30 border-amber-200 dark:border-amber-700/50'
+      : isRainy
+      ? 'from-sky-50 to-blue-50 dark:from-sky-950/40 dark:to-blue-950/30 border-sky-200 dark:border-sky-700/50'
+      : isSnowy
+      ? 'from-slate-50 to-blue-50 dark:from-slate-900/40 dark:to-blue-950/30 border-slate-200 dark:border-slate-600/50'
+      : 'from-slate-50 to-gray-50 dark:from-slate-900/40 dark:to-gray-900/30 border-gray-200 dark:border-gray-700/50';
+
+    return (
+      <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r border ${pillBg} shadow-sm ${className}`}>
+        <WeatherIcon className={`${iconSizes.compact} ${getWeatherIconColor(weather.icon)} shrink-0`} />
+        <span className="text-[11px] font-medium text-gray-600 dark:text-gray-300 capitalize leading-none">
+          {weather.condition}
+        </span>
+        <span className="w-px h-3 bg-gray-300 dark:bg-gray-600 shrink-0" />
+        <span className="text-[13px] font-bold text-gray-800 dark:text-white leading-none whitespace-nowrap">
+          {weather.temperature}°F
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className={`${className}`}>
-      {/* Current Weather */}
+      {/* Current Weather — normal / large */}
       <div className="flex items-center justify-end space-x-4">
         <div className={`text-right ${sizeClasses[size]}`}>
           <div className="flex items-center justify-end space-x-2">
             <span className="text-gray-600 dark:text-gray-300 capitalize text-lg">{weather.condition}</span>
             <span className="font-bold text-2xl dark:text-white">{weather.temperature}°F</span>
           </div>
-          {size !== 'compact' && (
-            <div className="flex items-center justify-end space-x-4 text-gray-500 dark:text-gray-400 mt-2">
-              <div className="flex items-center space-x-1">
-                <Droplets className="h-4 w-4" />
-                <span className="text-base">{weather.humidity}%</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Wind className="h-4 w-4" />
-                <span className="text-base">{weather.windSpeed} mph</span>
-              </div>
+          <div className="flex items-center justify-end space-x-4 text-gray-500 dark:text-gray-400 mt-2">
+            <div className="flex items-center space-x-1">
+              <Droplets className="h-4 w-4" />
+              <span className="text-base">{weather.humidity}%</span>
             </div>
-          )}
+            <div className="flex items-center space-x-1">
+              <Wind className="h-4 w-4" />
+              <span className="text-base">{weather.windSpeed} mph</span>
+            </div>
+          </div>
         </div>
         <WeatherIcon className={`${iconSizes[size]} ${getWeatherIconColor(weather.icon)}`} />
       </div>
