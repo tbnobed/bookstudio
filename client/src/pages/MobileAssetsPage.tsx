@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { BinaryBitmap, HybridBinarizer, MultiFormatReader, NotFoundException } from "@zxing/library";
-import { HTMLCanvasElementLuminanceSource } from "@zxing/browser";
+import { BarcodeDetectorPolyfill } from "@undecaf/barcode-detector-polyfill";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Asset, AssetCheckout } from "@shared/schema";
@@ -47,26 +46,26 @@ interface ScannerProps {
   onClose: () => void;
 }
 
-// Scanner uses native getUserMedia + BarcodeDetector (iOS 16.4+, Chrome Android, Chrome desktop).
-// No third-party library needed — direct browser API with a graceful manual-entry fallback.
+// Install the ZBar WASM polyfill on iOS/Safari where the native BarcodeDetector API
+// is not implemented. On Chrome/Android the native API is used; on all other browsers
+// the WASM polyfill transparently takes over — same API, same call sites.
+if (!('BarcodeDetector' in window)) {
+  (window as any).BarcodeDetector = BarcodeDetectorPolyfill;
+}
 
 function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number>(0);
-  const detectorRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState("");
-  const [dbg, setDbg] = useState("starting…");
+  const [hint, setHint] = useState("Loading scanner…");
 
   const stopCamera = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
-    }
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
   }, []);
 
   const handleDetected = useCallback((value: string) => {
@@ -76,124 +75,64 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
 
   useEffect(() => {
     let cancelled = false;
-    let frameCount = 0;
-    const frameCountRef = { current: 0 };
 
     async function start() {
-      // Try every possible way to get BarcodeDetector
-      let BD: any = null;
-      try { BD = (globalThis as any).BarcodeDetector; } catch (_) {}
-      if (!BD) try { BD = (window as any).BarcodeDetector; } catch (_) {}
-      if (!BD) try { BD = (self as any).BarcodeDetector; } catch (_) {}
-      const hasBD = BD != null;
+      const BD = (window as any).BarcodeDetector;
 
-      setDbg(`BD=${hasBD ? "YES" : "NO"} cam=starting`);
+      // Warm up WASM before opening the camera so the first scan isn't delayed.
+      setHint("Loading scanner…");
+      let formats: string[] = [];
+      try { formats = await BD.getSupportedFormats(); } catch (_) {}
+      if (cancelled) return;
 
+      setHint("Opening camera…");
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
         });
         if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
         streamRef.current = stream;
-        setDbg(`BD=${hasBD ? "YES" : "NO"} cam=got-stream`);
 
         const video = videoRef.current!;
         video.srcObject = stream;
         video.setAttribute("playsinline", "true");
-        video.setAttribute("autoplay", "true");
         video.muted = true;
         await video.play();
         if (cancelled) return;
-        setDbg(`BD=${hasBD ? "YES" : "NO"} cam=playing`);
 
-        // Set up the chosen detector
-        let bdDetector: any = null;
-        let zxingReader: MultiFormatReader | null = null;
-
-        if (hasBD) {
-          try {
-            const formats = await BD.getSupportedFormats();
-            bdDetector = new BD({ formats: formats.length ? formats : undefined });
-            setDbg(`path=BarcodeDetector fmts=${formats.length}`);
-          } catch (e: any) {
-            setDbg(`BD-init-err=${e?.message ?? e}`);
-            zxingReader = new MultiFormatReader();
-          }
-        } else {
-          zxingReader = new MultiFormatReader();
-          setDbg(`path=ZXing`);
-        }
-
-        detectorRef.current = bdDetector ?? zxingReader;
+        const detector = new BD({ formats: formats.length ? formats : undefined });
         setReady(true);
-
-        const canvas = canvasRef.current!;
-        const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+        setHint("Align barcode within the frame");
 
         async function tick() {
           if (cancelled || !streamRef.current) return;
-
           if (video.readyState >= 2 && video.videoWidth > 0) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
-            frameCountRef.current++;
-
-            if (bdDetector) {
-              // Native BarcodeDetector path (async)
-              try {
-                const results = await bdDetector.detect(canvas);
-                if (results.length > 0 && !cancelled) {
-                  handleDetected(results[0].rawValue);
-                  return;
-                }
-              } catch (e: any) {
-                if (frameCountRef.current % 60 === 0)
-                  setDbg(`BD-detect-err=${e?.message ?? e} f=${frameCountRef.current}`);
+            try {
+              const results = await detector.detect(video);
+              if (results.length > 0 && !cancelled) {
+                handleDetected(results[0].rawValue);
+                return;
               }
-              if (frameCountRef.current % 30 === 0)
-                setDbg(`BD scanning f=${frameCountRef.current} ${video.videoWidth}x${video.videoHeight}`);
-            } else if (zxingReader) {
-              // ZXing path (sync) — throttle to ~15 fps to avoid blocking the UI thread
-              frameCount++;
-              if (frameCount % 30 === 0)
-                setDbg(`ZXing scanning f=${frameCount} ${video.videoWidth}x${video.videoHeight}`);
-              if (frameCount % 4 === 0) {
-                try {
-                  const source = new HTMLCanvasElementLuminanceSource(canvas);
-                  const bitmap = new BinaryBitmap(new HybridBinarizer(source));
-                  const result = zxingReader.decode(bitmap);
-                  if (result && !cancelled) {
-                    handleDetected(result.getText());
-                    return;
-                  }
-                } catch (e) {
-                  if (!(e instanceof NotFoundException) && frameCount % 60 === 0)
-                    setDbg(`ZXing-err=${(e as any)?.message ?? e} f=${frameCount}`);
-                }
-              }
-            }
+            } catch (_) { /* no barcode in this frame — normal */ }
           }
-
           rafRef.current = requestAnimationFrame(tick);
         }
         rafRef.current = requestAnimationFrame(tick);
 
       } catch (err: any) {
         if (cancelled) return;
-        const msg = typeof err === "string" ? err : (err?.message ?? "");
-        const name = err?.name ?? "";
+        const msg = (err?.message ?? "") + (err?.name ?? "");
         if (location.protocol !== "https:") {
           setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
-        } else if (/NotAllowed|PermissionDenied/i.test(msg + name)) {
+        } else if (/NotAllowed|PermissionDenied/i.test(msg)) {
           const isStandalone = window.matchMedia("(display-mode: standalone)").matches
             || (navigator as { standalone?: boolean }).standalone === true;
           setError(isStandalone
             ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
             : "Camera access denied. Check your browser's site settings and allow camera access.");
-        } else if (/NotFound|DevicesNotFound/i.test(msg + name)) {
+        } else if (/NotFound|DevicesNotFound/i.test(msg)) {
           setError("No camera found on this device.");
-        } else if (/NotReadable|TrackStart/i.test(msg + name)) {
+        } else if (/NotReadable|TrackStart/i.test(msg)) {
           setError("Camera is in use by another app. Close it and try again.");
         } else {
           setError("Could not start camera. Enter the value manually below.");
@@ -202,10 +141,7 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
     }
 
     start();
-    return () => {
-      cancelled = true;
-      stopCamera();
-    };
+    return () => { cancelled = true; stopCamera(); };
   }, [handleDetected, stopCamera]);
 
   return (
@@ -222,7 +158,7 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         </div>
       </div>
 
-      {/* Camera error fallback */}
+      {/* Camera error state */}
       {error ? (
         <div className="flex-1 flex flex-col items-center justify-center p-6 gap-5 text-white">
           <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center">
@@ -238,7 +174,9 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
               onChange={e => setManual(e.target.value)}
               onKeyDown={e => e.key === "Enter" && manual.trim() && handleDetected(manual.trim())}
             />
-            <Button className="w-full h-12" onClick={() => manual.trim() && handleDetected(manual.trim())} disabled={!manual.trim()}>
+            <Button className="w-full h-12"
+              onClick={() => manual.trim() && handleDetected(manual.trim())}
+              disabled={!manual.trim()}>
               Use This Value
             </Button>
           </div>
@@ -254,8 +192,6 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
               muted
               autoPlay
             />
-            {/* Hidden canvas for BarcodeDetector frame capture */}
-            <canvas ref={canvasRef} className="hidden" />
 
             {/* Dark mask with clear centre window */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
@@ -281,7 +217,6 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
                   <div key={i} className={cn("absolute w-7 h-7 border-blue-400", cls)}
                     style={{ borderWidth: "3px" }} />
                 ))}
-
                 {ready && (
                   <div className="absolute left-2 right-2 h-0.5 bg-blue-400 rounded-full"
                     style={{
@@ -303,11 +238,7 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
 
           {/* Bottom hint + manual entry */}
           <div className="shrink-0 p-5 text-white space-y-4">
-            {/* DEBUG — shows scanner state on-screen so we can diagnose issues */}
-            <p className="text-center text-[10px] text-white/40 font-mono break-all">{dbg}</p>
-            <p className="text-center text-sm text-white/60">
-              {ready ? "Align barcode within the frame" : "Starting camera…"}
-            </p>
+            <p className="text-center text-sm text-white/60">{hint}</p>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-white/15" />
               <span className="text-xs text-white/40">or enter manually</span>
@@ -322,7 +253,8 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
                 onKeyDown={e => e.key === "Enter" && manual.trim() && handleDetected(manual.trim())}
               />
               <Button variant="secondary" className="shrink-0"
-                onClick={() => manual.trim() && handleDetected(manual.trim())} disabled={!manual.trim()}>
+                onClick={() => manual.trim() && handleDetected(manual.trim())}
+                disabled={!manual.trim()}>
                 Use
               </Button>
             </div>
