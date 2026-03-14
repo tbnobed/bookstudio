@@ -24,13 +24,20 @@ import {
 
 // ── Category config ────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { value: "camera",    label: "Camera",    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
-  { value: "lighting",  label: "Lighting",  color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300" },
-  { value: "audio",     label: "Audio",     color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" },
-  { value: "video",     label: "Video",     color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300" },
-  { value: "cable",     label: "Cable",     color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
-  { value: "accessory", label: "Accessory", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" },
-  { value: "other",     label: "Other",     color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300" },
+  { value: "camera",    label: "Camera",    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    pill: "border-blue-500 text-blue-400",    pillActive: "bg-blue-500/20 border-blue-400 text-blue-300" },
+  { value: "lighting",  label: "Lighting",  color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+    pill: "border-yellow-500 text-yellow-400", pillActive: "bg-yellow-500/20 border-yellow-400 text-yellow-300" },
+  { value: "audio",     label: "Audio",     color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+    pill: "border-purple-500 text-purple-400", pillActive: "bg-purple-500/20 border-purple-400 text-purple-300" },
+  { value: "video",     label: "Video",     color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300",
+    pill: "border-rose-500 text-rose-400",     pillActive: "bg-rose-500/20 border-rose-400 text-rose-300" },
+  { value: "cable",     label: "Cable",     color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+    pill: "border-gray-500 text-gray-400",     pillActive: "bg-gray-500/20 border-gray-300 text-gray-200" },
+  { value: "accessory", label: "Accessory", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+    pill: "border-green-500 text-green-400",   pillActive: "bg-green-500/20 border-green-400 text-green-300" },
+  { value: "other",     label: "Other",     color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+    pill: "border-orange-500 text-orange-400", pillActive: "bg-orange-500/20 border-orange-400 text-orange-300" },
 ];
 const getCat = (cat: string) => CATEGORIES.find(c => c.value === cat) ?? CATEGORIES[6];
 
@@ -519,6 +526,7 @@ export default function MobileAssetsPage() {
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [tab, setTab] = useState<"all" | "mine" | "available">("all");
   const [checkoutAsset, setCheckoutAsset] = useState<Asset | null>(null);
   const [checkoutPurpose, setCheckoutPurpose] = useState("");
@@ -700,6 +708,7 @@ export default function MobileAssetsPage() {
       (a.location ?? "").toLowerCase().includes(q);
 
     if (!matchSearch) return false;
+    if (categoryFilter !== "all" && a.category !== categoryFilter) return false;
     if (tab === "available") return a.status === "available" && !checkoutMap[a.id];
     if (tab === "mine") return !!checkoutMap[a.id] && checkoutMap[a.id].checkedOutBy === user?.id;
     return true;
@@ -923,6 +932,34 @@ export default function MobileAssetsPage() {
               <X className="h-3.5 w-3.5 text-gray-400" />
             </button>
           )}
+        </div>
+
+        {/* Category filter pills */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+          <button
+            onClick={() => setCategoryFilter("all")}
+            className={cn(
+              "shrink-0 px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95",
+              categoryFilter === "all"
+                ? "bg-white/15 border-white/60 text-white"
+                : "border-white/20 text-white/50 hover:border-white/40 hover:text-white/70"
+            )}
+          >
+            All assets
+          </button>
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat.value}
+              onClick={() => setCategoryFilter(categoryFilter === cat.value ? "all" : cat.value)}
+              className={cn(
+                "shrink-0 px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95",
+                categoryFilter === cat.value ? cat.pillActive : cat.pill,
+                "bg-transparent"
+              )}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
 
         {/* Tabs */}
