@@ -721,19 +721,19 @@ export default function AssetsPage() {
                       </div>
 
                       {/* Photo thumbnails (up to 3) */}
-                      <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
                         {(firstPhotoMap[asset.id] ?? []).length > 0 ? (
                           (firstPhotoMap[asset.id] ?? []).map((src, i) => (
                             <button
                               key={i}
                               onClick={() => setViewPhoto(src)}
-                              className="relative group shrink-0"
+                              className="relative group flex-1 min-w-0"
                               title={`View photo ${i + 1}`}
                             >
                               <img
                                 src={src}
                                 alt={`${asset.name} photo ${i + 1}`}
-                                className="h-11 w-11 object-cover rounded-lg border border-gray-200 dark:border-gray-600 group-hover:opacity-80 transition-opacity"
+                                className="h-11 w-full object-cover rounded-lg border border-gray-200 dark:border-gray-600 group-hover:opacity-80 transition-opacity"
                               />
                               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg bg-black/20">
                                 <ImageIcon className="h-3.5 w-3.5 text-white drop-shadow" />
@@ -741,7 +741,7 @@ export default function AssetsPage() {
                             </button>
                           ))
                         ) : (
-                          <div className="h-11 w-11 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                          <div className="h-11 w-full rounded-lg border border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center">
                             <ImageIcon className="h-3.5 w-3.5 text-gray-300 dark:text-gray-600" />
                           </div>
                         )}
