@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Asset, AssetCheckout } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { BrowserMultiFormatReader } from "@zxing/browser";
+import { NotFoundException } from "@zxing/library";
 import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
@@ -48,81 +49,74 @@ interface ScannerProps {
 
 function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const rafRef = useRef<number>(0);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState("");
-  const hasDetector = "BarcodeDetector" in window;
 
-  const stopCamera = useCallback(() => {
-    cancelAnimationFrame(rafRef.current);
-    streamRef.current?.getTracks().forEach(t => t.stop());
+  const stopScanner = useCallback(() => {
+    try { controlsRef.current?.stop(); } catch {}
   }, []);
 
   const handleDetected = useCallback((value: string) => {
-    stopCamera();
+    stopScanner();
     onDetected(value);
-  }, [onDetected, stopCamera]);
+  }, [onDetected, stopScanner]);
 
   useEffect(() => {
-    if (!hasDetector) return;
+    if (!videoRef.current) return;
 
-    (async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
-        });
-        streamRef.current = stream;
-        if (!videoRef.current) return;
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setReady(true);
+    const reader = new BrowserMultiFormatReader();
 
-        const detector = new (window as any).BarcodeDetector({
-          formats: ["qr_code", "code_128", "code_39", "ean_13", "ean_8", "upc_a", "upc_e", "data_matrix", "aztec", "pdf417"]
-        });
+    reader.decodeFromConstraints(
+      {
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      },
+      videoRef.current,
+      (result, err, controls) => {
+        controlsRef.current = controls;
+        if (!ready) setReady(true);
 
-        const tick = async () => {
-          if (videoRef.current && videoRef.current.readyState >= 2) {
-            try {
-              const results = await detector.detect(videoRef.current);
-              if (results.length > 0) { handleDetected(results[0].rawValue); return; }
-            } catch {}
-          }
-          rafRef.current = requestAnimationFrame(tick);
-        };
-        rafRef.current = requestAnimationFrame(tick);
-      } catch (err: any) {
-        const isHttps = location.protocol === "https:";
-        if (!isHttps) {
-          setError("Camera requires a secure (HTTPS) connection. Use the installed app or open via HTTPS.");
-        } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-          const isStandalone = window.matchMedia("(display-mode: standalone)").matches
-            || (navigator as { standalone?: boolean }).standalone === true;
-          setError(
-            isStandalone
-              ? "Camera access denied. Go to your phone's Settings → Apps → Studio Assets → Permissions and enable Camera."
-              : "Camera access denied. Tap the camera icon in the address bar or go to browser site settings to enable it."
-          );
-        } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-          setError("No camera found on this device.");
-        } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
-          setError("Camera is in use by another app. Close it and try again.");
-        } else {
-          setError("Could not start camera. Enter the value manually below.");
+        if (result) {
+          handleDetected(result.getText());
+        }
+        if (err && !(err instanceof NotFoundException)) {
+          // real error — ignore decode misses (NotFoundException is normal)
         }
       }
-    })();
+    ).catch((err: any) => {
+      const isHttps = location.protocol === "https:";
+      if (!isHttps) {
+        setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
+      } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+          || (navigator as { standalone?: boolean }).standalone === true;
+        setError(
+          isStandalone
+            ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
+            : "Camera access denied. Check your browser's site settings and allow camera access."
+        );
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        setError("No camera found on this device.");
+      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+        setError("Camera is in use by another app. Close it and try again.");
+      } else {
+        setError("Could not start camera. Enter the value manually below.");
+      }
+    });
 
-    return stopCamera;
-  }, [hasDetector, handleDetected, stopCamera]);
+    return stopScanner;
+  }, [handleDetected, stopScanner]);
 
   return (
     <div className="fixed inset-0 z-[60] bg-black flex flex-col">
       {/* Toolbar */}
       <div className="flex items-center gap-3 px-4 py-3 text-white shrink-0">
-        <button onClick={() => { stopCamera(); onClose(); }}
+        <button onClick={() => { stopScanner(); onClose(); }}
           className="p-2 rounded-full hover:bg-white/10 active:bg-white/20 transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -132,15 +126,13 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         </div>
       </div>
 
-      {/* Camera or fallback */}
-      {!hasDetector || error ? (
+      {/* Camera error fallback */}
+      {error ? (
         <div className="flex-1 flex flex-col items-center justify-center p-6 gap-5 text-white">
           <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center">
             <Barcode className="h-8 w-8 opacity-60" />
           </div>
-          <p className="text-center text-sm text-white/60 max-w-xs">
-            {error ?? "Barcode scanning isn't supported in this browser. Enter the value below."}
-          </p>
+          <p className="text-center text-sm text-white/60 max-w-xs">{error}</p>
           <div className="w-full max-w-xs space-y-3">
             <Input
               autoFocus
@@ -157,7 +149,7 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         </div>
       ) : (
         <>
-          {/* Viewfinder */}
+          {/* Viewfinder — always show; @zxing handles all browsers including iOS */}
           <div className="relative flex-1 overflow-hidden">
             <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted />
 
@@ -337,7 +329,6 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
 export default function MobileAssetsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
@@ -494,12 +485,6 @@ export default function MobileAssetsPage() {
       {/* ── Standalone header ────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 pt-4 pb-3 space-y-3">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/")}
-            className="p-2 -ml-1 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:scale-95 transition-all text-gray-600 dark:text-gray-400"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
           <div className="flex-1">
             <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">Equipment</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">{assets.length} items in inventory</p>
