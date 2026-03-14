@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { BinaryBitmap, HybridBinarizer, MultiFormatReader, NotFoundException } from "@zxing/library";
+import { HTMLCanvasElementLuminanceSource } from "@zxing/browser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Asset, AssetCheckout } from "@shared/schema";
@@ -75,52 +77,86 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
     let cancelled = false;
 
     async function start() {
-      // BarcodeDetector is available on iOS 16.4+, Chrome Android, Chrome desktop
-      const BD = (window as any).BarcodeDetector;
-      if (!BD) {
-        setError("Barcode scanning isn't supported in this browser. Enter the value below instead.");
-        return;
-      }
+      // Detect which decoding path to use:
+      // 1. BarcodeDetector (iOS Safari 17+, Chrome desktop/Android) — native, fast
+      // 2. ZXing MultiFormatReader (all other browsers) — JS, supports all formats
+      // Use `in globalThis` rather than window property lookup — Safari exposes
+      // BarcodeDetector on globalThis but window property access can silently return undefined.
+      const hasBD = "BarcodeDetector" in globalThis;
+      const BD = hasBD ? (globalThis as any).BarcodeDetector : null;
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
+          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
         });
         if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
         streamRef.current = stream;
 
         const video = videoRef.current!;
         video.srcObject = stream;
-        // iOS Safari requires these attributes for inline playback
         video.setAttribute("playsinline", "true");
         video.setAttribute("autoplay", "true");
         video.muted = true;
         await video.play();
         if (cancelled) return;
 
-        const formats = await BD.getSupportedFormats();
-        if (cancelled) return;
-        const detector = new BD({ formats: formats.length ? formats : undefined });
-        detectorRef.current = detector;
+        // Set up the chosen detector
+        let bdDetector: any = null;
+        let zxingReader: MultiFormatReader | null = null;
+
+        if (hasBD) {
+          const formats = await BD.getSupportedFormats();
+          bdDetector = new BD({ formats: formats.length ? formats : undefined });
+        } else {
+          zxingReader = new MultiFormatReader();
+        }
+
+        detectorRef.current = bdDetector ?? zxingReader;
         setReady(true);
 
         const canvas = canvasRef.current!;
         const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+        let frameCount = 0;
 
         async function tick() {
           if (cancelled || !streamRef.current) return;
+
           if (video.readyState >= 2 && video.videoWidth > 0) {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0);
-            try {
-              const results = await detector.detect(canvas);
-              if (results.length > 0 && !cancelled) {
-                handleDetected(results[0].rawValue);
-                return;
+
+            if (bdDetector) {
+              // Native BarcodeDetector path (async)
+              try {
+                const results = await bdDetector.detect(canvas);
+                if (results.length > 0 && !cancelled) {
+                  handleDetected(results[0].rawValue);
+                  return;
+                }
+              } catch (_) { /* frame decode miss — keep going */ }
+            } else if (zxingReader) {
+              // ZXing path (sync) — throttle to ~15 fps to avoid blocking the UI thread
+              frameCount++;
+              if (frameCount % 4 === 0) {
+                try {
+                  const source = new HTMLCanvasElementLuminanceSource(canvas);
+                  const bitmap = new BinaryBitmap(new HybridBinarizer(source));
+                  const result = zxingReader.decode(bitmap);
+                  if (result && !cancelled) {
+                    handleDetected(result.getText());
+                    return;
+                  }
+                } catch (e) {
+                  // NotFoundException is thrown every frame with no barcode — ignore
+                  if (!(e instanceof NotFoundException)) {
+                    console.warn("[Scanner] ZXing decode error:", e);
+                  }
+                }
               }
-            } catch (_) { /* frame decode error — ignore and keep scanning */ }
+            }
           }
+
           rafRef.current = requestAnimationFrame(tick);
         }
         rafRef.current = requestAnimationFrame(tick);
