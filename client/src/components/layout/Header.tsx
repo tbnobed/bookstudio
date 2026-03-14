@@ -351,7 +351,7 @@ export function Header({
         </div>
 
         {/* Center Section — naturally centered by grid, never overlaps left/right */}
-        <div className="hidden lg:flex flex-col items-center justify-center gap-1">
+        <div className="hidden lg:flex flex-col items-center justify-center gap-3">
           <StudioStatusSummary
             studios={studios}
             bookings={bookings}
