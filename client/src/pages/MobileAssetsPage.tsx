@@ -5,7 +5,7 @@ import { Asset, AssetCheckout } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { BrowserMultiFormatReader } from "@zxing/browser";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
@@ -46,80 +46,60 @@ interface ScannerProps {
   onClose: () => void;
 }
 
+const SCANNER_DIV_ID = "h5q-scanner";
+
+const SCAN_FORMATS = [
+  Html5QrcodeSupportedFormats.QR_CODE,
+  Html5QrcodeSupportedFormats.CODE_128,
+  Html5QrcodeSupportedFormats.CODE_39,
+  Html5QrcodeSupportedFormats.CODE_93,
+  Html5QrcodeSupportedFormats.EAN_13,
+  Html5QrcodeSupportedFormats.EAN_8,
+  Html5QrcodeSupportedFormats.UPC_A,
+  Html5QrcodeSupportedFormats.UPC_E,
+  Html5QrcodeSupportedFormats.DATA_MATRIX,
+  Html5QrcodeSupportedFormats.ITF,
+  Html5QrcodeSupportedFormats.CODABAR,
+];
+
 function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const rafRef = useRef<number>(0);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState("");
 
-  const stopCamera = useCallback(() => {
-    cancelAnimationFrame(rafRef.current);
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
+  const stopScanner = useCallback(() => {
+    if (scannerRef.current?.isScanning) {
+      scannerRef.current.stop().catch(() => {});
+    }
   }, []);
 
   const handleDetected = useCallback((value: string) => {
-    stopCamera();
+    stopScanner();
     onDetected(value);
-  }, [onDetected, stopCamera]);
+  }, [onDetected, stopScanner]);
 
   useEffect(() => {
-    if (!videoRef.current) return;
     let cancelled = false;
+    const scanner = new Html5Qrcode(SCANNER_DIV_ID, { verbose: false, formatsToSupport: SCAN_FORMATS });
+    scannerRef.current = scanner;
 
-    // Offscreen canvas for frame capture
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
-    const reader = new BrowserMultiFormatReader();
-
-    navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+    scanner.start(
+      { facingMode: "environment" },
+      { fps: 15, aspectRatio: 1.7778 },
+      (decodedText) => {
+        if (!cancelled) handleDetected(decodedText);
       },
-    }).then(stream => {
-      if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
-
-      streamRef.current = stream;
-      const video = videoRef.current!;
-      video.srcObject = stream;
-
-      const startLoop = () => {
-        if (cancelled) return;
-        setReady(true);
-
-        const tick = () => {
-          if (cancelled) return;
-          if (video.readyState >= 2 && video.videoWidth > 0) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
-            try {
-              const result = (reader as any).decodeFromCanvas(canvas);
-              if (result && !cancelled) {
-                handleDetected(result.getText());
-                return;
-              }
-            } catch (_) {
-              // NotFoundException each frame with no barcode — normal
-            }
-          }
-          rafRef.current = requestAnimationFrame(tick);
-        };
-        rafRef.current = requestAnimationFrame(tick);
-      };
-
-      video.addEventListener("playing", startLoop, { once: true });
-      video.play().catch(() => {});
+      () => { /* per-frame not-found errors — ignore */ }
+    ).then(() => {
+      if (!cancelled) setReady(true);
     }).catch((err: any) => {
       if (cancelled) return;
+      const msg = typeof err === "string" ? err : (err?.message ?? "");
       const isHttps = location.protocol === "https:";
       if (!isHttps) {
         setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
-      } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+      } else if (/NotAllowed|PermissionDenied/i.test(msg + (err?.name ?? ""))) {
         const isStandalone = window.matchMedia("(display-mode: standalone)").matches
           || (navigator as { standalone?: boolean }).standalone === true;
         setError(
@@ -127,9 +107,9 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
             ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
             : "Camera access denied. Check your browser's site settings and allow camera access."
         );
-      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+      } else if (/NotFound|DevicesNotFound/i.test(msg + (err?.name ?? ""))) {
         setError("No camera found on this device.");
-      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+      } else if (/NotReadable|TrackStart/i.test(msg + (err?.name ?? ""))) {
         setError("Camera is in use by another app. Close it and try again.");
       } else {
         setError("Could not start camera. Enter the value manually below.");
@@ -138,9 +118,9 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
 
     return () => {
       cancelled = true;
-      stopCamera();
+      stopScanner();
     };
-  }, [handleDetected, stopCamera]);
+  }, [handleDetected, stopScanner]);
 
   return (
     <div className="fixed inset-0 z-[60] bg-black flex flex-col">
@@ -179,12 +159,12 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         </div>
       ) : (
         <>
-          {/* Viewfinder — always show; @zxing handles all browsers including iOS */}
+          {/* html5-qrcode mounts its video into this div */}
           <div className="relative flex-1 overflow-hidden">
-            <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted />
+            <div id={SCANNER_DIV_ID} className="absolute inset-0 w-full h-full" />
 
-            {/* Dark mask with clear center */}
-            <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            {/* Dark mask with clear centre window */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <mask id="viewfinder-mask">
                   <rect width="100%" height="100%" fill="white" />
@@ -208,7 +188,6 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
                     style={{ borderWidth: "3px" }} />
                 ))}
 
-                {/* Animated scan line */}
                 {ready && (
                   <div className="absolute left-2 right-2 h-0.5 bg-blue-400 rounded-full"
                     style={{
@@ -228,7 +207,7 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
             )}
           </div>
 
-          {/* Bottom: hint + manual override */}
+          {/* Bottom hint + manual entry */}
           <div className="shrink-0 p-5 text-white space-y-4">
             <p className="text-center text-sm text-white/60">
               {ready ? "Align barcode within the frame" : "Starting camera…"}
@@ -255,13 +234,19 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         </>
       )}
 
-      {/* Scan line keyframe */}
+      {/* Scan line keyframe + html5-qrcode overrides */}
       <style>{`
         @keyframes scanLine {
           0%   { top: 10%; }
           50%  { top: 80%; }
           100% { top: 10%; }
         }
+        #h5q-scanner { width: 100% !important; height: 100% !important; padding: 0 !important; border: none !important; background: transparent !important; }
+        #h5q-scanner__scan_region { width: 100% !important; height: 100% !important; min-height: unset !important; border: none !important; }
+        #h5q-scanner__scan_region video { object-fit: cover !important; width: 100% !important; height: 100% !important; }
+        #h5q-scanner__scan_region canvas { display: none !important; }
+        #h5q-scanner__dashboard_section { display: none !important; }
+        #h5q-scanner img { display: none !important; }
       `}</style>
     </div>
   );
