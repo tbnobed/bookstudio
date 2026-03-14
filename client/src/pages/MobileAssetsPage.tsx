@@ -45,104 +45,120 @@ interface ScannerProps {
   onClose: () => void;
 }
 
-const SCANNER_DIV_ID = "h5q-scanner";
-
-// html5-qrcode is loaded as a plain <script> (not an ESM import) to avoid
-// corrupting Vite's module graph during development. The min.js sets
-// window.Html5Qrcode as a global.
-declare const Html5Qrcode: any;
-
-let scriptLoadPromise: Promise<void> | null = null;
-function loadHtml5QrcodeScript(): Promise<void> {
-  if (scriptLoadPromise) return scriptLoadPromise;
-  if (typeof window !== "undefined" && (window as any).Html5Qrcode) {
-    return (scriptLoadPromise = Promise.resolve());
-  }
-  scriptLoadPromise = new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "/html5-qrcode.min.js";
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("Failed to load scanner library"));
-    document.head.appendChild(s);
-  });
-  return scriptLoadPromise;
-}
+// Scanner uses native getUserMedia + BarcodeDetector (iOS 16.4+, Chrome Android, Chrome desktop).
+// No third-party library needed — direct browser API with a graceful manual-entry fallback.
 
 function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
-  const scannerRef = useRef<any>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number>(0);
+  const detectorRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState("");
 
-  const stopScanner = useCallback(() => {
-    if (scannerRef.current?.isScanning) {
-      scannerRef.current.stop().catch(() => {});
+  const stopCamera = useCallback(() => {
+    cancelAnimationFrame(rafRef.current);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
     }
   }, []);
 
   const handleDetected = useCallback((value: string) => {
-    stopScanner();
+    stopCamera();
     onDetected(value);
-  }, [onDetected, stopScanner]);
+  }, [onDetected, stopCamera]);
 
   useEffect(() => {
     let cancelled = false;
 
-    loadHtml5QrcodeScript().then(() => {
-      if (cancelled) return;
+    async function start() {
+      // BarcodeDetector is available on iOS 16.4+, Chrome Android, Chrome desktop
+      const BD = (window as any).BarcodeDetector;
+      if (!BD) {
+        setError("Barcode scanning isn't supported in this browser. Enter the value below instead.");
+        return;
+      }
 
-      // No formatsToSupport — let html5-qrcode call BarcodeDetector.getSupportedFormats()
-      // and use whatever the device actually supports. Passing explicit enum values can
-      // produce an empty intersection on iOS/desktop and silently scan forever.
-      const scanner = new Html5Qrcode(SCANNER_DIV_ID, { verbose: false });
-      scannerRef.current = scanner;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
+        });
+        if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+        streamRef.current = stream;
 
-      scanner.start(
-        { facingMode: "environment" },
-        { fps: 15 },  // no aspectRatio — portrait phones need natural framing
-        (decodedText: string) => {
-          if (!cancelled) handleDetected(decodedText);
-        },
-        () => { /* per-frame not-found errors — ignore */ }
-      ).then(() => {
-        if (!cancelled) setReady(true);
-      }).catch((err: any) => {
+        const video = videoRef.current!;
+        video.srcObject = stream;
+        // iOS Safari requires these attributes for inline playback
+        video.setAttribute("playsinline", "true");
+        video.setAttribute("autoplay", "true");
+        video.muted = true;
+        await video.play();
+        if (cancelled) return;
+
+        const formats = await BD.getSupportedFormats();
+        if (cancelled) return;
+        const detector = new BD({ formats: formats.length ? formats : undefined });
+        detectorRef.current = detector;
+        setReady(true);
+
+        const canvas = canvasRef.current!;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+
+        async function tick() {
+          if (cancelled || !streamRef.current) return;
+          if (video.readyState >= 2 && video.videoWidth > 0) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            try {
+              const results = await detector.detect(canvas);
+              if (results.length > 0 && !cancelled) {
+                handleDetected(results[0].rawValue);
+                return;
+              }
+            } catch (_) { /* frame decode error — ignore and keep scanning */ }
+          }
+          rafRef.current = requestAnimationFrame(tick);
+        }
+        rafRef.current = requestAnimationFrame(tick);
+
+      } catch (err: any) {
         if (cancelled) return;
         const msg = typeof err === "string" ? err : (err?.message ?? "");
-        const isHttps = location.protocol === "https:";
-        if (!isHttps) {
+        const name = err?.name ?? "";
+        if (location.protocol !== "https:") {
           setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
-        } else if (/NotAllowed|PermissionDenied/i.test(msg + (err?.name ?? ""))) {
+        } else if (/NotAllowed|PermissionDenied/i.test(msg + name)) {
           const isStandalone = window.matchMedia("(display-mode: standalone)").matches
             || (navigator as { standalone?: boolean }).standalone === true;
-          setError(
-            isStandalone
-              ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
-              : "Camera access denied. Check your browser's site settings and allow camera access."
-          );
-        } else if (/NotFound|DevicesNotFound/i.test(msg + (err?.name ?? ""))) {
+          setError(isStandalone
+            ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
+            : "Camera access denied. Check your browser's site settings and allow camera access.");
+        } else if (/NotFound|DevicesNotFound/i.test(msg + name)) {
           setError("No camera found on this device.");
-        } else if (/NotReadable|TrackStart/i.test(msg + (err?.name ?? ""))) {
+        } else if (/NotReadable|TrackStart/i.test(msg + name)) {
           setError("Camera is in use by another app. Close it and try again.");
         } else {
           setError("Could not start camera. Enter the value manually below.");
         }
-      });
-    }).catch((err: any) => {
-      if (!cancelled) setError(err?.message ?? "Could not load scanner.");
-    });
+      }
+    }
 
+    start();
     return () => {
       cancelled = true;
-      stopScanner();
+      stopCamera();
     };
-  }, [handleDetected, stopScanner]);
+  }, [handleDetected, stopCamera]);
 
   return (
     <div className="fixed inset-0 z-[60] bg-black flex flex-col">
       {/* Toolbar */}
       <div className="flex items-center gap-3 px-4 py-3 text-white shrink-0">
-        <button onClick={() => { stopScanner(); onClose(); }}
+        <button onClick={() => { stopCamera(); onClose(); }}
           className="p-2 rounded-full hover:bg-white/10 active:bg-white/20 transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -175,9 +191,17 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         </div>
       ) : (
         <>
-          {/* html5-qrcode mounts its video into this div */}
+          {/* Live camera feed */}
           <div className="relative flex-1 overflow-hidden">
-            <div id={SCANNER_DIV_ID} className="absolute inset-0 w-full h-full" />
+            <video
+              ref={videoRef}
+              className="absolute inset-0 w-full h-full object-cover"
+              playsInline
+              muted
+              autoPlay
+            />
+            {/* Hidden canvas for BarcodeDetector frame capture */}
+            <canvas ref={canvasRef} className="hidden" />
 
             {/* Dark mask with clear centre window */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
@@ -250,19 +274,12 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         </>
       )}
 
-      {/* Scan line keyframe + html5-qrcode overrides */}
       <style>{`
         @keyframes scanLine {
           0%   { top: 10%; }
           50%  { top: 80%; }
           100% { top: 10%; }
         }
-        #h5q-scanner { width: 100% !important; height: 100% !important; padding: 0 !important; border: none !important; background: transparent !important; }
-        #h5q-scanner__scan_region { width: 100% !important; height: 100% !important; min-height: unset !important; border: none !important; }
-        #h5q-scanner__scan_region video { object-fit: cover !important; width: 100% !important; height: 100% !important; }
-        #h5q-scanner__scan_region canvas { display: none !important; }
-        #h5q-scanner__dashboard_section { display: none !important; }
-        #h5q-scanner img { display: none !important; }
       `}</style>
     </div>
   );
