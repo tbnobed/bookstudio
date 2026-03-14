@@ -56,6 +56,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication with passport
   setupAuth(app);
 
+  // Serve dedicated HTML for /mobile/assets so iOS Safari reads the correct
+  // manifest and apple-mobile-web-app-title BEFORE any JS runs.
+  app.get("/mobile/assets", async (_req, res) => {
+    try {
+      const isDev = process.env.NODE_ENV !== "production";
+      const htmlPath = isDev
+        ? path.resolve(process.cwd(), "client", "index.html")
+        : path.resolve(import.meta.dirname, "public", "index.html");
+
+      let html = await fs.promises.readFile(htmlPath, "utf-8");
+
+      // Swap manifest link
+      html = html.replace(
+        /(<link\s[^>]*rel=["']manifest["'][^>]*href=["'])[^"']+["']/,
+        '$1/manifest-assets.json"'
+      );
+      // Swap apple-mobile-web-app-title
+      html = html.replace(
+        /(<meta\s[^>]*name=["']apple-mobile-web-app-title["'][^>]*content=["'])[^"']+(["'])/,
+        '$1Studio Assets$2'
+      );
+      // Swap application-name
+      html = html.replace(
+        /(<meta\s[^>]*name=["']application-name["'][^>]*content=["'])[^"']+(["'])/,
+        '$1Studio Assets$2'
+      );
+      // Swap page title
+      html = html.replace(/<title>[^<]*<\/title>/, "<title>Studio Assets</title>");
+
+      res.status(200).set("Content-Type", "text/html").end(html);
+    } catch (e) {
+      res.status(500).send("Failed to load page.");
+    }
+  });
+
   // Middleware to check if user is authenticated
   const isAuthenticated = (req: Request, res: Response, next: Function) => {
     if (req.isAuthenticated()) {
