@@ -605,6 +605,7 @@ export default function MobileAssetsPage() {
   });
   const [pendingPhotos, setPendingPhotos] = useState<string[]>([]);
   const [pendingPhotoLoading, setPendingPhotoLoading] = useState(false);
+  const [photoInputKey, setPhotoInputKey] = useState(0);
   const newAssetPhotoRef = useRef<HTMLInputElement>(null);
 
   // ── Queries ────────────────────────────────────────────────────────────────
@@ -1274,6 +1275,7 @@ export default function MobileAssetsPage() {
                 </span>
               </Label>
               <input
+                key={photoInputKey}
                 ref={newAssetPhotoRef}
                 type="file"
                 accept="image/*"
@@ -1289,11 +1291,12 @@ export default function MobileAssetsPage() {
                   try {
                     const compressed = await compressImage(file);
                     setPendingPhotos(prev => [...prev, compressed]);
+                    // Force-remount the input so iOS/Android always opens the picker fresh
+                    setPhotoInputKey(k => k + 1);
                   } catch {
                     toast({ title: "Couldn't process photo", variant: "destructive" });
                   } finally {
                     setPendingPhotoLoading(false);
-                    if (newAssetPhotoRef.current) newAssetPhotoRef.current.value = "";
                   }
                 }}
               />
