@@ -3851,6 +3851,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ─── Asset Photos ─────────────────────────────────────────────────────────────
+  // Batch: first photo per asset (for list thumbnails) — must be before /:id/photos
+  app.get("/api/assets/photos/first", isAuthenticated, async (req, res) => {
+    try {
+      const rows = await storage.getFirstPhotoPerAsset();
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching first photos:", error);
+      res.status(500).json({ message: "Failed to fetch photos" });
+    }
+  });
+
   app.get("/api/assets/:id/photos", isAuthenticated, async (req, res) => {
     try {
       const assetId = parseInt(req.params.id);
