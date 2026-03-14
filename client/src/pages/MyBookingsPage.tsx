@@ -1,19 +1,271 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Header } from "@/components/layout/Header";
 import { useQuery } from "@tanstack/react-query";
 import { Studio, Booking } from "@shared/schema";
 import { formatDateTimeRange } from "@/lib/dateUtils";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import BookingModal from "@/components/booking/BookingModal";
 import { useAuth } from "@/hooks/useAuth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format } from "date-fns";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { format, isToday, isTomorrow, isThisWeek, startOfWeek, endOfWeek, addWeeks, isSameWeek, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import {
+  CalendarDays, Clock, MapPin, User, Users, Pencil, ChevronRight,
+  CalendarClock, Building2, TrendingUp, Loader2, AlertCircle, CheckCircle2
+} from "lucide-react";
 
+// ── Helpers ────────────────────────────────────────────────────────────────────
+const TYPE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
+  production:  { bg: "bg-blue-500/15 border-blue-500/30",   text: "text-blue-400",   dot: "bg-blue-400" },
+  maintenance: { bg: "bg-amber-500/15 border-amber-500/30", text: "text-amber-400",  dot: "bg-amber-400" },
+  it_support:  { bg: "bg-red-500/15 border-red-500/30",     text: "text-red-400",    dot: "bg-red-400" },
+  rehearsal:   { bg: "bg-purple-500/15 border-purple-500/30",text: "text-purple-400",dot: "bg-purple-400" },
+  meeting:     { bg: "bg-teal-500/15 border-teal-500/30",   text: "text-teal-400",   dot: "bg-teal-400" },
+  default:     { bg: "bg-gray-500/15 border-gray-500/30",   text: "text-gray-400",   dot: "bg-gray-400" },
+};
+
+const getTypeColor = (type: string) => TYPE_COLORS[type] ?? TYPE_COLORS.default;
+
+const formatType = (type: string) =>
+  type.replace("_", " ").split(" ").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+
+function getAccentColor(booking: any): string {
+  if (booking.color) return booking.color;
+  const map: Record<string, string> = {
+    production: "#3b82f6", maintenance: "#f59e0b", it_support: "#ef4444",
+    rehearsal: "#a855f7", meeting: "#14b8a6",
+  };
+  return map[booking.type] ?? "#6b7280";
+}
+
+// Group upcoming bookings into labeled date buckets
+function groupBookings(bookings: Booking[]) {
+  const now = new Date();
+  const groups: { label: string; bookings: Booking[] }[] = [];
+
+  const todayItems = bookings.filter(b => isToday(new Date(b.start)));
+  const tomorrowItems = bookings.filter(b => isTomorrow(new Date(b.start)));
+  const thisWeekItems = bookings.filter(b => {
+    const d = new Date(b.start);
+    return isThisWeek(d, { weekStartsOn: 0 }) && !isToday(d) && !isTomorrow(d);
+  });
+  const nextWeekItems = bookings.filter(b => {
+    const d = new Date(b.start);
+    return isSameWeek(d, addWeeks(now, 1), { weekStartsOn: 0 });
+  });
+  const laterItems = bookings.filter(b => {
+    const d = new Date(b.start);
+    return !isToday(d) && !isTomorrow(d) &&
+      !isThisWeek(d, { weekStartsOn: 0 }) &&
+      !isSameWeek(d, addWeeks(now, 1), { weekStartsOn: 0 });
+  });
+
+  if (todayItems.length)    groups.push({ label: "Today",     bookings: todayItems });
+  if (tomorrowItems.length) groups.push({ label: "Tomorrow",  bookings: tomorrowItems });
+  if (thisWeekItems.length) groups.push({ label: "This Week", bookings: thisWeekItems });
+  if (nextWeekItems.length) groups.push({ label: "Next Week", bookings: nextWeekItems });
+  if (laterItems.length)    groups.push({ label: "Later",     bookings: laterItems });
+
+  return groups;
+}
+
+// ── Booking card ───────────────────────────────────────────────────────────────
+function BookingCard({
+  booking, getStudioName, getUserName, onEdit, isPast = false, creatorLabel
+}: {
+  booking: any; getStudioName: (id: number) => string; getUserName: (id: number) => string;
+  onEdit: (id: number) => void; isPast?: boolean; creatorLabel?: string;
+}) {
+  const accent = getAccentColor(booking);
+  const tc = getTypeColor(booking.type);
+  const isCancelled = booking.status === "cancelled";
+  const isTentative = booking.status === "tentative";
+  const startDate = new Date(booking.start);
+
+  return (
+    <div
+      className={cn(
+        "group relative flex rounded-xl border overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5",
+        "bg-white dark:bg-gray-800/80 border-gray-200 dark:border-gray-700",
+        isCancelled && "opacity-55",
+        isPast && "opacity-70",
+      )}
+    >
+      {/* Left accent bar */}
+      <div className="w-1.5 shrink-0" style={{ backgroundColor: accent }} />
+
+      {/* Date badge */}
+      <div className="flex flex-col items-center justify-center px-3 py-3 border-r border-gray-100 dark:border-gray-700 min-w-[52px]">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+          {format(startDate, "EEE")}
+        </span>
+        <span className="text-2xl font-black leading-none text-gray-800 dark:text-white">
+          {format(startDate, "d")}
+        </span>
+        <span className="text-[10px] text-gray-400 dark:text-gray-500">
+          {format(startDate, "MMM")}
+        </span>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 p-3 min-w-0">
+        <div className="flex items-start justify-between gap-2 mb-1.5">
+          <h3 className={cn(
+            "font-semibold text-sm text-gray-900 dark:text-white leading-tight line-clamp-2",
+            isCancelled && "line-through text-red-500"
+          )}>
+            {booking.title}
+          </h3>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <span className={cn(
+              "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap",
+              tc.bg, tc.text
+            )}>
+              <span className={cn("h-1.5 w-1.5 rounded-full", tc.dot)} />
+              {formatType(booking.type)}
+            </span>
+            {isCancelled && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400">
+                Cancelled
+              </span>
+            )}
+            {isTentative && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-400">
+                Tentative
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+            <Clock className="h-3 w-3 shrink-0" />
+            <span>{formatDateTimeRange(booking.start, booking.end)}</span>
+          </div>
+          {booking.studioId && (
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              <Building2 className="h-3 w-3 shrink-0" />
+              <span>{getStudioName(booking.studioId)}</span>
+            </div>
+          )}
+          {creatorLabel && (
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              <User className="h-3 w-3 shrink-0" />
+              <span>{creatorLabel}</span>
+            </div>
+          )}
+          {booking.description && (
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 italic line-clamp-1 mt-1">
+              {booking.description}
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-end mt-2">
+          <button
+            onClick={() => onEdit(booking.id)}
+            className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+          >
+            <Pencil className="h-3 w-3" />
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Stat card ──────────────────────────────────────────────────────────────────
+function StatCard({ icon: Icon, label, value, color }: {
+  icon: any; label: string; value: string | number; color: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
+      <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center shrink-0", color)}>
+        <Icon className="h-4.5 w-4.5" />
+      </div>
+      <div>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+        <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Grouped booking list ───────────────────────────────────────────────────────
+function GroupedBookingList({ bookings, getStudioName, getUserName, onEdit, showCreator }: {
+  bookings: Booking[]; getStudioName: (id: number) => string; getUserName: (id: number) => string;
+  onEdit: (id: number) => void; showCreator?: boolean;
+}) {
+  const groups = useMemo(() => groupBookings(bookings), [bookings]);
+
+  if (groups.length === 0) return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <CalendarDays className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
+      <p className="text-gray-500 dark:text-gray-400 font-medium">No upcoming bookings</p>
+      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Your future bookings will appear here</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {groups.map(group => (
+        <div key={group.label}>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{group.label}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+              {group.bookings.length}
+            </span>
+            <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700/60" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {group.bookings.map(b => (
+              <BookingCard
+                key={b.id}
+                booking={b}
+                getStudioName={getStudioName}
+                getUserName={getUserName}
+                onEdit={onEdit}
+                creatorLabel={showCreator ? getUserName(b.userId) : undefined}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Flat booking list (past / admin) ───────────────────────────────────────────
+function FlatBookingList({ bookings, getStudioName, getUserName, onEdit, isPast, showCreator }: {
+  bookings: Booking[]; getStudioName: (id: number) => string; getUserName: (id: number) => string;
+  onEdit: (id: number) => void; isPast?: boolean; showCreator?: boolean;
+}) {
+  if (bookings.length === 0) return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <CalendarDays className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
+      <p className="text-gray-500 dark:text-gray-400 font-medium">No bookings found</p>
+    </div>
+  );
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {bookings.map(b => (
+        <BookingCard
+          key={b.id}
+          booking={b}
+          getStudioName={getStudioName}
+          getUserName={getUserName}
+          onEdit={onEdit}
+          isPast={isPast}
+          creatorLabel={showCreator ? getUserName(b.userId) : undefined}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Main page ──────────────────────────────────────────────────────────────────
 export default function MyBookingsPage() {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,786 +273,321 @@ export default function MyBookingsPage() {
   const [adminUpcomingPage, setAdminUpcomingPage] = useState(1);
   const [adminPastPage, setAdminPastPage] = useState(1);
   const [editBookingId, setEditBookingId] = useState<number | null>(null);
-  const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("personal");
+  const [activeTab, setActiveTab] = useState<"personal" | "team" | "admin">("personal");
+  const [personalSubTab, setPersonalSubTab] = useState<"upcoming" | "past">("upcoming");
+  const [adminSubTab, setAdminSubTab] = useState<"upcoming" | "past">("upcoming");
   const ITEMS_PER_PAGE = 50;
-  
-  // Fetch paginated user bookings from today forward
-  const { data: userBookingsData, isLoading, error, refetch } = useQuery<{ bookings: Booking[]; total: number; hasMore: boolean }>({
+
+  const { data: userBookingsData, isLoading } = useQuery<{ bookings: Booking[]; total: number; hasMore: boolean }>({
     queryKey: ["/api/bookings/user", { fromToday: true, page: currentPage, limit: 50 }],
     queryFn: async () => {
-      const response = await fetch(`/api/bookings/user?fromToday=true&page=${currentPage}&limit=50`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch user bookings');
-      }
-      return response.json();
+      const res = await fetch(`/api/bookings/user?fromToday=true&page=${currentPage}&limit=50`);
+      if (!res.ok) throw new Error("Failed to fetch user bookings");
+      return res.json();
     },
-    refetchOnWindowFocus: true,
-    staleTime: 30000,
+    refetchOnWindowFocus: true, staleTime: 30000,
   });
 
-  // Fetch team bookings
   const { data: teamBookingsData, isLoading: teamLoading } = useQuery<{ bookings: Booking[]; total: number; hasMore: boolean }>({
     queryKey: ["/api/bookings/team", { fromToday: true, page: teamCurrentPage, limit: 50 }],
     queryFn: async () => {
-      const response = await fetch(`/api/bookings/team?fromToday=true&page=${teamCurrentPage}&limit=50`);
-      if (!response.ok) {
-        // If endpoint doesn't exist or user has no teams, return empty data
-        if (response.status === 404) {
-          return { bookings: [], total: 0, hasMore: false };
-        }
-        throw new Error('Failed to fetch team bookings');
-      }
-      return response.json();
+      const res = await fetch(`/api/bookings/team?fromToday=true&page=${teamCurrentPage}&limit=50`);
+      if (!res.ok) return { bookings: [], total: 0, hasMore: false };
+      return res.json();
     },
-    refetchOnWindowFocus: true,
-    staleTime: 30000,
+    refetchOnWindowFocus: true, staleTime: 30000,
   });
 
-  // Check if user is admin or site manager for team functionality
   const isAdminOrSiteManager = user?.role === "admin" || user?.role === "site_manager";
 
-  // Fetch all bookings for admin view (separate from personal bookings)
   const { data: allBookingsData, isLoading: allBookingsLoading } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
-    queryFn: async () => {
-      const response = await fetch('/api/bookings');
-      if (!response.ok) {
-        throw new Error('Failed to fetch all bookings');
-      }
-      return response.json();
-    },
     enabled: isAdminOrSiteManager,
-    refetchOnWindowFocus: true,
-    staleTime: 30000,
+    refetchOnWindowFocus: true, staleTime: 30000,
   });
 
-  // Process all bookings for admin view (separate from personal bookings)
-  const allBookingsProcessed = allBookingsData || [];
-  const allUpcomingBookings = allBookingsProcessed.filter(booking => 
-    new Date(booking.end) >= new Date()
-  );
-  const allPastBookings = allBookingsProcessed.filter(booking => 
-    new Date(booking.end) < new Date()
-  );
-  
-  // Paginate admin view bookings client-side
-  const upcomingAllBookings = allUpcomingBookings.slice(
-    (adminUpcomingPage - 1) * ITEMS_PER_PAGE,
-    adminUpcomingPage * ITEMS_PER_PAGE
-  );
-  const pastAllBookings = allPastBookings.slice(
-    (adminPastPage - 1) * ITEMS_PER_PAGE,
-    adminPastPage * ITEMS_PER_PAGE
-  );
-  const totalUpcomingPages = Math.ceil(allUpcomingBookings.length / ITEMS_PER_PAGE);
-  const totalPastPages = Math.ceil(allPastBookings.length / ITEMS_PER_PAGE);
+  const { data: studios = [] } = useQuery<Studio[]>({ queryKey: ["/api/studios"] });
 
-  // Fetch user's teams to show team info
-  const { data: userTeams = [] } = useQuery({
-    queryKey: ["/api/teams/my"],
-    queryFn: async () => {
-      const response = await fetch('/api/teams/my');
-      if (!response.ok) {
-        if (response.status === 404) return [];
-        throw new Error('Failed to fetch teams');
-      }
-      return response.json();
-    },
-  });
-  
-  // Fetch studios to display names
-  const { data: studios = [] } = useQuery<Studio[]>({
-    queryKey: ["/api/studios"],
-  });
-  
-  // Fetch user names to display owner names
   const { data: allUsers = [] } = useQuery({
     queryKey: ["/api/users/names"],
     queryFn: async () => {
-      const response = await fetch('/api/users/names');
-      if (!response.ok) {
-        throw new Error('Failed to fetch user names');
-      }
-      return response.json();
+      const res = await fetch("/api/users/names");
+      if (!res.ok) throw new Error("Failed to fetch user names");
+      return res.json();
     },
   });
 
-  // Fetch user team memberships for accurate team name display
-  const { data: userTeamMemberships = {} } = useQuery({
-    queryKey: ["/api/users/team-memberships"],
-    queryFn: async () => {
-      const response = await fetch('/api/users/team-memberships');
-      if (!response.ok) {
-        throw new Error('Failed to fetch team memberships');
-      }
-      return response.json();
-    },
-  });
+  const getStudioName = (id: number) => studios.find(s => s.id === id)?.name ?? `Studio ${id}`;
+  const getUserName   = (id: number) => (allUsers as any[]).find(u => u.id === id)?.name ?? `User ${id}`;
 
-  // Get studio name by ID
-  const getStudioName = (studioId: number) => {
-    const studio = studios.find(s => s.id === studioId);
-    return studio ? studio.name : `Studio ${studioId}`;
-  };
+  const userBookings    = userBookingsData?.bookings ?? [];
+  const totalBookings   = userBookingsData?.total ?? 0;
+  const allBookings     = allBookingsData ?? [];
+  const now             = new Date();
 
-  // Get user name by ID
-  const getUserName = (userId: number) => {
-    const userRecord = allUsers.find((u: any) => u.id === userId);
-    return userRecord ? userRecord.name : `User ${userId}`;
-  };
+  const upcomingBookings = userBookings.filter(b => new Date(b.end) >= now);
+  const pastBookings     = userBookings.filter(b => new Date(b.end) < now);
 
-  // Get team name for a booking - find which team the booking belongs to
-  const getTeamNameForBooking = (booking: any) => {
-    // Check if this booking appears in team bookings
-    const teamBookingsList = teamBookingsData?.bookings || [];
-    const isTeamBooking = teamBookingsList.some(tb => tb.id === booking.id);
-    
-    if (!isTeamBooking) return null;
-    
-    // Get the teams that the booking creator belongs to
-    const creatorTeams = userTeamMemberships[booking.userId] || [];
-    
-    if (creatorTeams.length === 0) return "Team Booking";
-    
-    // If the creator is part of multiple teams, show all teams or the most relevant one
-    if (creatorTeams.length === 1) {
-      return creatorTeams[0].name;
-    } else {
-      // For multiple teams, show the first one but could be enhanced to show all
-      // or determine which team the booking was made for specifically
-      return creatorTeams[0].name + (creatorTeams.length > 1 ? " (Multi-team)" : "");
-    }
-  };
+  const allUpcoming = allBookings.filter(b => new Date(b.end) >= now);
+  const allPast     = allBookings.filter(b => new Date(b.end) < now);
 
-  // Get color for booking type
-  const getBookingTypeColor = (type: string) => {
-    switch (type) {
-      case "production":
-        return "bg-blue-100 text-blue-800 border-blue-300";
-      case "maintenance":
-        return "bg-amber-100 text-amber-800 border-amber-300";
-      case "it_support":
-        return "bg-red-100 text-red-800 border-red-300";
-      case "rehearsal":
-        return "bg-purple-100 text-purple-800 border-purple-300";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
-    }
-  };
+  const upcomingAllPaged = allUpcoming.slice((adminUpcomingPage - 1) * ITEMS_PER_PAGE, adminUpcomingPage * ITEMS_PER_PAGE);
+  const pastAllPaged     = allPast.slice((adminPastPage - 1) * ITEMS_PER_PAGE, adminPastPage * ITEMS_PER_PAGE);
+  const totalUpcomingPages = Math.ceil(allUpcoming.length / ITEMS_PER_PAGE);
+  const totalPastPages     = Math.ceil(allPast.length / ITEMS_PER_PAGE);
 
-  // Format booking type for display
-  const formatBookingType = (type: string) => {
-    return type.replace("_", " ").split(" ").map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(" ");
-  };
+  // Next booking info
+  const nextBooking = upcomingBookings[0];
+  const thisWeekCount = upcomingBookings.filter(b => isThisWeek(new Date(b.start), { weekStartsOn: 0 })).length;
 
-  // Function to get booking color - use assigned color if available, fallback to type color
-  const getBookingColor = (booking: any) => {
-    if (booking.color) {
-      // Return the actual assigned color as inline style
-      return {
-        backgroundColor: booking.color,
-        borderColor: booking.color
-      };
-    }
-    // Fallback to type-based color for the top border
-    return null; // Use default CSS classes
-  };
-
-  // Function to get the color stripe class or style for the top of booking cards
-  const getBookingStripeStyle = (booking: any) => {
-    if (booking.color) {
-      return {
-        backgroundColor: booking.color
-      };
-    }
-    // Extract just the background color class for the stripe
-    const typeColorClasses = getBookingTypeColor(booking.type);
-    const bgClass = typeColorClasses.split(' ')[0]; // Get bg-xxx-xxx part
-    return { className: bgClass };
-  };
-
-  // Handle delete booking
-  const handleDeleteBooking = async (id: number) => {
-    if (confirm("Are you sure you want to delete this booking?")) {
-      try {
-        const response = await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
-        if (response.ok) {
-          // Trigger a refetch of the current page
-          await refetch();
-        } else {
-          throw new Error('Failed to delete booking');
-        }
-      } catch (error) {
-        console.error('Error deleting booking:', error);
-      }
-    }
-  };
-
-  // Get bookings and pagination info
-  const userBookings = userBookingsData?.bookings || [];
-  const totalBookings = userBookingsData?.total || 0;
-  const hasMore = userBookingsData?.hasMore || false;
-  
-  // Separate into current and future vs past
-  const currentTime = new Date();
-  const upcomingBookings = userBookings.filter(booking => 
-    new Date(booking.end) >= currentTime
-  );
-  
-  const pastBookings = userBookings.filter(booking => 
-    new Date(booking.end) < currentTime
-  );
-
-  // Find the booking to edit - search across all available booking arrays based on active tab
   const bookingToEdit = (() => {
     if (!editBookingId) return undefined;
-    
-    // Search in user bookings first
-    let found = userBookings.find(booking => booking.id === editBookingId);
-    if (found) return found;
-    
-    // Search in team bookings if available
-    const teamBookings = teamBookingsData?.bookings || [];
-    found = teamBookings.find(booking => booking.id === editBookingId);
-    if (found) return found;
-    
-    // Search in all bookings for admin view
-    if (isAdminOrSiteManager) {
-      found = allBookingsProcessed.find(booking => booking.id === editBookingId);
-      if (found) return found;
-    }
-    
-    return undefined;
+    return userBookings.find(b => b.id === editBookingId)
+      ?? (teamBookingsData?.bookings ?? []).find(b => b.id === editBookingId)
+      ?? allBookings.find(b => b.id === editBookingId);
   })();
 
+  // ── Tab config ──────────────────────────────────────────────────────────────
+  const tabs = [
+    { key: "personal" as const, label: "My Bookings", count: totalBookings },
+    { key: "team"     as const, label: "Team Bookings", count: teamBookingsData?.total ?? 0 },
+    ...(isAdminOrSiteManager ? [{ key: "admin" as const, label: "All Bookings", count: allBookings.length }] : []),
+  ];
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header
-        currentDate={new Date()}
-        onDateChange={() => {}}
-        view="week"
-        onViewChange={() => {}}
-        title="My Bookings"
-        showViewToggle={false}
-        hideNavigation={true}
+        currentDate={new Date()} onDateChange={() => {}} view="week" onViewChange={() => {}}
+        title="My Bookings" showViewToggle={false} hideNavigation={true}
       />
-      
-      <div className="w-full px-4 pb-16 overflow-auto">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
-          <div className="mb-6">
+
+      <div className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 pb-16 space-y-6">
+
+        {/* ── Page title + stats ─────────────────────────────────────────── */}
+        <div className="space-y-4">
+          <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Bookings</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              View your personal bookings and team member bookings
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              {user?.name ? `Welcome back, ${user.name.split(" ")[0]}` : "Your studio schedule"}
             </p>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList>
-              <TabsTrigger value="personal">
-                My Bookings ({totalBookings})
-              </TabsTrigger>
-              <TabsTrigger value="team">
-                Team Bookings ({teamBookingsData?.total || 0})
-              </TabsTrigger>
-              {isAdminOrSiteManager && (
-                <TabsTrigger value="admin">
-                  Admin View (All Bookings)
-                </TabsTrigger>
+          {/* Stats row */}
+          {activeTab === "personal" && !isLoading && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <StatCard
+                icon={CalendarClock}
+                label="Upcoming"
+                value={upcomingBookings.length}
+                color="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+              />
+              <StatCard
+                icon={TrendingUp}
+                label="This Week"
+                value={thisWeekCount}
+                color="bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400"
+              />
+              {nextBooking ? (
+                <StatCard
+                  icon={CheckCircle2}
+                  label="Next booking"
+                  value={isToday(new Date(nextBooking.start)) ? "Today" : isTomorrow(new Date(nextBooking.start)) ? "Tomorrow" : format(new Date(nextBooking.start), "EEE, MMM d")}
+                  color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                />
+              ) : (
+                <StatCard
+                  icon={CalendarDays}
+                  label="Past bookings"
+                  value={pastBookings.length}
+                  color="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                />
               )}
-            </TabsList>
-            
-            <TabsContent value="personal">
-              <div className="mb-4">
-                <Tabs defaultValue="upcoming" className="w-full">
-                  <TabsList>
-                    <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                    <TabsTrigger value="past">Past</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="upcoming">
-                    {isLoading ? (
-                      <div className="flex justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                      </div>
-                    ) : upcomingBookings.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        You don't have any upcoming bookings.
-                      </div>
-                    ) : (
-                      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {upcomingBookings.map(booking => {
-                          const stripeStyle = getBookingStripeStyle(booking);
-                          const isCancelled = booking.status === 'cancelled';
-                          const isTentative = booking.status === 'tentative';
-                          
-                          return (
-                            <Card key={booking.id} className={cn(
-                              "overflow-hidden",
-                              isCancelled && "opacity-60 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700",
-                              isTentative && "border-dashed opacity-80 bg-yellow-50 dark:bg-yellow-900/30"
-                            )}>
-                              <div 
-                                className={`h-2 ${stripeStyle.className || ''}`}
-                                style={stripeStyle.className ? {} : stripeStyle}
-                              ></div>
-                              <CardContent className="p-3">
-                                <div className="flex justify-between items-start mb-1">
-                                  <h3 className={cn(
-                                    "font-semibold text-sm",
-                                    isCancelled && "line-through text-red-600"
-                                  )}>
-                                    {booking.title}
-                                  </h3>
-                                  <div className="flex gap-1">
-                                    <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
-                                      {formatBookingType(booking.type)}
-                                    </Badge>
-                                    {booking.status !== 'confirmed' && (
-                                      <Badge variant={
-                                        booking.status === 'cancelled' ? 'destructive' : 
-                                        booking.status === 'tentative' ? 'secondary' : 'outline'
-                                      } className="text-xs px-1.5 py-0">
-                                        {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-xs text-green-600">Created by you</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                                <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
-                                {booking.description && (
-                                  <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
-                                )}
-                                <div className="flex justify-end space-x-1 mt-2">
-                                  <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
-                                    Edit
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="past">
-                    {isLoading ? (
-                      <div className="flex justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                      </div>
-                    ) : pastBookings.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        You don't have any past bookings.
-                      </div>
-                    ) : (
-                      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {pastBookings.map(booking => {
-                          const stripeStyle = getBookingStripeStyle(booking);
-                          const isCancelled = booking.status === 'cancelled';
-                          const isTentative = booking.status === 'tentative';
-                          
-                          return (
-                            <Card key={booking.id} className={cn(
-                              "overflow-hidden opacity-75",
-                              isCancelled && "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700",
-                              isTentative && "border-dashed bg-yellow-50 dark:bg-yellow-900/30"
-                            )}>
-                              <div 
-                                className={`h-2 ${stripeStyle.className || ''}`}
-                                style={stripeStyle.className ? {} : stripeStyle}
-                              ></div>
-                              <CardContent className="p-3">
-                                <div className="flex justify-between items-start mb-1">
-                                  <h3 className={cn(
-                                    "font-semibold text-sm",
-                                    isCancelled && "line-through text-red-600"
-                                  )}>
-                                    {booking.title}
-                                  </h3>
-                                  <div className="flex gap-1">
-                                    <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
-                                      {formatBookingType(booking.type)}
-                                    </Badge>
-                                    {booking.status !== 'confirmed' && (
-                                      <Badge variant={
-                                        booking.status === 'cancelled' ? 'destructive' : 
-                                        booking.status === 'tentative' ? 'secondary' : 'outline'
-                                      } className="text-xs px-1.5 py-0">
-                                        {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-xs text-green-600">Created by you</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                                <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
-                                {booking.description && (
-                                  <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
-                                )}
-                                <div className="flex justify-end mt-2">
-                                  <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
-                                    Edit
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="team">
-              <div className="mb-4">
-                {teamLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                  </div>
-                ) : (teamBookingsData?.bookings || []).length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <p>No team bookings found.</p>
-                    {userTeams.length === 0 && (
-                      <p className="text-sm mt-2">You're not part of any teams yet.</p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                      {(teamBookingsData?.bookings || []).map(booking => {
-                        const stripeStyle = getBookingStripeStyle(booking);
-                        const isCancelled = booking.status === 'cancelled';
-                        const isTentative = booking.status === 'tentative';
-                        
-                        return (
-                          <Card key={booking.id} className={cn(
-                            "overflow-hidden border-l-4 border-blue-500",
-                            isCancelled && "opacity-60 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700",
-                            isTentative && "border-dashed opacity-80 bg-yellow-50 dark:bg-yellow-900/30"
-                          )}>
-                            <div 
-                              className={`h-2 ${stripeStyle.className || ''}`}
-                              style={stripeStyle.className ? {} : stripeStyle}
-                            ></div>
-                            <CardContent className="p-3">
-                              <div className="flex justify-between items-start mb-1">
-                                <h3 className={cn(
-                                  "font-semibold text-sm",
-                                  isCancelled && "line-through text-red-600"
-                                )}>
-                                  {booking.title}
-                                </h3>
-                                <div className="flex gap-1">
-                                  <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
-                                    {formatBookingType(booking.type)}
-                                  </Badge>
-                                  {booking.status !== 'confirmed' && (
-                                    <Badge variant={
-                                      booking.status === 'cancelled' ? 'destructive' : 
-                                      booking.status === 'tentative' ? 'secondary' : 'outline'
-                                    } className="text-xs px-1.5 py-0">
-                                      {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                              <p className="text-xs text-blue-600">
-                                Created by {getUserName(booking.userId)} • {getTeamNameForBooking(booking) || "Team Booking"}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                              <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
-                              {booking.description && (
-                                <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
-                              )}
-                              <div className="flex justify-end mt-2">
-                                <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
-                                  Edit
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Team Bookings Pagination */}
-                    {(teamBookingsData?.total || 0) > 50 && (
-                      <div className="flex justify-between items-center mt-6 pt-6 border-t">
-                        <div className="text-sm text-gray-600 dark:text-gray-300">
-                          Page {teamCurrentPage} • Showing {(teamBookingsData?.bookings || []).length} of {teamBookingsData?.total || 0} team bookings
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setTeamCurrentPage(teamCurrentPage - 1)}
-                            disabled={teamCurrentPage === 1}
-                          >
-                            <ChevronLeft className="h-4 w-4 mr-1" />
-                            Previous
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setTeamCurrentPage(teamCurrentPage + 1)}
-                            disabled={!(teamBookingsData?.hasMore)}
-                          >
-                            Next
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-            
-            {/* Admin View Tab - Shows All System Bookings */}
-            {isAdminOrSiteManager && (
-              <TabsContent value="admin">
-                <div className="mb-4">
-                  <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 p-4 rounded-lg mb-6">
-                    <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-1">Admin View</h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-400">Viewing all bookings in the system. This view is only available to administrators and site managers.</p>
-                  </div>
-                  
-                  <Tabs defaultValue="upcoming" className="w-full">
-                    <TabsList>
-                      <TabsTrigger value="upcoming">Upcoming ({allUpcomingBookings.length})</TabsTrigger>
-                      <TabsTrigger value="past">Past ({allPastBookings.length})</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="upcoming">
-                      {allBookingsLoading ? (
-                        <div className="flex justify-center py-8">
-                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                        </div>
-                      ) : upcomingAllBookings.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                          No upcoming bookings found in the system.
-                        </div>
-                      ) : (
-                        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                          {upcomingAllBookings.map(booking => {
-                            const stripeStyle = getBookingStripeStyle(booking);
-                            const isOwner = booking.userId === user?.id;
-                            const isCancelled = booking.status === 'cancelled';
-                            const isTentative = booking.status === 'tentative';
-                            
-                            return (
-                              <Card key={booking.id} className={cn(
-                                "overflow-hidden border-l-4 border-purple-500",
-                                isCancelled && "opacity-60 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700",
-                                isTentative && "border-dashed opacity-80 bg-yellow-50 dark:bg-yellow-900/30"
-                              )}>
-                                <div 
-                                  className={`h-2 ${stripeStyle.className || ''}`}
-                                  style={stripeStyle.className ? {} : stripeStyle}
-                                ></div>
-                                <CardContent className="p-3">
-                                  <div className="flex justify-between items-start mb-1">
-                                    <h3 className={cn(
-                                      "font-semibold text-sm",
-                                      isCancelled && "line-through text-red-600"
-                                    )}>
-                                      {booking.title}
-                                    </h3>
-                                    <div className="flex gap-1">
-                                      <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
-                                        {formatBookingType(booking.type)}
-                                      </Badge>
-                                      {booking.status !== 'confirmed' && (
-                                        <Badge variant={
-                                          booking.status === 'cancelled' ? 'destructive' : 
-                                          booking.status === 'tentative' ? 'secondary' : 'outline'
-                                        } className="text-xs px-1.5 py-0">
-                                          {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <p className="text-xs text-purple-600">
-                                    {isOwner ? "Created by you" : `Created by ${getUserName(booking.userId)}`} • Admin View
-                                  </p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                                  <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
-                                  {booking.description && (
-                                    <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
-                                  )}
-                                  <div className="flex justify-end mt-2">
-                                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
-                                      Edit
-                                    </Button>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {/* Upcoming Admin Pagination */}
-                      {allUpcomingBookings.length > ITEMS_PER_PAGE && (
-                        <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                          <div className="text-sm text-gray-600 dark:text-gray-300">
-                            Page {adminUpcomingPage} of {totalUpcomingPages} • Showing {(adminUpcomingPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(adminUpcomingPage * ITEMS_PER_PAGE, allUpcomingBookings.length)} of {allUpcomingBookings.length}
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => setAdminUpcomingPage(adminUpcomingPage - 1)} disabled={adminUpcomingPage === 1}>
-                              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => setAdminUpcomingPage(adminUpcomingPage + 1)} disabled={adminUpcomingPage >= totalUpcomingPages}>
-                              Next <ChevronRight className="h-4 w-4 ml-1" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="past">
-                      {allBookingsLoading ? (
-                        <div className="flex justify-center py-8">
-                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                        </div>
-                      ) : pastAllBookings.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                          No past bookings found in the system.
-                        </div>
-                      ) : (
-                        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                          {pastAllBookings.map(booking => {
-                            const stripeStyle = getBookingStripeStyle(booking);
-                            const isOwner = booking.userId === user?.id;
-                            const isCancelled = booking.status === 'cancelled';
-                            const isTentative = booking.status === 'tentative';
-                            
-                            return (
-                              <Card key={booking.id} className={cn(
-                                "overflow-hidden opacity-75 border-l-4 border-purple-500",
-                                isCancelled && "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700",
-                                isTentative && "border-dashed bg-yellow-50 dark:bg-yellow-900/30"
-                              )}>
-                                <div 
-                                  className={`h-2 ${stripeStyle.className || ''}`}
-                                  style={stripeStyle.className ? {} : stripeStyle}
-                                ></div>
-                                <CardContent className="p-3">
-                                  <div className="flex justify-between items-start mb-1">
-                                    <h3 className={cn(
-                                      "font-semibold text-sm",
-                                      isCancelled && "line-through text-red-600"
-                                    )}>
-                                      {booking.title}
-                                    </h3>
-                                    <div className="flex gap-1">
-                                      <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getBookingTypeColor(booking.type))}>
-                                        {formatBookingType(booking.type)}
-                                      </Badge>
-                                      {booking.status !== 'confirmed' && (
-                                        <Badge variant={
-                                          booking.status === 'cancelled' ? 'destructive' : 
-                                          booking.status === 'tentative' ? 'secondary' : 'outline'
-                                        } className="text-xs px-1.5 py-0">
-                                          {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <p className="text-xs text-purple-600">
-                                    {isOwner ? "Created by you" : `Created by ${getUserName(booking.userId)}`} • Admin View
-                                  </p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">{booking.studioId ? getStudioName(booking.studioId) : 'No Studio Assigned'}</p>
-                                  <p className="text-xs mb-1">{formatDateTimeRange(booking.start, booking.end)}</p>
-                                  {booking.description && (
-                                    <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{booking.description}</p>
-                                  )}
-                                  <div className="flex justify-end mt-2">
-                                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => setEditBookingId(booking.id)}>
-                                      Edit
-                                    </Button>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {/* Past Admin Pagination */}
-                      {allPastBookings.length > ITEMS_PER_PAGE && (
-                        <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                          <div className="text-sm text-gray-600 dark:text-gray-300">
-                            Page {adminPastPage} of {totalPastPages} • Showing {(adminPastPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(adminPastPage * ITEMS_PER_PAGE, allPastBookings.length)} of {allPastBookings.length}
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => setAdminPastPage(adminPastPage - 1)} disabled={adminPastPage === 1}>
-                              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => setAdminPastPage(adminPastPage + 1)} disabled={adminPastPage >= totalPastPages}>
-                              Next <ChevronRight className="h-4 w-4 ml-1" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              </TabsContent>
-            )}
-
-          </Tabs>
-          
-          {/* Pagination Controls */}
-          {totalBookings > 50 && (
-            <div className="flex justify-between items-center mt-6 pt-6 border-t">
-              <div className="text-sm text-gray-600 dark:text-gray-300">
-                Page {currentPage} • Showing {userBookings.length} of {totalBookings} bookings
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={!hasMore}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
             </div>
           )}
         </div>
+
+        {/* ── Main tabs ─────────────────────────────────────────────────── */}
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="flex gap-1 -mb-px">
+            {tabs.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                  activeTab === tab.key
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300"
+                )}
+              >
+                {tab.label}
+                <span className={cn(
+                  "text-xs px-1.5 py-0.5 rounded-full font-semibold",
+                  activeTab === tab.key
+                    ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                )}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* ── Personal tab ──────────────────────────────────────────────── */}
+        {activeTab === "personal" && (
+          <div className="space-y-4">
+            {/* Sub-tabs */}
+            <div className="flex gap-2">
+              {(["upcoming", "past"] as const).map(sub => (
+                <button
+                  key={sub}
+                  onClick={() => setPersonalSubTab(sub)}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
+                    personalSubTab === sub
+                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  )}
+                >
+                  {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                  <span className="ml-1.5 text-xs opacity-70">
+                    {sub === "upcoming" ? upcomingBookings.length : pastBookings.length}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            ) : personalSubTab === "upcoming" ? (
+              <GroupedBookingList
+                bookings={upcomingBookings}
+                getStudioName={getStudioName}
+                getUserName={getUserName}
+                onEdit={setEditBookingId}
+              />
+            ) : (
+              <FlatBookingList
+                bookings={pastBookings}
+                getStudioName={getStudioName}
+                getUserName={getUserName}
+                onEdit={setEditBookingId}
+                isPast
+              />
+            )}
+          </div>
+        )}
+
+        {/* ── Team tab ──────────────────────────────────────────────────── */}
+        {activeTab === "team" && (
+          <div>
+            {teamLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            ) : (teamBookingsData?.bookings ?? []).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Users className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 font-medium">No team bookings</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  Join a team to see your teammates' bookings here
+                </p>
+              </div>
+            ) : (
+              <GroupedBookingList
+                bookings={teamBookingsData?.bookings ?? []}
+                getStudioName={getStudioName}
+                getUserName={getUserName}
+                onEdit={setEditBookingId}
+                showCreator
+              />
+            )}
+          </div>
+        )}
+
+        {/* ── Admin tab ─────────────────────────────────────────────────── */}
+        {activeTab === "admin" && isAdminOrSiteManager && (
+          <div className="space-y-4">
+            {/* Sub-tabs */}
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                {(["upcoming", "past"] as const).map(sub => (
+                  <button
+                    key={sub}
+                    onClick={() => setAdminSubTab(sub)}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
+                      adminSubTab === sub
+                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    )}
+                  >
+                    {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                    <span className="ml-1.5 text-xs opacity-70">
+                      {sub === "upcoming" ? allUpcoming.length : allPast.length}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {/* Pagination info */}
+              {adminSubTab === "upcoming" && totalUpcomingPages > 1 && (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>Page {adminUpcomingPage} of {totalUpcomingPages}</span>
+                  <button disabled={adminUpcomingPage <= 1} onClick={() => setAdminUpcomingPage(p => p - 1)}
+                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">←</button>
+                  <button disabled={adminUpcomingPage >= totalUpcomingPages} onClick={() => setAdminUpcomingPage(p => p + 1)}
+                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">→</button>
+                </div>
+              )}
+              {adminSubTab === "past" && totalPastPages > 1 && (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>Page {adminPastPage} of {totalPastPages}</span>
+                  <button disabled={adminPastPage <= 1} onClick={() => setAdminPastPage(p => p - 1)}
+                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">←</button>
+                  <button disabled={adminPastPage >= totalPastPages} onClick={() => setAdminPastPage(p => p + 1)}
+                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">→</button>
+                </div>
+              )}
+            </div>
+
+            {allBookingsLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            ) : adminSubTab === "upcoming" ? (
+              <FlatBookingList
+                bookings={upcomingAllPaged}
+                getStudioName={getStudioName}
+                getUserName={getUserName}
+                onEdit={setEditBookingId}
+                showCreator
+              />
+            ) : (
+              <FlatBookingList
+                bookings={pastAllPaged}
+                getStudioName={getStudioName}
+                getUserName={getUserName}
+                onEdit={setEditBookingId}
+                isPast showCreator
+              />
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Edit Booking Modal */}
-      {bookingToEdit && (
+      {/* Booking edit modal */}
+      {editBookingId && bookingToEdit && (
         <BookingModal
-          isOpen={editBookingId !== null}
+          isOpen={!!editBookingId}
           onClose={() => setEditBookingId(null)}
           booking={bookingToEdit}
+          studios={studios}
+          onSave={() => setEditBookingId(null)}
         />
       )}
-
-      {/* New Booking Modal */}
-      <BookingModal
-        isOpen={isNewBookingModalOpen}
-        onClose={() => setIsNewBookingModalOpen(false)}
-        selectedDate={new Date()}
-      />
     </div>
   );
 }
