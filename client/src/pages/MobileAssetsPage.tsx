@@ -1286,7 +1286,7 @@ export default function MobileAssetsPage() {
                   {ocrResults.map(r => (
                     <button
                       key={r}
-                      onPointerDown={() => applyOcrResult(r)}
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); applyOcrResult(r); }}
                       className="w-full px-5 py-3.5 text-left flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-emerald-900/20 active:bg-emerald-100 transition-colors"
                     >
                       <span className="font-mono font-medium tracking-wide text-sm">{r}</span>
@@ -1299,17 +1299,13 @@ export default function MobileAssetsPage() {
               {/* Footer actions */}
               <div className="flex gap-2 p-4 border-t border-gray-100 dark:border-gray-800">
                 <button
-                  onPointerDown={() => {
-                    setOcrResults([]);
-                    setOcrProgress(0);
-                    openOcrCamera();
-                  }}
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOcrResults([]); setOcrProgress(0); openOcrCamera(); }}
                   className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
                 >
                   Scan again
                 </button>
                 <button
-                  onPointerDown={() => { setOcrPhase("idle"); setOcrTarget(null); setOcrResults([]); }}
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOcrPhase("idle"); setOcrTarget(null); setOcrResults([]); }}
                   className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
                 >
                   Cancel
