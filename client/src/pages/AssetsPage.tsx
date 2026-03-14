@@ -222,9 +222,19 @@ export default function AssetsPage() {
   });
 
   const { data: firstPhotos = [] } = useQuery<{ assetId: number; photoData: string }[]>({
-    queryKey: ["/api/assets/photos/first"],
+    queryKey: ["/api/assets/photos/first3"],
+    queryFn: async () => {
+      const res = await fetch("/api/assets/photos/first3");
+      if (!res.ok) throw new Error("Failed to fetch photos");
+      return res.json();
+    },
   });
-  const firstPhotoMap = Object.fromEntries(firstPhotos.map(p => [p.assetId, p.photoData]));
+  // Map assetId -> array of up to 3 photo data URLs
+  const firstPhotoMap: Record<number, string[]> = {};
+  for (const p of firstPhotos) {
+    if (!firstPhotoMap[p.assetId]) firstPhotoMap[p.assetId] = [];
+    firstPhotoMap[p.assetId].push(p.photoData);
+  }
 
   const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
@@ -254,7 +264,7 @@ export default function AssetsPage() {
       const photoData = await compressImage(file);
       await apiRequest("POST", `/api/assets/${editAsset.id}/photos`, { photoData });
       queryClient.invalidateQueries({ queryKey: ["/api/assets", editAsset.id, "photos"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/assets/photos/first"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assets/photos/first3"] });
       toast({ title: "Photo added" });
     } catch (err: any) {
       toast({ title: "Failed to add photo", description: err?.message, variant: "destructive" });
@@ -269,7 +279,7 @@ export default function AssetsPage() {
     try {
       await apiRequest("DELETE", `/api/assets/${editAsset.id}/photos/${photoId}`);
       queryClient.invalidateQueries({ queryKey: ["/api/assets", editAsset.id, "photos"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/assets/photos/first"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assets/photos/first3"] });
     } catch {
       toast({ title: "Failed to delete photo", variant: "destructive" });
     }
@@ -644,7 +654,7 @@ export default function AssetsPage() {
 
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[28px_2fr_96px_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="grid grid-cols-[28px_2fr_144px_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               <div className="flex items-center">
                 <Checkbox
                   checked={allAvailableSelected}
@@ -673,7 +683,7 @@ export default function AssetsPage() {
                   <ContextMenuTrigger asChild>
                     <div
                       className={cn(
-                        "grid grid-cols-[28px_2fr_96px_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none",
+                        "grid grid-cols-[28px_2fr_144px_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none",
                         selectedIds.has(asset.id) && "bg-emerald-50/60 dark:bg-emerald-900/10"
                       )}
                     >
@@ -709,25 +719,28 @@ export default function AssetsPage() {
                         </div>
                       </div>
 
-                      {/* Photo thumbnail */}
-                      <div className="flex items-center">
-                        {firstPhotoMap[asset.id] ? (
-                          <button
-                            onClick={e => { e.stopPropagation(); setViewPhoto(firstPhotoMap[asset.id]); }}
-                            className="relative group shrink-0"
-                            title="View photo"
-                          >
-                            <img
-                              src={firstPhotoMap[asset.id]}
-                              alt={asset.name}
-                              className="h-11 w-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600 group-hover:opacity-80 transition-opacity"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <ImageIcon className="h-4 w-4 text-white drop-shadow" />
-                            </div>
-                          </button>
+                      {/* Photo thumbnails (up to 3) */}
+                      <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                        {(firstPhotoMap[asset.id] ?? []).length > 0 ? (
+                          (firstPhotoMap[asset.id] ?? []).map((src, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setViewPhoto(src)}
+                              className="relative group shrink-0"
+                              title={`View photo ${i + 1}`}
+                            >
+                              <img
+                                src={src}
+                                alt={`${asset.name} photo ${i + 1}`}
+                                className="h-11 w-11 object-cover rounded-lg border border-gray-200 dark:border-gray-600 group-hover:opacity-80 transition-opacity"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg bg-black/20">
+                                <ImageIcon className="h-3.5 w-3.5 text-white drop-shadow" />
+                              </div>
+                            </button>
+                          ))
                         ) : (
-                          <div className="h-11 w-16 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                          <div className="h-11 w-11 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center">
                             <ImageIcon className="h-3.5 w-3.5 text-gray-300 dark:text-gray-600" />
                           </div>
                         )}

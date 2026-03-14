@@ -184,6 +184,7 @@ export interface IStorage {
   // Asset photos
   getAssetPhotos(assetId: number): Promise<AssetPhoto[]>;
   getFirstPhotoPerAsset(): Promise<{ assetId: number; photoData: string }[]>;
+  getFirstThreePhotosPerAsset(): Promise<{ assetId: number; photoData: string }[]>;
   addAssetPhoto(data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto>;
   deleteAssetPhoto(id: number): Promise<boolean>;
 
@@ -1105,6 +1106,7 @@ export class MemStorage implements IStorage {
 
   async getAssetPhotos(_assetId: number): Promise<AssetPhoto[]> { return []; }
   async getFirstPhotoPerAsset(): Promise<{ assetId: number; photoData: string }[]> { return []; }
+  async getFirstThreePhotosPerAsset(): Promise<{ assetId: number; photoData: string }[]> { return []; }
   async addAssetPhoto(_data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto> { throw new Error("Not implemented in MemStorage"); }
   async deleteAssetPhoto(_id: number): Promise<boolean> { return false; }
 }
@@ -4191,6 +4193,21 @@ export class DatabaseStorage implements IStorage {
       SELECT DISTINCT ON (asset_id) asset_id AS "assetId", photo_data AS "photoData"
       FROM asset_photos
       ORDER BY asset_id, id ASC
+    `);
+    return result.rows;
+  }
+
+  async getFirstThreePhotosPerAsset(): Promise<{ assetId: number; photoData: string }[]> {
+    const { pool } = await import("./db");
+    const result = await pool.query(`
+      SELECT asset_id AS "assetId", photo_data AS "photoData"
+      FROM (
+        SELECT asset_id, photo_data,
+               ROW_NUMBER() OVER (PARTITION BY asset_id ORDER BY id ASC) AS rn
+        FROM asset_photos
+      ) ranked
+      WHERE rn <= 3
+      ORDER BY asset_id, rn ASC
     `);
     return result.rows;
   }
