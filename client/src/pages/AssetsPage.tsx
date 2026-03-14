@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Asset, Booking } from "@shared/schema";
+import { Asset, Booking, AssetPhoto } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv } from "lucide-react";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type EnrichedCheckout = {
@@ -84,6 +84,29 @@ const EMPTY_FORM = {
 function formatBookingDate(dateStr: string | Date) {
   const d = new Date(dateStr as string);
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1200;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width >= height) { height = Math.round(height * MAX / width); width = MAX; }
+        else { width = Math.round(width * MAX / height); height = MAX; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.75));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Image load failed")); };
+    img.src = url;
+  });
 }
 
 type ProductionPickerProps = {
@@ -165,6 +188,11 @@ export default function AssetsPage() {
   const [bulkCheckoutOpen, setBulkCheckoutOpen] = useState(false);
   const [bulkForm, setBulkForm] = useState({ purpose: "", notes: "" });
 
+  // Photo state
+  const photoFileRef = useRef<HTMLInputElement>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [viewPhoto, setViewPhoto] = useState<string | null>(null);
+
   const canDelete = user?.role === "admin" || user?.role === "site_manager";
 
   const { data: assets = [], isLoading } = useQuery<Asset[]>({
@@ -184,6 +212,43 @@ export default function AssetsPage() {
     queryFn: () => fetch(`/api/assets/${historyAsset!.id}/checkouts`, { credentials: "include" }).then(r => r.json()),
     enabled: !!historyAsset,
   });
+
+  const { data: assetPhotos = [], isLoading: photosLoading } = useQuery<AssetPhoto[]>({
+    queryKey: ["/api/assets", editAsset?.id, "photos"],
+    queryFn: () => fetch(`/api/assets/${editAsset!.id}/photos`, { credentials: "include" }).then(r => r.json()),
+    enabled: !!editAsset,
+  });
+
+  const handlePhotoAdd = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editAsset) return;
+    if (assetPhotos.length >= 5) {
+      toast({ title: "Maximum 5 photos per asset", variant: "destructive" });
+      return;
+    }
+    setPhotoUploading(true);
+    try {
+      const photoData = await compressImage(file);
+      await apiRequest("POST", `/api/assets/${editAsset.id}/photos`, { photoData });
+      queryClient.invalidateQueries({ queryKey: ["/api/assets", editAsset.id, "photos"] });
+      toast({ title: "Photo added" });
+    } catch (err: any) {
+      toast({ title: "Failed to add photo", description: err?.message, variant: "destructive" });
+    } finally {
+      setPhotoUploading(false);
+      if (photoFileRef.current) photoFileRef.current.value = "";
+    }
+  };
+
+  const handlePhotoDelete = async (photoId: number) => {
+    if (!editAsset) return;
+    try {
+      await apiRequest("DELETE", `/api/assets/${editAsset.id}/photos/${photoId}`);
+      queryClient.invalidateQueries({ queryKey: ["/api/assets", editAsset.id, "photos"] });
+    } catch {
+      toast({ title: "Failed to delete photo", variant: "destructive" });
+    }
+  };
 
   const createAsset = useMutation({
     mutationFn: (data: typeof EMPTY_FORM) => apiRequest("POST", "/api/assets", data),
@@ -921,6 +986,60 @@ export default function AssetsPage() {
             </div>
           </div>
 
+          {/* Photos — only visible when editing an existing asset */}
+          {editAsset && (
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-1.5">
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  Photos
+                  <span className="text-xs text-muted-foreground font-normal">({assetPhotos.length}/5)</span>
+                </Label>
+                {assetPhotos.length < 5 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1.5"
+                    onClick={() => photoFileRef.current?.click()}
+                    disabled={photoUploading}
+                  >
+                    {photoUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                    Add photo
+                  </Button>
+                )}
+              </div>
+              <input ref={photoFileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoAdd} />
+              {photosLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : assetPhotos.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic py-2">No photos yet. Click "Add photo" to upload one.</p>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {assetPhotos.map(photo => (
+                    <div key={photo.id} className="relative group">
+                      <img
+                        src={photo.photoData}
+                        alt="Asset photo"
+                        className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => setViewPhoto(photo.photoData)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handlePhotoDelete(photo.id)}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <DialogFooter>
             <Button variant="outline" onClick={closeModal} disabled={isPending}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={isPending}>
@@ -1145,6 +1264,22 @@ export default function AssetsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Full-screen photo viewer */}
+      {viewPhoto && (
+        <div
+          className="fixed inset-0 z-[80] bg-black/95 flex items-center justify-center cursor-zoom-out"
+          onClick={() => setViewPhoto(null)}
+        >
+          <img src={viewPhoto} alt="Full view" className="max-w-full max-h-full object-contain" />
+          <button
+            className="absolute top-4 right-4 w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+            onClick={() => setViewPhoto(null)}
+          >
+            <X className="h-5 w-5 text-white" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

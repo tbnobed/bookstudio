@@ -16,6 +16,7 @@ import {
   teamMembers, type TeamMember, type InsertTeamMember,
   assets, type Asset, type InsertAsset,
   assetCheckouts, type AssetCheckout, type InsertAssetCheckout,
+  assetPhotos, type AssetPhoto,
   passwordResetTokens,
   inviteTokens
 } from "@shared/schema";
@@ -179,6 +180,11 @@ export interface IStorage {
   getAllActiveCheckouts(): Promise<AssetCheckout[]>;
   checkoutAsset(data: { assetId: number; checkedOutBy: number; purpose?: string; notes?: string }): Promise<AssetCheckout>;
   checkinAsset(assetId: number, checkedInBy: number): Promise<AssetCheckout | undefined>;
+
+  // Asset photos
+  getAssetPhotos(assetId: number): Promise<AssetPhoto[]>;
+  addAssetPhoto(data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto>;
+  deleteAssetPhoto(id: number): Promise<boolean>;
 
   // Session management
   sessionStore: session.Store;
@@ -1095,6 +1101,10 @@ export class MemStorage implements IStorage {
   async getAllActiveCheckouts(): Promise<AssetCheckout[]> { return []; }
   async checkoutAsset(_data: { assetId: number; checkedOutBy: number; purpose?: string; notes?: string }): Promise<AssetCheckout> { throw new Error("Not implemented in MemStorage"); }
   async checkinAsset(_assetId: number, _checkedInBy: number): Promise<AssetCheckout | undefined> { return undefined; }
+
+  async getAssetPhotos(_assetId: number): Promise<AssetPhoto[]> { return []; }
+  async addAssetPhoto(_data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto> { throw new Error("Not implemented in MemStorage"); }
+  async deleteAssetPhoto(_id: number): Promise<boolean> { return false; }
 }
 
 // Database storage implementation
@@ -4167,6 +4177,20 @@ export class DatabaseStorage implements IStorage {
       .returning();
     await db.update(assets).set({ status: "available", updatedAt: new Date() }).where(eq(assets.id, assetId));
     return updated;
+  }
+
+  async getAssetPhotos(assetId: number): Promise<AssetPhoto[]> {
+    return db.select().from(assetPhotos).where(eq(assetPhotos.assetId, assetId)).orderBy(asc(assetPhotos.createdAt));
+  }
+
+  async addAssetPhoto(data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto> {
+    const [photo] = await db.insert(assetPhotos).values(data).returning();
+    return photo;
+  }
+
+  async deleteAssetPhoto(id: number): Promise<boolean> {
+    const result = await db.delete(assetPhotos).where(eq(assetPhotos.id, id)).returning();
+    return result.length > 0;
   }
 }
 

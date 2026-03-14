@@ -504,3 +504,20 @@ export const insertAssetCheckoutSchema = createInsertSchema(assetCheckouts).omit
 export type AssetCheckout = typeof assetCheckouts.$inferSelect;
 export type InsertAssetCheckout = z.infer<typeof insertAssetCheckoutSchema>;
 
+// Asset Photos schema
+export const assetPhotos = pgTable("asset_photos", {
+  id: serial("id").primaryKey(),
+  assetId: integer("asset_id").notNull(),
+  photoData: text("photo_data").notNull(), // base64 compressed JPEG data URL (~150-300 KB each)
+  uploadedBy: integer("uploaded_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAssetPhotoSchema = createInsertSchema(assetPhotos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type AssetPhoto = typeof assetPhotos.$inferSelect;
+export type InsertAssetPhoto = z.infer<typeof insertAssetPhotoSchema>;
+

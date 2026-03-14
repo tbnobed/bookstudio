@@ -2,14 +2,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BarcodeDetectorPolyfill } from "@undecaf/barcode-detector-polyfill";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { Asset, AssetCheckout } from "@shared/schema";
+import { Asset, AssetCheckout, AssetPhoto } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
-  Loader2, Check, ScanLine, Tag
+  Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -273,6 +273,144 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
   );
 }
 
+// ── Image compression ─────────────────────────────────────────────────────────
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1200;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width >= height) { height = Math.round(height * MAX / width); width = MAX; }
+        else { width = Math.round(width * MAX / height); height = MAX; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.75));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Image load failed")); };
+    img.src = url;
+  });
+}
+
+// ── Asset Photo Section ────────────────────────────────────────────────────────
+function AssetPhotoSection({ assetId }: { assetId: number }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [viewPhoto, setViewPhoto] = useState<string | null>(null);
+
+  const { data: photos = [], isLoading } = useQuery<AssetPhoto[]>({
+    queryKey: [`/api/assets/${assetId}/photos`],
+    enabled: expanded,
+  });
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (photos.length >= 5) {
+      toast({ title: "Maximum 5 photos per asset", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const photoData = await compressImage(file);
+      await apiRequest("POST", `/api/assets/${assetId}/photos`, { photoData });
+      queryClient.invalidateQueries({ queryKey: [`/api/assets/${assetId}/photos`] });
+      toast({ title: "Photo added" });
+    } catch (err: any) {
+      toast({ title: "Failed to add photo", description: err?.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const handleDelete = async (photoId: number) => {
+    try {
+      await apiRequest("DELETE", `/api/assets/${assetId}/photos/${photoId}`);
+      queryClient.invalidateQueries({ queryKey: [`/api/assets/${assetId}/photos`] });
+    } catch {
+      toast({ title: "Failed to delete photo", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="border-t border-gray-100 dark:border-gray-700 pt-2 mt-1">
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-blue-500 transition-colors w-full"
+      >
+        <ImageIcon className="h-3.5 w-3.5" />
+        <span>Photos{photos.length > 0 ? ` (${photos.length})` : ""}</span>
+        {expanded ? <ChevronUp className="h-3 w-3 ml-auto" /> : <ChevronDown className="h-3 w-3 ml-auto" />}
+      </button>
+
+      {expanded && (
+        <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+          {isLoading ? (
+            <div className="flex items-center justify-center w-full py-3">
+              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <>
+              {photos.map(photo => (
+                <div key={photo.id} className="relative shrink-0">
+                  <img
+                    src={photo.photoData}
+                    alt="Asset photo"
+                    className="w-20 h-20 object-cover rounded-xl border border-gray-200 dark:border-gray-600 cursor-pointer"
+                    onClick={() => setViewPhoto(photo.photoData)}
+                  />
+                  <button
+                    onClick={() => handleDelete(photo.id)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {photos.length < 5 && (
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 transition-colors"
+                >
+                  {uploading
+                    ? <Loader2 className="h-5 w-5 animate-spin" />
+                    : <><Camera className="h-5 w-5" /><span className="text-[10px] font-medium">Add photo</span></>
+                  }
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Full-screen photo viewer */}
+      {viewPhoto && (
+        <div
+          className="fixed inset-0 z-[80] bg-black/95 flex items-center justify-center"
+          onClick={() => setViewPhoto(null)}
+        >
+          <img src={viewPhoto} alt="Full view" className="max-w-full max-h-full object-contain" />
+          <button className="absolute top-5 right-5 w-9 h-9 bg-white/10 rounded-full flex items-center justify-center">
+            <X className="h-5 w-5 text-white" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Asset Card ─────────────────────────────────────────────────────────────────
 interface AssetCardProps {
   asset: Asset;
@@ -357,6 +495,9 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
           )}
         </div>
       )}
+
+      {/* Photos */}
+      <AssetPhotoSection assetId={asset.id} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import * as fs from 'fs';
 import * as path from 'path';
 import { storage } from "./storage";
+import { pool } from "./db";
 import { fileService, upload } from "./services/fileService";
 import { 
   insertUserSchema, 
@@ -3704,6 +3705,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ─── Asset Management ────────────────────────────────────────────────────────
+  // Ensure asset_photos table exists (idempotent — safe to run every startup)
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS asset_photos (
+        id         SERIAL PRIMARY KEY,
+        asset_id   INTEGER NOT NULL,
+        photo_data TEXT    NOT NULL,
+        uploaded_by INTEGER NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT now()
+      )
+    `);
+  } catch (e) {
+    console.error("asset_photos table init error:", e);
+  }
+
   app.get("/api/assets", isAuthenticated, async (req, res) => {
     try {
       const allAssets = await storage.getAllAssets();
@@ -3831,6 +3847,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error checking in asset:", error);
       res.status(500).json({ message: "Failed to check in asset" });
+    }
+  });
+
+  // ─── Asset Photos ─────────────────────────────────────────────────────────────
+  app.get("/api/assets/:id/photos", isAuthenticated, async (req, res) => {
+    try {
+      const assetId = parseInt(req.params.id);
+      if (isNaN(assetId)) return res.status(400).json({ message: "Invalid asset ID" });
+      const photos = await storage.getAssetPhotos(assetId);
+      res.json(photos);
+    } catch (error) {
+      console.error("Error fetching asset photos:", error);
+      res.status(500).json({ message: "Failed to fetch asset photos" });
+    }
+  });
+
+  app.post("/api/assets/:id/photos", isAuthenticated, async (req, res) => {
+    try {
+      const assetId = parseInt(req.params.id);
+      if (isNaN(assetId)) return res.status(400).json({ message: "Invalid asset ID" });
+
+      const existing = await storage.getAssetPhotos(assetId);
+      if (existing.length >= 5) return res.status(400).json({ message: "Maximum 5 photos per asset" });
+
+      const { photoData } = req.body;
+      if (!photoData || typeof photoData !== "string" || !photoData.startsWith("data:image/")) {
+        return res.status(400).json({ message: "Invalid photo data" });
+      }
+      // Sanity check size — base64 of a 1200px JPEG at 75% quality is typically < 500 KB
+      if (photoData.length > 750_000) {
+        return res.status(400).json({ message: "Photo too large — please use a smaller image" });
+      }
+
+      const photo = await storage.addAssetPhoto({
+        assetId,
+        photoData,
+        uploadedBy: (req.user as any).id,
+      });
+      res.json(photo);
+    } catch (error) {
+      console.error("Error adding asset photo:", error);
+      res.status(500).json({ message: "Failed to add photo" });
+    }
+  });
+
+  app.delete("/api/assets/:id/photos/:photoId", isAuthenticated, async (req, res) => {
+    try {
+      const photoId = parseInt(req.params.photoId);
+      if (isNaN(photoId)) return res.status(400).json({ message: "Invalid photo ID" });
+      const success = await storage.deleteAssetPhoto(photoId);
+      if (!success) return res.status(404).json({ message: "Photo not found" });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting asset photo:", error);
+      res.status(500).json({ message: "Failed to delete photo" });
     }
   });
 
