@@ -94,11 +94,24 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         };
         rafRef.current = requestAnimationFrame(tick);
       } catch (err: any) {
-        setError(
-          err.name === "NotAllowedError"
-            ? "Camera access denied. Enable camera in your browser settings."
-            : "Could not start camera."
-        );
+        const isHttps = location.protocol === "https:";
+        if (!isHttps) {
+          setError("Camera requires a secure (HTTPS) connection. Use the installed app or open via HTTPS.");
+        } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+          const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+            || (navigator as { standalone?: boolean }).standalone === true;
+          setError(
+            isStandalone
+              ? "Camera access denied. Go to your phone's Settings → Apps → Studio Assets → Permissions and enable Camera."
+              : "Camera access denied. Tap the camera icon in the address bar or go to browser site settings to enable it."
+          );
+        } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+          setError("No camera found on this device.");
+        } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+          setError("Camera is in use by another app. Close it and try again.");
+        } else {
+          setError("Could not start camera. Enter the value manually below.");
+        }
       }
     })();
 

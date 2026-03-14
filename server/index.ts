@@ -6,6 +6,12 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Allow camera access in PWA standalone mode and all contexts
+app.use((_req, res, next) => {
+  res.setHeader("Permissions-Policy", "camera=*, microphone=(), geolocation=()");
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
