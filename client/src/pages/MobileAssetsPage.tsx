@@ -59,6 +59,7 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState("");
+  const [dbg, setDbg] = useState("starting…");
 
   const stopCamera = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
@@ -75,15 +76,18 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
 
   useEffect(() => {
     let cancelled = false;
+    let frameCount = 0;
+    const frameCountRef = { current: 0 };
 
     async function start() {
-      // Detect which decoding path to use:
-      // 1. BarcodeDetector (iOS Safari 17+, Chrome desktop/Android) — native, fast
-      // 2. ZXing MultiFormatReader (all other browsers) — JS, supports all formats
-      // Use `in globalThis` rather than window property lookup — Safari exposes
-      // BarcodeDetector on globalThis but window property access can silently return undefined.
-      const hasBD = "BarcodeDetector" in globalThis;
-      const BD = hasBD ? (globalThis as any).BarcodeDetector : null;
+      // Try every possible way to get BarcodeDetector
+      let BD: any = null;
+      try { BD = (globalThis as any).BarcodeDetector; } catch (_) {}
+      if (!BD) try { BD = (window as any).BarcodeDetector; } catch (_) {}
+      if (!BD) try { BD = (self as any).BarcodeDetector; } catch (_) {}
+      const hasBD = BD != null;
+
+      setDbg(`BD=${hasBD ? "YES" : "NO"} cam=starting`);
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -91,6 +95,7 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         });
         if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
         streamRef.current = stream;
+        setDbg(`BD=${hasBD ? "YES" : "NO"} cam=got-stream`);
 
         const video = videoRef.current!;
         video.srcObject = stream;
@@ -99,16 +104,24 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
         video.muted = true;
         await video.play();
         if (cancelled) return;
+        setDbg(`BD=${hasBD ? "YES" : "NO"} cam=playing`);
 
         // Set up the chosen detector
         let bdDetector: any = null;
         let zxingReader: MultiFormatReader | null = null;
 
         if (hasBD) {
-          const formats = await BD.getSupportedFormats();
-          bdDetector = new BD({ formats: formats.length ? formats : undefined });
+          try {
+            const formats = await BD.getSupportedFormats();
+            bdDetector = new BD({ formats: formats.length ? formats : undefined });
+            setDbg(`path=BarcodeDetector fmts=${formats.length}`);
+          } catch (e: any) {
+            setDbg(`BD-init-err=${e?.message ?? e}`);
+            zxingReader = new MultiFormatReader();
+          }
         } else {
           zxingReader = new MultiFormatReader();
+          setDbg(`path=ZXing`);
         }
 
         detectorRef.current = bdDetector ?? zxingReader;
@@ -116,7 +129,6 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
 
         const canvas = canvasRef.current!;
         const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
-        let frameCount = 0;
 
         async function tick() {
           if (cancelled || !streamRef.current) return;
@@ -125,6 +137,7 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0);
+            frameCountRef.current++;
 
             if (bdDetector) {
               // Native BarcodeDetector path (async)
@@ -134,10 +147,17 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
                   handleDetected(results[0].rawValue);
                   return;
                 }
-              } catch (_) { /* frame decode miss — keep going */ }
+              } catch (e: any) {
+                if (frameCountRef.current % 60 === 0)
+                  setDbg(`BD-detect-err=${e?.message ?? e} f=${frameCountRef.current}`);
+              }
+              if (frameCountRef.current % 30 === 0)
+                setDbg(`BD scanning f=${frameCountRef.current} ${video.videoWidth}x${video.videoHeight}`);
             } else if (zxingReader) {
               // ZXing path (sync) — throttle to ~15 fps to avoid blocking the UI thread
               frameCount++;
+              if (frameCount % 30 === 0)
+                setDbg(`ZXing scanning f=${frameCount} ${video.videoWidth}x${video.videoHeight}`);
               if (frameCount % 4 === 0) {
                 try {
                   const source = new HTMLCanvasElementLuminanceSource(canvas);
@@ -148,10 +168,8 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
                     return;
                   }
                 } catch (e) {
-                  // NotFoundException is thrown every frame with no barcode — ignore
-                  if (!(e instanceof NotFoundException)) {
-                    console.warn("[Scanner] ZXing decode error:", e);
-                  }
+                  if (!(e instanceof NotFoundException) && frameCount % 60 === 0)
+                    setDbg(`ZXing-err=${(e as any)?.message ?? e} f=${frameCount}`);
                 }
               }
             }
@@ -285,6 +303,8 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
 
           {/* Bottom hint + manual entry */}
           <div className="shrink-0 p-5 text-white space-y-4">
+            {/* DEBUG — shows scanner state on-screen so we can diagnose issues */}
+            <p className="text-center text-[10px] text-white/40 font-mono break-all">{dbg}</p>
             <p className="text-center text-sm text-white/60">
               {ready ? "Align barcode within the frame" : "Starting camera…"}
             </p>
