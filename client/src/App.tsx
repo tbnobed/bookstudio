@@ -26,6 +26,7 @@ import EngineeringPage from "@/pages/engineering-page";
 import AuditLogsPage from "@/pages/audit-logs-page";
 import TeamsPage from "@/pages/TeamsPage";
 import AssetsPage from "@/pages/AssetsPage";
+import MobileAssetsPage from "@/pages/MobileAssetsPage";
 import AdminBookingOwnership from "@/pages/admin-booking-ownership";
 import AdminDatabaseHealth from "@/pages/admin-database-health";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -75,6 +76,7 @@ function Router() {
       <ProtectedRoute path="/studios" component={StudiosPage} />
       <ProtectedRoute path="/teams" component={TeamsPage} />
       <ProtectedRoute path="/assets" component={AssetsPage} />
+      <ProtectedRoute path="/mobile/assets" component={MobileAssetsPage} />
       <ProtectedRoute path="/audit-logs" component={AuditLogsPage} />
       <ProtectedRoute path="/admin/booking-ownership" component={AdminBookingOwnership} />
       <ProtectedRoute path="/admin/database-health" component={AdminDatabaseHealth} />
@@ -102,6 +104,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   
   // Check if we're on the mobile-specific page (no sidebar needed)
   const isMobilePage = location === "/mobile" || 
+                    location === "/mobile/assets" ||
                     location === "/calendar/mobile" ||
                     (isSmallScreen && (location === "/" || location === "/calendar"));
   

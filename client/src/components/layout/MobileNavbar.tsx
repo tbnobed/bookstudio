@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Calendar, BookOpen, ListTodo, Settings, Menu, PlusCircle, Bell, BarChart, Tv, Users, LogOut, Moon, Sun } from "lucide-react";
+import { Calendar, BookOpen, ListTodo, Settings, Menu, PlusCircle, Bell, BarChart, Tv, Users, LogOut, Moon, Sun, Package } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -127,6 +127,7 @@ export default function MobileNavbar() {
             </Sheet>
           </div>
           
+          <NavButton path="/mobile/assets" icon={Package} label="Assets" />
           <NavButton path="/" icon={Tv} label="Studios" />
           
           {/* Menu */}
@@ -169,6 +170,7 @@ export default function MobileNavbar() {
                   { path: "/my-bookings", icon: BookOpen, label: "My Bookings" },
                   { path: "/templates", icon: ListTodo, label: "Templates" },
                   { path: "/studios", icon: Tv, label: "Studios" },
+                  { path: "/mobile/assets", icon: Package, label: "Assets" },
                 ].map((item) => (
                   <button 
                     key={item.path}
