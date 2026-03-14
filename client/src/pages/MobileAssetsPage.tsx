@@ -49,9 +49,8 @@ const SCANNER_DIV_ID = "h5q-scanner";
 
 // html5-qrcode is loaded as a plain <script> (not an ESM import) to avoid
 // corrupting Vite's module graph during development. The min.js sets
-// window.Html5Qrcode and window.Html5QrcodeSupportedFormats as globals.
+// window.Html5Qrcode as a global.
 declare const Html5Qrcode: any;
-declare const Html5QrcodeSupportedFormats: any;
 
 let scriptLoadPromise: Promise<void> | null = null;
 function loadHtml5QrcodeScript(): Promise<void> {
@@ -92,19 +91,15 @@ function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
     loadHtml5QrcodeScript().then(() => {
       if (cancelled) return;
 
-      const F = Html5QrcodeSupportedFormats;
-      const formats = [
-        F.QR_CODE, F.CODE_128, F.CODE_39, F.CODE_93,
-        F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E,
-        F.DATA_MATRIX, F.ITF, F.CODABAR,
-      ];
-
-      const scanner = new Html5Qrcode(SCANNER_DIV_ID, { verbose: false, formatsToSupport: formats });
+      // No formatsToSupport — let html5-qrcode call BarcodeDetector.getSupportedFormats()
+      // and use whatever the device actually supports. Passing explicit enum values can
+      // produce an empty intersection on iOS/desktop and silently scan forever.
+      const scanner = new Html5Qrcode(SCANNER_DIV_ID, { verbose: false });
       scannerRef.current = scanner;
 
       scanner.start(
         { facingMode: "environment" },
-        { fps: 15, aspectRatio: 1.7778 },
+        { fps: 15 },  // no aspectRatio — portrait phones need natural framing
         (decodedText: string) => {
           if (!cancelled) handleDetected(decodedText);
         },
