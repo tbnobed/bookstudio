@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
-  Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2
+  Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -516,8 +516,15 @@ export default function MobileAssetsPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [checkingInId, setCheckingInId] = useState<number | null>(null);
 
-  // Scanner state
+  // Barcode scanner state
   const [scannerOpen, setScannerOpen] = useState(false);
+
+  // OCR text scanner state
+  const ocrFileRef = useRef<HTMLInputElement>(null);
+  const [ocrTarget, setOcrTarget] = useState<"serial" | "tag" | null>(null);
+  const [ocrPhase, setOcrPhase] = useState<"idle" | "processing" | "results">("idle");
+  const [ocrResults, setOcrResults] = useState<string[]>([]);
+  const [ocrProgress, setOcrProgress] = useState(0);
   const [scanTarget, setScanTarget] = useState<"serial" | "tag" | null>(null);
 
   // ── PWA install ─────────────────────────────────────────────────────────────
@@ -668,6 +675,78 @@ export default function MobileAssetsPage() {
     if (scanTarget === "tag") setNewAsset(p => ({ ...p, assetTag: value }));
     setScanTarget(null);
     toast({ title: "Scanned!", description: `Value captured: ${value}` });
+  };
+
+  // ── OCR helpers ─────────────────────────────────────────────────────────────
+  const extractSerialCandidates = (text: string): string[] => {
+    const SKIP = new Set([
+      "JAPAN", "CHINA", "MADE", "MODEL", "SERIAL", "NUMBER", "CORP", "CORPORATION",
+      "INC", "LTD", "WITH", "FROM", "THIS", "THAT", "HAVE", "WILL", "VOLTAGE",
+      "POWER", "SUPPLY", "ADAPTER", "MADE", "USING", "CAUTION", "WARNING",
+      "CLASS", "TYPE", "RATED", "INPUT", "OUTPUT", "FREQ", "ONLY",
+    ]);
+    return [...new Set(
+      text
+        .split(/[\s\n\r,;:()\[\]/\\|]+/)
+        .map(t => t.replace(/[^A-Za-z0-9\-]/g, "").trim())
+        .filter(t =>
+          t.length >= 4 &&
+          /[0-9]/.test(t) &&
+          !SKIP.has(t.toUpperCase()) &&
+          !/^[A-Za-z]+$/.test(t)  // skip pure-letter words
+        )
+    )];
+  };
+
+  const handleOcrScan = (target: "serial" | "tag") => {
+    setOcrTarget(target);
+    setOcrPhase("idle");
+    setOcrResults([]);
+    setOcrProgress(0);
+    // Trigger file input (camera) immediately
+    setTimeout(() => ocrFileRef.current?.click(), 50);
+  };
+
+  const handleOcrFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (ocrFileRef.current) ocrFileRef.current.value = "";
+
+    setOcrPhase("processing");
+    setOcrProgress(0);
+
+    try {
+      const { createWorker } = await import("tesseract.js");
+      const worker = await createWorker("eng", 1, {
+        logger: (m: any) => {
+          if (m.status === "recognizing text") {
+            setOcrProgress(Math.round((m.progress ?? 0) * 100));
+          }
+        },
+      });
+
+      const imageUrl = URL.createObjectURL(file);
+      const { data } = await worker.recognize(imageUrl);
+      URL.revokeObjectURL(imageUrl);
+      await worker.terminate();
+
+      const candidates = extractSerialCandidates(data.text);
+      setOcrResults(candidates);
+      setOcrPhase("results");
+    } catch {
+      toast({ title: "Couldn't read text", description: "Try again with better lighting and a steady hand.", variant: "destructive" });
+      setOcrPhase("idle");
+      setOcrTarget(null);
+    }
+  };
+
+  const applyOcrResult = (value: string) => {
+    if (ocrTarget === "serial") setNewAsset(p => ({ ...p, serialNumber: value }));
+    if (ocrTarget === "tag") setNewAsset(p => ({ ...p, assetTag: value }));
+    setOcrPhase("idle");
+    setOcrTarget(null);
+    setOcrResults([]);
+    toast({ title: "Value filled in", description: value });
   };
 
   return (
@@ -861,11 +940,15 @@ export default function MobileAssetsPage() {
 
           <div className="space-y-4 pb-6">
             {/* Camera scan hint */}
-            <div className="flex items-center gap-2.5 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl">
-              <Camera className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0" />
-              <p className="text-xs text-blue-700 dark:text-blue-300">
-                Use the scan button next to Serial Number or Asset Tag to capture values with your camera.
-              </p>
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl space-y-1.5">
+              <div className="flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300 font-medium">
+                <ScanLine className="h-4 w-4 text-blue-500 shrink-0" />
+                <span><strong>Bar</strong> — live barcode / QR scan</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
+                <ScanText className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span><strong>Text</strong> — photo the label to read any printed serial number</span>
+              </div>
             </div>
 
             {/* Name */}
@@ -897,7 +980,7 @@ export default function MobileAssetsPage() {
             {/* Serial number with scan */}
             <div className="space-y-1.5">
               <Label>Serial Number</Label>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <Input
                   placeholder="S/N from label"
                   value={newAsset.serialNumber}
@@ -906,10 +989,19 @@ export default function MobileAssetsPage() {
                 />
                 <button
                   onClick={() => handleOpenScanner("serial")}
-                  className="flex items-center gap-1.5 px-3 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  title="Scan barcode"
                 >
                   <ScanLine className="h-4 w-4 text-blue-500" />
-                  Scan
+                  <span>Bar</span>
+                </button>
+                <button
+                  onClick={() => handleOcrScan("serial")}
+                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  title="Read text from label"
+                >
+                  <ScanText className="h-4 w-4 text-emerald-500" />
+                  <span>Text</span>
                 </button>
               </div>
             </div>
@@ -917,7 +1009,7 @@ export default function MobileAssetsPage() {
             {/* Asset tag with scan */}
             <div className="space-y-1.5">
               <Label>Asset Tag</Label>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <Input
                   placeholder="Internal tag / QR label"
                   value={newAsset.assetTag}
@@ -926,10 +1018,19 @@ export default function MobileAssetsPage() {
                 />
                 <button
                   onClick={() => handleOpenScanner("tag")}
-                  className="flex items-center gap-1.5 px-3 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  title="Scan barcode"
                 >
                   <Tag className="h-4 w-4 text-purple-500" />
-                  Scan
+                  <span>Bar</span>
+                </button>
+                <button
+                  onClick={() => handleOcrScan("tag")}
+                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  title="Read text from label"
+                >
+                  <ScanText className="h-4 w-4 text-emerald-500" />
+                  <span>Text</span>
                 </button>
               </div>
             </div>
@@ -1027,6 +1128,94 @@ export default function MobileAssetsPage() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* ── Hidden OCR file input ────────────────────────────────────────────── */}
+      <input
+        ref={ocrFileRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleOcrFileChange}
+      />
+
+      {/* ── OCR processing / results overlay ─────────────────────────────────── */}
+      {ocrPhase !== "idle" && (
+        <div className="fixed inset-0 z-[75] bg-black/90 flex flex-col items-center justify-center p-6">
+          {ocrPhase === "processing" ? (
+            <div className="text-white text-center space-y-5 w-full max-w-xs">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mx-auto">
+                <ScanText className="h-7 w-7 text-emerald-400 animate-pulse" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold">Reading label…</p>
+                <p className="text-sm text-white/60 mt-1">This takes a few seconds</p>
+              </div>
+              <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-400 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.max(ocrProgress, 5)}%` }}
+                />
+              </div>
+              <p className="text-sm text-white/50">{ocrProgress}%</p>
+            </div>
+          ) : (
+            <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+              {/* Header */}
+              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-2 mb-1">
+                  <ScanText className="h-4 w-4 text-emerald-500" />
+                  <h3 className="font-semibold text-sm">
+                    {ocrResults.length > 0 ? "Tap a value to use it" : "No values detected"}
+                  </h3>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {ocrResults.length > 0
+                    ? `Filling: ${ocrTarget === "serial" ? "Serial Number" : "Asset Tag"}`
+                    : "Try again — hold steady and make sure the label is in focus."}
+                </p>
+              </div>
+
+              {/* Results list */}
+              {ocrResults.length > 0 && (
+                <div className="max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+                  {ocrResults.map(r => (
+                    <button
+                      key={r}
+                      onClick={() => applyOcrResult(r)}
+                      className="w-full px-5 py-3.5 text-left flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-emerald-900/20 active:bg-emerald-100 transition-colors"
+                    >
+                      <span className="font-mono font-medium tracking-wide text-sm">{r}</span>
+                      <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Footer actions */}
+              <div className="flex gap-2 p-4 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  onClick={() => {
+                    setOcrPhase("idle");
+                    setOcrResults([]);
+                    setOcrProgress(0);
+                    setTimeout(() => ocrFileRef.current?.click(), 80);
+                  }}
+                  className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
+                >
+                  Scan again
+                </button>
+                <button
+                  onClick={() => { setOcrPhase("idle"); setOcrTarget(null); setOcrResults([]); }}
+                  className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Barcode scanner overlay ──────────────────────────────────────────── */}
       {scannerOpen && scanTarget && (
