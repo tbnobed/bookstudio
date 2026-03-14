@@ -652,7 +652,10 @@ export default function MobileAssetsPage() {
     tag ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(tag)}&format=png&margin=4` : "";
 
   const createMutation = useMutation({
-    mutationFn: (data: typeof newAsset) => apiRequest("POST", "/api/assets", { ...data, status: "available" }),
+    mutationFn: async (data: typeof newAsset) => {
+      const res = await apiRequest("POST", "/api/assets", { ...data, status: "available" });
+      return res.json() as Promise<Asset>;
+    },
     onSuccess: async (newAssetData: Asset) => {
       // If a photo was staged, upload it now that we have the asset ID
       if (pendingPhoto) {
