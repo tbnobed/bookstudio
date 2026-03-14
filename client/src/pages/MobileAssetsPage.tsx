@@ -682,38 +682,87 @@ export default function MobileAssetsPage() {
     const SKIP = new Set([
       "JAPAN", "CHINA", "MADE", "MODEL", "SERIAL", "NUMBER", "CORP", "CORPORATION",
       "INC", "LTD", "WITH", "FROM", "THIS", "THAT", "HAVE", "WILL", "VOLTAGE",
-      "POWER", "SUPPLY", "ADAPTER", "MADE", "USING", "CAUTION", "WARNING",
+      "POWER", "SUPPLY", "ADAPTER", "USING", "CAUTION", "WARNING",
       "CLASS", "TYPE", "RATED", "INPUT", "OUTPUT", "FREQ", "ONLY",
+      "CANON", "SONY", "NIKON", "PANASONIC", "BLACKMAGIC", "SENNHEISER",
     ]);
-    return [...new Set(
-      text
-        .split(/[\s\n\r,;:()\[\]/\\|]+/)
-        .map(t => t.replace(/[^A-Za-z0-9\-]/g, "").trim())
-        .filter(t =>
-          t.length >= 4 &&
-          /[0-9]/.test(t) &&
-          !SKIP.has(t.toUpperCase()) &&
-          !/^[A-Za-z]+$/.test(t)  // skip pure-letter words
-        )
-    )];
+    const seen = new Set<string>();
+    const pure: string[] = [];
+    const alphan: string[] = [];
+
+    // Stage 1: pull every run of 5+ consecutive digits from raw OCR text
+    // (catches pure serials like 0270107155 even with surrounding noise)
+    for (const m of text.matchAll(/\d{5,}/g)) {
+      const v = m[0];
+      if (!seen.has(v)) { seen.add(v); pure.push(v); }
+    }
+
+    // Stage 2: token-based extraction for alphanumeric serials (e.g. DS126231)
+    // Split on whitespace AND common punctuation INCLUDING periods
+    for (const raw of text.split(/[\s\n\r,;:()\[\]/\\|.]+/)) {
+      const t = raw.replace(/[^A-Za-z0-9\-]/g, "").trim();
+      if (
+        t.length >= 4 &&
+        /[0-9]/.test(t) &&
+        !SKIP.has(t.toUpperCase()) &&
+        !/^\d{5,}$/.test(t)  // already captured pure digits in stage 1
+      ) {
+        if (!seen.has(t)) { seen.add(t); alphan.push(t); }
+      }
+    }
+
+    return [...pure, ...alphan];
+  };
+
+  // Opens a fresh file-picker each time — avoids iOS Safari's block on
+  // reusing the same <input> element programmatically after first use.
+  const openOcrCamera = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      setOcrPhase("processing");
+      setOcrProgress(0);
+      try {
+        const { createWorker } = await import("tesseract.js");
+        const worker = await createWorker("eng", 1, {
+          logger: (m: any) => {
+            if (m.status === "recognizing text") {
+              setOcrProgress(Math.round((m.progress ?? 0) * 100));
+            }
+          },
+        });
+        const imageUrl = URL.createObjectURL(file);
+        const { data } = await worker.recognize(imageUrl);
+        URL.revokeObjectURL(imageUrl);
+        await worker.terminate();
+        const candidates = extractSerialCandidates(data.text);
+        setOcrResults(candidates);
+        setOcrPhase("results");
+      } catch {
+        toast({ title: "Couldn't read text", description: "Try again with better lighting and a steady hand.", variant: "destructive" });
+        setOcrPhase("idle");
+        setOcrTarget(null);
+      }
+    };
+    input.click();
   };
 
   const handleOcrScan = (target: "serial" | "tag") => {
     setOcrTarget(target);
-    setOcrPhase("idle");
     setOcrResults([]);
     setOcrProgress(0);
-    ocrFileRef.current?.click();
+    openOcrCamera();
   };
 
   const handleOcrFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (ocrFileRef.current) ocrFileRef.current.value = "";
-
     setOcrPhase("processing");
     setOcrProgress(0);
-
     try {
       const { createWorker } = await import("tesseract.js");
       const worker = await createWorker("eng", 1, {
@@ -723,12 +772,10 @@ export default function MobileAssetsPage() {
           }
         },
       });
-
       const imageUrl = URL.createObjectURL(file);
       const { data } = await worker.recognize(imageUrl);
       URL.revokeObjectURL(imageUrl);
       await worker.terminate();
-
       const candidates = extractSerialCandidates(data.text);
       setOcrResults(candidates);
       setOcrPhase("results");
@@ -1197,7 +1244,7 @@ export default function MobileAssetsPage() {
                   onClick={() => {
                     setOcrResults([]);
                     setOcrProgress(0);
-                    ocrFileRef.current?.click();
+                    openOcrCamera();
                   }}
                   className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
                 >
