@@ -27,6 +27,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useNotification } from "@/hooks/use-notification";
 import { FileAttachmentList } from "./FileAttachmentList";
+import { BookingAssetsTab } from "./BookingAssetsTab";
 import CopyBookingModal from "./CopyBookingModal";
 import { BookingFormSelector } from "./BookingFormSelector";
 import LinkedBookingDeleteModal from "./LinkedBookingDeleteModal";
@@ -854,8 +855,9 @@ export default function BookingModal({
           {true && (
             // Tabbed interface for standard bookings (both new and edit)
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">Booking Details</TabsTrigger>
+                <TabsTrigger value="assets">Assets</TabsTrigger>
                 <TabsTrigger value="attachments">File Attachments</TabsTrigger>
               </TabsList>
               
@@ -1302,6 +1304,10 @@ export default function BookingModal({
                 </form>
               </TabsContent>
               
+              <TabsContent value="assets" className="pt-4">
+                <BookingAssetsTab booking={booking} />
+              </TabsContent>
+
               <TabsContent value="attachments" className="pt-4">
                 {booking ? (
                   <FileAttachmentList bookingId={booking.id} />
