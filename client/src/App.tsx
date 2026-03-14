@@ -59,14 +59,15 @@ function Router() {
       <Route path="/login" component={AuthPage} />
       <Route path="/invite/:token" component={InvitePage} />
       <Route path="/reset-password/:token" component={ResetPasswordPage} />
-      <Route path="/public-calendar" component={PublicCalendarPage} />
       <Route path="/public-calendar/mobile" component={MobilePublicCalendarPage} />
-      <Route path="/signage" component={SignagePage} />
+      <Route path="/public-calendar" component={PublicCalendarPage} />
       <Route path="/signage/custom" component={CustomSignagePage} />
-      <ProtectedRoute path="/" component={HomeComponent} />
-      <ProtectedRoute path="/calendar" component={CalendarComponent} />
+      <Route path="/signage" component={SignagePage} />
+      {/* More-specific routes must come before "/" to prevent prefix-match swallowing */}
+      <ProtectedRoute path="/mobile/assets" component={MobileAssetsPage} />
       <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
       <ProtectedRoute path="/calendar/mobile" component={MobileCalendarPage} />
+      <ProtectedRoute path="/calendar" component={CalendarComponent} />
       <ProtectedRoute path="/my-bookings" component={MyBookingsComponent} />
       <ProtectedRoute path="/templates" component={TemplatesPage} />
       <ProtectedRoute path="/reports" component={ReportsPage} />
@@ -76,11 +77,11 @@ function Router() {
       <ProtectedRoute path="/studios" component={StudiosPage} />
       <ProtectedRoute path="/teams" component={TeamsPage} />
       <ProtectedRoute path="/assets" component={AssetsPage} />
-      <ProtectedRoute path="/mobile/assets" component={MobileAssetsPage} />
       <ProtectedRoute path="/audit-logs" component={AuditLogsPage} />
       <ProtectedRoute path="/admin/booking-ownership" component={AdminBookingOwnership} />
       <ProtectedRoute path="/admin/database-health" component={AdminDatabaseHealth} />
       <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/" component={HomeComponent} />
       <Route component={NotFound} />
     </Switch>
   );
