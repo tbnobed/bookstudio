@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils";
 import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
-  Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText
+  Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText,
+  RefreshCw, QrCode, Download, Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -528,6 +529,10 @@ export default function MobileAssetsPage() {
   const [ocrProgress, setOcrProgress] = useState(0);
   const [scanTarget, setScanTarget] = useState<"serial" | "tag" | null>(null);
 
+  // QR code / asset tag auto-generation
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [createdQrTag, setCreatedQrTag] = useState("");
+
   // ── PWA install ─────────────────────────────────────────────────────────────
   const [installPrompt, setInstallPrompt] = useState<Event & { prompt?: () => Promise<void> } | null>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
@@ -628,6 +633,24 @@ export default function MobileAssetsPage() {
     onError: () => { setCheckingInId(null); toast({ title: "Error", description: "Failed to return asset.", variant: "destructive" }); },
   });
 
+  // ── Asset tag auto-generation ────────────────────────────────────────────────
+  const generateAssetTag = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I confusion
+    let tag = "AST-";
+    for (let i = 0; i < 6; i++) tag += chars[Math.floor(Math.random() * chars.length)];
+    return tag;
+  };
+
+  // Auto-fill asset tag when the "Add New Asset" sheet opens
+  useEffect(() => {
+    if (addOpen && !newAsset.assetTag) {
+      setNewAsset(p => ({ ...p, assetTag: generateAssetTag() }));
+    }
+  }, [addOpen]);
+
+  const qrUrl = (tag: string) =>
+    tag ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(tag)}&format=png&margin=4` : "";
+
   const createMutation = useMutation({
     mutationFn: (data: typeof newAsset) => apiRequest("POST", "/api/assets", { ...data, status: "available" }),
     onSuccess: async (newAssetData: Asset) => {
@@ -641,10 +664,16 @@ export default function MobileAssetsPage() {
         }
       }
       queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
+      const savedTag = newAssetData.assetTag ?? "";
       setAddOpen(false);
       setNewAsset({ name: "", category: "camera", serialNumber: "", assetTag: "", location: "", description: "", notes: "" });
       setPendingPhoto(null);
-      toast({ title: "Asset added", description: "New asset has been added to inventory." });
+      if (savedTag) {
+        setCreatedQrTag(savedTag);
+        setShowQrModal(true);
+      } else {
+        toast({ title: "Asset added", description: "New asset has been added to inventory." });
+      }
     },
     onError: () => toast({ title: "Error", description: "Failed to add asset.", variant: "destructive" }),
   });
@@ -1108,15 +1137,25 @@ export default function MobileAssetsPage() {
               </div>
             </div>
 
-            {/* Asset tag with scan */}
+            {/* Asset tag with scan + auto-generate + QR preview */}
             <div className="space-y-1.5">
-              <Label>Asset Tag</Label>
+              <div className="flex items-center justify-between">
+                <Label>Asset Tag</Label>
+                <button
+                  type="button"
+                  onClick={() => setNewAsset(p => ({ ...p, assetTag: generateAssetTag() }))}
+                  className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium active:opacity-70 transition-opacity"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Regenerate
+                </button>
+              </div>
               <div className="flex gap-1.5">
                 <Input
                   placeholder="Internal tag / QR label"
                   value={newAsset.assetTag}
                   onChange={e => setNewAsset(p => ({ ...p, assetTag: e.target.value }))}
-                  className="h-11 flex-1"
+                  className="h-11 flex-1 font-mono"
                 />
                 <button
                   onClick={() => handleOpenScanner("tag")}
@@ -1135,6 +1174,21 @@ export default function MobileAssetsPage() {
                   <span>Text</span>
                 </button>
               </div>
+              {/* Live QR code preview */}
+              {newAsset.assetTag.trim() && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                  <img
+                    src={qrUrl(newAsset.assetTag.trim())}
+                    alt="QR code preview"
+                    className="h-16 w-16 rounded-lg bg-white shadow-sm shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">QR Code Preview</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">{newAsset.assetTag.trim()}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">Full QR shown after adding</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Location */}
@@ -1323,6 +1377,97 @@ export default function MobileAssetsPage() {
           onDetected={handleScanDetected}
           onClose={() => { setScannerOpen(false); setScanTarget(null); }}
         />
+      )}
+
+      {/* ── QR code success modal ────────────────────────────────────────────── */}
+      {showQrModal && createPortal(
+        <div
+          className="fixed inset-0 z-[90] flex items-end justify-center"
+          style={{ pointerEvents: "auto" }}
+          onClick={() => setShowQrModal(false)}
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl p-6 pb-10"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Handle */}
+            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-5" />
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="h-10 w-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+                <QrCode className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-900 dark:text-white text-base">Asset Added!</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Your QR code is ready to print or screenshot</p>
+              </div>
+            </div>
+
+            {/* QR code */}
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
+                <img
+                  src={qrUrl(createdQrTag)}
+                  alt={`QR code for ${createdQrTag}`}
+                  className="h-48 w-48"
+                />
+              </div>
+              <div className="text-center">
+                <p className="font-mono font-bold text-lg tracking-widest text-gray-900 dark:text-white">{createdQrTag}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Scan this to identify the asset</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch(qrUrl(createdQrTag));
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${createdQrTag}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch {
+                    toast({ title: "Download failed", description: "Try long-pressing the QR image to save it.", variant: "destructive" });
+                  }
+                }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold active:scale-95 transition-all shadow"
+              >
+                <Download className="h-4 w-4" />
+                Save QR
+              </button>
+              <button
+                onClick={async () => {
+                  if (navigator.share) {
+                    try {
+                      await navigator.share({ title: `Asset ${createdQrTag}`, text: `Asset tag: ${createdQrTag}`, url: qrUrl(createdQrTag) });
+                    } catch { /* cancelled */ }
+                  } else {
+                    await navigator.clipboard.writeText(createdQrTag);
+                    toast({ title: "Copied!", description: `${createdQrTag} copied to clipboard.` });
+                  }
+                }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-semibold active:scale-95 transition-all"
+              >
+                <Share2 className="h-4 w-4" />
+                Share
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="w-full mt-3 py-3 text-sm text-gray-500 dark:text-gray-400 font-medium active:opacity-70 transition-opacity"
+            >
+              Done
+            </button>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
