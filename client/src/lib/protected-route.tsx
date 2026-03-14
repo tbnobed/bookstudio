@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import { Redirect, useRoute } from "wouter";
+import { Redirect, useRoute, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 
 const ROUTE_PERMISSIONS: Record<string, string[]> = {
@@ -18,6 +18,7 @@ export function ProtectedRoute({
 }) {
   const { user, isLoading } = useAuth();
   const [matches] = useRoute(path);
+  const [currentPath] = useLocation();
 
   if (!matches) return null;
 
@@ -30,7 +31,7 @@ export function ProtectedRoute({
   }
 
   if (!user) {
-    return <Redirect to="/auth" />;
+    return <Redirect to={`/auth?from=${encodeURIComponent(currentPath)}`} />;
   }
 
   if (ROUTE_PERMISSIONS[path] && !ROUTE_PERMISSIONS[path].includes(user.role)) {

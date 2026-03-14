@@ -80,10 +80,12 @@ export default function AuthPage() {
   });
 
   const { loginMutation, registerMutation, user } = useAuth();
-  
+
   useEffect(() => {
     if (user) {
-      navigate("/");
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get("from");
+      navigate(from && from.startsWith("/") ? from : "/");
     }
   }, [user, navigate]);
 
