@@ -339,6 +339,55 @@ export default function MobileAssetsPage() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanTarget, setScanTarget] = useState<"serial" | "tag" | null>(null);
 
+  // ── PWA install ─────────────────────────────────────────────────────────────
+  const [installPrompt, setInstallPrompt] = useState<Event & { prompt?: () => Promise<void> } | null>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showIosGuide, setShowIosGuide] = useState(false);
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandalone = window.matchMedia("(display-mode: standalone)").matches
+    || (navigator as { standalone?: boolean }).standalone === true;
+
+  useEffect(() => {
+    // Swap manifest to assets-specific manifest
+    const existingLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    const originalHref = existingLink?.href ?? "/manifest.json";
+    let newLink: HTMLLinkElement | null = null;
+    if (existingLink) {
+      existingLink.setAttribute("href", "/manifest-assets.json");
+    } else {
+      newLink = document.createElement("link");
+      newLink.rel = "manifest";
+      newLink.href = "/manifest-assets.json";
+      document.head.appendChild(newLink);
+    }
+
+    // Update apple-mobile-web-app-title for iOS
+    const appleTitle = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-title"]');
+    const originalTitle = appleTitle?.content;
+    if (appleTitle) appleTitle.content = "Studio Assets";
+
+    // Show banner if not already installed
+    if (!isInStandalone) {
+      if (isIos) setShowInstallBanner(true);
+    }
+
+    // Android / Chrome install prompt
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e as Event & { prompt?: () => Promise<void> });
+      setShowInstallBanner(true);
+    };
+    window.addEventListener("beforeinstallprompt", onPrompt);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      // Restore original manifest
+      if (existingLink) existingLink.setAttribute("href", originalHref);
+      if (newLink) document.head.removeChild(newLink);
+      if (appleTitle && originalTitle) appleTitle.content = originalTitle;
+    };
+  }, []);
+
   // Add-asset form
   const [newAsset, setNewAsset] = useState({
     name: "", category: "camera", serialNumber: "", assetTag: "",
@@ -489,6 +538,41 @@ export default function MobileAssetsPage() {
           ))}
         </div>
       </div>
+
+      {/* ── Install banner ──────────────────────────────────────────────────── */}
+      {showInstallBanner && !isInStandalone && (
+        <div className="mx-4 mt-3 rounded-2xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 p-3.5 flex items-start gap-3">
+          <div className="shrink-0 w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
+            <Package className="h-5 w-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">Add to Home Screen</p>
+            <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+              {isIos
+                ? <>Tap the <strong>Share</strong> button then <strong>"Add to Home Screen"</strong> to install Studio Assets as an app.</>
+                : "Install Studio Assets for quick one-tap access from your home screen."}
+            </p>
+            {!isIos && installPrompt && (
+              <button
+                onClick={async () => {
+                  await installPrompt.prompt?.();
+                  setShowInstallBanner(false);
+                  setInstallPrompt(null);
+                }}
+                className="mt-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold active:scale-95 transition-transform"
+              >
+                Install App
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setShowInstallBanner(false)}
+            className="shrink-0 p-1 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-500"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* ── Asset list ──────────────────────────────────────────────────────── */}
       <div className="flex-1 p-4 pb-8 space-y-3">
