@@ -603,7 +603,7 @@ export default function MobileAssetsPage() {
     name: "", category: "camera", serialNumber: "", assetTag: "",
     location: "", description: "", notes: "",
   });
-  const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
+  const [pendingPhotos, setPendingPhotos] = useState<string[]>([]);
   const [pendingPhotoLoading, setPendingPhotoLoading] = useState(false);
   const newAssetPhotoRef = useRef<HTMLInputElement>(null);
 
@@ -673,20 +673,23 @@ export default function MobileAssetsPage() {
       return res.json() as Promise<Asset>;
     },
     onSuccess: async (newAssetData: Asset) => {
-      // If a photo was staged, upload it now that we have the asset ID
-      if (pendingPhoto) {
+      // Upload all staged photos now that we have the asset ID
+      for (const photoData of pendingPhotos) {
         try {
-          await apiRequest("POST", `/api/assets/${newAssetData.id}/photos`, { photoData: pendingPhoto });
-          queryClient.invalidateQueries({ queryKey: [`/api/assets/${newAssetData.id}/photos`] });
+          await apiRequest("POST", `/api/assets/${newAssetData.id}/photos`, { photoData });
         } catch {
           // Photo upload failing shouldn't block the success flow
         }
+      }
+      if (pendingPhotos.length > 0) {
+        queryClient.invalidateQueries({ queryKey: [`/api/assets/${newAssetData.id}/photos`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/assets/photos/first3"] });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
       const savedTag = newAssetData.assetTag ?? "";
       setAddOpen(false);
       setNewAsset({ name: "", category: "camera", serialNumber: "", assetTag: "", location: "", description: "", notes: "" });
-      setPendingPhoto(null);
+      setPendingPhotos([]);
       if (savedTag) {
         setCreatedQrTag(savedTag);
         setShowQrModal(true);
@@ -1111,7 +1114,7 @@ export default function MobileAssetsPage() {
       </Sheet>
 
       {/* ── Add asset sheet ──────────────────────────────────────────────────── */}
-      <Sheet open={addOpen} onOpenChange={open => { setAddOpen(open); if (!open) { setPendingPhoto(null); } }}>
+      <Sheet open={addOpen} onOpenChange={open => { setAddOpen(open); if (!open) { setPendingPhotos([]); } }}>
         <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto">
           <SheetHeader className="mb-4 sticky top-0 bg-white dark:bg-gray-900 pb-2">
             <SheetTitle>Add New Asset</SheetTitle>
@@ -1261,12 +1264,14 @@ export default function MobileAssetsPage() {
               />
             </div>
 
-            {/* Photo */}
-            <div className="space-y-1.5">
+            {/* Photos (up to 5) */}
+            <div className="space-y-2">
               <Label className="flex items-center gap-1.5">
                 <ImageIcon className="h-3.5 w-3.5" />
-                Photo
-                <span className="text-xs text-gray-400 font-normal">(optional)</span>
+                Photos
+                <span className="text-xs text-gray-400 font-normal">
+                  ({pendingPhotos.length}/5, optional)
+                </span>
               </Label>
               <input
                 ref={newAssetPhotoRef}
@@ -1276,10 +1281,14 @@ export default function MobileAssetsPage() {
                 onChange={async e => {
                   const file = e.target.files?.[0];
                   if (!file) return;
+                  if (pendingPhotos.length >= 5) {
+                    toast({ title: "Maximum 5 photos", variant: "destructive" });
+                    return;
+                  }
                   setPendingPhotoLoading(true);
                   try {
                     const compressed = await compressImage(file);
-                    setPendingPhoto(compressed);
+                    setPendingPhotos(prev => [...prev, compressed]);
                   } catch {
                     toast({ title: "Couldn't process photo", variant: "destructive" });
                   } finally {
@@ -1288,33 +1297,44 @@ export default function MobileAssetsPage() {
                   }
                 }}
               />
-              {pendingPhoto ? (
-                <div className="relative w-full h-40">
-                  <img
-                    src={pendingPhoto}
-                    alt="Asset preview"
-                    className="w-full h-40 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setPendingPhoto(null)}
-                    className="absolute top-2 right-2 w-7 h-7 bg-black/60 text-white rounded-full flex items-center justify-center"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+
+              {/* Thumbnail grid */}
+              {pendingPhotos.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {pendingPhotos.map((src, i) => (
+                    <div key={i} className="relative">
+                      <img
+                        src={src}
+                        alt={`Photo ${i + 1}`}
+                        className="h-20 w-20 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPendingPhotos(prev => prev.filter((_, idx) => idx !== i))}
+                        className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-black/70 text-white rounded-full flex items-center justify-center"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ) : (
+              )}
+
+              {/* Add photo button */}
+              {pendingPhotos.length < 5 && (
                 <button
                   type="button"
                   onClick={() => newAssetPhotoRef.current?.click()}
                   disabled={pendingPhotoLoading}
-                  className="w-full h-28 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 transition-colors active:scale-[0.98]"
+                  className="w-full h-20 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 transition-colors active:scale-[0.98]"
                 >
                   {pendingPhotoLoading
-                    ? <Loader2 className="h-6 w-6 animate-spin" />
+                    ? <Loader2 className="h-5 w-5 animate-spin" />
                     : <>
-                        <Camera className="h-6 w-6" />
-                        <span className="text-sm font-medium">Take or choose a photo</span>
+                        <Camera className="h-5 w-5" />
+                        <span className="text-xs font-medium">
+                          {pendingPhotos.length === 0 ? "Take or choose a photo" : "Add another photo"}
+                        </span>
                       </>
                   }
                 </button>
