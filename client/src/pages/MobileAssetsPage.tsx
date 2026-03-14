@@ -6,7 +6,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import { NotFoundException } from "@zxing/library";
 import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
@@ -49,78 +48,99 @@ interface ScannerProps {
 
 function BarcodeScanner({ fieldLabel, onDetected, onClose }: ScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number>(0);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState("");
 
-  const stopScanner = useCallback(() => {
-    try { controlsRef.current?.stop(); } catch {}
+  const stopCamera = useCallback(() => {
+    cancelAnimationFrame(rafRef.current);
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
   }, []);
 
   const handleDetected = useCallback((value: string) => {
-    stopScanner();
+    stopCamera();
     onDetected(value);
-  }, [onDetected, stopScanner]);
+  }, [onDetected, stopCamera]);
 
   useEffect(() => {
     if (!videoRef.current) return;
     let cancelled = false;
 
-    (async () => {
-      try {
-        const reader = new BrowserMultiFormatReader();
-        const controls = await reader.decodeFromConstraints(
-          {
-            video: {
-              facingMode: { ideal: "environment" },
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-            },
-          },
-          videoRef.current!,
-          (result, err) => {
-            if (cancelled) return;
-            if (result) {
-              handleDetected(result.getText());
-            }
-            // NotFoundException fires every frame when no barcode is in view — that's normal
-          }
-        );
-        if (!cancelled) {
-          controlsRef.current = controls;
-          setReady(true);
-        } else {
-          controls.stop();
-        }
-      } catch (err: any) {
+    // Offscreen canvas for frame capture
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+    const reader = new BrowserMultiFormatReader();
+
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    }).then(stream => {
+      if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+
+      streamRef.current = stream;
+      const video = videoRef.current!;
+      video.srcObject = stream;
+
+      const startLoop = () => {
         if (cancelled) return;
-        const isHttps = location.protocol === "https:";
-        if (!isHttps) {
-          setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
-        } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-          const isStandalone = window.matchMedia("(display-mode: standalone)").matches
-            || (navigator as { standalone?: boolean }).standalone === true;
-          setError(
-            isStandalone
-              ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
-              : "Camera access denied. Check your browser's site settings and allow camera access."
-          );
-        } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-          setError("No camera found on this device.");
-        } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
-          setError("Camera is in use by another app. Close it and try again.");
-        } else {
-          setError("Could not start camera. Enter the value manually below.");
-        }
+        setReady(true);
+
+        const tick = () => {
+          if (cancelled) return;
+          if (video.readyState >= 2 && video.videoWidth > 0) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            try {
+              const result = (reader as any).decodeFromCanvas(canvas);
+              if (result && !cancelled) {
+                handleDetected(result.getText());
+                return;
+              }
+            } catch (_) {
+              // NotFoundException each frame with no barcode — normal
+            }
+          }
+          rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+      };
+
+      video.addEventListener("playing", startLoop, { once: true });
+      video.play().catch(() => {});
+    }).catch((err: any) => {
+      if (cancelled) return;
+      const isHttps = location.protocol === "https:";
+      if (!isHttps) {
+        setError("Camera requires a secure (HTTPS) connection. Open the installed app instead.");
+      } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+          || (navigator as { standalone?: boolean }).standalone === true;
+        setError(
+          isStandalone
+            ? "Camera access denied. Go to Settings → Privacy → Camera and enable Studio Assets."
+            : "Camera access denied. Check your browser's site settings and allow camera access."
+        );
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        setError("No camera found on this device.");
+      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+        setError("Camera is in use by another app. Close it and try again.");
+      } else {
+        setError("Could not start camera. Enter the value manually below.");
       }
-    })();
+    });
 
     return () => {
       cancelled = true;
-      stopScanner();
+      stopCamera();
     };
-  }, [handleDetected, stopScanner]);
+  }, [handleDetected, stopCamera]);
 
   return (
     <div className="fixed inset-0 z-[60] bg-black flex flex-col">
