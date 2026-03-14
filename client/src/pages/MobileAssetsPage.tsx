@@ -574,6 +574,9 @@ export default function MobileAssetsPage() {
     name: "", category: "camera", serialNumber: "", assetTag: "",
     location: "", description: "", notes: "",
   });
+  const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
+  const [pendingPhotoLoading, setPendingPhotoLoading] = useState(false);
+  const newAssetPhotoRef = useRef<HTMLInputElement>(null);
 
   // ── Queries ────────────────────────────────────────────────────────────────
   const { data: assets = [], isLoading } = useQuery<Asset[]>({
@@ -619,10 +622,20 @@ export default function MobileAssetsPage() {
 
   const createMutation = useMutation({
     mutationFn: (data: typeof newAsset) => apiRequest("POST", "/api/assets", { ...data, status: "available" }),
-    onSuccess: () => {
+    onSuccess: async (newAssetData: Asset) => {
+      // If a photo was staged, upload it now that we have the asset ID
+      if (pendingPhoto) {
+        try {
+          await apiRequest("POST", `/api/assets/${newAssetData.id}/photos`, { photoData: pendingPhoto });
+          queryClient.invalidateQueries({ queryKey: [`/api/assets/${newAssetData.id}/photos`] });
+        } catch {
+          // Photo upload failing shouldn't block the success flow
+        }
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
       setAddOpen(false);
       setNewAsset({ name: "", category: "camera", serialNumber: "", assetTag: "", location: "", description: "", notes: "" });
+      setPendingPhoto(null);
       toast({ title: "Asset added", description: "New asset has been added to inventory." });
     },
     onError: () => toast({ title: "Error", description: "Failed to add asset.", variant: "destructive" }),
@@ -840,7 +853,7 @@ export default function MobileAssetsPage() {
       </Sheet>
 
       {/* ── Add asset sheet ──────────────────────────────────────────────────── */}
-      <Sheet open={addOpen} onOpenChange={setAddOpen}>
+      <Sheet open={addOpen} onOpenChange={open => { setAddOpen(open); if (!open) { setPendingPhoto(null); } }}>
         <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto">
           <SheetHeader className="mb-4 sticky top-0 bg-white dark:bg-gray-900 pb-2">
             <SheetTitle>Add New Asset</SheetTitle>
@@ -941,6 +954,66 @@ export default function MobileAssetsPage() {
                 onChange={e => setNewAsset(p => ({ ...p, description: e.target.value }))}
                 rows={3}
               />
+            </div>
+
+            {/* Photo */}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5">
+                <ImageIcon className="h-3.5 w-3.5" />
+                Photo
+                <span className="text-xs text-gray-400 font-normal">(optional)</span>
+              </Label>
+              <input
+                ref={newAssetPhotoRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setPendingPhotoLoading(true);
+                  try {
+                    const compressed = await compressImage(file);
+                    setPendingPhoto(compressed);
+                  } catch {
+                    toast({ title: "Couldn't process photo", variant: "destructive" });
+                  } finally {
+                    setPendingPhotoLoading(false);
+                    if (newAssetPhotoRef.current) newAssetPhotoRef.current.value = "";
+                  }
+                }}
+              />
+              {pendingPhoto ? (
+                <div className="relative w-full h-40">
+                  <img
+                    src={pendingPhoto}
+                    alt="Asset preview"
+                    className="w-full h-40 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPendingPhoto(null)}
+                    className="absolute top-2 right-2 w-7 h-7 bg-black/60 text-white rounded-full flex items-center justify-center"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => newAssetPhotoRef.current?.click()}
+                  disabled={pendingPhotoLoading}
+                  className="w-full h-28 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 transition-colors active:scale-[0.98]"
+                >
+                  {pendingPhotoLoading
+                    ? <Loader2 className="h-6 w-6 animate-spin" />
+                    : <>
+                        <Camera className="h-6 w-6" />
+                        <span className="text-sm font-medium">Take or choose a photo</span>
+                      </>
+                  }
+                </button>
+              )}
             </div>
 
             <Button
