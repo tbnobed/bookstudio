@@ -682,8 +682,9 @@ export default function AssetsPage() {
                 <ContextMenu key={asset.id}>
                   <ContextMenuTrigger asChild>
                     <div
+                      onDoubleClick={() => openEdit(asset)}
                       className={cn(
-                        "grid grid-cols-[28px_2fr_144px_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none",
+                        "grid grid-cols-[28px_2fr_144px_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none cursor-pointer",
                         selectedIds.has(asset.id) && "bg-emerald-50/60 dark:bg-emerald-900/10"
                       )}
                     >
