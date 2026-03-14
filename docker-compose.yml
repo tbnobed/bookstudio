@@ -151,19 +151,8 @@ services:
         node dist/index.js
       "
 
-  # Database initialization container
+  # Database initialization container — reuses the image built by the app service
   db-init:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      network: host
-      args:
-        - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
-        - VITE_WEATHER_LOCATION=${VITE_WEATHER_LOCATION}
-        - VITE_WEATHER_LAT=${VITE_WEATHER_LAT}
-        - VITE_WEATHER_LON=${VITE_WEATHER_LON}
-        - VITE_FACILITY_TIMEZONE=${VITE_FACILITY_TIMEZONE:-America/Chicago}
-        - TZ=${TZ:-America/Chicago}
     image: bookstudio:${VERSION:-latest}
     depends_on:
       db:

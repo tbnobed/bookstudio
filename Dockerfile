@@ -101,7 +101,7 @@ ENV PORT=5000
 ENV NODE_ENV=production
 # Timezone will be set via build args and runtime environment
 
-# Install production-only dependencies with timeout and retry logic
+# Install production-only system packages with timeout and retry logic
 # Including PostgreSQL client tools for backup/restore functionality
 RUN timeout 300 sh -c 'apk update && apk add --no-cache curl wget tzdata postgresql15-client' || \
     (echo "Primary install failed, trying alternative approach..." && \
@@ -113,52 +113,43 @@ RUN timeout 300 sh -c 'apk update && apk add --no-cache curl wget tzdata postgre
     (echo "All package installs failed, using minimal setup..." && \
      echo "Backup functionality will be disabled")
 
-# Timezone will be configured at runtime via environment variables
-
-# Create unprivileged user for running the application
+# Create unprivileged user early so --chown flags below can reference it
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Create necessary directories with proper permissions
-RUN mkdir -p logs uploads
-RUN chown -R appuser:appgroup logs uploads
-RUN chmod 755 uploads
+# Create app directories with correct ownership up-front (no sweep needed later)
+RUN mkdir -p logs uploads backups && \
+    chown appuser:appgroup logs uploads backups && \
+    chmod 755 uploads
 
-# Copy package files
+# Install production Node dependencies
+# node_modules is created by root with 755/644 (umask 022) — readable by appuser
 COPY package*.json ./
-
-# Install production dependencies only
 RUN npm ci --production
 
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/scripts ./scripts
+# Copy built application from builder stage, setting ownership inline
+COPY --chown=appuser:appgroup --from=builder /app/dist ./dist
+COPY --chown=appuser:appgroup --from=builder /app/scripts ./scripts
 
-# Copy consolidated migration scripts for Docker
-COPY scripts/consolidated-migration.cjs ./scripts/
-COPY scripts/schema-repair.cjs ./scripts/
-COPY scripts/docker-migrate-linked-bookings.cjs ./scripts/
-COPY scripts/clean-invalid-notifications.cjs ./scripts/
-COPY scripts/production-migration-v1.5.1.cjs ./scripts/
-COPY scripts/production-migration-v1.5.2.cjs ./scripts/
-COPY scripts/docker-migrate-teams-v1.5.3.cjs ./scripts/
-COPY scripts/docker-audit-schema-fix-v1.5.3.cjs ./scripts/
-COPY scripts/production-migration-v1.5.4.cjs ./scripts/
+# Copy migration scripts, setting ownership inline
+COPY --chown=appuser:appgroup scripts/consolidated-migration.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/schema-repair.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/docker-migrate-linked-bookings.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/clean-invalid-notifications.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/production-migration-v1.5.1.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/production-migration-v1.5.2.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/docker-migrate-teams-v1.5.3.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/docker-audit-schema-fix-v1.5.3.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/production-migration-v1.5.4.cjs ./scripts/
 
-# Copy backup and restore scripts
-COPY scripts/production-backup.sh ./scripts/
-COPY scripts/production-restore.sh ./scripts/
+# Copy backup/restore scripts and make them executable
+COPY --chown=appuser:appgroup scripts/production-backup.sh ./scripts/
+COPY --chown=appuser:appgroup scripts/production-restore.sh ./scripts/
+RUN chmod +x /app/scripts/production-backup.sh /app/scripts/production-restore.sh
 
-# Copy other necessary files
-COPY public ./public
+# Copy static assets
+COPY --chown=appuser:appgroup public ./public
 
-# Make backup scripts executable and create backup directory
-RUN chmod +x /app/scripts/production-backup.sh /app/scripts/production-restore.sh && \
-    mkdir -p /app/backups
-
-# Change ownership to the unprivileged user
-RUN chown -R appuser:appgroup /app
-
-# Switch to unprivileged user
+# Switch to unprivileged user — no chown -R sweep needed
 USER appuser
 
 # Expose application port
