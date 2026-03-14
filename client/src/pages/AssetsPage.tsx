@@ -654,7 +654,7 @@ export default function AssetsPage() {
 
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[28px_2fr_auto_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="grid grid-cols-[28px_2fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               <div className="flex items-center">
                 <Checkbox
                   checked={allAvailableSelected}
@@ -668,7 +668,6 @@ export default function AssetsPage() {
                 <div className="w-1 shrink-0 invisible" />
                 <span>Name</span>
               </div>
-              <span>Photos</span>
               <span>Category</span>
               <span>Status</span>
               <span className="hidden md:block">Serial / Tag</span>
@@ -684,7 +683,7 @@ export default function AssetsPage() {
                     <div
                       onDoubleClick={() => openEdit(asset)}
                       className={cn(
-                        "grid grid-cols-[28px_2fr_auto_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none cursor-pointer",
+                        "grid grid-cols-[28px_2fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none cursor-pointer",
                         selectedIds.has(asset.id) && "bg-emerald-50/60 dark:bg-emerald-900/10"
                       )}
                     >
@@ -701,7 +700,7 @@ export default function AssetsPage() {
                         )}
                       </div>
 
-                      {/* Name + category color indicator */}
+                      {/* Name + photos (inline, right-aligned in the cell) */}
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={cn("w-1 self-stretch rounded-full shrink-0", {
                           "bg-blue-500": asset.category === "camera",
@@ -712,37 +711,32 @@ export default function AssetsPage() {
                           "bg-teal-500": asset.category === "accessory",
                           "bg-orange-500": asset.category === "other",
                         })} />
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="font-medium text-sm text-gray-900 dark:text-white truncate">{asset.name}</p>
                           {asset.description && (
                             <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{asset.description}</p>
                           )}
                         </div>
-                      </div>
-
-                      {/* Photo thumbnails (up to 3) */}
-                      <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                        {(firstPhotoMap[asset.id] ?? []).length > 0 ? (
-                          (firstPhotoMap[asset.id] ?? []).map((src, i) => (
-                            <button
-                              key={i}
-                              onClick={() => setViewPhoto(src)}
-                              className="relative group shrink-0"
-                              title={`View photo ${i + 1}`}
-                            >
-                              <img
-                                src={src}
-                                alt={`${asset.name} photo ${i + 1}`}
-                                className="h-11 w-11 object-cover rounded-lg border border-gray-200 dark:border-gray-600 group-hover:opacity-80 transition-opacity"
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg bg-black/20">
-                                <ImageIcon className="h-3.5 w-3.5 text-white drop-shadow" />
-                              </div>
-                            </button>
-                          ))
-                        ) : (
-                          <div className="h-11 w-11 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center">
-                            <ImageIcon className="h-3.5 w-3.5 text-gray-300 dark:text-gray-600" />
+                        {/* Photo thumbnails — sit flush against the name, no separate column */}
+                        {(firstPhotoMap[asset.id] ?? []).length > 0 && (
+                          <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                            {(firstPhotoMap[asset.id] ?? []).map((src, i) => (
+                              <button
+                                key={i}
+                                onClick={() => setViewPhoto(src)}
+                                className="relative group"
+                                title={`View photo ${i + 1}`}
+                              >
+                                <img
+                                  src={src}
+                                  alt={`${asset.name} photo ${i + 1}`}
+                                  className="h-11 w-11 object-cover rounded-lg border border-gray-200 dark:border-gray-600 group-hover:opacity-80 transition-opacity"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg bg-black/20">
+                                  <ImageIcon className="h-3.5 w-3.5 text-white drop-shadow" />
+                                </div>
+                              </button>
+                            ))}
                           </div>
                         )}
                       </div>
