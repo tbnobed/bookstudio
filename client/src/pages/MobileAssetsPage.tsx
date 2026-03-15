@@ -12,7 +12,7 @@ import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
   Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText,
-  RefreshCw, QrCode, Download, Share2, Pencil, Sun, Moon
+  RefreshCw, QrCode, Download, Share2, Pencil, Sun, Moon, Archive
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -629,6 +629,7 @@ export default function MobileAssetsPage() {
   const [editForm, setEditForm] = useState({
     name: "", category: "camera", status: "available",
     serialNumber: "", assetTag: "", location: "", description: "", notes: "",
+    decommissionReason: "",
   });
 
   const openEditAsset = (asset: Asset) => {
@@ -642,6 +643,7 @@ export default function MobileAssetsPage() {
       location: asset.location ?? "",
       description: asset.description ?? "",
       notes: asset.notes ?? "",
+      decommissionReason: (asset as any).decommissionReason ?? "",
     });
     setEditOpen(true);
   };
@@ -1545,6 +1547,46 @@ export default function MobileAssetsPage() {
                   Photos
                 </Label>
                 <AssetPhotoSection assetId={editingAsset.id} />
+              </div>
+            )}
+
+            {/* Decommission section */}
+            {editingAsset && (
+              <div className="border-t border-red-200 dark:border-red-900 pt-3 space-y-2">
+                {editingAsset.status === "retired" && editForm.decommissionReason ? (
+                  <div className="rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-3 space-y-1">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+                      <Archive className="h-3.5 w-3.5" /> Decommissioned
+                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{editForm.decommissionReason}"</p>
+                  </div>
+                ) : editingAsset.status !== "retired" ? (
+                  <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 space-y-2">
+                    <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide flex items-center gap-1.5">
+                      <Archive className="h-3.5 w-3.5" /> Decommission Asset
+                    </p>
+                    <p className="text-xs text-red-500 dark:text-red-400">Retires the asset permanently. A reason is required. Can be reversed by editing the status.</p>
+                    <Textarea
+                      placeholder="Reason for decommissioning (required)…"
+                      value={editForm.decommissionReason}
+                      onChange={e => setEditForm(f => ({ ...f, decommissionReason: e.target.value }))}
+                      className="min-h-[72px] text-sm border-red-200 dark:border-red-800 focus-visible:ring-red-400"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="w-full h-11 gap-2"
+                      disabled={!editForm.decommissionReason.trim() || updateMutation.isPending}
+                      onClick={() => {
+                        if (!editForm.decommissionReason.trim()) return;
+                        updateMutation.mutate({ ...editForm, status: "retired" });
+                      }}
+                    >
+                      <Archive className="h-5 w-5" />
+                      Decommission Asset
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             )}
 

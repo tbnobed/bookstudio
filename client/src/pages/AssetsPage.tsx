@@ -79,6 +79,7 @@ const EMPTY_FORM = {
   notes: "",
   purchaseDate: "",
   lastMaintenanceDate: "",
+  decommissionReason: "",
 };
 
 const qrUrl = (tag: string) =>
@@ -424,6 +425,7 @@ export default function AssetsPage() {
       notes: asset.notes ?? "",
       purchaseDate: asset.purchaseDate ?? "",
       lastMaintenanceDate: asset.lastMaintenanceDate ?? "",
+      decommissionReason: (asset as any).decommissionReason ?? "",
     });
     setModalOpen(true);
   };
@@ -1209,6 +1211,47 @@ export default function AssetsPage() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Decommission — only when editing */}
+          {editAsset && (
+            <div className="space-y-2 pt-2 border-t border-red-200 dark:border-red-900">
+              {editAsset.status === "retired" && form.decommissionReason ? (
+                <div className="rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-3 space-y-1">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+                    <Archive className="h-3.5 w-3.5" /> Decommissioned
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{form.decommissionReason}"</p>
+                </div>
+              ) : editAsset.status !== "retired" ? (
+                <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 space-y-2">
+                  <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide flex items-center gap-1.5">
+                    <Archive className="h-3.5 w-3.5" /> Decommission Asset
+                  </p>
+                  <p className="text-xs text-red-500 dark:text-red-400">This action retires the asset and requires a reason. It can be reversed by editing the status.</p>
+                  <Textarea
+                    placeholder="Reason for decommissioning (required)…"
+                    value={form.decommissionReason}
+                    onChange={e => setForm(f => ({ ...f, decommissionReason: e.target.value }))}
+                    className="min-h-[64px] text-sm border-red-200 dark:border-red-800 focus-visible:ring-red-400"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    disabled={!form.decommissionReason.trim() || isPending}
+                    onClick={() => {
+                      if (!form.decommissionReason.trim()) return;
+                      updateAsset.mutate({ id: editAsset.id, data: { ...form, status: "retired" } });
+                    }}
+                  >
+                    <Archive className="h-3.5 w-3.5 mr-1.5" />
+                    Decommission Asset
+                  </Button>
+                </div>
+              ) : null}
             </div>
           )}
 

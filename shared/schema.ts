@@ -468,6 +468,7 @@ export const assets = pgTable("assets", {
   purchaseDate: text("purchase_date"),
   lastMaintenanceDate: text("last_maintenance_date"),
   assignedTo: integer("assigned_to"), // user id, nullable
+  decommissionReason: text("decommission_reason"),
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
