@@ -25,8 +25,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, Eye, EyeOff, ScanLine } from "lucide-react";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, Eye, EyeOff, ScanLine, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import QRCode from "react-qr-code";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type EnrichedCheckout = {
   id: number;
@@ -665,10 +667,34 @@ export default function AssetsPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Asset Inventory</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{assets.length} total items</p>
           </div>
-          <Button onClick={openCreate} className="gap-1.5">
-            <Plus className="h-4 w-4" />
-            Add Asset
-          </Button>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" title="Open on mobile">
+                  <Smartphone className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-4" align="end">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">
+                  Scan to open on mobile
+                </p>
+                <div className="rounded-lg bg-white p-3 shadow-inner border">
+                  <QRCode
+                    value={`${window.location.origin}/mobile/assets`}
+                    size={160}
+                    level="M"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-2 text-center break-all">
+                  {window.location.origin}/mobile/assets
+                </p>
+              </PopoverContent>
+            </Popover>
+            <Button onClick={openCreate} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              Add Asset
+            </Button>
+          </div>
         </div>
 
         {/* Status summary cards */}
