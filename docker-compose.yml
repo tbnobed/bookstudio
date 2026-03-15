@@ -68,7 +68,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting BookStud.io application v1.5.5 with Asset Photos...' &&
+        echo 'Starting BookStud.io application v1.5.7 with Booking-Asset Planning...' &&
         echo \"Using timezone: ${TZ:-America/Chicago}\" &&
         echo 'Verifying database tables before startup...' &&
         node -e \"
@@ -211,6 +211,8 @@ services:
         node scripts/production-migration-v1.5.5.cjs &&
         echo 'Running decommission migration (v1.5.6)...' &&
         node scripts/production-migration-v1.5.6.cjs &&
+        echo 'Running booking-asset planning migration (v1.5.7)...' &&
+        node scripts/production-migration-v1.5.7.cjs &&
         echo 'Database initialization completed successfully!'
       "
 
