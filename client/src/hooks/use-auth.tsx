@@ -71,8 +71,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Login successful",
         description: `Welcome back, ${user.name || user.username}!`,
       });
-      // Use window.location for hard redirect to ensure full page reload
-      window.location.href = "/";
+      // Respect the ?from= param so deep links (e.g. QR code → /mobile/assets) work
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get("from");
+      window.location.href = from && from.startsWith("/") ? from : "/";
     },
     onError: (error: Error) => {
       toast({
