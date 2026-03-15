@@ -335,10 +335,12 @@ export default function AssetsPage() {
 
   const { data: assets = [], isLoading } = useQuery<Asset[]>({
     queryKey: ["/api/assets"],
+    refetchInterval: 15_000,
   });
 
   const { data: activeCheckouts = [] } = useQuery<EnrichedCheckout[]>({
     queryKey: ["/api/assets/checkouts/active"],
+    refetchInterval: 15_000,
   });
 
   const { data: firstPhotos = [] } = useQuery<{ assetId: number; photoData: string }[]>({

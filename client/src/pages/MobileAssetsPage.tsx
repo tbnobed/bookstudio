@@ -660,12 +660,12 @@ export default function MobileAssetsPage() {
   // ── Queries ────────────────────────────────────────────────────────────────
   const { data: assets = [], isLoading } = useQuery<Asset[]>({
     queryKey: ["/api/assets"],
-    refetchInterval: 30000,
+    refetchInterval: 15_000,
   });
 
   const { data: activeCheckouts = [] } = useQuery<(AssetCheckout & { checkedOutByName?: string; bookingEnded?: boolean })[]>({
     queryKey: ["/api/assets/checkouts/active"],
-    refetchInterval: 30000,
+    refetchInterval: 15_000,
   });
 
   const checkoutMap = Object.fromEntries(activeCheckouts.map(c => [c.assetId, c]));
