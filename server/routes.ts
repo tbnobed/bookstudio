@@ -3749,6 +3749,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = { ...req.body, createdBy: user.id };
       const asset = await storage.createAsset(data);
       res.status(201).json(asset);
+      // Audit + notify (fire-and-forget)
+      const ctx = getAuditContext(req);
+      const actor = await storage.getUser(user.id);
+      const actorName = actor?.fullName || actor?.username || `User #${user.id}`;
+      AuditService.log(ctx, 'CREATE', 'asset', asset.id, asset.name, {
+        category: asset.category, status: asset.status, location: asset.location,
+      }).catch(console.error);
+      sendAssetNotification(asset.name, 'created', actorName).catch(console.error);
     } catch (error) {
       console.error("Error creating asset:", error);
       res.status(500).json({ message: "Failed to create asset" });
@@ -3758,13 +3766,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/assets/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const prevAsset = await storage.getAsset(id);
       const asset = await storage.updateAsset(id, req.body);
       if (!asset) return res.status(404).json({ message: "Asset not found" });
       res.json(asset);
+      // Audit + notify (fire-and-forget)
       const userId = (req.user as any).id;
+      const ctx = getAuditContext(req);
       const user = await storage.getUser(userId);
       const userName = user?.fullName || user?.username || `User #${userId}`;
-      sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
+      const isDecommission = asset.status === 'retired' && !!(asset as any).decommissionReason
+        && prevAsset?.status !== 'retired';
+      if (isDecommission) {
+        AuditService.log(ctx, 'DECOMMISSION', 'asset', asset.id, asset.name, {
+          reason: (asset as any).decommissionReason,
+          previousStatus: prevAsset?.status,
+        }).catch(console.error);
+        sendAssetNotification(asset.name, 'decommissioned', userName, {
+          Reason: (asset as any).decommissionReason,
+        }).catch(console.error);
+      } else {
+        AuditService.log(ctx, 'UPDATE', 'asset', asset.id, asset.name, {
+          changes: prevAsset ? { from: { status: prevAsset.status }, to: { status: asset.status } } : {},
+        }).catch(console.error);
+        sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
+      }
     } catch (error) {
       console.error("Error updating asset:", error);
       res.status(500).json({ message: "Failed to update asset" });
@@ -3774,13 +3800,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/assets/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const prevAsset = await storage.getAsset(id);
       const asset = await storage.updateAsset(id, req.body);
       if (!asset) return res.status(404).json({ message: "Asset not found" });
       res.json(asset);
+      // Audit + notify (fire-and-forget)
       const userId = (req.user as any).id;
+      const ctx = getAuditContext(req);
       const user = await storage.getUser(userId);
       const userName = user?.fullName || user?.username || `User #${userId}`;
-      sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
+      const isDecommission = asset.status === 'retired' && !!(asset as any).decommissionReason
+        && prevAsset?.status !== 'retired';
+      if (isDecommission) {
+        AuditService.log(ctx, 'DECOMMISSION', 'asset', asset.id, asset.name, {
+          reason: (asset as any).decommissionReason,
+          previousStatus: prevAsset?.status,
+        }).catch(console.error);
+        sendAssetNotification(asset.name, 'decommissioned', userName, {
+          Reason: (asset as any).decommissionReason,
+        }).catch(console.error);
+      } else {
+        AuditService.log(ctx, 'UPDATE', 'asset', asset.id, asset.name, {
+          changes: prevAsset ? { from: { status: prevAsset.status }, to: { status: asset.status } } : {},
+        }).catch(console.error);
+        sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
+      }
     } catch (error) {
       console.error("Error updating asset:", error);
       res.status(500).json({ message: "Failed to update asset" });
@@ -3790,9 +3834,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/assets/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const assetToDelete = await storage.getAsset(id);
       const deleted = await storage.deleteAsset(id);
       if (!deleted) return res.status(404).json({ message: "Asset not found" });
       res.json({ message: "Asset deleted successfully" });
+      // Audit + notify (fire-and-forget)
+      if (assetToDelete) {
+        const userId = (req.user as any).id;
+        const ctx = getAuditContext(req);
+        const user = await storage.getUser(userId);
+        const userName = user?.fullName || user?.username || `User #${userId}`;
+        AuditService.log(ctx, 'DELETE', 'asset', assetToDelete.id, assetToDelete.name, {
+          category: assetToDelete.category, status: assetToDelete.status,
+        }).catch(console.error);
+        sendAssetNotification(assetToDelete.name, 'deleted', userName).catch(console.error);
+      }
     } catch (error) {
       console.error("Error deleting asset:", error);
       res.status(500).json({ message: "Failed to delete asset" });
@@ -3851,12 +3907,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: req.body.notes,
       });
       res.status(201).json(checkout);
-      // Notify asset managers (fire-and-forget)
+      // Audit + notify (fire-and-forget)
+      const ctx = getAuditContext(req);
       const user = await storage.getUser(userId);
       const userName = user?.fullName || user?.username || `User #${userId}`;
       const extra: Record<string, string> = {};
       if (req.body.purpose) extra["Purpose"] = req.body.purpose;
       if (req.body.notes) extra["Notes"] = req.body.notes;
+      AuditService.log(ctx, 'CHECKOUT', 'asset', assetId, asset.name, {
+        checkedOutBy: userName, purpose: req.body.purpose, notes: req.body.notes,
+      }).catch(console.error);
       sendAssetNotification(asset.name, 'checked_out', userName, extra).catch(console.error);
     } catch (error) {
       console.error("Error checking out asset:", error);
@@ -3873,10 +3933,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await storage.checkinAsset(assetId, userId);
       if (!result) return res.status(409).json({ message: "Asset is not currently checked out" });
       res.json(result);
-      // Notify asset managers (fire-and-forget)
+      // Audit + notify (fire-and-forget)
       if (asset) {
+        const ctx = getAuditContext(req);
         const user = await storage.getUser(userId);
         const userName = user?.fullName || user?.username || `User #${userId}`;
+        AuditService.log(ctx, 'CHECKIN', 'asset', assetId, asset.name, {
+          checkedInBy: userName,
+        }).catch(console.error);
         sendAssetNotification(asset.name, 'checked_in', userName).catch(console.error);
       }
     } catch (error) {
