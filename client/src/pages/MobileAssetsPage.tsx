@@ -626,6 +626,7 @@ export default function MobileAssetsPage() {
   // Edit-asset form
   const [editOpen, setEditOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [decommissionExpanded, setDecommissionExpanded] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "", category: "camera", status: "available",
     serialNumber: "", assetTag: "", location: "", description: "", notes: "",
@@ -634,6 +635,7 @@ export default function MobileAssetsPage() {
 
   const openEditAsset = (asset: Asset) => {
     setEditingAsset(asset);
+    setDecommissionExpanded(false);
     setEditForm({
       name: asset.name,
       category: asset.category,
@@ -1561,30 +1563,55 @@ export default function MobileAssetsPage() {
                     <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{editForm.decommissionReason}"</p>
                   </div>
                 ) : editingAsset.status !== "retired" ? (
-                  <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 space-y-2">
-                    <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide flex items-center gap-1.5">
-                      <Archive className="h-3.5 w-3.5" /> Decommission Asset
-                    </p>
-                    <p className="text-xs text-red-500 dark:text-red-400">Retires the asset permanently. A reason is required. Can be reversed by editing the status.</p>
-                    <Textarea
-                      placeholder="Reason for decommissioning (required)…"
-                      value={editForm.decommissionReason}
-                      onChange={e => setEditForm(f => ({ ...f, decommissionReason: e.target.value }))}
-                      className="min-h-[72px] text-sm border-red-200 dark:border-red-800 focus-visible:ring-red-400"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      className="w-full h-11 gap-2"
-                      disabled={!editForm.decommissionReason.trim() || updateMutation.isPending}
-                      onClick={() => {
-                        if (!editForm.decommissionReason.trim()) return;
-                        updateMutation.mutate({ ...editForm, status: "retired" });
-                      }}
-                    >
-                      <Archive className="h-5 w-5" />
-                      Decommission Asset
-                    </Button>
+                  <div>
+                    {!decommissionExpanded ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full h-11 gap-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                        onClick={() => setDecommissionExpanded(true)}
+                      >
+                        <Archive className="h-5 w-5" />
+                        Decommission Asset…
+                      </Button>
+                    ) : (
+                      <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 space-y-2">
+                        <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide flex items-center gap-1.5">
+                          <Archive className="h-3.5 w-3.5" /> Decommission Asset
+                        </p>
+                        <p className="text-xs text-red-500 dark:text-red-400">Retires the asset permanently. A reason is required. Can be reversed by editing the status.</p>
+                        <Textarea
+                          placeholder="Reason for decommissioning (required)…"
+                          value={editForm.decommissionReason}
+                          onChange={e => setEditForm(f => ({ ...f, decommissionReason: e.target.value }))}
+                          className="min-h-[72px] text-sm border-red-200 dark:border-red-800 focus-visible:ring-red-400"
+                          autoFocus
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1 h-11"
+                            onClick={() => { setDecommissionExpanded(false); setEditForm(f => ({ ...f, decommissionReason: "" })); }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            className="flex-1 h-11 gap-2"
+                            disabled={!editForm.decommissionReason.trim() || updateMutation.isPending}
+                            onClick={() => {
+                              if (!editForm.decommissionReason.trim()) return;
+                              updateMutation.mutate({ ...editForm, status: "retired" });
+                            }}
+                          >
+                            <Archive className="h-4 w-4" />
+                            Confirm
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : null}
               </div>
