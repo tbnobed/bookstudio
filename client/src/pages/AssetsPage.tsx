@@ -25,7 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, QrCode, RefreshCw, Eye, EyeOff, ScanLine } from "lucide-react";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, RefreshCw, Eye, EyeOff, ScanLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type EnrichedCheckout = {
@@ -87,8 +87,6 @@ const EMPTY_FORM = {
   decommissionReason: "",
 };
 
-const qrUrl = (tag: string) =>
-  tag ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(tag)}&format=png&margin=4` : "";
 
 const generateAssetTag = () => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -1271,31 +1269,6 @@ export default function AssetsPage() {
                     Scan Label
                   </button>
                 </div>
-                {form.assetTag.trim() && (
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
-                    <img
-                      src={qrUrl(form.assetTag.trim())}
-                      alt="QR code"
-                      className="h-14 w-14 rounded bg-white shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold flex items-center gap-1.5">
-                        <QrCode className="h-3.5 w-3.5 text-blue-500" />
-                        QR Code
-                      </p>
-                      <p className="text-xs text-muted-foreground font-mono truncate">{form.assetTag.trim()}</p>
-                      <a
-                        href={qrUrl(form.assetTag.trim())}
-                        download={`${form.assetTag.trim()}.png`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline"
-                      >
-                        Download full-size →
-                      </a>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
