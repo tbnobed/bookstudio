@@ -11,7 +11,7 @@ import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
   Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText,
-  RefreshCw, QrCode, Download, Share2
+  RefreshCw, QrCode, Download, Share2, Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -435,10 +435,11 @@ interface AssetCardProps {
   currentUserId: number;
   onCheckout: (asset: Asset) => void;
   onCheckin: (asset: Asset) => void;
+  onEdit: (asset: Asset) => void;
   checkingIn: boolean;
 }
 
-function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin, checkingIn }: AssetCardProps) {
+function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin, onEdit, checkingIn }: AssetCardProps) {
   const cat = getCat(asset.category);
   const st = STATUS_CONFIG[asset.status] ?? STATUS_CONFIG.available;
   const isCheckedOutByMe = activeCheckout?.checkedOutBy === currentUserId;
@@ -462,6 +463,14 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
             </span>
           </div>
         </div>
+        {/* Edit button */}
+        <button
+          onClick={() => onEdit(asset)}
+          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+          title="Edit asset"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {/* Meta */}
@@ -608,6 +617,29 @@ export default function MobileAssetsPage() {
   const [photoInputKey, setPhotoInputKey] = useState(0);
   const newAssetPhotoRef = useRef<HTMLInputElement>(null);
 
+  // Edit-asset form
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "", category: "camera", status: "available",
+    serialNumber: "", assetTag: "", location: "", description: "", notes: "",
+  });
+
+  const openEditAsset = (asset: Asset) => {
+    setEditingAsset(asset);
+    setEditForm({
+      name: asset.name,
+      category: asset.category,
+      status: asset.status,
+      serialNumber: asset.serialNumber ?? "",
+      assetTag: asset.assetTag ?? "",
+      location: asset.location ?? "",
+      description: asset.description ?? "",
+      notes: asset.notes ?? "",
+    });
+    setEditOpen(true);
+  };
+
   // ── Queries ────────────────────────────────────────────────────────────────
   const { data: assets = [], isLoading } = useQuery<Asset[]>({
     queryKey: ["/api/assets"],
@@ -699,6 +731,21 @@ export default function MobileAssetsPage() {
       }
     },
     onError: () => toast({ title: "Error", description: "Failed to add asset.", variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: typeof editForm) => {
+      if (!editingAsset) return;
+      const res = await apiRequest("PATCH", `/api/assets/${editingAsset.id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
+      setEditOpen(false);
+      setEditingAsset(null);
+      toast({ title: "Asset updated", description: "Changes have been saved." });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to update asset.", variant: "destructive" }),
   });
 
   // ── Filtered list ──────────────────────────────────────────────────────────
@@ -1051,6 +1098,7 @@ export default function MobileAssetsPage() {
                 setCheckingInId(a.id);
                 checkinMutation.mutate(a.id);
               }}
+              onEdit={openEditAsset}
               checkingIn={checkinMutation.isPending && checkingInId === asset.id}
             />
           ))
@@ -1351,6 +1399,150 @@ export default function MobileAssetsPage() {
             >
               {createMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
               Add to Inventory
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* ── Edit asset sheet ─────────────────────────────────────────────────── */}
+      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto">
+          <SheetHeader className="mb-4 sticky top-0 bg-white dark:bg-gray-900 pb-2 z-10">
+            <SheetTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-blue-500" />
+              Edit Asset
+            </SheetTitle>
+          </SheetHeader>
+
+          <div className="space-y-4 pb-6">
+            {/* Name */}
+            <div className="space-y-1.5">
+              <Label>Asset Name *</Label>
+              <Input
+                placeholder="e.g. Sony FX6 Cinema Camera"
+                value={editForm.name}
+                onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))}
+                className="h-11"
+              />
+            </div>
+
+            {/* Category + Status side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Category</Label>
+                <Select value={editForm.category} onValueChange={v => setEditForm(p => ({ ...p, category: v }))}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map(c => (
+                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Status</Label>
+                <Select value={editForm.status} onValueChange={v => setEditForm(p => ({ ...p, status: v }))}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="in-use">In Use</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    <SelectItem value="retired">Retired</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Serial Number */}
+            <div className="space-y-1.5">
+              <Label>Serial Number</Label>
+              <Input
+                placeholder="S/N from label"
+                value={editForm.serialNumber}
+                onChange={e => setEditForm(p => ({ ...p, serialNumber: e.target.value }))}
+                className="h-11"
+              />
+            </div>
+
+            {/* Asset Tag */}
+            <div className="space-y-1.5">
+              <Label>Asset Tag</Label>
+              <Input
+                placeholder="Internal tag / QR label"
+                value={editForm.assetTag}
+                onChange={e => setEditForm(p => ({ ...p, assetTag: e.target.value }))}
+                className="h-11 font-mono"
+              />
+              {editForm.assetTag.trim() && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                  <img
+                    src={qrUrl(editForm.assetTag.trim())}
+                    alt="QR code preview"
+                    className="h-14 w-14 rounded-lg bg-white shadow-sm shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">QR Code</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">{editForm.assetTag.trim()}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Location */}
+            <div className="space-y-1.5">
+              <Label>Location</Label>
+              <Input
+                placeholder="e.g. Storage Room B, Shelf 3"
+                value={editForm.location}
+                onChange={e => setEditForm(p => ({ ...p, location: e.target.value }))}
+                className="h-11"
+              />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-1.5">
+              <Label>Description / Model Details</Label>
+              <Textarea
+                placeholder="Model info, specs, purchase details…"
+                value={editForm.description}
+                onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))}
+                rows={3}
+              />
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-1.5">
+              <Label>Notes</Label>
+              <Textarea
+                placeholder="Internal notes, condition, etc."
+                value={editForm.notes}
+                onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))}
+                rows={2}
+              />
+            </div>
+
+            {/* Photos */}
+            {editingAsset && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  Photos
+                </Label>
+                <AssetPhotoSection assetId={editingAsset.id} />
+              </div>
+            )}
+
+            <Button
+              className="w-full h-12 text-base gap-2"
+              onClick={() => updateMutation.mutate(editForm)}
+              disabled={!editForm.name.trim() || updateMutation.isPending}
+            >
+              {updateMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
+              Save Changes
             </Button>
           </div>
         </SheetContent>
