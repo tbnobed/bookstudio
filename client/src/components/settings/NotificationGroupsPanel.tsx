@@ -183,6 +183,7 @@ const NotificationGroupDialog: React.FC<{
                       <SelectItem value="department">Department</SelectItem>
                       <SelectItem value="facility">Facility-wide</SelectItem>
                       <SelectItem value="site_management">Site Management</SelectItem>
+                      <SelectItem value="asset_managers">Asset Managers</SelectItem>
                       <SelectItem value="custom">Custom</SelectItem>
                     </SelectContent>
                   </Select>
@@ -426,11 +427,19 @@ const NotificationGroupsPanel: React.FC = () => {
         return "bg-blue-100 text-blue-800 border-blue-300";
       case "facility":
         return "bg-purple-100 text-purple-800 border-purple-300";
+      case "asset_managers":
+        return "bg-orange-100 text-orange-800 border-orange-300";
       case "custom":
         return "bg-green-100 text-green-800 border-green-300";
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
+  };
+
+  const getTypeLabel = (type: string) => {
+    if (type === "asset_managers") return "Asset Managers";
+    if (type === "site_management") return "Site Management";
+    return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
   if (error) {
@@ -507,7 +516,7 @@ const NotificationGroupsPanel: React.FC = () => {
                   <TableCell>
                     <Badge variant="outline" className={getTypeBadgeColor(group.groupType)}>
                       <Tag className="mr-1 h-3 w-3" />
-                      {group.groupType.charAt(0).toUpperCase() + group.groupType.slice(1)}
+                      {getTypeLabel(group.groupType)}
                     </Badge>
                   </TableCell>
                   <TableCell>

@@ -976,3 +976,88 @@ export async function sendFileAttachmentNotificationToGroups(
   
   return sendEmailToGroups(groupIds, subject, customHtmlMessage, alwaysNotifySiteManagers);
 }
+
+/**
+ * Send an asset event notification to all enabled Asset Managers groups.
+ * @param assetName  The name of the asset
+ * @param action     'checked_out' | 'checked_in' | 'modified'
+ * @param byUser     Name of the user who performed the action
+ * @param extra      Optional extra detail lines (e.g. purpose, notes)
+ */
+export async function sendAssetNotification(
+  assetName: string,
+  action: 'checked_out' | 'checked_in' | 'modified',
+  byUser: string,
+  extra: Record<string, string> = {}
+): Promise<void> {
+  try {
+    const allGroups = await storage.getAllNotificationGroups();
+    const assetManagerGroups = allGroups.filter(g => g.enabled && g.groupType === 'asset_managers');
+
+    if (assetManagerGroups.length === 0) return;
+
+    const actionLabel = action === 'checked_out' ? 'Checked Out'
+      : action === 'checked_in' ? 'Checked In'
+      : 'Modified';
+
+    const accentColor = action === 'checked_out' ? '#f97316'
+      : action === 'checked_in' ? '#22c55e'
+      : '#3b82f6';
+
+    const extraRows = Object.entries(extra)
+      .map(([label, value]) => `
+        <tr>
+          <td style="padding:6px 12px;color:#6b7280;font-size:14px;white-space:nowrap;">${label}</td>
+          <td style="padding:6px 12px;font-size:14px;">${value}</td>
+        </tr>`)
+      .join('');
+
+    const subject = `Asset ${actionLabel}: ${assetName}`;
+
+    const htmlContent = `
+      <tr>
+        <td style="background-color:${accentColor};padding:24px 32px;">
+          <h1 style="color:#ffffff;font-size:22px;margin:0;">Asset ${actionLabel}</h1>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:24px 32px;">
+          <p style="font-size:15px;color:#374151;margin:0 0 20px;">
+            The following asset has been <strong>${actionLabel.toLowerCase()}</strong>.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0"
+            style="border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+            <tr style="background-color:#f9fafb;">
+              <td style="padding:6px 12px;color:#6b7280;font-size:14px;white-space:nowrap;">Asset</td>
+              <td style="padding:6px 12px;font-size:14px;font-weight:600;">${assetName}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 12px;color:#6b7280;font-size:14px;white-space:nowrap;">Action</td>
+              <td style="padding:6px 12px;font-size:14px;">${actionLabel}</td>
+            </tr>
+            <tr style="background-color:#f9fafb;">
+              <td style="padding:6px 12px;color:#6b7280;font-size:14px;white-space:nowrap;">By</td>
+              <td style="padding:6px 12px;font-size:14px;">${byUser}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 12px;color:#6b7280;font-size:14px;white-space:nowrap;">Time</td>
+              <td style="padding:6px 12px;font-size:14px;">${formatDate(new Date())}</td>
+            </tr>
+            ${extraRows}
+          </table>
+          <p style="font-size:13px;color:#9ca3af;margin:20px 0 0;">
+            This notification was sent automatically to all Asset Managers groups.
+          </p>
+        </td>
+      </tr>
+    `;
+
+    const textContent = `Asset ${actionLabel}: ${assetName}\nBy: ${byUser}\n`
+      + Object.entries(extra).map(([k, v]) => `${k}: ${v}`).join('\n');
+
+    const groupIds = assetManagerGroups.map(g => g.id);
+    await sendStyledEmailToGroups(groupIds, subject, htmlContent, textContent, false);
+  } catch (err) {
+    console.error('[sendAssetNotification] Error sending asset notification:', err);
+  }
+}

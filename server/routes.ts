@@ -36,7 +36,8 @@ import {
   sendCustomNotificationToGroups,
   sendMultiDateAlertToGroups,
   sendMultiDateBookingCopyToGroups,
-  sendFileAttachmentNotificationToGroups
+  sendFileAttachmentNotificationToGroups,
+  sendAssetNotification
 } from "./services/notificationGroupService";
 import { AuditService, getAuditContext } from "./services/auditService";
 import { 
@@ -3760,6 +3761,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const asset = await storage.updateAsset(id, req.body);
       if (!asset) return res.status(404).json({ message: "Asset not found" });
       res.json(asset);
+      const userId = (req.user as any).id;
+      const user = await storage.getUser(userId);
+      const userName = user?.fullName || user?.username || `User #${userId}`;
+      sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
     } catch (error) {
       console.error("Error updating asset:", error);
       res.status(500).json({ message: "Failed to update asset" });
@@ -3772,6 +3777,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const asset = await storage.updateAsset(id, req.body);
       if (!asset) return res.status(404).json({ message: "Asset not found" });
       res.json(asset);
+      const userId = (req.user as any).id;
+      const user = await storage.getUser(userId);
+      const userName = user?.fullName || user?.username || `User #${userId}`;
+      sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
     } catch (error) {
       console.error("Error updating asset:", error);
       res.status(500).json({ message: "Failed to update asset" });
@@ -3842,6 +3851,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: req.body.notes,
       });
       res.status(201).json(checkout);
+      // Notify asset managers (fire-and-forget)
+      const user = await storage.getUser(userId);
+      const userName = user?.fullName || user?.username || `User #${userId}`;
+      const extra: Record<string, string> = {};
+      if (req.body.purpose) extra["Purpose"] = req.body.purpose;
+      if (req.body.notes) extra["Notes"] = req.body.notes;
+      sendAssetNotification(asset.name, 'checked_out', userName, extra).catch(console.error);
     } catch (error) {
       console.error("Error checking out asset:", error);
       res.status(500).json({ message: "Failed to check out asset" });
@@ -3853,9 +3869,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const assetId = parseInt(req.params.id);
       const userId = (req.user as any).id;
+      const asset = await storage.getAsset(assetId);
       const result = await storage.checkinAsset(assetId, userId);
       if (!result) return res.status(409).json({ message: "Asset is not currently checked out" });
       res.json(result);
+      // Notify asset managers (fire-and-forget)
+      if (asset) {
+        const user = await storage.getUser(userId);
+        const userName = user?.fullName || user?.username || `User #${userId}`;
+        sendAssetNotification(asset.name, 'checked_in', userName).catch(console.error);
+      }
     } catch (error) {
       console.error("Error checking in asset:", error);
       res.status(500).json({ message: "Failed to check in asset" });
