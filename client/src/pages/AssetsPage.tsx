@@ -1,4 +1,8 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { BarcodeDetectorPolyfill } from "@undecaf/barcode-detector-polyfill";
+if (!("BarcodeDetector" in window)) {
+  (window as any).BarcodeDetector = BarcodeDetectorPolyfill;
+}
 import { Header } from "@/components/layout/Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Asset, Booking, AssetPhoto } from "@shared/schema";
@@ -21,7 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, QrCode, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, QrCode, RefreshCw, Eye, EyeOff, ScanLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type EnrichedCheckout = {
@@ -189,6 +193,113 @@ function ProductionPicker({ value, onSelect, productions }: ProductionPickerProp
   );
 }
 
+// ── Desktop Barcode Scanner Dialog ───────────────────────────────────────────
+function BarcodeScannerDialog({
+  open,
+  onDetected,
+  onClose,
+}: {
+  open: boolean;
+  onDetected: (value: string) => void;
+  onClose: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number>(0);
+  const [hint, setHint] = useState("Loading scanner...");
+  const [error, setError] = useState<string | null>(null);
+  const detectedRef = useRef(false);
+
+  const stop = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+  }, []);
+
+  useEffect(() => {
+    if (!open) { stop(); detectedRef.current = false; setError(null); return; }
+
+    let cancelled = false;
+    async function start() {
+      const BD = (window as any).BarcodeDetector;
+      setHint("Loading scanner...");
+      let formats: string[] = [];
+      try { formats = await BD.getSupportedFormats(); } catch (_) {}
+      if (cancelled) return;
+
+      setHint("Opening camera...");
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+        });
+        if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+        streamRef.current = stream;
+
+        const video = videoRef.current!;
+        video.srcObject = stream;
+        video.setAttribute("playsinline", "true");
+        video.muted = true;
+        await video.play();
+        if (cancelled) return;
+
+        const detector = new BD({ formats: formats.length ? formats : undefined });
+        setHint("Align barcode label with the camera");
+
+        async function tick() {
+          if (cancelled || !streamRef.current || detectedRef.current) return;
+          if (video.readyState >= 2 && video.videoWidth > 0) {
+            try {
+              const results = await detector.detect(video);
+              if (results.length > 0 && !cancelled && !detectedRef.current) {
+                detectedRef.current = true;
+                stop();
+                onDetected(results[0].rawValue);
+                return;
+              }
+            } catch (_) {}
+          }
+          rafRef.current = requestAnimationFrame(tick);
+        }
+        rafRef.current = requestAnimationFrame(tick);
+      } catch (err: any) {
+        if (cancelled) return;
+        const msg = (err?.message ?? "") + (err?.name ?? "");
+        if (location.protocol !== "https:" && location.hostname !== "localhost") {
+          setError("Camera requires a secure (HTTPS) connection.");
+        } else if (/NotAllowed|PermissionDenied/i.test(msg)) {
+          setError("Camera access denied. Check your browser's site settings.");
+        } else if (/NotFound|DevicesNotFound/i.test(msg)) {
+          setError("No camera found. Connect a webcam and try again.");
+        } else {
+          setError("Could not start camera. Try refreshing the page.");
+        }
+      }
+    }
+    start();
+    return () => { cancelled = true; stop(); };
+  }, [open, stop, onDetected]);
+
+  return (
+    <Dialog open={open} onOpenChange={o => { if (!o) onClose(); }}>
+      <DialogContent className="sm:max-w-sm p-0 overflow-hidden">
+        <div className="relative bg-black" style={{ aspectRatio: "16/9" }}>
+          <video ref={videoRef} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-56 h-20 border-2 border-white/80 rounded-lg shadow-lg" />
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+            <p className="text-white text-xs text-center">{error ?? hint}</p>
+          </div>
+        </div>
+        <div className="p-4 text-center space-y-1">
+          <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Scan Asset Label</p>
+          <p className="text-xs text-gray-500">Code 128 · Code 39 · QR · Data Matrix · EAN · UPC</p>
+          <Button variant="outline" size="sm" className="mt-3" onClick={onClose}>Cancel</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AssetsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -210,6 +321,7 @@ export default function AssetsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Asset | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [decommissionExpanded, setDecommissionExpanded] = useState(false);
+  const [scanTagOpen, setScanTagOpen] = useState(false);
 
   // Checkout system state
   const [checkoutTarget, setCheckoutTarget] = useState<Asset | null>(null);
@@ -1135,19 +1247,30 @@ export default function AssetsPage() {
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, assetTag: generateAssetTag() }))}
-                    className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium hover:opacity-80 transition-opacity"
+                    className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 font-medium hover:opacity-80 transition-opacity"
                   >
                     <RefreshCw className="h-3 w-3" />
                     {form.assetTag ? "Regenerate" : "Auto-generate"}
                   </button>
                 </div>
-                <Input
-                  id="tag"
-                  placeholder="TAG-001"
-                  value={form.assetTag}
-                  onChange={e => setForm(f => ({ ...f, assetTag: e.target.value }))}
-                  className="font-mono"
-                />
+                <div className="flex gap-1.5">
+                  <Input
+                    id="tag"
+                    placeholder="Scan label or type manually"
+                    value={form.assetTag}
+                    onChange={e => setForm(f => ({ ...f, assetTag: e.target.value }))}
+                    className="font-mono flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setScanTagOpen(true)}
+                    className="flex items-center gap-1.5 px-3 h-10 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shrink-0"
+                    title="Scan pre-printed barcode label"
+                  >
+                    <ScanLine className="h-4 w-4 text-purple-500" />
+                    Scan Label
+                  </button>
+                </div>
                 {form.assetTag.trim() && (
                   <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
                     <img
@@ -1620,6 +1743,17 @@ export default function AssetsPage() {
           </button>
         </div>
       )}
+
+      {/* Barcode scanner for asset tag field */}
+      <BarcodeScannerDialog
+        open={scanTagOpen}
+        onDetected={value => {
+          setForm(f => ({ ...f, assetTag: value }));
+          setScanTagOpen(false);
+          toast({ title: "Label scanned", description: value });
+        }}
+        onClose={() => setScanTagOpen(false)}
+      />
     </div>
   );
 }

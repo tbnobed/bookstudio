@@ -566,7 +566,7 @@ export default function MobileAssetsPage() {
   const [ocrPhase, setOcrPhase] = useState<"idle" | "processing" | "results">("idle");
   const [ocrResults, setOcrResults] = useState<string[]>([]);
   const [ocrProgress, setOcrProgress] = useState(0);
-  const [scanTarget, setScanTarget] = useState<"serial" | "tag" | null>(null);
+  const [scanTarget, setScanTarget] = useState<"serial" | "tag" | "editSerial" | "editTag" | null>(null);
 
   // QR code / asset tag auto-generation
   const [showQrModal, setShowQrModal] = useState(false);
@@ -715,12 +715,7 @@ export default function MobileAssetsPage() {
     return tag;
   };
 
-  // Auto-fill asset tag when the "Add New Asset" sheet opens
-  useEffect(() => {
-    if (addOpen && !newAsset.assetTag) {
-      setNewAsset(p => ({ ...p, assetTag: generateAssetTag() }));
-    }
-  }, [addOpen]);
+  // Auto-fill asset tag was removed — scan-first UX lets users scan their pre-printed labels.
 
   const qrUrl = (tag: string) =>
     tag ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(tag)}&format=png&margin=4` : "";
@@ -792,7 +787,7 @@ export default function MobileAssetsPage() {
     return true;
   });
 
-  const handleOpenScanner = (target: "serial" | "tag") => {
+  const handleOpenScanner = (target: "serial" | "tag" | "editSerial" | "editTag") => {
     setScanTarget(target);
     setScannerOpen(true);
   };
@@ -801,8 +796,10 @@ export default function MobileAssetsPage() {
     setScannerOpen(false);
     if (scanTarget === "serial") setNewAsset(p => ({ ...p, serialNumber: value }));
     if (scanTarget === "tag") setNewAsset(p => ({ ...p, assetTag: value }));
+    if (scanTarget === "editSerial") setEditForm(p => ({ ...p, serialNumber: value }));
+    if (scanTarget === "editTag") setEditForm(p => ({ ...p, assetTag: value }));
     setScanTarget(null);
-    toast({ title: "Scanned!", description: `Value captured: ${value}` });
+    toast({ title: "Label scanned", description: value });
   };
 
   // ── OCR helpers ─────────────────────────────────────────────────────────────
@@ -1294,10 +1291,10 @@ export default function MobileAssetsPage() {
                 <button
                   onClick={() => handleOpenScanner("serial")}
                   className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
-                  title="Scan barcode"
+                  title="Scan barcode label"
                 >
                   <ScanLine className="h-4 w-4 text-blue-500" />
-                  <span>Bar</span>
+                  <span>Scan</span>
                 </button>
                 <button
                   onClick={() => handleOcrScan("serial")}
@@ -1317,26 +1314,26 @@ export default function MobileAssetsPage() {
                 <button
                   type="button"
                   onClick={() => setNewAsset(p => ({ ...p, assetTag: generateAssetTag() }))}
-                  className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium active:opacity-70 transition-opacity"
+                  className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 font-medium active:opacity-70 transition-opacity"
                 >
                   <RefreshCw className="h-3 w-3" />
-                  Regenerate
+                  {newAsset.assetTag ? "Regenerate" : "Auto-generate"}
                 </button>
               </div>
               <div className="flex gap-1.5">
                 <Input
-                  placeholder="Internal tag / QR label"
+                  placeholder="Scan label or type manually"
                   value={newAsset.assetTag}
                   onChange={e => setNewAsset(p => ({ ...p, assetTag: e.target.value }))}
                   className="h-11 flex-1 font-mono"
                 />
                 <button
                   onClick={() => handleOpenScanner("tag")}
-                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
-                  title="Scan barcode"
+                  className="flex items-center gap-1.5 px-3 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  title="Scan pre-printed barcode label"
                 >
-                  <Tag className="h-4 w-4 text-purple-500" />
-                  <span>Bar</span>
+                  <ScanLine className="h-4 w-4 text-purple-500" />
+                  <span>Scan Label</span>
                 </button>
                 <button
                   onClick={() => handleOcrScan("tag")}
@@ -1544,12 +1541,23 @@ export default function MobileAssetsPage() {
             {/* Asset Tag */}
             <div className="space-y-1.5">
               <Label>Asset Tag</Label>
-              <Input
-                placeholder="Internal tag / QR label"
-                value={editForm.assetTag}
-                onChange={e => setEditForm(p => ({ ...p, assetTag: e.target.value }))}
-                className="h-11 font-mono"
-              />
+              <div className="flex gap-1.5">
+                <Input
+                  placeholder="Scan label or type manually"
+                  value={editForm.assetTag}
+                  onChange={e => setEditForm(p => ({ ...p, assetTag: e.target.value }))}
+                  className="h-11 font-mono flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleOpenScanner("editTag")}
+                  className="flex items-center gap-1.5 px-3 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  title="Scan pre-printed barcode label"
+                >
+                  <ScanLine className="h-4 w-4 text-purple-500" />
+                  <span>Scan Label</span>
+                </button>
+              </div>
               {editForm.assetTag.trim() && (
                 <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
                   <img
@@ -1774,7 +1782,11 @@ export default function MobileAssetsPage() {
       {/* ── Barcode scanner overlay ──────────────────────────────────────────── */}
       {scannerOpen && scanTarget && (
         <BarcodeScanner
-          fieldLabel={scanTarget === "serial" ? "Serial Number" : "Asset Tag"}
+          fieldLabel={
+            scanTarget === "serial" || scanTarget === "editSerial"
+              ? "Serial Number"
+              : "Asset Tag"
+          }
           onDetected={handleScanDetected}
           onClose={() => { setScannerOpen(false); setScanTarget(null); }}
         />
