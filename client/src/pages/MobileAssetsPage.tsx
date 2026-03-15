@@ -12,7 +12,7 @@ import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
   Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText,
-  RefreshCw, QrCode, Download, Share2, Pencil, Sun, Moon, Archive
+  RefreshCw, QrCode, Download, Share2, Pencil, Sun, Moon, Archive, Eye, EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -445,15 +445,20 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
   const st = STATUS_CONFIG[asset.status] ?? STATUS_CONFIG.available;
   const isCheckedOutByMe = activeCheckout?.checkedOutBy === currentUserId;
 
+  const isRetired = asset.status === "retired";
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 space-y-3">
+    <div className={cn(
+      "bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 space-y-3",
+      isRetired && "opacity-50 grayscale-[40%]"
+    )}>
       {/* Top row */}
       <div className="flex items-start gap-3">
         <div className={cn("shrink-0 w-10 h-10 rounded-xl flex items-center justify-center", cat.color)}>
           <Package className="h-5 w-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 dark:text-white text-sm leading-tight truncate">{asset.name}</p>
+          <p className={cn("font-semibold text-gray-900 dark:text-white text-sm leading-tight truncate", isRetired && "italic line-through decoration-gray-400")}>{asset.name}</p>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className={cn("text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full", cat.color)}>
               {cat.label}
@@ -542,6 +547,7 @@ export default function MobileAssetsPage() {
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [showRetired, setShowRetired] = useState(false);
   const [tab, setTab] = useState<"all" | "mine" | "available">("all");
   const [checkoutAsset, setCheckoutAsset] = useState<Asset | null>(null);
   const [checkoutPurpose, setCheckoutPurpose] = useState("");
@@ -770,6 +776,8 @@ export default function MobileAssetsPage() {
 
     if (!matchSearch) return false;
     if (categoryFilter !== "all" && a.category !== categoryFilter) return false;
+    // Hide retired assets by default unless showRetired is on
+    if (!showRetired && a.status === "retired") return false;
     if (tab === "available") return a.status === "available" && !checkoutMap[a.id];
     if (tab === "mine") return !!checkoutMap[a.id] && checkoutMap[a.id].checkedOutBy === user?.id;
     return true;
@@ -1050,6 +1058,20 @@ export default function MobileAssetsPage() {
             </button>
           ))}
         </div>
+
+        {/* Show/hide retired toggle */}
+        <button
+          onClick={() => setShowRetired(v => !v)}
+          className={cn(
+            "flex items-center gap-1.5 self-start px-3 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95",
+            showRetired
+              ? "bg-gray-200 dark:bg-gray-700 border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-200"
+              : "bg-transparent border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500"
+          )}
+        >
+          {showRetired ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+          {showRetired ? "Hide Retired" : "Show Retired"}
+        </button>
       </div>
 
       {/* ── Install banner ──────────────────────────────────────────────────── */}

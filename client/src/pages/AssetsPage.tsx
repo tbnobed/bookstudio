@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, QrCode, RefreshCw } from "lucide-react";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, QrCode, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type EnrichedCheckout = {
@@ -191,11 +191,12 @@ export default function AssetsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showRetired, setShowRetired] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 25;
 
   // Reset to first page whenever filters/search change
-  useEffect(() => { setCurrentPage(1); }, [searchQuery, categoryFilter, statusFilter]);
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, categoryFilter, statusFilter, showRetired]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editAsset, setEditAsset] = useState<Asset | null>(null);
@@ -478,9 +479,11 @@ export default function AssetsPage() {
         (a.assetTag ?? "").toLowerCase().includes(q) ||
         (a.location ?? "").toLowerCase().includes(q) ||
         (a.description ?? "").toLowerCase().includes(q);
-      return matchCat && matchStat && matchSearch;
+      // Hide retired assets by default unless explicitly shown or explicitly filtered to retired
+      const matchRetired = showRetired || statusFilter === "retired" || a.status !== "retired";
+      return matchCat && matchStat && matchSearch && matchRetired;
     });
-  }, [assets, searchQuery, categoryFilter, statusFilter]);
+  }, [assets, searchQuery, categoryFilter, statusFilter, showRetired]);
 
   const hasActiveFilters = searchQuery.trim() !== "" || categoryFilter !== "all" || statusFilter !== "all";
 
@@ -488,6 +491,7 @@ export default function AssetsPage() {
     setSearchQuery("");
     setCategoryFilter("all");
     setStatusFilter("all");
+    setShowRetired(false);
   };
 
   // Selection helpers — depend on filtered, so defined after it
@@ -603,6 +607,21 @@ export default function AssetsPage() {
               ))}
             </SelectContent>
           </Select>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowRetired(v => !v)}
+            className={cn(
+              "shrink-0 gap-1.5",
+              showRetired
+                ? "text-gray-500 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                : "text-gray-400 hover:text-gray-600"
+            )}
+            title={showRetired ? "Hide retired assets" : "Show retired assets"}
+          >
+            {showRetired ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            <span className="hidden sm:inline">{showRetired ? "Hide Retired" : "Show Retired"}</span>
+          </Button>
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="shrink-0 text-gray-500 hover:text-gray-800">
               <X className="h-4 w-4 mr-1" />
@@ -698,7 +717,8 @@ export default function AssetsPage() {
                       onDoubleClick={() => openEdit(asset)}
                       className={cn(
                         "grid grid-cols-[28px_2fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none cursor-pointer",
-                        selectedIds.has(asset.id) && "bg-emerald-50/60 dark:bg-emerald-900/10"
+                        selectedIds.has(asset.id) && "bg-emerald-50/60 dark:bg-emerald-900/10",
+                        asset.status === "retired" && "opacity-50 grayscale-[40%] hover:opacity-70"
                       )}
                     >
                       {/* Checkbox (only for available assets) */}
@@ -726,7 +746,7 @@ export default function AssetsPage() {
                           "bg-orange-500": asset.category === "other",
                         })} />
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm text-gray-900 dark:text-white truncate">{asset.name}</p>
+                          <p className={cn("font-medium text-sm text-gray-900 dark:text-white truncate", asset.status === "retired" && "italic line-through decoration-gray-400")}>{asset.name}</p>
                           {asset.description && (
                             <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{asset.description}</p>
                           )}
