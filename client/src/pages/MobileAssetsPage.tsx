@@ -1005,8 +1005,8 @@ export default function MobileAssetsPage() {
             className={cn(
               "shrink-0 px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95",
               categoryFilter === "all"
-                ? "bg-white/15 border-white/60 text-white"
-                : "border-white/20 text-white/50 hover:border-white/40 hover:text-white/70"
+                ? "bg-gray-800 border-gray-700 text-white dark:bg-white/15 dark:border-white/60 dark:text-white"
+                : "border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-700 dark:border-white/20 dark:text-white/50 dark:hover:border-white/40 dark:hover:text-white/70"
             )}
           >
             All assets
@@ -1016,9 +1016,8 @@ export default function MobileAssetsPage() {
               key={cat.value}
               onClick={() => setCategoryFilter(categoryFilter === cat.value ? "all" : cat.value)}
               className={cn(
-                "shrink-0 px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95",
-                categoryFilter === cat.value ? cat.pillActive : cat.pill,
-                "bg-transparent"
+                "shrink-0 px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95 bg-transparent",
+                categoryFilter === cat.value ? cat.pillActive : cat.pill
               )}
             >
               {cat.label}
