@@ -986,7 +986,7 @@ export async function sendFileAttachmentNotificationToGroups(
  */
 export async function sendAssetNotification(
   assetName: string,
-  action: 'checked_out' | 'checked_in' | 'modified' | 'decommissioned' | 'created' | 'deleted',
+  action: 'checked_out' | 'checked_in' | 'modified' | 'decommissioned' | 'created' | 'deleted' | 'tag_changed',
   byUser: string,
   extra: Record<string, string> = {}
 ): Promise<void> {
@@ -1001,6 +1001,7 @@ export async function sendAssetNotification(
       : action === 'decommissioned' ? 'Decommissioned'
       : action === 'created' ? 'Created'
       : action === 'deleted' ? 'Deleted'
+      : action === 'tag_changed' ? 'Asset Tag Changed'
       : 'Modified';
 
     const accentColor = action === 'checked_out' ? '#f97316'
@@ -1008,6 +1009,7 @@ export async function sendAssetNotification(
       : action === 'decommissioned' ? '#7f1d1d'
       : action === 'created' ? '#6366f1'
       : action === 'deleted' ? '#dc2626'
+      : action === 'tag_changed' ? '#d97706'
       : '#3b82f6';
 
     const extraRows = Object.entries(extra)

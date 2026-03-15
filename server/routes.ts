@@ -3793,6 +3793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userName = user?.fullName || user?.username || `User #${userId}`;
       const isDecommission = asset.status === 'retired' && !!(asset as any).decommissionReason
         && prevAsset?.status !== 'retired';
+      const tagChanged = prevAsset && prevAsset.assetTag !== asset.assetTag;
       if (isDecommission) {
         AuditService.log(ctx, 'DECOMMISSION', 'asset', asset.id, asset.name, {
           reason: (asset as any).decommissionReason,
@@ -3802,10 +3803,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           Reason: (asset as any).decommissionReason,
         }).catch(console.error);
       } else {
-        AuditService.log(ctx, 'UPDATE', 'asset', asset.id, asset.name, {
-          changes: prevAsset ? { from: { status: prevAsset.status }, to: { status: asset.status } } : {},
-        }).catch(console.error);
-        sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
+        if (tagChanged) {
+          AuditService.log(ctx, 'TAG_CHANGED', 'asset', asset.id, asset.name, {
+            previousTag: prevAsset.assetTag ?? '(none)',
+            newTag: asset.assetTag ?? '(none)',
+          }).catch(console.error);
+          sendAssetNotification(asset.name, 'tag_changed', userName, {
+            'Previous Tag': prevAsset.assetTag ?? '(none)',
+            'New Tag': asset.assetTag ?? '(none)',
+          }).catch(console.error);
+        } else {
+          AuditService.log(ctx, 'UPDATE', 'asset', asset.id, asset.name, {
+            changes: prevAsset ? { from: { status: prevAsset.status }, to: { status: asset.status } } : {},
+          }).catch(console.error);
+          sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
+        }
       }
     } catch (error) {
       console.error("Error updating asset:", error);
@@ -3827,6 +3839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userName = user?.fullName || user?.username || `User #${userId}`;
       const isDecommission = asset.status === 'retired' && !!(asset as any).decommissionReason
         && prevAsset?.status !== 'retired';
+      const tagChanged = prevAsset && prevAsset.assetTag !== asset.assetTag;
       if (isDecommission) {
         AuditService.log(ctx, 'DECOMMISSION', 'asset', asset.id, asset.name, {
           reason: (asset as any).decommissionReason,
@@ -3836,10 +3849,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           Reason: (asset as any).decommissionReason,
         }).catch(console.error);
       } else {
-        AuditService.log(ctx, 'UPDATE', 'asset', asset.id, asset.name, {
-          changes: prevAsset ? { from: { status: prevAsset.status }, to: { status: asset.status } } : {},
-        }).catch(console.error);
-        sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
+        if (tagChanged) {
+          AuditService.log(ctx, 'TAG_CHANGED', 'asset', asset.id, asset.name, {
+            previousTag: prevAsset.assetTag ?? '(none)',
+            newTag: asset.assetTag ?? '(none)',
+          }).catch(console.error);
+          sendAssetNotification(asset.name, 'tag_changed', userName, {
+            'Previous Tag': prevAsset.assetTag ?? '(none)',
+            'New Tag': asset.assetTag ?? '(none)',
+          }).catch(console.error);
+        } else {
+          AuditService.log(ctx, 'UPDATE', 'asset', asset.id, asset.name, {
+            changes: prevAsset ? { from: { status: prevAsset.status }, to: { status: asset.status } } : {},
+          }).catch(console.error);
+          sendAssetNotification(asset.name, 'modified', userName).catch(console.error);
+        }
       }
     } catch (error) {
       console.error("Error updating asset:", error);

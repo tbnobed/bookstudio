@@ -12,7 +12,7 @@ import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
   Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText,
-  RefreshCw, Pencil, Sun, Moon, Archive, Eye, EyeOff,
+  Pencil, Sun, Moon, Archive, Eye, EyeOff,
   AlertTriangle, Tv
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -567,6 +567,7 @@ export default function MobileAssetsPage() {
   const [ocrResults, setOcrResults] = useState<string[]>([]);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [scanTarget, setScanTarget] = useState<"serial" | "tag" | "editSerial" | "editTag" | null>(null);
+  const [tagChangeConfirm, setTagChangeConfirm] = useState<{ oldTag: string; newTag: string } | null>(null);
 
 
   // ── PWA install ─────────────────────────────────────────────────────────────
@@ -704,15 +705,6 @@ export default function MobileAssetsPage() {
     onError: () => { setCheckingInId(null); toast({ title: "Error", description: "Failed to return asset.", variant: "destructive" }); },
   });
 
-  // ── Asset tag auto-generation ────────────────────────────────────────────────
-  const generateAssetTag = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I confusion
-    let tag = "AST-";
-    for (let i = 0; i < 6; i++) tag += chars[Math.floor(Math.random() * chars.length)];
-    return tag;
-  };
-
-  // Auto-fill asset tag was removed — scan-first UX lets users scan their pre-printed labels.
 
 
   const createMutation = useMutation({
@@ -1296,19 +1288,9 @@ export default function MobileAssetsPage() {
               </div>
             </div>
 
-            {/* Asset tag with scan + auto-generate + QR preview */}
+            {/* Asset tag with scan */}
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label>Asset Tag</Label>
-                <button
-                  type="button"
-                  onClick={() => setNewAsset(p => ({ ...p, assetTag: generateAssetTag() }))}
-                  className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 font-medium active:opacity-70 transition-opacity"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  {newAsset.assetTag ? "Regenerate" : "Auto-generate"}
-                </button>
-              </div>
+              <Label>Asset Tag</Label>
               <div className="flex gap-1.5">
                 <Input
                   placeholder="Scan label or type manually"
@@ -1645,7 +1627,15 @@ export default function MobileAssetsPage() {
 
             <Button
               className="w-full h-12 text-base gap-2"
-              onClick={() => updateMutation.mutate(editForm)}
+              onClick={() => {
+                const oldTag = editingAsset?.assetTag ?? "";
+                const newTag = editForm.assetTag.trim();
+                if (newTag !== oldTag) {
+                  setTagChangeConfirm({ oldTag, newTag });
+                } else {
+                  updateMutation.mutate(editForm);
+                }
+              }}
               disabled={!editForm.name.trim() || updateMutation.isPending}
             >
               {updateMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
@@ -1739,6 +1729,67 @@ export default function MobileAssetsPage() {
           )}
         </div>
       , document.body)}
+
+      {/* ── Asset tag change confirmation ────────────────────────────────────── */}
+      {tagChangeConfirm && createPortal(
+        <div
+          className="fixed inset-0 z-[90] flex items-end justify-center"
+          style={{ pointerEvents: "auto" }}
+          onClick={() => setTagChangeConfirm(null)}
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl p-6 pb-10"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-5" />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-900 dark:text-white text-base">Change Asset Tag?</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Labels using the old tag will no longer scan</p>
+              </div>
+            </div>
+            <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-2 text-sm mb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-gray-500 w-16 shrink-0 text-xs">Old tag</span>
+                <span className="font-mono font-semibold text-gray-700 dark:text-gray-300 truncate">
+                  {tagChangeConfirm.oldTag || "(none)"}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-gray-500 w-16 shrink-0 text-xs">New tag</span>
+                <span className="font-mono font-semibold text-amber-700 dark:text-amber-400 truncate">
+                  {tagChangeConfirm.newTag || "(none)"}
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-5">
+              An alert will be sent to Asset Managers and logged in the audit trail.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setTagChangeConfirm(null)}
+                className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 active:scale-95 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  updateMutation.mutate(editForm);
+                  setTagChangeConfirm(null);
+                }}
+                className="flex-1 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold active:scale-95 transition-all"
+              >
+                Yes, change tag
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* ── Barcode scanner overlay ──────────────────────────────────────────── */}
       {scannerOpen && scanTarget && (

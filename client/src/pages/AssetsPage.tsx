@@ -25,7 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, RefreshCw, Eye, EyeOff, ScanLine } from "lucide-react";
+import { Search, X, Plus, Pencil, Trash2, Package, Camera, Lightbulb, Volume2, Cable, Wrench, MoreHorizontal, CheckCircle2, CircleDot, AlertTriangle, Archive, LogIn, LogOut, History, User, Clock, ShoppingCart, Tv, ImageIcon, Loader2, Eye, EyeOff, ScanLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type EnrichedCheckout = {
@@ -85,14 +85,6 @@ const EMPTY_FORM = {
   purchaseDate: "",
   lastMaintenanceDate: "",
   decommissionReason: "",
-};
-
-
-const generateAssetTag = () => {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let tag = "AST-";
-  for (let i = 0; i < 6; i++) tag += chars[Math.floor(Math.random() * chars.length)];
-  return tag;
 };
 
 function formatBookingDate(dateStr: string | Date) {
@@ -320,6 +312,7 @@ export default function AssetsPage() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [decommissionExpanded, setDecommissionExpanded] = useState(false);
   const [scanTagOpen, setScanTagOpen] = useState(false);
+  const [tagChangeConfirm, setTagChangeConfirm] = useState<{ oldTag: string; newTag: string } | null>(null);
 
   // Checkout system state
   const [checkoutTarget, setCheckoutTarget] = useState<Asset | null>(null);
@@ -535,7 +528,7 @@ export default function AssetsPage() {
 
   const openCreate = () => {
     setEditAsset(null);
-    setForm({ ...EMPTY_FORM, assetTag: generateAssetTag() });
+    setForm({ ...EMPTY_FORM });
     setModalOpen(true);
   };
 
@@ -570,6 +563,12 @@ export default function AssetsPage() {
       return;
     }
     if (editAsset) {
+      const oldTag = editAsset.assetTag ?? "";
+      const newTag = form.assetTag.trim();
+      if (newTag !== oldTag) {
+        setTagChangeConfirm({ oldTag, newTag });
+        return;
+      }
       updateAsset.mutate({ id: editAsset.id, data: form });
     } else {
       createAsset.mutate(form);
@@ -1240,17 +1239,7 @@ export default function AssetsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="tag">Asset Tag</Label>
-                  <button
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, assetTag: generateAssetTag() }))}
-                    className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 font-medium hover:opacity-80 transition-opacity"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                    {form.assetTag ? "Regenerate" : "Auto-generate"}
-                  </button>
-                </div>
+                <Label htmlFor="tag">Asset Tag</Label>
                 <div className="flex gap-1.5">
                   <Input
                     id="tag"
@@ -1727,6 +1716,56 @@ export default function AssetsPage() {
         }}
         onClose={() => setScanTagOpen(false)}
       />
+
+      {/* Asset tag change confirmation */}
+      <Dialog open={!!tagChangeConfirm} onOpenChange={o => { if (!o) setTagChangeConfirm(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Change Asset Tag?
+            </DialogTitle>
+            <DialogDescription>
+              This will update the physical barcode association for this asset.
+              All scanners and labels using the old tag will no longer match.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-2 text-sm">
+            <div className="flex items-center gap-3">
+              <span className="text-gray-500 w-20 shrink-0">Old tag</span>
+              <span className="font-mono font-semibold text-gray-700 dark:text-gray-300 truncate">
+                {tagChangeConfirm?.oldTag || "(none)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-500 w-20 shrink-0">New tag</span>
+              <span className="font-mono font-semibold text-amber-700 dark:text-amber-400 truncate">
+                {tagChangeConfirm?.newTag || "(none)"}
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            An alert will be sent to all Asset Managers and logged in the audit trail.
+          </p>
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setTagChangeConfirm(null)}
+              className="px-4 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (editAsset) updateAsset.mutate({ id: editAsset.id, data: form });
+                setTagChangeConfirm(null);
+              }}
+              className="px-4 py-2 rounded-md bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium transition-colors"
+            >
+              Yes, change tag
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
