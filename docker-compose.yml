@@ -209,6 +209,8 @@ services:
         node scripts/production-migration-v1.5.4.cjs &&
         echo 'Running asset photos migration (v1.5.5)...' &&
         node scripts/production-migration-v1.5.5.cjs &&
+        echo 'Running decommission migration (v1.5.6)...' &&
+        node scripts/production-migration-v1.5.6.cjs &&
         echo 'Database initialization completed successfully!'
       "
 

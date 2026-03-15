@@ -140,6 +140,8 @@ COPY --chown=appuser:appgroup scripts/production-migration-v1.5.2.cjs ./scripts/
 COPY --chown=appuser:appgroup scripts/docker-migrate-teams-v1.5.3.cjs ./scripts/
 COPY --chown=appuser:appgroup scripts/docker-audit-schema-fix-v1.5.3.cjs ./scripts/
 COPY --chown=appuser:appgroup scripts/production-migration-v1.5.4.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/production-migration-v1.5.5.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/production-migration-v1.5.6.cjs ./scripts/
 
 # Copy backup/restore scripts and make them executable
 COPY --chown=appuser:appgroup scripts/production-backup.sh ./scripts/
