@@ -6,3 +6,9 @@ id = "AQtaOUM0soTqN787H1tHf"
 uri = "file://bookstudio_role_permissions.csv"
 type = "table"
 title = "BookStud.io Role Permissions"
+
+[[outputs]]
+id = "pTdRhsZhLg3utrxKtBkQf"
+uri = "file://BookStudio_Assets_Introduction.docx"
+type = "word_document"
+title = "BookStud.io Assets — Feature Introduction Pamphlet"
