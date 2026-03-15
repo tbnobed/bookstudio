@@ -6,12 +6,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { Asset, AssetCheckout, AssetPhoto } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
   Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText,
-  RefreshCw, QrCode, Download, Share2, Pencil
+  RefreshCw, QrCode, Download, Share2, Pencil, Sun, Moon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -536,6 +537,8 @@ export default function MobileAssetsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -958,11 +961,18 @@ export default function MobileAssetsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
       {/* ── Standalone header ────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 pt-4 pb-3 space-y-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div className="flex-1">
             <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">Equipment</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">{assets.length} items in inventory</p>
           </div>
+          <button
+            onClick={() => setTheme(isDark ? "light" : "dark")}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all"
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
           <button
             onClick={() => setAddOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold shadow active:scale-95 transition-transform"
