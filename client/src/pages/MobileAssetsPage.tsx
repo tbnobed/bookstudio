@@ -517,10 +517,10 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
         <Button
           size="sm"
           variant="outline"
-          className="h-10 px-3 gap-1.5 text-gray-500 border-gray-200 dark:border-gray-700 hover:text-blue-600 hover:border-blue-400 dark:hover:border-blue-500 shrink-0"
+          className="h-10 px-4 gap-2 text-orange-700 bg-orange-100 border-orange-300 dark:text-orange-300 dark:bg-orange-900/30 dark:border-orange-700 hover:bg-orange-200 dark:hover:bg-orange-900/50 shrink-0 font-medium"
           onClick={() => onEdit(asset)}
         >
-          <Pencil className="h-3.5 w-3.5" />
+          <Pencil className="h-4 w-4" />
           Edit
         </Button>
       </div>
