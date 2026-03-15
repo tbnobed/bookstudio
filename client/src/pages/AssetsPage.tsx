@@ -859,83 +859,107 @@ export default function AssetsPage() {
                     <ContextMenuLabel className="text-xs text-gray-500 font-normal truncate">
                       {asset.name}
                     </ContextMenuLabel>
-                    {checkoutMap.get(asset.id) && (
-                      <div className="px-2 py-1.5 space-y-1 mx-1 rounded bg-blue-50 dark:bg-blue-900/20">
-                        <div className="flex items-center gap-1.5 text-[10px] text-blue-600 dark:text-blue-400">
-                          <User className="h-3 w-3 shrink-0" />
-                          <span className="truncate">Checked out by {checkoutMap.get(asset.id)!.checkedOutByName}</span>
+
+                    {asset.status === "retired" ? (
+                      /* ── Retired asset: read-only, no actions ── */
+                      <>
+                        <ContextMenuSeparator />
+                        <div className="px-2 py-2 mx-1 rounded bg-gray-100 dark:bg-gray-700/50">
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400 italic">
+                            This asset has been decommissioned and cannot be modified.
+                          </p>
                         </div>
-                        {checkoutMap.get(asset.id)!.purpose && (
-                          <div className="flex items-center gap-1.5 text-[10px] text-indigo-600 dark:text-indigo-400">
-                            <Tv className="h-3 w-3 shrink-0" />
-                            <span className="truncate">{checkoutMap.get(asset.id)!.purpose}</span>
+                        <ContextMenuSeparator />
+                        <ContextMenuItem
+                          className="gap-2 cursor-pointer"
+                          onSelect={() => setHistoryAsset(asset)}
+                        >
+                          <History className="h-4 w-4 shrink-0 text-gray-500" />
+                          View checkout history
+                        </ContextMenuItem>
+                      </>
+                    ) : (
+                      /* ── Active asset: full action menu ── */
+                      <>
+                        {checkoutMap.get(asset.id) && (
+                          <div className="px-2 py-1.5 space-y-1 mx-1 rounded bg-blue-50 dark:bg-blue-900/20">
+                            <div className="flex items-center gap-1.5 text-[10px] text-blue-600 dark:text-blue-400">
+                              <User className="h-3 w-3 shrink-0" />
+                              <span className="truncate">Checked out by {checkoutMap.get(asset.id)!.checkedOutByName}</span>
+                            </div>
+                            {checkoutMap.get(asset.id)!.purpose && (
+                              <div className="flex items-center gap-1.5 text-[10px] text-indigo-600 dark:text-indigo-400">
+                                <Tv className="h-3 w-3 shrink-0" />
+                                <span className="truncate">{checkoutMap.get(asset.id)!.purpose}</span>
+                              </div>
+                            )}
                           </div>
                         )}
-                      </div>
-                    )}
-                    <ContextMenuSeparator />
-                    {asset.status === "available" && (
-                      <ContextMenuItem
-                        className="gap-2 cursor-pointer text-emerald-700 focus:text-emerald-700 focus:bg-emerald-50 dark:focus:bg-emerald-900/20"
-                        onSelect={() => { setCheckoutTarget(asset); setCheckoutForm({ purpose: "", notes: "" }); }}
-                      >
-                        <LogOut className="h-4 w-4 shrink-0" />
-                        Check Out
-                      </ContextMenuItem>
-                    )}
-                    {asset.status === "in-use" && checkoutMap.get(asset.id) && (
-                      <ContextMenuItem
-                        className="gap-2 cursor-pointer text-blue-700 focus:text-blue-700 focus:bg-blue-50 dark:focus:bg-blue-900/20"
-                        disabled={checkinMutation.isPending}
-                        onSelect={() => checkinMutation.mutate(asset.id)}
-                      >
-                        <LogIn className="h-4 w-4 shrink-0" />
-                        Check In
-                      </ContextMenuItem>
-                    )}
-                    <ContextMenuItem
-                      className="gap-2 cursor-pointer"
-                      onSelect={() => setHistoryAsset(asset)}
-                    >
-                      <History className="h-4 w-4 shrink-0 text-gray-500" />
-                      View checkout history
-                    </ContextMenuItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuLabel className="text-xs">Set Status</ContextMenuLabel>
-                    {STATUSES.map(s => {
-                      const Icon = s.icon;
-                      const isCurrent = asset.status === s.value;
-                      return (
+                        <ContextMenuSeparator />
+                        {asset.status === "available" && (
+                          <ContextMenuItem
+                            className="gap-2 cursor-pointer text-emerald-700 focus:text-emerald-700 focus:bg-emerald-50 dark:focus:bg-emerald-900/20"
+                            onSelect={() => { setCheckoutTarget(asset); setCheckoutForm({ purpose: "", notes: "" }); }}
+                          >
+                            <LogOut className="h-4 w-4 shrink-0" />
+                            Check Out
+                          </ContextMenuItem>
+                        )}
+                        {asset.status === "in-use" && checkoutMap.get(asset.id) && (
+                          <ContextMenuItem
+                            className="gap-2 cursor-pointer text-blue-700 focus:text-blue-700 focus:bg-blue-50 dark:focus:bg-blue-900/20"
+                            disabled={checkinMutation.isPending}
+                            onSelect={() => checkinMutation.mutate(asset.id)}
+                          >
+                            <LogIn className="h-4 w-4 shrink-0" />
+                            Check In
+                          </ContextMenuItem>
+                        )}
                         <ContextMenuItem
-                          key={s.value}
-                          disabled={isCurrent || quickSetStatus.isPending}
-                          onSelect={() => quickSetStatus.mutate({ id: asset.id, status: s.value })}
-                          className={cn("gap-2 cursor-pointer", isCurrent && "opacity-50 cursor-default")}
+                          className="gap-2 cursor-pointer"
+                          onSelect={() => setHistoryAsset(asset)}
                         >
-                          <Icon className={cn("h-4 w-4 shrink-0", s.iconClass)} />
-                          <span>{s.label}</span>
-                          {isCurrent && (
-                            <span className="ml-auto text-[10px] text-gray-400">current</span>
-                          )}
+                          <History className="h-4 w-4 shrink-0 text-gray-500" />
+                          View checkout history
                         </ContextMenuItem>
-                      );
-                    })}
-                    <ContextMenuSeparator />
-                    <ContextMenuItem
-                      className="gap-2 cursor-pointer"
-                      onSelect={() => openEdit(asset)}
-                    >
-                      <Pencil className="h-4 w-4 shrink-0 text-gray-500" />
-                      Edit asset
-                    </ContextMenuItem>
-                    {canDelete && (
-                      <ContextMenuItem
-                        className="gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
-                        onSelect={() => setDeleteTarget(asset)}
-                      >
-                        <Trash2 className="h-4 w-4 shrink-0" />
-                        Delete asset
-                      </ContextMenuItem>
+                        <ContextMenuSeparator />
+                        <ContextMenuLabel className="text-xs">Set Status</ContextMenuLabel>
+                        {STATUSES.filter(s => s.value !== "retired").map(s => {
+                          const Icon = s.icon;
+                          const isCurrent = asset.status === s.value;
+                          return (
+                            <ContextMenuItem
+                              key={s.value}
+                              disabled={isCurrent || quickSetStatus.isPending}
+                              onSelect={() => quickSetStatus.mutate({ id: asset.id, status: s.value })}
+                              className={cn("gap-2 cursor-pointer", isCurrent && "opacity-50 cursor-default")}
+                            >
+                              <Icon className={cn("h-4 w-4 shrink-0", s.iconClass)} />
+                              <span>{s.label}</span>
+                              {isCurrent && (
+                                <span className="ml-auto text-[10px] text-gray-400">current</span>
+                              )}
+                            </ContextMenuItem>
+                          );
+                        })}
+                        <ContextMenuSeparator />
+                        <ContextMenuItem
+                          className="gap-2 cursor-pointer"
+                          onSelect={() => openEdit(asset)}
+                        >
+                          <Pencil className="h-4 w-4 shrink-0 text-gray-500" />
+                          Edit asset
+                        </ContextMenuItem>
+                        {canDelete && (
+                          <ContextMenuItem
+                            className="gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
+                            onSelect={() => setDeleteTarget(asset)}
+                          >
+                            <Trash2 className="h-4 w-4 shrink-0" />
+                            Delete asset
+                          </ContextMenuItem>
+                        )}
+                      </>
                     )}
                   </ContextMenuContent>
                 </ContextMenu>
