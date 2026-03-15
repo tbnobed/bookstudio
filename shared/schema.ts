@@ -24,7 +24,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull(),
   name: text("name").notNull(),
-  role: text("role").notNull().default("producer"), // producer, engineer, it, site_manager, admin
+  role: text("role").notNull().default("producer"), // producer, production, engineer, it, site_manager, admin
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

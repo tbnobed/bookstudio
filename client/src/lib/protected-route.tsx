@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/users": ["admin"],
   "/producer-management": ["site_manager"],
-  "/reports": ["admin", "engineer", "it", "site_manager"]
+  "/reports": ["admin", "engineer", "production", "it", "site_manager"]
 };
 
 export function ProtectedRoute({

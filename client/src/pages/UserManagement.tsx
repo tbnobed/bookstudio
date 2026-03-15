@@ -303,6 +303,8 @@ export default function UserManagement() {
         return "bg-red-100 text-red-800 border-red-300";
       case "producer":
         return "bg-blue-100 text-blue-800 border-blue-300";
+      case "production":
+        return "bg-teal-100 text-teal-800 border-teal-300";
       case "engineer":
         return "bg-green-100 text-green-800 border-green-300";
       case "it":
@@ -508,6 +510,7 @@ export default function UserManagement() {
                 <SelectContent>
                   <SelectItem value="viewer">Viewer</SelectItem>
                   <SelectItem value="producer">Producer</SelectItem>
+                  <SelectItem value="production">Production</SelectItem>
                   <SelectItem value="engineer">Engineer</SelectItem>
                   <SelectItem value="it">IT</SelectItem>
                   <SelectItem value="site_manager">Site Manager</SelectItem>
@@ -580,6 +583,7 @@ export default function UserManagement() {
                 <SelectContent>
                   <SelectItem value="viewer">Viewer</SelectItem>
                   <SelectItem value="producer">Producer</SelectItem>
+                  <SelectItem value="production">Production</SelectItem>
                   <SelectItem value="engineer">Engineer</SelectItem>
                   <SelectItem value="it">IT</SelectItem>
                   <SelectItem value="site_manager">Site Manager</SelectItem>

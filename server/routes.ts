@@ -226,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Admins can invite any role
         parsedData = z.object({
           email: z.string().email(),
-          role: z.enum(["admin", "producer", "engineer", "it", "site_manager", "viewer"])
+          role: z.enum(["admin", "producer", "production", "engineer", "it", "site_manager", "viewer"])
         }).parse(req.body);
       }
       
@@ -614,7 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/studios/:id/status", isAuthenticated, hasRole(["admin", "engineer", "it", "site_manager"]), async (req, res) => {
+  app.patch("/api/studios/:id/status", isAuthenticated, hasRole(["admin", "engineer", "production", "it", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = z.object({ status: z.string() }).parse(req.body);
@@ -744,7 +744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/pcr-rooms/:id/status", isAuthenticated, hasRole(["admin", "engineer", "it", "site_manager"]), async (req, res) => {
+  app.patch("/api/pcr-rooms/:id/status", isAuthenticated, hasRole(["admin", "engineer", "production", "it", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = z.object({ status: z.string() }).parse(req.body);
@@ -1171,9 +1171,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check role permissions based on booking types
       if (req.body.type === "maintenance" || req.body.type === "all-day:maintenance") {
-        // Only admin, engineers, IT staff, and site managers can create maintenance bookings
-        if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
-          return res.status(403).json({ message: "Only admin, engineers, IT staff, and site managers can create maintenance bookings" });
+        // Only admin, engineers, production, IT staff, and site managers can create maintenance bookings
+        if (!["admin", "engineer", "production", "it", "site_manager"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin, engineers, production, IT staff, and site managers can create maintenance bookings" });
         }
       } else if (req.body.type === "it_support") {
         // Only admin, IT staff, and site managers can create IT support bookings
@@ -1526,7 +1526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const canCopy = 
         user.role === "admin" || 
         (user.role === "producer" && (originalBooking.userId === user.id || originalBooking.type === "production" || originalBooking.type === "rehearsal")) ||
-        (user.role === "engineer" && (originalBooking.type === "maintenance")) ||
+        (["engineer", "production"].includes(user.role) && (originalBooking.type === "maintenance")) ||
         (user.role === "site_manager") || // Site managers can copy any booking
         (user.role === "it" && (originalBooking.type === "maintenance" || originalBooking.type === "it_support"));
       
@@ -1652,9 +1652,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check permissions based on booking type and role
       if (booking.type === "maintenance" || booking.type === "all-day:maintenance") {
-        // Only admin, engineers, IT staff, and site managers can update maintenance bookings
-        if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
-          return res.status(403).json({ message: "Only admin, engineers, IT staff, and site managers can update maintenance bookings" });
+        // Only admin, engineers, production, IT staff, and site managers can update maintenance bookings
+        if (!["admin", "engineer", "production", "it", "site_manager"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin, engineers, production, IT staff, and site managers can update maintenance bookings" });
         }
       } else if (booking.type === "it_support") {
         // Only admin, IT staff, and site managers can update IT support bookings
@@ -1665,7 +1665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // For regular production bookings, check multiple permission levels
         const isOwner = booking.userId === user.id;
         const isAdmin = user.role === "admin";
-        const isAuthorizedRole = ["producer", "engineer", "site_manager"].includes(user.role);
+        const isAuthorizedRole = ["producer", "production", "engineer", "site_manager"].includes(user.role);
         
         // Check if user is a team member with the booking creator
         let isTeamMember = false;
@@ -2036,9 +2036,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check permissions based on booking type and role
       if (booking.type === "maintenance" || booking.type === "all-day:maintenance") {
-        // Only admin, engineers, IT staff, and site managers can delete maintenance bookings
-        if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
-          return res.status(403).json({ message: "Only admin, engineers, IT staff, and site managers can delete maintenance bookings" });
+        // Only admin, engineers, production, IT staff, and site managers can delete maintenance bookings
+        if (!["admin", "engineer", "production", "it", "site_manager"].includes(user.role)) {
+          return res.status(403).json({ message: "Only admin, engineers, production, IT staff, and site managers can delete maintenance bookings" });
         }
       } else if (booking.type === "it_support") {
         // Only admin, IT staff, and site managers can delete IT support bookings
@@ -2102,8 +2102,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // and if there is a valid userId (facility-wide alerts might not have one)
         if (booking.userId !== null && booking.userId !== undefined && booking.userId !== user.id) {
           let deletedByRole = "administrator";
-          if (["engineer", "it"].includes(user.role)) {
-            deletedByRole = user.role === "engineer" ? "an engineer" : "IT support";
+          if (["engineer", "production", "it"].includes(user.role)) {
+            deletedByRole = user.role === "engineer" ? "an engineer" : user.role === "production" ? "a production member" : "IT support";
           }
           
           try {
@@ -2762,8 +2762,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       
-      // Only admins, engineers, and IT can manage notification groups
-      if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
+      // Only admins, engineers, production, and IT can manage notification groups
+      if (!["admin", "engineer", "production", "it", "site_manager"].includes(user.role)) {
         return res.status(403).json({ 
           message: "Only administrators, engineers, IT support, and site managers can manage notification groups" 
         });
@@ -2797,8 +2797,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[NotificationGroup] Update request for ID ${id} by user ${user.username}:`, req.body);
       
-      // Only admins, engineers, and IT can manage notification groups
-      if (!["admin", "engineer", "it", "site_manager"].includes(user.role)) {
+      // Only admins, engineers, production, and IT can manage notification groups
+      if (!["admin", "engineer", "production", "it", "site_manager"].includes(user.role)) {
         return res.status(403).json({ 
           message: "Only administrators, engineers, IT support, and site managers can manage notification groups" 
         });
