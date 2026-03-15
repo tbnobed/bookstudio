@@ -463,14 +463,6 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
             </span>
           </div>
         </div>
-        {/* Edit button */}
-        <button
-          onClick={() => onEdit(asset)}
-          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-          title="Edit asset"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </button>
       </div>
 
       {/* Meta */}
@@ -493,34 +485,45 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
         )}
       </div>
 
-      {/* Action button */}
-      {asset.status !== "retired" && asset.status !== "maintenance" && (
-        <div className="pt-1">
-          {!activeCheckout ? (
-            <Button
-              size="sm"
-              className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              onClick={() => onCheckout(asset)}
-            >
-              <LogOutIcon className="h-4 w-4" />
-              Check Out
-            </Button>
-          ) : isCheckedOutByMe ? (
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full h-10 border-emerald-400 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 gap-2"
-              onClick={() => onCheckin(asset)}
-              disabled={checkingIn}
-            >
-              {checkingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-              Return
-            </Button>
-          ) : (
-            <p className="text-center text-xs text-gray-400 italic py-2">Checked out by someone else</p>
-          )}
-        </div>
-      )}
+      {/* Action buttons */}
+      <div className="flex gap-2 pt-1">
+        {asset.status !== "retired" && asset.status !== "maintenance" && (
+          <>
+            {!activeCheckout ? (
+              <Button
+                size="sm"
+                className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                onClick={() => onCheckout(asset)}
+              >
+                <LogOutIcon className="h-4 w-4" />
+                Check Out
+              </Button>
+            ) : isCheckedOutByMe ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 h-10 border-emerald-400 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 gap-2"
+                onClick={() => onCheckin(asset)}
+                disabled={checkingIn}
+              >
+                {checkingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                Return
+              </Button>
+            ) : (
+              <p className="flex-1 text-center text-xs text-gray-400 italic py-2">Checked out by someone else</p>
+            )}
+          </>
+        )}
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-10 px-3 gap-1.5 text-gray-500 border-gray-200 dark:border-gray-700 hover:text-blue-600 hover:border-blue-400 dark:hover:border-blue-500 shrink-0"
+          onClick={() => onEdit(asset)}
+        >
+          <Pencil className="h-3.5 w-3.5" />
+          Edit
+        </Button>
+      </div>
 
       {/* Photos */}
       <AssetPhotoSection assetId={asset.id} />
