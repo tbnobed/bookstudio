@@ -3721,6 +3721,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("asset_photos table init error:", e);
   }
 
+  // Ensure booking_assets planning table exists (idempotent)
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS booking_assets (
+        id         SERIAL PRIMARY KEY,
+        booking_id INTEGER NOT NULL,
+        asset_id   INTEGER NOT NULL,
+        added_by   INTEGER NOT NULL,
+        added_at   TIMESTAMPTZ DEFAULT now(),
+        UNIQUE (booking_id, asset_id)
+      )
+    `);
+  } catch (e) {
+    console.error("booking_assets table init error:", e);
+  }
+
   app.get("/api/assets", isAuthenticated, async (req, res) => {
     try {
       const allAssets = await storage.getAllAssets();
@@ -3874,20 +3890,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Active checkouts for all assets
+  // Active checkouts for all assets — includes bookingEnded flag for overdue detection
   app.get("/api/assets/checkouts/active", isAuthenticated, async (req, res) => {
     try {
       const checkouts = await storage.getAllActiveCheckouts();
       const allUsers = await storage.getAllUsers();
       const userMap = Object.fromEntries(allUsers.map(u => [u.id, u.fullName || u.username]));
+
+      // Detect overdue: find bookings that have ended whose title matches a checkout purpose
+      const now = new Date();
+      let endedBookingTitles = new Set<string>();
+      try {
+        const result = await pool.query(
+          `SELECT LOWER(title) AS title FROM bookings WHERE "end" < $1`,
+          [now]
+        );
+        endedBookingTitles = new Set(result.rows.map((r: any) => r.title));
+      } catch (e) {
+        // Non-fatal — overdue detection degrades gracefully
+      }
+
       const enriched = checkouts.map(c => ({
         ...c,
         checkedOutByName: userMap[c.checkedOutBy] ?? `User #${c.checkedOutBy}`,
+        bookingEnded: c.purpose ? endedBookingTitles.has(c.purpose.toLowerCase()) : false,
       }));
       res.json(enriched);
     } catch (error) {
       console.error("Error fetching active checkouts:", error);
       res.status(500).json({ message: "Failed to fetch active checkouts" });
+    }
+  });
+
+  // ── Booking Asset Plans ──────────────────────────────────────────────────────
+  // GET planned gear list for a booking
+  app.get("/api/bookings/:id/assets", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      if (isNaN(bookingId)) return res.status(400).json({ message: "Invalid booking ID" });
+      const assets = await storage.getBookingAssets(bookingId);
+      res.json(assets);
+    } catch (error) {
+      console.error("Error fetching booking assets:", error);
+      res.status(500).json({ message: "Failed to fetch booking assets" });
+    }
+  });
+
+  // POST add asset to booking plan (no checkout side effects)
+  app.post("/api/bookings/:id/assets", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const { assetId } = req.body;
+      if (isNaN(bookingId) || !assetId) return res.status(400).json({ message: "Invalid parameters" });
+      const userId = (req.user as any).id;
+      await storage.addBookingAsset(bookingId, assetId, userId);
+      res.status(201).json({ message: "Asset added to booking plan" });
+    } catch (error) {
+      console.error("Error adding asset to booking plan:", error);
+      res.status(500).json({ message: "Failed to add asset to booking plan" });
+    }
+  });
+
+  // DELETE remove asset from booking plan
+  app.delete("/api/bookings/:id/assets/:assetId", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const assetId = parseInt(req.params.assetId);
+      if (isNaN(bookingId) || isNaN(assetId)) return res.status(400).json({ message: "Invalid parameters" });
+      await storage.removeBookingAsset(bookingId, assetId);
+      res.json({ message: "Asset removed from booking plan" });
+    } catch (error) {
+      console.error("Error removing asset from booking plan:", error);
+      res.status(500).json({ message: "Failed to remove asset from booking plan" });
     }
   });
 

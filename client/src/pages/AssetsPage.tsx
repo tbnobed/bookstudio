@@ -35,6 +35,7 @@ type EnrichedCheckout = {
   purpose: string | null;
   checkedOutByName: string;
   checkedInByName: string | null;
+  bookingEnded?: boolean;
 };
 
 const CATEGORIES = [
@@ -783,12 +784,18 @@ export default function AssetsPage() {
 
                       {/* Status + checkout info */}
                       <div className="space-y-1">
-                        <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getStatusStyle(asset.status))}>
-                          {STATUSES.find(s => s.value === asset.status)?.label ?? asset.status}
-                        </Badge>
+                        {checkoutMap.get(asset.id)?.bookingEnded ? (
+                          <Badge variant="outline" className="text-xs px-1.5 py-0 bg-orange-100 border-orange-300 text-orange-700 dark:bg-orange-900/20 dark:border-orange-700 dark:text-orange-400">
+                            Overdue Return
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getStatusStyle(asset.status))}>
+                            {STATUSES.find(s => s.value === asset.status)?.label ?? asset.status}
+                          </Badge>
+                        )}
                         {checkoutMap.get(asset.id) && (
                           <div className="space-y-0.5">
-                            <div className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400">
+                            <div className={cn("flex items-center gap-1 text-[10px]", checkoutMap.get(asset.id)!.bookingEnded ? "text-orange-600 dark:text-orange-400" : "text-blue-600 dark:text-blue-400")}>
                               <User className="h-2.5 w-2.5 shrink-0" />
                               <span className="truncate">{checkoutMap.get(asset.id)!.checkedOutByName}</span>
                             </div>
@@ -796,6 +803,12 @@ export default function AssetsPage() {
                               <div className="flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400">
                                 <Tv className="h-2.5 w-2.5 shrink-0" />
                                 <span className="truncate">{checkoutMap.get(asset.id)!.purpose}</span>
+                              </div>
+                            )}
+                            {checkoutMap.get(asset.id)!.bookingEnded && (
+                              <div className="flex items-center gap-1 text-[10px] text-orange-500">
+                                <AlertTriangle className="h-2.5 w-2.5 shrink-0" />
+                                <span>Production ended — awaiting return</span>
                               </div>
                             )}
                           </div>

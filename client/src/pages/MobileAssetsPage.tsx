@@ -432,7 +432,7 @@ function AssetPhotoSection({ assetId }: { assetId: number }) {
 // ── Asset Card ─────────────────────────────────────────────────────────────────
 interface AssetCardProps {
   asset: Asset;
-  activeCheckout: (AssetCheckout & { checkedOutByName?: string }) | undefined;
+  activeCheckout: (AssetCheckout & { checkedOutByName?: string; bookingEnded?: boolean }) | undefined;
   currentUserId: number;
   onCheckout: (asset: Asset) => void;
   onCheckin: (asset: Asset) => void;
@@ -483,9 +483,10 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
           <span className="truncate">📍 {asset.location}</span>
         )}
         {activeCheckout && (
-          <span className="col-span-2 flex items-center gap-1 text-rose-500 dark:text-rose-400 font-medium">
+          <span className={cn("col-span-2 flex items-center gap-1 font-medium", activeCheckout.bookingEnded ? "text-orange-500 dark:text-orange-400" : "text-rose-500 dark:text-rose-400")}>
             <LogOutIcon className="h-3 w-3 shrink-0" />
-            Out: {activeCheckout.checkedOutByName ?? `User #${activeCheckout.checkedOutBy}`}
+            {activeCheckout.bookingEnded ? "⚠ Overdue — " : "Out: "}
+            {activeCheckout.checkedOutByName ?? `User #${activeCheckout.checkedOutBy}`}
             {activeCheckout.purpose ? ` · ${activeCheckout.purpose}` : ""}
           </span>
         )}
@@ -662,7 +663,7 @@ export default function MobileAssetsPage() {
     refetchInterval: 30000,
   });
 
-  const { data: activeCheckouts = [] } = useQuery<(AssetCheckout & { checkedOutByName?: string })[]>({
+  const { data: activeCheckouts = [] } = useQuery<(AssetCheckout & { checkedOutByName?: string; bookingEnded?: boolean })[]>({
     queryKey: ["/api/assets/checkouts/active"],
     refetchInterval: 30000,
   });

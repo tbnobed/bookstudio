@@ -16,6 +16,7 @@ import {
   teamMembers, type TeamMember, type InsertTeamMember,
   assets, type Asset, type InsertAsset,
   assetCheckouts, type AssetCheckout, type InsertAssetCheckout,
+  bookingAssets,
   assetPhotos, type AssetPhoto,
   passwordResetTokens,
   inviteTokens
@@ -180,6 +181,11 @@ export interface IStorage {
   getAllActiveCheckouts(): Promise<AssetCheckout[]>;
   checkoutAsset(data: { assetId: number; checkedOutBy: number; purpose?: string; notes?: string }): Promise<AssetCheckout>;
   checkinAsset(assetId: number, checkedInBy: number): Promise<AssetCheckout | undefined>;
+
+  // Booking asset plans (informational — no checkout side effects)
+  getBookingAssets(bookingId: number): Promise<Asset[]>;
+  addBookingAsset(bookingId: number, assetId: number, addedBy: number): Promise<void>;
+  removeBookingAsset(bookingId: number, assetId: number): Promise<void>;
 
   // Asset photos
   getAssetPhotos(assetId: number): Promise<AssetPhoto[]>;
@@ -1104,6 +1110,9 @@ export class MemStorage implements IStorage {
   async checkoutAsset(_data: { assetId: number; checkedOutBy: number; purpose?: string; notes?: string }): Promise<AssetCheckout> { throw new Error("Not implemented in MemStorage"); }
   async checkinAsset(_assetId: number, _checkedInBy: number): Promise<AssetCheckout | undefined> { return undefined; }
 
+  async getBookingAssets(_bookingId: number): Promise<Asset[]> { return []; }
+  async addBookingAsset(_bookingId: number, _assetId: number, _addedBy: number): Promise<void> {}
+  async removeBookingAsset(_bookingId: number, _assetId: number): Promise<void> {}
   async getAssetPhotos(_assetId: number): Promise<AssetPhoto[]> { return []; }
   async getFirstPhotoPerAsset(): Promise<{ assetId: number; photoData: string }[]> { return []; }
   async getFirstThreePhotosPerAsset(): Promise<{ assetId: number; photoData: string }[]> { return []; }
@@ -4181,6 +4190,48 @@ export class DatabaseStorage implements IStorage {
       .returning();
     await db.update(assets).set({ status: "available", updatedAt: new Date() }).where(eq(assets.id, assetId));
     return updated;
+  }
+
+  async getBookingAssets(bookingId: number): Promise<Asset[]> {
+    const { pool } = await import("./db");
+    const result = await pool.query(
+      `SELECT a.* FROM assets a
+       INNER JOIN booking_assets ba ON ba.asset_id = a.id
+       WHERE ba.booking_id = $1
+       ORDER BY a.name ASC`,
+      [bookingId]
+    );
+    return result.rows.map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      category: r.category,
+      status: r.status,
+      serialNumber: r.serial_number,
+      assetTag: r.asset_tag,
+      location: r.location,
+      description: r.description,
+      decommissionReason: r.decommission_reason,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    }));
+  }
+
+  async addBookingAsset(bookingId: number, assetId: number, addedBy: number): Promise<void> {
+    const { pool } = await import("./db");
+    await pool.query(
+      `INSERT INTO booking_assets (booking_id, asset_id, added_by)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (booking_id, asset_id) DO NOTHING`,
+      [bookingId, assetId, addedBy]
+    );
+  }
+
+  async removeBookingAsset(bookingId: number, assetId: number): Promise<void> {
+    const { pool } = await import("./db");
+    await pool.query(
+      `DELETE FROM booking_assets WHERE booking_id = $1 AND asset_id = $2`,
+      [bookingId, assetId]
+    );
   }
 
   async getAssetPhotos(assetId: number): Promise<AssetPhoto[]> {

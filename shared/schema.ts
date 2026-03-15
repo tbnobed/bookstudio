@@ -505,6 +505,16 @@ export const insertAssetCheckoutSchema = createInsertSchema(assetCheckouts).omit
 export type AssetCheckout = typeof assetCheckouts.$inferSelect;
 export type InsertAssetCheckout = z.infer<typeof insertAssetCheckoutSchema>;
 
+// Booking Asset Plans — informational gear list for a production (no effect on checkout status)
+export const bookingAssets = pgTable("booking_assets", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").notNull(),
+  assetId: integer("asset_id").notNull(),
+  addedAt: timestamp("added_at").defaultNow(),
+  addedBy: integer("added_by").notNull(),
+});
+export type BookingAsset = typeof bookingAssets.$inferSelect;
+
 // Asset Photos schema
 export const assetPhotos = pgTable("asset_photos", {
   id: serial("id").primaryKey(),
