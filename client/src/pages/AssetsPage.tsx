@@ -131,11 +131,11 @@ function compressImage(file: File): Promise<string> {
 
 type ProductionPickerProps = {
   value: string;
-  onChange: (val: string) => void;
+  onSelect: (title: string, bookingId?: number) => void;
   productions: Booking[];
 };
 
-function ProductionPicker({ value, onChange, productions }: ProductionPickerProps) {
+function ProductionPicker({ value, onSelect, productions }: ProductionPickerProps) {
   // Deduplicate by title, sort most recent first, take top 40
   const seen = new Set<string>();
   const recent = productions
@@ -148,12 +148,18 @@ function ProductionPicker({ value, onChange, productions }: ProductionPickerProp
     })
     .slice(0, 40);
 
+  const selectedBooking = recent.find(b => b.title === value);
+
   return (
     <div className="space-y-2">
       {recent.length > 0 && (
         <Select
-          value={recent.find(b => b.title === value) ? value : "__custom__"}
-          onValueChange={v => { if (v !== "__custom__") onChange(v); }}
+          value={selectedBooking ? String(selectedBooking.id) : "__custom__"}
+          onValueChange={v => {
+            if (v === "__custom__") return;
+            const booking = recent.find(b => String(b.id) === v);
+            if (booking) onSelect(booking.title, booking.id);
+          }}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Pick a recent production..." />
@@ -163,7 +169,7 @@ function ProductionPicker({ value, onChange, productions }: ProductionPickerProp
               — type a custom name below —
             </SelectItem>
             {recent.map(b => (
-              <SelectItem key={b.id} value={b.title}>
+              <SelectItem key={b.id} value={String(b.id)}>
                 <div className="flex items-center gap-2">
                   <Tv className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
                   <span className="truncate">{b.title}</span>
@@ -177,7 +183,7 @@ function ProductionPicker({ value, onChange, productions }: ProductionPickerProp
       <Input
         placeholder={recent.length > 0 ? "Or type a custom production name..." : "e.g. Morning news shoot, Studio B setup"}
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={e => onSelect(e.target.value, undefined)}
       />
     </div>
   );
@@ -207,13 +213,13 @@ export default function AssetsPage() {
 
   // Checkout system state
   const [checkoutTarget, setCheckoutTarget] = useState<Asset | null>(null);
-  const [checkoutForm, setCheckoutForm] = useState({ purpose: "", notes: "" });
+  const [checkoutForm, setCheckoutForm] = useState({ purpose: "", notes: "", bookingId: null as number | null });
   const [historyAsset, setHistoryAsset] = useState<Asset | null>(null);
 
   // Multi-select state
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkCheckoutOpen, setBulkCheckoutOpen] = useState(false);
-  const [bulkForm, setBulkForm] = useState({ purpose: "", notes: "" });
+  const [bulkForm, setBulkForm] = useState({ purpose: "", notes: "", bookingId: null as number | null });
 
   // Photo state
   const photoFileRef = useRef<HTMLInputElement>(null);
@@ -337,14 +343,15 @@ export default function AssetsPage() {
   });
 
   const checkoutMutation = useMutation({
-    mutationFn: ({ id, purpose, notes }: { id: number; purpose: string; notes: string }) =>
-      apiRequest("POST", `/api/assets/${id}/checkout`, { purpose, notes }),
+    mutationFn: ({ id, purpose, notes, bookingId }: { id: number; purpose: string; notes: string; bookingId?: number | null }) =>
+      apiRequest("POST", `/api/assets/${id}/checkout`, { purpose, notes, bookingId: bookingId ?? undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/assets/checkouts/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
       toast({ title: "Checked out", description: `${checkoutTarget?.name} is now checked out to you.` });
       setCheckoutTarget(null);
-      setCheckoutForm({ purpose: "", notes: "" });
+      setCheckoutForm({ purpose: "", notes: "", bookingId: null });
     },
     onError: (err: any) => {
       const msg = err?.message || "Failed to check out asset.";
@@ -373,7 +380,7 @@ export default function AssetsPage() {
     try {
       const results = await Promise.allSettled(
         targets.map(a =>
-          apiRequest("POST", `/api/assets/${a.id}/checkout`, { purpose: bulkForm.purpose, notes: bulkForm.notes })
+          apiRequest("POST", `/api/assets/${a.id}/checkout`, { purpose: bulkForm.purpose, notes: bulkForm.notes, bookingId: bulkForm.bookingId ?? undefined })
         )
       );
       const succeeded = results.filter(r => r.status === "fulfilled").length;
@@ -381,7 +388,7 @@ export default function AssetsPage() {
       // Reset UI first, then refresh data
       setSelectedIds(new Set());
       setBulkCheckoutOpen(false);
-      setBulkForm({ purpose: "", notes: "" });
+      setBulkForm({ purpose: "", notes: "", bookingId: null });
       queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/assets/checkouts/active"] });
       if (failed === 0) {
@@ -676,7 +683,7 @@ export default function AssetsPage() {
                 <Button
                   size="sm"
                   className="h-7 px-3 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
-                  onClick={() => { setBulkForm({ purpose: "", notes: "" }); setBulkCheckoutOpen(true); }}
+                  onClick={() => { setBulkForm({ purpose: "", notes: "", bookingId: null }); setBulkCheckoutOpen(true); }}
                   disabled={selectedAvailable.length === 0}
                 >
                   <ShoppingCart className="h-3.5 w-3.5" />
@@ -833,7 +840,7 @@ export default function AssetsPage() {
                             variant="outline"
                             size="sm"
                             className="h-7 px-2 text-xs gap-1 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700"
-                            onClick={() => { setCheckoutTarget(asset); setCheckoutForm({ purpose: "", notes: "" }); }}
+                            onClick={() => { setCheckoutTarget(asset); setCheckoutForm({ purpose: "", notes: "", bookingId: null }); }}
                           >
                             <LogOut className="h-3 w-3" />
                             Check Out
@@ -912,7 +919,7 @@ export default function AssetsPage() {
                         {asset.status === "available" && (
                           <ContextMenuItem
                             className="gap-2 cursor-pointer text-emerald-700 focus:text-emerald-700 focus:bg-emerald-50 dark:focus:bg-emerald-900/20"
-                            onSelect={() => { setCheckoutTarget(asset); setCheckoutForm({ purpose: "", notes: "" }); }}
+                            onSelect={() => { setCheckoutTarget(asset); setCheckoutForm({ purpose: "", notes: "", bookingId: null }); }}
                           >
                             <LogOut className="h-4 w-4 shrink-0" />
                             Check Out
@@ -1375,7 +1382,7 @@ export default function AssetsPage() {
       </Dialog>
 
       {/* Check Out Modal */}
-      <Dialog open={!!checkoutTarget} onOpenChange={open => { if (!open) { setCheckoutTarget(null); setCheckoutForm({ purpose: "", notes: "" }); } }}>
+      <Dialog open={!!checkoutTarget} onOpenChange={open => { if (!open) { setCheckoutTarget(null); setCheckoutForm({ purpose: "", notes: "", bookingId: null }); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1391,7 +1398,7 @@ export default function AssetsPage() {
               <Label>Production / Purpose</Label>
               <ProductionPicker
                 value={checkoutForm.purpose}
-                onChange={val => setCheckoutForm(f => ({ ...f, purpose: val }))}
+                onSelect={(title, bookingId) => setCheckoutForm(f => ({ ...f, purpose: title, bookingId: bookingId ?? null }))}
                 productions={bookings}
               />
             </div>
@@ -1407,7 +1414,7 @@ export default function AssetsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setCheckoutTarget(null); setCheckoutForm({ purpose: "", notes: "" }); }} disabled={checkoutMutation.isPending}>
+            <Button variant="outline" onClick={() => { setCheckoutTarget(null); setCheckoutForm({ purpose: "", notes: "", bookingId: null }); }} disabled={checkoutMutation.isPending}>
               Cancel
             </Button>
             <Button
@@ -1506,7 +1513,7 @@ export default function AssetsPage() {
       </Dialog>
 
       {/* Bulk Check Out Modal */}
-      <Dialog open={bulkCheckoutOpen} onOpenChange={open => { if (!open) { setBulkCheckoutOpen(false); setBulkForm({ purpose: "", notes: "" }); } }}>
+      <Dialog open={bulkCheckoutOpen} onOpenChange={open => { if (!open) { setBulkCheckoutOpen(false); setBulkForm({ purpose: "", notes: "", bookingId: null }); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1534,7 +1541,7 @@ export default function AssetsPage() {
               <Label>Production / Purpose</Label>
               <ProductionPicker
                 value={bulkForm.purpose}
-                onChange={val => setBulkForm(f => ({ ...f, purpose: val }))}
+                onSelect={(title, bookingId) => setBulkForm(f => ({ ...f, purpose: title, bookingId: bookingId ?? null }))}
                 productions={bookings}
               />
             </div>
@@ -1551,7 +1558,7 @@ export default function AssetsPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setBulkCheckoutOpen(false); setBulkForm({ purpose: "", notes: "" }); }} disabled={bulkPending}>
+            <Button variant="outline" onClick={() => { setBulkCheckoutOpen(false); setBulkForm({ purpose: "", notes: "", bookingId: null }); }} disabled={bulkPending}>
               Cancel
             </Button>
             <Button

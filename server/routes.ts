@@ -3980,6 +3980,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         purpose: req.body.purpose,
         notes: req.body.notes,
       });
+      // Auto-add to booking_assets plan if a booking was selected
+      const bookingId = req.body.bookingId ? parseInt(req.body.bookingId) : null;
+      if (bookingId && !isNaN(bookingId)) {
+        storage.addBookingAsset(bookingId, assetId, userId).catch(console.error);
+      }
       res.status(201).json(checkout);
       // Audit + notify (fire-and-forget)
       const ctx = getAuditContext(req);
