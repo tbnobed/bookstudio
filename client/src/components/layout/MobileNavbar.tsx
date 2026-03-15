@@ -169,7 +169,7 @@ export default function MobileNavbar() {
                   { path: "/my-bookings", icon: BookOpen, label: "My Bookings" },
                   { path: "/templates", icon: ListTodo, label: "Templates" },
                   { path: "/studios", icon: Tv, label: "Studios" },
-                  { path: "/mobile/assets", icon: Package, label: "Assets" },
+                  { path: "/mobile/assets", icon: Package, label: "Assets", badge: "Beta" },
                 ].map((item) => (
                   <button 
                     key={item.path}
@@ -184,6 +184,11 @@ export default function MobileNavbar() {
                   >
                     <item.icon className="mr-3 h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
+                    {'badge' in item && item.badge && (
+                      <span className="ml-1.5 inline-flex items-center rounded px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 leading-none">
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 ))}
                 

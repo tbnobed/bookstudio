@@ -147,9 +147,10 @@ type NavItemProps = {
   path: string;
   isActive: boolean;
   onClick: () => void;
+  badge?: string;
 };
 
-function NavItem({ icon, label, isActive, onClick }: NavItemProps) {
+function NavItem({ icon, label, isActive, onClick, badge }: NavItemProps) {
   return (
     <button
       onClick={onClick}
@@ -160,6 +161,11 @@ function NavItem({ icon, label, isActive, onClick }: NavItemProps) {
     >
       <span className="flex-shrink-0">{icon}</span>
       <span className="truncate">{label}</span>
+      {badge && (
+        <span className="ml-1.5 inline-flex items-center rounded px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 leading-none">
+          {badge}
+        </span>
+      )}
     </button>
   );
 }
@@ -304,6 +310,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <NavItem
                 icon={<IconAssets className={iconSize} />}
                 label="Assets"
+                badge="Beta"
                 path="/assets"
                 isActive={location === "/assets"}
                 onClick={() => handleNavigate("/assets")}
