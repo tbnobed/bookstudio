@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "AQtaOUM0soTqN787H1tHf"
+uri = "file://bookstudio_role_permissions.csv"
+type = "table"
+title = "BookStud.io Role Permissions"
