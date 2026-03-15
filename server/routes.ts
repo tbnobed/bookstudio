@@ -3766,6 +3766,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/assets/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const asset = await storage.updateAsset(id, req.body);
+      if (!asset) return res.status(404).json({ message: "Asset not found" });
+      res.json(asset);
+    } catch (error) {
+      console.error("Error updating asset:", error);
+      res.status(500).json({ message: "Failed to update asset" });
+    }
+  });
+
   app.delete("/api/assets/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
