@@ -1217,80 +1217,79 @@ export default function AssetsPage() {
             </div>
           )}
 
-          {/* Decommission — only when editing */}
-          {editAsset && (
-            <div className="space-y-2 pt-2 border-t border-red-200 dark:border-red-900">
-              {editAsset.status === "retired" && form.decommissionReason ? (
-                <div className="rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-3 space-y-1">
-                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
-                    <Archive className="h-3.5 w-3.5" /> Decommissioned
-                  </p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{form.decommissionReason}"</p>
-                </div>
-              ) : editAsset.status !== "retired" ? (
-                <div className="space-y-2">
-                  {!decommissionExpanded ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                      onClick={() => setDecommissionExpanded(true)}
-                    >
-                      <Archive className="h-3.5 w-3.5 mr-1.5" />
-                      Decommission Asset…
-                    </Button>
-                  ) : (
-                    <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 space-y-2">
-                      <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide flex items-center gap-1.5">
-                        <Archive className="h-3.5 w-3.5" /> Decommission Asset
-                      </p>
-                      <p className="text-xs text-red-500 dark:text-red-400">This action retires the asset. A reason is required. It can be reversed by editing the status.</p>
-                      <Textarea
-                        placeholder="Reason for decommissioning (required)…"
-                        value={form.decommissionReason}
-                        onChange={e => setForm(f => ({ ...f, decommissionReason: e.target.value }))}
-                        className="min-h-[64px] text-sm border-red-200 dark:border-red-800 focus-visible:ring-red-400"
-                        autoFocus
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => { setDecommissionExpanded(false); setForm(f => ({ ...f, decommissionReason: "" })); }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="flex-1"
-                          disabled={!form.decommissionReason.trim() || isPending}
-                          onClick={() => {
-                            if (!form.decommissionReason.trim()) return;
-                            updateAsset.mutate({ id: editAsset.id, data: { ...form, status: "retired" } });
-                          }}
-                        >
-                          <Archive className="h-3.5 w-3.5 mr-1.5" />
-                          Confirm Decommission
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : null}
+          {/* Decommission expanded panel — shown above footer when triggered */}
+          {editAsset && editAsset.status === "retired" && form.decommissionReason && (
+            <div className="rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-3 space-y-1">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+                <Archive className="h-3.5 w-3.5" /> Decommissioned
+              </p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{form.decommissionReason}"</p>
+            </div>
+          )}
+          {editAsset && editAsset.status !== "retired" && decommissionExpanded && (
+            <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 space-y-2">
+              <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide flex items-center gap-1.5">
+                <Archive className="h-3.5 w-3.5" /> Decommission Asset
+              </p>
+              <p className="text-xs text-red-500 dark:text-red-400">This action retires the asset. A reason is required. It can be reversed by editing the status.</p>
+              <Textarea
+                placeholder="Reason for decommissioning (required)…"
+                value={form.decommissionReason}
+                onChange={e => setForm(f => ({ ...f, decommissionReason: e.target.value }))}
+                className="min-h-[64px] text-sm border-red-200 dark:border-red-800 focus-visible:ring-red-400"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => { setDecommissionExpanded(false); setForm(f => ({ ...f, decommissionReason: "" })); }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="flex-1"
+                  disabled={!form.decommissionReason.trim() || isPending}
+                  onClick={() => {
+                    if (!form.decommissionReason.trim()) return;
+                    updateAsset.mutate({ id: editAsset.id, data: { ...form, status: "retired" } });
+                  }}
+                >
+                  <Archive className="h-3.5 w-3.5 mr-1.5" />
+                  Confirm Decommission
+                </Button>
+              </div>
             </div>
           )}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={closeModal} disabled={isPending}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={isPending}>
-              {isPending ? "Saving..." : editAsset ? "Save Changes" : "Add Asset"}
-            </Button>
-          </DialogFooter>
+          {/* Footer row — Decommission button far-left, Cancel + Save far-right */}
+          <div className="flex items-center justify-between pt-2 border-t">
+            <div>
+              {editAsset && editAsset.status !== "retired" && !decommissionExpanded && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  onClick={() => setDecommissionExpanded(true)}
+                >
+                  <Archive className="h-3.5 w-3.5 mr-1.5" />
+                  Decommission…
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={closeModal} disabled={isPending}>Cancel</Button>
+              <Button onClick={handleSubmit} disabled={isPending}>
+                {isPending ? "Saving..." : editAsset ? "Save Changes" : "Add Asset"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
