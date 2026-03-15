@@ -559,6 +559,7 @@ export default function MobileAssetsPage() {
 
   // Barcode scanner state
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [lookupScanOpen, setLookupScanOpen] = useState(false);
 
   // OCR text scanner state
   const ocrFileRef = useRef<HTMLInputElement>(null);
@@ -783,6 +784,34 @@ export default function MobileAssetsPage() {
     toast({ title: "Label scanned", description: value });
   };
 
+  const handleLookupDetected = (value: string) => {
+    setLookupScanOpen(false);
+    const found = assets.find(a =>
+      (a.assetTag ?? "").toLowerCase() === value.toLowerCase()
+    );
+    if (!found) {
+      toast({ title: "Asset not found", description: `No asset matched tag: ${value}`, variant: "destructive" });
+      return;
+    }
+    const co = checkoutMap[found.id];
+    if (co) {
+      const name = co.checkedOutByName ?? `User #${co.checkedOutBy}`;
+      if (co.checkedOutBy === user?.id) {
+        toast({ title: `${found.name}`, description: "You currently have this item checked out. Use the check-in button on its card to return it." });
+      } else {
+        toast({ title: `${found.name}`, description: `Currently checked out by ${name}.`, variant: "destructive" });
+      }
+      return;
+    }
+    if (found.status !== "available") {
+      toast({ title: `${found.name}`, description: `Status is "${found.status}" — cannot check out right now.`, variant: "destructive" });
+      return;
+    }
+    setCheckoutPurpose("");
+    setCheckoutNotes("");
+    setCheckoutAsset(found);
+  };
+
   // ── OCR helpers ─────────────────────────────────────────────────────────────
 
   // Pre-process: collapse spaces that OCR inserts within digit sequences
@@ -980,6 +1009,15 @@ export default function MobileAssetsPage() {
             Add
           </button>
         </div>
+
+        {/* Scan to check out */}
+        <button
+          onClick={() => setLookupScanOpen(true)}
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all text-white font-semibold text-sm shadow-sm"
+        >
+          <ScanLine className="h-4 w-4" />
+          Scan Label to Check Out
+        </button>
 
         {/* Search */}
         <div className="relative">
@@ -1801,6 +1839,14 @@ export default function MobileAssetsPage() {
           }
           onDetected={handleScanDetected}
           onClose={() => { setScannerOpen(false); setScanTarget(null); }}
+        />
+      )}
+
+      {lookupScanOpen && (
+        <BarcodeScanner
+          fieldLabel="Asset Tag"
+          onDetected={handleLookupDetected}
+          onClose={() => setLookupScanOpen(false)}
         />
       )}
 
