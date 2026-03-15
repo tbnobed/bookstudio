@@ -12,7 +12,8 @@ import {
   Search, X, Plus, Camera, ArrowLeft, Barcode,
   LogIn, LogOut as LogOutIcon, Package,
   Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText,
-  RefreshCw, QrCode, Download, Share2, Pencil, Sun, Moon, Archive, Eye, EyeOff
+  RefreshCw, QrCode, Download, Share2, Pencil, Sun, Moon, Archive, Eye, EyeOff,
+  AlertTriangle, Tv
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -670,6 +671,13 @@ export default function MobileAssetsPage() {
 
   const checkoutMap = Object.fromEntries(activeCheckouts.map(c => [c.assetId, c]));
 
+  type PlannedBooking = { id: number; title: string; start: string; end: string; color?: string };
+  const { data: checkoutPlannedBookings = [] } = useQuery<PlannedBooking[]>({
+    queryKey: ["/api/assets", checkoutAsset?.id, "planned-bookings"],
+    queryFn: () => fetch(`/api/assets/${checkoutAsset!.id}/planned-bookings`, { credentials: "include" }).then(r => r.json()),
+    enabled: !!checkoutAsset,
+  });
+
   // ── Mutations ──────────────────────────────────────────────────────────────
   const checkoutMutation = useMutation({
     mutationFn: (data: { assetId: number; purpose: string; notes: string }) =>
@@ -1163,6 +1171,32 @@ export default function MobileAssetsPage() {
                   )}
                 </div>
               </div>
+
+              {/* Planned-booking conflict warning */}
+              {checkoutPlannedBookings.length > 0 && (
+                <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 px-3 py-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                      Planned for {checkoutPlannedBookings.length} upcoming production{checkoutPlannedBookings.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <ul className="space-y-1.5 pl-6">
+                    {checkoutPlannedBookings.map(b => (
+                      <li key={b.id} className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                        <Tv className="h-3 w-3 shrink-0" />
+                        <span className="font-medium">{b.title}</span>
+                        <span className="text-amber-500 shrink-0">
+                          — {new Date(b.start).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[10px] text-amber-600 dark:text-amber-500 pl-6">
+                    You can still check this out — just return it before the production date.
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <Label>Purpose / Production <span className="text-gray-400">(optional)</span></Label>

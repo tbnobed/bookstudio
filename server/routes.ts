@@ -3965,6 +3965,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET upcoming bookings that have this asset in their plan
+  app.get("/api/assets/:id/planned-bookings", isAuthenticated, async (req, res) => {
+    try {
+      const assetId = parseInt(req.params.id);
+      if (isNaN(assetId)) return res.status(400).json({ message: "Invalid asset ID" });
+      const { pool } = await import("./db");
+      const result = await pool.query(
+        `SELECT b.id, b.title, b.start, b."end", b.color
+         FROM booking_assets ba
+         JOIN bookings b ON b.id = ba.booking_id
+         WHERE ba.asset_id = $1
+           AND b."end" > NOW()
+         ORDER BY b.start ASC
+         LIMIT 10`,
+        [assetId]
+      );
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching planned bookings for asset:", error);
+      res.status(500).json({ message: "Failed to fetch planned bookings" });
+    }
+  });
+
   // Check out an asset
   app.post("/api/assets/:id/checkout", isAuthenticated, async (req, res) => {
     try {
