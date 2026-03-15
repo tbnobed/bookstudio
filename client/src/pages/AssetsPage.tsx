@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Asset, Booking, AssetPhoto } from "@shared/schema";
@@ -190,6 +190,11 @@ export default function AssetsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 25;
+
+  // Reset to first page whenever filters/search change
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, categoryFilter, statusFilter]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editAsset, setEditAsset] = useState<Asset | null>(null);
@@ -486,6 +491,10 @@ export default function AssetsPage() {
   const allAvailableSelected = availableInFiltered.length > 0 && availableInFiltered.every(a => selectedIds.has(a.id));
   const someAvailableSelected = availableInFiltered.some(a => selectedIds.has(a.id)) && !allAvailableSelected;
 
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   const toggleSelectAll = () => {
     if (allAvailableSelected) {
       setSelectedIds(prev => {
@@ -677,7 +686,7 @@ export default function AssetsPage() {
 
             {/* Rows */}
             <div className="divide-y divide-gray-100 dark:divide-gray-700/60">
-              {filtered.map(asset => (
+              {paginated.map(asset => (
                 <ContextMenu key={asset.id}>
                   <ContextMenuTrigger asChild>
                     <div
@@ -908,6 +917,75 @@ export default function AssetsPage() {
               ))}
             </div>
           </div>
+
+          {/* Pagination bar */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-1 pt-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length} assets
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                >
+                  «
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  ‹ Prev
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+                  .reduce<(number | "...")[]>((acc, p, i, arr) => {
+                    if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, i) =>
+                    item === "..." ? (
+                      <span key={`ellipsis-${i}`} className="px-1 text-xs text-gray-400">…</span>
+                    ) : (
+                      <Button
+                        key={item}
+                        variant={currentPage === item ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 w-8 p-0 text-xs"
+                        onClick={() => setCurrentPage(item as number)}
+                      >
+                        {item}
+                      </Button>
+                    )
+                  )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next ›
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                >
+                  »
+                </Button>
+              </div>
+            </div>
+          )}
           </>
         )}
       </div>
