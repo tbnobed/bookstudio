@@ -302,6 +302,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/invites/:id/resend", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid invite ID" });
+
+      // Find the existing invite
+      const pending = await getPendingInvites();
+      const invite = pending.find(i => i.id === id);
+      if (!invite) return res.status(404).json({ message: "Invite not found or already used." });
+
+      // Delete the old token and issue a fresh one
+      await deleteInviteToken(id);
+      const admin = req.user as Express.User;
+      const newToken = await generateInviteToken(invite.role, invite.email, admin.id);
+      const invitePath = `/invite/${newToken}`;
+      const origin = req.body.origin || null;
+      const emailSent = await sendInviteEmail(invite.email, invite.role, invitePath, admin.name, origin);
+
+      if (!emailSent) {
+        return res.status(500).json({ success: false, message: "Failed to resend invitation email." });
+      }
+
+      await AuditService.log('invite_sent', 'user', 'User Invitation', req, {
+        targetEmail: invite.email,
+        targetRole: invite.role,
+        resent: true,
+      });
+
+      res.json({ success: true, message: `Invitation resent to ${invite.email}.` });
+    } catch (error) {
+      console.error("Failed to resend invite:", error);
+      res.status(500).json({ message: "Failed to resend invite." });
+    }
+  });
+
   app.post("/api/users", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
     try {
       const currentUser = req.user as any;

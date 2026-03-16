@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { MoreHorizontal, Pencil, Trash2, UserPlus, Mail, X, Clock } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, UserPlus, Mail, X, Clock, Send } from "lucide-react";
 import InviteUserForm from "@/components/user/InviteUserForm";
 import {
   DropdownMenu,
@@ -81,6 +81,22 @@ export default function UserManagement() {
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to revoke invite.", variant: "destructive" });
+    }
+  });
+
+  const resendInvite = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("POST", `/api/invites/${id}/resend`, { origin: window.location.origin });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to resend invite.");
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({ title: "Invite resent", description: data.message });
+      queryClient.invalidateQueries({ queryKey: ["/api/invites/pending"] });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   });
 
@@ -520,16 +536,28 @@ export default function UserManagement() {
                             </span>
                           </td>
                           <td className="py-3 px-4 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              disabled={revokeInvite.isPending}
-                              onClick={() => revokeInvite.mutate(invite.id)}
-                            >
-                              <X className="h-4 w-4 mr-1" />
-                              Revoke
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                disabled={resendInvite.isPending || revokeInvite.isPending}
+                                onClick={() => resendInvite.mutate(invite.id)}
+                              >
+                                <Send className="h-4 w-4 mr-1" />
+                                Resend
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                disabled={revokeInvite.isPending || resendInvite.isPending}
+                                onClick={() => revokeInvite.mutate(invite.id)}
+                              >
+                                <X className="h-4 w-4 mr-1" />
+                                Revoke
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
