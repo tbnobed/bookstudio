@@ -13,8 +13,9 @@ import {
   LogIn, LogOut as LogOutIcon, Package,
   Loader2, Check, ScanLine, Tag, ImageIcon, ChevronDown, ChevronUp, Trash2, ScanText,
   Pencil, Sun, Moon, Archive, Eye, EyeOff,
-  AlertTriangle, Tv
+  AlertTriangle, Tv, Layers, Link2Off
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -459,7 +460,17 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
           <Package className="h-5 w-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className={cn("font-semibold text-gray-900 dark:text-white text-sm leading-tight truncate", isRetired && "italic line-through decoration-gray-400")}>{asset.name}</p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className={cn("font-semibold text-gray-900 dark:text-white text-sm leading-tight truncate", isRetired && "italic line-through decoration-gray-400")}>{asset.name}</p>
+            {(asset as any).isKit && (
+              <span className="flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-violet-400 text-violet-600 dark:text-violet-400 shrink-0">
+                <Layers className="h-2.5 w-2.5" />Kit
+              </span>
+            )}
+            {(asset as any).parentAssetId && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-gray-300 text-gray-500 dark:text-gray-400 shrink-0">in kit</span>
+            )}
+          </div>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className={cn("text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full", cat.color)}>
               {cat.label}
@@ -567,7 +578,7 @@ export default function MobileAssetsPage() {
   const [ocrPhase, setOcrPhase] = useState<"idle" | "processing" | "results">("idle");
   const [ocrResults, setOcrResults] = useState<string[]>([]);
   const [ocrProgress, setOcrProgress] = useState(0);
-  const [scanTarget, setScanTarget] = useState<"serial" | "tag" | "editSerial" | "editTag" | null>(null);
+  const [scanTarget, setScanTarget] = useState<"serial" | "tag" | "editSerial" | "editTag" | "kitMember" | null>(null);
   const [tagChangeConfirm, setTagChangeConfirm] = useState<{ oldTag: string; newTag: string } | null>(null);
 
 
@@ -638,11 +649,19 @@ export default function MobileAssetsPage() {
     name: "", category: "camera", status: "available",
     serialNumber: "", assetTag: "", location: "", description: "", notes: "",
     decommissionReason: "",
+    isKit: false,
+    parentAssetId: null as number | null,
   });
+
+  // Kit add-member state
+  const [kitMemberToAdd, setKitMemberToAdd] = useState<string>("");
+  const [kitMemberSearch, setKitMemberSearch] = useState<string>("");
 
   const openEditAsset = (asset: Asset) => {
     setEditingAsset(asset);
     setDecommissionExpanded(false);
+    setKitMemberToAdd("");
+    setKitMemberSearch("");
     setEditForm({
       name: asset.name,
       category: asset.category,
@@ -653,6 +672,8 @@ export default function MobileAssetsPage() {
       description: asset.description ?? "",
       notes: asset.notes ?? "",
       decommissionReason: (asset as any).decommissionReason ?? "",
+      isKit: (asset as any).isKit ?? false,
+      parentAssetId: (asset as any).parentAssetId ?? null,
     });
     setEditOpen(true);
   };
@@ -750,6 +771,47 @@ export default function MobileAssetsPage() {
     onError: () => toast({ title: "Error", description: "Failed to update asset.", variant: "destructive" }),
   });
 
+  // ── Kit member query + mutations ───────────────────────────────────────────
+  const { data: kitMembers = [], refetch: refetchKitMembers } = useQuery<Asset[]>({
+    queryKey: ["/api/assets", editingAsset?.id, "members"],
+    queryFn: () => fetch(`/api/assets/${editingAsset!.id}/members`, { credentials: "include" }).then(r => r.json()),
+    enabled: !!editingAsset?.isKit,
+  });
+
+  const addKitMember = useMutation({
+    mutationFn: ({ kitId, assetId }: { kitId: number; assetId: number }) =>
+      apiRequest("POST", `/api/assets/${kitId}/members`, { assetId }),
+    onSuccess: () => {
+      refetchKitMembers();
+      queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
+      setKitMemberToAdd("");
+      setKitMemberSearch("");
+      toast({ title: "Member added to kit" });
+    },
+    onError: () => toast({ title: "Error", description: "Could not add member to kit.", variant: "destructive" }),
+  });
+
+  const removeKitMember = useMutation({
+    mutationFn: ({ kitId, memberId }: { kitId: number; memberId: number }) =>
+      apiRequest("DELETE", `/api/assets/${kitId}/members/${memberId}`),
+    onSuccess: () => {
+      refetchKitMembers();
+      queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
+      toast({ title: "Removed from kit" });
+    },
+    onError: () => toast({ title: "Error", description: "Could not remove member.", variant: "destructive" }),
+  });
+
+  // Kit computed helpers
+  const kitMemberCountMap = new Map<number, number>();
+  const kitNameMap = new Map<number, string>();
+  for (const a of assets) {
+    if ((a as any).isKit) kitNameMap.set(a.id, a.name);
+    const pid = (a as any).parentAssetId as number | null;
+    if (pid) kitMemberCountMap.set(pid, (kitMemberCountMap.get(pid) ?? 0) + 1);
+  }
+  const kitAssets = assets.filter(a => (a as any).isKit);
+
   // ── Filtered list ──────────────────────────────────────────────────────────
   const filtered = assets.filter(a => {
     const q = search.toLowerCase();
@@ -769,19 +831,37 @@ export default function MobileAssetsPage() {
     return true;
   });
 
-  const handleOpenScanner = (target: "serial" | "tag" | "editSerial" | "editTag") => {
+  const handleOpenScanner = (target: "serial" | "tag" | "editSerial" | "editTag" | "kitMember") => {
     setScanTarget(target);
     setScannerOpen(true);
   };
 
   const handleScanDetected = (value: string) => {
     setScannerOpen(false);
-    if (scanTarget === "serial") setNewAsset(p => ({ ...p, serialNumber: value }));
-    if (scanTarget === "tag") setNewAsset(p => ({ ...p, assetTag: value }));
-    if (scanTarget === "editSerial") setEditForm(p => ({ ...p, serialNumber: value }));
-    if (scanTarget === "editTag") setEditForm(p => ({ ...p, assetTag: value }));
     setScanTarget(null);
-    toast({ title: "Label scanned", description: value });
+    if (scanTarget === "serial") { setNewAsset(p => ({ ...p, serialNumber: value })); toast({ title: "Label scanned", description: value }); return; }
+    if (scanTarget === "tag") { setNewAsset(p => ({ ...p, assetTag: value })); toast({ title: "Label scanned", description: value }); return; }
+    if (scanTarget === "editSerial") { setEditForm(p => ({ ...p, serialNumber: value })); toast({ title: "Label scanned", description: value }); return; }
+    if (scanTarget === "editTag") { setEditForm(p => ({ ...p, assetTag: value })); toast({ title: "Label scanned", description: value }); return; }
+    if (scanTarget === "kitMember" && editingAsset) {
+      const tag = value.trim().toLowerCase();
+      const match = assets.find(a =>
+        (a.assetTag ?? "").toLowerCase() === tag ||
+        (a.serialNumber ?? "").toLowerCase() === tag
+      );
+      if (!match) {
+        setKitMemberSearch(value);
+        toast({ title: "No exact match", description: `"${value}" not found — search results filtered below.`, variant: "destructive" });
+        return;
+      }
+      if (kitMembers.some(m => m.id === match.id)) { toast({ title: "Already in kit", description: match.name }); return; }
+      if ((match as any).isKit || (match as any).parentAssetId) {
+        toast({ title: "Can't add", description: "Kits and kit members cannot be nested.", variant: "destructive" });
+        return;
+      }
+      addKitMember.mutate({ kitId: editingAsset.id, assetId: match.id });
+      toast({ title: "Added to kit", description: match.name });
+    }
   };
 
   const handleLookupDetected = (value: string) => {
@@ -1595,6 +1675,127 @@ export default function MobileAssetsPage() {
                   Photos
                 </Label>
                 <AssetPhotoSection assetId={editingAsset.id} />
+              </div>
+            )}
+
+            {/* Kit section */}
+            <div className="space-y-3 rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-1.5 text-sm font-medium">
+                    <Layers className="h-3.5 w-3.5 text-violet-500" />
+                    Kit Container
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Save, then reopen to assign components.</p>
+                </div>
+                <Switch
+                  checked={editForm.isKit}
+                  onCheckedChange={val => setEditForm(f => ({ ...f, isKit: val, parentAssetId: val ? null : f.parentAssetId }))}
+                  className="data-[state=checked]:bg-violet-500"
+                />
+              </div>
+            </div>
+
+            {/* Kit Members — only visible when editing an existing kit */}
+            {editingAsset && editForm.isKit && (
+              <div className="space-y-3 rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/30 dark:bg-violet-950/10 p-3">
+                <Label className="flex items-center gap-1.5 text-sm font-medium">
+                  <Layers className="h-3.5 w-3.5 text-violet-500" />
+                  Kit Members
+                  <span className="text-xs text-muted-foreground font-normal ml-1">({kitMembers.length} component{kitMembers.length !== 1 ? "s" : ""})</span>
+                </Label>
+
+                {/* Members list */}
+                {kitMembers.length > 0 ? (
+                  <div className="space-y-2">
+                    {kitMembers.map(member => (
+                      <div key={member.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl border border-violet-200 dark:border-violet-800 px-3 py-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{member.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{member.category} · {member.status}</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 shrink-0"
+                          onClick={() => removeKitMember.mutate({ kitId: editingAsset.id, memberId: member.id })}
+                          disabled={removeKitMember.isPending}
+                        >
+                          <Link2Off className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">No components yet. Add below.</p>
+                )}
+
+                {/* Add member: search + scan row */}
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                      <Input
+                        className="h-9 text-sm pl-8"
+                        placeholder="Search by name or tag…"
+                        value={kitMemberSearch}
+                        onChange={e => { setKitMemberSearch(e.target.value); setKitMemberToAdd(""); }}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-3 shrink-0 border-violet-300 text-violet-600 dark:border-violet-700 dark:text-violet-400"
+                      onClick={() => handleOpenScanner("kitMember")}
+                    >
+                      <ScanLine className="h-4 w-4 mr-1" />Scan
+                    </Button>
+                  </div>
+                  {/* Filtered dropdown + Add */}
+                  {(() => {
+                    const q = kitMemberSearch.trim().toLowerCase();
+                    const candidates = assets.filter(a =>
+                      a.id !== editingAsset.id &&
+                      !(a as any).isKit &&
+                      !(a as any).parentAssetId &&
+                      !kitMembers.some(m => m.id === a.id) &&
+                      (!q || a.name.toLowerCase().includes(q) || (a.assetTag ?? "").toLowerCase().includes(q) || (a.serialNumber ?? "").toLowerCase().includes(q))
+                    );
+                    return (
+                      <div className="flex gap-2">
+                        <Select value={kitMemberToAdd} onValueChange={setKitMemberToAdd}>
+                          <SelectTrigger className="h-9 text-sm flex-1">
+                            <SelectValue placeholder={candidates.length === 0 ? "No matches" : "Select to add…"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {candidates.length === 0 ? (
+                              <div className="px-3 py-2 text-xs text-muted-foreground">No assets match</div>
+                            ) : candidates.map(a => (
+                              <SelectItem key={a.id} value={a.id.toString()}>
+                                <span className="font-medium">{a.name}</span>
+                                {a.assetTag && <span className="ml-1.5 text-muted-foreground text-xs">#{a.assetTag}</span>}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-9 bg-violet-500 hover:bg-violet-600 text-white shrink-0"
+                          disabled={!kitMemberToAdd || addKitMember.isPending}
+                          onClick={() => {
+                            if (!kitMemberToAdd) return;
+                            addKitMember.mutate({ kitId: editingAsset.id, assetId: parseInt(kitMemberToAdd) });
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />Add
+                        </Button>
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
             )}
 
