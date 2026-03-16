@@ -336,6 +336,8 @@ export default function AssetsPage() {
 
   // Kit state
   const [kitMemberToAdd, setKitMemberToAdd] = useState<string>("");
+  const [kitMemberSearch, setKitMemberSearch] = useState<string>("");
+  const [kitScanOpen, setKitScanOpen] = useState(false);
 
   const canDelete = user?.role === "admin" || user?.role === "site_manager";
 
@@ -1531,35 +1533,74 @@ export default function AssetsPage() {
                 <p className="text-xs text-muted-foreground italic">No components assigned yet. Add assets below.</p>
               )}
 
-              {/* Add member */}
-              <div className="flex gap-2">
-                <Select
-                  value={kitMemberToAdd}
-                  onValueChange={setKitMemberToAdd}
-                >
-                  <SelectTrigger className="h-8 text-sm flex-1">
-                    <SelectValue placeholder="Select an asset to add…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {assets
-                      .filter(a => a.id !== editAsset.id && !(a as any).isKit && !(a as any).parentAssetId && !kitMembers.some(m => m.id === a.id))
-                      .map(a => (
-                        <SelectItem key={a.id} value={a.id.toString()}>{a.name}</SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="h-8 bg-violet-500 hover:bg-violet-600 text-white shrink-0"
-                  disabled={!kitMemberToAdd || addKitMember.isPending}
-                  onClick={() => {
-                    if (!kitMemberToAdd) return;
-                    addKitMember.mutate({ kitId: editAsset.id, assetId: parseInt(kitMemberToAdd) });
-                  }}
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1" />Add
-                </Button>
+              {/* Add member — search + scan */}
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      className="h-8 text-sm pl-8 pr-2"
+                      placeholder="Search by name or asset tag…"
+                      value={kitMemberSearch}
+                      onChange={e => { setKitMemberSearch(e.target.value); setKitMemberToAdd(""); }}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-2.5 shrink-0 border-violet-300 text-violet-600 hover:bg-violet-50 dark:border-violet-700 dark:text-violet-400 dark:hover:bg-violet-950/30"
+                    onClick={() => setKitScanOpen(true)}
+                    title="Scan asset barcode"
+                  >
+                    <ScanLine className="h-3.5 w-3.5 mr-1" />Scan
+                  </Button>
+                </div>
+                {/* Filtered dropdown + Add */}
+                {(() => {
+                  const q = kitMemberSearch.trim().toLowerCase();
+                  const candidates = assets.filter(a =>
+                    a.id !== editAsset.id &&
+                    !(a as any).isKit &&
+                    !(a as any).parentAssetId &&
+                    !kitMembers.some(m => m.id === a.id) &&
+                    (!q || a.name.toLowerCase().includes(q) || (a.assetTag ?? "").toLowerCase().includes(q) || (a.serialNumber ?? "").toLowerCase().includes(q))
+                  );
+                  return (
+                    <div className="flex gap-2">
+                      <Select value={kitMemberToAdd} onValueChange={setKitMemberToAdd}>
+                        <SelectTrigger className="h-8 text-sm flex-1">
+                          <SelectValue placeholder={candidates.length === 0 ? "No matching assets" : "Select an asset to add…"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {candidates.length === 0 ? (
+                            <div className="px-3 py-2 text-xs text-muted-foreground">No assets match your search</div>
+                          ) : (
+                            candidates.map(a => (
+                              <SelectItem key={a.id} value={a.id.toString()}>
+                                <span className="font-medium">{a.name}</span>
+                                {a.assetTag && <span className="ml-1.5 text-muted-foreground text-xs">#{a.assetTag}</span>}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="h-8 bg-violet-500 hover:bg-violet-600 text-white shrink-0"
+                        disabled={!kitMemberToAdd || addKitMember.isPending}
+                        onClick={() => {
+                          if (!kitMemberToAdd) return;
+                          addKitMember.mutate({ kitId: editAsset.id, assetId: parseInt(kitMemberToAdd) });
+                          setKitMemberSearch("");
+                        }}
+                      >
+                        <Plus className="h-3.5 w-3.5 mr-1" />Add
+                      </Button>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -1906,6 +1947,38 @@ export default function AssetsPage() {
           toast({ title: "Label scanned", description: value });
         }}
         onClose={() => setScanTagOpen(false)}
+      />
+
+      {/* Barcode scanner for kit member selection */}
+      <BarcodeScannerDialog
+        open={kitScanOpen}
+        onDetected={value => {
+          setKitScanOpen(false);
+          const tag = value.trim().toLowerCase();
+          const match = assets.find(a =>
+            (a.assetTag ?? "").toLowerCase() === tag ||
+            (a.serialNumber ?? "").toLowerCase() === tag
+          );
+          if (!match) {
+            setKitMemberSearch(value);
+            toast({ title: "No asset matched", description: `Tag "${value}" — check the search results below.`, variant: "destructive" });
+            return;
+          }
+          const alreadyMember = kitMembers.some(m => m.id === match.id);
+          if (alreadyMember) {
+            toast({ title: "Already in kit", description: `${match.name} is already a member of this kit.` });
+            return;
+          }
+          if ((match as any).isKit || (match as any).parentAssetId) {
+            toast({ title: "Can't add this asset", description: "Kit containers and existing kit members cannot be nested.", variant: "destructive" });
+            return;
+          }
+          if (editAsset) {
+            addKitMember.mutate({ kitId: editAsset.id, assetId: match.id });
+            toast({ title: "Added to kit", description: match.name });
+          }
+        }}
+        onClose={() => setKitScanOpen(false)}
       />
 
       {/* Asset tag change confirmation */}
