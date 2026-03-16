@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ import { Loader2, Copy, Check } from "lucide-react";
 // Form validation schema
 const inviteFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  role: z.enum(["admin", "producer", "engineer", "it", "viewer"])
+  role: z.enum(["admin", "producer", "production", "engineer", "it", "site_manager", "viewer"])
 });
 
 type InviteFormData = z.infer<typeof inviteFormSchema>;
@@ -39,6 +39,7 @@ export default function InviteUserForm() {
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Form setup
   const form = useForm<InviteFormData>({
@@ -73,7 +74,7 @@ export default function InviteUserForm() {
           description: data.message,
           variant: "default",
         });
-        
+        queryClient.invalidateQueries({ queryKey: ["/api/invites/pending"] });
         // Store the full invite link for copying
         const fullInviteLink = `${window.location.origin}${data.inviteLink}`;
         setInviteLink(fullInviteLink);
@@ -187,11 +188,13 @@ export default function InviteUserForm() {
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
                   <SelectItem value="producer">Producer</SelectItem>
+                  <SelectItem value="production">Production</SelectItem>
                   <SelectItem value="engineer">Engineer</SelectItem>
                   <SelectItem value="it">IT</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="site_manager">Site Manager</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
               {form.formState.errors.role && (

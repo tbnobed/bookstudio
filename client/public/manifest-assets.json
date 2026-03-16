@@ -3,7 +3,7 @@
   "short_name": "Assets",
   "description": "Studio gear check-out and inventory management",
   "start_url": "/mobile/assets",
-  "scope": "/mobile/assets",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f9fafb",

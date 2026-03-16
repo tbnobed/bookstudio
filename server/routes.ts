@@ -48,7 +48,9 @@ import {
   generateInviteToken,
   sendInviteEmail,
   verifyInviteToken,
-  invalidateInviteToken
+  invalidateInviteToken,
+  getPendingInvites,
+  deleteInviteToken
 } from "./email";
 import { migrateTemplatesApi } from "./migrate-templates-api";
 
@@ -275,6 +277,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: "Failed to create invitation."
       });
+    }
+  });
+
+  app.get("/api/invites/pending", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const pending = await getPendingInvites();
+      res.json(pending);
+    } catch (error) {
+      console.error("Failed to fetch pending invites:", error);
+      res.status(500).json({ message: "Failed to fetch pending invites." });
+    }
+  });
+
+  app.delete("/api/invites/:id", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid invite ID" });
+      await deleteInviteToken(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to revoke invite:", error);
+      res.status(500).json({ message: "Failed to revoke invite." });
     }
   });
 

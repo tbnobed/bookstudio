@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { MoreHorizontal, Pencil, Trash2, UserPlus } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, UserPlus, Mail, X, Clock } from "lucide-react";
 import InviteUserForm from "@/components/user/InviteUserForm";
 import {
   DropdownMenu,
@@ -58,9 +58,30 @@ export default function UserManagement() {
   const [showPasswordField, setShowPasswordField] = useState(false);
 
   // Fetch users
+  type PendingInvite = { id: number; email: string; role: string; createdAt: string | null; expires: string };
+
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
     enabled: user?.role === "admin" || user?.role === "site_manager",
+  });
+
+  const { data: pendingInvites = [], isLoading: invitesLoading } = useQuery<PendingInvite[]>({
+    queryKey: ["/api/invites/pending"],
+    enabled: user?.role === "admin" || user?.role === "site_manager",
+  });
+
+  const revokeInvite = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/invites/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Invite revoked", description: "The invitation has been cancelled." });
+      queryClient.invalidateQueries({ queryKey: ["/api/invites/pending"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to revoke invite.", variant: "destructive" });
+    }
   });
 
   // Create user mutation
@@ -438,6 +459,81 @@ export default function UserManagement() {
                         </td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Pending Invites */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-muted-foreground" />
+              Pending Invitations
+              {pendingInvites.length > 0 && (
+                <Badge variant="secondary" className="ml-1">{pendingInvites.length}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {invitesLoading ? (
+              <div className="flex justify-center py-6">
+                <div className="animate-spin rounded-full h-7 w-7 border-t-2 border-b-2 border-primary" />
+              </div>
+            ) : pendingInvites.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No pending invitations.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 font-medium">Email</th>
+                      <th className="text-left py-3 px-4 font-medium">Role</th>
+                      <th className="text-left py-3 px-4 font-medium">Sent</th>
+                      <th className="text-left py-3 px-4 font-medium">Expires</th>
+                      <th className="text-right py-3 px-4 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingInvites.map(invite => {
+                      const expiresDate = new Date(invite.expires);
+                      const sentDate = invite.createdAt ? new Date(invite.createdAt) : null;
+                      const hoursLeft = Math.round((expiresDate.getTime() - Date.now()) / 36e5);
+                      const expiringSoon = hoursLeft < 24;
+                      return (
+                        <tr key={invite.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4 font-medium">{invite.email}</td>
+                          <td className="py-3 px-4">
+                            <Badge variant="outline" className={getRoleBadgeColor(invite.role)}>
+                              {formatRole(invite.role)}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4 text-muted-foreground">
+                            {sentDate ? sentDate.toLocaleDateString() : "—"}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`flex items-center gap-1 text-sm ${expiringSoon ? "text-amber-600 font-medium" : "text-muted-foreground"}`}>
+                              <Clock className="h-3.5 w-3.5" />
+                              {expiringSoon ? `${hoursLeft}h left` : expiresDate.toLocaleDateString()}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              disabled={revokeInvite.isPending}
+                              onClick={() => revokeInvite.mutate(invite.id)}
+                            >
+                              <X className="h-4 w-4 mr-1" />
+                              Revoke
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

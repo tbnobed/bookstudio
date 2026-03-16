@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gt } from 'drizzle-orm';
 import { db } from './db';
 import { passwordResetTokens, inviteTokens } from '../shared/schema';
 import { sendEmail } from './services/emailService';
@@ -163,6 +163,21 @@ export async function invalidateInviteToken(token: string): Promise<void> {
   await db.update(inviteTokens)
     .set({ used: true })
     .where(eq(inviteTokens.token, token));
+}
+
+export async function getPendingInvites(): Promise<Array<{
+  id: number; email: string; role: string; createdAt: Date | null; expires: Date;
+}>> {
+  const now = new Date();
+  return db
+    .select({ id: inviteTokens.id, email: inviteTokens.email, role: inviteTokens.role, createdAt: inviteTokens.createdAt, expires: inviteTokens.expires })
+    .from(inviteTokens)
+    .where(and(eq(inviteTokens.used, false), gt(inviteTokens.expires, now)))
+    .orderBy(inviteTokens.createdAt);
+}
+
+export async function deleteInviteToken(id: number): Promise<void> {
+  await db.delete(inviteTokens).where(eq(inviteTokens.id, id));
 }
 
 /**
