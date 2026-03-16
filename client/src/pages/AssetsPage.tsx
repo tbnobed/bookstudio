@@ -1409,7 +1409,7 @@ export default function AssetsPage() {
                     <Layers className="h-3.5 w-3.5 text-violet-500" />
                     Kit Container
                   </Label>
-                  <p className="text-xs text-muted-foreground">Mark this as a kit that groups multiple components</p>
+                  <p className="text-xs text-muted-foreground">Mark this as a kit container. Save, then reopen to assign components.</p>
                 </div>
                 <Switch
                   checked={form.isKit}
@@ -1417,25 +1417,6 @@ export default function AssetsPage() {
                   className="data-[state=checked]:bg-violet-500"
                 />
               </div>
-              {!form.isKit && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Part of Kit (optional)</Label>
-                  <Select
-                    value={form.parentAssetId?.toString() ?? "__none__"}
-                    onValueChange={val => setForm(f => ({ ...f, parentAssetId: val === "__none__" ? null : parseInt(val) }))}
-                  >
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue placeholder="Not part of a kit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">Not part of a kit</SelectItem>
-                      {kitAssets.filter(k => k.id !== editAsset?.id).map(k => (
-                        <SelectItem key={k.id} value={k.id.toString()}>{k.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
 
             {/* Dates row */}
