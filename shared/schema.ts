@@ -469,6 +469,8 @@ export const assets = pgTable("assets", {
   lastMaintenanceDate: text("last_maintenance_date"),
   assignedTo: integer("assigned_to"), // user id, nullable
   decommissionReason: text("decommission_reason"),
+  isKit: boolean("is_kit").notNull().default(false),   // true = this asset is a kit container
+  parentAssetId: integer("parent_asset_id"),            // FK to assets.id — set when this asset is a kit member
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

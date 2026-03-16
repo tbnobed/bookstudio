@@ -175,6 +175,11 @@ export interface IStorage {
   updateAsset(id: number, data: Partial<InsertAsset>): Promise<Asset | undefined>;
   deleteAsset(id: number): Promise<boolean>;
 
+  // Asset kits
+  getAssetKitMembers(kitId: number): Promise<Asset[]>;
+  addAssetToKit(assetId: number, kitId: number): Promise<Asset | undefined>;
+  removeAssetFromKit(assetId: number): Promise<Asset | undefined>;
+
   // Asset checkout/checkin
   getAssetCheckouts(assetId: number): Promise<AssetCheckout[]>;
   getActiveCheckout(assetId: number): Promise<AssetCheckout | undefined>;
@@ -1103,6 +1108,10 @@ export class MemStorage implements IStorage {
   async createAsset(asset: InsertAsset): Promise<Asset> { throw new Error("Not implemented in MemStorage"); }
   async updateAsset(id: number, data: Partial<InsertAsset>): Promise<Asset | undefined> { return undefined; }
   async deleteAsset(id: number): Promise<boolean> { return false; }
+
+  async getAssetKitMembers(_kitId: number): Promise<Asset[]> { return []; }
+  async addAssetToKit(_assetId: number, _kitId: number): Promise<Asset | undefined> { return undefined; }
+  async removeAssetFromKit(_assetId: number): Promise<Asset | undefined> { return undefined; }
 
   async getAssetCheckouts(_assetId: number): Promise<AssetCheckout[]> { return []; }
   async getActiveCheckout(_assetId: number): Promise<AssetCheckout | undefined> { return undefined; }
@@ -4144,6 +4153,28 @@ export class DatabaseStorage implements IStorage {
   async deleteAsset(id: number): Promise<boolean> {
     const result = await db.delete(assets).where(eq(assets.id, id)).returning();
     return result.length > 0;
+  }
+
+  async getAssetKitMembers(kitId: number): Promise<Asset[]> {
+    return db.select().from(assets).where(eq(assets.parentAssetId, kitId)).orderBy(asc(assets.name));
+  }
+
+  async addAssetToKit(assetId: number, kitId: number): Promise<Asset | undefined> {
+    const result = await db
+      .update(assets)
+      .set({ parentAssetId: kitId, updatedAt: new Date() })
+      .where(eq(assets.id, assetId))
+      .returning();
+    return result[0];
+  }
+
+  async removeAssetFromKit(assetId: number): Promise<Asset | undefined> {
+    const result = await db
+      .update(assets)
+      .set({ parentAssetId: null, updatedAt: new Date() })
+      .where(eq(assets.id, assetId))
+      .returning();
+    return result[0];
   }
 
   async getAssetCheckouts(assetId: number): Promise<AssetCheckout[]> {

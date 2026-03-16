@@ -3954,6 +3954,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ─── Kit member routes ────────────────────────────────────────────────────────
+  app.get("/api/assets/:id/members", isAuthenticated, async (req, res) => {
+    try {
+      const kitId = parseInt(req.params.id);
+      if (isNaN(kitId)) return res.status(400).json({ message: "Invalid kit ID" });
+      const members = await storage.getAssetKitMembers(kitId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching kit members:", error);
+      res.status(500).json({ message: "Failed to fetch kit members" });
+    }
+  });
+
+  app.post("/api/assets/:id/members", isAuthenticated, async (req, res) => {
+    try {
+      const kitId = parseInt(req.params.id);
+      const assetId = parseInt(req.body.assetId);
+      if (isNaN(kitId) || isNaN(assetId)) return res.status(400).json({ message: "Invalid ID" });
+      const kit = await storage.getAsset(kitId);
+      if (!kit || !kit.isKit) return res.status(400).json({ message: "Target is not a kit" });
+      const updated = await storage.addAssetToKit(assetId, kitId);
+      if (!updated) return res.status(404).json({ message: "Asset not found" });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error adding asset to kit:", error);
+      res.status(500).json({ message: "Failed to add asset to kit" });
+    }
+  });
+
+  app.delete("/api/assets/:id/members/:memberId", isAuthenticated, async (req, res) => {
+    try {
+      const memberId = parseInt(req.params.memberId);
+      if (isNaN(memberId)) return res.status(400).json({ message: "Invalid member ID" });
+      const updated = await storage.removeAssetFromKit(memberId);
+      if (!updated) return res.status(404).json({ message: "Asset not found" });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error removing asset from kit:", error);
+      res.status(500).json({ message: "Failed to remove asset from kit" });
+    }
+  });
+
   // Asset checkout history
   app.get("/api/assets/:id/checkouts", isAuthenticated, async (req, res) => {
     try {
@@ -4091,7 +4133,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (bookingId && !isNaN(bookingId)) {
         storage.addBookingAsset(bookingId, assetId, userId).catch(console.error);
       }
-      res.status(201).json(checkout);
+
+      // If this is a kit, also check out all available members
+      const checkedOutMembers: string[] = [];
+      if (asset.isKit) {
+        const members = await storage.getAssetKitMembers(assetId);
+        for (const member of members) {
+          if (member.status === "available") {
+            const memberExisting = await storage.getActiveCheckout(member.id);
+            if (!memberExisting) {
+              await storage.checkoutAsset({
+                assetId: member.id,
+                checkedOutBy: userId,
+                purpose: req.body.purpose,
+                notes: req.body.notes,
+              });
+              checkedOutMembers.push(member.name);
+            }
+          }
+        }
+      }
+
+      res.status(201).json({ ...checkout, kitMembersCheckedOut: checkedOutMembers });
       // Audit + notify (fire-and-forget)
       const ctx = getAuditContext(req);
       const user = await storage.getUser(userId);
@@ -4099,8 +4162,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const extra: Record<string, string> = {};
       if (req.body.purpose) extra["Purpose"] = req.body.purpose;
       if (req.body.notes) extra["Notes"] = req.body.notes;
+      if (checkedOutMembers.length) extra["Kit members"] = checkedOutMembers.join(", ");
       AuditService.log(ctx, 'CHECKOUT', 'asset', assetId, asset.name, {
-        checkedOutBy: userName, purpose: req.body.purpose, notes: req.body.notes,
+        checkedOutBy: userName, purpose: req.body.purpose, notes: req.body.notes, kitMembersCheckedOut: checkedOutMembers,
       }).catch(console.error);
       sendAssetNotification(asset.name, 'checked_out', userName, extra).catch(console.error);
     } catch (error) {
@@ -4117,14 +4181,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const asset = await storage.getAsset(assetId);
       const result = await storage.checkinAsset(assetId, userId);
       if (!result) return res.status(409).json({ message: "Asset is not currently checked out" });
-      res.json(result);
+
+      // If this is a kit, also check in all checked-out members
+      const checkedInMembers: string[] = [];
+      if (asset?.isKit) {
+        const members = await storage.getAssetKitMembers(assetId);
+        for (const member of members) {
+          const memberCheckout = await storage.getActiveCheckout(member.id);
+          if (memberCheckout) {
+            await storage.checkinAsset(member.id, userId);
+            checkedInMembers.push(member.name);
+          }
+        }
+      }
+
+      res.json({ ...result, kitMembersCheckedIn: checkedInMembers });
       // Audit + notify (fire-and-forget)
       if (asset) {
         const ctx = getAuditContext(req);
         const user = await storage.getUser(userId);
         const userName = user?.fullName || user?.username || `User #${userId}`;
         AuditService.log(ctx, 'CHECKIN', 'asset', assetId, asset.name, {
-          checkedInBy: userName,
+          checkedInBy: userName, kitMembersCheckedIn: checkedInMembers,
         }).catch(console.error);
         sendAssetNotification(asset.name, 'checked_in', userName).catch(console.error);
       }

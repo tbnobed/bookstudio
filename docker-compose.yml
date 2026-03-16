@@ -213,6 +213,8 @@ services:
         node scripts/production-migration-v1.5.6.cjs &&
         echo 'Running booking-asset planning migration (v1.5.7)...' &&
         node scripts/production-migration-v1.5.7.cjs &&
+        echo 'Running kit asset migration (v1.6.0)...' &&
+        node scripts/production-migration-v1.6.0.cjs &&
         echo 'Database initialization completed successfully!'
       "
 
