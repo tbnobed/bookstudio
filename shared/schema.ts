@@ -25,6 +25,7 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   name: text("name").notNull(),
   role: text("role").notNull().default("producer"), // producer, production, engineer, it, site_manager, admin
+  calendarToken: text("calendar_token"), // private token for iCal feed URL
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

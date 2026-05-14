@@ -31,6 +31,7 @@ export interface IStorage {
   // User management
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByCalendarToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
@@ -383,6 +384,12 @@ export class MemStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
       (user) => user.username === username
+    );
+  }
+
+  async getUserByCalendarToken(token: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => (user as any).calendarToken === token
     );
   }
 
@@ -1394,6 +1401,16 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error(`Error getting user with username ${username}:`, error);
+      return undefined;
+    }
+  }
+
+  async getUserByCalendarToken(token: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.calendarToken, token));
+      return user;
+    } catch (error) {
+      console.error("Error getting user by calendar token:", error);
       return undefined;
     }
   }

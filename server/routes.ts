@@ -4289,5 +4289,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ─── iCal / Calendar Sync ────────────────────────────────────────────────
+
+  // Get (or auto-generate) the current user's calendar token
+  app.get("/api/user/calendar-token", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      let user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (!(user as any).calendarToken) {
+        const { randomBytes } = await import("crypto");
+        const token = randomBytes(32).toString("hex");
+        user = (await storage.updateUser(userId, { calendarToken: token } as any)) ?? user;
+      }
+
+      res.json({ token: (user as any).calendarToken });
+    } catch (error) {
+      console.error("Error getting calendar token:", error);
+      res.status(500).json({ message: "Failed to get calendar token" });
+    }
+  });
+
+  // Regenerate the current user's calendar token (invalidates old URL)
+  app.post("/api/user/calendar-token/regenerate", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { randomBytes } = await import("crypto");
+      const token = randomBytes(32).toString("hex");
+      const user = await storage.updateUser(userId, { calendarToken: token } as any);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      res.json({ token });
+    } catch (error) {
+      console.error("Error regenerating calendar token:", error);
+      res.status(500).json({ message: "Failed to regenerate calendar token" });
+    }
+  });
+
+  // Public ICS feed — no session auth, token acts as the credential
+  app.get("/api/calendar/:token.ics", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const user = await storage.getUserByCalendarToken(token);
+      if (!user) return res.status(404).send("Calendar not found");
+
+      const bookings = await storage.getBookingsByUser(user.id);
+      const siteName = await storage.getSiteName().catch(() => "BookStud.io");
+
+      // Helper to format a JS Date as iCal UTC string: YYYYMMDDTHHMMSSZ
+      const fmt = (d: Date) =>
+        d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+
+      // Generate a stable UID for each booking
+      const uid = (id: number) => `booking-${id}@bookstudio`;
+
+      const now = fmt(new Date());
+
+      const events = bookings.map((b) => {
+        const start = fmt(new Date(b.start));
+        const end = fmt(new Date(b.end));
+        const summary = b.title.replace(/[\\;,]/g, "\\$&").replace(/\n/g, "\\n");
+        const description = (b.description || b.type || "").replace(/[\\;,]/g, "\\$&").replace(/\n/g, "\\n");
+        return [
+          "BEGIN:VEVENT",
+          `DTSTAMP:${now}`,
+          `DTSTART:${start}`,
+          `DTEND:${end}`,
+          `SUMMARY:${summary}`,
+          description ? `DESCRIPTION:${description}` : null,
+          `STATUS:${b.status === "cancelled" ? "CANCELLED" : b.status === "tentative" ? "TENTATIVE" : "CONFIRMED"}`,
+          `UID:${uid(b.id)}`,
+          "END:VEVENT",
+        ]
+          .filter(Boolean)
+          .join("\r\n");
+      });
+
+      const ics = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        `PRODID:-//BookStud.io//BookStudio//EN`,
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        `X-WR-CALNAME:${siteName} – My Bookings`,
+        "X-WR-CALDESC:Your studio bookings from BookStud.io",
+        "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
+        "X-PUBLISHED-TTL:PT1H",
+        ...events,
+        "END:VCALENDAR",
+      ].join("\r\n");
+
+      res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="bookings.ics"`);
+      res.setHeader("Cache-Control", "no-cache, no-store");
+      res.send(ics);
+    } catch (error) {
+      console.error("Error generating ICS feed:", error);
+      res.status(500).send("Failed to generate calendar feed");
+    }
+  });
+
   return httpServer;
 }
