@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Copy, RefreshCw, Calendar, Smartphone, CheckCheck } from "lucide-react";
+import QRCode from "react-qr-code";
 
 // Form validation schema
 const profileSchema = z.object({
@@ -120,6 +121,19 @@ function CalendarSyncPanel() {
             Keep this URL private — anyone with it can view your bookings.
           </p>
         </div>
+
+        {/* QR code */}
+        {feedUrl && (
+          <div className="flex flex-col items-center gap-2 py-2">
+            <p className="text-sm text-muted-foreground self-start">Or scan with your iPhone camera:</p>
+            <div className="rounded-xl border bg-white p-4 shadow-sm">
+              <QRCode value={feedUrl} size={160} />
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              Point iPhone Camera at the QR code → tap the banner → follow the prompts to subscribe
+            </p>
+          </div>
+        )}
 
         {/* iPhone instructions */}
         <div className="rounded-lg border bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-3">
