@@ -2144,6 +2144,11 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async getBookingsByUser(userId: number): Promise<Booking[]> {
+    const result = await this.getBookingsByUserPaginated(userId, { limit: 10000 });
+    return result.bookings;
+  }
+
   async getBookingsByUserPaginated(userId: number, options?: { page?: number; limit?: number; fromToday?: boolean }): Promise<{ bookings: Booking[]; total: number; hasMore: boolean }> {
     try {
       const { page = 1, limit = 20, fromToday = false } = options || {};
