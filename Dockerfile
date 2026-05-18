@@ -145,6 +145,7 @@ COPY --chown=appuser:appgroup scripts/production-migration-v1.5.6.cjs ./scripts/
 COPY --chown=appuser:appgroup scripts/production-migration-v1.5.7.cjs ./scripts/
 COPY --chown=appuser:appgroup scripts/production-migration-v1.6.0.cjs ./scripts/
 COPY --chown=appuser:appgroup scripts/production-migration-v1.6.1.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/production-migration-v1.6.2.cjs ./scripts/
 
 # Copy backup/restore scripts and make them executable
 COPY --chown=appuser:appgroup scripts/production-backup.sh ./scripts/

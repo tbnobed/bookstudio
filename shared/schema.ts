@@ -26,6 +26,8 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   role: text("role").notNull().default("producer"), // producer, production, engineer, it, site_manager, admin
   calendarToken: text("calendar_token"), // private token for iCal feed URL
+  ssoProvider: text("sso_provider"), // e.g. "authentik" — set when account created via SSO
+  ssoId: text("sso_id"),             // OIDC 'sub' claim — unique per SSO provider
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

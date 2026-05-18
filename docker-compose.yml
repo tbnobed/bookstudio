@@ -217,6 +217,8 @@ services:
         node scripts/production-migration-v1.6.0.cjs &&
         echo 'Running iCal calendar sync migration (v1.6.1)...' &&
         node scripts/production-migration-v1.6.1.cjs &&
+        echo 'Running SSO/OIDC support migration (v1.6.2)...' &&
+        node scripts/production-migration-v1.6.2.cjs &&
         echo 'Database initialization completed successfully!'
       "
 

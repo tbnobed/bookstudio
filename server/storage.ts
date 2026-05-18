@@ -32,6 +32,8 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByCalendarToken(token: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserBySsoId(ssoProvider: string, ssoId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
@@ -390,6 +392,18 @@ export class MemStorage implements IStorage {
   async getUserByCalendarToken(token: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
       (user) => (user as any).calendarToken === token
+    );
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email.toLowerCase() === email.toLowerCase()
+    );
+  }
+
+  async getUserBySsoId(ssoProvider: string, ssoId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => (user as any).ssoProvider === ssoProvider && (user as any).ssoId === ssoId
     );
   }
 
@@ -1411,6 +1425,28 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error("Error getting user by calendar token:", error);
+      return undefined;
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+      return user;
+    } catch (error) {
+      console.error("Error getting user by email:", error);
+      return undefined;
+    }
+  }
+
+  async getUserBySsoId(ssoProvider: string, ssoId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(
+        and(eq(users.ssoProvider, ssoProvider), eq(users.ssoId, ssoId))
+      );
+      return user;
+    } catch (error) {
+      console.error("Error getting user by SSO ID:", error);
       return undefined;
     }
   }

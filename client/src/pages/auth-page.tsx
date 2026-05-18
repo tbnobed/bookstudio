@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../assets/logo.png";
 import logoDarkPath from "../assets/logo-dark.png";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Shield } from "lucide-react";
 import promoVideo from "@/assets/promo.mp4";
 
 export default function AuthPage() {
@@ -28,6 +28,11 @@ export default function AuthPage() {
   const { data: siteNameData } = useQuery<{ siteName: string }>({
     queryKey: ['/api/system/site-name'],
   });
+
+  const { data: ssoConfig } = useQuery<{ enabled: boolean }>({
+    queryKey: ['/api/auth/sso-config'],
+  });
+  const ssoEnabled = ssoConfig?.enabled === true;
 
   const loginSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -275,6 +280,30 @@ export default function AuthPage() {
                       "Sign In"
                     )}
                   </Button>
+
+                  {ssoEnabled && (
+                    <>
+                      <div className="relative my-2">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white dark:bg-gray-900 px-2 text-gray-400">or</span>
+                        </div>
+                      </div>
+                      <a href="/auth/sso" className="block">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full h-11 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
+                          onClick={() => window.location.href = "/auth/sso"}
+                        >
+                          <Shield className="h-4 w-4 mr-2 text-[#003366] dark:text-blue-400" />
+                          Sign in with SSO
+                        </Button>
+                      </a>
+                    </>
+                  )}
                 </div>
               </form>
             </TabsContent>
