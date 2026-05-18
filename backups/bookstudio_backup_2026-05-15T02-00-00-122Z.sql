@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict k1RxSVuNDsnX5jzqGOWGaGdSDhXMYuAw1YrC1asNtxyy3Jwx1PgidmKytMUoz3j
+\restrict IyiS3TwN93aC5uhZOuLlpdpiyq632m2uYqquUXGNjXf0ysGTSf8lbteLfH9VN9g
 
 -- Dumped from database version 16.10
 -- Dumped by pg_dump version 16.10
 
--- Started on 2026-03-17 02:00:00 UTC
+-- Started on 2026-05-15 02:00:00 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -22,7 +22,7 @@ SET row_security = off;
 
 DROP DATABASE heliumdb;
 --
--- TOC entry 3766 (class 1262 OID 24576)
+-- TOC entry 3767 (class 1262 OID 24576)
 -- Name: heliumdb; Type: DATABASE; Schema: -; Owner: postgres
 --
 
@@ -31,9 +31,9 @@ CREATE DATABASE heliumdb WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROV
 
 ALTER DATABASE heliumdb OWNER TO postgres;
 
-\unrestrict k1RxSVuNDsnX5jzqGOWGaGdSDhXMYuAw1YrC1asNtxyy3Jwx1PgidmKytMUoz3j
+\unrestrict IyiS3TwN93aC5uhZOuLlpdpiyq632m2uYqquUXGNjXf0ysGTSf8lbteLfH9VN9g
 \connect heliumdb
-\restrict k1RxSVuNDsnX5jzqGOWGaGdSDhXMYuAw1YrC1asNtxyy3Jwx1PgidmKytMUoz3j
+\restrict IyiS3TwN93aC5uhZOuLlpdpiyq632m2uYqquUXGNjXf0ysGTSf8lbteLfH9VN9g
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -238,7 +238,7 @@ CREATE SEQUENCE public.alerts_id_seq
 ALTER SEQUENCE public.alerts_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3767 (class 0 OID 0)
+-- TOC entry 3768 (class 0 OID 0)
 -- Dependencies: 216
 -- Name: alerts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -282,7 +282,7 @@ CREATE SEQUENCE public.asset_checkouts_id_seq
 ALTER SEQUENCE public.asset_checkouts_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3768 (class 0 OID 0)
+-- TOC entry 3769 (class 0 OID 0)
 -- Dependencies: 255
 -- Name: asset_checkouts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -323,7 +323,7 @@ CREATE SEQUENCE public.asset_photos_id_seq
 ALTER SEQUENCE public.asset_photos_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3769 (class 0 OID 0)
+-- TOC entry 3770 (class 0 OID 0)
 -- Dependencies: 257
 -- Name: asset_photos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -377,7 +377,7 @@ CREATE SEQUENCE public.assets_id_seq
 ALTER SEQUENCE public.assets_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3770 (class 0 OID 0)
+-- TOC entry 3771 (class 0 OID 0)
 -- Dependencies: 253
 -- Name: assets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -423,7 +423,7 @@ CREATE SEQUENCE public.audit_logs_id_seq
 ALTER SEQUENCE public.audit_logs_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3771 (class 0 OID 0)
+-- TOC entry 3772 (class 0 OID 0)
 -- Dependencies: 218
 -- Name: audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -464,7 +464,7 @@ CREATE SEQUENCE public.booking_assets_id_seq
 ALTER SEQUENCE public.booking_assets_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3772 (class 0 OID 0)
+-- TOC entry 3773 (class 0 OID 0)
 -- Dependencies: 259
 -- Name: booking_assets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -503,7 +503,7 @@ CREATE SEQUENCE public.booking_studios_id_seq
 ALTER SEQUENCE public.booking_studios_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3773 (class 0 OID 0)
+-- TOC entry 3774 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: booking_studios_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -547,7 +547,7 @@ CREATE SEQUENCE public.booking_types_id_seq
 ALTER SEQUENCE public.booking_types_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3774 (class 0 OID 0)
+-- TOC entry 3775 (class 0 OID 0)
 -- Dependencies: 222
 -- Name: booking_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -600,7 +600,7 @@ CREATE SEQUENCE public.bookings_id_seq
 ALTER SEQUENCE public.bookings_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3775 (class 0 OID 0)
+-- TOC entry 3776 (class 0 OID 0)
 -- Dependencies: 224
 -- Name: bookings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -645,7 +645,7 @@ CREATE SEQUENCE public.file_attachments_id_seq
 ALTER SEQUENCE public.file_attachments_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3776 (class 0 OID 0)
+-- TOC entry 3777 (class 0 OID 0)
 -- Dependencies: 226
 -- Name: file_attachments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -689,7 +689,7 @@ CREATE SEQUENCE public.invite_tokens_id_seq
 ALTER SEQUENCE public.invite_tokens_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3777 (class 0 OID 0)
+-- TOC entry 3778 (class 0 OID 0)
 -- Dependencies: 228
 -- Name: invite_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -730,7 +730,7 @@ CREATE SEQUENCE public.linked_bookings_id_seq
 ALTER SEQUENCE public.linked_bookings_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3778 (class 0 OID 0)
+-- TOC entry 3779 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: linked_bookings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -772,7 +772,7 @@ CREATE SEQUENCE public.notification_groups_id_seq
 ALTER SEQUENCE public.notification_groups_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3779 (class 0 OID 0)
+-- TOC entry 3780 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: notification_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -816,7 +816,7 @@ CREATE SEQUENCE public.notifications_id_seq
 ALTER SEQUENCE public.notifications_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3780 (class 0 OID 0)
+-- TOC entry 3781 (class 0 OID 0)
 -- Dependencies: 234
 -- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -858,7 +858,7 @@ CREATE SEQUENCE public.password_reset_tokens_id_seq
 ALTER SEQUENCE public.password_reset_tokens_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3781 (class 0 OID 0)
+-- TOC entry 3782 (class 0 OID 0)
 -- Dependencies: 236
 -- Name: password_reset_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -898,7 +898,7 @@ CREATE SEQUENCE public.pcr_rooms_id_seq
 ALTER SEQUENCE public.pcr_rooms_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3782 (class 0 OID 0)
+-- TOC entry 3783 (class 0 OID 0)
 -- Dependencies: 238
 -- Name: pcr_rooms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -955,7 +955,7 @@ CREATE SEQUENCE public.studios_id_seq
 ALTER SEQUENCE public.studios_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3783 (class 0 OID 0)
+-- TOC entry 3784 (class 0 OID 0)
 -- Dependencies: 241
 -- Name: studios_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1012,7 +1012,7 @@ CREATE SEQUENCE public.system_settings_id_seq
 ALTER SEQUENCE public.system_settings_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3784 (class 0 OID 0)
+-- TOC entry 3785 (class 0 OID 0)
 -- Dependencies: 244
 -- Name: system_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1053,7 +1053,7 @@ CREATE SEQUENCE public.team_members_id_seq
 ALTER SEQUENCE public.team_members_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3785 (class 0 OID 0)
+-- TOC entry 3786 (class 0 OID 0)
 -- Dependencies: 246
 -- Name: team_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1095,7 +1095,7 @@ CREATE SEQUENCE public.teams_id_seq
 ALTER SEQUENCE public.teams_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3786 (class 0 OID 0)
+-- TOC entry 3787 (class 0 OID 0)
 -- Dependencies: 248
 -- Name: teams_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1146,7 +1146,7 @@ CREATE SEQUENCE public.templates_id_seq
 ALTER SEQUENCE public.templates_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3787 (class 0 OID 0)
+-- TOC entry 3788 (class 0 OID 0)
 -- Dependencies: 250
 -- Name: templates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1165,7 +1165,8 @@ CREATE TABLE public.users (
     password text NOT NULL,
     email text NOT NULL,
     name text NOT NULL,
-    role text DEFAULT 'user'::text NOT NULL
+    role text DEFAULT 'user'::text NOT NULL,
+    calendar_token text
 );
 
 
@@ -1188,7 +1189,7 @@ CREATE SEQUENCE public.users_id_seq
 ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3788 (class 0 OID 0)
+-- TOC entry 3789 (class 0 OID 0)
 -- Dependencies: 252
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1373,7 +1374,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 3715 (class 0 OID 24578)
+-- TOC entry 3716 (class 0 OID 24578)
 -- Dependencies: 215
 -- Data for Name: alerts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1427,7 +1428,7 @@ COPY public.alerts (id, title, description, alert_type, severity, start, "end", 
 
 
 --
--- TOC entry 3756 (class 0 OID 24932)
+-- TOC entry 3757 (class 0 OID 24932)
 -- Dependencies: 256
 -- Data for Name: asset_checkouts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1466,7 +1467,7 @@ COPY public.asset_checkouts (id, asset_id, checked_out_by, checked_out_at, check
 
 
 --
--- TOC entry 3758 (class 0 OID 24955)
+-- TOC entry 3759 (class 0 OID 24955)
 -- Dependencies: 258
 -- Data for Name: asset_photos; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1478,7 +1479,7 @@ COPY public.asset_photos (id, asset_id, photo_data, uploaded_by, created_at) FRO
 
 
 --
--- TOC entry 3754 (class 0 OID 24920)
+-- TOC entry 3755 (class 0 OID 24920)
 -- Dependencies: 254
 -- Data for Name: assets; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1528,7 +1529,7 @@ COPY public.assets (id, name, category, status, serial_number, asset_tag, locati
 
 
 --
--- TOC entry 3717 (class 0 OID 24589)
+-- TOC entry 3718 (class 0 OID 24589)
 -- Dependencies: 217
 -- Data for Name: audit_logs; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1538,6 +1539,8 @@ COPY public.audit_logs (id, user_id, action, entity_type, entity_id, entity_titl
 1048	1	CHECKIN	asset	22	AJA Ki Pro Ultra 12G Recorder	{"checkedInBy":"admin"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-03-15 04:10:20.440704
 1049	1	SYSTEM_MIGRATION	assets_system	\N	\N	{"message":"Decommission migration v1.5.6 completed. Added decommission_reason column to assets table with partial index."}	\N	\N	2026-03-15 04:12:44.723793
 1070	1	LOGIN	authentication	1	User admin logged in	{"username":"admin","name":"Admin User","role":"admin","ipAddress":"127.0.0.1"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-03-16 18:41:08.001059
+1072	1	LOGIN	authentication	1	User admin logged in	{"username":"admin","name":"Admin User","role":"admin","ipAddress":"127.0.0.1"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0	2026-03-23 05:48:50.401221
+1075	1	LOGIN	authentication	1	User admin logged in	{"username":"admin","name":"Admin User","role":"admin","ipAddress":"127.0.0.1"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0	2026-05-14 18:35:55.340399
 1050	1	DECOMMISSION	asset	22	AJA Ki Pro Ultra 12G Recorder	{"reason":"Test Decommission\\n","previousStatus":"available"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-03-15 04:15:40.378053
 1071	1	CREATE	asset	41	Aputure Accent B7C 8-Light Kit	{"category":"lighting","status":"available","location":"Lighting Workshop"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-03-16 19:10:35.062236
 1051	1	UPDATE	asset	22	AJA Ki Pro Ultra 12G Recorder	{"changes":{"from":{"status":"retired"},"to":{"status":"available"}}}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-03-15 04:18:19.413421
@@ -1602,7 +1605,7 @@ COPY public.audit_logs (id, user_id, action, entity_type, entity_id, entity_titl
 
 
 --
--- TOC entry 3760 (class 0 OID 32770)
+-- TOC entry 3761 (class 0 OID 32770)
 -- Dependencies: 260
 -- Data for Name: booking_assets; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -1616,7 +1619,7 @@ COPY public.booking_assets (id, booking_id, asset_id, added_by, added_at) FROM s
 
 
 --
--- TOC entry 3719 (class 0 OID 24597)
+-- TOC entry 3720 (class 0 OID 24597)
 -- Dependencies: 219
 -- Data for Name: booking_studios; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -2331,7 +2334,7 @@ COPY public.booking_studios (id, booking_id, studio_id) FROM stdin;
 
 
 --
--- TOC entry 3721 (class 0 OID 24601)
+-- TOC entry 3722 (class 0 OID 24601)
 -- Dependencies: 221
 -- Data for Name: booking_types; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -2350,7 +2353,7 @@ COPY public.booking_types (id, name, description, color, is_active, sort_order, 
 
 
 --
--- TOC entry 3723 (class 0 OID 24612)
+-- TOC entry 3724 (class 0 OID 24612)
 -- Dependencies: 223
 -- Data for Name: bookings; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -2837,7 +2840,7 @@ COPY public.bookings (id, title, description, studio_id, user_id, start, "end", 
 
 
 --
--- TOC entry 3725 (class 0 OID 24623)
+-- TOC entry 3726 (class 0 OID 24623)
 -- Dependencies: 225
 -- Data for Name: file_attachments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -2857,7 +2860,7 @@ COPY public.file_attachments (id, booking_id, file_name, file_size, mime_type, p
 
 
 --
--- TOC entry 3727 (class 0 OID 24630)
+-- TOC entry 3728 (class 0 OID 24630)
 -- Dependencies: 227
 -- Data for Name: invite_tokens; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -2896,7 +2899,7 @@ COPY public.invite_tokens (id, token, role, email, expires, created_by, created_
 
 
 --
--- TOC entry 3729 (class 0 OID 24638)
+-- TOC entry 3730 (class 0 OID 24638)
 -- Dependencies: 229
 -- Data for Name: linked_bookings; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -2906,7 +2909,7 @@ COPY public.linked_bookings (id, primary_booking_id, linked_booking_id, created_
 
 
 --
--- TOC entry 3731 (class 0 OID 24644)
+-- TOC entry 3732 (class 0 OID 24644)
 -- Dependencies: 231
 -- Data for Name: notification_groups; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -2922,7 +2925,7 @@ COPY public.notification_groups (id, name, email, group_type, description, enabl
 
 
 --
--- TOC entry 3733 (class 0 OID 24651)
+-- TOC entry 3734 (class 0 OID 24651)
 -- Dependencies: 233
 -- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -4153,7 +4156,7 @@ COPY public.notifications (id, user_id, title, message, type, read, booking_id, 
 
 
 --
--- TOC entry 3735 (class 0 OID 24659)
+-- TOC entry 3736 (class 0 OID 24659)
 -- Dependencies: 235
 -- Data for Name: password_reset_tokens; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -4164,7 +4167,7 @@ COPY public.password_reset_tokens (id, token, user_id, expires, created_at, used
 
 
 --
--- TOC entry 3737 (class 0 OID 24667)
+-- TOC entry 3738 (class 0 OID 24667)
 -- Dependencies: 237
 -- Data for Name: pcr_rooms; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -4179,20 +4182,18 @@ COPY public.pcr_rooms (id, name, description, status) FROM stdin;
 
 
 --
--- TOC entry 3739 (class 0 OID 24674)
+-- TOC entry 3740 (class 0 OID 24674)
 -- Dependencies: 239
 -- Data for Name: session; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.session (sid, sess, expire) FROM stdin;
-oOnXjzzXk4urvbU_GpLj6RDSfHVrVVaE	{"cookie":{"originalMaxAge":86400000,"expires":"2026-03-16T04:59:51.002Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2026-03-17 04:59:44
-onqvTFpq343xnv7Riu6JVANsuXV74hCd	{"cookie":{"originalMaxAge":86400000,"expires":"2026-03-17T18:41:08.241Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2026-03-17 19:55:17
-9e5aF4S4jMoz1X9_jE8qS7NpO5_DzfIK	{"cookie":{"originalMaxAge":86400000,"expires":"2026-03-16T19:54:13.654Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2026-03-17 19:21:50
+En45rK9okRy8cfPhzFgaenvhoFMfIFev	{"cookie":{"originalMaxAge":86400000,"expires":"2026-05-15T18:35:55.438Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2026-05-15 20:45:11
 \.
 
 
 --
--- TOC entry 3740 (class 0 OID 24679)
+-- TOC entry 3741 (class 0 OID 24679)
 -- Dependencies: 240
 -- Data for Name: studios; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -4223,7 +4224,7 @@ COPY public.studios (id, name, description, location, status, created_at, attrib
 
 
 --
--- TOC entry 3742 (class 0 OID 24687)
+-- TOC entry 3743 (class 0 OID 24687)
 -- Dependencies: 242
 -- Data for Name: system_settings; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -4238,7 +4239,7 @@ backup_retention_days	7	\N	2025-08-02 23:38:43.671919+00	39	2025-08-02 23:38:43.
 
 
 --
--- TOC entry 3743 (class 0 OID 24694)
+-- TOC entry 3744 (class 0 OID 24694)
 -- Dependencies: 243
 -- Data for Name: system_settings_backup; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -4249,7 +4250,7 @@ siteName	The Plex Studios	The name of the facility displayed throughout the appl
 
 
 --
--- TOC entry 3745 (class 0 OID 24700)
+-- TOC entry 3746 (class 0 OID 24700)
 -- Dependencies: 245
 -- Data for Name: team_members; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -4263,7 +4264,7 @@ COPY public.team_members (id, team_id, user_id, role, joined_at) FROM stdin;
 
 
 --
--- TOC entry 3747 (class 0 OID 24708)
+-- TOC entry 3748 (class 0 OID 24708)
 -- Dependencies: 247
 -- Data for Name: teams; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -4274,7 +4275,7 @@ COPY public.teams (id, name, description, created_by, created_at, updated_at) FR
 
 
 --
--- TOC entry 3749 (class 0 OID 24716)
+-- TOC entry 3750 (class 0 OID 24716)
 -- Dependencies: 249
 -- Data for Name: templates; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -4297,38 +4298,38 @@ COPY public.templates (id, name, description, type, duration, created_by, user_i
 
 
 --
--- TOC entry 3751 (class 0 OID 24727)
+-- TOC entry 3752 (class 0 OID 24727)
 -- Dependencies: 251
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.users (id, username, password, email, name, role) FROM stdin;
-8	DHarvilla	de595f4de1dd1f8fabce5dc40b49d68bf17b395d933b1fdeff669bbbf70a5c113d66b5a0ab873e55169c537f7007334d66da65ed9d256d66d2c283300569f905.3ccb32961d192fe4b3e653329dca57e1	dharvilla@tbn.tv	David Harvilla	it
-9	LMercado@tbn.tv	32e175dcbc58dbe5ace440b5786972e5269da89edd23badf6d2faf10bd18720f3eab6ba21f9086f14fd596c0b8db3c67b56429ae136d32ecdcb2e7331cafcfc4.020337313a7fa4c2d0d90a1acb42dda0	lmercado@tbn.tv	Lindsay Mercado	site_manager
-10	ddigello	da653f032b623e0463efa7d76f81999880b6f2447257b39c182c0ab5bf3aac0a0d939a0fc84a1709e8600bf593f3ef117a4a6945bda732497d42973535d1f21f.89f43619687f5ae0fb7db534d1171e0c	ddigello@tbn.tv	Daniel DiGello	it
-11	tmontez@tbn.tv	a454e5a2a16477e946b1ee81bdc5bacf8b4127a643c206249c3f90efafc29409930421d4dbd949856e09cd45e797bd66792770cd9b518a4b1f583be379fbfaea.730b05ccfee76f6c152bc72846cf7306	tmontez@tbn.tv	Antonio Montez	it
-6	osandoval	e503e3c7eacbfe17282a5195cb014323a9d1251fdb4bbb9ab31a30446c12f8da6daf92c818d2781db98964568151d2b67c65fe9590b0a3e29241f1d960ec91a8.9cdb1e2c8eea6f5ba45264d8ab2863d0	osandoval@tbn.tv	Obed Sandoval	site_manager
-20	obedtest2	b4852e3df0d1b598916951d134253bb7b572d35c0e1b06476076230f5bebd7a0564beb790a79039882135b6ed5482ac9b316d12f7135fe4ded0a3034b67fb809.e1a5e975cf15d251d62d267287672e1a	obedconference@tbn.tv	Obed Engineer	engineer
-13	dobryan	4aa6f9944dc6dbecc1f375c9d1a1630807831e653b9bb070dbd613df5eed91dca601e23f7642ea804793e269e8ea3ff8859919f2dfe0f74db9b323aef6de0784.2345d3227a00777bcc3ed7cdf8bcda69	dobryan@tbn.tv	Dalin OBryan	engineer
-15	sprimm@tbn.tv	3ac3f930d81c168bcdfc4722463a57af36c409e826a9e8710d0df2e91d1ba16e35601de989b84ac1d93ff4541984df496ce9538fba9f4f757f4b95a827d78f80.d10bb82c9f96c28544120f90195e0c28	sprimm@tbn.tv	Scott Primm	engineer
-16	Grace W	4122913b9f5481725da46ee986559d3b8c78d9c9f012fde93a4c6ad00e7c442354a14b0aac2c79feb1a0c62de6c972c702789eac6b969bfabf4d6c882caf6c2f.b4d7b44699ded4ed8951caec7d37eb55	gwoodward@tbn.tv	Grace Woodward	producer
-7	Obedtest	26f23ee2d82ac1acbadee1f09c6314857c79c16d14262ffa96274d953701d44e876f708220c05d74eb6944fa813eb259b708b29d3e5e1bbad25b4b09112f6e21.cbdfd7c227155bb71f5c27e64c7c05ae	obedtest@tbn.tv	Obed Test	producer
-27	obedview	5d6990559a0c0c6335bd9a0a891cbc469d0cbe3880190a457d64b23d1410af62680c464d17d2a791e3a402b8b85bce833ad0c9d21397f3e37db6afdbbc619037.ee46808f864eb4fc6b69962caafee07a	tbnobed@gmail.com	Obed Viewer	viewer
-28	ejeannerat@tbn.tv	6f45fd2a471883d2e2e981244a0835128e75389dfe0ba706c29b2c92f7f9cd27d72077766e54b7a981eacaec6b73b648b7dbeb769257c864bcd01326a8209377.6f830da2ceada6c785e13f9c5a293dbd	ejeannerat@tbn.tv	Eric Jeannerat	engineer
-19	sblack	d04fcb4ae06b67e7e32e6df0d1e27dd7b055b1050c8f9939bbddb893e741b293e6511328f66365cb252e7826cf966b10233be6852811017d650aedbdc4bb4e97.650ce59b17bb391b1a761306194d5a13	sblack@tbn.tv	Stan Black	engineer
-21	plexengineering	TBN@Plex456$$	plexengineering@tbn.tv	Plex Engineering	engineer
-22	PMay	8284448ebfb45035a65e39b7678dafa5ccb1c29efe25919fdf8c81195ca958c3aa026d860a4612247ef5cf5f65c6ae86e2a3ec4569378023e4864c623ec7a0e0.1a15c9196d66a50c0956527edfc89de0	pmay@trilogystudios.com	Parke May	producer
-23	sarajoyner66	db6f32516f1430b8e61ec998dbde0199c143200d2df9e40e352c83d1cddb657a9e20bb1028d86ae36863e2495eb84ebbee0ea3aa9af9de8e24ea14dbce1e8e83.f51bafce4d4af38b8d68a62cc6083eb3	SJoyner@trilogystudios.com	Sara Joyner	producer
-24	Ttucker	9f90b7921efd084f68f58505f0d983c44cb4ac5f4ac7f619705c459b9f35bad89466b96e468ae33a420f7cf99cac0d071008605f6b741165cdd5279775d6c166.0b496c1a31a5b2595784e186a4f9258c	TTucker@trilogystudios.com	Taylor Tucker	producer
-25	martinjw001	ab729e872dd5e4874cb54cce2fee8f2dd429e06b855178334cbc7a819a3c06c7583b278473d83823d9b24c88c823c59bfe1081c66e8e1a8ca94b9562e7a28b9a.b52c08b53664f687594dbb7c37eb72d8	jmartin@tbn.tv	Jonathan Martin	producer
-26	Steve Fjordbak	67873b74e9c294908bf9add8f02eaae4030ee836970f9277d83b2c15c2b739ec7be9af73e420a3577858f621598465a720b7523776a164affbb0d667a957dc13.1f6c63b33cf11fec5c33e2798b95c203	sfjordbak@tbn.tv	STEVE FJORDBAK	producer
-1	admin	c6797af737da3138fad234f76f8338c7849c9d7d7dc8d62a65ca7af2efecbfa4f306965db0cf05b6fd51ed59c3955f01b9fe94b82e2b98c19204c3cf5e94ffd8.2933513279923aa05df079d0f74c034e	admin@obedtv.com	Admin User	admin
-12	zmorales	ac140804e6ccc5579fc2a5ce8230de218f2393df2477192389256aad097ca10bc3e1a514c03850e089101262dc62382918bb4f8979d80cb1360ab42aa805682d.17d07d438d4cf10946243c5beb04a528	zmorales@tbn.tv	Zachariah Morales	admin
+COPY public.users (id, username, password, email, name, role, calendar_token) FROM stdin;
+8	DHarvilla	de595f4de1dd1f8fabce5dc40b49d68bf17b395d933b1fdeff669bbbf70a5c113d66b5a0ab873e55169c537f7007334d66da65ed9d256d66d2c283300569f905.3ccb32961d192fe4b3e653329dca57e1	dharvilla@tbn.tv	David Harvilla	it	\N
+9	LMercado@tbn.tv	32e175dcbc58dbe5ace440b5786972e5269da89edd23badf6d2faf10bd18720f3eab6ba21f9086f14fd596c0b8db3c67b56429ae136d32ecdcb2e7331cafcfc4.020337313a7fa4c2d0d90a1acb42dda0	lmercado@tbn.tv	Lindsay Mercado	site_manager	\N
+10	ddigello	da653f032b623e0463efa7d76f81999880b6f2447257b39c182c0ab5bf3aac0a0d939a0fc84a1709e8600bf593f3ef117a4a6945bda732497d42973535d1f21f.89f43619687f5ae0fb7db534d1171e0c	ddigello@tbn.tv	Daniel DiGello	it	\N
+11	tmontez@tbn.tv	a454e5a2a16477e946b1ee81bdc5bacf8b4127a643c206249c3f90efafc29409930421d4dbd949856e09cd45e797bd66792770cd9b518a4b1f583be379fbfaea.730b05ccfee76f6c152bc72846cf7306	tmontez@tbn.tv	Antonio Montez	it	\N
+6	osandoval	e503e3c7eacbfe17282a5195cb014323a9d1251fdb4bbb9ab31a30446c12f8da6daf92c818d2781db98964568151d2b67c65fe9590b0a3e29241f1d960ec91a8.9cdb1e2c8eea6f5ba45264d8ab2863d0	osandoval@tbn.tv	Obed Sandoval	site_manager	\N
+20	obedtest2	b4852e3df0d1b598916951d134253bb7b572d35c0e1b06476076230f5bebd7a0564beb790a79039882135b6ed5482ac9b316d12f7135fe4ded0a3034b67fb809.e1a5e975cf15d251d62d267287672e1a	obedconference@tbn.tv	Obed Engineer	engineer	\N
+13	dobryan	4aa6f9944dc6dbecc1f375c9d1a1630807831e653b9bb070dbd613df5eed91dca601e23f7642ea804793e269e8ea3ff8859919f2dfe0f74db9b323aef6de0784.2345d3227a00777bcc3ed7cdf8bcda69	dobryan@tbn.tv	Dalin OBryan	engineer	\N
+15	sprimm@tbn.tv	3ac3f930d81c168bcdfc4722463a57af36c409e826a9e8710d0df2e91d1ba16e35601de989b84ac1d93ff4541984df496ce9538fba9f4f757f4b95a827d78f80.d10bb82c9f96c28544120f90195e0c28	sprimm@tbn.tv	Scott Primm	engineer	\N
+16	Grace W	4122913b9f5481725da46ee986559d3b8c78d9c9f012fde93a4c6ad00e7c442354a14b0aac2c79feb1a0c62de6c972c702789eac6b969bfabf4d6c882caf6c2f.b4d7b44699ded4ed8951caec7d37eb55	gwoodward@tbn.tv	Grace Woodward	producer	\N
+7	Obedtest	26f23ee2d82ac1acbadee1f09c6314857c79c16d14262ffa96274d953701d44e876f708220c05d74eb6944fa813eb259b708b29d3e5e1bbad25b4b09112f6e21.cbdfd7c227155bb71f5c27e64c7c05ae	obedtest@tbn.tv	Obed Test	producer	\N
+27	obedview	5d6990559a0c0c6335bd9a0a891cbc469d0cbe3880190a457d64b23d1410af62680c464d17d2a791e3a402b8b85bce833ad0c9d21397f3e37db6afdbbc619037.ee46808f864eb4fc6b69962caafee07a	tbnobed@gmail.com	Obed Viewer	viewer	\N
+28	ejeannerat@tbn.tv	6f45fd2a471883d2e2e981244a0835128e75389dfe0ba706c29b2c92f7f9cd27d72077766e54b7a981eacaec6b73b648b7dbeb769257c864bcd01326a8209377.6f830da2ceada6c785e13f9c5a293dbd	ejeannerat@tbn.tv	Eric Jeannerat	engineer	\N
+19	sblack	d04fcb4ae06b67e7e32e6df0d1e27dd7b055b1050c8f9939bbddb893e741b293e6511328f66365cb252e7826cf966b10233be6852811017d650aedbdc4bb4e97.650ce59b17bb391b1a761306194d5a13	sblack@tbn.tv	Stan Black	engineer	\N
+21	plexengineering	TBN@Plex456$$	plexengineering@tbn.tv	Plex Engineering	engineer	\N
+22	PMay	8284448ebfb45035a65e39b7678dafa5ccb1c29efe25919fdf8c81195ca958c3aa026d860a4612247ef5cf5f65c6ae86e2a3ec4569378023e4864c623ec7a0e0.1a15c9196d66a50c0956527edfc89de0	pmay@trilogystudios.com	Parke May	producer	\N
+23	sarajoyner66	db6f32516f1430b8e61ec998dbde0199c143200d2df9e40e352c83d1cddb657a9e20bb1028d86ae36863e2495eb84ebbee0ea3aa9af9de8e24ea14dbce1e8e83.f51bafce4d4af38b8d68a62cc6083eb3	SJoyner@trilogystudios.com	Sara Joyner	producer	\N
+24	Ttucker	9f90b7921efd084f68f58505f0d983c44cb4ac5f4ac7f619705c459b9f35bad89466b96e468ae33a420f7cf99cac0d071008605f6b741165cdd5279775d6c166.0b496c1a31a5b2595784e186a4f9258c	TTucker@trilogystudios.com	Taylor Tucker	producer	\N
+25	martinjw001	ab729e872dd5e4874cb54cce2fee8f2dd429e06b855178334cbc7a819a3c06c7583b278473d83823d9b24c88c823c59bfe1081c66e8e1a8ca94b9562e7a28b9a.b52c08b53664f687594dbb7c37eb72d8	jmartin@tbn.tv	Jonathan Martin	producer	\N
+26	Steve Fjordbak	67873b74e9c294908bf9add8f02eaae4030ee836970f9277d83b2c15c2b739ec7be9af73e420a3577858f621598465a720b7523776a164affbb0d667a957dc13.1f6c63b33cf11fec5c33e2798b95c203	sfjordbak@tbn.tv	STEVE FJORDBAK	producer	\N
+12	zmorales	ac140804e6ccc5579fc2a5ce8230de218f2393df2477192389256aad097ca10bc3e1a514c03850e089101262dc62382918bb4f8979d80cb1360ab42aa805682d.17d07d438d4cf10946243c5beb04a528	zmorales@tbn.tv	Zachariah Morales	admin	\N
+1	admin	c6797af737da3138fad234f76f8338c7849c9d7d7dc8d62a65ca7af2efecbfa4f306965db0cf05b6fd51ed59c3955f01b9fe94b82e2b98c19204c3cf5e94ffd8.2933513279923aa05df079d0f74c034e	admin@obedtv.com	Admin User	admin	63028a553d0584d1c6015bbe3190f98fa4d090513738797898efccc68cbe4f10
 \.
 
 
 --
--- TOC entry 3789 (class 0 OID 0)
+-- TOC entry 3790 (class 0 OID 0)
 -- Dependencies: 216
 -- Name: alerts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4337,7 +4338,7 @@ SELECT pg_catalog.setval('public.alerts_id_seq', 73, true);
 
 
 --
--- TOC entry 3790 (class 0 OID 0)
+-- TOC entry 3791 (class 0 OID 0)
 -- Dependencies: 255
 -- Name: asset_checkouts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4346,7 +4347,7 @@ SELECT pg_catalog.setval('public.asset_checkouts_id_seq', 29, true);
 
 
 --
--- TOC entry 3791 (class 0 OID 0)
+-- TOC entry 3792 (class 0 OID 0)
 -- Dependencies: 257
 -- Name: asset_photos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4355,7 +4356,7 @@ SELECT pg_catalog.setval('public.asset_photos_id_seq', 2, true);
 
 
 --
--- TOC entry 3792 (class 0 OID 0)
+-- TOC entry 3793 (class 0 OID 0)
 -- Dependencies: 253
 -- Name: assets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4364,16 +4365,16 @@ SELECT pg_catalog.setval('public.assets_id_seq', 41, true);
 
 
 --
--- TOC entry 3793 (class 0 OID 0)
+-- TOC entry 3794 (class 0 OID 0)
 -- Dependencies: 218
 -- Name: audit_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.audit_logs_id_seq', 1071, true);
+SELECT pg_catalog.setval('public.audit_logs_id_seq', 1075, true);
 
 
 --
--- TOC entry 3794 (class 0 OID 0)
+-- TOC entry 3795 (class 0 OID 0)
 -- Dependencies: 259
 -- Name: booking_assets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4382,7 +4383,7 @@ SELECT pg_catalog.setval('public.booking_assets_id_seq', 6, true);
 
 
 --
--- TOC entry 3795 (class 0 OID 0)
+-- TOC entry 3796 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: booking_studios_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4391,7 +4392,7 @@ SELECT pg_catalog.setval('public.booking_studios_id_seq', 13319, true);
 
 
 --
--- TOC entry 3796 (class 0 OID 0)
+-- TOC entry 3797 (class 0 OID 0)
 -- Dependencies: 222
 -- Name: booking_types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4400,7 +4401,7 @@ SELECT pg_catalog.setval('public.booking_types_id_seq', 14, true);
 
 
 --
--- TOC entry 3797 (class 0 OID 0)
+-- TOC entry 3798 (class 0 OID 0)
 -- Dependencies: 224
 -- Name: bookings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4409,7 +4410,7 @@ SELECT pg_catalog.setval('public.bookings_id_seq', 722, true);
 
 
 --
--- TOC entry 3798 (class 0 OID 0)
+-- TOC entry 3799 (class 0 OID 0)
 -- Dependencies: 226
 -- Name: file_attachments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4418,7 +4419,7 @@ SELECT pg_catalog.setval('public.file_attachments_id_seq', 15, true);
 
 
 --
--- TOC entry 3799 (class 0 OID 0)
+-- TOC entry 3800 (class 0 OID 0)
 -- Dependencies: 228
 -- Name: invite_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4427,7 +4428,7 @@ SELECT pg_catalog.setval('public.invite_tokens_id_seq', 29, true);
 
 
 --
--- TOC entry 3800 (class 0 OID 0)
+-- TOC entry 3801 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: linked_bookings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4436,7 +4437,7 @@ SELECT pg_catalog.setval('public.linked_bookings_id_seq', 1, false);
 
 
 --
--- TOC entry 3801 (class 0 OID 0)
+-- TOC entry 3802 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: notification_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4445,7 +4446,7 @@ SELECT pg_catalog.setval('public.notification_groups_id_seq', 43, true);
 
 
 --
--- TOC entry 3802 (class 0 OID 0)
+-- TOC entry 3803 (class 0 OID 0)
 -- Dependencies: 234
 -- Name: notifications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4454,7 +4455,7 @@ SELECT pg_catalog.setval('public.notifications_id_seq', 1306, true);
 
 
 --
--- TOC entry 3803 (class 0 OID 0)
+-- TOC entry 3804 (class 0 OID 0)
 -- Dependencies: 236
 -- Name: password_reset_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4463,7 +4464,7 @@ SELECT pg_catalog.setval('public.password_reset_tokens_id_seq', 1, true);
 
 
 --
--- TOC entry 3804 (class 0 OID 0)
+-- TOC entry 3805 (class 0 OID 0)
 -- Dependencies: 238
 -- Name: pcr_rooms_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4472,7 +4473,7 @@ SELECT pg_catalog.setval('public.pcr_rooms_id_seq', 241, true);
 
 
 --
--- TOC entry 3805 (class 0 OID 0)
+-- TOC entry 3806 (class 0 OID 0)
 -- Dependencies: 241
 -- Name: studios_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4481,7 +4482,7 @@ SELECT pg_catalog.setval('public.studios_id_seq', 23, true);
 
 
 --
--- TOC entry 3806 (class 0 OID 0)
+-- TOC entry 3807 (class 0 OID 0)
 -- Dependencies: 244
 -- Name: system_settings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4490,7 +4491,7 @@ SELECT pg_catalog.setval('public.system_settings_id_seq', 39, true);
 
 
 --
--- TOC entry 3807 (class 0 OID 0)
+-- TOC entry 3808 (class 0 OID 0)
 -- Dependencies: 246
 -- Name: team_members_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4499,7 +4500,7 @@ SELECT pg_catalog.setval('public.team_members_id_seq', 9, true);
 
 
 --
--- TOC entry 3808 (class 0 OID 0)
+-- TOC entry 3809 (class 0 OID 0)
 -- Dependencies: 248
 -- Name: teams_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4508,7 +4509,7 @@ SELECT pg_catalog.setval('public.teams_id_seq', 2, true);
 
 
 --
--- TOC entry 3809 (class 0 OID 0)
+-- TOC entry 3810 (class 0 OID 0)
 -- Dependencies: 250
 -- Name: templates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4517,7 +4518,7 @@ SELECT pg_catalog.setval('public.templates_id_seq', 24, true);
 
 
 --
--- TOC entry 3810 (class 0 OID 0)
+-- TOC entry 3811 (class 0 OID 0)
 -- Dependencies: 252
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -4535,7 +4536,7 @@ ALTER TABLE ONLY public.alerts
 
 
 --
--- TOC entry 3539 (class 2606 OID 24940)
+-- TOC entry 3540 (class 2606 OID 24940)
 -- Name: asset_checkouts asset_checkouts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -4544,7 +4545,7 @@ ALTER TABLE ONLY public.asset_checkouts
 
 
 --
--- TOC entry 3543 (class 2606 OID 24963)
+-- TOC entry 3544 (class 2606 OID 24963)
 -- Name: asset_photos asset_photos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -4553,7 +4554,7 @@ ALTER TABLE ONLY public.asset_photos
 
 
 --
--- TOC entry 3533 (class 2606 OID 24930)
+-- TOC entry 3534 (class 2606 OID 24930)
 -- Name: assets assets_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -4571,7 +4572,7 @@ ALTER TABLE ONLY public.audit_logs
 
 
 --
--- TOC entry 3547 (class 2606 OID 32778)
+-- TOC entry 3548 (class 2606 OID 32778)
 -- Name: booking_assets booking_assets_booking_id_asset_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -4580,7 +4581,7 @@ ALTER TABLE ONLY public.booking_assets
 
 
 --
--- TOC entry 3549 (class 2606 OID 32776)
+-- TOC entry 3550 (class 2606 OID 32776)
 -- Name: booking_assets booking_assets_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -4823,7 +4824,7 @@ ALTER TABLE ONLY public.templates
 
 
 --
--- TOC entry 3529 (class 2606 OID 24809)
+-- TOC entry 3530 (class 2606 OID 24809)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -4832,7 +4833,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3531 (class 2606 OID 24811)
+-- TOC entry 3532 (class 2606 OID 24811)
 -- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -4889,7 +4890,7 @@ CREATE INDEX idx_alerts_type ON public.alerts USING btree (alert_type);
 
 
 --
--- TOC entry 3544 (class 1259 OID 24969)
+-- TOC entry 3545 (class 1259 OID 24969)
 -- Name: idx_asset_photos_asset_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -4897,7 +4898,7 @@ CREATE INDEX idx_asset_photos_asset_id ON public.asset_photos USING btree (asset
 
 
 --
--- TOC entry 3545 (class 1259 OID 24970)
+-- TOC entry 3546 (class 1259 OID 24970)
 -- Name: idx_asset_photos_created_at; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -4905,7 +4906,7 @@ CREATE INDEX idx_asset_photos_created_at ON public.asset_photos USING btree (cre
 
 
 --
--- TOC entry 3534 (class 1259 OID 24951)
+-- TOC entry 3535 (class 1259 OID 24951)
 -- Name: idx_assets_category; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -4913,7 +4914,7 @@ CREATE INDEX idx_assets_category ON public.assets USING btree (category);
 
 
 --
--- TOC entry 3535 (class 1259 OID 32768)
+-- TOC entry 3536 (class 1259 OID 32768)
 -- Name: idx_assets_decommission_reason; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -4921,7 +4922,7 @@ CREATE INDEX idx_assets_decommission_reason ON public.assets USING btree (decomm
 
 
 --
--- TOC entry 3536 (class 1259 OID 40966)
+-- TOC entry 3537 (class 1259 OID 40966)
 -- Name: idx_assets_parent_asset_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -4929,7 +4930,7 @@ CREATE INDEX idx_assets_parent_asset_id ON public.assets USING btree (parent_ass
 
 
 --
--- TOC entry 3537 (class 1259 OID 24950)
+-- TOC entry 3538 (class 1259 OID 24950)
 -- Name: idx_assets_status; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -4977,7 +4978,7 @@ CREATE INDEX idx_audit_logs_user_id ON public.audit_logs USING btree (user_id);
 
 
 --
--- TOC entry 3550 (class 1259 OID 32780)
+-- TOC entry 3551 (class 1259 OID 32780)
 -- Name: idx_booking_assets_asset_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -4985,7 +4986,7 @@ CREATE INDEX idx_booking_assets_asset_id ON public.booking_assets USING btree (a
 
 
 --
--- TOC entry 3551 (class 1259 OID 32779)
+-- TOC entry 3552 (class 1259 OID 32779)
 -- Name: idx_booking_assets_booking_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -5041,7 +5042,7 @@ CREATE INDEX idx_bookings_user_id ON public.bookings USING btree (user_id);
 
 
 --
--- TOC entry 3540 (class 1259 OID 24952)
+-- TOC entry 3541 (class 1259 OID 24952)
 -- Name: idx_checkouts_asset_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -5049,7 +5050,7 @@ CREATE INDEX idx_checkouts_asset_id ON public.asset_checkouts USING btree (asset
 
 
 --
--- TOC entry 3541 (class 1259 OID 24953)
+-- TOC entry 3542 (class 1259 OID 24953)
 -- Name: idx_checkouts_checked_in; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -5097,7 +5098,15 @@ CREATE INDEX idx_teams_created_by ON public.teams USING btree (created_by);
 
 
 --
--- TOC entry 3570 (class 2606 OID 24941)
+-- TOC entry 3528 (class 1259 OID 49152)
+-- Name: users_calendar_token_unique; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX users_calendar_token_unique ON public.users USING btree (calendar_token) WHERE (calendar_token IS NOT NULL);
+
+
+--
+-- TOC entry 3571 (class 2606 OID 24941)
 -- Name: asset_checkouts asset_checkouts_asset_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5106,7 +5115,7 @@ ALTER TABLE ONLY public.asset_checkouts
 
 
 --
--- TOC entry 3571 (class 2606 OID 24964)
+-- TOC entry 3572 (class 2606 OID 24964)
 -- Name: asset_photos asset_photos_asset_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5115,7 +5124,7 @@ ALTER TABLE ONLY public.asset_photos
 
 
 --
--- TOC entry 3569 (class 2606 OID 40961)
+-- TOC entry 3570 (class 2606 OID 40961)
 -- Name: assets assets_parent_asset_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5124,7 +5133,7 @@ ALTER TABLE ONLY public.assets
 
 
 --
--- TOC entry 3554 (class 2606 OID 24834)
+-- TOC entry 3555 (class 2606 OID 24834)
 -- Name: bookings bookings_pcr_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5133,7 +5142,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- TOC entry 3555 (class 2606 OID 24839)
+-- TOC entry 3556 (class 2606 OID 24839)
 -- Name: bookings bookings_studio_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5142,7 +5151,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- TOC entry 3556 (class 2606 OID 24844)
+-- TOC entry 3557 (class 2606 OID 24844)
 -- Name: bookings bookings_template_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5151,7 +5160,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- TOC entry 3557 (class 2606 OID 24849)
+-- TOC entry 3558 (class 2606 OID 24849)
 -- Name: bookings bookings_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5160,7 +5169,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- TOC entry 3558 (class 2606 OID 24854)
+-- TOC entry 3559 (class 2606 OID 24854)
 -- Name: file_attachments file_attachments_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5169,7 +5178,7 @@ ALTER TABLE ONLY public.file_attachments
 
 
 --
--- TOC entry 3559 (class 2606 OID 24859)
+-- TOC entry 3560 (class 2606 OID 24859)
 -- Name: file_attachments file_attachments_uploaded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5178,7 +5187,7 @@ ALTER TABLE ONLY public.file_attachments
 
 
 --
--- TOC entry 3552 (class 2606 OID 24864)
+-- TOC entry 3553 (class 2606 OID 24864)
 -- Name: booking_studios fk_booking_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5187,7 +5196,7 @@ ALTER TABLE ONLY public.booking_studios
 
 
 --
--- TOC entry 3561 (class 2606 OID 24869)
+-- TOC entry 3562 (class 2606 OID 24869)
 -- Name: linked_bookings fk_linked_bookings_linked; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5196,7 +5205,7 @@ ALTER TABLE ONLY public.linked_bookings
 
 
 --
--- TOC entry 3562 (class 2606 OID 24874)
+-- TOC entry 3563 (class 2606 OID 24874)
 -- Name: linked_bookings fk_linked_bookings_primary; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5205,7 +5214,7 @@ ALTER TABLE ONLY public.linked_bookings
 
 
 --
--- TOC entry 3553 (class 2606 OID 24879)
+-- TOC entry 3554 (class 2606 OID 24879)
 -- Name: booking_studios fk_studio_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5214,7 +5223,7 @@ ALTER TABLE ONLY public.booking_studios
 
 
 --
--- TOC entry 3560 (class 2606 OID 24884)
+-- TOC entry 3561 (class 2606 OID 24884)
 -- Name: invite_tokens invite_tokens_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5223,7 +5232,7 @@ ALTER TABLE ONLY public.invite_tokens
 
 
 --
--- TOC entry 3563 (class 2606 OID 24889)
+-- TOC entry 3564 (class 2606 OID 24889)
 -- Name: notifications notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5232,7 +5241,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- TOC entry 3564 (class 2606 OID 24894)
+-- TOC entry 3565 (class 2606 OID 24894)
 -- Name: password_reset_tokens password_reset_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5241,7 +5250,7 @@ ALTER TABLE ONLY public.password_reset_tokens
 
 
 --
--- TOC entry 3565 (class 2606 OID 24899)
+-- TOC entry 3566 (class 2606 OID 24899)
 -- Name: team_members team_members_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5250,7 +5259,7 @@ ALTER TABLE ONLY public.team_members
 
 
 --
--- TOC entry 3566 (class 2606 OID 24904)
+-- TOC entry 3567 (class 2606 OID 24904)
 -- Name: team_members team_members_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5259,7 +5268,7 @@ ALTER TABLE ONLY public.team_members
 
 
 --
--- TOC entry 3567 (class 2606 OID 24909)
+-- TOC entry 3568 (class 2606 OID 24909)
 -- Name: teams teams_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5268,7 +5277,7 @@ ALTER TABLE ONLY public.teams
 
 
 --
--- TOC entry 3568 (class 2606 OID 24914)
+-- TOC entry 3569 (class 2606 OID 24914)
 -- Name: templates templates_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5276,11 +5285,11 @@ ALTER TABLE ONLY public.templates
     ADD CONSTRAINT templates_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
--- Completed on 2026-03-17 02:00:01 UTC
+-- Completed on 2026-05-15 02:00:01 UTC
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict k1RxSVuNDsnX5jzqGOWGaGdSDhXMYuAw1YrC1asNtxyy3Jwx1PgidmKytMUoz3j
+\unrestrict IyiS3TwN93aC5uhZOuLlpdpiyq632m2uYqquUXGNjXf0ysGTSf8lbteLfH9VN9g
 
