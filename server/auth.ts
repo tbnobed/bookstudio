@@ -391,10 +391,10 @@ export function setupAuth(app: Express) {
     };
 
     // Step 1 — redirect the browser to Authentik
-    app.get("/auth/sso", async (req, res) => {
+    app.get("/api/auth/sso", async (req, res) => {
       try {
         const client = await getOidcClient();
-        const redirectUri = `${req.protocol}://${req.get("host")}/auth/sso/callback`;
+        const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/sso/callback`;
         const state = generators.state();
         const nonce = generators.nonce();
         const codeVerifier = generators.codeVerifier();
@@ -423,7 +423,7 @@ export function setupAuth(app: Express) {
     });
 
     // Step 2 — Authentik redirects back here with ?code=…&state=…
-    app.get("/auth/sso/callback", async (req, res, next) => {
+    app.get("/api/auth/sso/callback", async (req, res, next) => {
       try {
         const client = await getOidcClient();
         const { oidcState, oidcNonce, oidcCodeVerifier, oidcRedirectUri } = req.session as any;

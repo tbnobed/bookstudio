@@ -291,12 +291,12 @@ export default function AuthPage() {
                           <span className="bg-white dark:bg-gray-900 px-2 text-gray-400">or</span>
                         </div>
                       </div>
-                      <a href="/auth/sso" className="block">
+                      <a href="/api/auth/sso" className="block">
                         <Button
                           type="button"
                           variant="outline"
                           className="w-full h-11 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
-                          onClick={() => window.location.href = "/auth/sso"}
+                          onClick={() => window.location.href = "/api/auth/sso"}
                         >
                           <Shield className="h-4 w-4 mr-2 text-[#003366] dark:text-blue-400" />
                           Sign in with SSO
