@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { MoreHorizontal, Pencil, Trash2, UserPlus, Mail, X, Clock, Send } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, UserPlus, Mail, X, Clock, Send, ShieldCheck, ShieldOff, Shield } from "lucide-react";
 import InviteUserForm from "@/components/user/InviteUserForm";
 import {
   DropdownMenu,
@@ -69,6 +69,15 @@ export default function UserManagement() {
     queryKey: ["/api/invites/pending"],
     enabled: user?.role === "admin" || user?.role === "site_manager",
   });
+
+  const { data: ssoConfig } = useQuery<{ enabled: boolean }>({
+    queryKey: ["/api/auth/sso-config"],
+  });
+  const ssoEnabled = ssoConfig?.enabled === true;
+
+  const linkedCount = users.filter(u => (u as any).ssoProvider).length;
+  const localOnlyCount = users.length - linkedCount;
+  const migrationPct = users.length > 0 ? Math.round((linkedCount / users.length) * 100) : 0;
 
   const revokeInvite = useMutation({
     mutationFn: async (id: number) => {
@@ -411,6 +420,54 @@ export default function UserManagement() {
           </div>
         </div>
 
+        {ssoEnabled && (
+          <Card className="mb-6 border-blue-200 dark:border-blue-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                SSO Migration Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-6 mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30">
+                    <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-700 dark:text-green-400">{linkedCount}</p>
+                    <p className="text-xs text-gray-500">SSO linked</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800">
+                    <ShieldOff className="h-4 w-4 text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">{localOnlyCount}</p>
+                    <p className="text-xs text-gray-500">local only</p>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Migration</span>
+                    <span className="font-medium">{migrationPct}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${migrationPct}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Local-only users will be linked automatically on their first SSO login — as long as their email matches.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>All Users</CardTitle>
@@ -429,6 +486,7 @@ export default function UserManagement() {
                       <th className="text-left py-3 px-4 font-medium">Username</th>
                       <th className="text-left py-3 px-4 font-medium">Email</th>
                       <th className="text-left py-3 px-4 font-medium">Role</th>
+                      {ssoEnabled && <th className="text-left py-3 px-4 font-medium">SSO</th>}
                       <th className="text-right py-3 px-4 font-medium">Actions</th>
                     </tr>
                   </thead>
@@ -443,6 +501,21 @@ export default function UserManagement() {
                             {formatRole(userData.role)}
                           </Badge>
                         </td>
+                        {ssoEnabled && (
+                          <td className="py-3 px-4">
+                            {(userData as any).ssoProvider ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-full px-2 py-0.5">
+                                <ShieldCheck className="h-3 w-3" />
+                                Linked
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-2 py-0.5">
+                                <ShieldOff className="h-3 w-3" />
+                                Local
+                              </span>
+                            )}
+                          </td>
+                        )}
                         <td className="py-3 px-4 text-right">
                           {/* Don't allow editing or deleting the current user to prevent self-lockout */}
                           {userData.id !== user?.id ? (
