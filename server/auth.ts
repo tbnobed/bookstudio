@@ -407,7 +407,7 @@ export function setupAuth(app: Express) {
         (req.session as any).oidcRedirectUri = redirectUri;
 
         const authUrl = client.authorizationUrl({
-          scope: "openid email profile",
+          scope: "openid email profile groups",
           redirect_uri: redirectUri,
           state,
           nonce,
@@ -445,6 +445,20 @@ export function setupAuth(app: Express) {
         const name = (claims.name as string) || (claims.preferred_username as string) || email.split("@")[0] || "SSO User";
         const preferredUsername = ((claims.preferred_username as string) || email.split("@")[0] || `sso_${ssoId.slice(0, 8)}`).replace(/[^a-zA-Z0-9_-]/g, "_");
 
+        // Map Authentik groups → BookStud.io role
+        // Configure via env vars: OIDC_ADMIN_GROUP, OIDC_SITE_MANAGER_GROUP, OIDC_ENGINEER_GROUP
+        const userGroups: string[] = (claims.groups as string[] | undefined) || [];
+        const adminGroup    = process.env.OIDC_ADMIN_GROUP        || "studio-admins";
+        const smGroup       = process.env.OIDC_SITE_MANAGER_GROUP || "";
+        const engineerGroup = process.env.OIDC_ENGINEER_GROUP     || "";
+        const resolveRole = (groups: string[]): string => {
+          if (groups.includes(adminGroup))                        return "admin";
+          if (smGroup && groups.includes(smGroup))               return "site_manager";
+          if (engineerGroup && groups.includes(engineerGroup))   return "engineer";
+          return "producer";
+        };
+        const ssoRole = resolveRole(userGroups);
+
         // Clean up session SSO state
         delete (req.session as any).oidcState;
         delete (req.session as any).oidcNonce;
@@ -481,10 +495,15 @@ export function setupAuth(app: Express) {
             password: await hashPassword(randomPassword),
             email: email || `${username}@sso.local`,
             name,
-            role: "producer",
+            role: ssoRole,
             ssoProvider: "authentik",
             ssoId,
           } as any);
+        }
+
+        // Keep role in sync with Authentik groups on every login
+        if (user && user.role !== ssoRole) {
+          user = (await storage.updateUser(user.id, { role: ssoRole } as any)) ?? user;
         }
 
         req.login(user, async (err) => {
