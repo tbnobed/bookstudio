@@ -68,7 +68,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting BookStud.io application v1.5.7 with Booking-Asset Planning...' &&
+        echo 'Starting BookStud.io application v1.6.2 with Authentik SSO/OIDC...' &&
         echo \"Using timezone: ${TZ:-America/Chicago}\" &&
         echo 'Verifying database tables before startup...' &&
         node -e \"
