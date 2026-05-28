@@ -1217,6 +1217,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get all studios for a booking
+  app.get("/api/bookings/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (Number.isNaN(id)) return res.status(400).json({ message: "Invalid booking id" });
+      const booking = await storage.getBooking(id);
+      if (!booking) return res.status(404).json({ message: "Booking not found" });
+      return res.json(booking);
+    } catch (error) {
+      console.error("Error getting booking:", error);
+      return res.status(500).json({ message: "Failed to fetch booking" });
+    }
+  });
+
   app.get("/api/bookings/:id/studios", isAuthenticated, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);

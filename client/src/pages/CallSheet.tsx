@@ -18,18 +18,16 @@ export default function CallSheet() {
   const bookingId = parseInt(params.id);
   const tz = (import.meta.env.VITE_FACILITY_TIMEZONE as string) || "America/Chicago";
 
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery<any[]>({ queryKey: ["/api/bookings"] });
+  const { data: booking, isLoading: bookingLoading, isError: bookingError } = useQuery<any>({ queryKey: [`/api/bookings/${bookingId}`], enabled: !!bookingId });
   const { data: crewData, isLoading: crewLoading } = useQuery<any>({ queryKey: ["/api/bookings", bookingId, "crew"], queryFn: () => fetch(`/api/bookings/${bookingId}/crew`, { credentials: "include" }).then(r => r.json()), enabled: !!bookingId });
   const { data: bookingStudios = [] } = useQuery<Studio[]>({ queryKey: [`/api/bookings/${bookingId}/studios`], enabled: !!bookingId });
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({ queryKey: ["/api/pcr-rooms"] });
   const { data: siteName } = useQuery<{ siteName: string }>({ queryKey: ["/api/system/site-name"] });
 
-  const booking = bookings.find(b => b.id === bookingId);
-
-  if (bookingsLoading || crewLoading) {
+  if (bookingLoading || crewLoading) {
     return <div className="p-8 text-center text-muted-foreground">Loading call sheet…</div>;
   }
-  if (!booking) {
+  if (bookingError || !booking) {
     return <div className="p-8 text-center text-destructive">Booking not found.</div>;
   }
   if (!crewData) {
