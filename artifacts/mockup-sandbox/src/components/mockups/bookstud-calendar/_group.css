@@ -1,0 +1,138 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* BookStud.io — extracted design tokens (Tailwind v4 compatible: no @apply, no @tailwind) */
+
+:root {
+  --background: 0 0% 98%;
+  --foreground: 224 71% 4%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71% 4%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 71% 4%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 220 9% 20%;
+  --accent: 243 75% 59%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 221 83% 53%;
+  --radius: 0.75rem;
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
+  --info: 199 89% 48%;
+  --info-foreground: 0 0% 100%;
+}
+
+.dark {
+  --background: 224 71% 4%;
+  --foreground: 213 31% 91%;
+  --muted: 223 47% 11%;
+  --muted-foreground: 215 20% 65%;
+  --popover: 224 71% 4%;
+  --popover-foreground: 215 20% 95%;
+  --card: 223 47% 8%;
+  --card-foreground: 213 31% 91%;
+  --border: 216 34% 17%;
+  --input: 216 34% 17%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 11%;
+  --secondary: 222 47% 11%;
+  --secondary-foreground: 215 20% 85%;
+  --accent: 243 75% 59%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 62% 50%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 217 91% 60%;
+}
+
+html, body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Glass / gradients */
+.glass {
+  background: rgba(255,255,255,0.80);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.20);
+}
+.dark .glass {
+  background: rgba(17,24,39,0.80);
+  border-color: rgba(55,65,81,0.30);
+}
+.gradient-primary { background: linear-gradient(to right, #2563eb, #4f46e5); }
+.gradient-subtle  { background: linear-gradient(to bottom right, #f8fafc, #ffffff, #f1f5f9); }
+.dark .gradient-subtle { background: linear-gradient(to bottom right, #0f172a, #111827, #1e293b); }
+
+/* Cards */
+.card-modern {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s;
+}
+.card-modern:hover { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-color: #e5e7eb; }
+.dark .card-modern { background: rgba(31,41,55,0.5); border-color: rgba(55,65,81,0.5); }
+
+/* Sidebar item */
+.sidebar-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem; font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.15s;
+}
+.sidebar-item-active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+.sidebar-item-inactive { color: #4b5563; }
+.sidebar-item-inactive:hover { background: #f3f4f6; }
+.dark .sidebar-item-inactive { color: #d1d5db; }
+.dark .sidebar-item-inactive:hover { background: rgba(31,41,55,0.6); }
+
+/* Booking card */
+.booking-card {
+  transition: all 0.2s ease-out;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: hsl(var(--primary));
+}
+.booking-card:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); transform: translateY(-2px); }
+
+/* Status pills */
+.status-available { background: #d1fae5; color: #047857; }
+.status-in-use    { background: #fee2e2; color: #b91c1c; }
+.status-upcoming  { background: #fef3c7; color: #b45309; }
+.dark .status-available { background: rgba(6,78,59,0.3);  color: #34d399; }
+.dark .status-in-use    { background: rgba(127,29,29,0.3); color: #f87171; }
+.dark .status-upcoming  { background: rgba(120,53,15,0.3); color: #fbbf24; }
+
+/* Scrollbar */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 9999px; }
+.dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.2s ease-out; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+.animate-slide-in { animation: slideIn 0.2s ease-out; }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.animate-scale-in { animation: scaleIn 0.15s ease-out; }
