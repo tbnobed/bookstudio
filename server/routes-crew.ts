@@ -302,7 +302,6 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
         notes: z.string().nullable().optional(),
       }).parse(req.body);
 
-      const slot = await storage.updateBookingCrewSlot(slotId, {}); // existence check via subsequent fetch
       const allSlots = await storage.getBookingCrew(bookingId);
       const target = allSlots.find(s => s.id === slotId);
       if (!target) return res.status(404).json({ message: "Slot not found" });
