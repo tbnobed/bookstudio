@@ -116,8 +116,11 @@ export default function CallSheet() {
       <style>{`
         @media print {
           @page { size: letter portrait; margin: 0.5in; }
-          body { background: white; }
+          html, body { background: white !important; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+          .call-sheet { box-shadow: none !important; border: 0 !important; }
         }
+        .call-sheet, .call-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       `}</style>
     </div>
   );
