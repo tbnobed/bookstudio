@@ -18,7 +18,15 @@ export default function CallSheet() {
   const bookingId = parseInt(params.id);
   const tz = (import.meta.env.VITE_FACILITY_TIMEZONE as string) || "America/Chicago";
 
-  const { data: booking, isLoading: bookingLoading, isError: bookingError } = useQuery<any>({ queryKey: [`/api/bookings/${bookingId}`], enabled: !!bookingId });
+  const { data: booking, isLoading: bookingLoading, isError: bookingError } = useQuery<any>({
+    queryKey: ["call-sheet-booking", bookingId],
+    queryFn: async () => {
+      const r = await fetch(`/api/bookings/${bookingId}`, { credentials: "include" });
+      if (!r.ok) throw new Error(`${r.status}`);
+      return r.json();
+    },
+    enabled: !!bookingId,
+  });
   const { data: crewData, isLoading: crewLoading } = useQuery<any>({ queryKey: ["/api/bookings", bookingId, "crew"], queryFn: () => fetch(`/api/bookings/${bookingId}/crew`, { credentials: "include" }).then(r => r.json()), enabled: !!bookingId });
   const { data: bookingStudios = [] } = useQuery<Studio[]>({ queryKey: [`/api/bookings/${bookingId}/studios`], enabled: !!bookingId });
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({ queryKey: ["/api/pcr-rooms"] });
