@@ -1,4 +1,3 @@
-import './_group.css';
 import {
   Users,
   ClipboardList,
@@ -28,6 +27,17 @@ import {
 function cn(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
+
+const BASE_STYLES = `
+.sidebar-item { display:flex; align-items:center; gap:.75rem; padding:.625rem .75rem; font-size:.875rem; font-weight:500; border-radius:.5rem; transition:all .15s; }
+.sidebar-item-active { background:#2563eb; color:#fff; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+.sidebar-item-inactive { color:#4b5563; }
+.sidebar-item-inactive:hover { background:#f3f4f6; }
+.booking-card { transition:all .2s ease-out; border-left:4px solid #2563eb; }
+.booking-card:hover { box-shadow:0 10px 15px -3px rgba(0,0,0,.1); transform:translateY(-2px); }
+@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+.animate-fade-in { animation: fadeIn .2s ease-out; }
+`;
 
 const USER = { name: "Sarah Chen", role: "admin", initial: "S" };
 const SITE_NAME = "BookStud.io";
@@ -658,6 +668,7 @@ function Fab() {
 export default function Current() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
+      <style dangerouslySetInnerHTML={{ __html: BASE_STYLES }} />
       <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0">
