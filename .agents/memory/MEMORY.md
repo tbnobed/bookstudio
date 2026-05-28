@@ -1,0 +1,1 @@
+- [No-auth token endpoints](no-auth-token-endpoints.md) — public Accept/Decline/reset-style links must rotate tokens on every state change and never echo the token in the public payload.

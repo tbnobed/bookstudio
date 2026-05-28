@@ -12,6 +12,7 @@ import {
   FileCheck2,
   LogOut,
   ChevronDown,
+  UserPlus,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -314,6 +315,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 path="/assets"
                 isActive={location === "/assets"}
                 onClick={() => handleNavigate("/assets")}
+              />
+            )}
+
+            {user?.role !== "viewer" && (
+              <NavItem
+                icon={<UserPlus className={iconSize} />}
+                label="Crew"
+                badge="New"
+                path="/crew"
+                isActive={location === "/crew"}
+                onClick={() => handleNavigate("/crew")}
               />
             )}
           </div>

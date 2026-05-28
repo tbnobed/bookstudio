@@ -18,6 +18,12 @@ import {
   assetCheckouts, type AssetCheckout, type InsertAssetCheckout,
   bookingAssets,
   assetPhotos, type AssetPhoto,
+  crewPositions, type CrewPosition, type InsertCrewPosition,
+  crewMembers, type CrewMember, type InsertCrewMember,
+  crewMemberPositions, type CrewMemberPosition,
+  crewTemplates, type CrewTemplate, type InsertCrewTemplate,
+  crewTemplateSlots, type CrewTemplateSlot, type InsertCrewTemplateSlot,
+  bookingCrew, type BookingCrew, type InsertBookingCrew,
   passwordResetTokens,
   inviteTokens
 } from "@shared/schema";
@@ -201,6 +207,41 @@ export interface IStorage {
   getFirstThreePhotosPerAsset(): Promise<{ assetId: number; photoData: string }[]>;
   addAssetPhoto(data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto>;
   deleteAssetPhoto(id: number): Promise<boolean>;
+
+  // Crew positions (v1.7.0)
+  getCrewPosition(id: number): Promise<CrewPosition | undefined>;
+  getAllCrewPositions(): Promise<CrewPosition[]>;
+  createCrewPosition(data: InsertCrewPosition): Promise<CrewPosition>;
+  updateCrewPosition(id: number, data: Partial<InsertCrewPosition>): Promise<CrewPosition | undefined>;
+  deleteCrewPosition(id: number): Promise<boolean>;
+
+  // Crew members (roster)
+  getCrewMember(id: number): Promise<CrewMember | undefined>;
+  getCrewMemberByEmail(email: string): Promise<CrewMember | undefined>;
+  getAllCrewMembers(): Promise<CrewMember[]>;
+  createCrewMember(data: InsertCrewMember, positionIds?: number[]): Promise<CrewMember>;
+  updateCrewMember(id: number, data: Partial<InsertCrewMember>, positionIds?: number[]): Promise<CrewMember | undefined>;
+  deleteCrewMember(id: number): Promise<boolean>;
+  getCrewMemberPositions(crewMemberId: number): Promise<CrewPosition[]>;
+  getCrewMembersForPosition(positionId: number): Promise<CrewMember[]>;
+
+  // Crew templates
+  getCrewTemplate(id: number): Promise<CrewTemplate | undefined>;
+  getAllCrewTemplates(): Promise<CrewTemplate[]>;
+  createCrewTemplate(data: InsertCrewTemplate, slots: { positionId: number; quantity: number }[]): Promise<CrewTemplate>;
+  updateCrewTemplate(id: number, data: Partial<InsertCrewTemplate>, slots?: { positionId: number; quantity: number }[]): Promise<CrewTemplate | undefined>;
+  deleteCrewTemplate(id: number): Promise<boolean>;
+  getCrewTemplateSlots(templateId: number): Promise<CrewTemplateSlot[]>;
+
+  // Booking crew assignments
+  getBookingCrew(bookingId: number): Promise<BookingCrew[]>;
+  addBookingCrewSlot(data: InsertBookingCrew): Promise<BookingCrew>;
+  updateBookingCrewSlot(id: number, data: Partial<BookingCrew>): Promise<BookingCrew | undefined>;
+  deleteBookingCrewSlot(id: number): Promise<boolean>;
+  applyCrewTemplateToBooking(bookingId: number, templateId: number, createdBy: number): Promise<BookingCrew[]>;
+  getCrewConflicts(crewMemberId: number, start: Date, end: Date, excludeSlotId?: number | null): Promise<Array<BookingCrew & { bookingTitle: string; bookingStart: Date; bookingEnd: Date }>>;
+  getBookingCrewByToken(token: string): Promise<BookingCrew | undefined>;
+  getCrewMemberUpcomingBookings(crewMemberId: number): Promise<Array<BookingCrew & { bookingTitle: string; bookingStart: Date; bookingEnd: Date }>>;
 
   // Session management
   sessionStore: session.Store;
@@ -1148,6 +1189,35 @@ export class MemStorage implements IStorage {
   async getFirstThreePhotosPerAsset(): Promise<{ assetId: number; photoData: string }[]> { return []; }
   async addAssetPhoto(_data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto> { throw new Error("Not implemented in MemStorage"); }
   async deleteAssetPhoto(_id: number): Promise<boolean> { return false; }
+
+  // Crew (v1.7.0) — stubs (use DatabaseStorage in production)
+  async getCrewPosition(_id: number): Promise<CrewPosition | undefined> { return undefined; }
+  async getAllCrewPositions(): Promise<CrewPosition[]> { return []; }
+  async createCrewPosition(_data: InsertCrewPosition): Promise<CrewPosition> { throw new Error("Not implemented in MemStorage"); }
+  async updateCrewPosition(_id: number, _data: Partial<InsertCrewPosition>): Promise<CrewPosition | undefined> { return undefined; }
+  async deleteCrewPosition(_id: number): Promise<boolean> { return false; }
+  async getCrewMember(_id: number): Promise<CrewMember | undefined> { return undefined; }
+  async getCrewMemberByEmail(_email: string): Promise<CrewMember | undefined> { return undefined; }
+  async getAllCrewMembers(): Promise<CrewMember[]> { return []; }
+  async createCrewMember(_data: InsertCrewMember, _positionIds?: number[]): Promise<CrewMember> { throw new Error("Not implemented in MemStorage"); }
+  async updateCrewMember(_id: number, _data: Partial<InsertCrewMember>, _positionIds?: number[]): Promise<CrewMember | undefined> { return undefined; }
+  async deleteCrewMember(_id: number): Promise<boolean> { return false; }
+  async getCrewMemberPositions(_crewMemberId: number): Promise<CrewPosition[]> { return []; }
+  async getCrewMembersForPosition(_positionId: number): Promise<CrewMember[]> { return []; }
+  async getCrewTemplate(_id: number): Promise<CrewTemplate | undefined> { return undefined; }
+  async getAllCrewTemplates(): Promise<CrewTemplate[]> { return []; }
+  async createCrewTemplate(_data: InsertCrewTemplate, _slots: { positionId: number; quantity: number }[]): Promise<CrewTemplate> { throw new Error("Not implemented in MemStorage"); }
+  async updateCrewTemplate(_id: number, _data: Partial<InsertCrewTemplate>, _slots?: { positionId: number; quantity: number }[]): Promise<CrewTemplate | undefined> { return undefined; }
+  async deleteCrewTemplate(_id: number): Promise<boolean> { return false; }
+  async getCrewTemplateSlots(_templateId: number): Promise<CrewTemplateSlot[]> { return []; }
+  async getBookingCrew(_bookingId: number): Promise<BookingCrew[]> { return []; }
+  async addBookingCrewSlot(_data: InsertBookingCrew): Promise<BookingCrew> { throw new Error("Not implemented in MemStorage"); }
+  async updateBookingCrewSlot(_id: number, _data: Partial<BookingCrew>): Promise<BookingCrew | undefined> { return undefined; }
+  async deleteBookingCrewSlot(_id: number): Promise<boolean> { return false; }
+  async applyCrewTemplateToBooking(_bookingId: number, _templateId: number, _createdBy: number): Promise<BookingCrew[]> { return []; }
+  async getCrewConflicts(_crewMemberId: number, _start: Date, _end: Date, _excludeSlotId?: number | null): Promise<any[]> { return []; }
+  async getBookingCrewByToken(_token: string): Promise<BookingCrew | undefined> { return undefined; }
+  async getCrewMemberUpcomingBookings(_crewMemberId: number): Promise<any[]> { return []; }
 }
 
 // Database storage implementation
@@ -4360,6 +4430,182 @@ export class DatabaseStorage implements IStorage {
   async deleteAssetPhoto(id: number): Promise<boolean> {
     const result = await db.delete(assetPhotos).where(eq(assetPhotos.id, id)).returning();
     return result.length > 0;
+  }
+
+  // ─── Crew & Freelancer Booking (v1.7.0) ───────────────────────────────────────
+
+  async getCrewPosition(id: number): Promise<CrewPosition | undefined> {
+    const [row] = await db.select().from(crewPositions).where(eq(crewPositions.id, id));
+    return row;
+  }
+  async getAllCrewPositions(): Promise<CrewPosition[]> {
+    return db.select().from(crewPositions).orderBy(asc(crewPositions.sortOrder), asc(crewPositions.name));
+  }
+  async createCrewPosition(data: InsertCrewPosition): Promise<CrewPosition> {
+    const [row] = await db.insert(crewPositions).values(data).returning();
+    return row;
+  }
+  async updateCrewPosition(id: number, data: Partial<InsertCrewPosition>): Promise<CrewPosition | undefined> {
+    const [row] = await db.update(crewPositions).set(data).where(eq(crewPositions.id, id)).returning();
+    return row;
+  }
+  async deleteCrewPosition(id: number): Promise<boolean> {
+    const result = await db.delete(crewPositions).where(eq(crewPositions.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getCrewMember(id: number): Promise<CrewMember | undefined> {
+    const [row] = await db.select().from(crewMembers).where(eq(crewMembers.id, id));
+    return row;
+  }
+  async getCrewMemberByEmail(email: string): Promise<CrewMember | undefined> {
+    const [row] = await db.select().from(crewMembers).where(eq(crewMembers.email, email.toLowerCase()));
+    return row;
+  }
+  async getAllCrewMembers(): Promise<CrewMember[]> {
+    return db.select().from(crewMembers).orderBy(asc(crewMembers.name));
+  }
+  async createCrewMember(data: InsertCrewMember, positionIds?: number[]): Promise<CrewMember> {
+    const normalized = { ...data, email: data.email.toLowerCase(), updatedAt: new Date() };
+    const [row] = await db.insert(crewMembers).values(normalized).returning();
+    if (positionIds && positionIds.length > 0) {
+      await db.insert(crewMemberPositions).values(
+        positionIds.map(pid => ({ crewMemberId: row.id, positionId: pid }))
+      );
+    }
+    return row;
+  }
+  async updateCrewMember(id: number, data: Partial<InsertCrewMember>, positionIds?: number[]): Promise<CrewMember | undefined> {
+    const update: any = { ...data, updatedAt: new Date() };
+    if (data.email) update.email = data.email.toLowerCase();
+    const [row] = await db.update(crewMembers).set(update).where(eq(crewMembers.id, id)).returning();
+    if (positionIds) {
+      await db.delete(crewMemberPositions).where(eq(crewMemberPositions.crewMemberId, id));
+      if (positionIds.length > 0) {
+        await db.insert(crewMemberPositions).values(
+          positionIds.map(pid => ({ crewMemberId: id, positionId: pid }))
+        );
+      }
+    }
+    return row;
+  }
+  async deleteCrewMember(id: number): Promise<boolean> {
+    const result = await db.delete(crewMembers).where(eq(crewMembers.id, id)).returning();
+    return result.length > 0;
+  }
+  async getCrewMemberPositions(crewMemberId: number): Promise<CrewPosition[]> {
+    const result = await db
+      .select({ p: crewPositions })
+      .from(crewMemberPositions)
+      .innerJoin(crewPositions, eq(crewMemberPositions.positionId, crewPositions.id))
+      .where(eq(crewMemberPositions.crewMemberId, crewMemberId))
+      .orderBy(asc(crewPositions.sortOrder));
+    return result.map(r => r.p);
+  }
+  async getCrewMembersForPosition(positionId: number): Promise<CrewMember[]> {
+    const result = await db
+      .select({ m: crewMembers })
+      .from(crewMemberPositions)
+      .innerJoin(crewMembers, eq(crewMemberPositions.crewMemberId, crewMembers.id))
+      .where(and(eq(crewMemberPositions.positionId, positionId), eq(crewMembers.isActive, true)))
+      .orderBy(asc(crewMembers.name));
+    return result.map(r => r.m);
+  }
+
+  async getCrewTemplate(id: number): Promise<CrewTemplate | undefined> {
+    const [row] = await db.select().from(crewTemplates).where(eq(crewTemplates.id, id));
+    return row;
+  }
+  async getAllCrewTemplates(): Promise<CrewTemplate[]> {
+    return db.select().from(crewTemplates).orderBy(asc(crewTemplates.name));
+  }
+  async createCrewTemplate(data: InsertCrewTemplate, slots: { positionId: number; quantity: number }[]): Promise<CrewTemplate> {
+    const [row] = await db.insert(crewTemplates).values(data).returning();
+    if (slots.length > 0) {
+      await db.insert(crewTemplateSlots).values(
+        slots.map(s => ({ templateId: row.id, positionId: s.positionId, quantity: s.quantity }))
+      );
+    }
+    return row;
+  }
+  async updateCrewTemplate(id: number, data: Partial<InsertCrewTemplate>, slots?: { positionId: number; quantity: number }[]): Promise<CrewTemplate | undefined> {
+    const [row] = await db.update(crewTemplates).set(data).where(eq(crewTemplates.id, id)).returning();
+    if (slots) {
+      await db.delete(crewTemplateSlots).where(eq(crewTemplateSlots.templateId, id));
+      if (slots.length > 0) {
+        await db.insert(crewTemplateSlots).values(
+          slots.map(s => ({ templateId: id, positionId: s.positionId, quantity: s.quantity }))
+        );
+      }
+    }
+    return row;
+  }
+  async deleteCrewTemplate(id: number): Promise<boolean> {
+    const result = await db.delete(crewTemplates).where(eq(crewTemplates.id, id)).returning();
+    return result.length > 0;
+  }
+  async getCrewTemplateSlots(templateId: number): Promise<CrewTemplateSlot[]> {
+    return db.select().from(crewTemplateSlots).where(eq(crewTemplateSlots.templateId, templateId));
+  }
+
+  async getBookingCrew(bookingId: number): Promise<BookingCrew[]> {
+    return db.select().from(bookingCrew).where(eq(bookingCrew.bookingId, bookingId)).orderBy(asc(bookingCrew.id));
+  }
+  async addBookingCrewSlot(data: InsertBookingCrew): Promise<BookingCrew> {
+    const [row] = await db.insert(bookingCrew).values(data).returning();
+    return row;
+  }
+  async updateBookingCrewSlot(id: number, data: Partial<BookingCrew>): Promise<BookingCrew | undefined> {
+    const [row] = await db.update(bookingCrew).set(data).where(eq(bookingCrew.id, id)).returning();
+    return row;
+  }
+  async deleteBookingCrewSlot(id: number): Promise<boolean> {
+    const result = await db.delete(bookingCrew).where(eq(bookingCrew.id, id)).returning();
+    return result.length > 0;
+  }
+  async applyCrewTemplateToBooking(bookingId: number, templateId: number, createdBy: number): Promise<BookingCrew[]> {
+    const slots = await this.getCrewTemplateSlots(templateId);
+    const created: BookingCrew[] = [];
+    for (const slot of slots) {
+      for (let i = 0; i < slot.quantity; i++) {
+        const [row] = await db.insert(bookingCrew).values({
+          bookingId, positionId: slot.positionId, status: "unfilled", createdBy,
+        }).returning();
+        created.push(row);
+      }
+    }
+    return created;
+  }
+  async getCrewConflicts(crewMemberId: number, start: Date, end: Date, excludeSlotId?: number | null) {
+    const { pool } = await import("./db");
+    const params: any[] = [crewMemberId, start, end];
+    let excludeClause = "";
+    if (excludeSlotId) { params.push(excludeSlotId); excludeClause = `AND bc.id <> $4`; }
+    const result = await pool.query(`
+      SELECT bc.*, b.title AS "bookingTitle", b.start AS "bookingStart", b."end" AS "bookingEnd"
+      FROM booking_crew bc
+      JOIN bookings b ON b.id = bc.booking_id
+      WHERE bc.crew_member_id = $1
+        AND bc.status IN ('unfilled', 'pending', 'confirmed')
+        AND b.start < $3 AND b."end" > $2
+        ${excludeClause}
+    `, params);
+    return result.rows as any;
+  }
+  async getBookingCrewByToken(token: string): Promise<BookingCrew | undefined> {
+    const [row] = await db.select().from(bookingCrew).where(eq(bookingCrew.responseToken, token));
+    return row;
+  }
+  async getCrewMemberUpcomingBookings(crewMemberId: number) {
+    const { pool } = await import("./db");
+    const result = await pool.query(`
+      SELECT bc.*, b.title AS "bookingTitle", b.start AS "bookingStart", b."end" AS "bookingEnd"
+      FROM booking_crew bc
+      JOIN bookings b ON b.id = bc.booking_id
+      WHERE bc.crew_member_id = $1 AND b."end" >= NOW()
+      ORDER BY b.start ASC
+    `, [crewMemberId]);
+    return result.rows as any;
   }
 }
 

@@ -27,6 +27,8 @@ import AuditLogsPage from "@/pages/audit-logs-page";
 import TeamsPage from "@/pages/TeamsPage";
 import AssetsPage from "@/pages/AssetsPage";
 import MobileAssetsPage from "@/pages/MobileAssetsPage";
+import CrewRoster from "@/pages/CrewRoster";
+import CrewRespond from "@/pages/CrewRespond";
 import AdminBookingOwnership from "@/pages/admin-booking-ownership";
 import AdminDatabaseHealth from "@/pages/admin-database-health";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -63,6 +65,7 @@ function Router() {
       <Route path="/public-calendar" component={PublicCalendarPage} />
       <Route path="/signage/custom" component={CustomSignagePage} />
       <Route path="/signage" component={SignagePage} />
+      <Route path="/crew/respond/:token" component={CrewRespond} />
       {/* More-specific routes must come before "/" to prevent prefix-match swallowing */}
       <ProtectedRoute path="/mobile/assets" component={MobileAssetsPage} />
       <ProtectedRoute path="/mobile" component={MobileCalendarPage} />
@@ -77,6 +80,7 @@ function Router() {
       <ProtectedRoute path="/studios" component={StudiosPage} />
       <ProtectedRoute path="/teams" component={TeamsPage} />
       <ProtectedRoute path="/assets" component={AssetsPage} />
+      <ProtectedRoute path="/crew" component={CrewRoster} />
       <ProtectedRoute path="/audit-logs" component={AuditLogsPage} />
       <ProtectedRoute path="/admin/booking-ownership" component={AdminBookingOwnership} />
       <ProtectedRoute path="/admin/database-health" component={AdminDatabaseHealth} />
@@ -101,7 +105,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                      location === "/signage" ||
                      location === "/signage/custom" ||
                      location.startsWith("/reset-password/") ||
-                     location.startsWith("/invite/");
+                     location.startsWith("/invite/") ||
+                     location.startsWith("/crew/respond/");
   
   // Fully standalone pages — no sidebar, no header, no mobile navbar
   const isStandalonePage = location === "/mobile/assets";

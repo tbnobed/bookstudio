@@ -68,7 +68,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting BookStud.io application v1.6.2 with Authentik SSO/OIDC...' &&
+        echo 'Starting BookStud.io application v1.7.0 with Crew & Freelancer Booking...' &&
         echo \"Using timezone: ${TZ:-America/Chicago}\" &&
         echo 'Verifying database tables before startup...' &&
         node -e \"
@@ -219,6 +219,8 @@ services:
         node scripts/production-migration-v1.6.1.cjs &&
         echo 'Running SSO/OIDC support migration (v1.6.2)...' &&
         node scripts/production-migration-v1.6.2.cjs &&
+        echo 'Running crew booking migration (v1.7.0)...' &&
+        node scripts/production-migration-v1.7.0.cjs &&
         echo 'Database initialization completed successfully!'
       "
 

@@ -13,6 +13,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Studio, BookingType, InsertBookingType } from "@shared/schema";
+import { CrewPositionsSettings } from "@/components/settings/CrewPositionsSettings";
+import { CrewTemplatesSettings } from "@/components/settings/CrewTemplatesSettings";
 import { useToast } from "@/hooks/use-toast";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useForm } from "react-hook-form";
@@ -665,6 +667,8 @@ export default function Settings() {
             <TabsTrigger value="studios">Studios</TabsTrigger>
             <TabsTrigger value="pcr">PCR Rooms</TabsTrigger>
             <TabsTrigger value="bookingtypes">Booking Types</TabsTrigger>
+            <TabsTrigger value="crewpositions">Crew Positions</TabsTrigger>
+            <TabsTrigger value="crewtemplates">Crew Templates</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="backup">Backup & Restore</TabsTrigger>
           </TabsList>
@@ -1046,7 +1050,15 @@ export default function Settings() {
           <TabsContent value="bookingtypes">
             <BookingTypesPanel />
           </TabsContent>
-          
+
+          <TabsContent value="crewpositions">
+            <CrewPositionsSettings />
+          </TabsContent>
+
+          <TabsContent value="crewtemplates">
+            <CrewTemplatesSettings />
+          </TabsContent>
+
           <TabsContent value="backup">
             <BackupPanel />
           </TabsContent>

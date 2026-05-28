@@ -537,3 +537,104 @@ export const insertAssetPhotoSchema = createInsertSchema(assetPhotos).omit({
 export type AssetPhoto = typeof assetPhotos.$inferSelect;
 export type InsertAssetPhoto = z.infer<typeof insertAssetPhotoSchema>;
 
+// ───────────────────────────────────────────────────────────────────────────────
+// Crew & Freelancer Booking (v1.7.0)
+// ───────────────────────────────────────────────────────────────────────────────
+
+// Position types (TD, A1, Camera Op, etc.) — admin-managed lookup
+export const crewPositions = pgTable("crew_positions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  category: text("category").notNull().default("other"), // direction, camera, technical, audio, lighting, graphics, talent, other
+  description: text("description"),
+  color: text("color"), // optional swatch for UI
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+});
+export const insertCrewPositionSchema = createInsertSchema(crewPositions).omit({ id: true });
+export type CrewPosition = typeof crewPositions.$inferSelect;
+export type InsertCrewPosition = z.infer<typeof insertCrewPositionSchema>;
+
+// Crew roster (hybrid: contact-first, optionally linked to a user account)
+export const crewMembers = pgTable("crew_members", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone"),
+  dayRateCents: integer("day_rate_cents").notNull().default(0),       // store money as integer cents
+  halfDayRateCents: integer("half_day_rate_cents").notNull().default(0),
+  notes: text("notes"),
+  userId: integer("user_id"),                  // FK to users.id when upgraded to login
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+export const insertCrewMemberSchema = createInsertSchema(crewMembers).omit({
+  id: true, createdAt: true, updatedAt: true,
+});
+export type CrewMember = typeof crewMembers.$inferSelect;
+export type InsertCrewMember = z.infer<typeof insertCrewMemberSchema>;
+
+// Many-to-many: which positions each crew member is qualified to fill
+export const crewMemberPositions = pgTable("crew_member_positions", {
+  id: serial("id").primaryKey(),
+  crewMemberId: integer("crew_member_id").notNull(),
+  positionId: integer("position_id").notNull(),
+}, (t) => ({
+  uniq: unique().on(t.crewMemberId, t.positionId),
+}));
+export const insertCrewMemberPositionSchema = createInsertSchema(crewMemberPositions).omit({ id: true });
+export type CrewMemberPosition = typeof crewMemberPositions.$inferSelect;
+export type InsertCrewMemberPosition = z.infer<typeof insertCrewMemberPositionSchema>;
+
+// Reusable crew templates ("Sports Live", "Studio Newscast", …)
+export const crewTemplates = pgTable("crew_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  bookingTypeId: integer("booking_type_id"), // optional — auto-suggest when this booking type is picked
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertCrewTemplateSchema = createInsertSchema(crewTemplates).omit({
+  id: true, createdAt: true,
+});
+export type CrewTemplate = typeof crewTemplates.$inferSelect;
+export type InsertCrewTemplate = z.infer<typeof insertCrewTemplateSchema>;
+
+// Position + quantity slots that make up a template
+export const crewTemplateSlots = pgTable("crew_template_slots", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull(),
+  positionId: integer("position_id").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+});
+export const insertCrewTemplateSlotSchema = createInsertSchema(crewTemplateSlots).omit({ id: true });
+export type CrewTemplateSlot = typeof crewTemplateSlots.$inferSelect;
+export type InsertCrewTemplateSlot = z.infer<typeof insertCrewTemplateSlotSchema>;
+
+// Actual crew assignments per booking
+// status: unfilled → pending (after invite sent) → confirmed | declined
+export const bookingCrew = pgTable("booking_crew", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").notNull(),
+  positionId: integer("position_id").notNull(),
+  crewMemberId: integer("crew_member_id"),               // nullable until producer picks someone
+  status: text("status").notNull().default("unfilled"),  // unfilled, pending, confirmed, declined
+  rateType: text("rate_type"),                            // day, half-day (auto-set on assign)
+  rateSnapshotCents: integer("rate_snapshot_cents").notNull().default(0), // frozen at invite time
+  responseToken: text("response_token").unique(),         // signed token for /crew/respond/:token
+  invitedAt: timestamp("invited_at"),
+  respondedAt: timestamp("responded_at"),
+  declineReason: text("decline_reason"),
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertBookingCrewSchema = createInsertSchema(bookingCrew).omit({
+  id: true, createdAt: true, invitedAt: true, respondedAt: true,
+});
+export type BookingCrew = typeof bookingCrew.$inferSelect;
+export type InsertBookingCrew = z.infer<typeof insertBookingCrewSchema>;
+

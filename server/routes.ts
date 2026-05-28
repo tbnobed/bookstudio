@@ -53,6 +53,7 @@ import {
   deleteInviteToken
 } from "./email";
 import { migrateTemplatesApi } from "./migrate-templates-api";
+import { registerCrewRoutes } from "./routes-crew";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -119,6 +120,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next();
     };
   };
+
+  // Crew & Freelancer Booking (v1.7.0)
+  registerCrewRoutes(app, { isAuthenticated, hasRole });
 
   // User routes
   app.get("/api/users", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {

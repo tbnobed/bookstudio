@@ -81,7 +81,7 @@ RUN echo "import express from 'express';" > server-prod.js && \
     echo "    console.log(`Server running on port ${port}`);" >> server-prod.js && \
     echo "    console.log(`Application timezone: ${process.env.TZ || 'UTC'}`);" >> server-prod.js && \
     echo "    console.log(`Facility timezone: ${process.env.FACILITY_TIMEZONE || process.env.TZ || 'UTC'}`);" >> server-prod.js && \
-    echo "    console.log('BookStudio Version: 1.6.2 - Authentik SSO/OIDC');" >> server-prod.js && \
+    echo "    console.log('BookStudio Version: 1.7.0 - Crew & Freelancer Booking');" >> server-prod.js && \
     echo "  });" >> server-prod.js && \
     echo "})();" >> server-prod.js && \
     npx esbuild server-prod.js --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
@@ -146,6 +146,7 @@ COPY --chown=appuser:appgroup scripts/production-migration-v1.5.7.cjs ./scripts/
 COPY --chown=appuser:appgroup scripts/production-migration-v1.6.0.cjs ./scripts/
 COPY --chown=appuser:appgroup scripts/production-migration-v1.6.1.cjs ./scripts/
 COPY --chown=appuser:appgroup scripts/production-migration-v1.6.2.cjs ./scripts/
+COPY --chown=appuser:appgroup scripts/production-migration-v1.7.0.cjs ./scripts/
 
 # Copy backup/restore scripts and make them executable
 COPY --chown=appuser:appgroup scripts/production-backup.sh ./scripts/
