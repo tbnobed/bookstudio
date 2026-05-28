@@ -261,6 +261,16 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
     const enriched = await Promise.all(slots.map(async (s) => {
       const position = await storage.getCrewPosition(s.positionId);
       const member = s.crewMemberId ? await storage.getCrewMember(s.crewMemberId) : null;
+      // Recompute rate live from current booking duration for slots that are
+      // not yet confirmed. Once a freelancer has confirmed they accepted a
+      // specific rate — do not silently re-price them.
+      if (member && booking && s.status !== "confirmed") {
+        const { rateType, rateCents } = computeRate(
+          new Date(booking.start), new Date(booking.end),
+          member.dayRateCents, member.halfDayRateCents,
+        );
+        return { ...s, rateType, rateSnapshotCents: rateCents, position, member };
+      }
       return { ...s, position, member };
     }));
 
