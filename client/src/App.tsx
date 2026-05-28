@@ -29,6 +29,7 @@ import AssetsPage from "@/pages/AssetsPage";
 import MobileAssetsPage from "@/pages/MobileAssetsPage";
 import CrewRoster from "@/pages/CrewRoster";
 import CrewRespond from "@/pages/CrewRespond";
+import CallSheet from "@/pages/CallSheet";
 import AdminBookingOwnership from "@/pages/admin-booking-ownership";
 import AdminDatabaseHealth from "@/pages/admin-database-health";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -81,6 +82,7 @@ function Router() {
       <ProtectedRoute path="/teams" component={TeamsPage} />
       <ProtectedRoute path="/assets" component={AssetsPage} />
       <ProtectedRoute path="/crew" component={CrewRoster} />
+      <ProtectedRoute path="/bookings/:id/call-sheet" component={CallSheet} />
       <ProtectedRoute path="/audit-logs" component={AuditLogsPage} />
       <ProtectedRoute path="/admin/booking-ownership" component={AdminBookingOwnership} />
       <ProtectedRoute path="/admin/database-health" component={AdminDatabaseHealth} />

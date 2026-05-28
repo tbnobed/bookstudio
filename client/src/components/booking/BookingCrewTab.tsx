@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Trash2, Mail, AlertTriangle, CheckCircle2, XCircle, Clock, UserPlus, FileText, DollarSign } from "lucide-react";
+import { Plus, Trash2, Mail, AlertTriangle, CheckCircle2, XCircle, Clock, UserPlus, FileText, DollarSign, Printer } from "lucide-react";
 import type { CrewMember, CrewPosition, CrewTemplate } from "@shared/schema";
 
 function dollars(c: number) { return `$${((c || 0) / 100).toFixed(2)}`; }
@@ -90,9 +90,14 @@ export function BookingCrewTab({ booking }: Props) {
           Production length: <strong>{totals.hours.toFixed(1)}h</strong> →
           {" "}auto rate: <Badge variant="outline" className="ml-1">{totals.defaultRateType === "half-day" ? "Half-day" : "Day"}</Badge>
         </div>
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          <DollarSign className="h-5 w-5 text-green-600" />
-          {dollars(totals.cents)}
+        <div className="flex items-center gap-3">
+          <Button size="sm" variant="outline" onClick={() => window.open(`/bookings/${bookingId}/call-sheet`, "_blank")} data-testid="button-call-sheet">
+            <Printer className="h-4 w-4 mr-1" /> Call Sheet
+          </Button>
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <DollarSign className="h-5 w-5 text-green-600" />
+            {dollars(totals.cents)}
+          </div>
         </div>
       </div>
 
