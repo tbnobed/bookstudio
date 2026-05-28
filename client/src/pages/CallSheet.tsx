@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 
@@ -14,8 +14,8 @@ function fmtDate(d: Date, tz: string) {
 }
 
 export default function CallSheet() {
-  const params = useParams<{ id: string }>();
-  const bookingId = parseInt(params.id);
+  const [, params] = useRoute<{ id: string }>("/bookings/:id/call-sheet");
+  const bookingId = params ? parseInt(params.id) : NaN;
   const tz = (import.meta.env.VITE_FACILITY_TIMEZONE as string) || "America/Chicago";
 
   const { data: booking, isLoading: bookingLoading, isError: bookingError } = useQuery<any>({
