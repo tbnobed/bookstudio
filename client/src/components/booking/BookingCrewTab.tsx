@@ -85,7 +85,7 @@ export function BookingCrewTab({ booking }: Props) {
   return (
     <div className="space-y-4">
       {/* Cost rollup */}
-      <div className="flex items-center justify-between bg-muted rounded-md p-3 border">
+      <div className="flex items-center justify-between bg-muted dark:bg-slate-800 rounded-md p-3 border dark:border-slate-700">
         <div className="text-sm text-muted-foreground">
           Production length: <strong>{totals.hours.toFixed(1)}h</strong> →
           {" "}auto rate: <Badge variant="outline" className="ml-1">{totals.defaultRateType === "half-day" ? "Half-day" : "Day"}</Badge>
@@ -145,7 +145,7 @@ export function BookingCrewTab({ booking }: Props) {
               m.isActive && m.positions.some(p => p.id === s.positionId)
             );
             return (
-              <div key={s.id} className="border bg-card rounded-md p-3 flex flex-wrap items-center gap-3">
+              <div key={s.id} className="border bg-card dark:bg-slate-800 dark:border-slate-700 rounded-md p-3 flex flex-wrap items-center gap-3">
                 <div className="font-medium w-40 shrink-0">{s.position?.name || "?"}</div>
                 <Select
                   value={s.crewMemberId ? s.crewMemberId.toString() : "__unassigned"}
