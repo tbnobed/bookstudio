@@ -11,10 +11,10 @@ import type { CrewMember, CrewPosition, CrewTemplate } from "@shared/schema";
 function dollars(c: number) { return `$${((c || 0) / 100).toFixed(2)}`; }
 
 const STATUS_META: Record<string, { label: string; icon: any; cls: string }> = {
-  unfilled:  { label: "Unfilled",  icon: UserPlus,     cls: "bg-gray-100 text-gray-700" },
-  pending:   { label: "Invited",   icon: Clock,        cls: "bg-amber-100 text-amber-800" },
-  confirmed: { label: "Confirmed", icon: CheckCircle2, cls: "bg-green-100 text-green-800" },
-  declined:  { label: "Declined",  icon: XCircle,      cls: "bg-red-100 text-red-800" },
+  unfilled:  { label: "Unfilled",  icon: UserPlus,     cls: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-700/50 dark:text-slate-300 dark:border-slate-600" },
+  pending:   { label: "Invited",   icon: Clock,        cls: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30" },
+  confirmed: { label: "Confirmed", icon: CheckCircle2, cls: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30" },
+  declined:  { label: "Declined",  icon: XCircle,      cls: "bg-red-100 text-red-800 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/30" },
 };
 
 interface Props { booking: any; }
@@ -82,62 +82,81 @@ export function BookingCrewTab({ booking }: Props) {
   const slots = crewData.slots || [];
   const totals = crewData.totals || { cents: 0, hours: 0, defaultRateType: "day" };
 
+  const filledCount = slots.filter((s: any) => s.status === "confirmed").length;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Cost rollup */}
-      <div className="flex items-center justify-between bg-muted/40 rounded-md p-3">
-        <div className="text-sm text-muted-foreground">
-          Production length: <strong>{totals.hours.toFixed(1)}h</strong> →
-          {" "}auto rate: <Badge variant="outline" className="ml-1">{totals.defaultRateType === "half-day" ? "Half-day" : "Day"}</Badge>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button size="sm" variant="outline" onClick={() => window.open(`/bookings/${bookingId}/call-sheet`, "_blank")} data-testid="button-call-sheet">
-            <Printer className="h-4 w-4 mr-1" /> Call Sheet
-          </Button>
-          <div className="flex items-center gap-2 text-lg font-semibold">
-            <DollarSign className="h-5 w-5 text-green-600" />
-            {dollars(totals.cents)}
+      <div className="rounded-xl border border-border bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Estimated crew cost</div>
+            <div className="flex items-baseline gap-2">
+              <DollarSign className="h-6 w-6 self-center text-emerald-500" />
+              <span className="text-3xl font-bold tabular-nums text-foreground" data-testid="text-crew-total">{dollars(totals.cents)}</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>Production length <strong className="text-foreground">{totals.hours.toFixed(1)}h</strong></span>
+              <span className="text-border">•</span>
+              <span className="inline-flex items-center gap-1">
+                auto rate
+                <Badge variant="secondary" className="font-medium">{totals.defaultRateType === "half-day" ? "Half-day" : "Day"}</Badge>
+              </span>
+              {slots.length > 0 && (
+                <>
+                  <span className="text-border">•</span>
+                  <span><strong className="text-foreground">{filledCount}</strong>/{slots.length} confirmed</span>
+                </>
+              )}
+            </div>
           </div>
+          <Button variant="outline" onClick={() => window.open(`/bookings/${bookingId}/call-sheet`, "_blank")} data-testid="button-call-sheet">
+            <Printer className="h-4 w-4 mr-2" /> Call Sheet
+          </Button>
         </div>
       </div>
 
       {/* Add slot + apply template controls */}
-      <div className="flex flex-wrap gap-2 items-end border-b pb-3">
-        <div className="flex gap-2 items-end">
-          <div>
-            <label className="text-xs text-muted-foreground">Add position</label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">Add position</label>
+          <div className="flex gap-2">
             <Select value={addPosId} onValueChange={setAddPosId}>
-              <SelectTrigger className="w-48" data-testid="select-add-position"><SelectValue placeholder="Choose position…" /></SelectTrigger>
+              <SelectTrigger className="flex-1" data-testid="select-add-position"><SelectValue placeholder="Choose position…" /></SelectTrigger>
               <SelectContent>
                 {positions.map(p => <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>)}
               </SelectContent>
             </Select>
+            <Button disabled={!addPosId || addSlot.isPending} onClick={() => addSlot.mutate()} data-testid="button-add-slot">
+              <Plus className="h-4 w-4 mr-1" /> Add
+            </Button>
           </div>
-          <Button size="sm" disabled={!addPosId || addSlot.isPending} onClick={() => addSlot.mutate()} data-testid="button-add-slot">
-            <Plus className="h-4 w-4 mr-1" /> Add
-          </Button>
         </div>
-        <div className="flex gap-2 items-end ml-auto">
-          <div>
-            <label className="text-xs text-muted-foreground">Apply template</label>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">Apply template</label>
+          <div className="flex gap-2">
             <Select value={applyTplId} onValueChange={setApplyTplId}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Choose template…" /></SelectTrigger>
+              <SelectTrigger className="flex-1"><SelectValue placeholder="Choose template…" /></SelectTrigger>
               <SelectContent>
                 {templates.map(t => <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>)}
               </SelectContent>
             </Select>
+            <Button variant="outline" disabled={!applyTplId || applyTemplate.isPending} onClick={() => applyTemplate.mutate()}>
+              <FileText className="h-4 w-4 mr-1" /> Apply
+            </Button>
           </div>
-          <Button size="sm" variant="outline" disabled={!applyTplId || applyTemplate.isPending} onClick={() => applyTemplate.mutate()}>
-            <FileText className="h-4 w-4 mr-1" /> Apply
-          </Button>
         </div>
       </div>
 
       {/* Slot list */}
       {slots.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">No crew assigned yet. Add positions above or apply a template.</div>
+        <div className="rounded-xl border border-dashed border-border py-12 text-center">
+          <UserPlus className="mx-auto h-8 w-8 text-muted-foreground/50" />
+          <p className="mt-3 text-sm font-medium text-foreground">No crew assigned yet</p>
+          <p className="mt-1 text-xs text-muted-foreground">Add a position above or apply a template to get started.</p>
+        </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {slots.map((s: any) => {
             const meta = STATUS_META[s.status] || STATUS_META.unfilled;
             const StatusIcon = meta.icon;
@@ -145,62 +164,68 @@ export function BookingCrewTab({ booking }: Props) {
               m.isActive && m.positions.some(p => p.id === s.positionId)
             );
             return (
-              <div key={s.id} className="border rounded-md p-3 flex flex-wrap items-center gap-3">
-                <div className="font-medium w-40 shrink-0">{s.position?.name || "?"}</div>
-                <Select
-                  value={s.crewMemberId ? s.crewMemberId.toString() : "__unassigned"}
-                  onValueChange={(v) => assignCrew.mutate({
-                    slotId: s.id,
-                    crewMemberId: v === "__unassigned" ? null : parseInt(v),
-                  })}
-                >
-                  <SelectTrigger className="w-56" data-testid={`select-crew-${s.id}`}>
-                    <SelectValue placeholder="— Unassigned —" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__unassigned">— Unassigned —</SelectItem>
-                    {candidates.length === 0 && (
-                      <div className="px-2 py-1 text-xs text-muted-foreground">No qualified crew. Add some to the roster.</div>
-                    )}
-                    {candidates.map(m => (
-                      <SelectItem key={m.id} value={m.id.toString()}>
-                        {m.name} — {dollars(m.dayRateCents)}/{dollars(m.halfDayRateCents)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${meta.cls}`}>
-                  <StatusIcon className="h-3 w-3" /> {meta.label}
-                </div>
-
-                {s.rateSnapshotCents > 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    {dollars(s.rateSnapshotCents)} <span className="text-xs">({s.rateType})</span>
+              <div key={s.id} className="group rounded-xl border border-border bg-card p-3.5 transition-colors hover:border-foreground/20">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-3">
+                  <div className="flex items-center gap-2.5 w-44 shrink-0">
+                    <span className="h-8 w-1 rounded-full bg-primary/60" />
+                    <span className="font-semibold leading-tight text-foreground">{s.position?.name || "?"}</span>
                   </div>
-                )}
+
+                  <Select
+                    value={s.crewMemberId ? s.crewMemberId.toString() : "__unassigned"}
+                    onValueChange={(v) => assignCrew.mutate({
+                      slotId: s.id,
+                      crewMemberId: v === "__unassigned" ? null : parseInt(v),
+                    })}
+                  >
+                    <SelectTrigger className="w-60" data-testid={`select-crew-${s.id}`}>
+                      <SelectValue placeholder="— Unassigned —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__unassigned">— Unassigned —</SelectItem>
+                      {candidates.length === 0 && (
+                        <div className="px-2 py-1 text-xs text-muted-foreground">No qualified crew. Add some to the roster.</div>
+                      )}
+                      {candidates.map(m => (
+                        <SelectItem key={m.id} value={m.id.toString()}>
+                          {m.name} — {dollars(m.dayRateCents)}/{dollars(m.halfDayRateCents)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${meta.cls}`}>
+                    <StatusIcon className="h-3.5 w-3.5" /> {meta.label}
+                  </div>
+
+                  {s.rateSnapshotCents > 0 && (
+                    <div className="text-sm font-medium tabular-nums text-foreground">
+                      {dollars(s.rateSnapshotCents)} <span className="text-xs font-normal text-muted-foreground">({s.rateType})</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-1 ml-auto">
+                    {s.crewMemberId && (s.status === "unfilled" || s.status === "declined") && (
+                      <Button size="sm" variant="outline" onClick={() => sendInvite.mutate(s.id)} disabled={sendInvite.isPending} data-testid={`button-invite-${s.id}`}>
+                        <Mail className="h-3.5 w-3.5 mr-1.5" /> Send Invite
+                      </Button>
+                    )}
+                    {s.status === "pending" && (
+                      <Button size="sm" variant="outline" onClick={() => sendInvite.mutate(s.id)} disabled={sendInvite.isPending}>
+                        <Mail className="h-3.5 w-3.5 mr-1.5" /> Re-send
+                      </Button>
+                    )}
+                    <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => deleteSlot.mutate(s.id)} data-testid={`button-delete-${s.id}`}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
 
                 {s.status === "declined" && s.declineReason && (
-                  <div className="flex items-center gap-1 text-xs text-destructive">
-                    <AlertTriangle className="h-3 w-3" /> {s.declineReason}
+                  <div className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-xs text-destructive">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Declined: {s.declineReason}
                   </div>
                 )}
-
-                <div className="flex gap-1 ml-auto">
-                  {s.crewMemberId && (s.status === "unfilled" || s.status === "declined") && (
-                    <Button size="sm" variant="outline" onClick={() => sendInvite.mutate(s.id)} disabled={sendInvite.isPending} data-testid={`button-invite-${s.id}`}>
-                      <Mail className="h-3 w-3 mr-1" /> Send Invite
-                    </Button>
-                  )}
-                  {s.status === "pending" && (
-                    <Button size="sm" variant="outline" onClick={() => sendInvite.mutate(s.id)} disabled={sendInvite.isPending}>
-                      <Mail className="h-3 w-3 mr-1" /> Re-send
-                    </Button>
-                  )}
-                  <Button size="icon" variant="ghost" onClick={() => deleteSlot.mutate(s.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
               </div>
             );
           })}
