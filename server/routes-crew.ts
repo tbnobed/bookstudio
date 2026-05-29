@@ -14,7 +14,7 @@ type Middleware = (req: Request, res: Response, next: Function) => any;
 export function computeRate(start: Date, end: Date, dayCents: number, halfDayCents: number) {
   const hours = (end.getTime() - start.getTime()) / 3_600_000;
   const rateType: "day" | "half-day" = hours <= 5 ? "half-day" : "day";
-  const rateCents = rateType === "half-day" ? (halfDayCents || dayCents) : dayCents;
+  const rateCents = rateType === "half-day" ? (halfDayCents ?? dayCents) : dayCents;
   return { rateType, rateCents, hours };
 }
 
