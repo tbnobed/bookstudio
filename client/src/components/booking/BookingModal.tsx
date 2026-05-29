@@ -843,7 +843,7 @@ export default function BookingModal({
       ) : (
         // Use the original Dialog on larger screens
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto bg-card dark:bg-slate-800 border-2 border-border dark:border-slate-600 shadow-2xl ring-1 ring-black/5 dark:ring-white/15">
             <DialogHeader>
               <DialogTitle>
                 {booking && booking.id > 0
