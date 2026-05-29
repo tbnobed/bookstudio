@@ -11,10 +11,10 @@ import type { CrewMember, CrewPosition, CrewTemplate } from "@shared/schema";
 function dollars(c: number) { return `$${((c || 0) / 100).toFixed(2)}`; }
 
 const STATUS_META: Record<string, { label: string; icon: any; cls: string }> = {
-  unfilled:  { label: "Unfilled",  icon: UserPlus,     cls: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100" },
-  pending:   { label: "Invited",   icon: Clock,        cls: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
-  confirmed: { label: "Confirmed", icon: CheckCircle2, cls: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300" },
-  declined:  { label: "Declined",  icon: XCircle,      cls: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" },
+  unfilled:  { label: "Unfilled",  icon: UserPlus,     cls: "bg-gray-100 text-gray-700" },
+  pending:   { label: "Invited",   icon: Clock,        cls: "bg-amber-100 text-amber-800" },
+  confirmed: { label: "Confirmed", icon: CheckCircle2, cls: "bg-green-100 text-green-800" },
+  declined:  { label: "Declined",  icon: XCircle,      cls: "bg-red-100 text-red-800" },
 };
 
 interface Props { booking: any; }
@@ -85,7 +85,7 @@ export function BookingCrewTab({ booking }: Props) {
   return (
     <div className="space-y-4">
       {/* Cost rollup */}
-      <div className="flex items-center justify-between bg-muted dark:bg-slate-800 rounded-md p-3 border dark:border-slate-700">
+      <div className="flex items-center justify-between bg-muted/40 rounded-md p-3">
         <div className="text-sm text-muted-foreground">
           Production length: <strong>{totals.hours.toFixed(1)}h</strong> →
           {" "}auto rate: <Badge variant="outline" className="ml-1">{totals.defaultRateType === "half-day" ? "Half-day" : "Day"}</Badge>
@@ -145,7 +145,7 @@ export function BookingCrewTab({ booking }: Props) {
               m.isActive && m.positions.some(p => p.id === s.positionId)
             );
             return (
-              <div key={s.id} className="border bg-card dark:bg-slate-800 dark:border-slate-700 rounded-md p-3 flex flex-wrap items-center gap-3">
+              <div key={s.id} className="border rounded-md p-3 flex flex-wrap items-center gap-3">
                 <div className="font-medium w-40 shrink-0">{s.position?.name || "?"}</div>
                 <Select
                   value={s.crewMemberId ? s.crewMemberId.toString() : "__unassigned"}
