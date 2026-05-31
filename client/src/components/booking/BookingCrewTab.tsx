@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Trash2, Mail, AlertTriangle, CheckCircle2, XCircle, Clock, UserPlus, FileText, DollarSign, Printer } from "lucide-react";
 import type { CrewMember, CrewPosition, CrewTemplate } from "@shared/schema";
+import { CallSheetDialog } from "./CallSheetDialog";
 
 function dollars(c: number) { return `$${((c || 0) / 100).toFixed(2)}`; }
 
@@ -35,6 +36,7 @@ export function BookingCrewTab({ booking }: Props) {
 
   const [addPosId, setAddPosId] = useState<string>("");
   const [applyTplId, setApplyTplId] = useState<string>("");
+  const [callSheetOpen, setCallSheetOpen] = useState(false);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["/api/bookings", bookingId, "crew"] });
 
@@ -45,10 +47,14 @@ export function BookingCrewTab({ booking }: Props) {
   });
 
   const applyTemplate = useMutation({
-    mutationFn: () => apiRequest("POST", `/api/bookings/${bookingId}/crew/apply-template`, { templateId: parseInt(applyTplId) }),
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/bookings/${bookingId}/crew/apply-template`, { templateId: parseInt(applyTplId) });
+      return res.json();
+    },
     onSuccess: (data: any) => {
       invalidate(); setApplyTplId("");
-      toast({ title: `Added ${data.created} crew slot${data.created === 1 ? "" : "s"}` });
+      const n = data?.created ?? 0;
+      toast({ title: `Added ${n} crew slot${n === 1 ? "" : "s"}` });
     },
     onError: (e: any) => toast({ title: "Failed", description: e.message, variant: "destructive" }),
   });
@@ -85,6 +91,7 @@ export function BookingCrewTab({ booking }: Props) {
   const filledCount = slots.filter((s: any) => s.status === "confirmed").length;
 
   return (
+    <>
     <div className="space-y-5">
       {/* Cost rollup */}
       <div className="rounded-xl border border-border bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5">
@@ -110,7 +117,7 @@ export function BookingCrewTab({ booking }: Props) {
               )}
             </div>
           </div>
-          <Button variant="outline" onClick={() => window.open(`/bookings/${bookingId}/call-sheet`, "_blank")} data-testid="button-call-sheet">
+          <Button variant="outline" onClick={() => setCallSheetOpen(true)} data-testid="button-call-sheet">
             <Printer className="h-4 w-4 mr-2" /> Call Sheet
           </Button>
         </div>
@@ -232,5 +239,7 @@ export function BookingCrewTab({ booking }: Props) {
         </div>
       )}
     </div>
+    <CallSheetDialog bookingId={bookingId} open={callSheetOpen} onOpenChange={setCallSheetOpen} />
+    </>
   );
 }

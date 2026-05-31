@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict Lj8lE81g8QAF4Ad38Hk51MuosgapmvSGQxUGFm7hzgnJAddUhwYkx6NmQboZ09x
+\restrict TLwsLkxjfJx0RdZmXsv1qAasdmc57fJTPh4oiy7UbiGwGX0yHJlCAs3o0eyt0MT
 
 -- Dumped from database version 16.10
 -- Dumped by pg_dump version 16.10
 
--- Started on 2026-05-29 02:00:00 UTC
+-- Started on 2026-05-30 02:00:00 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -31,9 +31,9 @@ CREATE DATABASE heliumdb WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROV
 
 ALTER DATABASE heliumdb OWNER TO postgres;
 
-\unrestrict Lj8lE81g8QAF4Ad38Hk51MuosgapmvSGQxUGFm7hzgnJAddUhwYkx6NmQboZ09x
+\unrestrict TLwsLkxjfJx0RdZmXsv1qAasdmc57fJTPh4oiy7UbiGwGX0yHJlCAs3o0eyt0MT
 \connect heliumdb
-\restrict Lj8lE81g8QAF4Ad38Hk51MuosgapmvSGQxUGFm7hzgnJAddUhwYkx6NmQboZ09x
+\restrict TLwsLkxjfJx0RdZmXsv1qAasdmc57fJTPh4oiy7UbiGwGX0yHJlCAs3o0eyt0MT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1855,9 +1855,11 @@ COPY public.audit_logs (id, user_id, action, entity_type, entity_id, entity_titl
 1075	1	LOGIN	authentication	1	User admin logged in	{"username":"admin","name":"Admin User","role":"admin","ipAddress":"127.0.0.1"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0	2026-05-14 18:35:55.340399
 1077	1	LOGIN	authentication	1	User admin logged in	{"username":"admin","name":"Admin User","role":"admin","ipAddress":"127.0.0.1"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36	2026-05-28 17:49:06.122047
 1082	1	LOGIN	authentication	1	User admin logged in	{"username":"admin","name":"Admin User","role":"admin","ipAddress":"127.0.0.1"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36	2026-05-29 00:48:18.382341
+1083	1	create	crew_member	2	obed test	{}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36	2026-05-29 18:19:04.009383
 1050	1	DECOMMISSION	asset	22	AJA Ki Pro Ultra 12G Recorder	{"reason":"Test Decommission\\n","previousStatus":"available"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-03-15 04:15:40.378053
 1071	1	CREATE	asset	41	Aputure Accent B7C 8-Light Kit	{"category":"lighting","status":"available","location":"Lighting Workshop"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-03-16 19:10:35.062236
 1078	1	create	crew_member	1	Obed Lighting	{}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36	2026-05-28 18:27:31.146749
+1084	1	invite_sent	booking_crew	4	Producer → obed test	{}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36	2026-05-29 18:19:25.989706
 1051	1	UPDATE	asset	22	AJA Ki Pro Ultra 12G Recorder	{"changes":{"from":{"status":"retired"},"to":{"status":"available"}}}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-03-15 04:18:19.413421
 1052	1	DECOMMISSION	asset	22	AJA Ki Pro Ultra 12G Recorder	{"reason":"Test Decommission\\n","previousStatus":"available"}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-03-15 04:18:22.933313
 1079	1	CREATE	booking	723	test	{"bookingType":"production","studioId":5,"studioIds":[5,17],"startTime":{},"endTime":{},"pcrRoomId":null,"templateId":null,"linkedGroupId":null,"notifyList":[]}	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36	2026-05-28 18:27:46.287494
@@ -1942,7 +1944,7 @@ COPY public.booking_assets (id, booking_id, asset_id, added_by, added_at) FROM s
 --
 
 COPY public.booking_crew (id, booking_id, position_id, crew_member_id, status, rate_type, rate_snapshot_cents, response_token, invited_at, responded_at, decline_reason, notes, created_by, created_at) FROM stdin;
-3	723	1	1	unfilled	half-day	30000	\N	\N	\N	\N	\N	1	2026-05-28 18:28:20.42272
+4	723	3	2	pending	day	50000	pUuJgSmQne-3fcqRA9vIxyeVDwkwSTFpRYfhiyeF4F4	2026-05-29 18:19:25.794	\N	\N	\N	1	2026-05-29 18:19:22.221219
 \.
 
 
@@ -3179,6 +3181,7 @@ COPY public.bookings (id, title, description, studio_id, user_id, start, "end", 
 COPY public.crew_member_positions (id, crew_member_id, position_id) FROM stdin;
 1	1	1
 2	1	10
+3	2	3
 \.
 
 
@@ -3190,6 +3193,7 @@ COPY public.crew_member_positions (id, crew_member_id, position_id) FROM stdin;
 
 COPY public.crew_members (id, name, email, phone, day_rate_cents, half_day_rate_cents, notes, user_id, is_active, created_by, created_at, updated_at) FROM stdin;
 1	Obed Lighting	obed2@tbn.tv	2134291810	50000	30000	\N	\N	t	1	2026-05-28 18:27:31.137616	2026-05-28 18:27:31.136
+2	obed test	obedtest@tbn.tv	\N	50000	30000	\N	\N	t	1	2026-05-29 18:19:03.838146	2026-05-29 18:19:03.837
 \.
 
 
@@ -4599,8 +4603,8 @@ COPY public.pcr_rooms (id, name, description, status) FROM stdin;
 --
 
 COPY public.session (sid, sess, expire) FROM stdin;
-jY0daQbOlOpbgE55qrSdqGGg_Nf_vQXT	{"cookie":{"originalMaxAge":86400000,"expires":"2026-05-30T00:48:18.403Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2026-05-30 01:59:03
-_27ybsjjOqzfCA6F1b2XIjdhOCFP9wSI	{"cookie":{"originalMaxAge":86400000,"expires":"2026-05-29T17:49:06.140Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2026-05-30 01:59:03
+jY0daQbOlOpbgE55qrSdqGGg_Nf_vQXT	{"cookie":{"originalMaxAge":86400000,"expires":"2026-05-30T00:48:18.403Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2026-05-31 00:48:04
+_27ybsjjOqzfCA6F1b2XIjdhOCFP9wSI	{"cookie":{"originalMaxAge":86400000,"expires":"2026-05-29T17:49:06.140Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"passport":{"user":1}}	2026-05-30 08:25:03
 \.
 
 
@@ -4782,7 +4786,7 @@ SELECT pg_catalog.setval('public.assets_id_seq', 41, true);
 -- Name: audit_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.audit_logs_id_seq', 1082, true);
+SELECT pg_catalog.setval('public.audit_logs_id_seq', 1084, true);
 
 
 --
@@ -4800,7 +4804,7 @@ SELECT pg_catalog.setval('public.booking_assets_id_seq', 6, true);
 -- Name: booking_crew_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.booking_crew_id_seq', 3, true);
+SELECT pg_catalog.setval('public.booking_crew_id_seq', 4, true);
 
 
 --
@@ -4836,7 +4840,7 @@ SELECT pg_catalog.setval('public.bookings_id_seq', 723, true);
 -- Name: crew_member_positions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.crew_member_positions_id_seq', 2, true);
+SELECT pg_catalog.setval('public.crew_member_positions_id_seq', 3, true);
 
 
 --
@@ -4845,7 +4849,7 @@ SELECT pg_catalog.setval('public.crew_member_positions_id_seq', 2, true);
 -- Name: crew_members_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.crew_members_id_seq', 1, true);
+SELECT pg_catalog.setval('public.crew_members_id_seq', 2, true);
 
 
 --
@@ -6029,11 +6033,11 @@ ALTER TABLE ONLY public.templates
     ADD CONSTRAINT templates_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
--- Completed on 2026-05-29 02:00:00 UTC
+-- Completed on 2026-05-30 02:00:01 UTC
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Lj8lE81g8QAF4Ad38Hk51MuosgapmvSGQxUGFm7hzgnJAddUhwYkx6NmQboZ09x
+\unrestrict TLwsLkxjfJx0RdZmXsv1qAasdmc57fJTPh4oiy7UbiGwGX0yHJlCAs3o0eyt0MT
 
