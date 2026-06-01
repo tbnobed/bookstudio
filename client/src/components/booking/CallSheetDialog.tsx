@@ -12,7 +12,7 @@ interface Props {
 export function CallSheetDialog({ bookingId, open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-card border-2 border-border shadow-2xl ring-1 ring-black/5 dark:ring-white/15">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto p-0 gap-0 bg-card border-2 border-border shadow-2xl ring-1 ring-black/5 dark:ring-white/15">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border px-4 py-3 print:hidden">
           <DialogTitle>Call Sheet</DialogTitle>
           <Button size="sm" className="mr-8" onClick={() => window.print()} data-testid="button-print-call-sheet">
