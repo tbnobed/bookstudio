@@ -661,9 +661,9 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Map */}
-        <div className="lg:col-span-2 bg-white dark:bg-neutral-800 rounded-2xl border dark:border-neutral-700 shadow-lg p-3">
+        <div className="lg:col-span-2">
           <svg
             ref={svgRef}
             width="100%"
@@ -680,7 +680,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         </div>
 
         {/* Side panel */}
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl border dark:border-neutral-700 shadow-lg p-4">
+        <div className="lg:border-l lg:border-gray-200 lg:dark:border-neutral-700 lg:pl-6">
           {isEditing && selected ? (
             <div className="space-y-3">
               <h3 className="font-semibold text-sm dark:text-white">Room properties</h3>
