@@ -324,7 +324,7 @@ function BookingTypesPanel() {
             {bookingTypes.map((bookingType) => (
               <div
                 key={bookingType.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800"
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -800,42 +800,42 @@ export default function Settings() {
                         <p className="text-xs text-muted-foreground mt-1">
                           The system uses {formatTimezoneDisplay(currentTimezone).displayName} for all bookings to ensure consistent scheduling
                         </p>
-                        <p className="text-xs text-red-600 mt-2 font-mono bg-red-50 p-2 rounded border border-red-200">
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-2 font-mono bg-red-50 dark:bg-red-950/30 p-2 rounded border border-red-200 dark:border-red-900/50">
                           DEBUG: Build-time Variable = {FACILITY_TIMEZONE}, Current Effective = {currentTimezone}
                         </p>
-                        <div className="mt-4 p-4 bg-blue-50 rounded border border-blue-200">
+                        <div className="mt-4 p-4 bg-blue-50 dark:bg-neutral-900 rounded border border-blue-200 dark:border-neutral-800">
                           <h4 className="text-sm font-medium mb-2">Timezone Override Control</h4>
-                          <p className="text-xs text-gray-600 mb-3">
+                          <p className="text-xs text-gray-600 dark:text-neutral-400 mb-3">
                             Use this to override the timezone without rebuilding the application:
                           </p>
                           <div className="space-y-2">
                             <button 
                               onClick={() => handleSetTimezone('America/Los_Angeles')}
-                              className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                              className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-neutral-800 border dark:border-neutral-700 rounded hover:bg-gray-50 dark:hover:bg-neutral-700"
                             >
                               Set to Los Angeles (America/Los_Angeles)
                             </button>
                             <button 
                               onClick={() => handleSetTimezone('America/Chicago')}
-                              className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                              className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-neutral-800 border dark:border-neutral-700 rounded hover:bg-gray-50 dark:hover:bg-neutral-700"
                             >
                               Set to Dallas (America/Chicago)
                             </button>
                             <button 
                               onClick={() => handleSetTimezone('America/New_York')}
-                              className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                              className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-neutral-800 border dark:border-neutral-700 rounded hover:bg-gray-50 dark:hover:bg-neutral-700"
                             >
                               Set to New York (America/New_York)
                             </button>
                             <button 
                               onClick={() => handleSetTimezone('America/Denver')}
-                              className="w-full text-left px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                              className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-neutral-800 border dark:border-neutral-700 rounded hover:bg-gray-50 dark:hover:bg-neutral-700"
                             >
                               Set to Denver (America/Denver)
                             </button>
                             <button 
                               onClick={() => handleClearTimezone()}
-                              className="w-full text-left px-3 py-2 text-sm bg-red-50 border border-red-200 rounded hover:bg-red-100 text-red-700"
+                              className="w-full text-left px-3 py-2 text-sm bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded hover:bg-red-100 dark:hover:bg-red-950/50 text-red-700 dark:text-red-400"
                             >
                               Clear Override (use build-time value)
                             </button>
@@ -872,7 +872,7 @@ export default function Settings() {
                       </thead>
                       <tbody>
                         {studios.map(studio => (
-                          <tr key={studio.id} className="border-b hover:bg-gray-50">
+                          <tr key={studio.id} className="border-b hover:bg-gray-50 dark:hover:bg-neutral-800">
                             <td className="py-3 px-4 font-medium">{studio.name}</td>
                             <td className="py-3 px-4">{studio.description || "No description"}</td>
                             <td className="py-3 px-4">
