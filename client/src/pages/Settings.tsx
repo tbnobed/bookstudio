@@ -934,24 +934,24 @@ export default function Settings() {
                   </Button>
 
                   {/* Studio IDs Reference */}
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                  <div className="mt-6 p-4 bg-blue-50 dark:bg-neutral-900 border border-blue-200 dark:border-neutral-800 rounded-lg">
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center">
                       <Tag className="mr-2 h-4 w-4" />
                       Studio IDs Reference
                     </h4>
-                    <p className="text-sm text-blue-800 mb-4">
+                    <p className="text-sm text-blue-800 dark:text-neutral-300 mb-4">
                       Use these Studio IDs for filtering custom signage displays. Add them to the URL like: 
-                      <code className="mx-1 px-2 py-1 bg-blue-100 rounded text-xs">/signage/custom?studios=1,2,3</code>
+                      <code className="mx-1 px-2 py-1 bg-blue-100 dark:bg-neutral-800 dark:text-neutral-200 rounded text-xs">/signage/custom?studios=1,2,3</code>
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                       {studios.map((studio) => (
-                        <div key={studio.id} className="flex items-center justify-between bg-white p-2 rounded border">
+                        <div key={studio.id} className="flex items-center justify-between bg-white dark:bg-neutral-800 p-2 rounded border dark:border-neutral-700">
                           <span className="text-sm font-medium">{studio.name}</span>
                           <Badge variant="outline" className="text-xs">ID: {studio.id}</Badge>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-3 text-xs text-blue-700">
+                    <div className="mt-3 text-xs text-blue-700 dark:text-neutral-400">
                       <p><strong>Examples:</strong></p>
                       <ul className="list-disc list-inside mt-1 space-y-1">
                         <li><code>/signage/custom?studios=1,2</code> - Show only first two studios</li>
