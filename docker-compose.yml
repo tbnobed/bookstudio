@@ -68,7 +68,7 @@ services:
     # Start the application after database initialization
     command: >
       sh -c "
-        echo 'Starting BookStud.io application v1.7.0 with Crew & Freelancer Booking...' &&
+        echo 'Starting BookStud.io application v1.8.0 with Interactive Facility Map...' &&
         echo \"Using timezone: ${TZ:-America/Chicago}\" &&
         echo 'Verifying database tables before startup...' &&
         node -e \"
@@ -221,6 +221,8 @@ services:
         node scripts/production-migration-v1.6.2.cjs &&
         echo 'Running crew booking migration (v1.7.0)...' &&
         node scripts/production-migration-v1.7.0.cjs &&
+        echo 'Running interactive facility map migration (v1.8.0)...' &&
+        node scripts/production-migration-v1.8.0.cjs &&
         echo 'Database initialization completed successfully!'
       "
 
