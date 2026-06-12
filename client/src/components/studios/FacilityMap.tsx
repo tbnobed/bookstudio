@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2, Save, X, Square, Hexagon, CalendarPlus } from "lucide-react";
+import { Pencil, Plus, Trash2, Save, X, Square, Hexagon, CalendarPlus, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -155,6 +155,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
       user?.role === "site_manager" ||
       user?.role === "engineer" ||
       user?.role === "it");
+  // Backup / restore of the whole map config is admin-only.
+  const isAdmin = user?.role === "admin";
 
   const { data: rooms = [] } = useQuery<FacilityMapRoom[]>({
     queryKey: ["/api/facility-map"],
@@ -189,11 +191,13 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const [draft, setDraft] = useState<DraftRoom[]>([]);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [bookingStudioId, setBookingStudioId] = useState<number | undefined>(undefined);
   const [bookingPcrRoomId, setBookingPcrRoomId] = useState<number | undefined>(undefined);
   const [bookingOpen, setBookingOpen] = useState(false);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const dragRef = useRef<
     | null
     | {
@@ -448,6 +452,96 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     }
   };
 
+  // Admin-only: download the current map layout as a JSON backup file.
+  const downloadBackup = () => {
+    const doc = {
+      type: "bookstudio-facility-map",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      rooms: rooms.map((r) => ({
+        label: r.label,
+        shapeType: r.shapeType,
+        x: r.x,
+        y: r.y,
+        width: r.width,
+        height: r.height,
+        rx: r.rx,
+        points: r.points,
+        fontSize: r.fontSize,
+        fill: r.fill,
+        studioId: r.studioId,
+        pcrRoomId: r.pcrRoomId,
+        sortOrder: r.sortOrder,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `facility-map-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast({ title: "Backup downloaded", description: `Saved ${doc.rooms.length} room(s).` });
+  };
+
+  // Admin-only: restore a map layout from a previously downloaded JSON file.
+  const handleRestoreFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Reset so selecting the same file again still fires onChange.
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      const roomsArr = Array.isArray(parsed) ? parsed : parsed?.rooms;
+      if (!Array.isArray(roomsArr)) {
+        throw new Error("This file does not contain a valid map configuration.");
+      }
+      const payload = roomsArr.map((r: any, i: number) => {
+        if (typeof r !== "object" || r === null) {
+          throw new Error(`Room ${i + 1} in the file is invalid.`);
+        }
+        const shapeType = r.shapeType === "polygon" ? "polygon" : "rect";
+        return {
+          label: String(r.label ?? ""),
+          shapeType,
+          x: Math.round(Number(r.x) || 0),
+          y: Math.round(Number(r.y) || 0),
+          width: Math.round(Number(r.width) || 0),
+          height: Math.round(Number(r.height) || 0),
+          rx: Math.round(Number(r.rx) || 0),
+          points: shapeType === "polygon" ? (r.points ?? null) : null,
+          fontSize: Math.round(Number(r.fontSize) || 14),
+          fill: r.fill ?? null,
+          // Drop links to studios / PCR rooms that no longer exist to avoid FK errors.
+          studioId: studios.some((s) => s.id === r.studioId) ? r.studioId : null,
+          pcrRoomId: pcrRooms.some((p) => p.id === r.pcrRoomId) ? r.pcrRoomId : null,
+          sortOrder: Math.round(Number(r.sortOrder) || (i + 1) * 10),
+        };
+      });
+      if (
+        !window.confirm(
+          `Restore ${payload.length} room(s) from this file? This replaces the entire current map layout.`,
+        )
+      ) {
+        return;
+      }
+      setRestoring(true);
+      await apiRequest("PUT", "/api/facility-map", payload);
+      await queryClient.invalidateQueries({ queryKey: ["/api/facility-map"] });
+      toast({ title: "Map restored", description: `Loaded ${payload.length} room(s) from backup.` });
+    } catch (err: any) {
+      toast({
+        title: "Restore failed",
+        description: err?.message || "Could not read the map file.",
+        variant: "destructive",
+      });
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   const onShapeClick = (e: React.MouseEvent, room: DraftRoom) => {
     // Prevent the SVG background onClick (which deselects) from firing.
     e.stopPropagation();
@@ -640,9 +734,35 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         </div>
 
         {canEdit && !isEditing && (
-          <Button size="sm" variant="outline" onClick={enterEdit} data-testid="button-edit-map">
-            <Pencil className="h-4 w-4 mr-1.5" /> Edit layout
-          </Button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  className="hidden"
+                  onChange={handleRestoreFile}
+                  data-testid="input-restore-map"
+                />
+                <Button size="sm" variant="outline" onClick={downloadBackup} data-testid="button-backup-map">
+                  <Download className="h-4 w-4 mr-1.5" /> Backup
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={restoring}
+                  data-testid="button-restore-map"
+                >
+                  <Upload className="h-4 w-4 mr-1.5" /> {restoring ? "Restoring…" : "Restore"}
+                </Button>
+              </>
+            )}
+            <Button size="sm" variant="outline" onClick={enterEdit} data-testid="button-edit-map">
+              <Pencil className="h-4 w-4 mr-1.5" /> Edit layout
+            </Button>
+          </div>
         )}
         {canEdit && isEditing && (
           <div className="flex items-center gap-2">
