@@ -172,7 +172,7 @@ export function BookingCrewTab({ booking }: Props) {
           <p className="mt-1 text-xs text-muted-foreground">Add a position above or apply a template to get started.</p>
         </div>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1 -mr-1">
           {slots.map((s: any) => {
             const meta = STATUS_META[s.status] || STATUS_META.unfilled;
             const StatusIcon = meta.icon;
