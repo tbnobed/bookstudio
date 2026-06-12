@@ -13,6 +13,7 @@ import {
   LogOut,
   ChevronDown,
   UserPlus,
+  Tv,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -275,6 +276,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               path="/calendar"
               isActive={location === "/calendar" || location === "/"}
               onClick={() => handleNavigate("/calendar")}
+            />
+
+            <NavItem
+              icon={<Tv className={iconSize} />}
+              label="Studios"
+              path="/studios"
+              isActive={location === "/studios"}
+              onClick={() => handleNavigate("/studios")}
             />
 
             {user?.role !== "viewer" && (
