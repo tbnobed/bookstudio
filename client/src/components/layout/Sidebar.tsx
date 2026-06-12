@@ -311,7 +311,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <NavItem
                 icon={<IconAssets className={iconSize} />}
                 label="Assets"
-                badge="Beta"
                 path="/assets"
                 isActive={location === "/assets"}
                 onClick={() => handleNavigate("/assets")}
