@@ -129,6 +129,7 @@ export default function FacilityMap() {
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [bookingStudioId, setBookingStudioId] = useState<number | undefined>(undefined);
+  const [bookingPcrRoomId, setBookingPcrRoomId] = useState<number | undefined>(undefined);
   const [bookingOpen, setBookingOpen] = useState(false);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -396,6 +397,7 @@ export default function FacilityMap() {
 
   const openBooking = (room: DraftRoom) => {
     setBookingStudioId(room.studioId ?? undefined);
+    setBookingPcrRoomId(room.pcrRoomId ?? undefined);
     setBookingOpen(true);
   };
 
@@ -726,6 +728,7 @@ export default function FacilityMap() {
           isOpen={bookingOpen}
           onClose={() => setBookingOpen(false)}
           selectedStudio={bookingStudioId}
+          selectedPcrRoom={bookingPcrRoomId}
         />
       )}
     </div>

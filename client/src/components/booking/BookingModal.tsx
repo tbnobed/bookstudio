@@ -40,6 +40,7 @@ interface BookingModalProps {
   booking?: any; // Optional existing booking for editing
   selectedDate?: Date;
   selectedStudio?: number;
+  selectedPcrRoom?: number;
 }
 
 export default function BookingModal({ 
@@ -47,7 +48,8 @@ export default function BookingModal({
   onClose, 
   booking, 
   selectedDate = new Date(),
-  selectedStudio
+  selectedStudio,
+  selectedPcrRoom
 }: BookingModalProps) {
   const { showNotification } = useNotification();
   
@@ -198,11 +200,15 @@ export default function BookingModal({
     // Select default studio - use effectiveStudio if available
     // First try the effectiveStudio calculated above, then try selectedStudio prop,
     // and only if neither is available, fall back to the first studio
+    // When the user explicitly entered via a PCR room (and picked no studio),
+    // don't silently substitute the first studio — let them choose one.
     const effectiveStudioForDummy = effectiveStudio !== null && effectiveStudio !== undefined 
       ? effectiveStudio
       : selectedStudio !== null && selectedStudio !== undefined
         ? selectedStudio 
-        : (studios.length > 0 ? studios[0].id : null);
+        : (selectedPcrRoom !== null && selectedPcrRoom !== undefined
+            ? null
+            : (studios.length > 0 ? studios[0].id : null));
         
     console.log("createDummyBooking - Studio selection priority:", {
       effectiveStudio,
@@ -223,8 +229,8 @@ export default function BookingModal({
       description: "",
       studioId: effectiveStudioForDummy,
       studio_id: effectiveStudioForDummy,
-      pcrRoomId: null,
-      pcr_room_id: null,
+      pcrRoomId: selectedPcrRoom ?? null,
+      pcr_room_id: selectedPcrRoom ?? null,
       type: "production",
       start: startTime.toISOString(),
       end: endTime.toISOString(),
@@ -306,17 +312,21 @@ export default function BookingModal({
           
           // Get the effective studio ID from our earlier calculation 
           // or fall back to selectedStudio or studios[0]
+          // When entering via a PCR room (no studio chosen), leave the studio
+          // selection empty so the user picks one explicitly.
+          const enteredViaPcr = selectedPcrRoom !== null && selectedPcrRoom !== undefined
+            && (selectedStudio === null || selectedStudio === undefined);
           const effectiveStudioForForm = effectiveStudio !== null && effectiveStudio !== undefined
             ? effectiveStudio
             : selectedStudio !== null && selectedStudio !== undefined
               ? selectedStudio
-              : (studios.length > 0 ? studios[0].id : null);
+              : (enteredViaPcr ? null : (studios.length > 0 ? studios[0].id : null));
           
           console.log("New booking - using effectiveStudioForForm:", effectiveStudioForForm);
           
           studioIds = effectiveStudioForForm !== null && effectiveStudioForForm !== undefined
             ? [String(effectiveStudioForForm)] // Ensure we're working with a string
-            : (studios.length > 0 ? [String(studios[0].id)] : []);
+            : (enteredViaPcr ? [] : (studios.length > 0 ? [String(studios[0].id)] : []));
             
           console.log("New booking - final studioIds:", studioIds);
         }
