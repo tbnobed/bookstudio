@@ -66,26 +66,26 @@
 
 /* Dark Mode - Rich, Modern */
 .dark {
-  --background: 224 71% 4%;
+  --background: 0 0% 0%;
   --foreground: 213 31% 91%;
   
-  --muted: 223 47% 11%;
+  --muted: 0 0% 11%;
   --muted-foreground: 215 20% 65%;
   
-  --popover: 224 71% 4%;
+  --popover: 0 0% 4%;
   --popover-foreground: 215 20% 95%;
   
-  --card: 223 47% 8%;
+  --card: 0 0% 7%;
   --card-foreground: 213 31% 91%;
   
-  --border: 216 34% 17%;
-  --input: 216 34% 17%;
+  --border: 0 0% 17%;
+  --input: 0 0% 17%;
   
   /* Blue Primary for Dark */
   --primary: 217 91% 60%;
   --primary-foreground: 222 47% 11%;
   
-  --secondary: 222 47% 11%;
+  --secondary: 0 0% 11%;
   --secondary-foreground: 215 20% 85%;
   
   /* Accent - Indigo for Dark */
@@ -221,7 +221,7 @@ body.mobile-page {
 /* Dark mode mobile gradient */
 .dark .mobile-gradient-bg,
 .dark body.mobile-page {
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
+  background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #000000 100%) !important;
 }
 
 /* Booking Card Styles */

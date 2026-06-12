@@ -148,7 +148,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#003366] dark:bg-gray-950 px-4 py-0 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#003366] dark:bg-black px-4 py-0 relative overflow-hidden">
       <style>{`
         @keyframes float1 {
           0%, 100% { transform: translate(0, 0) scale(1); }

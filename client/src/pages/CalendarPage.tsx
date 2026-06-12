@@ -115,7 +115,7 @@ export default function CalendarPage() {
   const { isSmallScreen } = useDevice();
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-black">
       <CalendarHeader
         key={`header-${currentDate.toISOString()}-${view}`}
         currentDate={currentDate}

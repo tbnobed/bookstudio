@@ -82,7 +82,7 @@ export default function CrewRespond() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-black dark:to-neutral-900 py-8 px-4">
       <Card className="max-w-2xl mx-auto shadow-xl">
         <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
           <CardTitle className="text-2xl">Crew Booking Request</CardTitle>
@@ -135,7 +135,7 @@ function DetailRow({ icon: Icon, label, value }: { icon: any; label: string; val
 
 function CenteredCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-black dark:to-neutral-900">
       <Card className="max-w-md w-full"><CardContent className="text-center py-12">{children}</CardContent></Card>
     </div>
   );

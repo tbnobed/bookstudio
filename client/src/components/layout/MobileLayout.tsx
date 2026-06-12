@@ -24,7 +24,7 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
   const showMobileNav = isSmallScreen && !isPublicPage;
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-black">
       <div className={`flex-1 ${showMobileNav ? 'pb-20' : ''}`}>
         {children}
       </div>
