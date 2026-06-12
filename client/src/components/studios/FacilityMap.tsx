@@ -85,6 +85,42 @@ function serializePoints(pts: Array<[number, number]>): string {
   return pts.map(([x, y]) => `${Math.round(x)},${Math.round(y)}`).join(" ");
 }
 
+// Squared distance from point P to segment AB (avoids sqrt for comparisons).
+function distToSegmentSq(
+  px: number,
+  py: number,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+): number {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  let t = lenSq === 0 ? 0 : ((px - ax) * dx + (py - ay) * dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  const cx = ax + t * dx;
+  const cy = ay + t * dy;
+  return (px - cx) * (px - cx) + (py - cy) * (py - cy);
+}
+
+// Returns the index after which a new vertex should be inserted so it lands
+// on the polygon edge nearest to the clicked point.
+function nearestEdgeInsertIndex(pts: Array<[number, number]>, px: number, py: number): number {
+  let best = Infinity;
+  let bestIdx = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i];
+    const b = pts[(i + 1) % pts.length];
+    const d = distToSegmentSq(px, py, a[0], a[1], b[0], b[1]);
+    if (d < best) {
+      best = d;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
 // Centroid of a shape, used to anchor the label.
 function shapeCenter(r: DraftRoom): { cx: number; cy: number } {
   if (r.shapeType === "rect") {
@@ -393,6 +429,37 @@ export default function FacilityMap() {
     setSelectedUid(room.uid);
   };
 
+  // Add a vertex on the polygon edge nearest the double-clicked point.
+  const addVertexAtPoint = (room: DraftRoom, clientX: number, clientY: number) => {
+    if (!isEditing || room.shapeType !== "polygon") return;
+    const { x, y } = toSvgCoords(clientX, clientY);
+    setDraft((prev) =>
+      prev.map((r) => {
+        if (r.uid !== room.uid) return r;
+        const pts = parsePoints(r.points);
+        if (pts.length < 2) return r;
+        const idx = nearestEdgeInsertIndex(pts, x, y);
+        const next = [...pts];
+        next.splice(idx + 1, 0, [Math.round(x), Math.round(y)]);
+        return { ...r, points: serializePoints(next) };
+      }),
+    );
+    setSelectedUid(room.uid);
+  };
+
+  // Remove a vertex (keep at least a triangle).
+  const removeVertex = (room: DraftRoom, index: number) => {
+    if (!isEditing || room.shapeType !== "polygon") return;
+    setDraft((prev) =>
+      prev.map((r) => {
+        if (r.uid !== room.uid) return r;
+        const pts = parsePoints(r.points);
+        if (pts.length <= 3) return r;
+        return { ...r, points: serializePoints(pts.filter((_, i) => i !== index)) };
+      }),
+    );
+  };
+
   const openBooking = (room: DraftRoom) => {
     setBookingStudioId(room.studioId ?? undefined);
     setBookingPcrRoomId(room.pcrRoomId ?? undefined);
@@ -433,6 +500,11 @@ export default function FacilityMap() {
         key={room.uid}
         style={{ cursor }}
         onClick={(e) => onShapeClick(e, room)}
+        onDoubleClick={(e) =>
+          isEditing && room.shapeType === "polygon"
+            ? (e.stopPropagation(), addVertexAtPoint(room, e.clientX, e.clientY))
+            : undefined
+        }
         onPointerDown={(e) => (isEditing ? startDrag(e, room, "move") : undefined)}
         className="transition-opacity hover:opacity-80"
       >
@@ -476,6 +548,10 @@ export default function FacilityMap() {
               strokeWidth={1}
               style={{ cursor: "grab" }}
               onPointerDown={(e) => startDrag(e, room, "vertex", i)}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                removeVertex(room, i);
+              }}
             />
           ))}
       </g>
@@ -651,11 +727,60 @@ export default function FacilityMap() {
                   Leave on Auto to color the room from its live booking status.
                 </p>
               </div>
+              {selected.shapeType === "polygon" && (
+                <div className="space-y-1.5 pt-1 border-t dark:border-neutral-700">
+                  <Label className="text-xs">Shape points</Label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() =>
+                      addVertexAtPoint(
+                        selected,
+                        ...(() => {
+                          // Insert a point at the longest edge's midpoint.
+                          const pts = parsePoints(selected.points);
+                          if (pts.length < 2) return [0, 0] as [number, number];
+                          let li = 0;
+                          let lmax = -1;
+                          for (let i = 0; i < pts.length; i++) {
+                            const a = pts[i];
+                            const b = pts[(i + 1) % pts.length];
+                            const d = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+                            if (d > lmax) {
+                              lmax = d;
+                              li = i;
+                            }
+                          }
+                          const a = pts[li];
+                          const b = pts[(li + 1) % pts.length];
+                          const mid: [number, number] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+                          const svg = svgRef.current;
+                          if (!svg) return mid;
+                          // Convert SVG coords back to client coords for the handler.
+                          const rect = svg.getBoundingClientRect();
+                          const sx = rect.left + (mid[0] / VIEW_W) * rect.width;
+                          const sy = rect.top + (mid[1] / VIEW_H) * rect.height;
+                          return [sx, sy] as [number, number];
+                        })(),
+                      )
+                    }
+                    data-testid="button-add-point"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Add point
+                  </Button>
+                  <p className="text-[11px] text-gray-400">
+                    Double-click an edge to add a point there, or double-click a blue dot to remove
+                    it (minimum 3 points).
+                  </p>
+                </div>
+              )}
             </div>
           ) : isEditing ? (
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Select a shape to edit it, or add a new Rectangle / Polygon. Drag shapes to move,
-              drag the corner handle to resize, and drag the blue dots to reshape polygons.
+              Select a shape to edit it, or add a new Rectangle / Polygon. Drag shapes to move, drag
+              the corner handle to resize a rectangle, and drag the blue dots to reshape polygons.
+              Double-click a polygon edge to add a point, or double-click a dot to remove it.
             </p>
           ) : selected ? (
             <div className="space-y-3">
