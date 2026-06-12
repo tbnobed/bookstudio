@@ -387,12 +387,10 @@ export default function FacilityMap() {
     }
   };
 
-  const onShapeClick = (room: DraftRoom) => {
-    if (isEditing) {
-      setSelectedUid(room.uid);
-    } else {
-      setSelectedUid(room.uid);
-    }
+  const onShapeClick = (e: React.MouseEvent, room: DraftRoom) => {
+    // Prevent the SVG background onClick (which deselects) from firing.
+    e.stopPropagation();
+    setSelectedUid(room.uid);
   };
 
   const openBooking = (room: DraftRoom) => {
@@ -434,7 +432,7 @@ export default function FacilityMap() {
       <g
         key={room.uid}
         style={{ cursor }}
-        onClick={() => onShapeClick(room)}
+        onClick={(e) => onShapeClick(e, room)}
         onPointerDown={(e) => (isEditing ? startDrag(e, room, "move") : undefined)}
         className="transition-opacity hover:opacity-80"
       >
