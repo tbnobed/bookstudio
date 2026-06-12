@@ -923,7 +923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/facility-map", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+  app.put("/api/facility-map", isAuthenticated, hasRole(["admin", "site_manager", "engineer", "it"]), async (req, res) => {
     try {
       const rooms = z.array(insertFacilityMapRoomSchema).parse(req.body);
       // A room may link to a studio OR a PCR room, never both.

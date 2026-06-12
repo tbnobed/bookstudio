@@ -150,7 +150,11 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const canEdit =
-    allowEdit && !isMobile && (user?.role === "admin" || user?.role === "site_manager");
+    allowEdit && !isMobile &&
+    (user?.role === "admin" ||
+      user?.role === "site_manager" ||
+      user?.role === "engineer" ||
+      user?.role === "it");
 
   const { data: rooms = [] } = useQuery<FacilityMapRoom[]>({
     queryKey: ["/api/facility-map"],
