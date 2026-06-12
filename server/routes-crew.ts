@@ -24,9 +24,9 @@ function generateToken(): string {
 
 export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middleware; hasRole: (roles: string[]) => Middleware }) {
   const { isAuthenticated, hasRole } = mw;
-  const ADMIN_ROLES = ["admin", "site_manager"];
+  const ADMIN_ROLES = ["admin", "site_manager", "production_coordinator"];
   // Producers/production can manage their roster too
-  const PRODUCER_ROLES = ["admin", "site_manager", "producer", "production"];
+  const PRODUCER_ROLES = ["admin", "site_manager", "producer", "production", "production_coordinator"];
 
   // ─── Public response routes (no auth) ──────────────────────────────────────
   app.get("/api/crew/respond/:token", async (req, res) => {

@@ -29,7 +29,7 @@ import { Loader2, Copy, Check } from "lucide-react";
 // Form validation schema
 const inviteFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  role: z.enum(["admin", "producer", "production", "engineer", "it", "site_manager", "viewer"])
+  role: z.enum(["admin", "producer", "production", "production_coordinator", "engineer", "it", "site_manager", "viewer"])
 });
 
 type InviteFormData = z.infer<typeof inviteFormSchema>;
@@ -191,6 +191,7 @@ export default function InviteUserForm() {
                   <SelectItem value="viewer">Viewer</SelectItem>
                   <SelectItem value="producer">Producer</SelectItem>
                   <SelectItem value="production">Production</SelectItem>
+                  <SelectItem value="production_coordinator">Production Coordinator</SelectItem>
                   <SelectItem value="engineer">Engineer</SelectItem>
                   <SelectItem value="it">IT</SelectItem>
                   <SelectItem value="site_manager">Site Manager</SelectItem>

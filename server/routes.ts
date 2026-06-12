@@ -232,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Admins can invite any role
         parsedData = z.object({
           email: z.string().email(),
-          role: z.enum(["admin", "producer", "production", "engineer", "it", "site_manager", "viewer"])
+          role: z.enum(["admin", "producer", "production", "production_coordinator", "engineer", "it", "site_manager", "viewer"])
         }).parse(req.body);
       }
       
@@ -807,7 +807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/pcr-rooms/:id/status", isAuthenticated, hasRole(["admin", "engineer", "production", "it", "site_manager"]), async (req, res) => {
+  app.patch("/api/pcr-rooms/:id/status", isAuthenticated, hasRole(["admin", "engineer", "production", "production_coordinator", "it", "site_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = z.object({ status: z.string() }).parse(req.body);

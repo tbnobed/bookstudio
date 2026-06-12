@@ -339,6 +339,9 @@ export default function UserManagement() {
     if (role === "site_manager") {
       return "Site Manager";
     }
+    if (role === "production_coordinator") {
+      return "Production Coordinator";
+    }
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
@@ -351,6 +354,8 @@ export default function UserManagement() {
         return "bg-blue-100 text-blue-800 border-blue-300";
       case "production":
         return "bg-teal-100 text-teal-800 border-teal-300";
+      case "production_coordinator":
+        return "bg-cyan-100 text-cyan-800 border-cyan-300";
       case "engineer":
         return "bg-green-100 text-green-800 border-green-300";
       case "it":
@@ -708,6 +713,7 @@ export default function UserManagement() {
                   <SelectItem value="viewer">Viewer</SelectItem>
                   <SelectItem value="producer">Producer</SelectItem>
                   <SelectItem value="production">Production</SelectItem>
+                  <SelectItem value="production_coordinator">Production Coordinator</SelectItem>
                   <SelectItem value="engineer">Engineer</SelectItem>
                   <SelectItem value="it">IT</SelectItem>
                   <SelectItem value="site_manager">Site Manager</SelectItem>
@@ -781,6 +787,7 @@ export default function UserManagement() {
                   <SelectItem value="viewer">Viewer</SelectItem>
                   <SelectItem value="producer">Producer</SelectItem>
                   <SelectItem value="production">Production</SelectItem>
+                  <SelectItem value="production_coordinator">Production Coordinator</SelectItem>
                   <SelectItem value="engineer">Engineer</SelectItem>
                   <SelectItem value="it">IT</SelectItem>
                   <SelectItem value="site_manager">Site Manager</SelectItem>
