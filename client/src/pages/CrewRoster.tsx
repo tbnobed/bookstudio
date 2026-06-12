@@ -13,13 +13,33 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Search, Mail, Phone, DollarSign, Users } from "lucide-react";
-import { CrewMember, CrewPosition } from "@shared/schema";
+import { Plus, Pencil, Trash2, Search, Mail, Phone, DollarSign, Users, Calendar, ChevronDown, CheckCircle2, Clock, XCircle, CircleDashed } from "lucide-react";
+import { CrewMember, CrewPosition, Studio } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CrewPositionsSettings } from "@/components/settings/CrewPositionsSettings";
 import { CrewTemplatesSettings } from "@/components/settings/CrewTemplatesSettings";
+import { formatDateTimeRange } from "@/lib/dateUtils";
+import { cn } from "@/lib/utils";
 
 type EnrichedMember = CrewMember & { positions: CrewPosition[] };
+
+type AssignmentSlot = {
+  id: number;
+  positionId: number;
+  positionName: string;
+  category: string;
+  crewMemberId: number | null;
+  memberName: string | null;
+  status: "unfilled" | "pending" | "confirmed" | "declined";
+  invitedAt: string | null;
+  respondedAt: string | null;
+  declineReason: string | null;
+};
+type AssignmentBooking = {
+  booking: { id: number; title: string; start: string; end: string; studioId: number | null; type: string; status: string };
+  slots: AssignmentSlot[];
+  counts: { required: number; unfilled: number; pending: number; confirmed: number; declined: number };
+};
 
 function dollars(cents: number) { return `$${((cents || 0) / 100).toFixed(2)}`; }
 
@@ -63,6 +83,7 @@ export default function CrewRoster() {
       <Tabs defaultValue="roster" className="space-y-6">
         <TabsList>
           <TabsTrigger value="roster">Roster</TabsTrigger>
+          <TabsTrigger value="assignments">Assignments</TabsTrigger>
           <TabsTrigger value="positions">Crew Positions</TabsTrigger>
           <TabsTrigger value="templates">Crew Templates</TabsTrigger>
         </TabsList>
@@ -127,6 +148,10 @@ export default function CrewRoster() {
           ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="assignments" className="mt-0">
+          <CrewAssignments />
         </TabsContent>
 
         <TabsContent value="positions" className="mt-0">
@@ -257,5 +282,154 @@ function CrewMemberDialog({ member, positions, canSeeRates, onClose }: { member:
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+const SLOT_STATUS_META: Record<AssignmentSlot["status"], { label: string; icon: typeof Clock; className: string; dot: string }> = {
+  unfilled: { label: "Unfilled", icon: CircleDashed, className: "text-muted-foreground", dot: "bg-gray-400" },
+  pending: { label: "Invited", icon: Clock, className: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500" },
+  confirmed: { label: "Confirmed", icon: CheckCircle2, className: "text-green-600 dark:text-green-400", dot: "bg-green-500" },
+  declined: { label: "Declined", icon: XCircle, className: "text-red-600 dark:text-red-400", dot: "bg-red-500" },
+};
+
+type AssignmentFilter = "all" | "needs_crew" | "awaiting" | "staffed";
+
+function CrewAssignments() {
+  const [filter, setFilter] = useState<AssignmentFilter>("all");
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+
+  const { data: assignments = [], isLoading } = useQuery<AssignmentBooking[]>({ queryKey: ["/api/crew/assignments"] });
+  const { data: studios = [] } = useQuery<Studio[]>({ queryKey: ["/api/studios"] });
+  const studioName = (id: number | null) => studios.find(s => s.id === id)?.name ?? "—";
+
+  const isFullyStaffed = (a: AssignmentBooking) => a.counts.required > 0 && a.counts.confirmed === a.counts.required;
+
+  const filtered = assignments.filter(a => {
+    if (filter === "needs_crew") return a.counts.unfilled > 0 || a.counts.declined > 0;
+    if (filter === "awaiting") return a.counts.pending > 0;
+    if (filter === "staffed") return isFullyStaffed(a);
+    return true;
+  });
+
+  const totals = {
+    all: assignments.length,
+    needs_crew: assignments.filter(a => a.counts.unfilled > 0 || a.counts.declined > 0).length,
+    awaiting: assignments.filter(a => a.counts.pending > 0).length,
+    staffed: assignments.filter(isFullyStaffed).length,
+  };
+
+  const FILTERS: { key: AssignmentFilter; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "needs_crew", label: "Needs crew" },
+    { key: "awaiting", label: "Awaiting response" },
+    { key: "staffed", label: "Fully staffed" },
+  ];
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {FILTERS.map(f => (
+          <Button
+            key={f.key}
+            size="sm"
+            variant={filter === f.key ? "default" : "outline"}
+            onClick={() => setFilter(f.key)}
+            data-testid={`filter-assignments-${f.key}`}
+          >
+            {f.label}
+            <Badge variant="secondary" className="ml-2">{totals[f.key]}</Badge>
+          </Button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <p className="text-muted-foreground">Loading…</p>
+      ) : filtered.length === 0 ? (
+        <Card><CardContent className="py-12 text-center text-muted-foreground">
+          {assignments.length === 0
+            ? "No upcoming bookings have crew slots yet. Add crew to a booking from its Crew tab."
+            : "No bookings match this filter."}
+        </CardContent></Card>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(a => {
+            const open = !!expanded[a.booking.id];
+            const fullyStaffed = isFullyStaffed(a);
+            return (
+              <Card key={a.booking.id} data-testid={`assignment-${a.booking.id}`}>
+                <button
+                  type="button"
+                  onClick={() => setExpanded(prev => ({ ...prev, [a.booking.id]: !open }))}
+                  className="w-full text-left"
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <CardTitle className="text-base truncate">{a.booking.title}</CardTitle>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {formatDateTimeRange(a.booking.start, a.booking.end)}</span>
+                          <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {studioName(a.booking.studioId)}</span>
+                        </div>
+                      </div>
+                      <ChevronDown className={cn("h-5 w-5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className={cn(
+                        "text-sm font-medium",
+                        fullyStaffed ? "text-green-600 dark:text-green-400" : "text-foreground",
+                      )}>
+                        {a.counts.confirmed}/{a.counts.required} confirmed
+                      </span>
+                      {a.counts.unfilled > 0 && <StatusPill status="unfilled" count={a.counts.unfilled} />}
+                      {a.counts.pending > 0 && <StatusPill status="pending" count={a.counts.pending} />}
+                      {a.counts.confirmed > 0 && <StatusPill status="confirmed" count={a.counts.confirmed} />}
+                      {a.counts.declined > 0 && <StatusPill status="declined" count={a.counts.declined} />}
+                    </div>
+                  </CardHeader>
+                </button>
+
+                {open && (
+                  <CardContent className="pt-0">
+                    <div className="border-t pt-3 space-y-2">
+                      {a.slots.map(s => {
+                        const meta = SLOT_STATUS_META[s.status];
+                        const Icon = meta.icon;
+                        return (
+                          <div key={s.id} className="flex items-start justify-between gap-3 text-sm">
+                            <div className="min-w-0">
+                              <div className="font-medium truncate">{s.positionName}</div>
+                              <div className="text-xs text-muted-foreground truncate">
+                                {s.memberName ?? <span className="italic">No one assigned</span>}
+                                {s.status === "declined" && s.declineReason && (
+                                  <span className="text-red-600 dark:text-red-400"> — {s.declineReason}</span>
+                                )}
+                              </div>
+                            </div>
+                            <span className={cn("flex shrink-0 items-center gap-1.5 text-xs font-medium", meta.className)}>
+                              <Icon className="h-3.5 w-3.5" /> {meta.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatusPill({ status, count }: { status: AssignmentSlot["status"]; count: number }) {
+  const meta = SLOT_STATUS_META[status];
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+      <span className={cn("h-2 w-2 rounded-full", meta.dot)} />
+      {count} {meta.label.toLowerCase()}
+    </span>
   );
 }

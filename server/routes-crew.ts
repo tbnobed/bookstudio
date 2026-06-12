@@ -269,6 +269,86 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
     } catch (err: any) { res.status(400).json({ message: err.message }); }
   });
 
+  // ─── Crew assignments overview (across all upcoming bookings) ──────────────
+  // Aggregates every crew slot grouped by its booking so producers can track,
+  // in one place, how much crew each upcoming production requires and where each
+  // invite stands (unfilled / pending / confirmed / declined). Rates are never
+  // exposed here — this is a staffing tracker, not a cost view.
+  app.get("/api/crew/assignments", isAuthenticated, async (_req, res) => {
+    try {
+      const [allSlots, positions, members] = await Promise.all([
+        storage.getAllBookingCrew(),
+        storage.getAllCrewPositions(),
+        storage.getAllCrewMembers(),
+      ]);
+
+      const posById = new Map(positions.map(p => [p.id, p]));
+      const memberById = new Map(members.map(m => [m.id, m]));
+
+      // Group slots by booking.
+      const byBooking = new Map<number, typeof allSlots>();
+      for (const s of allSlots) {
+        const list = byBooking.get(s.bookingId) || [];
+        list.push(s);
+        byBooking.set(s.bookingId, list);
+      }
+
+      // Only include upcoming bookings (end in the future). Instant comparison —
+      // timezone-independent, no calendar-date math involved.
+      const now = Date.now();
+      const bookings = await Promise.all(
+        Array.from(byBooking.keys()).map(id => storage.getBooking(id)),
+      );
+
+      const result = bookings
+        .filter((b): b is NonNullable<typeof b> => !!b && new Date(b.end).getTime() >= now)
+        .map(b => {
+          const slots = (byBooking.get(b.id) || []).map(s => {
+            const position = posById.get(s.positionId) || null;
+            const member = s.crewMemberId ? memberById.get(s.crewMemberId) || null : null;
+            return {
+              id: s.id,
+              positionId: s.positionId,
+              positionName: position?.name ?? "Unknown position",
+              category: position?.category ?? "other",
+              crewMemberId: s.crewMemberId,
+              memberName: member?.name ?? null,
+              status: s.status,
+              invitedAt: s.invitedAt,
+              respondedAt: s.respondedAt,
+              declineReason: s.declineReason,
+            };
+          });
+          const counts = {
+            required: slots.length,
+            unfilled: slots.filter(s => s.status === "unfilled").length,
+            pending: slots.filter(s => s.status === "pending").length,
+            confirmed: slots.filter(s => s.status === "confirmed").length,
+            declined: slots.filter(s => s.status === "declined").length,
+          };
+          return {
+            booking: {
+              id: b.id,
+              title: b.title,
+              start: b.start,
+              end: b.end,
+              studioId: b.studioId,
+              type: b.type,
+              status: b.status,
+            },
+            slots,
+            counts,
+          };
+        })
+        .sort((a, z) => new Date(a.booking.start).getTime() - new Date(z.booking.start).getTime());
+
+      res.json(result);
+    } catch (err) {
+      console.error("Crew assignments overview error:", err);
+      res.status(500).json({ message: "Failed to load crew assignments" });
+    }
+  });
+
   // ─── Booking crew assignments ──────────────────────────────────────────────
   app.get("/api/bookings/:id/crew", isAuthenticated, async (req, res) => {
     const bookingId = parseInt(req.params.id);

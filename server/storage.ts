@@ -260,6 +260,7 @@ export interface IStorage {
 
   // Booking crew assignments
   getBookingCrew(bookingId: number): Promise<BookingCrew[]>;
+  getAllBookingCrew(): Promise<BookingCrew[]>;
   addBookingCrewSlot(data: InsertBookingCrew): Promise<BookingCrew>;
   updateBookingCrewSlot(id: number, data: Partial<BookingCrew>): Promise<BookingCrew | undefined>;
   deleteBookingCrewSlot(id: number): Promise<boolean>;
@@ -1270,6 +1271,7 @@ export class MemStorage implements IStorage {
   async deleteCrewTemplate(_id: number): Promise<boolean> { return false; }
   async getCrewTemplateSlots(_templateId: number): Promise<CrewTemplateSlot[]> { return []; }
   async getBookingCrew(_bookingId: number): Promise<BookingCrew[]> { return []; }
+  async getAllBookingCrew(): Promise<BookingCrew[]> { return []; }
   async addBookingCrewSlot(_data: InsertBookingCrew): Promise<BookingCrew> { throw new Error("Not implemented in MemStorage"); }
   async updateBookingCrewSlot(_id: number, _data: Partial<BookingCrew>): Promise<BookingCrew | undefined> { return undefined; }
   async deleteBookingCrewSlot(_id: number): Promise<boolean> { return false; }
@@ -4643,6 +4645,10 @@ export class DatabaseStorage implements IStorage {
 
   async getBookingCrew(bookingId: number): Promise<BookingCrew[]> {
     return db.select().from(bookingCrew).where(eq(bookingCrew.bookingId, bookingId)).orderBy(asc(bookingCrew.id));
+  }
+
+  async getAllBookingCrew(): Promise<BookingCrew[]> {
+    return db.select().from(bookingCrew).orderBy(asc(bookingCrew.bookingId), asc(bookingCrew.id));
   }
   async addBookingCrewSlot(data: InsertBookingCrew): Promise<BookingCrew> {
     const [row] = await db.insert(bookingCrew).values(data).returning();

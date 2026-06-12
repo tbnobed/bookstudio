@@ -254,7 +254,10 @@ export function formatDateTimeRange(start: Date | string, end: Date | string): s
     return "Invalid Date Range";
   }
   
-  const sameDay = startDate.toDateString() === endDate.toDateString();
+  // Compare calendar days in the FACILITY timezone, never browser-local, so a
+  // booking that crosses midnight is classified consistently for all viewers.
+  const dayKey = (d: Date) => d.toLocaleDateString("en-US", { timeZone: FACILITY_TIMEZONE });
+  const sameDay = dayKey(startDate) === dayKey(endDate);
   
   if (sameDay) {
     return `${formatDate(startDate)}, ${formatTime(startDate)} - ${formatTime(endDate)}`;
