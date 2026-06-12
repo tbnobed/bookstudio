@@ -1132,16 +1132,6 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                 </div>
               )}
 
-              {selected.studioId && (
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                  <StudioPhotos
-                    studioId={selected.studioId}
-                    studioName={selected.label}
-                    canManage={canManagePhotos}
-                  />
-                </div>
-              )}
-
               {(selected.studioId || selected.pcrRoomId) && (
                 <Button size="sm" className="w-full" onClick={() => openBooking(selected)} data-testid="button-book-room">
                   <CalendarPlus className="h-4 w-4 mr-1.5" /> Book {selected.label}
