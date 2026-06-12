@@ -15,6 +15,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Pencil, Trash2, Search, Mail, Phone, DollarSign, Users } from "lucide-react";
 import { CrewMember, CrewPosition } from "@shared/schema";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CrewPositionsSettings } from "@/components/settings/CrewPositionsSettings";
+import { CrewTemplatesSettings } from "@/components/settings/CrewTemplatesSettings";
 
 type EnrichedMember = CrewMember & { positions: CrewPosition[] };
 
@@ -51,30 +54,39 @@ export default function CrewRoster() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2"><Users className="h-7 w-7" /> Crew Roster</h1>
-          <p className="text-muted-foreground mt-1">Freelance crew for productions — TDs, camera ops, A1/A2, and more.</p>
-        </div>
-        <Button onClick={() => setCreating(true)} data-testid="button-add-crew-member">
-          <Plus className="h-4 w-4 mr-2" /> Add Crew Member
-        </Button>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold flex items-center gap-2"><Users className="h-7 w-7" /> Crew</h1>
+        <p className="text-muted-foreground mt-1">Freelance crew for productions — TDs, camera ops, A1/A2, and more.</p>
       </div>
 
-      <div className="mb-4 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input className="pl-10" placeholder="Search by name, email, or position…" value={search} onChange={e => setSearch(e.target.value)} />
-      </div>
+      <Tabs defaultValue="roster" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="roster">Roster</TabsTrigger>
+          <TabsTrigger value="positions">Crew Positions</TabsTrigger>
+          <TabsTrigger value="templates">Crew Templates</TabsTrigger>
+        </TabsList>
 
-      {isLoading ? (
-        <p className="text-muted-foreground">Loading…</p>
-      ) : filtered.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-muted-foreground">
-          {members.length === 0 ? "No crew yet — add your first freelancer above." : "No matches."}
-        </CardContent></Card>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(m => (
+        <TabsContent value="roster" className="mt-0">
+          <div className="flex items-center justify-end mb-4">
+            <Button onClick={() => setCreating(true)} data-testid="button-add-crew-member">
+              <Plus className="h-4 w-4 mr-2" /> Add Crew Member
+            </Button>
+          </div>
+
+          <div className="mb-4 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input className="pl-10" placeholder="Search by name, email, or position…" value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+
+          {isLoading ? (
+            <p className="text-muted-foreground">Loading…</p>
+          ) : filtered.length === 0 ? (
+            <Card><CardContent className="py-12 text-center text-muted-foreground">
+              {members.length === 0 ? "No crew yet — add your first freelancer above." : "No matches."}
+            </CardContent></Card>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {filtered.map(m => (
             <Card key={m.id} className={m.isActive ? "" : "opacity-60"}>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
@@ -110,8 +122,18 @@ export default function CrewRoster() {
               </CardContent>
             </Card>
           ))}
-        </div>
-      )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="positions" className="mt-0">
+          <CrewPositionsSettings />
+        </TabsContent>
+
+        <TabsContent value="templates" className="mt-0">
+          <CrewTemplatesSettings />
+        </TabsContent>
+      </Tabs>
 
       {(creating || editing) && (
         <CrewMemberDialog
