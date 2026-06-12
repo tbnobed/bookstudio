@@ -358,7 +358,7 @@ export default function UserManagement() {
       case "site_manager":
         return "bg-amber-100 text-amber-800 border-amber-300";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "bg-gray-100 text-neutral-800 border-gray-300";
     }
   };
 
@@ -440,11 +440,11 @@ export default function UserManagement() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800">
                     <ShieldOff className="h-4 w-4 text-gray-500" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">{localOnlyCount}</p>
+                    <p className="text-2xl font-bold text-neutral-700 dark:text-gray-300">{localOnlyCount}</p>
                     <p className="text-xs text-gray-500">local only</p>
                   </div>
                 </div>
@@ -453,7 +453,7 @@ export default function UserManagement() {
                     <span>Migration</span>
                     <span className="font-medium">{migrationPct}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-neutral-700 rounded-full h-2">
                     <div
                       className="bg-green-500 h-2 rounded-full transition-all duration-500"
                       style={{ width: `${migrationPct}%` }}
@@ -509,7 +509,7 @@ export default function UserManagement() {
                                 Linked
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-2 py-0.5">
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full px-2 py-0.5">
                                 <ShieldOff className="h-3 w-3" />
                                 Local
                               </span>

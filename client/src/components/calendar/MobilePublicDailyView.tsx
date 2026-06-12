@@ -393,7 +393,7 @@ export default function MobilePublicDailyView({
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                  <h4 className="font-medium text-gray-900">{booking.title}</h4>
+                                  <h4 className="font-medium text-neutral-900">{booking.title}</h4>
                                   {booking.description && (
                                     <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                                       {booking.description}
@@ -414,7 +414,7 @@ export default function MobilePublicDailyView({
                                     booking.status === "confirmed" ? "border-green-500 text-green-700 bg-green-50" :
                                     booking.status === "tentative" ? "border-orange-500 text-orange-700 bg-orange-50" :
                                     booking.status === "cancelled" ? "border-red-500 text-red-700 bg-red-50" :
-                                    "border-gray-500 text-gray-700 bg-gray-50"
+                                    "border-gray-500 text-neutral-700 bg-gray-50"
                                   )}>
                                     {booking.status}
                                   </Badge>
@@ -518,7 +518,7 @@ export default function MobilePublicDailyView({
                                 booking.status === "confirmed" ? "border-green-500 text-green-700 bg-green-50" :
                                 booking.status === "tentative" ? "border-orange-500 text-orange-700 bg-orange-50" :
                                 booking.status === "cancelled" ? "border-red-500 text-red-700 bg-red-50" :
-                                "border-gray-500 text-gray-700 bg-gray-50"
+                                "border-gray-500 text-neutral-700 bg-gray-50"
                               )}>
                                 {booking.status}
                               </Badge>

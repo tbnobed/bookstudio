@@ -35,7 +35,7 @@ const CATEGORIES = [
     pill: "border-purple-500 text-purple-400", pillActive: "bg-purple-500/20 border-purple-400 text-purple-300" },
   { value: "video",     label: "Video",     color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300",
     pill: "border-rose-500 text-rose-400",     pillActive: "bg-rose-500/20 border-rose-400 text-rose-300" },
-  { value: "cable",     label: "Cable",     color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+  { value: "cable",     label: "Cable",     color: "bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400",
     pill: "border-gray-500 text-gray-400",     pillActive: "bg-gray-500/20 border-gray-300 text-gray-200" },
   { value: "accessory", label: "Accessory", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
     pill: "border-green-500 text-green-400",   pillActive: "bg-green-500/20 border-green-400 text-green-300" },
@@ -362,7 +362,7 @@ function AssetPhotoSection({ assetId }: { assetId: number }) {
   };
 
   return (
-    <div className="border-t border-gray-100 dark:border-gray-700 pt-2 mt-1">
+    <div className="border-t border-gray-100 dark:border-neutral-700 pt-2 mt-1">
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 
       <button
@@ -451,7 +451,7 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
 
   return (
     <div className={cn(
-      "bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 space-y-3",
+      "bg-white dark:bg-neutral-800 rounded-2xl shadow-sm border border-gray-100 dark:border-neutral-700 p-4 space-y-3",
       isRetired && "opacity-50 grayscale-[40%]"
     )}>
       {/* Top row */}
@@ -461,7 +461,7 @@ function AssetCard({ asset, activeCheckout, currentUserId, onCheckout, onCheckin
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className={cn("font-semibold text-gray-900 dark:text-white text-sm leading-tight truncate", isRetired && "italic line-through decoration-gray-400")}>{asset.name}</p>
+            <p className={cn("font-semibold text-neutral-900 dark:text-white text-sm leading-tight truncate", isRetired && "italic line-through decoration-gray-400")}>{asset.name}</p>
             {(asset as any).isKit && (
               <span className="flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-violet-400 text-violet-600 dark:text-violet-400 shrink-0">
                 <Layers className="h-2.5 w-2.5" />Kit
@@ -1068,15 +1068,15 @@ export default function MobileAssetsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col">
       {/* ── Standalone header ────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 pt-4 pb-3 space-y-3">
+      <div className="sticky top-0 z-10 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 px-4 pt-4 pb-3 space-y-3">
         <div className="flex items-center gap-2">
           <div className="flex-1">
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">Equipment</h1>
+            <h1 className="text-lg font-bold text-neutral-900 dark:text-white leading-tight">Equipment</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">{assets.length} items in inventory</p>
           </div>
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700 active:scale-95 transition-all"
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -1109,7 +1109,7 @@ export default function MobileAssetsPage() {
             className="pl-9 pr-8 h-10 rounded-xl"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700">
               <X className="h-3.5 w-3.5 text-gray-400" />
             </button>
           )}
@@ -1122,8 +1122,8 @@ export default function MobileAssetsPage() {
             className={cn(
               "shrink-0 px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95",
               categoryFilter === "all"
-                ? "bg-gray-800 border-gray-700 text-white dark:bg-white/15 dark:border-white/60 dark:text-white"
-                : "border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-700 dark:border-white/20 dark:text-white/50 dark:hover:border-white/40 dark:hover:text-white/70"
+                ? "bg-neutral-800 border-neutral-700 text-white dark:bg-white/15 dark:border-white/60 dark:text-white"
+                : "border-gray-300 text-gray-500 hover:border-gray-400 hover:text-neutral-700 dark:border-white/20 dark:text-white/50 dark:hover:border-white/40 dark:hover:text-white/70"
             )}
           >
             All assets
@@ -1143,7 +1143,7 @@ export default function MobileAssetsPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+        <div className="flex gap-1 p-1 bg-gray-100 dark:bg-neutral-800 rounded-xl">
           {([
             { key: "all",       label: `All (${assets.length})` },
             { key: "mine",      label: `My Gear (${activeCheckouts.filter(c => c.checkedOutBy === user?.id).length})` },
@@ -1155,7 +1155,7 @@ export default function MobileAssetsPage() {
               className={cn(
                 "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors",
                 tab === t.key
-                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                  ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm"
                   : "text-gray-500 dark:text-gray-400"
               )}
             >
@@ -1170,7 +1170,7 @@ export default function MobileAssetsPage() {
           className={cn(
             "flex items-center gap-1.5 self-start px-3 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95",
             showRetired
-              ? "bg-gray-200 dark:bg-gray-700 border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-200"
+              ? "bg-gray-200 dark:bg-neutral-700 border-gray-400 dark:border-gray-500 text-neutral-700 dark:text-gray-200"
               : "bg-transparent border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500"
           )}
         >
@@ -1218,11 +1218,11 @@ export default function MobileAssetsPage() {
       <div className="flex-1 p-4 pb-8 space-y-3">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
+            <div key={i} className="h-32 bg-gray-200 dark:bg-neutral-800 rounded-2xl animate-pulse" />
           ))
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
               <Package className="h-7 w-7 text-gray-400" />
             </div>
             <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -1256,12 +1256,12 @@ export default function MobileAssetsPage() {
           </SheetHeader>
           {checkoutAsset && (
             <div className="space-y-4 pb-4">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl">
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", getCat(checkoutAsset.category).color)}>
                   <Package className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-gray-900 dark:text-white">{checkoutAsset.name}</p>
+                  <p className="font-semibold text-sm text-neutral-900 dark:text-white">{checkoutAsset.name}</p>
                   {checkoutAsset.serialNumber && (
                     <p className="text-xs text-gray-500"># {checkoutAsset.serialNumber}</p>
                   )}
@@ -1334,7 +1334,7 @@ export default function MobileAssetsPage() {
       {/* ── Add asset sheet ──────────────────────────────────────────────────── */}
       <Sheet open={addOpen} onOpenChange={open => { setAddOpen(open); if (!open) { setPendingPhotos([]); } }}>
         <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto">
-          <SheetHeader className="mb-4 sticky top-0 bg-white dark:bg-gray-900 pb-2">
+          <SheetHeader className="mb-4 sticky top-0 bg-white dark:bg-neutral-900 pb-2">
             <SheetTitle>Add New Asset</SheetTitle>
           </SheetHeader>
 
@@ -1389,7 +1389,7 @@ export default function MobileAssetsPage() {
                 />
                 <button
                   onClick={() => handleOpenScanner("serial")}
-                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 active:scale-95 transition-all shrink-0"
                   title="Scan barcode label"
                 >
                   <ScanLine className="h-4 w-4 text-blue-500" />
@@ -1397,7 +1397,7 @@ export default function MobileAssetsPage() {
                 </button>
                 <button
                   onClick={() => handleOcrScan("serial")}
-                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 active:scale-95 transition-all shrink-0"
                   title="Read text from label"
                 >
                   <ScanText className="h-4 w-4 text-emerald-500" />
@@ -1418,7 +1418,7 @@ export default function MobileAssetsPage() {
                 />
                 <button
                   onClick={() => handleOpenScanner("tag")}
-                  className="flex items-center gap-1.5 px-3 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  className="flex items-center gap-1.5 px-3 h-11 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 active:scale-95 transition-all shrink-0"
                   title="Scan pre-printed barcode label"
                 >
                   <ScanLine className="h-4 w-4 text-purple-500" />
@@ -1426,7 +1426,7 @@ export default function MobileAssetsPage() {
                 </button>
                 <button
                   onClick={() => handleOcrScan("tag")}
-                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  className="flex items-center gap-1 px-2.5 h-11 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 active:scale-95 transition-all shrink-0"
                   title="Read text from label"
                 >
                   <ScanText className="h-4 w-4 text-emerald-500" />
@@ -1501,7 +1501,7 @@ export default function MobileAssetsPage() {
                       <img
                         src={src}
                         alt={`Photo ${i + 1}`}
-                        className="h-20 w-20 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
+                        className="h-20 w-20 object-cover rounded-xl border border-gray-200 dark:border-neutral-700"
                       />
                       <button
                         type="button"
@@ -1521,7 +1521,7 @@ export default function MobileAssetsPage() {
                   type="button"
                   onClick={() => newAssetPhotoRef.current?.click()}
                   disabled={pendingPhotoLoading}
-                  className="w-full h-20 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 transition-colors active:scale-[0.98]"
+                  className="w-full h-20 rounded-xl border-2 border-dashed border-gray-200 dark:border-neutral-700 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 transition-colors active:scale-[0.98]"
                 >
                   {pendingPhotoLoading
                     ? <Loader2 className="h-5 w-5 animate-spin" />
@@ -1551,7 +1551,7 @@ export default function MobileAssetsPage() {
       {/* ── Edit asset sheet ─────────────────────────────────────────────────── */}
       <Sheet open={editOpen} onOpenChange={setEditOpen}>
         <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto">
-          <SheetHeader className="mb-4 sticky top-0 bg-white dark:bg-gray-900 pb-2 z-10">
+          <SheetHeader className="mb-4 sticky top-0 bg-white dark:bg-neutral-900 pb-2 z-10">
             <SheetTitle className="flex items-center gap-2">
               <Pencil className="h-4 w-4 text-blue-500" />
               Edit Asset
@@ -1625,7 +1625,7 @@ export default function MobileAssetsPage() {
                 <button
                   type="button"
                   onClick={() => handleOpenScanner("editTag")}
-                  className="flex items-center gap-1.5 px-3 h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+                  className="flex items-center gap-1.5 px-3 h-11 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 active:scale-95 transition-all shrink-0"
                   title="Scan pre-printed barcode label"
                 >
                   <ScanLine className="h-4 w-4 text-purple-500" />
@@ -1709,9 +1709,9 @@ export default function MobileAssetsPage() {
                 {kitMembers.length > 0 ? (
                   <div className="space-y-2">
                     {kitMembers.map(member => (
-                      <div key={member.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl border border-violet-200 dark:border-violet-800 px-3 py-2">
+                      <div key={member.id} className="flex items-center justify-between bg-white dark:bg-neutral-800 rounded-xl border border-violet-200 dark:border-violet-800 px-3 py-2">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{member.name}</p>
+                          <p className="text-sm font-medium text-neutral-800 dark:text-gray-200 truncate">{member.name}</p>
                           <p className="text-[10px] text-muted-foreground">{member.category} · {member.status}</p>
                         </div>
                         <Button
@@ -1803,11 +1803,11 @@ export default function MobileAssetsPage() {
             {editingAsset && (
               <div className="border-t border-red-200 dark:border-red-900 pt-3 space-y-2">
                 {editingAsset.status === "retired" && editForm.decommissionReason ? (
-                  <div className="rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-3 space-y-1">
+                  <div className="rounded-xl bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-600 p-3 space-y-1">
                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
                       <Archive className="h-3.5 w-3.5" /> Decommissioned
                     </p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{editForm.decommissionReason}"</p>
+                    <p className="text-sm text-neutral-700 dark:text-gray-300 italic">"{editForm.decommissionReason}"</p>
                   </div>
                 ) : editingAsset.status !== "retired" ? (
                   <div>
@@ -1917,9 +1917,9 @@ export default function MobileAssetsPage() {
               <p className="text-sm text-white/50">{ocrProgress}%</p>
             </div>
           ) : (
-            <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl">
               {/* Header */}
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+              <div className="px-5 py-4 border-b border-gray-100 dark:border-neutral-800">
                 <div className="flex items-center gap-2 mb-1">
                   <ScanText className="h-4 w-4 text-emerald-500" />
                   <h3 className="font-semibold text-sm">
@@ -1935,7 +1935,7 @@ export default function MobileAssetsPage() {
 
               {/* Results list */}
               {ocrResults.length > 0 && (
-                <div className="max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+                <div className="max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-neutral-800">
                   {ocrResults.map(r => (
                     <button
                       key={r}
@@ -1950,16 +1950,16 @@ export default function MobileAssetsPage() {
               )}
 
               {/* Footer actions */}
-              <div className="flex gap-2 p-4 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex gap-2 p-4 border-t border-gray-100 dark:border-neutral-800">
                 <button
                   onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOcrResults([]); setOcrProgress(0); openOcrCamera(); }}
-                  className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
+                  className="flex-1 py-2.5 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
                 >
                   Scan again
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOcrPhase("idle"); setOcrTarget(null); setOcrResults([]); }}
-                  className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
+                  className="flex-1 py-2.5 bg-gray-100 dark:bg-neutral-800 rounded-xl text-sm font-medium text-center active:scale-95 transition-all"
                 >
                   Cancel
                 </button>
@@ -1978,23 +1978,23 @@ export default function MobileAssetsPage() {
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
-            className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl p-6 pb-10"
+            className="relative w-full max-w-sm bg-white dark:bg-neutral-900 rounded-t-3xl shadow-2xl p-6 pb-10"
             onClick={e => e.stopPropagation()}
           >
-            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-5" />
+            <div className="w-10 h-1 bg-gray-200 dark:bg-neutral-700 rounded-full mx-auto mb-5" />
             <div className="flex items-center gap-3 mb-4">
               <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
                 <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <h2 className="font-bold text-gray-900 dark:text-white text-base">Change Asset Tag?</h2>
+                <h2 className="font-bold text-neutral-900 dark:text-white text-base">Change Asset Tag?</h2>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Labels using the old tag will no longer scan</p>
               </div>
             </div>
             <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-2 text-sm mb-4">
               <div className="flex items-center gap-3">
                 <span className="text-gray-500 w-16 shrink-0 text-xs">Old tag</span>
-                <span className="font-mono font-semibold text-gray-700 dark:text-gray-300 truncate">
+                <span className="font-mono font-semibold text-neutral-700 dark:text-gray-300 truncate">
                   {tagChangeConfirm.oldTag || "(none)"}
                 </span>
               </div>
@@ -2011,7 +2011,7 @@ export default function MobileAssetsPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setTagChangeConfirm(null)}
-                className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 active:scale-95 transition-all"
+                className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-neutral-700 text-sm font-semibold text-neutral-700 dark:text-gray-300 active:scale-95 transition-all"
               >
                 Cancel
               </button>

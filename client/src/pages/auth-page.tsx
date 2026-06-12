@@ -203,9 +203,9 @@ export default function AuthPage() {
             )}
           </div>
           
-          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
+          <div className="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
             <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
                 {activeTab === "login" && "Sign In"}
                 {activeTab === "forgot-password" && "Reset Password"}
                 {activeTab === "register" && "Create Account"}
@@ -222,13 +222,13 @@ export default function AuthPage() {
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Label htmlFor="username" className="text-sm font-medium text-neutral-700 dark:text-gray-300">
                       Username
                     </Label>
                     <Input
                       id="username"
                       placeholder="Enter your username"
-                      className="h-11 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                      className="h-11 bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                       {...loginForm.register("username")}
                       data-testid="input-username"
                     />
@@ -238,14 +238,14 @@ export default function AuthPage() {
                   </div>
                   
                   <div className="space-y-1.5">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Label htmlFor="password" className="text-sm font-medium text-neutral-700 dark:text-gray-300">
                       Password
                     </Label>
                     <Input
                       id="password"
                       type="password"
                       placeholder="Enter your password"
-                      className="h-11 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                      className="h-11 bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                       {...loginForm.register("password")}
                       data-testid="input-password"
                     />
@@ -285,17 +285,17 @@ export default function AuthPage() {
                     <>
                       <div className="relative my-2">
                         <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+                          <span className="w-full border-t border-gray-200 dark:border-neutral-700" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-white dark:bg-gray-900 px-2 text-gray-400">or</span>
+                          <span className="bg-white dark:bg-neutral-900 px-2 text-gray-400">or</span>
                         </div>
                       </div>
                       <a href="/api/auth/sso" className="block">
                         <Button
                           type="button"
                           variant="outline"
-                          className="w-full h-11 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
+                          className="w-full h-11 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-neutral-800 font-medium"
                           onClick={() => window.location.href = "/api/auth/sso"}
                         >
                           <Shield className="h-4 w-4 mr-2 text-[#003366] dark:text-blue-400" />
@@ -342,14 +342,14 @@ export default function AuthPage() {
                     </p>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="forgot-password-email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <Label htmlFor="forgot-password-email" className="text-sm font-medium text-neutral-700 dark:text-gray-300">
                         Email
                       </Label>
                       <Input
                         id="forgot-password-email"
                         type="email"
                         placeholder="Enter your email address"
-                        className="h-11 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                        className="h-11 bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                         {...forgotPasswordForm.register("email")}
                         data-testid="input-forgot-email"
                       />
@@ -398,11 +398,11 @@ export default function AuthPage() {
               <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)}>
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</Label>
+                    <Label htmlFor="name" className="text-sm font-medium text-neutral-700 dark:text-gray-300">Full Name</Label>
                     <Input
                       id="name"
                       placeholder="Enter your full name"
-                      className="h-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                      className="h-10 bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                       {...registerForm.register("name")}
                       data-testid="input-name"
                     />
@@ -412,12 +412,12 @@ export default function AuthPage() {
                   </div>
                   
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-medium text-neutral-700 dark:text-gray-300">Email</Label>
                     <Input
                       id="email"
                       type="email"
                       placeholder="Enter your email"
-                      className="h-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                      className="h-10 bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                       {...registerForm.register("email")}
                       data-testid="input-email"
                     />
@@ -427,11 +427,11 @@ export default function AuthPage() {
                   </div>
                   
                   <div className="space-y-1.5">
-                    <Label htmlFor="register-username" className="text-sm font-medium text-gray-700 dark:text-gray-300">Username</Label>
+                    <Label htmlFor="register-username" className="text-sm font-medium text-neutral-700 dark:text-gray-300">Username</Label>
                     <Input
                       id="register-username"
                       placeholder="Choose a username"
-                      className="h-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                      className="h-10 bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                       {...registerForm.register("username")}
                       data-testid="input-register-username"
                     />
@@ -441,12 +441,12 @@ export default function AuthPage() {
                   </div>
                   
                   <div className="space-y-1.5">
-                    <Label htmlFor="register-password" className="text-sm font-medium text-gray-700 dark:text-gray-300">Password</Label>
+                    <Label htmlFor="register-password" className="text-sm font-medium text-neutral-700 dark:text-gray-300">Password</Label>
                     <Input
                       id="register-password"
                       type="password"
                       placeholder="Choose a password"
-                      className="h-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                      className="h-10 bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                       {...registerForm.register("password")}
                       data-testid="input-register-password"
                     />
@@ -456,12 +456,12 @@ export default function AuthPage() {
                   </div>
                   
                   <div className="space-y-1.5">
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</Label>
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-neutral-700 dark:text-gray-300">Confirm Password</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
                       placeholder="Confirm your password"
-                      className="h-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                      className="h-10 bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                       {...registerForm.register("confirmPassword")}
                       data-testid="input-confirm-password"
                     />

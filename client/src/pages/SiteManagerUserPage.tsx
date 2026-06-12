@@ -36,7 +36,7 @@ export default function SiteManagerUserPage() {
       case "site_manager":
         return "bg-amber-100 text-amber-800 border-amber-300";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "bg-gray-100 text-neutral-800 border-gray-300";
     }
   };
 

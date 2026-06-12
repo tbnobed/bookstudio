@@ -306,8 +306,8 @@ export default function WeeklyCalendar({
       <div className="overflow-auto h-full">
         <div className="min-w-[1000px]">
           {/* Calendar Days Header with Weather Forecast */}
-          <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-30 bg-white dark:bg-gray-900 shadow-sm">
-            <div className="h-20 border-b border-r dark:border-gray-700 bg-white dark:bg-gray-900 z-30"></div>
+          <div className="grid grid-cols-[160px_repeat(7,1fr)] sticky top-0 z-30 bg-white dark:bg-neutral-900 shadow-sm">
+            <div className="h-20 border-b border-r dark:border-neutral-700 bg-white dark:bg-neutral-900 z-30"></div>
             {weekDates.map((date, index) => {
               const dateString = date.toISOString().split('T')[0];
               const dayForecast = forecast?.forecast.find(f => f.date === dateString);
@@ -320,8 +320,8 @@ export default function WeeklyCalendar({
                 <div 
                   key={index} 
                   className={cn(
-                    "h-20 border-b text-center flex flex-col justify-center z-30 p-1 dark:border-gray-700",
-                    isWeekend(date) ? "bg-gray-50 dark:bg-gray-800" : "bg-white dark:bg-gray-900",
+                    "h-20 border-b text-center flex flex-col justify-center z-30 p-1 dark:border-neutral-700",
+                    isWeekend(date) ? "bg-gray-50 dark:bg-neutral-800" : "bg-white dark:bg-neutral-900",
                     isToday && "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700"
                   )}
                 >
@@ -356,7 +356,7 @@ export default function WeeklyCalendar({
               </div>
               
               {/* Visual separator */}
-              <div className="col-span-8 h-2 bg-gray-200 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600"></div>
+              <div className="col-span-8 h-2 bg-gray-200 dark:bg-neutral-700 border-b border-gray-300 dark:border-gray-600"></div>
               
               {/* Studio Rows */}
               {filteredStudios.map((studio) => (

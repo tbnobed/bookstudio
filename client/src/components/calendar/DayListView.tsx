@@ -262,7 +262,7 @@ export default function DayListView({
                       </div>
                       
                       <div className="mt-2 text-sm">
-                        <div className="flex items-center gap-1 text-gray-700">
+                        <div className="flex items-center gap-1 text-neutral-700">
                           <Clock size={14} className="flex-shrink-0" />
                           <span>
                             {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
@@ -270,7 +270,7 @@ export default function DayListView({
                         </div>
                         
                         {/* Always show linked studios */}
-                        <div className="flex items-center gap-1 text-gray-700 mt-1">
+                        <div className="flex items-center gap-1 text-neutral-700 mt-1">
                           <Users size={14} className="flex-shrink-0" />
                           <div className="flex flex-wrap gap-1">
                             {bookingStudios.length === 0 && (
@@ -290,7 +290,7 @@ export default function DayListView({
                         
                         {/* Show PCR room if assigned */}
                         {pcrRoom && (
-                          <div className="flex items-center gap-1 text-gray-700 mt-1">
+                          <div className="flex items-center gap-1 text-neutral-700 mt-1">
                             <Tv size={14} className="flex-shrink-0" />
                             <span>{pcrRoom.name}</span>
                           </div>

@@ -54,7 +54,7 @@ export default function TemplateCard({
       case "rehearsal":
         return "bg-purple-100 text-purple-800 border-purple-300";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "bg-gray-100 text-neutral-800 border-gray-300";
     }
   };
   

@@ -86,7 +86,7 @@ function BookingCard({
     <div
       className={cn(
         "group relative flex rounded-xl border overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5",
-        "bg-white dark:bg-gray-800/80 border-gray-200 dark:border-gray-700",
+        "bg-white dark:bg-neutral-800/80 border-gray-200 dark:border-neutral-700",
         isCancelled && "opacity-55",
         isPast && "opacity-70",
       )}
@@ -95,11 +95,11 @@ function BookingCard({
       <div className="w-1.5 shrink-0" style={{ backgroundColor: accent }} />
 
       {/* Date badge */}
-      <div className="flex flex-col items-center justify-center px-3 py-3 border-r border-gray-100 dark:border-gray-700 min-w-[52px]">
+      <div className="flex flex-col items-center justify-center px-3 py-3 border-r border-gray-100 dark:border-neutral-700 min-w-[52px]">
         <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
           {format(startDate, "EEE")}
         </span>
-        <span className="text-2xl font-black leading-none text-gray-800 dark:text-white">
+        <span className="text-2xl font-black leading-none text-neutral-800 dark:text-white">
           {format(startDate, "d")}
         </span>
         <span className="text-[10px] text-gray-400 dark:text-gray-500">
@@ -111,7 +111,7 @@ function BookingCard({
       <div className="flex-1 p-3 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1.5">
           <h3 className={cn(
-            "font-semibold text-sm text-gray-900 dark:text-white leading-tight line-clamp-2",
+            "font-semibold text-sm text-neutral-900 dark:text-white leading-tight line-clamp-2",
             isCancelled && "line-through text-red-500"
           )}>
             {booking.title}
@@ -180,13 +180,13 @@ function StatCard({ icon: Icon, label, value, color }: {
   icon: any; label: string; value: string | number; color: string;
 }) {
   return (
-    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
+    <div className="flex items-center gap-3 bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3">
       <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center shrink-0", color)}>
         <Icon className="h-4.5 w-4.5" />
       </div>
       <div>
         <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-        <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">{value}</p>
+        <p className="text-lg font-bold text-neutral-900 dark:text-white leading-tight">{value}</p>
       </div>
     </div>
   );
@@ -212,11 +212,11 @@ function GroupedBookingList({ bookings, getStudioName, getUserName, onEdit, show
       {groups.map(group => (
         <div key={group.label}>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{group.label}</span>
-            <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+            <span className="text-sm font-bold text-neutral-700 dark:text-gray-200">{group.label}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
               {group.bookings.length}
             </span>
-            <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700/60" />
+            <div className="flex-1 h-px bg-gray-100 dark:bg-neutral-700/60" />
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {group.bookings.map(b => (
@@ -366,7 +366,7 @@ export default function MyBookingsPage() {
         {/* ── Page title + stats ─────────────────────────────────────────── */}
         <div className="space-y-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Bookings</h1>
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">My Bookings</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               {user?.name ? `Welcome back, ${user.name.split(" ")[0]}` : "Your studio schedule"}
             </p>
@@ -399,7 +399,7 @@ export default function MyBookingsPage() {
                   icon={CalendarDays}
                   label="Past bookings"
                   value={pastBookings.length}
-                  color="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                  color="bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400"
                 />
               )}
             </div>
@@ -407,7 +407,7 @@ export default function MyBookingsPage() {
         </div>
 
         {/* ── Main tabs ─────────────────────────────────────────────────── */}
-        <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="border-b border-gray-200 dark:border-neutral-700">
           <nav className="flex gap-1 -mb-px">
             {tabs.map(tab => (
               <button
@@ -417,7 +417,7 @@ export default function MyBookingsPage() {
                   "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
                   activeTab === tab.key
                     ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300"
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:text-neutral-700 dark:hover:text-gray-300 hover:border-gray-300"
                 )}
               >
                 {tab.label}
@@ -425,7 +425,7 @@ export default function MyBookingsPage() {
                   "text-xs px-1.5 py-0.5 rounded-full font-semibold",
                   activeTab === tab.key
                     ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                    : "bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400"
                 )}>
                   {tab.count}
                 </span>
@@ -446,8 +446,8 @@ export default function MyBookingsPage() {
                   className={cn(
                     "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
                     personalSubTab === sub
-                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      ? "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900"
+                      : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700"
                   )}
                 >
                   {sub.charAt(0).toUpperCase() + sub.slice(1)}
@@ -521,8 +521,8 @@ export default function MyBookingsPage() {
                     className={cn(
                       "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
                       adminSubTab === sub
-                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        ? "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900"
+                        : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700"
                     )}
                   >
                     {sub.charAt(0).toUpperCase() + sub.slice(1)}
@@ -537,18 +537,18 @@ export default function MyBookingsPage() {
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <span>Page {adminUpcomingPage} of {totalUpcomingPages}</span>
                   <button disabled={adminUpcomingPage <= 1} onClick={() => setAdminUpcomingPage(p => p - 1)}
-                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">←</button>
+                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">←</button>
                   <button disabled={adminUpcomingPage >= totalUpcomingPages} onClick={() => setAdminUpcomingPage(p => p + 1)}
-                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">→</button>
+                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">→</button>
                 </div>
               )}
               {adminSubTab === "past" && totalPastPages > 1 && (
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <span>Page {adminPastPage} of {totalPastPages}</span>
                   <button disabled={adminPastPage <= 1} onClick={() => setAdminPastPage(p => p - 1)}
-                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">←</button>
+                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">←</button>
                   <button disabled={adminPastPage >= totalPastPages} onClick={() => setAdminPastPage(p => p + 1)}
-                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">→</button>
+                    className="px-2 py-1 rounded border disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">→</button>
                 </div>
               )}
             </div>

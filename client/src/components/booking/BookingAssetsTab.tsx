@@ -130,7 +130,7 @@ export function BookingAssetsTab({ booking }: Props) {
       <div>
         <div className="flex items-center gap-2 mb-2">
           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          <span className="text-sm font-semibold text-neutral-700 dark:text-gray-300">
             Planned for this production
           </span>
           {plannedAssets.length > 0 && (
@@ -209,7 +209,7 @@ export function BookingAssetsTab({ booking }: Props) {
       {/* Add gear */}
       <div>
         <div className="flex items-center justify-between mb-2 gap-2">
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Add Equipment</span>
+          <span className="text-sm font-semibold text-neutral-700 dark:text-gray-300">Add Equipment</span>
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
             <Input
@@ -236,8 +236,8 @@ export function BookingAssetsTab({ booking }: Props) {
                   className={cn(
                     "flex items-center gap-2.5 px-3 py-2 rounded-lg border",
                     isOut
-                      ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-80"
-                      : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700"
+                      ? "bg-gray-50 dark:bg-neutral-800/50 border-gray-200 dark:border-neutral-700 opacity-80"
+                      : "bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700"
                   )}
                 >
                   <CategoryIcon category={asset.category ?? "other"} />

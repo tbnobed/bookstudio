@@ -388,7 +388,7 @@ function PublicCalendarPage() {
                   {selectedStudioIds.length > 0 && (
                     <>
                       <button
-                        className="w-full px-2 py-1.5 text-sm text-left text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="w-full px-2 py-1.5 text-sm text-left text-blue-600 hover:bg-gray-100 dark:hover:bg-neutral-800"
                         onClick={() => setSelectedStudioIds([])}
                         data-testid="button-clear-studio-filter"
                       >

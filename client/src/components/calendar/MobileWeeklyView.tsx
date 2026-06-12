@@ -234,7 +234,7 @@ export default function MobileWeeklyView({
                   </div>
                   <div className={cn(
                     "text-sm font-semibold",
-                    isDayToday ? "text-blue-600" : "text-gray-900"
+                    isDayToday ? "text-blue-600" : "text-neutral-900"
                   )}>
                     {format(day, 'd')}
                   </div>

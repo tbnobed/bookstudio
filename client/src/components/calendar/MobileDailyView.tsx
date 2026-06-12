@@ -483,7 +483,7 @@ export default function MobileDailyView({
       <MobileBanner />
       
       {/* Header with date navigation */}
-      <div className="border-b dark:border-gray-700 p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b dark:border-neutral-700 p-4 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm sticky top-0 z-10">
         {/* Date navigation buttons */}
         <div className="flex justify-between items-center mb-2">
           <Button variant="ghost" size="icon" onClick={goToPreviousDay}>
@@ -545,7 +545,7 @@ export default function MobileDailyView({
             {facilityAlerts.map(alert => (
               <div 
                 key={alert.id} 
-                className="bg-white dark:bg-gray-800 p-3 rounded-md border border-red-200 dark:border-red-800 shadow-sm"
+                className="bg-white dark:bg-neutral-800 p-3 rounded-md border border-red-200 dark:border-red-800 shadow-sm"
                 onClick={() => handleBookingClick(alert)}
               >
                 <div className="font-medium text-red-700 dark:text-red-400">{alert.title}</div>
@@ -560,7 +560,7 @@ export default function MobileDailyView({
 
       {/* Main content - Studios and bookings */}
       <Tabs defaultValue="timeline" className="flex-1 overflow-hidden flex flex-col">
-        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+        <TabsList className="grid grid-cols-2 mx-4 mt-2 sticky top-0 z-10 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm">
           <TabsTrigger value="studios">Studios Status</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
@@ -573,8 +573,8 @@ export default function MobileDailyView({
               const { statusInfo } = studio;
               
               return (
-                <div key={studio.id} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 shadow-sm overflow-hidden touch-pan-y">
-                  <div className="flex items-center p-4 border-b dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
+                <div key={studio.id} className="bg-white dark:bg-neutral-800 rounded-lg border dark:border-neutral-700 shadow-sm overflow-hidden touch-pan-y">
+                  <div className="flex items-center p-4 border-b dark:border-neutral-700 sticky top-0 bg-white dark:bg-neutral-800">
                     <div className={`w-3 h-3 rounded-full mr-2 ${statusInfo.color}`}></div>
                     <h3 className="font-medium flex-1">{studio.name}</h3>
                     <Badge 
@@ -605,7 +605,7 @@ export default function MobileDailyView({
                               key={booking.id}
                               onClick={() => handleBookingClick(booking)}
                               className={cn(
-                                "p-3 rounded-md border cursor-pointer transition-colors active:bg-gray-100 dark:active:bg-gray-700",
+                                "p-3 rounded-md border cursor-pointer transition-colors active:bg-gray-100 dark:active:bg-neutral-700",
                                 booking.status === "tentative" ? "border-dashed" : "",
                                 booking.color 
                                   ? { 
@@ -616,7 +616,7 @@ export default function MobileDailyView({
                                     ? "bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800" 
                                     : isUpcoming 
                                       ? "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800" 
-                                      : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+                                      : "bg-gray-50 dark:bg-neutral-700 border-gray-200 dark:border-gray-600"
                               )}
                               style={booking.color ? { 
                                 backgroundColor: `${booking.color}20`, /* 12.5% opacity */
@@ -641,7 +641,7 @@ export default function MobileDailyView({
                               )}
 
                               {/* PCR Room Information */}
-                              <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1 bg-gray-100 dark:bg-gray-700 p-1 rounded">
+                              <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1 bg-gray-100 dark:bg-neutral-700 p-1 rounded">
                                 <MonitorPlay size={12} className="text-blue-500" />
                                 PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"}
                               </div>
@@ -677,7 +677,7 @@ export default function MobileDailyView({
                           'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800'
                         )}>
                           {/* PCR Room Information */}
-                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded mb-1">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 bg-gray-100 dark:bg-neutral-700 p-1 rounded mb-1">
                             <MonitorPlay size={14} className="text-blue-500" />
                             <span>PCR: None assigned</span>
                           </div>
@@ -757,7 +757,7 @@ export default function MobileDailyView({
                         key={booking.id}
                         onClick={() => handleBookingClick(booking)}
                         className={cn(
-                          "p-4 rounded-lg border shadow-sm cursor-pointer transition-colors active:bg-gray-100 dark:active:bg-gray-700",
+                          "p-4 rounded-lg border shadow-sm cursor-pointer transition-colors active:bg-gray-100 dark:active:bg-neutral-700",
                           booking.status === "tentative" ? "border-dashed" : "",
                           isFacilityAlert 
                             ? "bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800" 
@@ -770,7 +770,7 @@ export default function MobileDailyView({
                                 ? "bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800" 
                                 : isUpcoming 
                                   ? "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800" 
-                                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                  : "bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700"
                         )}
                         style={!isFacilityAlert && booking.color ? { 
                           backgroundColor: `${booking.color}20`, /* 12.5% opacity */
@@ -809,7 +809,7 @@ export default function MobileDailyView({
 
                         {/* PCR Room - Only for regular bookings, not alerts */}
                         {!isFacilityAlert && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-2 bg-gray-100 dark:bg-gray-700 p-1 rounded">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-2 bg-gray-100 dark:bg-neutral-700 p-1 rounded">
                             <MonitorPlay size={14} className="text-blue-500" />
                             <div>
                               PCR: {booking.pcrRoomId ? getPcrRoom(booking)?.name || "None" : "None"} 

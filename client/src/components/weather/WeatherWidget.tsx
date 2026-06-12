@@ -213,14 +213,14 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
   if (loading) {
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
-        <div className="animate-pulse flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 w-32 h-7" />
+        <div className="animate-pulse flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-neutral-800 w-32 h-7" />
       </div>
     );
   }
 
   if (!weather) {
     return (
-      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 ${className}`}>
+      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-500 ${className}`}>
         <Cloud className="h-3.5 w-3.5" />
         <span className="text-xs">Unavailable</span>
       </div>
@@ -252,8 +252,8 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
       : isRainy
       ? 'from-sky-50 to-blue-50 dark:from-sky-950/40 dark:to-blue-950/30 border-sky-200 dark:border-sky-700/50'
       : isSnowy
-      ? 'from-slate-50 to-blue-50 dark:from-slate-900/40 dark:to-blue-950/30 border-slate-200 dark:border-slate-600/50'
-      : 'from-slate-50 to-gray-50 dark:from-slate-900/40 dark:to-gray-900/30 border-gray-200 dark:border-gray-700/50';
+      ? 'from-slate-50 to-blue-50 dark:from-neutral-900/40 dark:to-blue-950/30 border-slate-200 dark:border-slate-600/50'
+      : 'from-slate-50 to-gray-50 dark:from-neutral-900/40 dark:to-neutral-900/30 border-gray-200 dark:border-neutral-700/50';
 
     return (
       <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r border ${pillBg} shadow-sm ${className}`}>
@@ -262,7 +262,7 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
           {weather.condition}
         </span>
         <span className="w-px h-3 bg-gray-300 dark:bg-gray-600 shrink-0" />
-        <span className="text-[13px] font-bold text-gray-800 dark:text-white leading-none whitespace-nowrap">
+        <span className="text-[13px] font-bold text-neutral-800 dark:text-white leading-none whitespace-nowrap">
           {weather.temperature}°F
         </span>
       </div>
@@ -307,7 +307,7 @@ export default function WeatherWidget({ showForecast = false, size = 'normal', c
               
               return (
                 <div key={day.date} className="text-center">
-                  <div className={`${sizeClasses[size]} font-medium text-gray-700 dark:text-gray-300`}>
+                  <div className={`${sizeClasses[size]} font-medium text-neutral-700 dark:text-gray-300`}>
                     {index === 0 ? 'Today' : dayName}
                   </div>
                   <ForecastIcon className={`${iconSizes[size]} mx-auto ${getWeatherIconColor(day.icon)} my-1`} />

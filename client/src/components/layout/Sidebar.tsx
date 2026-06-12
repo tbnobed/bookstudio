@@ -185,7 +185,7 @@ function NavSection({ title, icon, children, defaultOpen = false }: NavSectionPr
     <div className="space-y-1">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+        className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:text-neutral-700 dark:hover:text-gray-200 transition-colors"
       >
         <span className="flex items-center gap-2">
           {icon && <span className="opacity-70">{icon}</span>}
@@ -238,14 +238,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800",
+          "fixed inset-y-0 left-0 z-40 w-72 bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800",
           "transform transition-transform duration-300 ease-out",
           "flex flex-col",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Header with Logo */}
-        <div className="flex-shrink-0 p-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex-shrink-0 p-4 border-b border-gray-100 dark:border-neutral-800">
           <div className="flex flex-col items-center">
             <img
               src={logoPath}
@@ -259,7 +259,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               className="h-28 w-auto object-contain hidden dark:block"
               style={{ transform: 'scale(2)' }}
             />
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+            <h1 className="text-lg font-bold text-neutral-900 dark:text-white mt-1">
               {siteName || "BookStud.io"}
             </h1>
           </div>
@@ -393,7 +393,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
 
           {/* Settings */}
-          <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+          <div className="pt-2 border-t border-gray-100 dark:border-neutral-800">
             <NavItem
               icon={<IconSettings className={iconSize} />}
               label="Settings"
@@ -405,13 +405,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* User Profile Footer */}
-        <div className="flex-shrink-0 p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
+        <div className="flex-shrink-0 p-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-800/30">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-semibold text-sm shadow-md">
               {user?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
                 {user?.name || user?.username || 'User'}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
@@ -420,7 +420,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
             <button
               onClick={handleLogout}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
               title="Sign out"
               data-testid="button-logout"
             >

@@ -794,7 +794,7 @@ export default function Settings() {
                     <div>
                       <Label>System Timezone</Label>
                       <div className="mt-2">
-                        <p className="text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                        <p className="text-sm bg-gray-100 dark:bg-neutral-800 p-2 rounded">
                           <strong>{formatTimezoneDisplay(currentTimezone).displayName}</strong> ({formatTimezoneDisplay(currentTimezone).description})
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">

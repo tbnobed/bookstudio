@@ -83,8 +83,8 @@ export function CallSheetView({ bookingId }: Props) {
             <tr><td colSpan={2} className="px-4 py-8 text-center text-gray-500">No crew assigned.</td></tr>
           ) : slots.map((s: any, idx: number) => (
             <tr key={s.id} className={idx % 2 === 0 ? "bg-white" : "bg-[#f4f8f3]"}>
-              <td className="px-4 py-2 text-sm border-b border-gray-200 text-gray-900">{s.position?.name || "—"}</td>
-              <td className="px-4 py-2 text-sm border-b border-gray-200 text-gray-900">{s.member?.name || "—"}</td>
+              <td className="px-4 py-2 text-sm border-b border-gray-200 text-neutral-900">{s.position?.name || "—"}</td>
+              <td className="px-4 py-2 text-sm border-b border-gray-200 text-neutral-900">{s.member?.name || "—"}</td>
             </tr>
           ))}
         </tbody>

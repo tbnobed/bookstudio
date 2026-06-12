@@ -67,7 +67,7 @@ export default function MobileNavbar() {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 safe-area-inset-bottom">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-gray-200 dark:border-neutral-800 z-50 safe-area-inset-bottom">
         <div className="flex items-center h-16">
           <NavButton path="/calendar" icon={Calendar} label="Calendar" />
           <NavButton path="/my-bookings" icon={BookOpen} label="Bookings" />
@@ -94,14 +94,14 @@ export default function MobileNavbar() {
                       setIsNewBookingModalOpen(true);
                       setIsCreateSheetOpen(false);
                     }}
-                    className="flex items-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left transition-colors"
+                    className="flex items-center p-4 rounded-xl border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800 w-full text-left transition-colors"
                     data-testid="button-create-booking"
                   >
                     <div className="flex-shrink-0 bg-blue-100 dark:bg-blue-900/30 p-2.5 rounded-lg mr-4">
                       <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">Create Booking</div>
+                      <div className="font-medium text-neutral-900 dark:text-white">Create Booking</div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">Schedule studio time</div>
                     </div>
                   </button>
@@ -111,14 +111,14 @@ export default function MobileNavbar() {
                       setIsNewAlertModalOpen(true);
                       setIsCreateSheetOpen(false);
                     }}
-                    className="flex items-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left transition-colors"
+                    className="flex items-center p-4 rounded-xl border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800 w-full text-left transition-colors"
                     data-testid="button-create-alert"
                   >
                     <div className="flex-shrink-0 bg-amber-100 dark:bg-amber-900/30 p-2.5 rounded-lg mr-4">
                       <Bell className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">Create Alert</div>
+                      <div className="font-medium text-neutral-900 dark:text-white">Create Alert</div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">Facility maintenance or notification</div>
                     </div>
                   </button>
@@ -147,14 +147,14 @@ export default function MobileNavbar() {
               
               {/* User Info */}
               {user && (
-                <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl mb-6">
+                <div className="flex items-center p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl mb-6">
                   <Avatar className="h-11 w-11 mr-3">
                     <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-semibold">
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 dark:text-white truncate">{user.name}</div>
+                    <div className="font-medium text-neutral-900 dark:text-white truncate">{user.name}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">{user.role?.replace('_', ' ')}</div>
                   </div>
                 </div>
@@ -178,7 +178,7 @@ export default function MobileNavbar() {
                       "flex items-center p-3 rounded-lg w-full text-left transition-colors",
                       location === item.path 
                         ? "bg-primary/10 text-primary" 
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        : "text-neutral-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
                     )}
                     data-testid={`menu-${item.label.toLowerCase().replace(' ', '-')}`}
                   >
@@ -195,7 +195,7 @@ export default function MobileNavbar() {
                 {user?.role !== "producer" && (
                   <button 
                     onClick={navigateTo("/reports")}
-                    className="flex items-center p-3 rounded-lg w-full text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="flex items-center p-3 rounded-lg w-full text-left text-neutral-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                     data-testid="menu-reports"
                   >
                     <BarChart className="mr-3 h-5 w-5" />
@@ -206,7 +206,7 @@ export default function MobileNavbar() {
                 {user?.role === "admin" && (
                   <button 
                     onClick={navigateTo("/users")}
-                    className="flex items-center p-3 rounded-lg w-full text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="flex items-center p-3 rounded-lg w-full text-left text-neutral-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                     data-testid="menu-users"
                   >
                     <Users className="mr-3 h-5 w-5" />
@@ -217,7 +217,7 @@ export default function MobileNavbar() {
                 {user?.role === "site_manager" && (
                   <button 
                     onClick={navigateTo("/producer-management")}
-                    className="flex items-center p-3 rounded-lg w-full text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="flex items-center p-3 rounded-lg w-full text-left text-neutral-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                     data-testid="menu-producers"
                   >
                     <Users className="mr-3 h-5 w-5" />
@@ -227,7 +227,7 @@ export default function MobileNavbar() {
                 
                 <button 
                   onClick={navigateTo("/settings")}
-                  className="flex items-center p-3 rounded-lg w-full text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center p-3 rounded-lg w-full text-left text-neutral-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                   data-testid="menu-settings"
                 >
                   <Settings className="mr-3 h-5 w-5" />
@@ -240,7 +240,7 @@ export default function MobileNavbar() {
               {/* Theme Toggle */}
               <button 
                 onClick={toggleTheme}
-                className="flex items-center justify-between p-3 rounded-lg w-full text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors mb-2"
+                className="flex items-center justify-between p-3 rounded-lg w-full text-left text-neutral-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors mb-2"
                 data-testid="button-theme-toggle"
               >
                 <div className="flex items-center">

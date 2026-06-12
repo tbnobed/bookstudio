@@ -147,7 +147,7 @@
 @layer components {
   /* Glass Effect */
   .glass {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/30;
+    @apply bg-white/80 dark:bg-neutral-900/80 backdrop-blur-lg border border-white/20 dark:border-neutral-700/30;
   }
   
   /* Gradient Backgrounds */
@@ -156,12 +156,12 @@
   }
   
   .gradient-subtle {
-    @apply bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-gray-900 dark:to-slate-800;
+    @apply bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-900;
   }
   
   /* Modern Card Styles */
   .card-modern {
-    @apply bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700/50 transition-all duration-200;
+    @apply bg-white dark:bg-neutral-800/50 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-700/50 transition-all duration-200;
   }
   
   .card-modern:hover {
@@ -169,7 +169,7 @@
   }
   
   .card-elevated {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg border-0;
+    @apply bg-white dark:bg-neutral-800 rounded-xl shadow-lg border-0;
   }
   
   /* Sidebar Styles */
@@ -182,12 +182,12 @@
   }
   
   .sidebar-item-inactive {
-    @apply text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/60;
+    @apply text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800/60;
   }
   
   /* Input Focus Styles */
   .input-modern {
-    @apply rounded-lg border-gray-200 dark:border-gray-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+    @apply rounded-lg border-gray-200 dark:border-neutral-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200;
   }
   
   /* Button Styles */
@@ -250,12 +250,12 @@ body.mobile-page {
 
 .notify-group-button {
   @apply px-3 py-1.5 rounded-lg text-sm transition-all duration-150;
-  @apply bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
-  @apply text-gray-700 dark:text-gray-300;
+  @apply bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700;
+  @apply text-neutral-700 dark:text-gray-300;
 }
 
 .notify-group-button:hover {
-  @apply bg-gray-200 dark:bg-gray-700;
+  @apply bg-gray-200 dark:bg-neutral-700;
 }
 
 .notify-group-button.selected {

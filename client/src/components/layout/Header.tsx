@@ -156,7 +156,7 @@ export function Header({
   ] as const;
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+    <header className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
       {/* Main Header Row — 3-column grid so center never overlaps left/right */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 py-3 lg:px-6 min-h-[72px] gap-2">
 
@@ -165,7 +165,7 @@ export function Header({
           {/* Sidebar Toggle */}
           <button
             onClick={toggleSidebar}
-            className="hidden lg:flex shrink-0 items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="hidden lg:flex shrink-0 items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
             title={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
             data-testid="button-toggle-sidebar"
           >
@@ -175,9 +175,9 @@ export function Header({
           {/* Date Navigation */}
           {!hideNavigation && (
             <div className="flex items-center gap-2 min-w-0">
-              <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shrink-0">
+              <div className="flex items-center bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700 shrink-0">
                 <button 
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-l-lg transition-colors"
                   onClick={navigatePrevious}
                   data-testid="button-previous-date"
                 >
@@ -188,11 +188,11 @@ export function Header({
                 <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                   <PopoverTrigger asChild>
                     <button 
-                      className="px-3 py-1.5 min-w-[120px] lg:min-w-[180px] text-center border-x border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                      className="px-3 py-1.5 min-w-[120px] lg:min-w-[180px] text-center border-x border-gray-200 dark:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors flex items-center justify-center gap-2"
                       data-testid="button-date-picker"
                     >
                       <CalendarIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 hidden sm:block shrink-0" />
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                      <span className="text-sm font-medium text-neutral-800 dark:text-gray-200 truncate">
                         {getDateDisplayText()}
                       </span>
                     </button>
@@ -211,7 +211,7 @@ export function Header({
                       weekStartsOn={useMondayWeeks ? 1 : 0}
                       className="rounded-lg"
                     />
-                    <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+                    <div className="p-2 border-t border-gray-200 dark:border-neutral-700">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -229,7 +229,7 @@ export function Header({
                 </Popover>
                 
                 <button 
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-r-lg transition-colors"
                   onClick={navigateNext}
                   data-testid="button-next-date"
                 >
@@ -317,7 +317,7 @@ export function Header({
                     {selectedStudioIds.length > 0 && (
                       <>
                         <button
-                          className="w-full px-2 py-1.5 text-sm text-left text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                          className="w-full px-2 py-1.5 text-sm text-left text-blue-600 hover:bg-gray-100 dark:hover:bg-neutral-800"
                           onClick={() => onStudioFilterChange([])}
                           data-testid="button-clear-studio-filter"
                         >
@@ -369,7 +369,7 @@ export function Header({
           
           {/* View Toggle */}
           {showViewToggle && (
-            <div className="hidden lg:flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <div className="hidden lg:flex items-center bg-gray-100 dark:bg-neutral-800 rounded-lg p-1">
               {viewOptions.map((option) => {
                 const Icon = option.icon;
                 return (
@@ -378,8 +378,8 @@ export function Header({
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
                       view === option.key
-                        ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-neutral-900 dark:hover:text-white"
                     )}
                     onClick={() => onViewChange(option.key)}
                     data-testid={`button-view-${option.key}`}

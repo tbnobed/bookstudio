@@ -147,7 +147,7 @@ export default function TemplatesPage() {
       case "rehearsal":
         return "bg-purple-100 text-purple-800 border-purple-300";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "bg-gray-100 text-neutral-800 border-gray-300";
     }
   };
 
@@ -257,7 +257,7 @@ export default function TemplatesPage() {
             </SelectContent>
           </Select>
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="shrink-0 text-gray-500 hover:text-gray-800">
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="shrink-0 text-gray-500 hover:text-neutral-800">
               <X className="h-4 w-4 mr-1" />
               Clear
             </Button>
@@ -269,7 +269,7 @@ export default function TemplatesPage() {
             <TabsTrigger value="my-templates">
               My Templates
               {!isLoading && (
-                <span className="ml-1.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 py-0.5">
+                <span className="ml-1.5 text-xs bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 py-0.5">
                   {userTemplates.length}
                 </span>
               )}
@@ -277,7 +277,7 @@ export default function TemplatesPage() {
             <TabsTrigger value="all-templates">
               Other Templates
               {!isLoading && (
-                <span className="ml-1.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 py-0.5">
+                <span className="ml-1.5 text-xs bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 py-0.5">
                   {otherTemplates.length}
                 </span>
               )}

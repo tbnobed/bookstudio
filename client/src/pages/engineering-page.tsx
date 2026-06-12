@@ -584,7 +584,7 @@ export default function EngineeringPage() {
                           {day.dayName}
                         </div>
                         <div className={`text-lg font-semibold ${
-                          isToday ? 'text-blue-600' : 'text-gray-900'
+                          isToday ? 'text-blue-600' : 'text-neutral-900'
                         }`}>
                           {day.dayNumber}
                         </div>
@@ -800,44 +800,44 @@ export default function EngineeringPage() {
                             </TooltipTrigger>
                             <TooltipContent className="max-w-sm p-4 bg-white border border-gray-200 shadow-lg">
                               <div className="space-y-2">
-                                <div className="font-semibold text-base text-gray-900">
+                                <div className="font-semibold text-base text-neutral-900">
                                   {booking.title}
                                 </div>
                                 
                                 {booking.description && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-neutral-700">
                                     <strong>Description:</strong> {booking.description}
                                   </div>
                                 )}
                                 
-                                <div className="text-sm text-gray-700">
+                                <div className="text-sm text-neutral-700">
                                   <strong>Time:</strong> {format(toZonedTime(parseISO(booking.start), getFacilityTimezone_Dynamic()), 'MMM d, yyyy h:mm a')} - {format(toZonedTime(parseISO(booking.end), getFacilityTimezone_Dynamic()), 'h:mm a')}
                                 </div>
                                 
                                 {studios.length > 0 && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-neutral-700">
                                     <strong>Studios:</strong> {studios.join(', ')}
                                   </div>
                                 )}
                                 
                                 {pcrRoom && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-neutral-700">
                                     <strong>PCR Room:</strong> {pcrRoom}
                                   </div>
                                 )}
                                 
-                                <div className="text-sm text-gray-700">
+                                <div className="text-sm text-neutral-700">
                                   <strong>Type:</strong> {booking.type.charAt(0).toUpperCase() + booking.type.slice(1)}
                                 </div>
                                 
                                 {booking.status && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-neutral-700">
                                     <strong>Status:</strong> {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                                   </div>
                                 )}
                                 
                                 {booking.severity && (booking.type === 'maintenance' || booking.type === 'all_day_maintenance' || booking.type.includes('maintenance')) && (
-                                  <div className="text-sm text-gray-700">
+                                  <div className="text-sm text-neutral-700">
                                     <strong>Severity:</strong> {booking.severity.charAt(0).toUpperCase() + booking.severity.slice(1)}
                                   </div>
                                 )}

@@ -461,7 +461,7 @@ export default function CustomSignagePage() {
   const pageTitle = titleParam || siteName;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-10">
         <div className="flex items-center space-x-6">
@@ -531,7 +531,7 @@ export default function CustomSignagePage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Today's Schedule */}
         <div className="xl:col-span-2">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-neutral-800/50 border-neutral-700">
             <CardHeader>
               <CardTitle className="flex items-center text-white text-3xl">
                 <Calendar className="mr-4 h-8 w-8" />
@@ -568,7 +568,7 @@ export default function CustomSignagePage() {
                             : isBookingActive(booking, currentTime)
                             ? 'bg-green-500/20 border-green-400'
                             : parseISO(booking.start) > currentTime
-                            ? 'bg-slate-700/50 border-slate-500'
+                            ? 'bg-neutral-700/50 border-slate-500'
                             : 'bg-slate-600/30 border-slate-600'
                         }`}
                       >
@@ -618,7 +618,7 @@ export default function CustomSignagePage() {
           </Card>
 
           {/* Weekly Overview */}
-          <Card className="bg-slate-800/50 border-slate-700 mt-6">
+          <Card className="bg-neutral-800/50 border-neutral-700 mt-6">
             <CardHeader>
               <CardTitle className="flex items-center text-white text-3xl">
                 <Clock className="mr-4 h-8 w-8" />
@@ -760,7 +760,7 @@ export default function CustomSignagePage() {
 
         {/* Studio Status */}
         <div className="xl:col-span-1">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-neutral-800/50 border-neutral-700">
             <CardHeader>
               <CardTitle className="flex items-center text-white text-3xl">
                 <Radio className="mr-4 h-8 w-8" />
@@ -772,7 +772,7 @@ export default function CustomSignagePage() {
                 {studioStatus
                   .filter(studio => targetStudioIds.length === 0 || targetStudioIds.includes(studio.id))
                   .map((studio) => (
-                  <div key={studio.id} className="p-3 rounded-lg bg-slate-700/30">
+                  <div key={studio.id} className="p-3 rounded-lg bg-neutral-700/30">
                     <div className="flex flex-col space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="text-lg font-semibold text-white truncate">
@@ -807,7 +807,7 @@ export default function CustomSignagePage() {
           </Card>
 
           {/* Active Site Alerts */}
-          <Card className="bg-slate-800/50 border-slate-700 mt-6">
+          <Card className="bg-neutral-800/50 border-neutral-700 mt-6">
             <CardHeader>
               <CardTitle className="flex items-center text-white text-3xl">
                 <AlertTriangle className="mr-4 h-8 w-8" />

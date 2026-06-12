@@ -59,7 +59,7 @@ const STATUSES = [
   { value: "available", label: "Available", color: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700", icon: CheckCircle2, iconClass: "text-emerald-600" },
   { value: "in-use", label: "In Use", color: "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700", icon: CircleDot, iconClass: "text-blue-600" },
   { value: "maintenance", label: "Maintenance", color: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700", icon: AlertTriangle, iconClass: "text-amber-600" },
-  { value: "retired", label: "Retired", color: "bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600", icon: Archive, iconClass: "text-gray-500" },
+  { value: "retired", label: "Retired", color: "bg-gray-100 text-gray-600 border-gray-300 dark:bg-neutral-800 dark:text-gray-400 dark:border-gray-600", icon: Archive, iconClass: "text-gray-500" },
 ];
 
 function getStatusStyle(status: string) {
@@ -286,7 +286,7 @@ function BarcodeScannerDialog({
           </div>
         </div>
         <div className="p-4 text-center space-y-1">
-          <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Scan Asset Label</p>
+          <p className="text-sm font-semibold text-neutral-800 dark:text-gray-200">Scan Asset Label</p>
           <p className="text-xs text-gray-500">Code 128 · Code 39 · QR · Data Matrix · EAN · UPC</p>
           <Button variant="outline" size="sm" className="mt-3" onClick={onClose}>Cancel</Button>
         </div>
@@ -727,7 +727,7 @@ export default function AssetsPage() {
         {/* Page header */}
         <div className="flex justify-between items-center mb-4 mt-1">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Asset Inventory</h1>
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Asset Inventory</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{assets.length} total items</p>
           </div>
           <div className="flex items-center gap-2">
@@ -738,7 +738,7 @@ export default function AssetsPage() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-4" align="end">
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">
+                <p className="text-xs font-medium text-neutral-700 dark:text-gray-300 mb-3 text-center">
                   Scan to open on mobile
                 </p>
                 <div className="rounded-lg bg-white p-3 shadow-inner border">
@@ -770,7 +770,7 @@ export default function AssetsPage() {
                 "rounded-xl border p-3 text-left transition-all hover:shadow-md",
                 statusFilter === s.value
                   ? s.color + " shadow-sm ring-2 ring-offset-1 ring-current"
-                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                  : "bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 hover:border-gray-300"
               )}
             >
               <p className="text-2xl font-bold">{statCounts[s.value] ?? 0}</p>
@@ -827,7 +827,7 @@ export default function AssetsPage() {
             className={cn(
               "shrink-0 gap-1.5",
               showRetired
-                ? "text-gray-500 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                ? "text-gray-500 bg-gray-100 dark:bg-neutral-700 hover:bg-gray-200 dark:hover:bg-gray-600"
                 : "text-gray-400 hover:text-gray-600"
             )}
             title={showRetired ? "Hide retired assets" : "Show retired assets"}
@@ -836,7 +836,7 @@ export default function AssetsPage() {
             <span className="hidden sm:inline">{showRetired ? "Hide Retired" : "Show Retired"}</span>
           </Button>
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="shrink-0 text-gray-500 hover:text-gray-800">
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="shrink-0 text-gray-500 hover:text-neutral-800">
               <X className="h-4 w-4 mr-1" />
               Clear
             </Button>
@@ -898,9 +898,9 @@ export default function AssetsPage() {
             </div>
           )}
 
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[28px_2fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="grid grid-cols-[28px_2fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-2.5 bg-gray-50 dark:bg-neutral-800/60 border-b border-gray-200 dark:border-neutral-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               <div className="flex items-center">
                 <Checkbox
                   checked={allAvailableSelected}
@@ -922,14 +922,14 @@ export default function AssetsPage() {
             </div>
 
             {/* Rows */}
-            <div className="divide-y divide-gray-100 dark:divide-gray-700/60">
+            <div className="divide-y divide-gray-100 dark:divide-neutral-700/60">
               {paginated.map(asset => (
                 <ContextMenu key={asset.id}>
                   <ContextMenuTrigger asChild>
                     <div
                       onDoubleClick={() => openEdit(asset)}
                       className={cn(
-                        "grid grid-cols-[28px_2fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors select-none cursor-pointer",
+                        "grid grid-cols-[28px_2fr_1fr_1fr_1fr_1fr_200px] gap-4 px-4 py-3 items-center bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700/40 transition-colors select-none cursor-pointer",
                         selectedIds.has(asset.id) && "bg-emerald-50/60 dark:bg-emerald-900/10",
                         asset.status === "retired" && "opacity-50 grayscale-[40%] hover:opacity-70"
                       )}
@@ -960,7 +960,7 @@ export default function AssetsPage() {
                         })} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
-                            <p className={cn("font-medium text-sm text-gray-900 dark:text-white truncate", asset.status === "retired" && "italic line-through decoration-gray-400")}>{asset.name}</p>
+                            <p className={cn("font-medium text-sm text-neutral-900 dark:text-white truncate", asset.status === "retired" && "italic line-through decoration-gray-400")}>{asset.name}</p>
                             {(asset as any).isKit && (
                               <Badge variant="outline" className="text-[10px] px-1 py-0 border-violet-400 text-violet-600 dark:text-violet-400 shrink-0 flex items-center gap-0.5">
                                 <Layers className="h-2.5 w-2.5" />Kit
@@ -1088,7 +1088,7 @@ export default function AssetsPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700"
+                          className="h-7 w-7 p-0 text-gray-400 hover:text-neutral-700"
                           title="Checkout history"
                           onClick={() => setHistoryAsset(asset)}
                         >
@@ -1107,7 +1107,7 @@ export default function AssetsPage() {
                       /* ── Retired asset: read-only, no actions ── */
                       <>
                         <ContextMenuSeparator />
-                        <div className="px-2 py-2 mx-1 rounded bg-gray-100 dark:bg-gray-700/50">
+                        <div className="px-2 py-2 mx-1 rounded bg-gray-100 dark:bg-neutral-700/50">
                           <p className="text-[11px] text-gray-500 dark:text-gray-400 italic">
                             This asset has been decommissioned and cannot be modified.
                           </p>
@@ -1358,7 +1358,7 @@ export default function AssetsPage() {
                   <button
                     type="button"
                     onClick={() => setScanTagOpen(true)}
-                    className="flex items-center gap-1.5 px-3 h-10 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shrink-0"
+                    className="flex items-center gap-1.5 px-3 h-10 rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors shrink-0"
                     title="Scan pre-printed barcode label"
                   >
                     <ScanLine className="h-4 w-4 text-purple-500" />
@@ -1513,7 +1513,7 @@ export default function AssetsPage() {
                   {kitMembers.map(member => (
                     <div key={member.id} className="flex items-center justify-between bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800 rounded-lg px-2.5 py-1.5">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{member.name}</p>
+                        <p className="text-sm font-medium text-neutral-800 dark:text-gray-200 truncate">{member.name}</p>
                         <p className="text-[10px] text-muted-foreground">{getCategoryLabel(member.category)} · {member.status}</p>
                       </div>
                       <Button
@@ -1607,11 +1607,11 @@ export default function AssetsPage() {
 
           {/* Decommission expanded panel — shown above footer when triggered */}
           {editAsset && editAsset.status === "retired" && form.decommissionReason && (
-            <div className="rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-3 space-y-1">
+            <div className="rounded-lg bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-600 p-3 space-y-1">
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
                 <Archive className="h-3.5 w-3.5" /> Decommissioned
               </p>
-              <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{form.decommissionReason}"</p>
+              <p className="text-sm text-neutral-700 dark:text-gray-300 italic">"{form.decommissionReason}"</p>
             </div>
           )}
           {editAsset && editAsset.status !== "retired" && decommissionExpanded && (
@@ -1804,17 +1804,17 @@ export default function AssetsPage() {
                   className={cn(
                     "rounded-lg border p-3 text-sm",
                     entry.checkedInAt
-                      ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
+                      ? "bg-gray-50 dark:bg-neutral-800/50 border-gray-200 dark:border-neutral-700"
                       : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+                    <div className="flex items-center gap-2 font-medium text-neutral-900 dark:text-white">
                       <User className="h-3.5 w-3.5 text-gray-500 shrink-0" />
                       {entry.checkedOutByName}
                     </div>
                     {entry.checkedInAt ? (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-700 dark:text-gray-300 shrink-0">
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-100 text-gray-600 border-gray-300 dark:bg-neutral-700 dark:text-gray-300 shrink-0">
                         Returned
                       </Badge>
                     ) : (
@@ -1875,11 +1875,11 @@ export default function AssetsPage() {
           </DialogHeader>
 
           {/* Item list preview */}
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 max-h-40 overflow-y-auto text-sm">
+          <div className="rounded-lg border border-gray-200 dark:border-neutral-700 divide-y divide-gray-100 dark:divide-neutral-700 max-h-40 overflow-y-auto text-sm">
             {selectedAvailable.map(a => (
               <div key={a.id} className="flex items-center gap-2 px-3 py-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span className="truncate font-medium text-gray-800 dark:text-gray-200">{a.name}</span>
+                <span className="truncate font-medium text-neutral-800 dark:text-gray-200">{a.name}</span>
                 <span className="ml-auto text-xs text-gray-400 shrink-0">{getCategoryLabel(a.category)}</span>
               </div>
             ))}
@@ -1997,7 +1997,7 @@ export default function AssetsPage() {
           <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-2 text-sm">
             <div className="flex items-center gap-3">
               <span className="text-gray-500 w-20 shrink-0">Old tag</span>
-              <span className="font-mono font-semibold text-gray-700 dark:text-gray-300 truncate">
+              <span className="font-mono font-semibold text-neutral-700 dark:text-gray-300 truncate">
                 {tagChangeConfirm?.oldTag || "(none)"}
               </span>
             </div>
@@ -2014,7 +2014,7 @@ export default function AssetsPage() {
           <DialogFooter className="gap-2">
             <button
               onClick={() => setTagChangeConfirm(null)}
-              className="px-4 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 rounded-md border border-gray-200 dark:border-neutral-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
             >
               Cancel
             </button>

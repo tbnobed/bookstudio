@@ -59,7 +59,7 @@ const ACTION_COLORS = {
   UPDATE: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
   DELETE: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
   LOGIN: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
-  LOGOUT: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+  LOGOUT: "bg-gray-100 text-neutral-800 dark:bg-neutral-900 dark:text-gray-300",
   LOGIN_FAILED: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
   CLEANUP: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
 };
@@ -251,7 +251,7 @@ export default function AuditLogsPage() {
   };
 
   const getActionBadge = (action: string) => {
-    const colorClass = ACTION_COLORS[action as keyof typeof ACTION_COLORS] || "bg-gray-100 text-gray-800";
+    const colorClass = ACTION_COLORS[action as keyof typeof ACTION_COLORS] || "bg-gray-100 text-neutral-800";
     return (
       <Badge variant="secondary" className={colorClass}>
         {action}

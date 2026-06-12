@@ -281,7 +281,7 @@ export default function DayChronView({
       case 'rehearsal':
         return 'bg-purple-50 dark:bg-purple-900/20';
       default:
-        return 'bg-gray-50 dark:bg-gray-800';
+        return 'bg-gray-50 dark:bg-neutral-800';
     }
   };
 
@@ -336,10 +336,10 @@ export default function DayChronView({
         <HoverCardTrigger asChild>
           <div 
             className={cn(
-              "border dark:border-gray-700 rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
+              "border dark:border-neutral-700 rounded-md px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors",
               typeClass,
-              isTentative && "border-dashed opacity-80 bg-gray-100 dark:bg-gray-800",
-              isCancelled && "opacity-60 bg-gray-100 dark:bg-gray-800",
+              isTentative && "border-dashed opacity-80 bg-gray-100 dark:bg-neutral-800",
+              isCancelled && "opacity-60 bg-gray-100 dark:bg-neutral-800",
               isActive && "animate-pulse ring-2 ring-green-400 ring-opacity-75 shadow-lg"
             )}
             style={{
@@ -393,7 +393,7 @@ export default function DayChronView({
             {/* Main information grid */}
             <div className="grid grid-cols-1 gap-2 text-sm">
               {/* Time */}
-              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <div className="flex items-center gap-2 text-neutral-700 dark:text-gray-300">
                 <Clock size={14} className="flex-shrink-0" />
                 <span className="font-medium">
                   {formatTime(new Date(booking.start))} - {formatTime(new Date(booking.end))}
@@ -402,7 +402,7 @@ export default function DayChronView({
               
               {/* Studios - only show for non-alerts */}
               {!isAlert && studiosList.length > 0 && (
-                <div className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+                <div className="flex items-start gap-2 text-neutral-700 dark:text-gray-300">
                   <Camera size={14} className="flex-shrink-0 mt-0.5" />
                   <div className="flex flex-wrap gap-1">
                     {studiosList.map(studio => (
@@ -420,7 +420,7 @@ export default function DayChronView({
               
               {/* PCR room - only show for non-alerts */}
               {!isAlert && pcrRoom && (
-                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                <div className="flex items-center gap-2 text-neutral-700 dark:text-gray-300">
                   <Tv size={14} className="flex-shrink-0" />
                   <span className="font-medium">{pcrRoom.name}</span>
                 </div>
@@ -428,7 +428,7 @@ export default function DayChronView({
               
               {/* Notification Groups */}
               {Array.isArray(booking.notifyList) && booking.notifyList.length > 0 && (
-                <div className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+                <div className="flex items-start gap-2 text-neutral-700 dark:text-gray-300">
                   <User size={14} className="flex-shrink-0 mt-0.5" />
                   <div className="flex flex-wrap gap-1">
                     {booking.notifyList.slice(0, 3).map((groupId: string | number, i: number) => {
@@ -451,7 +451,7 @@ export default function DayChronView({
             
             {/* Footer with creation date */}
             {booking.createdAt && (
-              <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
+              <div className="mt-3 pt-2 border-t border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-gray-400">
                 Created {format(new Date(booking.createdAt), 'MMM d, yyyy HH:mm')}
               </div>
             )}
@@ -597,7 +597,7 @@ export default function DayChronView({
       <div className="flex-1 min-w-0 flex flex-col">
       {/* Alerts Section - Compact */}
       {(alerts.length > 0 || !readOnly) && (
-        <div className="flex-shrink-0 p-3 border-b border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-900/20">
+        <div className="flex-shrink-0 p-3 border-b border-gray-200 dark:border-neutral-700 bg-red-50 dark:bg-red-900/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle size={16} className="text-red-600 dark:text-red-400" />
@@ -610,7 +610,7 @@ export default function DayChronView({
                     <button
                       key={alert.id}
                       onClick={() => onBookingClick(alert)}
-                      className="text-xs px-2 py-1 bg-white dark:bg-gray-800 rounded border border-red-300 dark:border-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 truncate max-w-32"
+                      className="text-xs px-2 py-1 bg-white dark:bg-neutral-800 rounded border border-red-300 dark:border-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 truncate max-w-32"
                     >
                       {alert.title}
                     </button>
@@ -637,15 +637,15 @@ export default function DayChronView({
       )}
 
       {/* Horizontal Timeline Grid */}
-      <div className="flex-1 min-h-0 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+      <div className="flex-1 min-h-0 overflow-y-auto border border-gray-200 dark:border-neutral-700 rounded-lg">
         <div className="min-w-full">
           {/* Time Header Row */}
-          <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600">
+          <div className="sticky top-0 z-20 bg-white dark:bg-neutral-900 border-b border-gray-300 dark:border-gray-600">
             <div className="flex">
-              <div className="w-28 flex-shrink-0 p-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600">
+              <div className="w-28 flex-shrink-0 p-2 bg-gray-100 dark:bg-neutral-800 border-r border-gray-300 dark:border-gray-600">
                 <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">STUDIOS</span>
               </div>
-              <div className="flex-1 flex relative border-b border-gray-200 dark:border-gray-700">
+              <div className="flex-1 flex relative border-b border-gray-200 dark:border-neutral-700">
                 {timeSlots.map((hour, index) => (
                   <div 
                     key={hour} 
@@ -729,12 +729,12 @@ export default function DayChronView({
               <div 
                 key={studio.id} 
                 className={cn(
-                  "flex border-b border-gray-200 dark:border-gray-700",
-                  studioIndex % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800/50"
+                  "flex border-b border-gray-200 dark:border-neutral-700",
+                  studioIndex % 2 === 0 ? "bg-white dark:bg-neutral-900" : "bg-gray-50 dark:bg-neutral-800/50"
                 )}
               >
                 {/* Studio Name */}
-                <div className="w-28 flex-shrink-0 p-2 border-r border-gray-200 dark:border-gray-700 flex items-center">
+                <div className="w-28 flex-shrink-0 p-2 border-r border-gray-200 dark:border-neutral-700 flex items-center">
                   <div className="flex items-center gap-2 min-w-0">
                     {(() => {
                       // Check if studio is in maintenance mode

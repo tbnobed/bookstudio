@@ -216,7 +216,7 @@ export default function StudiosPage() {
       <div className={`flex-1 overflow-auto p-3 ${isMobile ? 'pb-20' : ''} space-y-4`}>
         {/* Weather Section - Only on mobile - Floating */}
         {isMobile && (
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-lg rounded-2xl p-4 mx-3">
+          <div className="bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border border-white/20 dark:border-neutral-700/50 shadow-lg rounded-2xl p-4 mx-3">
             <WeatherWidget 
               showForecast={true} 
               size="normal" 
@@ -226,7 +226,7 @@ export default function StudiosPage() {
         )}
 
         {/* Header Section - Floating */}
-        <div className={`${isMobile ? 'bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-lg' : 'bg-white dark:bg-gray-800 shadow-lg border dark:border-gray-700'} rounded-2xl p-4 mx-3`}>
+        <div className={`${isMobile ? 'bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border border-white/20 dark:border-neutral-700/50 shadow-lg' : 'bg-white dark:bg-neutral-800 shadow-lg border dark:border-neutral-700'} rounded-2xl p-4 mx-3`}>
           <h1 className="text-xl font-bold flex items-center gap-2 dark:text-white">
             <Tv className="h-5 w-5" />
             Studio Status
@@ -274,7 +274,7 @@ export default function StudiosPage() {
                     
                     {studioStatus.booking && (
                       <div className="text-xs text-center">
-                        <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                        <div className="font-medium text-neutral-900 dark:text-gray-100 truncate">
                           {studioStatus.booking.title}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -297,7 +297,7 @@ export default function StudiosPage() {
         
         {/* Empty State - Floating */}
         {studios.length === 0 && (
-          <div className={`${isMobile ? 'bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-lg' : 'bg-white dark:bg-gray-800 shadow-lg border dark:border-gray-700'} rounded-2xl p-12 mx-3`}>
+          <div className={`${isMobile ? 'bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border border-white/20 dark:border-neutral-700/50 shadow-lg' : 'bg-white dark:bg-neutral-800 shadow-lg border dark:border-neutral-700'} rounded-2xl p-12 mx-3`}>
             <div className="text-center text-gray-500 dark:text-gray-400">
               <Tv className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
               <p>No studios found</p>
