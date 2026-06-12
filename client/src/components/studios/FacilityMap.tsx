@@ -955,6 +955,19 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                   </p>
                 </div>
               )}
+              {selected.studioId ? (
+                <div className="pt-3 border-t dark:border-neutral-700">
+                  <StudioPhotos
+                    studioId={selected.studioId}
+                    studioName={selected.label}
+                    canManage={canManagePhotos}
+                  />
+                </div>
+              ) : (
+                <p className="pt-3 border-t dark:border-neutral-700 text-[11px] text-gray-400">
+                  Link this shape to a studio above to add reference photos of it.
+                </p>
+              )}
             </div>
           ) : isEditing ? (
             <p className="text-sm text-gray-500 dark:text-gray-400">
