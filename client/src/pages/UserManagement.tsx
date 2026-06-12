@@ -492,7 +492,7 @@ export default function UserManagement() {
                   </thead>
                   <tbody>
                     {users.map(userData => (
-                      <tr key={userData.id} className="border-b hover:bg-gray-50">
+                      <tr key={userData.id} className="border-b hover:bg-gray-50 dark:hover:bg-neutral-800">
                         <td className="py-3 px-4">{userData.name}</td>
                         <td className="py-3 px-4">{userData.username}</td>
                         <td className="py-3 px-4">{userData.email}</td>
@@ -592,7 +592,7 @@ export default function UserManagement() {
                       const hoursLeft = Math.round((expiresDate.getTime() - Date.now()) / 36e5);
                       const expiringSoon = hoursLeft < 24;
                       return (
-                        <tr key={invite.id} className="border-b hover:bg-gray-50">
+                        <tr key={invite.id} className="border-b hover:bg-gray-50 dark:hover:bg-neutral-800">
                           <td className="py-3 px-4 font-medium">{invite.email}</td>
                           <td className="py-3 px-4">
                             <Badge variant="outline" className={getRoleBadgeColor(invite.role)}>
@@ -613,7 +613,7 @@ export default function UserManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40"
                                 disabled={resendInvite.isPending || revokeInvite.isPending}
                                 onClick={() => resendInvite.mutate(invite.id)}
                               >
@@ -623,7 +623,7 @@ export default function UserManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40"
                                 disabled={revokeInvite.isPending || resendInvite.isPending}
                                 onClick={() => revokeInvite.mutate(invite.id)}
                               >
@@ -881,20 +881,20 @@ export default function UserManagement() {
           </DialogHeader>
           
           <div className="py-4 space-y-4">
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-              <p className="text-sm text-orange-800 font-medium mb-2">
+            <div className="p-4 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/50 rounded-lg">
+              <p className="text-sm text-orange-800 dark:text-orange-300 font-medium mb-2">
                 Dependency Warning:
               </p>
-              <p className="text-sm text-orange-700">
+              <p className="text-sm text-orange-700 dark:text-orange-400">
                 {forceDeleteError?.message}
               </p>
             </div>
             
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800 font-medium mb-2">
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900/50 rounded-lg">
+              <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium mb-2">
                 Force deletion will:
               </p>
-              <ul className="text-sm text-yellow-700 space-y-1">
+              <ul className="text-sm text-yellow-700 dark:text-yellow-400 space-y-1">
                 <li>• Reassign all user's bookings to the admin user</li>
                 <li>• Reassign all user's templates to the admin user</li>
                 <li>• Permanently delete the user account</li>
