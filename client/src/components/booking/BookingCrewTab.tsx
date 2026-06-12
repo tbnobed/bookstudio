@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Trash2, Mail, AlertTriangle, CheckCircle2, XCircle, Clock, UserPlus, FileText, DollarSign, Printer } from "lucide-react";
 import type { CrewMember, CrewPosition, CrewTemplate } from "@shared/schema";
@@ -23,6 +24,8 @@ interface Props { booking: any; }
 export function BookingCrewTab({ booking }: Props) {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const canSeeRates = ["admin", "site_manager", "production_coordinator"].includes(user?.role ?? "");
   const bookingId = booking?.id;
 
   const { data: crewData = { slots: [], totals: { cents: 0, defaultRateType: "day", hours: 0 } } } = useQuery<any>({
@@ -97,18 +100,24 @@ export function BookingCrewTab({ booking }: Props) {
       <div className="rounded-xl border border-border bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Estimated crew cost</div>
-            <div className="flex items-baseline gap-2">
-              <DollarSign className="h-6 w-6 self-center text-emerald-500" />
-              <span className="text-3xl font-bold tabular-nums text-foreground" data-testid="text-crew-total">{dollars(totals.cents)}</span>
-            </div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{canSeeRates ? "Estimated crew cost" : "Crew summary"}</div>
+            {canSeeRates && (
+              <div className="flex items-baseline gap-2">
+                <DollarSign className="h-6 w-6 self-center text-emerald-500" />
+                <span className="text-3xl font-bold tabular-nums text-foreground" data-testid="text-crew-total">{dollars(totals.cents)}</span>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span>Production length <strong className="text-foreground">{totals.hours.toFixed(1)}h</strong></span>
-              <span className="text-border">•</span>
-              <span className="inline-flex items-center gap-1">
-                auto rate
-                <Badge variant="secondary" className="font-medium">{totals.defaultRateType === "half-day" ? "Half-day" : "Day"}</Badge>
-              </span>
+              {canSeeRates && (
+                <>
+                  <span className="text-border">•</span>
+                  <span className="inline-flex items-center gap-1">
+                    auto rate
+                    <Badge variant="secondary" className="font-medium">{totals.defaultRateType === "half-day" ? "Half-day" : "Day"}</Badge>
+                  </span>
+                </>
+              )}
               {slots.length > 0 && (
                 <>
                   <span className="text-border">•</span>
@@ -195,7 +204,7 @@ export function BookingCrewTab({ booking }: Props) {
                       )}
                       {candidates.map(m => (
                         <SelectItem key={m.id} value={m.id.toString()}>
-                          {m.name} — {dollars(m.dayRateCents)}/{dollars(m.halfDayRateCents)}
+                          {m.name}{canSeeRates ? ` — ${dollars(m.dayRateCents)}/${dollars(m.halfDayRateCents)}` : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -205,7 +214,7 @@ export function BookingCrewTab({ booking }: Props) {
                     <StatusIcon className="h-3.5 w-3.5" /> {meta.label}
                   </div>
 
-                  {s.rateSnapshotCents > 0 && (
+                  {canSeeRates && s.rateSnapshotCents > 0 && (
                     <div className="text-sm font-medium tabular-nums text-foreground">
                       {dollars(s.rateSnapshotCents)} <span className="text-xs font-normal text-muted-foreground">({s.rateType})</span>
                     </div>

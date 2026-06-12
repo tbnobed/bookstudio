@@ -1,1 +1,2 @@
 - [No-auth token endpoints](no-auth-token-endpoints.md) — public Accept/Decline/reset-style links must rotate tokens on every state change and never echo the token in the public payload.
+- [Field-level access control](field-level-access-control.md) — hiding a sensitive field by role means sanitizing EVERY response path (GETs, create/patch echoes, 409 conflict payloads, derived endpoints) + stripping incoming writes, not just the list GET + UI.

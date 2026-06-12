@@ -28,6 +28,7 @@ export default function CrewRoster() {
   const { toast } = useToast();
   const { user } = useAuth();
   const canDelete = user?.role === "admin" || user?.role === "site_manager";
+  const canSeeRates = ["admin", "site_manager", "production_coordinator"].includes(user?.role ?? "");
   const [editing, setEditing] = useState<EnrichedMember | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<EnrichedMember | null>(null);
@@ -109,11 +110,13 @@ export default function CrewRoster() {
               <CardContent className="space-y-1.5 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-3.5 w-3.5" /> {m.email}</div>
                 {m.phone && <div className="flex items-center gap-2 text-muted-foreground"><Phone className="h-3.5 w-3.5" /> {m.phone}</div>}
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <DollarSign className="h-3.5 w-3.5" />
-                  <span>Day: <strong>{dollars(m.dayRateCents)}</strong></span>
-                  <span className="text-xs">/ Half: <strong>{dollars(m.halfDayRateCents)}</strong></span>
-                </div>
+                {canSeeRates && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <DollarSign className="h-3.5 w-3.5" />
+                    <span>Day: <strong>{dollars(m.dayRateCents)}</strong></span>
+                    <span className="text-xs">/ Half: <strong>{dollars(m.halfDayRateCents)}</strong></span>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-1 pt-2">
                   {m.positions.length === 0
                     ? <span className="text-xs text-muted-foreground italic">No positions set</span>
@@ -139,6 +142,7 @@ export default function CrewRoster() {
         <CrewMemberDialog
           member={editing}
           positions={positions}
+          canSeeRates={canSeeRates}
           onClose={() => { setCreating(false); setEditing(null); }}
         />
       )}
@@ -161,7 +165,7 @@ export default function CrewRoster() {
   );
 }
 
-function CrewMemberDialog({ member, positions, onClose }: { member: EnrichedMember | null; positions: CrewPosition[]; onClose: () => void }) {
+function CrewMemberDialog({ member, positions, canSeeRates, onClose }: { member: EnrichedMember | null; positions: CrewPosition[]; canSeeRates: boolean; onClose: () => void }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [name, setName] = useState(member?.name || "");
@@ -175,12 +179,14 @@ function CrewMemberDialog({ member, positions, onClose }: { member: EnrichedMemb
 
   const save = useMutation({
     mutationFn: async () => {
-      const payload = {
+      const payload: any = {
         name, email, phone: phone || null,
-        dayRateCents: Math.round(parseFloat(dayRate || "0") * 100),
-        halfDayRateCents: Math.round(parseFloat(halfRate || "0") * 100),
         notes: notes || null, isActive, positionIds,
       };
+      if (canSeeRates) {
+        payload.dayRateCents = Math.round(parseFloat(dayRate || "0") * 100);
+        payload.halfDayRateCents = Math.round(parseFloat(halfRate || "0") * 100);
+      }
       if (member) return apiRequest("PATCH", `/api/crew/members/${member.id}`, payload);
       return apiRequest("POST", "/api/crew/members", payload);
     },
@@ -212,8 +218,12 @@ function CrewMemberDialog({ member, positions, onClose }: { member: EnrichedMemb
               <Switch checked={isActive} onCheckedChange={setIsActive} id="active" />
               <Label htmlFor="active">Active</Label>
             </div>
-            <div><Label>Day Rate (USD)</Label><Input type="number" step="0.01" value={dayRate} onChange={e => setDayRate(e.target.value)} data-testid="input-crew-day-rate" /></div>
-            <div><Label>Half-Day Rate (USD)</Label><Input type="number" step="0.01" value={halfRate} onChange={e => setHalfRate(e.target.value)} data-testid="input-crew-half-rate" /></div>
+            {canSeeRates && (
+              <>
+                <div><Label>Day Rate (USD)</Label><Input type="number" step="0.01" value={dayRate} onChange={e => setDayRate(e.target.value)} data-testid="input-crew-day-rate" /></div>
+                <div><Label>Half-Day Rate (USD)</Label><Input type="number" step="0.01" value={halfRate} onChange={e => setHalfRate(e.target.value)} data-testid="input-crew-half-rate" /></div>
+              </>
+            )}
           </div>
           <div>
             <Label>Notes</Label>

@@ -27,6 +27,19 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
   const ADMIN_ROLES = ["admin", "site_manager", "production_coordinator"];
   // Producers/production can manage their roster too
   const PRODUCER_ROLES = ["admin", "site_manager", "producer", "production", "production_coordinator"];
+  // Only these roles may see crew pay rates and cost totals.
+  const RATE_VIEW_ROLES = ["admin", "site_manager", "production_coordinator"];
+  const canSeeRates = (req: any) => RATE_VIEW_ROLES.includes(req.user?.role);
+  const stripMemberRates = (m: any) => {
+    if (!m) return m;
+    const { dayRateCents, halfDayRateCents, ...rest } = m;
+    return rest;
+  };
+  const stripSlotRates = (s: any) => {
+    if (!s) return s;
+    const { rateSnapshotCents, rateType, member, ...rest } = s;
+    return "member" in s ? { ...rest, member: stripMemberRates(member) } : rest;
+  };
 
   // ─── Public response routes (no auth) ──────────────────────────────────────
   app.get("/api/crew/respond/:token", async (req, res) => {
@@ -135,11 +148,12 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
   });
 
   // ─── Crew members ──────────────────────────────────────────────────────────
-  app.get("/api/crew/members", isAuthenticated, async (_req, res) => {
+  app.get("/api/crew/members", isAuthenticated, async (req, res) => {
     const members = await storage.getAllCrewMembers();
+    const showRates = canSeeRates(req);
     // Enrich with position list
     const enriched = await Promise.all(members.map(async (m) => ({
-      ...m,
+      ...(showRates ? m : stripMemberRates(m)),
       positions: await storage.getCrewMemberPositions(m.id),
     })));
     res.json(enriched);
@@ -150,23 +164,27 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
     const member = await storage.getCrewMember(id);
     if (!member) return res.status(404).json({ message: "Not found" });
     const positions = await storage.getCrewMemberPositions(id);
-    res.json({ ...member, positions });
+    res.json({ ...(canSeeRates(req) ? member : stripMemberRates(member)), positions });
   });
 
   app.get("/api/crew/members/:id/upcoming", isAuthenticated, async (req, res) => {
-    res.json(await storage.getCrewMemberUpcomingBookings(parseInt(req.params.id)));
+    const upcoming = await storage.getCrewMemberUpcomingBookings(parseInt(req.params.id));
+    res.json(canSeeRates(req) ? upcoming : upcoming.map(stripSlotRates));
   });
 
   app.post("/api/crew/members", isAuthenticated, hasRole(PRODUCER_ROLES), async (req, res) => {
     try {
       const user = req.user as any;
       const positionIds = Array.isArray(req.body.positionIds) ? req.body.positionIds.map((n: any) => parseInt(n)) : [];
-      const data = insertCrewMemberSchema.parse({ ...req.body, createdBy: user.id });
+      const body = { ...req.body };
+      // Non-privileged roles may not set pay rates; default to 0.
+      if (!canSeeRates(req)) { body.dayRateCents = 0; body.halfDayRateCents = 0; }
+      const data = insertCrewMemberSchema.parse({ ...body, createdBy: user.id });
       const existing = await storage.getCrewMemberByEmail(data.email);
       if (existing) return res.status(409).json({ message: "A crew member with that email already exists" });
       const created = await storage.createCrewMember(data, positionIds);
       await AuditService.log(getAuditContext(req), "create", "crew_member", created.id, created.name);
-      res.status(201).json(created);
+      res.status(201).json(canSeeRates(req) ? created : stripMemberRates(created));
     } catch (err: any) { res.status(400).json({ message: err.message }); }
   });
 
@@ -175,11 +193,13 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
       const id = parseInt(req.params.id);
       const positionIds = Array.isArray(req.body.positionIds) ? req.body.positionIds.map((n: any) => parseInt(n)) : undefined;
       const { positionIds: _omit, ...rest } = req.body;
+      // Non-privileged roles may not change pay rates; preserve existing values.
+      if (!canSeeRates(req)) { delete rest.dayRateCents; delete rest.halfDayRateCents; }
       const data = insertCrewMemberSchema.partial().parse(rest);
       const updated = await storage.updateCrewMember(id, data, positionIds);
       if (!updated) return res.status(404).json({ message: "Not found" });
       await AuditService.log(getAuditContext(req), "update", "crew_member", id, updated.name);
-      res.json(updated);
+      res.json(canSeeRates(req) ? updated : stripMemberRates(updated));
     } catch (err: any) { res.status(400).json({ message: err.message }); }
   });
 
@@ -277,6 +297,15 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
     const totalCents = enriched.reduce((sum, s) =>
       s.status !== "declined" && s.crewMemberId ? sum + (s.rateSnapshotCents || 0) : sum, 0);
 
+    // Only privileged roles may see crew rates and cost totals.
+    if (!canSeeRates(req)) {
+      const sanitized = enriched.map((s: any) => {
+        const { rateSnapshotCents, rateType, member, ...rest } = s;
+        return { ...rest, member: stripMemberRates(member) };
+      });
+      return res.json({ slots: sanitized, totals: { defaultRateType, hours } });
+    }
+
     res.json({ slots: enriched, totals: { cents: totalCents, defaultRateType, hours } });
   });
 
@@ -288,7 +317,7 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
       const slot = await storage.addBookingCrewSlot({
         bookingId, positionId, status: "unfilled", createdBy: user.id,
       } as any);
-      res.status(201).json(slot);
+      res.status(201).json(canSeeRates(req) ? slot : stripSlotRates(slot));
     } catch (err: any) { res.status(400).json({ message: err.message }); }
   });
 
@@ -298,7 +327,7 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
       const bookingId = parseInt(req.params.id);
       const { templateId } = z.object({ templateId: z.number().int() }).parse(req.body);
       const created = await storage.applyCrewTemplateToBooking(bookingId, templateId, user.id);
-      res.json({ created: created.length, slots: created });
+      res.json({ created: created.length, slots: canSeeRates(req) ? created : created.map(stripSlotRates) });
     } catch (err: any) { res.status(400).json({ message: err.message }); }
   });
 
@@ -341,7 +370,7 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
         if (conflicts.length > 0) {
           return res.status(409).json({
             message: `${member.name} is already booked during this time.`,
-            conflicts,
+            conflicts: canSeeRates(req) ? conflicts : conflicts.map(stripSlotRates),
           });
         }
         const { rateType, rateCents } = computeRate(new Date(booking.start), new Date(booking.end), member.dayRateCents, member.halfDayRateCents);
@@ -359,7 +388,7 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
       }
 
       const updated = await storage.updateBookingCrewSlot(slotId, update);
-      res.json(updated);
+      res.json(canSeeRates(req) ? updated : stripSlotRates(updated));
     } catch (err: any) { res.status(400).json({ message: err.message }); }
   });
 
@@ -407,7 +436,7 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
       });
 
       await AuditService.log(getAuditContext(req), "invite_sent", "booking_crew", slotId, `${position.name} → ${member.name}`);
-      res.json({ success: ok, slot: updated });
+      res.json({ success: ok, slot: canSeeRates(req) ? updated : stripSlotRates(updated) });
     } catch (err: any) {
       console.error("Send invite error:", err);
       res.status(500).json({ message: err.message });
