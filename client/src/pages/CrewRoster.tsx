@@ -20,6 +20,8 @@ import { CrewPositionsSettings } from "@/components/settings/CrewPositionsSettin
 import { CrewTemplatesSettings } from "@/components/settings/CrewTemplatesSettings";
 import { formatDateTimeRange } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
+import { CallSheetDialog } from "@/components/booking/CallSheetDialog";
+import { FileText } from "lucide-react";
 
 type EnrichedMember = CrewMember & { positions: CrewPosition[] };
 
@@ -298,6 +300,8 @@ function CrewAssignments() {
   const [filter, setFilter] = useState<AssignmentFilter>("all");
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
+  const [callSheetFor, setCallSheetFor] = useState<number | null>(null);
+
   const { data: assignments = [], isLoading } = useQuery<AssignmentBooking[]>({ queryKey: ["/api/crew/assignments"] });
   const { data: studios = [] } = useQuery<Studio[]>({ queryKey: ["/api/studios"] });
   const studioName = (id: number | null) => studios.find(s => s.id === id)?.name ?? "—";
@@ -357,10 +361,16 @@ function CrewAssignments() {
             const fullyStaffed = isFullyStaffed(a);
             return (
               <Card key={a.booking.id} data-testid={`assignment-${a.booking.id}`}>
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={open}
                   onClick={() => setExpanded(prev => ({ ...prev, [a.booking.id]: !open }))}
-                  className="w-full text-left"
+                  onKeyDown={(e) => {
+                    if (e.target !== e.currentTarget) return;
+                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpanded(prev => ({ ...prev, [a.booking.id]: !open })); }
+                  }}
+                  className="w-full text-left cursor-pointer"
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-3">
@@ -371,7 +381,18 @@ function CrewAssignments() {
                           <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {studioName(a.booking.studioId)}</span>
                         </div>
                       </div>
-                      <ChevronDown className={cn("h-5 w-5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); setCallSheetFor(a.booking.id); }}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          data-testid={`button-call-sheet-${a.booking.id}`}
+                        >
+                          <FileText className="h-4 w-4 mr-1.5" /> Call Sheet
+                        </Button>
+                        <ChevronDown className={cn("h-5 w-5 text-muted-foreground transition-transform", open && "rotate-180")} />
+                      </div>
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -387,7 +408,7 @@ function CrewAssignments() {
                       {a.counts.declined > 0 && <StatusPill status="declined" count={a.counts.declined} />}
                     </div>
                   </CardHeader>
-                </button>
+                </div>
 
                 {open && (
                   <CardContent className="pt-0">
@@ -419,6 +440,14 @@ function CrewAssignments() {
             );
           })}
         </div>
+      )}
+
+      {callSheetFor !== null && (
+        <CallSheetDialog
+          bookingId={callSheetFor}
+          open={callSheetFor !== null}
+          onOpenChange={(o) => { if (!o) setCallSheetFor(null); }}
+        />
       )}
     </div>
   );
