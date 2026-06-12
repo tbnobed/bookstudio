@@ -14,13 +14,23 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { compressImage } from "@/lib/imageCompress";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatTime, formatTimeRange, isBookingActive, isSameDay } from "@/lib/dateUtils";
 import type { FacilityMapRoom, Studio, PcrRoom, Booking } from "@shared/schema";
 import BookingModal from "@/components/booking/BookingModal";
-import StudioPhotos from "./StudioPhotos";
+
+// A studio reference photo placed at an exact spot on the facility map.
+interface PhotoPin {
+  id: number;
+  studioId: number;
+  photoData: string;
+  caption: string | null;
+  x: number;
+  y: number;
+}
 
 const VIEW_W = 680;
 const VIEW_H = 470;
@@ -167,12 +177,25 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     user?.role === "engineer" ||
     user?.role === "it";
 
-  const [photoStudio, setPhotoStudio] = useState<{ id: number; name: string } | null>(null);
+  // Photo-pin state. A pin is a studio reference photo dropped at an exact spot
+  // on the map; any authenticated user can click a pin to view that angle.
+  const [addPinMode, setAddPinMode] = useState(false);
+  const [pendingPin, setPendingPin] = useState<
+    { x: number; y: number; studioId: number; studioName: string } | null
+  >(null);
+  const [pinPhoto, setPinPhoto] = useState<string | null>(null);
+  const [pinCaption, setPinCaption] = useState("");
+  const [pinUploading, setPinUploading] = useState(false);
+  const [pinViewer, setPinViewer] = useState<PhotoPin | null>(null);
+  const pinFileRef = useRef<HTMLInputElement | null>(null);
 
   const { data: rooms = [] } = useQuery<FacilityMapRoom[]>({
     queryKey: ["/api/facility-map"],
   });
   const { data: studios = [] } = useQuery<Studio[]>({ queryKey: ["/api/studios"] });
+  const { data: photoPins = [] } = useQuery<PhotoPin[]>({
+    queryKey: ["/api/facility-map/photo-pins"],
+  });
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({ queryKey: ["/api/pcr-rooms"] });
   const { data: bookings = [] } = useQuery<Booking[]>({ queryKey: ["/api/bookings"] });
   const { data: userNames = [] } = useQuery<{ id: number; name: string }[]>({
@@ -556,7 +579,90 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const onShapeClick = (e: React.MouseEvent, room: DraftRoom) => {
     // Prevent the SVG background onClick (which deselects) from firing.
     e.stopPropagation();
+    // In add-pin mode, clicking a studio drops a photo pin at the exact spot.
+    if (addPinMode && !isEditing) {
+      if (!room.studioId) {
+        toast({
+          title: "Pick a studio",
+          description: "Photo pins must be placed on a studio room.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const { x, y } = toSvgCoords(e.clientX, e.clientY);
+      setPendingPin({
+        x,
+        y,
+        studioId: room.studioId,
+        studioName: studios.find((s) => s.id === room.studioId)?.name || room.label,
+      });
+      return;
+    }
     setSelectedUid(room.uid);
+  };
+
+  const closePinDialog = () => {
+    setPendingPin(null);
+    setPinPhoto(null);
+    setPinCaption("");
+  };
+
+  const onPickPinPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setPinUploading(true);
+    try {
+      setPinPhoto(await compressImage(file));
+    } catch (err: any) {
+      toast({
+        title: "Couldn't load image",
+        description: err?.message || "Please try a different photo.",
+        variant: "destructive",
+      });
+    } finally {
+      setPinUploading(false);
+    }
+  };
+
+  const savePin = async () => {
+    if (!pendingPin || !pinPhoto) return;
+    setPinUploading(true);
+    try {
+      await apiRequest("POST", `/api/studios/${pendingPin.studioId}/photos`, {
+        photoData: pinPhoto,
+        caption: pinCaption.trim() || undefined,
+        x: pendingPin.x,
+        y: pendingPin.y,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["/api/facility-map/photo-pins"] });
+      toast({ title: "Photo pin added", description: `Pinned to ${pendingPin.studioName}.` });
+      closePinDialog();
+      setAddPinMode(false);
+    } catch (err: any) {
+      toast({
+        title: "Couldn't save pin",
+        description: err?.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setPinUploading(false);
+    }
+  };
+
+  const deletePin = async (pin: PhotoPin) => {
+    if (!window.confirm("Delete this photo pin?")) return;
+    try {
+      await apiRequest("DELETE", `/api/studios/${pin.studioId}/photos/${pin.id}`);
+      await queryClient.invalidateQueries({ queryKey: ["/api/facility-map/photo-pins"] });
+      setPinViewer(null);
+    } catch (err: any) {
+      toast({
+        title: "Couldn't delete pin",
+        description: err?.message || "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Add a vertex on the polygon edge nearest the double-clicked point.
@@ -744,6 +850,21 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
           </span>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2">
+        {canManagePhotos && !isEditing && (
+          <Button
+            size="sm"
+            variant={addPinMode ? "default" : "outline"}
+            onClick={() => {
+              setAddPinMode((v) => !v);
+              setSelectedUid(null);
+            }}
+            data-testid="button-add-photo-pin"
+          >
+            <Camera className="h-4 w-4 mr-1.5" />
+            {addPinMode ? "Click a studio…" : "Add photo pin"}
+          </Button>
+        )}
         {canEdit && !isEditing && (
           <div className="flex items-center gap-2">
             {isAdmin && (
@@ -794,7 +915,14 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
             </Button>
           </div>
         )}
+        </div>
       </div>
+
+      {addPinMode && !isEditing && (
+        <p className="text-xs text-blue-600 dark:text-blue-400" data-testid="text-add-pin-hint">
+          Click the spot on a studio where the photo was taken to drop a pin.
+        </p>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Map */}
@@ -811,6 +939,36 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
             }}
           >
             {display.map((room) => renderShape(room))}
+            {/* Photo pins — studio reference shots placed at exact spots */}
+            {!isEditing &&
+              photoPins.map((pin) => (
+                <g
+                  key={`pin-${pin.id}`}
+                  style={{ cursor: "pointer" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPinViewer(pin);
+                  }}
+                  className="transition-opacity hover:opacity-80"
+                  data-testid={`photo-pin-${pin.id}`}
+                >
+                  <circle cx={pin.x} cy={pin.y} r={11} fill="#2563EB" stroke="#fff" strokeWidth={2} />
+                  <rect x={pin.x - 4} y={pin.y - 2.5} width={8} height={6} rx={1.2} fill="#fff" />
+                  <rect x={pin.x - 1.5} y={pin.y - 4} width={3} height={1.8} rx={0.5} fill="#fff" />
+                  <circle cx={pin.x} cy={pin.y + 0.7} r={1.7} fill="#2563EB" />
+                </g>
+              ))}
+            {pendingPin && (
+              <circle
+                cx={pendingPin.x}
+                cy={pendingPin.y}
+                r={9}
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth={2}
+                strokeDasharray="3 2"
+              />
+            )}
           </svg>
         </div>
 
@@ -957,19 +1115,6 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                     it (minimum 3 points).
                   </p>
                 </div>
-              )}
-              {selected.studioId ? (
-                <div className="pt-3 border-t dark:border-neutral-700">
-                  <StudioPhotos
-                    studioId={selected.studioId}
-                    studioName={selected.label}
-                    canManage={canManagePhotos}
-                  />
-                </div>
-              ) : (
-                <p className="pt-3 border-t dark:border-neutral-700 text-[11px] text-gray-400">
-                  Link this shape to a studio above to add reference photos of it.
-                </p>
               )}
             </div>
           ) : isEditing ? (
@@ -1135,23 +1280,6 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                 </div>
               )}
 
-              {selected.studioId && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() =>
-                    setPhotoStudio({
-                      id: selected.studioId!,
-                      name: studios.find((s) => s.id === selected.studioId)?.name || selected.label,
-                    })
-                  }
-                  data-testid="button-room-photos"
-                >
-                  <Camera className="h-4 w-4 mr-1.5" /> Studio photos
-                </Button>
-              )}
-
               {(selected.studioId || selected.pcrRoomId) && (
                 <Button size="sm" className="w-full" onClick={() => openBooking(selected)} data-testid="button-book-room">
                   <CalendarPlus className="h-4 w-4 mr-1.5" /> Book {selected.label}
@@ -1175,20 +1303,120 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         />
       )}
 
-      <Dialog open={!!photoStudio} onOpenChange={(open) => !open && setPhotoStudio(null)}>
-        <DialogContent className="sm:max-w-[560px]">
+      {/* Add photo pin: choose the angle photo + optional label for the clicked spot */}
+      <Dialog open={!!pendingPin} onOpenChange={(open) => !open && closePinDialog()}>
+        <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
-            <DialogTitle>{photoStudio?.name} — reference photos</DialogTitle>
+            <DialogTitle>Add photo pin — {pendingPin?.studioName}</DialogTitle>
           </DialogHeader>
-          {photoStudio && (
-            <StudioPhotos
-              studioId={photoStudio.id}
-              studioName={photoStudio.name}
-              canManage={canManagePhotos}
+          <div className="space-y-3">
+            <input
+              ref={pinFileRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={onPickPinPhoto}
+              data-testid="input-pin-photo"
             />
-          )}
+            {pinPhoto ? (
+              <img
+                src={pinPhoto}
+                alt="Selected angle"
+                className="w-full max-h-64 object-contain rounded-md border border-gray-200 dark:border-gray-700"
+                data-testid="img-pin-preview"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => pinFileRef.current?.click()}
+                disabled={pinUploading}
+                className="flex w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-gray-300 dark:border-gray-600 py-10 text-sm text-gray-500 dark:text-gray-400 hover:border-blue-400"
+                data-testid="button-choose-pin-photo"
+              >
+                <Camera className="h-6 w-6" />
+                {pinUploading ? "Processing…" : "Take or choose a photo"}
+              </button>
+            )}
+            {pinPhoto && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => pinFileRef.current?.click()}
+                disabled={pinUploading}
+                data-testid="button-replace-pin-photo"
+              >
+                <Camera className="h-4 w-4 mr-1.5" /> Choose a different photo
+              </Button>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Angle label (optional)</Label>
+              <Input
+                value={pinCaption}
+                onChange={(e) => setPinCaption(e.target.value)}
+                placeholder="e.g. Front, Stage left, From PCR"
+                maxLength={120}
+                data-testid="input-pin-caption"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button size="sm" variant="ghost" onClick={closePinDialog} data-testid="button-cancel-pin">
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={savePin}
+                disabled={!pinPhoto || pinUploading}
+                data-testid="button-save-pin"
+              >
+                <Save className="h-4 w-4 mr-1.5" /> {pinUploading ? "Saving…" : "Save pin"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
+
+      {/* Pin viewer: any authenticated user can open a pin to view that angle */}
+      {pinViewer && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setPinViewer(null)}
+          data-testid="pin-viewer"
+        >
+          <button
+            type="button"
+            className="absolute top-4 right-4 rounded-full bg-white/15 p-2 text-white"
+            onClick={() => setPinViewer(null)}
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <figure className="max-w-3xl max-h-full" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={pinViewer.photoData}
+              alt={pinViewer.caption || "Studio angle"}
+              className="max-h-[80vh] w-auto rounded-lg"
+            />
+            <figcaption className="mt-2 flex items-center justify-center gap-3 text-sm text-white/90">
+              <span>
+                {studios.find((s) => s.id === pinViewer.studioId)?.name || "Studio"}
+                {pinViewer.caption ? ` — ${pinViewer.caption}` : ""}
+              </span>
+              {canManagePhotos && (
+                <button
+                  type="button"
+                  onClick={() => deletePin(pinViewer)}
+                  className="inline-flex items-center gap-1 rounded bg-red-600/80 px-2 py-1 text-xs text-white hover:bg-red-600"
+                  data-testid="button-delete-pin"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </button>
+              )}
+            </figcaption>
+          </figure>
+        </div>
+      )}
     </div>
   );
 }

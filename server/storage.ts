@@ -33,7 +33,7 @@ import {
 import { db, pool, ensureConnection } from "./db";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { eq, and, or, isNull, not, desc, asc, gte, lte, inArray, sql } from "drizzle-orm";
+import { eq, and, or, isNull, isNotNull, not, desc, asc, gte, lte, inArray, sql } from "drizzle-orm";
 
 // Default facility map layout (OBTV floorplan) seeded when the table is empty.
 // Shapes are unlinked by default — admins link each to a studio/PCR room in edit mode.
@@ -234,7 +234,8 @@ export interface IStorage {
   addAssetPhoto(data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto>;
   deleteAssetPhoto(id: number): Promise<boolean>;
   getStudioPhotos(studioId: number): Promise<StudioPhoto[]>;
-  addStudioPhoto(data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number }): Promise<StudioPhoto>;
+  getStudioPhotoPins(): Promise<StudioPhoto[]>;
+  addStudioPhoto(data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number; x?: number | null; y?: number | null }): Promise<StudioPhoto>;
   deleteStudioPhoto(id: number, studioId: number): Promise<boolean>;
 
   // Crew positions (v1.7.0)
@@ -1254,7 +1255,8 @@ export class MemStorage implements IStorage {
   async addAssetPhoto(_data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto> { throw new Error("Not implemented in MemStorage"); }
   async deleteAssetPhoto(_id: number): Promise<boolean> { return false; }
   async getStudioPhotos(_studioId: number): Promise<StudioPhoto[]> { return []; }
-  async addStudioPhoto(_data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number }): Promise<StudioPhoto> { throw new Error("Not implemented in MemStorage"); }
+  async getStudioPhotoPins(): Promise<StudioPhoto[]> { return []; }
+  async addStudioPhoto(_data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number; x?: number | null; y?: number | null }): Promise<StudioPhoto> { throw new Error("Not implemented in MemStorage"); }
   async deleteStudioPhoto(_id: number, _studioId: number): Promise<boolean> { return false; }
 
   // Crew (v1.7.0) — stubs (use DatabaseStorage in production)
@@ -4538,7 +4540,15 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(studioPhotos).where(eq(studioPhotos.studioId, studioId)).orderBy(asc(studioPhotos.createdAt));
   }
 
-  async addStudioPhoto(data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number }): Promise<StudioPhoto> {
+  async getStudioPhotoPins(): Promise<StudioPhoto[]> {
+    return db
+      .select()
+      .from(studioPhotos)
+      .where(and(isNotNull(studioPhotos.x), isNotNull(studioPhotos.y)))
+      .orderBy(asc(studioPhotos.createdAt));
+  }
+
+  async addStudioPhoto(data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number; x?: number | null; y?: number | null }): Promise<StudioPhoto> {
     const [photo] = await db.insert(studioPhotos).values(data).returning();
     return photo;
   }

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, bigint, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, bigint, unique, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -567,6 +567,10 @@ export const studioPhotos = pgTable("studio_photos", {
   studioId: integer("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
   photoData: text("photo_data").notNull(), // base64 compressed JPEG data URL
   caption: text("caption"), // optional angle / description label
+  // Map pin position in facility-map SVG coordinate space (0..680 x 0..470).
+  // Set when the photo is dropped as a pin on the map; null for legacy photos.
+  x: doublePrecision("x"),
+  y: doublePrecision("y"),
   uploadedBy: integer("uploaded_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });

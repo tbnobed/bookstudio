@@ -3845,6 +3845,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       )
     `);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_studio_photos_studio ON studio_photos(studio_id)`);
+    // v1.8.2 — positioned photo pins: x/y in facility-map SVG coordinate space
+    await pool.query(`ALTER TABLE studio_photos ADD COLUMN IF NOT EXISTS x DOUBLE PRECISION`);
+    await pool.query(`ALTER TABLE studio_photos ADD COLUMN IF NOT EXISTS y DOUBLE PRECISION`);
   } catch (e) {
     console.error("studio_photos table init error:", e);
   }
@@ -4371,6 +4374,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // All positioned photo pins across the facility map (for any authenticated user to view).
+  app.get("/api/facility-map/photo-pins", isAuthenticated, async (_req, res) => {
+    try {
+      const pins = await storage.getStudioPhotoPins();
+      res.json(pins);
+    } catch (error) {
+      console.error("Error fetching photo pins:", error);
+      res.status(500).json({ message: "Failed to fetch photo pins" });
+    }
+  });
+
   app.post(
     "/api/studios/:id/photos",
     isAuthenticated,
@@ -4380,10 +4394,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const studioId = parseInt(req.params.id);
         if (isNaN(studioId)) return res.status(400).json({ message: "Invalid studio ID" });
 
+        const studio = await storage.getStudio(studioId);
+        if (!studio) return res.status(404).json({ message: "Studio not found" });
+
         const existing = await storage.getStudioPhotos(studioId);
         if (existing.length >= 12) return res.status(400).json({ message: "Maximum 12 photos per studio" });
 
-        const { photoData, caption } = req.body;
+        const { photoData, caption, x, y } = req.body;
         if (!photoData || typeof photoData !== "string" || !photoData.startsWith("data:image/")) {
           return res.status(400).json({ message: "Invalid photo data" });
         }
@@ -4392,11 +4409,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Photo too large — please use a smaller image" });
         }
 
+        // Optional map-pin position (SVG coordinate space, 0..680 x 0..470).
+        // x and y must be supplied together as finite, in-bounds numbers.
+        let px: number | null = null;
+        let py: number | null = null;
+        const hasX = x !== undefined && x !== null;
+        const hasY = y !== undefined && y !== null;
+        if (hasX !== hasY) {
+          return res.status(400).json({ message: "Pin position requires both x and y" });
+        }
+        if (hasX && hasY) {
+          px = Number(x);
+          py = Number(y);
+          if (!Number.isFinite(px) || !Number.isFinite(py)) {
+            return res.status(400).json({ message: "Invalid pin position" });
+          }
+          if (px < 0 || px > 680 || py < 0 || py > 470) {
+            return res.status(400).json({ message: "Pin position is off the map" });
+          }
+        }
+
         const photo = await storage.addStudioPhoto({
           studioId,
           photoData,
           caption: typeof caption === "string" && caption.trim() ? caption.trim().slice(0, 120) : null,
           uploadedBy: (req.user as any).id,
+          x: px,
+          y: py,
         });
         res.json(photo);
       } catch (error) {
