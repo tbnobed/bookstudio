@@ -110,8 +110,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                      location.startsWith("/invite/") ||
                      location.startsWith("/crew/respond/");
   
-  // Fully standalone pages — no sidebar, no header, no mobile navbar
-  const isStandalonePage = location === "/mobile/assets";
+  // Fully standalone pages — no sidebar, no header, no mobile navbar.
+  // The call sheet must escape the h-screen/overflow-hidden shell so it renders
+  // as a true full page and prints cleanly (the shell otherwise clips print).
+  const isStandalonePage = location === "/mobile/assets" || /^\/bookings\/\d+\/call-sheet$/.test(location);
 
   // Check if we're on the mobile-specific page (no sidebar needed)
   const isMobilePage = location === "/mobile" || 

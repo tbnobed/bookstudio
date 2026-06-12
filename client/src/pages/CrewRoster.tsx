@@ -20,8 +20,8 @@ import { CrewPositionsSettings } from "@/components/settings/CrewPositionsSettin
 import { CrewTemplatesSettings } from "@/components/settings/CrewTemplatesSettings";
 import { formatDateTimeRange } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
-import { CallSheetDialog } from "@/components/booking/CallSheetDialog";
 import { FileText } from "lucide-react";
+import { useLocation } from "wouter";
 
 type EnrichedMember = CrewMember & { positions: CrewPosition[] };
 
@@ -300,7 +300,7 @@ function CrewAssignments() {
   const [filter, setFilter] = useState<AssignmentFilter>("all");
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
-  const [callSheetFor, setCallSheetFor] = useState<number | null>(null);
+  const [, setLocation] = useLocation();
 
   const { data: assignments = [], isLoading } = useQuery<AssignmentBooking[]>({ queryKey: ["/api/crew/assignments"] });
   const { data: studios = [] } = useQuery<Studio[]>({ queryKey: ["/api/studios"] });
@@ -385,7 +385,7 @@ function CrewAssignments() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={(e) => { e.stopPropagation(); setCallSheetFor(a.booking.id); }}
+                          onClick={(e) => { e.stopPropagation(); setLocation(`/bookings/${a.booking.id}/call-sheet`); }}
                           onKeyDown={(e) => e.stopPropagation()}
                           data-testid={`button-call-sheet-${a.booking.id}`}
                         >
@@ -440,14 +440,6 @@ function CrewAssignments() {
             );
           })}
         </div>
-      )}
-
-      {callSheetFor !== null && (
-        <CallSheetDialog
-          bookingId={callSheetFor}
-          open={callSheetFor !== null}
-          onOpenChange={(o) => { if (!o) setCallSheetFor(null); }}
-        />
       )}
     </div>
   );
