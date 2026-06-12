@@ -16,7 +16,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { formatTime, isBookingActive } from "@/lib/dateUtils";
+import { formatTime, formatTimeRange, isBookingActive, isSameDay } from "@/lib/dateUtils";
 import type { FacilityMapRoom, Studio, PcrRoom, Booking } from "@shared/schema";
 import BookingModal from "@/components/booking/BookingModal";
 
@@ -158,7 +158,28 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const { data: studios = [] } = useQuery<Studio[]>({ queryKey: ["/api/studios"] });
   const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({ queryKey: ["/api/pcr-rooms"] });
   const { data: bookings = [] } = useQuery<Booking[]>({ queryKey: ["/api/bookings"] });
+  const { data: userNames = [] } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/users/names"],
+  });
+  const { data: bookingStudioLinks = [] } = useQuery<{ bookingId: number; studioId: number }[]>({
+    queryKey: ["/api/booking-studios"],
+  });
   const { getStudioStatus } = useStudioStatus();
+
+  const getUserName = (id?: number | null) =>
+    id == null ? undefined : userNames.find((u) => u.id === id)?.name;
+
+  const formatBookingType = (type?: string | null) => {
+    if (!type) return undefined;
+    const map: Record<string, string> = {
+      production: "Production",
+      rehearsal: "Rehearsal",
+      maintenance: "Maintenance",
+      it_support: "IT Support",
+      meeting: "Meeting",
+    };
+    return map[type] || type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<DraftRoom[]>([]);
@@ -561,6 +582,33 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const selectedStatus = selected ? resolveStatus(selected) : null;
   const selectedStyle = selectedStatus ? STATUS_STYLE[selectedStatus.key] : null;
 
+  const selectedTodaySchedule = useMemo(() => {
+    if (!selected || (!selected.studioId && !selected.pcrRoomId)) return [];
+    const now = new Date();
+    const nowMs = now.getTime();
+    return bookings
+      .filter((b) => {
+        if (b.status === "cancelled") return false;
+        const matchRoom = selected.studioId
+          ? b.studioId === selected.studioId ||
+            bookingStudioLinks.some(
+              (l) => l.bookingId === b.id && l.studioId === selected.studioId,
+            )
+          : b.pcrRoomId === selected.pcrRoomId;
+        if (!matchRoom) return false;
+        // Facility-timezone-aware "today": starts today, ends today, or is a
+        // multi-day booking currently spanning today (instant-based check).
+        const startMs = new Date(b.start).getTime();
+        const endMs = new Date(b.end).getTime();
+        return (
+          isSameDay(b.start, now) ||
+          isSameDay(b.end, now) ||
+          (startMs < nowMs && endMs > nowMs)
+        );
+      })
+      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  }, [selected, bookings, bookingStudioLinks]);
+
   return (
     <div className="space-y-4">
       {/* Toolbar */}
@@ -797,38 +845,145 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                 </span>
               </div>
 
-              {selected.studioId &&
-                studios.find((s) => s.id === selected.studioId) && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Studio: {studios.find((s) => s.id === selected.studioId)?.name}
-                  </p>
-                )}
-              {selected.pcrRoomId &&
-                pcrRooms.find((p) => p.id === selected.pcrRoomId) && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    PCR: {pcrRooms.find((p) => p.id === selected.pcrRoomId)?.name}
-                  </p>
-                )}
+              {(() => {
+                const linkedStudio = selected.studioId
+                  ? studios.find((s) => s.id === selected.studioId)
+                  : undefined;
+                const linkedPcr = selected.pcrRoomId
+                  ? pcrRooms.find((p) => p.id === selected.pcrRoomId)
+                  : undefined;
+                return (
+                  <>
+                    {linkedStudio && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Studio:</span>{" "}
+                        {linkedStudio.name}
+                        {linkedStudio.description && (
+                          <p className="mt-0.5 text-gray-500 dark:text-gray-400">
+                            {linkedStudio.description}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {linkedPcr && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">PCR:</span>{" "}
+                        {linkedPcr.name}
+                        {linkedPcr.description && (
+                          <p className="mt-0.5 text-gray-500 dark:text-gray-400">
+                            {linkedPcr.description}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {!linkedStudio && !linkedPcr && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        This shape isn't linked to a studio or control room.
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
 
               {selectedStatus?.currentBooking && (
-                <div className="text-sm">
-                  <div className="font-medium dark:text-gray-100">
+                <div className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-2.5 space-y-1">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-red-500">
+                    On air now
+                  </div>
+                  <div className="font-medium text-sm dark:text-gray-100">
                     {selectedStatus.currentBooking.title}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    Until {formatTime(selectedStatus.currentBooking.end)}
+                    {formatTimeRange(
+                      selectedStatus.currentBooking.start,
+                      selectedStatus.currentBooking.end,
+                    )}
                   </div>
+                  {formatBookingType(selectedStatus.currentBooking.type) && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Type: {formatBookingType(selectedStatus.currentBooking.type)}
+                    </div>
+                  )}
+                  {getUserName(selectedStatus.currentBooking.userId) && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Booked by: {getUserName(selectedStatus.currentBooking.userId)}
+                    </div>
+                  )}
+                  {selectedStatus.currentBooking.description && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {selectedStatus.currentBooking.description}
+                    </div>
+                  )}
                 </div>
               )}
-              {!selectedStatus?.currentBooking && selectedStatus?.nextBooking && (
-                <div className="text-sm">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Next up</div>
-                  <div className="font-medium dark:text-gray-100">
+
+              {selectedStatus?.nextBooking && (
+                <div className="rounded-md border border-gray-200 dark:border-gray-700 p-2.5 space-y-1">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-500">
+                    Next up
+                  </div>
+                  <div className="font-medium text-sm dark:text-gray-100">
                     {selectedStatus.nextBooking.title}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatTime(selectedStatus.nextBooking.start)}
+                    {formatTimeRange(
+                      selectedStatus.nextBooking.start,
+                      selectedStatus.nextBooking.end,
+                    )}
                   </div>
+                  {formatBookingType(selectedStatus.nextBooking.type) && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Type: {formatBookingType(selectedStatus.nextBooking.type)}
+                    </div>
+                  )}
+                  {getUserName(selectedStatus.nextBooking.userId) && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Booked by: {getUserName(selectedStatus.nextBooking.userId)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(selected.studioId || selected.pcrRoomId) && (
+                <div>
+                  <div className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                    Today's schedule
+                  </div>
+                  {selectedTodaySchedule.length === 0 ? (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      No bookings scheduled today.
+                    </p>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {selectedTodaySchedule.map((b) => {
+                        const isNow = isBookingActive(b);
+                        return (
+                          <li
+                            key={b.id}
+                            className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300"
+                          >
+                            <span
+                              className={`mt-1.5 inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+                                isNow ? "bg-red-500" : "bg-gray-300 dark:bg-gray-600"
+                              }`}
+                            />
+                            <span>
+                              <span className="text-gray-500 dark:text-gray-400">
+                                {formatTimeRange(b.start, b.end)}
+                              </span>{" "}
+                              — <span className="font-medium">{b.title}</span>
+                              {formatBookingType(b.type) && (
+                                <span className="text-gray-400 dark:text-gray-500">
+                                  {" "}
+                                  ({formatBookingType(b.type)})
+                                </span>
+                              )}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
               )}
 
