@@ -145,12 +145,12 @@ function boundingBox(r: DraftRoom): { x: number; y: number; w: number; h: number
   return { x: minX, y: minY, w: Math.max(...xs) - minX, h: Math.max(...ys) - minY };
 }
 
-export default function FacilityMap() {
+export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean }) {
   const { toast } = useToast();
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const canEdit =
-    !isMobile && (user?.role === "admin" || user?.role === "site_manager");
+    allowEdit && !isMobile && (user?.role === "admin" || user?.role === "site_manager");
 
   const { data: rooms = [] } = useQuery<FacilityMapRoom[]>({
     queryKey: ["/api/facility-map"],

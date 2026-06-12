@@ -10,7 +10,7 @@ import { calculateStudioStatus } from "@/lib/studioUtils";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { getFacilityTimezone_Dynamic } from "@/lib/dateUtils";
-import { ChevronLeft, ChevronRight, Menu, CalendarDays, LayoutGrid, Calendar as CalendarIcon, Clock, Filter, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, CalendarDays, LayoutGrid, Calendar as CalendarIcon, Clock, Filter, Check, Map as MapIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,8 +19,8 @@ import StudioStatusSummary from "./StudioStatusSummary";
 type HeaderProps = {
   currentDate: Date;
   onDateChange: (date: Date) => void;
-  view: "day" | "week" | "month" | "timeline";
-  onViewChange: (view: "day" | "week" | "month" | "timeline") => void;
+  view: "day" | "week" | "month" | "timeline" | "map";
+  onViewChange: (view: "day" | "week" | "month" | "timeline" | "map") => void;
   onStudioFilterChange?: (studioIds: number[]) => void;
   selectedStudioIds?: number[];
   title?: string;
@@ -131,6 +131,8 @@ export function Header({
       const weekText = formatMondayWeekRangeText(currentDate);
       console.log(`Header - Generated Monday-based week text for timeline: ${weekText} for date ${currentDate.toISOString()}`);
       return weekText;
+    } else if (view === "map") {
+      return "Facility Map";
     } else {
       return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: getFacilityTimezone_Dynamic() });
     }
@@ -153,6 +155,7 @@ export function Header({
     { key: "week", label: "Week", icon: CalendarIcon },
     { key: "timeline", label: "Timeline", icon: Clock },
     { key: "month", label: "Month", icon: LayoutGrid },
+    { key: "map", label: "Map", icon: MapIcon },
   ] as const;
 
   return (

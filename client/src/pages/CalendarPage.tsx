@@ -4,6 +4,7 @@ import WeeklyCalendar from "@/components/calendar/WeeklyCalendar";
 import DailyCalendar from "@/components/calendar/DailyCalendar";
 import MonthlyCalendar from "@/components/calendar/MonthlyCalendar";
 import TimelineCalendar from "@/components/calendar/TimelineCalendar";
+import FacilityMap from "@/components/studios/FacilityMap";
 import NewBookingFab from "@/components/booking/NewBookingFab";
 import { useQuery } from "@tanstack/react-query";
 import { Studio } from "@shared/schema";
@@ -43,10 +44,10 @@ export default function CalendarPage() {
     }
   });
   
-  const [view, setView] = useState<"day" | "week" | "month" | "timeline">(() => {
+  const [view, setView] = useState<"day" | "week" | "month" | "timeline" | "map">(() => {
     try {
-      const savedView = localStorage.getItem('calendarView') as "day" | "week" | "month" | "timeline";
-      return savedView && ['day', 'week', 'month', 'timeline'].includes(savedView) ? savedView : "week";
+      const savedView = localStorage.getItem('calendarView') as "day" | "week" | "month" | "timeline" | "map";
+      return savedView && ['day', 'week', 'month', 'timeline', 'map'].includes(savedView) ? savedView : "week";
     } catch (error) {
       console.error('Error loading view from localStorage', error);
       return "week";
@@ -94,7 +95,7 @@ export default function CalendarPage() {
     console.log(`CalendarPage - [Timestamp: ${timestamp}] Date state updated`);
   };
 
-  const handleViewChange = (newView: "day" | "week" | "month" | "timeline") => {
+  const handleViewChange = (newView: "day" | "week" | "month" | "timeline" | "map") => {
     setView(newView);
     try {
       localStorage.setItem('calendarView', newView);
@@ -158,6 +159,12 @@ export default function CalendarPage() {
             currentDate={currentDate}
             selectedStudioIds={selectedStudioIds}
           />
+        )}
+
+        {view === "map" && (
+          <div className="h-full overflow-y-auto p-4">
+            <FacilityMap allowEdit={false} />
+          </div>
         )}
       </div>
 
