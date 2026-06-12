@@ -580,7 +580,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     // Prevent the SVG background onClick (which deselects) from firing.
     e.stopPropagation();
     // In add-pin mode, clicking a studio drops a photo pin at the exact spot.
-    if (addPinMode && !isEditing) {
+    if (addPinMode) {
       if (!room.studioId) {
         toast({
           title: "Pick a studio",
@@ -708,7 +708,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     const fill = room.fill || style.fill;
     const isSel = selectedUid === room.uid;
     const { cx, cy } = shapeCenter(room);
-    const cursor = isEditing ? "move" : "pointer";
+    const cursor = addPinMode ? "crosshair" : isEditing ? "move" : "pointer";
 
     const shapeEl =
       room.shapeType === "rect" ? (
@@ -741,7 +741,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
             ? (e.stopPropagation(), addVertexAtPoint(room, e.clientX, e.clientY))
             : undefined
         }
-        onPointerDown={(e) => (isEditing ? startDrag(e, room, "move") : undefined)}
+        onPointerDown={(e) => (isEditing && !addPinMode ? startDrag(e, room, "move") : undefined)}
         className="transition-opacity hover:opacity-80"
       >
         {shapeEl}
@@ -851,20 +851,6 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-        {canManagePhotos && !isEditing && (
-          <Button
-            size="sm"
-            variant={addPinMode ? "default" : "outline"}
-            onClick={() => {
-              setAddPinMode((v) => !v);
-              setSelectedUid(null);
-            }}
-            data-testid="button-add-photo-pin"
-          >
-            <Camera className="h-4 w-4 mr-1.5" />
-            {addPinMode ? "Click a studio…" : "Add photo pin"}
-          </Button>
-        )}
         {canEdit && !isEditing && (
           <div className="flex items-center gap-2">
             {isAdmin && (
@@ -904,6 +890,20 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
             <Button size="sm" variant="outline" onClick={addPolygon} data-testid="button-add-polygon">
               <Hexagon className="h-4 w-4 mr-1.5" /> Polygon
             </Button>
+            {canManagePhotos && (
+              <Button
+                size="sm"
+                variant={addPinMode ? "default" : "outline"}
+                onClick={() => {
+                  setAddPinMode((v) => !v);
+                  setSelectedUid(null);
+                }}
+                data-testid="button-add-photo-pin"
+              >
+                <Camera className="h-4 w-4 mr-1.5" />
+                {addPinMode ? "Click a studio…" : "Add photo pin"}
+              </Button>
+            )}
             <Button size="sm" variant="outline" onClick={deleteSelected} disabled={!selectedUid} data-testid="button-delete-shape">
               <Trash2 className="h-4 w-4 mr-1.5" /> Delete
             </Button>
@@ -918,7 +918,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         </div>
       </div>
 
-      {addPinMode && !isEditing && (
+      {addPinMode && (
         <p className="text-xs text-blue-600 dark:text-blue-400" data-testid="text-add-pin-hint">
           Click the spot on a studio where the photo was taken to drop a pin.
         </p>
@@ -940,7 +940,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
           >
             {display.map((room) => renderShape(room))}
             {/* Photo pins — studio reference shots placed at exact spots */}
-            {!isEditing &&
+            {isEditing &&
               photoPins.map((pin) => (
                 <g
                   key={`pin-${pin.id}`}
