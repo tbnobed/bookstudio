@@ -561,6 +561,24 @@ export const insertAssetPhotoSchema = createInsertSchema(assetPhotos).omit({
 export type AssetPhoto = typeof assetPhotos.$inferSelect;
 export type InsertAssetPhoto = z.infer<typeof insertAssetPhotoSchema>;
 
+// Studio Photos schema — reference photos of each studio from different angles
+export const studioPhotos = pgTable("studio_photos", {
+  id: serial("id").primaryKey(),
+  studioId: integer("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+  photoData: text("photo_data").notNull(), // base64 compressed JPEG data URL
+  caption: text("caption"), // optional angle / description label
+  uploadedBy: integer("uploaded_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertStudioPhotoSchema = createInsertSchema(studioPhotos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type StudioPhoto = typeof studioPhotos.$inferSelect;
+export type InsertStudioPhoto = z.infer<typeof insertStudioPhotoSchema>;
+
 // ───────────────────────────────────────────────────────────────────────────────
 // Crew & Freelancer Booking (v1.7.0)
 // ───────────────────────────────────────────────────────────────────────────────

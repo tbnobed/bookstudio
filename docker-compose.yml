@@ -223,6 +223,8 @@ services:
         node scripts/production-migration-v1.7.0.cjs &&
         echo 'Running interactive facility map migration (v1.8.0)...' &&
         node scripts/production-migration-v1.8.0.cjs &&
+        echo 'Running studio reference photos migration (v1.8.1)...' &&
+        node scripts/production-migration-v1.8.1.cjs &&
         echo 'Database initialization completed successfully!'
       "
 

@@ -3832,6 +3832,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("asset_photos table init error:", e);
   }
 
+  // Ensure studio_photos table exists (idempotent — safe to run every startup)
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS studio_photos (
+        id          SERIAL PRIMARY KEY,
+        studio_id   INTEGER NOT NULL REFERENCES studios(id) ON DELETE CASCADE,
+        photo_data  TEXT    NOT NULL,
+        caption     TEXT,
+        uploaded_by INTEGER NOT NULL,
+        created_at  TIMESTAMPTZ DEFAULT now()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_studio_photos_studio ON studio_photos(studio_id)`);
+  } catch (e) {
+    console.error("studio_photos table init error:", e);
+  }
+
   // Ensure booking_assets planning table exists (idempotent)
   try {
     await pool.query(`
@@ -4340,6 +4357,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to delete photo" });
     }
   });
+
+  // ─── Studio reference photos (different angles) ───────────────────────────
+  app.get("/api/studios/:id/photos", isAuthenticated, async (req, res) => {
+    try {
+      const studioId = parseInt(req.params.id);
+      if (isNaN(studioId)) return res.status(400).json({ message: "Invalid studio ID" });
+      const photos = await storage.getStudioPhotos(studioId);
+      res.json(photos);
+    } catch (error) {
+      console.error("Error fetching studio photos:", error);
+      res.status(500).json({ message: "Failed to fetch studio photos" });
+    }
+  });
+
+  app.post(
+    "/api/studios/:id/photos",
+    isAuthenticated,
+    hasRole(["admin", "site_manager", "engineer", "it"]),
+    async (req, res) => {
+      try {
+        const studioId = parseInt(req.params.id);
+        if (isNaN(studioId)) return res.status(400).json({ message: "Invalid studio ID" });
+
+        const existing = await storage.getStudioPhotos(studioId);
+        if (existing.length >= 12) return res.status(400).json({ message: "Maximum 12 photos per studio" });
+
+        const { photoData, caption } = req.body;
+        if (!photoData || typeof photoData !== "string" || !photoData.startsWith("data:image/")) {
+          return res.status(400).json({ message: "Invalid photo data" });
+        }
+        // base64 of a 1000px JPEG at 75% quality is typically < 500 KB
+        if (photoData.length > 750_000) {
+          return res.status(400).json({ message: "Photo too large — please use a smaller image" });
+        }
+
+        const photo = await storage.addStudioPhoto({
+          studioId,
+          photoData,
+          caption: typeof caption === "string" && caption.trim() ? caption.trim().slice(0, 120) : null,
+          uploadedBy: (req.user as any).id,
+        });
+        res.json(photo);
+      } catch (error) {
+        console.error("Error adding studio photo:", error);
+        res.status(500).json({ message: "Failed to add photo" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/studios/:id/photos/:photoId",
+    isAuthenticated,
+    hasRole(["admin", "site_manager", "engineer", "it"]),
+    async (req, res) => {
+      try {
+        const studioId = parseInt(req.params.id);
+        const photoId = parseInt(req.params.photoId);
+        if (isNaN(studioId)) return res.status(400).json({ message: "Invalid studio ID" });
+        if (isNaN(photoId)) return res.status(400).json({ message: "Invalid photo ID" });
+        const success = await storage.deleteStudioPhoto(photoId, studioId);
+        if (!success) return res.status(404).json({ message: "Photo not found" });
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error deleting studio photo:", error);
+        res.status(500).json({ message: "Failed to delete photo" });
+      }
+    },
+  );
 
   // ─── iCal / Calendar Sync ────────────────────────────────────────────────
 

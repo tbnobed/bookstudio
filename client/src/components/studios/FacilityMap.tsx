@@ -19,6 +19,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { formatTime, formatTimeRange, isBookingActive, isSameDay } from "@/lib/dateUtils";
 import type { FacilityMapRoom, Studio, PcrRoom, Booking } from "@shared/schema";
 import BookingModal from "@/components/booking/BookingModal";
+import StudioPhotos from "./StudioPhotos";
 
 const VIEW_W = 680;
 const VIEW_H = 470;
@@ -157,6 +158,13 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
       user?.role === "it");
   // Backup / restore of the whole map config is admin-only.
   const isAdmin = user?.role === "admin";
+  // Studio reference photos: same management roles as the map, but allowed on
+  // mobile too so managers can capture angle shots with a phone camera.
+  const canManagePhotos =
+    user?.role === "admin" ||
+    user?.role === "site_manager" ||
+    user?.role === "engineer" ||
+    user?.role === "it";
 
   const { data: rooms = [] } = useQuery<FacilityMapRoom[]>({
     queryKey: ["/api/facility-map"],
@@ -1108,6 +1116,16 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                       })}
                     </ul>
                   )}
+                </div>
+              )}
+
+              {selected.studioId && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <StudioPhotos
+                    studioId={selected.studioId}
+                    studioName={selected.label}
+                    canManage={canManagePhotos}
+                  />
                 </div>
               )}
 

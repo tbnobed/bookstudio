@@ -1,1 +1,2 @@
 - [Studio status timezone quirk](studio-status-tz.md) — useStudioStatus computes "today" in browser-local time, not facility tz; app-wide, risky to change.
+- [db:push interactive drift prompts](drizzle-db-push-quirk.md) — db:push hangs on unrelated booking_types truncate prompt; use startup CREATE TABLE IF NOT EXISTS or direct psql for new tables.

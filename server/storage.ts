@@ -19,6 +19,7 @@ import {
   assetCheckouts, type AssetCheckout, type InsertAssetCheckout,
   bookingAssets,
   assetPhotos, type AssetPhoto,
+  studioPhotos, type StudioPhoto,
   crewPositions, type CrewPosition, type InsertCrewPosition,
   crewMembers, type CrewMember, type InsertCrewMember,
   crewMemberPositions, type CrewMemberPosition,
@@ -232,6 +233,9 @@ export interface IStorage {
   getFirstThreePhotosPerAsset(): Promise<{ assetId: number; photoData: string }[]>;
   addAssetPhoto(data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto>;
   deleteAssetPhoto(id: number): Promise<boolean>;
+  getStudioPhotos(studioId: number): Promise<StudioPhoto[]>;
+  addStudioPhoto(data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number }): Promise<StudioPhoto>;
+  deleteStudioPhoto(id: number, studioId: number): Promise<boolean>;
 
   // Crew positions (v1.7.0)
   getCrewPosition(id: number): Promise<CrewPosition | undefined>;
@@ -1249,6 +1253,9 @@ export class MemStorage implements IStorage {
   async getFirstThreePhotosPerAsset(): Promise<{ assetId: number; photoData: string }[]> { return []; }
   async addAssetPhoto(_data: { assetId: number; photoData: string; uploadedBy: number }): Promise<AssetPhoto> { throw new Error("Not implemented in MemStorage"); }
   async deleteAssetPhoto(_id: number): Promise<boolean> { return false; }
+  async getStudioPhotos(_studioId: number): Promise<StudioPhoto[]> { return []; }
+  async addStudioPhoto(_data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number }): Promise<StudioPhoto> { throw new Error("Not implemented in MemStorage"); }
+  async deleteStudioPhoto(_id: number, _studioId: number): Promise<boolean> { return false; }
 
   // Crew (v1.7.0) — stubs (use DatabaseStorage in production)
   async getCrewPosition(_id: number): Promise<CrewPosition | undefined> { return undefined; }
@@ -4524,6 +4531,23 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAssetPhoto(id: number): Promise<boolean> {
     const result = await db.delete(assetPhotos).where(eq(assetPhotos.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getStudioPhotos(studioId: number): Promise<StudioPhoto[]> {
+    return db.select().from(studioPhotos).where(eq(studioPhotos.studioId, studioId)).orderBy(asc(studioPhotos.createdAt));
+  }
+
+  async addStudioPhoto(data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number }): Promise<StudioPhoto> {
+    const [photo] = await db.insert(studioPhotos).values(data).returning();
+    return photo;
+  }
+
+  async deleteStudioPhoto(id: number, studioId: number): Promise<boolean> {
+    const result = await db
+      .delete(studioPhotos)
+      .where(and(eq(studioPhotos.id, id), eq(studioPhotos.studioId, studioId)))
+      .returning();
     return result.length > 0;
   }
 
