@@ -5,8 +5,108 @@ import { useQuery } from "@tanstack/react-query";
 import { Booking, Studio, BookingStudio } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDate, formatTimeRange } from "@/lib/dateUtils";
 import { useAuth } from "@/hooks/use-auth";
+
+const PAGE_SIZE = 15;
+
+interface BookingTableProps {
+  rows: Booking[];
+  showType?: boolean;
+  emptyMessage: string;
+  getStudioName: (bookingId: number) => string;
+  getBookingTypeColor: (type: string) => string;
+  formatBookingType: (type: string) => string;
+}
+
+function BookingTable({
+  rows,
+  showType = false,
+  emptyMessage,
+  getStudioName,
+  getBookingTypeColor,
+  formatBookingType,
+}: BookingTableProps) {
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1);
+  }, [totalPages, page]);
+
+  if (rows.length === 0) {
+    return <div className="text-center py-4 text-gray-500">{emptyMessage}</div>;
+  }
+
+  const safePage = Math.min(page, totalPages);
+  const startIdx = (safePage - 1) * PAGE_SIZE;
+  const pageRows = rows.slice(startIdx, startIdx + PAGE_SIZE);
+
+  return (
+    <div className="space-y-3">
+      <div className="overflow-auto max-h-[55vh] rounded-md border">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 z-10 bg-card">
+            <tr className="border-b">
+              <th className="text-left py-3 px-4 font-medium">Title</th>
+              {showType && <th className="text-left py-3 px-4 font-medium">Type</th>}
+              <th className="text-left py-3 px-4 font-medium">Studio</th>
+              <th className="text-left py-3 px-4 font-medium">Date</th>
+              <th className="text-left py-3 px-4 font-medium">Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pageRows.map(booking => (
+              <tr key={booking.id} className="border-b hover:bg-muted/50 transition-colors">
+                <td className="py-3 px-4">{booking.title}</td>
+                {showType && (
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-1 rounded text-xs ${getBookingTypeColor(booking.type)}`}>
+                      {formatBookingType(booking.type)}
+                    </span>
+                  </td>
+                )}
+                <td className="py-3 px-4">{getStudioName(booking.id)}</td>
+                <td className="py-3 px-4">{formatDate(booking.start)}</td>
+                <td className="py-3 px-4">{formatTimeRange(booking.start, booking.end)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+          <span className="text-muted-foreground">
+            Showing {startIdx + 1}–{Math.min(startIdx + PAGE_SIZE, rows.length)} of {rows.length}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+            </Button>
+            <span className="text-muted-foreground">Page {safePage} of {totalPages}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+            >
+              Next <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ReportsPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -233,40 +333,14 @@ export default function ReportsPage() {
                 <CardTitle>Booking Details</CardTitle>
               </CardHeader>
               <CardContent>
-                {bookings.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500">
-                    No bookings found for this period.
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-medium">Title</th>
-                          <th className="text-left py-3 px-4 font-medium">Type</th>
-                          <th className="text-left py-3 px-4 font-medium">Studio</th>
-                          <th className="text-left py-3 px-4 font-medium">Date</th>
-                          <th className="text-left py-3 px-4 font-medium">Time</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bookings.map(booking => (
-                          <tr key={booking.id} className="border-b hover:bg-gray-50">
-                            <td className="py-3 px-4">{booking.title}</td>
-                            <td className="py-3 px-4">
-                              <span className={`px-2 py-1 rounded text-xs ${getBookingTypeColor(booking.type)}`}>
-                                {formatBookingType(booking.type)}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">{getStudioName(booking.id)}</td>
-                            <td className="py-3 px-4">{formatDate(booking.start)}</td>
-                            <td className="py-3 px-4">{formatTimeRange(booking.start, booking.end)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                <BookingTable
+                  rows={bookings}
+                  showType
+                  emptyMessage="No bookings found for this period."
+                  getStudioName={getStudioName}
+                  getBookingTypeColor={getBookingTypeColor}
+                  formatBookingType={formatBookingType}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -277,37 +351,13 @@ export default function ReportsPage() {
                 <CardTitle>Production Bookings</CardTitle>
               </CardHeader>
               <CardContent>
-                {bookings.filter(b => b.type === "production").length === 0 ? (
-                  <div className="text-center py-4 text-gray-500">
-                    No production bookings found for this period.
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-medium">Title</th>
-                          <th className="text-left py-3 px-4 font-medium">Studio</th>
-                          <th className="text-left py-3 px-4 font-medium">Date</th>
-                          <th className="text-left py-3 px-4 font-medium">Time</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bookings
-                          .filter(b => b.type === "production")
-                          .map(booking => (
-                            <tr key={booking.id} className="border-b hover:bg-gray-50">
-                              <td className="py-3 px-4">{booking.title}</td>
-                              <td className="py-3 px-4">{getStudioName(booking.id)}</td>
-                              <td className="py-3 px-4">{formatDate(booking.start)}</td>
-                              <td className="py-3 px-4">{formatTimeRange(booking.start, booking.end)}</td>
-                            </tr>
-                          ))
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                <BookingTable
+                  rows={bookings.filter(b => b.type === "production")}
+                  emptyMessage="No production bookings found for this period."
+                  getStudioName={getStudioName}
+                  getBookingTypeColor={getBookingTypeColor}
+                  formatBookingType={formatBookingType}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -318,37 +368,13 @@ export default function ReportsPage() {
                 <CardTitle>Maintenance Bookings</CardTitle>
               </CardHeader>
               <CardContent>
-                {bookings.filter(b => b.type === "maintenance").length === 0 ? (
-                  <div className="text-center py-4 text-gray-500">
-                    No maintenance bookings found for this period.
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-medium">Title</th>
-                          <th className="text-left py-3 px-4 font-medium">Studio</th>
-                          <th className="text-left py-3 px-4 font-medium">Date</th>
-                          <th className="text-left py-3 px-4 font-medium">Time</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bookings
-                          .filter(b => b.type === "maintenance")
-                          .map(booking => (
-                            <tr key={booking.id} className="border-b hover:bg-gray-50">
-                              <td className="py-3 px-4">{booking.title}</td>
-                              <td className="py-3 px-4">{getStudioName(booking.id)}</td>
-                              <td className="py-3 px-4">{formatDate(booking.start)}</td>
-                              <td className="py-3 px-4">{formatTimeRange(booking.start, booking.end)}</td>
-                            </tr>
-                          ))
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                <BookingTable
+                  rows={bookings.filter(b => b.type === "maintenance")}
+                  emptyMessage="No maintenance bookings found for this period."
+                  getStudioName={getStudioName}
+                  getBookingTypeColor={getBookingTypeColor}
+                  formatBookingType={formatBookingType}
+                />
               </CardContent>
             </Card>
           </TabsContent>
