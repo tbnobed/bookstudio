@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2, Save, X, Square, Hexagon, CalendarPlus, Download, Upload } from "lucide-react";
+import { Pencil, Plus, Trash2, Save, X, Square, Hexagon, CalendarPlus, Download, Upload, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useStudioStatus } from "@/hooks/use-studio-status";
@@ -165,6 +166,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     user?.role === "site_manager" ||
     user?.role === "engineer" ||
     user?.role === "it";
+
+  const [photoStudio, setPhotoStudio] = useState<{ id: number; name: string } | null>(null);
 
   const { data: rooms = [] } = useQuery<FacilityMapRoom[]>({
     queryKey: ["/api/facility-map"],
@@ -1132,6 +1135,23 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                 </div>
               )}
 
+              {selected.studioId && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() =>
+                    setPhotoStudio({
+                      id: selected.studioId!,
+                      name: studios.find((s) => s.id === selected.studioId)?.name || selected.label,
+                    })
+                  }
+                  data-testid="button-room-photos"
+                >
+                  <Camera className="h-4 w-4 mr-1.5" /> Studio photos
+                </Button>
+              )}
+
               {(selected.studioId || selected.pcrRoomId) && (
                 <Button size="sm" className="w-full" onClick={() => openBooking(selected)} data-testid="button-book-room">
                   <CalendarPlus className="h-4 w-4 mr-1.5" /> Book {selected.label}
@@ -1154,6 +1174,21 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
           selectedPcrRoom={bookingPcrRoomId}
         />
       )}
+
+      <Dialog open={!!photoStudio} onOpenChange={(open) => !open && setPhotoStudio(null)}>
+        <DialogContent className="sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>{photoStudio?.name} — reference photos</DialogTitle>
+          </DialogHeader>
+          {photoStudio && (
+            <StudioPhotos
+              studioId={photoStudio.id}
+              studioName={photoStudio.name}
+              canManage={canManagePhotos}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
