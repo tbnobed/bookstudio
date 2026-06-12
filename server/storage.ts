@@ -7,6 +7,7 @@ import {
   notifications, type Notification, type InsertNotification,
   notificationGroups, type NotificationGroup, type InsertNotificationGroup,
   pcrRooms, type PcrRoom, type InsertPcrRoom,
+  facilityMapRooms, type FacilityMapRoom, type InsertFacilityMapRoom,
   bookingStudios, type BookingStudio, type InsertBookingStudio,
   systemSettings, type SystemSetting, type InsertSystemSetting,
   fileAttachments, type FileAttachment, type InsertFileAttachment,
@@ -32,6 +33,26 @@ import { db, pool, ensureConnection } from "./db";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { eq, and, or, isNull, not, desc, asc, gte, lte, inArray, sql } from "drizzle-orm";
+
+// Default facility map layout (OBTV floorplan) seeded when the table is empty.
+// Shapes are unlinked by default — admins link each to a studio/PCR room in edit mode.
+export const DEFAULT_FACILITY_MAP: InsertFacilityMapRoom[] = [
+  { label: "AB", shapeType: "polygon", points: "24,32 150,32 124,90 24,90", fontSize: 18, sortOrder: 10, x: 0, y: 0, width: 0, height: 0, rx: 0 },
+  { label: "CD", shapeType: "polygon", points: "60,128 136,128 136,100 196,100 196,232 60,232", fontSize: 17, sortOrder: 20, x: 0, y: 0, width: 0, height: 0, rx: 0 },
+  { label: "Q", shapeType: "rect", x: 208, y: 124, width: 34, height: 34, rx: 5, fontSize: 13, sortOrder: 30 },
+  { label: "P", shapeType: "rect", x: 208, y: 164, width: 34, height: 34, rx: 5, fontSize: 13, sortOrder: 40 },
+  { label: "O", shapeType: "rect", x: 208, y: 204, width: 34, height: 34, rx: 5, fontSize: 13, sortOrder: 50 },
+  { label: "W", shapeType: "rect", x: 60, y: 248, width: 44, height: 44, rx: 6, fontSize: 14, sortOrder: 60 },
+  { label: "X", shapeType: "rect", x: 112, y: 248, width: 44, height: 44, rx: 6, fontSize: 14, sortOrder: 70 },
+  { label: "Y", shapeType: "rect", x: 164, y: 248, width: 44, height: 44, rx: 6, fontSize: 14, sortOrder: 80 },
+  { label: "Z", shapeType: "rect", x: 216, y: 248, width: 44, height: 44, rx: 6, fontSize: 14, sortOrder: 90 },
+  { label: "E", shapeType: "rect", x: 80, y: 308, width: 130, height: 150, rx: 8, fontSize: 18, sortOrder: 100 },
+  { label: "F", shapeType: "rect", x: 330, y: 40, width: 130, height: 92, rx: 8, fontSize: 18, sortOrder: 110 },
+  { label: "G", shapeType: "polygon", points: "330,160 460,160 460,236 372,236 372,212 330,212", fontSize: 18, sortOrder: 120, x: 0, y: 0, width: 0, height: 0, rx: 0 },
+  { label: "H", shapeType: "polygon", points: "510,40 626,40 626,230 580,230 580,160 510,160", fontSize: 18, sortOrder: 130, x: 0, y: 0, width: 0, height: 0, rx: 0 },
+  { label: "K", shapeType: "polygon", points: "524,262 636,262 636,278 652,278 652,344 524,344", fontSize: 18, sortOrder: 140, x: 0, y: 0, width: 0, height: 0, rx: 0 },
+  { label: "L", shapeType: "rect", x: 540, y: 372, width: 86, height: 86, rx: 8, fontSize: 16, sortOrder: 150 },
+];
 
 export interface IStorage {
   // User management
@@ -60,6 +81,10 @@ export interface IStorage {
   updatePcrRoomStatus(id: number, status: string): Promise<PcrRoom | undefined>;
   deletePcrRoom(id: number): Promise<boolean>;
   checkPcrRoomConflicts(pcrRoomId: number, start: Date, end: Date, excludeBookingId: number | null): Promise<Booking[]>;
+
+  // Facility Map management
+  getFacilityMapRooms(): Promise<FacilityMapRoom[]>;
+  replaceFacilityMapRooms(rooms: InsertFacilityMapRoom[]): Promise<FacilityMapRoom[]>;
   
   // Template management
   getTemplate(id: number): Promise<Template | undefined>;
@@ -871,6 +896,40 @@ export class MemStorage implements IStorage {
         (startTime <= bookingStart && endTime >= bookingEnd)    // new booking spans existing booking
       );
     });
+  }
+
+  // Facility Map (in-memory)
+  private facilityMap: FacilityMapRoom[] = [];
+  private facilityMapSeeded = false;
+
+  async getFacilityMapRooms(): Promise<FacilityMapRoom[]> {
+    // Seed the default floorplan only once. An intentionally emptied layout
+    // stays empty afterwards (no auto-restore).
+    if (this.facilityMap.length === 0 && !this.facilityMapSeeded) {
+      await this.replaceFacilityMapRooms(DEFAULT_FACILITY_MAP);
+      this.facilityMapSeeded = true;
+    }
+    return [...this.facilityMap].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+  }
+
+  async replaceFacilityMapRooms(rooms: InsertFacilityMapRoom[]): Promise<FacilityMapRoom[]> {
+    this.facilityMap = rooms.map((r, i) => ({
+      id: i + 1,
+      label: r.label ?? "",
+      shapeType: r.shapeType ?? "rect",
+      x: r.x ?? 0,
+      y: r.y ?? 0,
+      width: r.width ?? 80,
+      height: r.height ?? 60,
+      rx: r.rx ?? 6,
+      points: r.points ?? null,
+      fontSize: r.fontSize ?? 16,
+      fill: r.fill ?? null,
+      studioId: r.studioId ?? null,
+      pcrRoomId: r.pcrRoomId ?? null,
+      sortOrder: r.sortOrder ?? 0,
+    }));
+    return [...this.facilityMap].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
   }
   
   async copyBookingToMultipleDates(bookingId: number, dates: Date[]): Promise<Booking[]> {
@@ -3256,6 +3315,40 @@ export class DatabaseStorage implements IStorage {
       console.error(`Error checking PCR room conflicts for room ${pcrRoomId}:`, error);
       return [];
     }
+  }
+
+  async getFacilityMapRooms(): Promise<FacilityMapRoom[]> {
+    let rooms = await db
+      .select()
+      .from(facilityMapRooms)
+      .orderBy(asc(facilityMapRooms.sortOrder), asc(facilityMapRooms.id));
+    // Seed the default floorplan only on first-ever access. Once seeded,
+    // an intentionally emptied layout stays empty (no auto-restore).
+    if (rooms.length === 0) {
+      const seeded = await this.getSystemSetting('facilityMapSeeded');
+      if (!seeded) {
+        await db.insert(facilityMapRooms).values(DEFAULT_FACILITY_MAP);
+        await this.upsertSystemSetting({ key: 'facilityMapSeeded', value: 'true' });
+        rooms = await db
+          .select()
+          .from(facilityMapRooms)
+          .orderBy(asc(facilityMapRooms.sortOrder), asc(facilityMapRooms.id));
+      }
+    }
+    return rooms;
+  }
+
+  async replaceFacilityMapRooms(rooms: InsertFacilityMapRoom[]): Promise<FacilityMapRoom[]> {
+    await db.transaction(async (tx) => {
+      await tx.delete(facilityMapRooms);
+      if (rooms.length > 0) {
+        await tx.insert(facilityMapRooms).values(rooms);
+      }
+    });
+    return db
+      .select()
+      .from(facilityMapRooms)
+      .orderBy(asc(facilityMapRooms.sortOrder), asc(facilityMapRooms.id));
   }
   
   async getBookingStudios(bookingId: number): Promise<Studio[]> {

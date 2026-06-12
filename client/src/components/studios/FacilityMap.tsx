@@ -1,0 +1,733 @@
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Pencil, Plus, Trash2, Save, X, Square, Hexagon, CalendarPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useStudioStatus } from "@/hooks/use-studio-status";
+import { useAuth } from "@/hooks/use-auth";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { formatTime, isBookingActive } from "@/lib/dateUtils";
+import type { FacilityMapRoom, Studio, PcrRoom, Booking } from "@shared/schema";
+import BookingModal from "@/components/booking/BookingModal";
+
+const VIEW_W = 680;
+const VIEW_H = 470;
+
+type StatusKey = "available" | "in-use" | "maintenance" | "upcoming" | "neutral";
+
+const STATUS_STYLE: Record<StatusKey, { fill: string; stroke: string; text: string; label: string }> = {
+  available: { fill: "#1D9E75", stroke: "#0F6E56", text: "#04342C", label: "Available" },
+  "in-use": { fill: "#E24B4A", stroke: "#A32D2D", text: "#501313", label: "In Use" },
+  maintenance: { fill: "#F59E0B", stroke: "#B45309", text: "#3a2102", label: "Maintenance" },
+  upcoming: { fill: "#FBBF24", stroke: "#D97706", text: "#3a2a02", label: "Upcoming" },
+  neutral: { fill: "#CBD5E1", stroke: "#94A3B8", text: "#334155", label: "Unlinked" },
+};
+
+interface DraftRoom {
+  uid: string;
+  label: string;
+  shapeType: "rect" | "polygon";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rx: number;
+  points: string | null;
+  fontSize: number;
+  fill: string | null;
+  studioId: number | null;
+  pcrRoomId: number | null;
+  sortOrder: number;
+}
+
+function toDraft(r: FacilityMapRoom): DraftRoom {
+  return {
+    uid: `db-${r.id}`,
+    label: r.label,
+    shapeType: (r.shapeType as "rect" | "polygon") ?? "rect",
+    x: r.x,
+    y: r.y,
+    width: r.width,
+    height: r.height,
+    rx: r.rx,
+    points: r.points,
+    fontSize: r.fontSize,
+    fill: r.fill,
+    studioId: r.studioId,
+    pcrRoomId: r.pcrRoomId,
+    sortOrder: r.sortOrder,
+  };
+}
+
+function parsePoints(points: string | null): Array<[number, number]> {
+  if (!points) return [];
+  return points
+    .trim()
+    .split(/\s+/)
+    .map((p) => {
+      const [x, y] = p.split(",").map(Number);
+      return [x, y] as [number, number];
+    })
+    .filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+}
+
+function serializePoints(pts: Array<[number, number]>): string {
+  return pts.map(([x, y]) => `${Math.round(x)},${Math.round(y)}`).join(" ");
+}
+
+// Centroid of a shape, used to anchor the label.
+function shapeCenter(r: DraftRoom): { cx: number; cy: number } {
+  if (r.shapeType === "rect") {
+    return { cx: r.x + r.width / 2, cy: r.y + r.height / 2 };
+  }
+  const pts = parsePoints(r.points);
+  if (pts.length === 0) return { cx: 0, cy: 0 };
+  const sum = pts.reduce((acc, [x, y]) => [acc[0] + x, acc[1] + y], [0, 0]);
+  return { cx: sum[0] / pts.length, cy: sum[1] / pts.length };
+}
+
+function boundingBox(r: DraftRoom): { x: number; y: number; w: number; h: number } {
+  if (r.shapeType === "rect") {
+    return { x: r.x, y: r.y, w: r.width, h: r.height };
+  }
+  const pts = parsePoints(r.points);
+  if (pts.length === 0) return { x: 0, y: 0, w: 0, h: 0 };
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  const minX = Math.min(...xs);
+  const minY = Math.min(...ys);
+  return { x: minX, y: minY, w: Math.max(...xs) - minX, h: Math.max(...ys) - minY };
+}
+
+export default function FacilityMap() {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const isMobile = useIsMobile();
+  const canEdit =
+    !isMobile && (user?.role === "admin" || user?.role === "site_manager");
+
+  const { data: rooms = [] } = useQuery<FacilityMapRoom[]>({
+    queryKey: ["/api/facility-map"],
+  });
+  const { data: studios = [] } = useQuery<Studio[]>({ queryKey: ["/api/studios"] });
+  const { data: pcrRooms = [] } = useQuery<PcrRoom[]>({ queryKey: ["/api/pcr-rooms"] });
+  const { data: bookings = [] } = useQuery<Booking[]>({ queryKey: ["/api/bookings"] });
+  const { getStudioStatus } = useStudioStatus();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState<DraftRoom[]>([]);
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [bookingStudioId, setBookingStudioId] = useState<number | undefined>(undefined);
+  const [bookingOpen, setBookingOpen] = useState(false);
+
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const dragRef = useRef<
+    | null
+    | {
+        mode: "move" | "resize" | "vertex";
+        uid: string;
+        vertexIndex?: number;
+        startX: number;
+        startY: number;
+        orig: DraftRoom;
+      }
+  >(null);
+
+  // Shapes currently rendered: draft when editing, otherwise the server copy.
+  const display: DraftRoom[] = useMemo(
+    () => (isEditing ? draft : rooms.map(toDraft)),
+    [isEditing, draft, rooms],
+  );
+
+  const resolveStatus = useCallback(
+    (r: DraftRoom): { key: StatusKey; currentBooking?: any; nextBooking?: any } => {
+      if (r.studioId) {
+        const s = getStudioStatus(r.studioId);
+        return {
+          key: s.status as StatusKey,
+          currentBooking: s.currentBooking,
+          nextBooking: s.nextBooking,
+        };
+      }
+      if (r.pcrRoomId) {
+        const pcr = pcrRooms.find((p) => p.id === r.pcrRoomId);
+        if (pcr) {
+          const nowMs = Date.now();
+          const pcrBookings = bookings
+            .filter((b) => b.pcrRoomId === r.pcrRoomId && b.status !== "cancelled")
+            .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+          // Use the project's canonical, instant-based active check (booking
+          // times are stored as absolute UTC, so this is timezone-independent).
+          const currentBooking = pcrBookings.find((b) => isBookingActive(b));
+          const nextBooking = pcrBookings.find((b) => new Date(b.start).getTime() > nowMs);
+
+          if (pcr.status === "maintenance") return { key: "maintenance", currentBooking, nextBooking };
+          if (currentBooking || pcr.status === "in-use" || pcr.status === "booked")
+            return { key: "in-use", currentBooking, nextBooking };
+          if (nextBooking) return { key: "upcoming", nextBooking };
+          return { key: "available" };
+        }
+      }
+      return { key: "neutral" };
+    },
+    [getStudioStatus, pcrRooms, bookings],
+  );
+
+  const linkedRooms = display.filter((r) => r.studioId || r.pcrRoomId);
+  const availableCount = linkedRooms.filter((r) => resolveStatus(r).key === "available").length;
+
+  const selected = display.find((r) => r.uid === selectedUid) || null;
+
+  const toSvgCoords = (clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: ((clientX - rect.left) / rect.width) * VIEW_W,
+      y: ((clientY - rect.top) / rect.height) * VIEW_H,
+    };
+  };
+
+  const updateDraft = (uid: string, patch: Partial<DraftRoom>) => {
+    setDraft((prev) => prev.map((r) => (r.uid === uid ? { ...r, ...patch } : r)));
+  };
+
+  const handlePointerMove = useCallback((e: PointerEvent) => {
+    const ctx = dragRef.current;
+    if (!ctx) return;
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const cur = {
+      x: ((e.clientX - rect.left) / rect.width) * VIEW_W,
+      y: ((e.clientY - rect.top) / rect.height) * VIEW_H,
+    };
+    const dx = cur.x - ctx.startX;
+    const dy = cur.y - ctx.startY;
+    const o = ctx.orig;
+
+    setDraft((prev) =>
+      prev.map((r) => {
+        if (r.uid !== ctx.uid) return r;
+        if (ctx.mode === "move") {
+          if (o.shapeType === "rect") {
+            return { ...r, x: Math.round(o.x + dx), y: Math.round(o.y + dy) };
+          }
+          const pts = parsePoints(o.points).map(
+            ([px, py]) => [px + dx, py + dy] as [number, number],
+          );
+          return { ...r, points: serializePoints(pts) };
+        }
+        if (ctx.mode === "resize") {
+          return {
+            ...r,
+            width: Math.max(20, Math.round(o.width + dx)),
+            height: Math.max(20, Math.round(o.height + dy)),
+          };
+        }
+        if (ctx.mode === "vertex" && ctx.vertexIndex !== undefined) {
+          const pts = parsePoints(o.points).map(
+            (p, i) => (i === ctx.vertexIndex ? ([p[0] + dx, p[1] + dy] as [number, number]) : p),
+          );
+          return { ...r, points: serializePoints(pts) };
+        }
+        return r;
+      }),
+    );
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    dragRef.current = null;
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
+  }, [handlePointerMove]);
+
+  const startDrag = (
+    e: React.PointerEvent,
+    room: DraftRoom,
+    mode: "move" | "resize" | "vertex",
+    vertexIndex?: number,
+  ) => {
+    if (!isEditing) return;
+    e.stopPropagation();
+    setSelectedUid(room.uid);
+    const start = toSvgCoords(e.clientX, e.clientY);
+    dragRef.current = {
+      mode,
+      uid: room.uid,
+      vertexIndex,
+      startX: start.x,
+      startY: start.y,
+      orig: room,
+    };
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+  };
+
+  useEffect(() => {
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [handlePointerMove, handlePointerUp]);
+
+  const enterEdit = () => {
+    setDraft(rooms.map(toDraft));
+    setSelectedUid(null);
+    setIsEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setDraft([]);
+    setSelectedUid(null);
+  };
+
+  const nextSortOrder = () =>
+    (draft.length ? Math.max(...draft.map((r) => r.sortOrder)) : 0) + 10;
+
+  const addRect = () => {
+    const uid = `new-${Date.now()}`;
+    setDraft((prev) => [
+      ...prev,
+      {
+        uid,
+        label: "New",
+        shapeType: "rect",
+        x: 300,
+        y: 200,
+        width: 90,
+        height: 60,
+        rx: 6,
+        points: null,
+        fontSize: 14,
+        fill: null,
+        studioId: null,
+        pcrRoomId: null,
+        sortOrder: nextSortOrder(),
+      },
+    ]);
+    setSelectedUid(uid);
+  };
+
+  const addPolygon = () => {
+    const uid = `new-${Date.now()}`;
+    setDraft((prev) => [
+      ...prev,
+      {
+        uid,
+        label: "New",
+        shapeType: "polygon",
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        rx: 0,
+        points: "300,200 390,200 390,270 300,270",
+        fontSize: 14,
+        fill: null,
+        studioId: null,
+        pcrRoomId: null,
+        sortOrder: nextSortOrder(),
+      },
+    ]);
+    setSelectedUid(uid);
+  };
+
+  const deleteSelected = () => {
+    if (!selectedUid) return;
+    setDraft((prev) => prev.filter((r) => r.uid !== selectedUid));
+    setSelectedUid(null);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const payload = draft.map((r) => ({
+        label: r.label,
+        shapeType: r.shapeType,
+        x: r.x,
+        y: r.y,
+        width: r.width,
+        height: r.height,
+        rx: r.rx,
+        points: r.shapeType === "polygon" ? r.points : null,
+        fontSize: r.fontSize,
+        fill: r.fill,
+        studioId: r.studioId,
+        pcrRoomId: r.pcrRoomId,
+        sortOrder: r.sortOrder,
+      }));
+      await apiRequest("PUT", "/api/facility-map", payload);
+      await queryClient.invalidateQueries({ queryKey: ["/api/facility-map"] });
+      toast({ title: "Layout saved", description: "Facility map updated." });
+      setIsEditing(false);
+      setDraft([]);
+      setSelectedUid(null);
+    } catch (err: any) {
+      toast({
+        title: "Save failed",
+        description: err?.message || "Could not save the layout.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onShapeClick = (room: DraftRoom) => {
+    if (isEditing) {
+      setSelectedUid(room.uid);
+    } else {
+      setSelectedUid(room.uid);
+    }
+  };
+
+  const openBooking = (room: DraftRoom) => {
+    setBookingStudioId(room.studioId ?? undefined);
+    setBookingOpen(true);
+  };
+
+  const renderShape = (room: DraftRoom) => {
+    const status = resolveStatus(room);
+    const style = STATUS_STYLE[status.key] ?? STATUS_STYLE.neutral;
+    const fill = room.fill || style.fill;
+    const isSel = selectedUid === room.uid;
+    const { cx, cy } = shapeCenter(room);
+    const cursor = isEditing ? "move" : "pointer";
+
+    const shapeEl =
+      room.shapeType === "rect" ? (
+        <rect
+          x={room.x}
+          y={room.y}
+          width={room.width}
+          height={room.height}
+          rx={room.rx}
+          fill={fill}
+          stroke={isSel ? "#2563EB" : style.stroke}
+          strokeWidth={isSel ? 2 : 0.5}
+        />
+      ) : (
+        <polygon
+          points={room.points || ""}
+          fill={fill}
+          stroke={isSel ? "#2563EB" : style.stroke}
+          strokeWidth={isSel ? 2 : 0.5}
+        />
+      );
+
+    return (
+      <g
+        key={room.uid}
+        style={{ cursor }}
+        onClick={() => onShapeClick(room)}
+        onPointerDown={(e) => (isEditing ? startDrag(e, room, "move") : undefined)}
+        className="transition-opacity hover:opacity-80"
+      >
+        {shapeEl}
+        {room.label && (
+          <text
+            x={cx}
+            y={cy + room.fontSize / 3}
+            textAnchor="middle"
+            fontSize={room.fontSize}
+            fontWeight={500}
+            fill={style.text}
+            style={{ pointerEvents: "none" }}
+          >
+            {room.label}
+          </text>
+        )}
+        {/* Edit handles */}
+        {isEditing && isSel && room.shapeType === "rect" && (
+          <rect
+            x={room.x + room.width - 6}
+            y={room.y + room.height - 6}
+            width={12}
+            height={12}
+            fill="#2563EB"
+            stroke="#fff"
+            strokeWidth={1}
+            style={{ cursor: "nwse-resize" }}
+            onPointerDown={(e) => startDrag(e, room, "resize")}
+          />
+        )}
+        {isEditing && isSel && room.shapeType === "polygon" &&
+          parsePoints(room.points).map(([px, py], i) => (
+            <circle
+              key={i}
+              cx={px}
+              cy={py}
+              r={5}
+              fill="#2563EB"
+              stroke="#fff"
+              strokeWidth={1}
+              style={{ cursor: "grab" }}
+              onPointerDown={(e) => startDrag(e, room, "vertex", i)}
+            />
+          ))}
+      </g>
+    );
+  };
+
+  const selectedStatus = selected ? resolveStatus(selected) : null;
+  const selectedStyle = selectedStatus ? STATUS_STYLE[selectedStatus.key] : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+            <span className="inline-block w-3 h-3 rounded-sm" style={{ background: STATUS_STYLE.available.fill }} />
+            Available
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+            <span className="inline-block w-3 h-3 rounded-sm" style={{ background: STATUS_STYLE["in-use"].fill }} />
+            In Use
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+            <span className="inline-block w-3 h-3 rounded-sm" style={{ background: STATUS_STYLE.maintenance.fill }} />
+            Maintenance
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+            <span className="inline-block w-3 h-3 rounded-sm" style={{ background: STATUS_STYLE.upcoming.fill }} />
+            Upcoming
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {availableCount} of {linkedRooms.length} rooms available
+          </span>
+        </div>
+
+        {canEdit && !isEditing && (
+          <Button size="sm" variant="outline" onClick={enterEdit} data-testid="button-edit-map">
+            <Pencil className="h-4 w-4 mr-1.5" /> Edit layout
+          </Button>
+        )}
+        {canEdit && isEditing && (
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={addRect} data-testid="button-add-rect">
+              <Square className="h-4 w-4 mr-1.5" /> Rectangle
+            </Button>
+            <Button size="sm" variant="outline" onClick={addPolygon} data-testid="button-add-polygon">
+              <Hexagon className="h-4 w-4 mr-1.5" /> Polygon
+            </Button>
+            <Button size="sm" variant="outline" onClick={deleteSelected} disabled={!selectedUid} data-testid="button-delete-shape">
+              <Trash2 className="h-4 w-4 mr-1.5" /> Delete
+            </Button>
+            <Button size="sm" variant="ghost" onClick={cancelEdit} data-testid="button-cancel-edit">
+              <X className="h-4 w-4 mr-1.5" /> Cancel
+            </Button>
+            <Button size="sm" onClick={save} disabled={saving} data-testid="button-save-map">
+              <Save className="h-4 w-4 mr-1.5" /> {saving ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Map */}
+        <div className="lg:col-span-2 bg-white dark:bg-neutral-800 rounded-2xl border dark:border-neutral-700 shadow-lg p-3">
+          <svg
+            ref={svgRef}
+            width="100%"
+            viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+            role="img"
+            aria-label="Facility map"
+            style={{ display: "block", touchAction: "none" }}
+            onClick={() => {
+              if (isEditing) setSelectedUid(null);
+            }}
+          >
+            {display.map((room) => renderShape(room))}
+          </svg>
+        </div>
+
+        {/* Side panel */}
+        <div className="bg-white dark:bg-neutral-800 rounded-2xl border dark:border-neutral-700 shadow-lg p-4">
+          {isEditing && selected ? (
+            <div className="space-y-3">
+              <h3 className="font-semibold text-sm dark:text-white">Room properties</h3>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Label</Label>
+                <Input
+                  value={selected.label}
+                  onChange={(e) => updateDraft(selected.uid, { label: e.target.value })}
+                  data-testid="input-room-label"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Font size</Label>
+                <Input
+                  type="number"
+                  min={8}
+                  max={48}
+                  value={selected.fontSize}
+                  onChange={(e) =>
+                    updateDraft(selected.uid, { fontSize: parseInt(e.target.value) || 14 })
+                  }
+                  data-testid="input-room-fontsize"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Linked studio</Label>
+                <Select
+                  value={selected.studioId ? String(selected.studioId) : "none"}
+                  onValueChange={(v) =>
+                    updateDraft(selected.uid, {
+                      studioId: v === "none" ? null : parseInt(v),
+                      pcrRoomId: v === "none" ? selected.pcrRoomId : null,
+                    })
+                  }
+                >
+                  <SelectTrigger data-testid="select-room-studio">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {studios.map((s) => (
+                      <SelectItem key={s.id} value={String(s.id)}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Linked PCR room</Label>
+                <Select
+                  value={selected.pcrRoomId ? String(selected.pcrRoomId) : "none"}
+                  onValueChange={(v) =>
+                    updateDraft(selected.uid, {
+                      pcrRoomId: v === "none" ? null : parseInt(v),
+                      studioId: v === "none" ? selected.studioId : null,
+                    })
+                  }
+                >
+                  <SelectTrigger data-testid="select-room-pcr">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {pcrRooms.map((p) => (
+                      <SelectItem key={p.id} value={String(p.id)}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Fill color</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    className="w-12 p-1 h-9"
+                    value={selected.fill || "#1D9E75"}
+                    onChange={(e) => updateDraft(selected.uid, { fill: e.target.value })}
+                    data-testid="input-room-fill"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => updateDraft(selected.uid, { fill: null })}
+                  >
+                    Auto (status)
+                  </Button>
+                </div>
+                <p className="text-[11px] text-gray-400">
+                  Leave on Auto to color the room from its live booking status.
+                </p>
+              </div>
+            </div>
+          ) : isEditing ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Select a shape to edit it, or add a new Rectangle / Polygon. Drag shapes to move,
+              drag the corner handle to resize, and drag the blue dots to reshape polygons.
+            </p>
+          ) : selected ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="inline-block w-3 h-3 rounded-sm"
+                  style={{ background: selected.fill || selectedStyle?.fill }}
+                />
+                <span className="font-semibold dark:text-white">
+                  {selected.label || "Room"}
+                </span>
+                <span className="text-xs font-medium" style={{ color: selectedStyle?.fill }}>
+                  {selectedStyle?.label}
+                </span>
+              </div>
+
+              {selected.studioId &&
+                studios.find((s) => s.id === selected.studioId) && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Studio: {studios.find((s) => s.id === selected.studioId)?.name}
+                  </p>
+                )}
+              {selected.pcrRoomId &&
+                pcrRooms.find((p) => p.id === selected.pcrRoomId) && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    PCR: {pcrRooms.find((p) => p.id === selected.pcrRoomId)?.name}
+                  </p>
+                )}
+
+              {selectedStatus?.currentBooking && (
+                <div className="text-sm">
+                  <div className="font-medium dark:text-gray-100">
+                    {selectedStatus.currentBooking.title}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Until {formatTime(selectedStatus.currentBooking.end)}
+                  </div>
+                </div>
+              )}
+              {!selectedStatus?.currentBooking && selectedStatus?.nextBooking && (
+                <div className="text-sm">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Next up</div>
+                  <div className="font-medium dark:text-gray-100">
+                    {selectedStatus.nextBooking.title}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {formatTime(selectedStatus.nextBooking.start)}
+                  </div>
+                </div>
+              )}
+
+              {(selected.studioId || selected.pcrRoomId) && (
+                <Button size="sm" className="w-full" onClick={() => openBooking(selected)} data-testid="button-book-room">
+                  <CalendarPlus className="h-4 w-4 mr-1.5" /> Book {selected.label}
+                </Button>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Select a room to see its status.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {bookingOpen && (
+        <BookingModal
+          isOpen={bookingOpen}
+          onClose={() => setBookingOpen(false)}
+          selectedStudio={bookingStudioId}
+        />
+      )}
+    </div>
+  );
+}

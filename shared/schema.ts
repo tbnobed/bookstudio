@@ -58,6 +58,30 @@ export const insertPcrRoomSchema = createInsertSchema(pcrRooms).omit({
   id: true,
 });
 
+// Facility Map schema — interactive floorplan shapes linked to studios/PCR rooms
+export const facilityMapRooms = pgTable("facility_map_rooms", {
+  id: serial("id").primaryKey(),
+  label: text("label").notNull().default(""),
+  shapeType: text("shape_type").notNull().default("rect"), // rect | polygon
+  x: integer("x").notNull().default(0),
+  y: integer("y").notNull().default(0),
+  width: integer("width").notNull().default(80),
+  height: integer("height").notNull().default(60),
+  rx: integer("rx").notNull().default(6),
+  points: text("points"), // polygon geometry: "x1,y1 x2,y2 ..."
+  fontSize: integer("font_size").notNull().default(16),
+  fill: text("fill"), // optional manual fill override; null = derive from live status
+  studioId: integer("studio_id").references(() => studios.id, { onDelete: "set null" }),
+  pcrRoomId: integer("pcr_room_id").references(() => pcrRooms.id, { onDelete: "set null" }),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const insertFacilityMapRoomSchema = createInsertSchema(facilityMapRooms).omit({
+  id: true,
+});
+export type InsertFacilityMapRoom = z.infer<typeof insertFacilityMapRoomSchema>;
+export type FacilityMapRoom = typeof facilityMapRooms.$inferSelect;
+
 // Booking templates schema
 export const templates = pgTable("templates", {
   id: serial("id").primaryKey(),

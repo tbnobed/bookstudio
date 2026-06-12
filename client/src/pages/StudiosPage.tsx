@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Tv, MapPin, Settings, Clock } from "lucide-react";
+import { Tv, MapPin, Settings, Clock, LayoutGrid, Map as MapIcon } from "lucide-react";
 import { formatTime } from "@/lib/dateUtils";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import WeatherWidget from "@/components/weather/WeatherWidget";
 import { MobileBanner } from "@/components/layout/MobileBanner";
+import FacilityMap from "@/components/studios/FacilityMap";
 
 interface Studio {
   id: number;
@@ -27,6 +30,7 @@ interface Booking {
 
 export default function StudiosPage() {
   const isMobile = useIsMobile();
+  const [view, setView] = useState<"cards" | "map">("cards");
   
   const { data: siteName = "BookStud.io" } = useQuery<string>({
     queryKey: ["/api/system/site-name"],
@@ -227,16 +231,50 @@ export default function StudiosPage() {
 
         {/* Header Section - Floating */}
         <div className={`${isMobile ? 'bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border border-white/20 dark:border-neutral-700/50 shadow-lg' : 'bg-white dark:bg-neutral-800 shadow-lg border dark:border-neutral-700'} rounded-2xl p-4 mx-3`}>
-          <h1 className="text-xl font-bold flex items-center gap-2 dark:text-white">
-            <Tv className="h-5 w-5" />
-            Studio Status
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            Real-time status and availability of all studios
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl font-bold flex items-center gap-2 dark:text-white">
+                <Tv className="h-5 w-5" />
+                Studio Status
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Real-time status and availability of all studios
+              </p>
+            </div>
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-neutral-700 rounded-lg p-1 shrink-0">
+              <Button
+                size="sm"
+                variant={view === "cards" ? "default" : "ghost"}
+                className="h-8 px-2.5"
+                onClick={() => setView("cards")}
+                data-testid="button-view-cards"
+              >
+                <LayoutGrid className="h-4 w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Cards</span>
+              </Button>
+              <Button
+                size="sm"
+                variant={view === "map" ? "default" : "ghost"}
+                className="h-8 px-2.5"
+                onClick={() => setView("map")}
+                data-testid="button-view-map"
+              >
+                <MapIcon className="h-4 w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Map</span>
+              </Button>
+            </div>
+          </div>
         </div>
 
+        {view === "map" && (
+          <div className="mx-3">
+            <FacilityMap />
+          </div>
+        )}
+
         {/* Studios Grid - Floating Cards */}
+        {view === "cards" && (
+        <>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mx-3">
           {studios.map((studio) => {
             const studioStatus = getStudioStatus(studio);
@@ -303,6 +341,8 @@ export default function StudiosPage() {
               <p>No studios found</p>
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

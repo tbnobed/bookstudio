@@ -9,6 +9,7 @@ import {
   insertUserSchema, 
   insertStudioSchema, 
   insertPcrRoomSchema,
+  insertFacilityMapRoomSchema,
   insertTemplateSchema, 
   insertBookingSchema, 
   insertAlertSchema,
@@ -908,6 +909,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       res.status(500).json({ message: "Failed to delete PCR room" });
+    }
+  });
+
+  // Facility Map routes
+  app.get("/api/facility-map", isAuthenticated, async (req, res) => {
+    try {
+      const rooms = await storage.getFacilityMapRooms();
+      res.json(rooms);
+    } catch (error) {
+      console.error("Failed to fetch facility map:", error);
+      res.status(500).json({ message: "Failed to fetch facility map" });
+    }
+  });
+
+  app.put("/api/facility-map", isAuthenticated, hasRole(["admin", "site_manager"]), async (req, res) => {
+    try {
+      const rooms = z.array(insertFacilityMapRoomSchema).parse(req.body);
+      // A room may link to a studio OR a PCR room, never both.
+      const sanitized = rooms.map((r) =>
+        r.studioId ? { ...r, pcrRoomId: null } : r,
+      );
+      const saved = await storage.replaceFacilityMapRooms(sanitized);
+
+      await AuditService.log('updated', 'facility_map', 'Facility Map Layout', req, {
+        roomCount: saved.length
+      });
+
+      res.json(saved);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid facility map data", errors: error.errors });
+      }
+      console.error("Failed to save facility map:", error);
+      res.status(500).json({ message: "Failed to save facility map" });
     }
   });
 
