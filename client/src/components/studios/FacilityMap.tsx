@@ -187,6 +187,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const [pinCaption, setPinCaption] = useState("");
   const [pinUploading, setPinUploading] = useState(false);
   const [pinViewer, setPinViewer] = useState<PhotoPin | null>(null);
+  const [hoverPin, setHoverPin] = useState<PhotoPin | null>(null);
   const pinFileRef = useRef<HTMLInputElement | null>(null);
 
   const { data: rooms = [] } = useQuery<FacilityMapRoom[]>({
@@ -939,9 +940,9 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
             }}
           >
             {display.map((room) => renderShape(room))}
-            {/* Photo pins — studio reference shots placed at exact spots */}
-            {isEditing &&
-              photoPins.map((pin) => (
+            {/* Photo pins — studio reference shots placed at exact spots.
+                Visible to everyone in view mode; adding is editor-only. */}
+            {photoPins.map((pin) => (
                 <g
                   key={`pin-${pin.id}`}
                   style={{ cursor: "pointer" }}
@@ -949,6 +950,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                     e.stopPropagation();
                     setPinViewer(pin);
                   }}
+                  onMouseEnter={() => setHoverPin(pin)}
+                  onMouseLeave={() => setHoverPin((p) => (p?.id === pin.id ? null : p))}
                   className="transition-opacity hover:opacity-80"
                   data-testid={`photo-pin-${pin.id}`}
                 >
@@ -958,6 +961,55 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                   <circle cx={pin.x} cy={pin.y + 0.7} r={1.7} fill="#2563EB" />
                 </g>
               ))}
+            {/* Hover preview: load the angle photo right next to the pin */}
+            {hoverPin && (() => {
+              const pw = 150;
+              const ph = 112;
+              const pad = 3;
+              let bx = hoverPin.x + 16;
+              let by = hoverPin.y - ph - 10;
+              if (bx + pw + pad > VIEW_W) bx = hoverPin.x - pw - 16;
+              if (bx < pad) bx = pad;
+              if (by < pad) by = hoverPin.y + 16;
+              if (by + ph + pad > VIEW_H) by = VIEW_H - ph - pad;
+              const clipId = `pin-clip-${hoverPin.id}`;
+              return (
+                <g style={{ pointerEvents: "none" }} data-testid={`photo-pin-preview-${hoverPin.id}`}>
+                  <defs>
+                    <clipPath id={clipId}>
+                      <rect x={bx} y={by} width={pw} height={ph} rx={4} />
+                    </clipPath>
+                  </defs>
+                  <rect
+                    x={bx - pad}
+                    y={by - pad}
+                    width={pw + pad * 2}
+                    height={ph + pad * 2}
+                    rx={6}
+                    fill="#ffffff"
+                    stroke="#2563EB"
+                    strokeWidth={1.5}
+                  />
+                  <image
+                    href={hoverPin.photoData}
+                    x={bx}
+                    y={by}
+                    width={pw}
+                    height={ph}
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath={`url(#${clipId})`}
+                  />
+                  {hoverPin.caption && (
+                    <>
+                      <rect x={bx} y={by + ph - 18} width={pw} height={18} fill="rgba(0,0,0,0.55)" clipPath={`url(#${clipId})`} />
+                      <text x={bx + 6} y={by + ph - 6} fontSize={9} fill="#ffffff">
+                        {hoverPin.caption.length > 26 ? `${hoverPin.caption.slice(0, 26)}…` : hoverPin.caption}
+                      </text>
+                    </>
+                  )}
+                </g>
+              );
+            })()}
             {pendingPin && (
               <circle
                 cx={pendingPin.x}
