@@ -12,8 +12,6 @@ import {
   FileCheck2,
   LogOut,
   ChevronDown,
-  UserPlus,
-  Tv,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -86,6 +84,35 @@ function IconAssets({ className }: { className?: string }) {
       <path d="M15.5 15.5L12.2 13.8" strokeWidth=".9" opacity=".6"/>
       <path d="M17.5 12h-3.3" strokeWidth=".9" opacity=".6"/>
       <path d="M15.5 8.5L12.2 10.2" strokeWidth=".9" opacity=".6"/>
+    </svg>
+  );
+}
+
+export function IconStudios({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="14" width="20" height="7" rx="1.5"/>
+      <path d="M5 14V11M12 14V11M19 14V11"/>
+      <path d="M3 11h18" strokeWidth="1.2"/>
+      <path d="M5 11L7 5M12 11V5M19 11L17 5"/>
+      <path d="M5.5 5h13" strokeWidth="1.2"/>
+      <circle cx="7" cy="4.5" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="12" cy="4.5" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="17" cy="4.5" r="1" fill="currentColor" stroke="none"/>
+    </svg>
+  );
+}
+
+export function IconCrew({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 9a6 6 0 0012 0"/>
+      <path d="M6 9V8a6 6 0 0112 0v1"/>
+      <rect x="4" y="8.5" width="2" height="3.5" rx="1"/>
+      <rect x="18" y="8.5" width="2" height="3.5" rx="1"/>
+      <path d="M20 10.5c1.5.5 2 1.5 2 2.5"/>
+      <path d="M22 13h-1.5a1 1 0 00-1 1v1a1 1 0 001 1H22"/>
+      <path d="M4 20c0-2.5 3.6-4 8-4s8 1.5 8 4"/>
     </svg>
   );
 }
@@ -279,7 +306,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             />
 
             <NavItem
-              icon={<Tv className={iconSize} />}
+              icon={<IconStudios className={iconSize} />}
               label="Studios"
               path="/studios"
               isActive={location === "/studios"}
@@ -328,7 +355,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             {user?.role !== "viewer" && (
               <NavItem
-                icon={<UserPlus className={iconSize} />}
+                icon={<IconCrew className={iconSize} />}
                 label="Crew"
                 badge="New"
                 path="/crew"

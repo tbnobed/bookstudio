@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Calendar, BookOpen, ListTodo, Settings, Menu, PlusCircle, Bell, BarChart, Tv, Users, LogOut, Moon, Sun, Package } from "lucide-react";
+import { Calendar, BookOpen, ListTodo, Settings, Menu, PlusCircle, Bell, BarChart, Users, LogOut, Moon, Sun, Package } from "lucide-react";
+import { IconStudios } from "@/components/layout/Sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -41,7 +42,7 @@ export default function MobileNavbar() {
     navigate(path);
   };
 
-  const NavButton = ({ path, icon: Icon, label, isCenter = false }: { path: string; icon: typeof Calendar; label: string; isCenter?: boolean }) => {
+  const NavButton = ({ path, icon: Icon, label, isCenter = false }: { path: string; icon: React.ComponentType<{ className?: string }>; label: string; isCenter?: boolean }) => {
     const isActive = location === path;
     return (
       <button 
@@ -127,7 +128,7 @@ export default function MobileNavbar() {
             </Sheet>
           </div>
           
-          <NavButton path="/" icon={Tv} label="Studios" />
+          <NavButton path="/" icon={IconStudios} label="Studios" />
           
           {/* Menu */}
           <Sheet>
@@ -168,7 +169,7 @@ export default function MobileNavbar() {
                   { path: "/", icon: Calendar, label: "Calendar" },
                   { path: "/my-bookings", icon: BookOpen, label: "My Bookings" },
                   { path: "/templates", icon: ListTodo, label: "Templates" },
-                  { path: "/studios", icon: Tv, label: "Studios" },
+                  { path: "/studios", icon: IconStudios, label: "Studios" },
                   { path: "/mobile/assets", icon: Package, label: "Assets" },
                 ].map((item) => (
                   <button 
