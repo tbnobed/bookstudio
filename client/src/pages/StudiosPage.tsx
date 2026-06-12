@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Tv, MapPin, Settings, Clock, LayoutGrid, Map as MapIcon } from "lucide-react";
-import { formatTime } from "@/lib/dateUtils";
+import { formatTime, formatTimeRange } from "@/lib/dateUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,10 +21,13 @@ interface Studio {
 interface Booking {
   id: number;
   title: string;
+  description?: string | null;
   start: string;
   end: string;
   studioId: number | null;
   status: string;
+  type?: string | null;
+  userId?: number | null;
   color?: string;
 }
 
@@ -48,6 +51,25 @@ export default function StudiosPage() {
   const { data: bookingStudios = [] } = useQuery<any[]>({
     queryKey: ["/api/booking-studios"],
   });
+
+  const { data: userNames = [] } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/users/names"],
+  });
+
+  const getUserName = (id?: number | null) =>
+    id == null ? undefined : userNames.find((u) => u.id === id)?.name;
+
+  const formatBookingType = (type?: string | null) => {
+    if (!type) return undefined;
+    const map: Record<string, string> = {
+      production: "Production",
+      rehearsal: "Rehearsal",
+      maintenance: "Maintenance",
+      it_support: "IT Support",
+      meeting: "Meeting",
+    };
+    return map[type] || type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  };
 
   // Get current time for comparison
   const now = new Date();
@@ -197,7 +219,7 @@ export default function StudiosPage() {
       return {
         status: "available",
         label: "Available",
-        detail: `Until ${formatTime(startTime)}${isToday ? '' : ` on ${startDate}`}`,
+        detail: `Free until ${formatTime(startTime)}${isToday ? '' : ` on ${startDate}`}`,
         booking: nextBooking,
         color: "bg-green-500"
       };
@@ -311,13 +333,36 @@ export default function StudiosPage() {
                     </div>
                     
                     {studioStatus.booking && (
-                      <div className="text-xs text-center">
+                      <div className="text-xs text-center space-y-0.5">
+                        {studioStatus.status === "available" && (
+                          <div className="text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-500">
+                            Next up
+                          </div>
+                        )}
                         <div className="font-medium text-neutral-900 dark:text-gray-100 truncate">
                           {studioStatus.booking.title}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {formatTime(studioStatus.booking.start)}
+                          {formatTimeRange(studioStatus.booking.start, studioStatus.booking.end)}
                         </div>
+
+                        {formatBookingType(studioStatus.booking.type) && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatBookingType(studioStatus.booking.type)}
+                          </div>
+                        )}
+
+                        {getUserName(studioStatus.booking.userId) && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            Booked by {getUserName(studioStatus.booking.userId)}
+                          </div>
+                        )}
+
+                        {studioStatus.booking.description && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                            {studioStatus.booking.description}
+                          </div>
+                        )}
 
                         {getOtherLinkedStudios(studioStatus.booking, studio.id) && (
                           <div className="text-xs text-blue-600 dark:text-blue-400 mt-0.5 truncate">
