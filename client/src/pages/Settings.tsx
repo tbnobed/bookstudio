@@ -367,13 +367,13 @@ function BookingTypesPanel() {
             </div>
           )}
 
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-semibold text-blue-900 mb-2">About Booking Types</h4>
-            <p className="text-sm text-blue-800">
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-neutral-900 border border-blue-200 dark:border-neutral-800 rounded-lg">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">About Booking Types</h4>
+            <p className="text-sm text-blue-800 dark:text-neutral-300">
               Booking types help categorize different kinds of studio activities. These types appear in booking forms, 
               calendar views, and reports. You can now add, edit, and manage custom booking types.
             </p>
-            <p className="text-sm text-blue-800 mt-2">
+            <p className="text-sm text-blue-800 dark:text-neutral-300 mt-2">
               <strong>Note:</strong> Facility alerts and maintenance schedules are managed separately through the 
               alert system and do not use these booking types.
             </p>
