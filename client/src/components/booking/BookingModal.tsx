@@ -853,8 +853,8 @@ export default function BookingModal({
       ) : (
         // Use the original Dialog on larger screens
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="sm:max-w-3xl h-[88vh] flex flex-col overflow-hidden bg-card dark:bg-neutral-800 border-2 border-border dark:border-slate-600 shadow-2xl ring-1 ring-black/5 dark:ring-white/15">
-            <DialogHeader className="shrink-0">
+          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto bg-card dark:bg-neutral-800 border-2 border-border dark:border-slate-600 shadow-2xl ring-1 ring-black/5 dark:ring-white/15">
+            <DialogHeader>
               <DialogTitle>
                 {booking && booking.id > 0
                   ? "Edit Booking" 
@@ -865,15 +865,15 @@ export default function BookingModal({
         
           {true && (
             // Tabbed interface for standard bookings (both new and edit)
-            <Tabs defaultValue="details" className="w-full flex flex-col flex-1 min-h-0">
-              <TabsList className="grid w-full grid-cols-4 shrink-0">
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="details">Booking Details</TabsTrigger>
                 <TabsTrigger value="crew" data-testid="tab-crew">Crew</TabsTrigger>
                 <TabsTrigger value="assets">Assets</TabsTrigger>
                 <TabsTrigger value="attachments">File Attachments</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="details" className="flex-1 min-h-0 overflow-y-auto pt-4">
+              <TabsContent value="details" className="pt-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Title - Full width */}
                   <div>
@@ -1316,15 +1316,15 @@ export default function BookingModal({
                 </form>
               </TabsContent>
               
-              <TabsContent value="crew" className="flex-1 min-h-0 overflow-hidden pt-4 flex flex-col">
+              <TabsContent value="crew" className="pt-4">
                 <BookingCrewTab booking={booking} />
               </TabsContent>
 
-              <TabsContent value="assets" className="flex-1 min-h-0 overflow-y-auto pt-4">
+              <TabsContent value="assets" className="pt-4">
                 <BookingAssetsTab booking={booking} />
               </TabsContent>
 
-              <TabsContent value="attachments" className="flex-1 min-h-0 overflow-y-auto pt-4">
+              <TabsContent value="attachments" className="pt-4">
                 {booking ? (
                   <FileAttachmentList bookingId={booking.id} />
                 ) : (

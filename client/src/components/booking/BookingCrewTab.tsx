@@ -95,9 +95,9 @@ export function BookingCrewTab({ booking }: Props) {
 
   return (
     <>
-    <div className="space-y-5 h-full flex flex-col min-h-0">
+    <div className="space-y-5">
       {/* Cost rollup */}
-      <div className="shrink-0 rounded-xl border border-border bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5">
+      <div className="rounded-xl border border-border bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{canSeeRates ? "Estimated crew cost" : "Crew summary"}</div>
@@ -133,7 +133,7 @@ export function BookingCrewTab({ booking }: Props) {
       </div>
 
       {/* Add slot + apply template controls */}
-      <div className="shrink-0 grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">Add position</label>
           <div className="flex gap-2">
@@ -172,7 +172,7 @@ export function BookingCrewTab({ booking }: Props) {
           <p className="mt-1 text-xs text-muted-foreground">Add a position above or apply a template to get started.</p>
         </div>
       ) : (
-        <div className="space-y-2.5 flex-1 min-h-0 overflow-y-auto pr-1 -mr-1">
+        <div className="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1 -mr-1">
           {slots.map((s: any) => {
             const meta = STATUS_META[s.status] || STATUS_META.unfilled;
             const StatusIcon = meta.icon;
