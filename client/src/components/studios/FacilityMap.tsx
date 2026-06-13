@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2, Save, X, Square, Hexagon, CalendarPlus, Download, Upload, Camera } from "lucide-react";
+import { Pencil, Plus, Trash2, Save, X, Square, Hexagon, CalendarPlus, Download, Upload, Camera, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -192,6 +192,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const [pinUploading, setPinUploading] = useState(false);
   const [pinViewer, setPinViewer] = useState<PhotoPin | null>(null);
   const [hoverPin, setHoverPin] = useState<PhotoPin | null>(null);
+  const [expandedBookings, setExpandedBookings] = useState<Set<number>>(new Set());
   const pinFileRef = useRef<HTMLInputElement | null>(null);
 
   const { data: rooms = [] } = useQuery<FacilityMapRoom[]>({
@@ -358,6 +359,11 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const availableCount = linkedRooms.filter((r) => resolveStatus(r).key === "available").length;
 
   const selected = display.find((r) => r.uid === selectedUid) || null;
+
+  // Collapse any expanded "Next 15 days" rows when switching rooms.
+  useEffect(() => {
+    setExpandedBookings(new Set());
+  }, [selectedUid]);
 
   // The details/properties panel only takes a column when there's something to
   // show (editing, or a room is selected). Otherwise the map spans full width.
@@ -1597,37 +1603,69 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                       No bookings in the next 15 days.
                     </p>
                   ) : (
-                    <ul className="space-y-1.5 max-h-[440px] overflow-y-auto pr-1">
+                    <ul className="space-y-1 max-h-[440px] overflow-y-auto pr-1">
                       {selectedUpcoming.map((b) => {
                         const isNow = isBookingActive(b);
+                        const isExpanded = expandedBookings.has(b.id);
+                        const bookedBy = getUserName(b.userId);
+                        const bookingType = formatBookingType(b.type);
                         return (
-                          <li
-                            key={b.id}
-                            className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300"
-                          >
-                            <span
-                              className={`mt-1.5 inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
-                                isNow ? "bg-red-500" : "bg-gray-300 dark:bg-gray-600"
-                              }`}
-                            />
-                            <span>
-                              <span className="text-gray-500 dark:text-gray-400">
-                                {new Date(b.start).toLocaleDateString("en-US", {
-                                  weekday: "short",
-                                  month: "numeric",
-                                  day: "numeric",
-                                  timeZone: FACILITY_TIMEZONE,
-                                })}{" "}
-                                {formatTimeRange(b.start, b.end)}
-                              </span>{" "}
-                              — <span className="font-medium">{b.title}</span>
-                              {formatBookingType(b.type) && (
-                                <span className="text-gray-400 dark:text-gray-500">
-                                  {" "}
-                                  ({formatBookingType(b.type)})
-                                </span>
-                              )}
-                            </span>
+                          <li key={b.id} className="text-xs text-gray-600 dark:text-gray-300">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedBookings((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(b.id)) next.delete(b.id);
+                                  else next.add(b.id);
+                                  return next;
+                                })
+                              }
+                              aria-expanded={isExpanded}
+                              className="flex w-full items-start gap-1.5 rounded px-1 py-1 text-left hover:bg-gray-100 dark:hover:bg-gray-800/60"
+                              data-testid={`button-upcoming-${b.id}`}
+                            >
+                              <ChevronRight
+                                className={`mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform ${
+                                  isExpanded ? "rotate-90" : ""
+                                }`}
+                              />
+                              <span
+                                className={`mt-1 inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+                                  isNow ? "bg-red-500" : "bg-gray-300 dark:bg-gray-600"
+                                }`}
+                              />
+                              <span className="min-w-0">
+                                <span className="text-gray-500 dark:text-gray-400">
+                                  {new Date(b.start).toLocaleDateString("en-US", {
+                                    weekday: "short",
+                                    month: "numeric",
+                                    day: "numeric",
+                                    timeZone: FACILITY_TIMEZONE,
+                                  })}{" "}
+                                  {formatTimeRange(b.start, b.end)}
+                                </span>{" "}
+                                — <span className="font-medium">{b.title}</span>
+                                {!isExpanded && bookingType && (
+                                  <span className="text-gray-400 dark:text-gray-500">
+                                    {" "}
+                                    ({bookingType})
+                                  </span>
+                                )}
+                              </span>
+                            </button>
+                            {isExpanded && (
+                              <div className="ml-6 mb-1 space-y-0.5 text-gray-500 dark:text-gray-400">
+                                {bookingType && <div>Type: {bookingType}</div>}
+                                {bookedBy && <div>Booked by: {bookedBy}</div>}
+                                {b.description && (
+                                  <div className="whitespace-pre-wrap">{b.description}</div>
+                                )}
+                                {isNow && (
+                                  <div className="font-medium text-red-500">On air now</div>
+                                )}
+                              </div>
+                            )}
                           </li>
                         );
                       })}
