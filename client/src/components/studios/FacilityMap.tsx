@@ -278,15 +278,17 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     [isEditing, draft, rooms],
   );
 
-  // Bounding box of all drawn rooms (with padding). In view mode the SVG is
-  // fitted to this so the floorplan fills the available space instead of
-  // leaving large empty areas around it. While editing we keep the full canvas.
+  // Bounding box of the saved floorplan (with padding) so the SVG fits the
+  // rooms and fills the available space instead of leaving large empty/black
+  // areas around them. Computed from the SAVED layout (not the live draft) so
+  // it stays stable while dragging in edit mode. Edit mode uses extra padding
+  // to leave working room around the existing rooms.
   const contentBox = useMemo(() => {
     let minX = Infinity,
       minY = Infinity,
       maxX = -Infinity,
       maxY = -Infinity;
-    for (const r of display) {
+    for (const r of rooms.map(toDraft)) {
       if (r.shapeType === "polygon") {
         for (const [px, py] of parsePoints(r.points)) {
           minX = Math.min(minX, px);
@@ -302,21 +304,21 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
       }
     }
     if (!Number.isFinite(minX)) return null;
-    const pad = 24;
+    const pad = isEditing ? 70 : 24;
     minX = Math.max(0, minX - pad);
     minY = Math.max(0, minY - pad);
     maxX = Math.min(VIEW_W, maxX + pad);
     maxY = Math.min(VIEW_H, maxY + pad);
     return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
-  }, [display]);
+  }, [rooms, isEditing]);
 
-  const fitBox = !isEditing && contentBox ? contentBox : null;
-  const viewBox = fitBox
-    ? `${fitBox.x} ${fitBox.y} ${fitBox.w} ${fitBox.h}`
-    : `0 0 ${VIEW_W} ${VIEW_H}`;
-  const viewAspect = fitBox
-    ? `${fitBox.w} / ${fitBox.h}`
-    : `${VIEW_W} / ${VIEW_H}`;
+  // Active viewBox used for rendering AND all screen<->SVG coordinate math.
+  // Falls back to the full canvas when there are no rooms yet (empty map).
+  const activeBox = contentBox ?? { x: 0, y: 0, w: VIEW_W, h: VIEW_H };
+  const boxRef = useRef(activeBox);
+  boxRef.current = activeBox;
+  const viewBox = `${activeBox.x} ${activeBox.y} ${activeBox.w} ${activeBox.h}`;
+  const viewAspect = `${activeBox.w} / ${activeBox.h}`;
 
   const resolveStatus = useCallback(
     (r: DraftRoom): { key: StatusKey; currentBooking?: any; nextBooking?: any } => {
@@ -361,9 +363,10 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
     const rect = svg.getBoundingClientRect();
+    const b = boxRef.current;
     return {
-      x: ((clientX - rect.left) / rect.width) * VIEW_W,
-      y: ((clientY - rect.top) / rect.height) * VIEW_H,
+      x: b.x + ((clientX - rect.left) / rect.width) * b.w,
+      y: b.y + ((clientY - rect.top) / rect.height) * b.h,
     };
   };
 
@@ -377,9 +380,10 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     const svg = svgRef.current;
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
+    const b = boxRef.current;
     const cur = {
-      x: ((e.clientX - rect.left) / rect.width) * VIEW_W,
-      y: ((e.clientY - rect.top) / rect.height) * VIEW_H,
+      x: b.x + ((e.clientX - rect.left) / rect.width) * b.w,
+      y: b.y + ((e.clientY - rect.top) / rect.height) * b.h,
     };
     const dx = cur.x - ctx.startX;
     const dy = cur.y - ctx.startY;
@@ -394,8 +398,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
             p.id === ctx.pinId
               ? {
                   ...p,
-                  x: Math.max(0, Math.min(VIEW_W, origin.x + dx)),
-                  y: Math.max(0, Math.min(VIEW_H, origin.y + dy)),
+                  x: Math.max(b.x, Math.min(b.x + b.w, origin.x + dx)),
+                  y: Math.max(b.y, Math.min(b.y + b.h, origin.y + dy)),
                 }
               : p,
           ),
@@ -407,19 +411,42 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     const o = ctx.orig;
     if (!o) return;
 
-    // When the whole shape moves, carry its studio's photo pins along with it.
-    // Pins are clamped to the map bounds so they never leave the floorplan
-    // (and so the save-time PATCH, which rejects out-of-bounds, can't fail).
+    // For a whole-shape move, clamp the delta so the entire shape stays inside
+    // the visible box (no off-screen trapping), then apply that SAME delta to
+    // both the shape and its pins so the pins stay rigidly attached.
+    let mdx = dx;
+    let mdy = dy;
+    if (ctx.mode === "move") {
+      let obx: number, oby: number, obw: number, obh: number;
+      if (o.shapeType === "rect") {
+        obx = o.x;
+        oby = o.y;
+        obw = o.width;
+        obh = o.height;
+      } else {
+        const pts = parsePoints(o.points);
+        const xs = pts.map((p) => p[0]);
+        const ys = pts.map((p) => p[1]);
+        obx = Math.min(...xs);
+        oby = Math.min(...ys);
+        obw = Math.max(...xs) - obx;
+        obh = Math.max(...ys) - oby;
+      }
+      const minDx = b.x - obx;
+      const maxDx = b.x + b.w - (obx + obw);
+      const minDy = b.y - oby;
+      const maxDy = b.y + b.h - (oby + obh);
+      if (maxDx >= minDx) mdx = Math.max(minDx, Math.min(maxDx, dx));
+      if (maxDy >= minDy) mdy = Math.max(minDy, Math.min(maxDy, dy));
+    }
+
+    // Carry the studio's photo pins along with its shape (same clamped delta).
     if (ctx.mode === "move" && ctx.pinOrigins && ctx.pinOrigins.length) {
       setPinDraft((prev) =>
         prev.map((p) => {
           const origin = ctx.pinOrigins!.find((po) => po.id === p.id);
           if (!origin) return p;
-          return {
-            ...p,
-            x: Math.max(0, Math.min(VIEW_W, origin.x + dx)),
-            y: Math.max(0, Math.min(VIEW_H, origin.y + dy)),
-          };
+          return { ...p, x: origin.x + mdx, y: origin.y + mdy };
         }),
       );
     }
@@ -429,10 +456,10 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         if (r.uid !== ctx.uid) return r;
         if (ctx.mode === "move") {
           if (o.shapeType === "rect") {
-            return { ...r, x: Math.round(o.x + dx), y: Math.round(o.y + dy) };
+            return { ...r, x: Math.round(o.x + mdx), y: Math.round(o.y + mdy) };
           }
           const pts = parsePoints(o.points).map(
-            ([px, py]) => [px + dx, py + dy] as [number, number],
+            ([px, py]) => [px + mdx, py + mdy] as [number, number],
           );
           return { ...r, points: serializePoints(pts) };
         }
@@ -547,14 +574,16 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
 
   const addRect = () => {
     const uid = `new-${Date.now()}`;
+    const cx = Math.round(activeBox.x + activeBox.w / 2 - 45);
+    const cy = Math.round(activeBox.y + activeBox.h / 2 - 30);
     setDraft((prev) => [
       ...prev,
       {
         uid,
         label: "New",
         shapeType: "rect",
-        x: 300,
-        y: 200,
+        x: cx,
+        y: cy,
         width: 90,
         height: 60,
         rx: 6,
@@ -573,6 +602,9 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
 
   const addPolygon = () => {
     const uid = `new-${Date.now()}`;
+    const cx = Math.round(activeBox.x + activeBox.w / 2);
+    const cy = Math.round(activeBox.y + activeBox.h / 2);
+    const pts = `${cx - 45},${cy - 35} ${cx + 45},${cy - 35} ${cx + 45},${cy + 35} ${cx - 45},${cy + 35}`;
     setDraft((prev) => [
       ...prev,
       {
@@ -584,7 +616,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         width: 0,
         height: 0,
         rx: 0,
-        points: "300,200 390,200 390,270 300,270",
+        points: pts,
         labelX: null,
         labelY: null,
         fontSize: 14,
@@ -1196,10 +1228,11 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
               const pad = 3;
               let bx = hoverPin.x + 16;
               let by = hoverPin.y - ph - 10;
-              if (bx + pw + pad > VIEW_W) bx = hoverPin.x - pw - 16;
-              if (bx < pad) bx = pad;
-              if (by < pad) by = hoverPin.y + 16;
-              if (by + ph + pad > VIEW_H) by = VIEW_H - ph - pad;
+              if (bx + pw + pad > activeBox.x + activeBox.w) bx = hoverPin.x - pw - 16;
+              if (bx < activeBox.x + pad) bx = activeBox.x + pad;
+              if (by < activeBox.y + pad) by = hoverPin.y + 16;
+              if (by + ph + pad > activeBox.y + activeBox.h)
+                by = activeBox.y + activeBox.h - ph - pad;
               const clipId = `pin-clip-${hoverPin.id}`;
               return (
                 <g style={{ pointerEvents: "none" }} data-testid={`photo-pin-preview-${hoverPin.id}`}>
@@ -1410,8 +1443,10 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                           if (!svg) return mid;
                           // Convert SVG coords back to client coords for the handler.
                           const rect = svg.getBoundingClientRect();
-                          const sx = rect.left + (mid[0] / VIEW_W) * rect.width;
-                          const sy = rect.top + (mid[1] / VIEW_H) * rect.height;
+                          const sx =
+                            rect.left + ((mid[0] - activeBox.x) / activeBox.w) * rect.width;
+                          const sy =
+                            rect.top + ((mid[1] - activeBox.y) / activeBox.h) * rect.height;
                           return [sx, sy] as [number, number];
                         })(),
                       )
