@@ -278,6 +278,46 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     [isEditing, draft, rooms],
   );
 
+  // Bounding box of all drawn rooms (with padding). In view mode the SVG is
+  // fitted to this so the floorplan fills the available space instead of
+  // leaving large empty areas around it. While editing we keep the full canvas.
+  const contentBox = useMemo(() => {
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    for (const r of display) {
+      if (r.shapeType === "polygon") {
+        for (const [px, py] of parsePoints(r.points)) {
+          minX = Math.min(minX, px);
+          minY = Math.min(minY, py);
+          maxX = Math.max(maxX, px);
+          maxY = Math.max(maxY, py);
+        }
+      } else {
+        minX = Math.min(minX, r.x);
+        minY = Math.min(minY, r.y);
+        maxX = Math.max(maxX, r.x + r.width);
+        maxY = Math.max(maxY, r.y + r.height);
+      }
+    }
+    if (!Number.isFinite(minX)) return null;
+    const pad = 24;
+    minX = Math.max(0, minX - pad);
+    minY = Math.max(0, minY - pad);
+    maxX = Math.min(VIEW_W, maxX + pad);
+    maxY = Math.min(VIEW_H, maxY + pad);
+    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  }, [display]);
+
+  const fitBox = !isEditing && contentBox ? contentBox : null;
+  const viewBox = fitBox
+    ? `${fitBox.x} ${fitBox.y} ${fitBox.w} ${fitBox.h}`
+    : `0 0 ${VIEW_W} ${VIEW_H}`;
+  const viewAspect = fitBox
+    ? `${fitBox.w} / ${fitBox.h}`
+    : `${VIEW_W} / ${VIEW_H}`;
+
   const resolveStatus = useCallback(
     (r: DraftRoom): { key: StatusKey; currentBooking?: any; nextBooking?: any } => {
       if (r.studioId) {
@@ -1101,7 +1141,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
           <svg
             ref={svgRef}
             width="100%"
-            viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+            viewBox={viewBox}
             preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-label="Facility map"
@@ -1110,7 +1150,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
               touchAction: "none",
               width: "100%",
               height: "auto",
-              aspectRatio: `${VIEW_W} / ${VIEW_H}`,
+              maxHeight: "calc(100vh - 220px)",
+              aspectRatio: viewAspect,
             }}
             onClick={() => {
               if (isEditing) setSelectedUid(null);
