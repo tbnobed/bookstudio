@@ -18,7 +18,7 @@ import { compressImage } from "@/lib/imageCompress";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { formatTime, formatTimeRange, isBookingActive, isSameDay, FACILITY_TIMEZONE } from "@/lib/dateUtils";
+import { formatTime, formatTimeRange, isBookingActive, FACILITY_TIMEZONE } from "@/lib/dateUtils";
 import type { FacilityMapRoom, Studio, PcrRoom, Booking } from "@shared/schema";
 import BookingModal from "@/components/booking/BookingModal";
 
@@ -843,60 +843,30 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const selectedStatus = selected ? resolveStatus(selected) : null;
   const selectedStyle = selectedStatus ? STATUS_STYLE[selectedStatus.key] : null;
 
-  const selectedTodaySchedule = useMemo(() => {
+  // Next 15 days of bookings for the currently selected room. Bookings are
+  // stored as absolute instants, so the window is an instant-based forward
+  // range (ongoing + upcoming within 15 days).
+  const selectedUpcoming = useMemo(() => {
     if (!selected || (!selected.studioId && !selected.pcrRoomId)) return [];
-    const now = new Date();
-    const nowMs = now.getTime();
+    const nowMs = Date.now();
+    const windowEndMs = nowMs + 15 * 24 * 60 * 60 * 1000;
     return bookings
-      .filter((b) => {
-        if (b.status === "cancelled") return false;
-        const matchRoom = selected.studioId
+      .filter((b) => b.status !== "cancelled")
+      .filter((b) =>
+        selected.studioId
           ? b.studioId === selected.studioId ||
             bookingStudioLinks.some(
               (l) => l.bookingId === b.id && l.studioId === selected.studioId,
             )
-          : b.pcrRoomId === selected.pcrRoomId;
-        if (!matchRoom) return false;
-        // Facility-timezone-aware "today": starts today, ends today, or is a
-        // multi-day booking currently spanning today (instant-based check).
+          : b.pcrRoomId === selected.pcrRoomId,
+      )
+      .filter((b) => {
         const startMs = new Date(b.start).getTime();
         const endMs = new Date(b.end).getTime();
-        return (
-          isSameDay(b.start, now) ||
-          isSameDay(b.end, now) ||
-          (startMs < nowMs && endMs > nowMs)
-        );
+        return endMs > nowMs && startMs < windowEndMs;
       })
       .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-  }, [selected, bookings, bookingStudioLinks]);
-
-  // Next 15 days of bookings grouped per studio, shown in the side pane when no
-  // room is selected. Bookings are stored as absolute instants, so the window is
-  // an instant-based forward range (ongoing + upcoming within 15 days).
-  const upcomingByStudio = useMemo(() => {
-    const nowMs = Date.now();
-    const windowEndMs = nowMs + 15 * 24 * 60 * 60 * 1000;
-    return [...studios]
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
-      .map((studio) => {
-        const studioBookings = bookings
-          .filter((b) => b.status !== "cancelled")
-          .filter(
-            (b) =>
-              b.studioId === studio.id ||
-              bookingStudioLinks.some(
-                (l) => l.bookingId === b.id && l.studioId === studio.id,
-              ),
-          )
-          .filter((b) => {
-            const startMs = new Date(b.start).getTime();
-            const endMs = new Date(b.end).getTime();
-            return endMs > nowMs && startMs < windowEndMs;
-          })
-          .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-        return { studio, bookings: studioBookings };
-      });
-  }, [studios, bookings, bookingStudioLinks, nowTick]);
+  }, [selected, bookings, bookingStudioLinks, nowTick]);
 
   return (
     <div className="space-y-4">
@@ -1395,15 +1365,15 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
               {(selected.studioId || selected.pcrRoomId) && (
                 <div>
                   <div className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
-                    Today's schedule
+                    Next 15 days
                   </div>
-                  {selectedTodaySchedule.length === 0 ? (
+                  {selectedUpcoming.length === 0 ? (
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      No bookings scheduled today.
+                      No bookings in the next 15 days.
                     </p>
                   ) : (
-                    <ul className="space-y-1.5">
-                      {selectedTodaySchedule.map((b) => {
+                    <ul className="space-y-1.5 max-h-[440px] overflow-y-auto pr-1">
+                      {selectedUpcoming.map((b) => {
                         const isNow = isBookingActive(b);
                         return (
                           <li
@@ -1417,6 +1387,12 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                             />
                             <span>
                               <span className="text-gray-500 dark:text-gray-400">
+                                {new Date(b.start).toLocaleDateString("en-US", {
+                                  weekday: "short",
+                                  month: "numeric",
+                                  day: "numeric",
+                                  timeZone: FACILITY_TIMEZONE,
+                                })}{" "}
                                 {formatTimeRange(b.start, b.end)}
                               </span>{" "}
                               — <span className="font-medium">{b.title}</span>
@@ -1442,70 +1418,9 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
               )}
             </div>
           ) : (
-            <div className="space-y-3">
-              <div>
-                <h3 className="font-semibold text-sm dark:text-white">Next 15 days</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Upcoming bookings per studio. Select a room for its full status.
-                </p>
-              </div>
-              <div className="space-y-2 max-h-[640px] overflow-y-auto pr-1">
-                {upcomingByStudio.map(({ studio, bookings: studioBookings }) => (
-                  <div
-                    key={studio.id}
-                    className="rounded-md border border-gray-200 dark:border-gray-700 p-2.5"
-                    data-testid={`upcoming-studio-${studio.id}`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium text-sm dark:text-gray-100">
-                        {studio.name}
-                      </span>
-                      <span className="text-[11px] text-gray-400 shrink-0">
-                        {studioBookings.length === 0
-                          ? "Free"
-                          : `${studioBookings.length} booking${studioBookings.length === 1 ? "" : "s"}`}
-                      </span>
-                    </div>
-                    {studioBookings.length > 0 && (
-                      <ul className="mt-1.5 space-y-1">
-                        {studioBookings.map((b) => (
-                          <li
-                            key={b.id}
-                            className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300"
-                          >
-                            <span
-                              className={`mt-1.5 inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
-                                isBookingActive(b)
-                                  ? "bg-red-500"
-                                  : "bg-gray-300 dark:bg-gray-600"
-                              }`}
-                            />
-                            <span>
-                              <span className="text-gray-500 dark:text-gray-400">
-                                {new Date(b.start).toLocaleDateString("en-US", {
-                                  weekday: "short",
-                                  month: "numeric",
-                                  day: "numeric",
-                                  timeZone: FACILITY_TIMEZONE,
-                                })}
-                              </span>{" "}
-                              {formatTimeRange(b.start, b.end)} —{" "}
-                              <span className="font-medium">{b.title}</span>
-                              {formatBookingType(b.type) && (
-                                <span className="text-gray-400 dark:text-gray-500">
-                                  {" "}
-                                  ({formatBookingType(b.type)})
-                                </span>
-                              )}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Select a room to see its status.
+            </p>
           )}
         </div>
       </div>
