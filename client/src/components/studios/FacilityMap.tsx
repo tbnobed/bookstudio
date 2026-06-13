@@ -359,6 +359,10 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
 
   const selected = display.find((r) => r.uid === selectedUid) || null;
 
+  // The details/properties panel only takes a column when there's something to
+  // show (editing, or a room is selected). Otherwise the map spans full width.
+  const showPanel = isEditing || !!selected;
+
   const toSvgCoords = (clientX: number, clientY: number) => {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
@@ -1167,9 +1171,9 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         </p>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 gap-6 ${showPanel ? "lg:grid-cols-3" : ""}`}>
         {/* Map */}
-        <div className="lg:col-span-2">
+        <div className={showPanel ? "lg:col-span-2" : ""}>
           <svg
             ref={svgRef}
             width="100%"
@@ -1286,6 +1290,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         </div>
 
         {/* Side panel */}
+        {showPanel && (
         <div className="lg:border-l lg:border-gray-200 lg:dark:border-neutral-700 lg:pl-6">
           {isEditing && selected ? (
             <div className="space-y-3">
@@ -1643,6 +1648,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
             </p>
           )}
         </div>
+        )}
       </div>
 
       {bookingOpen && (
