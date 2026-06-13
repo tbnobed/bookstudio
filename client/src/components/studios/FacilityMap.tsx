@@ -250,15 +250,23 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const dragRef = useRef<
     | null
     | {
-        mode: "move" | "resize" | "vertex" | "label";
+        mode: "move" | "resize" | "vertex" | "label" | "pin";
         uid: string;
         vertexIndex?: number;
+        pinId?: number;
         startX: number;
         startY: number;
-        orig: DraftRoom;
+        orig?: DraftRoom;
         pinOrigins?: { id: number; x: number; y: number }[];
       }
   >(null);
+  // Set true when a pin drag actually moves, so the click that follows a drag
+  // does not also open the pin's photo viewer.
+  const pinDraggedRef = useRef(false);
+  // Last-persisted pin positions for the current edit session. Used at save
+  // time to detect which pins actually moved (compared to a stable baseline,
+  // not the live query which can lag behind newly created pins).
+  const pinBaselineRef = useRef<PhotoPin[]>([]);
 
   // Pins currently rendered: the editable draft while editing, otherwise the
   // server copy.
@@ -335,7 +343,29 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     };
     const dx = cur.x - ctx.startX;
     const dy = cur.y - ctx.startY;
+
+    // Dragging a single pin directly (clamped to the map bounds).
+    if (ctx.mode === "pin" && ctx.pinId != null) {
+      const origin = ctx.pinOrigins?.[0];
+      if (origin) {
+        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) pinDraggedRef.current = true;
+        setPinDraft((prev) =>
+          prev.map((p) =>
+            p.id === ctx.pinId
+              ? {
+                  ...p,
+                  x: Math.max(0, Math.min(VIEW_W, origin.x + dx)),
+                  y: Math.max(0, Math.min(VIEW_H, origin.y + dy)),
+                }
+              : p,
+          ),
+        );
+      }
+      return;
+    }
+
     const o = ctx.orig;
+    if (!o) return;
 
     // When the whole shape moves, carry its studio's photo pins along with it.
     // Pins are clamped to the map bounds so they never leave the floorplan
@@ -392,9 +422,13 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   }, []);
 
   const handlePointerUp = useCallback(() => {
+    const wasPinDrag = dragRef.current?.mode === "pin";
     dragRef.current = null;
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
+    // Clear the drag-suppression flag after the trailing click has had a chance
+    // to fire, so an off-target release can't swallow a later genuine click.
+    if (wasPinDrag) setTimeout(() => (pinDraggedRef.current = false), 0);
   }, [handlePointerMove]);
 
   const startDrag = (
@@ -428,6 +462,24 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     window.addEventListener("pointerup", handlePointerUp);
   };
 
+  // Drag a single photo pin directly (edit mode only). Persisted on Save.
+  const startPinDrag = (e: React.PointerEvent, pin: PhotoPin) => {
+    if (!isEditing || addPinMode) return;
+    e.stopPropagation();
+    pinDraggedRef.current = false;
+    const start = toSvgCoords(e.clientX, e.clientY);
+    dragRef.current = {
+      mode: "pin",
+      uid: "",
+      pinId: pin.id,
+      startX: start.x,
+      startY: start.y,
+      pinOrigins: [{ id: pin.id, x: pin.x, y: pin.y }],
+    };
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+  };
+
   useEffect(() => {
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
@@ -438,6 +490,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const enterEdit = () => {
     setDraft(rooms.map(toDraft));
     setPinDraft(photoPins.map((p) => ({ ...p })));
+    pinBaselineRef.current = photoPins.map((p) => ({ ...p }));
     setSelectedUid(null);
     setIsEditing(true);
   };
@@ -532,10 +585,11 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
       }));
       await apiRequest("PUT", "/api/facility-map", payload);
 
-      // Persist any pins that were dragged along with their studio's shape.
+      // Persist any pins whose position changed this session — comparing to the
+      // stable baseline (not the live query, which lags newly created pins).
       const movedPins = pinDraft.filter((p) => {
-        const orig = photoPins.find((o) => o.id === p.id);
-        return orig && (orig.x !== p.x || orig.y !== p.y);
+        const base = pinBaselineRef.current.find((o) => o.id === p.id);
+        return base && (base.x !== p.x || base.y !== p.y);
       });
       if (movedPins.length) {
         await Promise.all(
@@ -736,6 +790,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         const created = (await res.json()) as PhotoPin;
         if (created && typeof created.x === "number" && typeof created.y === "number") {
           setPinDraft((prev) => [...prev, created]);
+          // Record its persisted position so a later drag is detected on save.
+          pinBaselineRef.current = [...pinBaselineRef.current, { ...created }];
         }
       } catch {
         /* response body is optional for the draft sync */
@@ -760,6 +816,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     try {
       await apiRequest("DELETE", `/api/studios/${pin.studioId}/photos/${pin.id}`);
       setPinDraft((prev) => prev.filter((p) => p.id !== pin.id));
+      pinBaselineRef.current = pinBaselineRef.current.filter((p) => p.id !== pin.id);
       await queryClient.invalidateQueries({ queryKey: ["/api/facility-map/photo-pins"] });
       setPinViewer(null);
     } catch (err: any) {
@@ -1045,9 +1102,16 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
             ref={svgRef}
             width="100%"
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+            preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-label="Facility map"
-            style={{ display: "block", touchAction: "none" }}
+            style={{
+              display: "block",
+              touchAction: "none",
+              width: "100%",
+              height: "auto",
+              aspectRatio: `${VIEW_W} / ${VIEW_H}`,
+            }}
             onClick={() => {
               if (isEditing) setSelectedUid(null);
             }}
@@ -1060,9 +1124,17 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
             {displayPins.map((pin) => (
                 <g
                   key={`pin-${pin.id}`}
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: isEditing && !addPinMode ? "move" : "pointer" }}
+                  onPointerDown={(e) =>
+                    isEditing && !addPinMode ? startPinDrag(e, pin) : undefined
+                  }
                   onClick={(e) => {
                     e.stopPropagation();
+                    // Ignore the click that ends a drag so it doesn't pop the viewer.
+                    if (pinDraggedRef.current) {
+                      pinDraggedRef.current = false;
+                      return;
+                    }
                     setPinViewer(pin);
                   }}
                   onMouseEnter={() => setHoverPin(pin)}
