@@ -955,10 +955,10 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                   className="transition-opacity hover:opacity-80"
                   data-testid={`photo-pin-${pin.id}`}
                 >
-                  <circle cx={pin.x} cy={pin.y} r={11} fill="#2563EB" stroke="#fff" strokeWidth={2} />
-                  <rect x={pin.x - 4} y={pin.y - 2.5} width={8} height={6} rx={1.2} fill="#fff" />
-                  <rect x={pin.x - 1.5} y={pin.y - 4} width={3} height={1.8} rx={0.5} fill="#fff" />
-                  <circle cx={pin.x} cy={pin.y + 0.7} r={1.7} fill="#2563EB" />
+                  <circle cx={pin.x} cy={pin.y} r={5.5} fill="#2563EB" stroke="#fff" strokeWidth={1} />
+                  <rect x={pin.x - 2} y={pin.y - 1.25} width={4} height={3} rx={0.6} fill="#fff" />
+                  <rect x={pin.x - 0.75} y={pin.y - 2} width={1.5} height={0.9} rx={0.25} fill="#fff" />
+                  <circle cx={pin.x} cy={pin.y + 0.35} r={0.85} fill="#2563EB" />
                 </g>
               ))}
             {/* Hover preview: load the angle photo right next to the pin */}
