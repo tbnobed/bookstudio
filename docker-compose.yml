@@ -227,6 +227,8 @@ services:
         node scripts/production-migration-v1.8.1.cjs &&
         echo 'Running studio photo pins migration (v1.8.2)...' &&
         node scripts/production-migration-v1.8.2.cjs &&
+        echo 'Running map label position migration (v1.8.3)...' &&
+        node scripts/production-migration-v1.8.3.cjs &&
         echo 'Database initialization completed successfully!'
       "
 

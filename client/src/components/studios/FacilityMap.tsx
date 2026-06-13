@@ -55,6 +55,8 @@ interface DraftRoom {
   height: number;
   rx: number;
   points: string | null;
+  labelX: number | null;
+  labelY: number | null;
   fontSize: number;
   fill: string | null;
   studioId: number | null;
@@ -73,6 +75,8 @@ function toDraft(r: FacilityMapRoom): DraftRoom {
     height: r.height,
     rx: r.rx,
     points: r.points,
+    labelX: r.labelX ?? null,
+    labelY: r.labelY ?? null,
     fontSize: r.fontSize,
     fill: r.fill,
     studioId: r.studioId,
@@ -236,7 +240,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const dragRef = useRef<
     | null
     | {
-        mode: "move" | "resize" | "vertex";
+        mode: "move" | "resize" | "vertex" | "label";
         uid: string;
         vertexIndex?: number;
         startX: number;
@@ -343,6 +347,13 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
           );
           return { ...r, points: serializePoints(pts) };
         }
+        if (ctx.mode === "label") {
+          const base =
+            o.labelX != null && o.labelY != null
+              ? { cx: o.labelX, cy: o.labelY }
+              : shapeCenter(o);
+          return { ...r, labelX: base.cx + dx, labelY: base.cy + dy };
+        }
         return r;
       }),
     );
@@ -357,7 +368,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const startDrag = (
     e: React.PointerEvent,
     room: DraftRoom,
-    mode: "move" | "resize" | "vertex",
+    mode: "move" | "resize" | "vertex" | "label",
     vertexIndex?: number,
   ) => {
     if (!isEditing) return;
@@ -412,6 +423,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         height: 60,
         rx: 6,
         points: null,
+        labelX: null,
+        labelY: null,
         fontSize: 14,
         fill: null,
         studioId: null,
@@ -436,6 +449,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         height: 0,
         rx: 0,
         points: "300,200 390,200 390,270 300,270",
+        labelX: null,
+        labelY: null,
         fontSize: 14,
         fill: null,
         studioId: null,
@@ -464,6 +479,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         height: r.height,
         rx: r.rx,
         points: r.shapeType === "polygon" ? r.points : null,
+        labelX: r.labelX,
+        labelY: r.labelY,
         fontSize: r.fontSize,
         fill: r.fill,
         studioId: r.studioId,
@@ -502,6 +519,8 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         height: r.height,
         rx: r.rx,
         points: r.points,
+        labelX: r.labelX,
+        labelY: r.labelY,
         fontSize: r.fontSize,
         fill: r.fill,
         studioId: r.studioId,
@@ -547,6 +566,15 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
           height: Math.round(Number(r.height) || 0),
           rx: Math.round(Number(r.rx) || 0),
           points: shapeType === "polygon" ? (r.points ?? null) : null,
+          // Label coords are only meaningful as a pair; drop them unless both are valid.
+          labelX:
+            Number.isFinite(Number(r.labelX)) && Number.isFinite(Number(r.labelY))
+              ? Number(r.labelX)
+              : null,
+          labelY:
+            Number.isFinite(Number(r.labelX)) && Number.isFinite(Number(r.labelY))
+              ? Number(r.labelY)
+              : null,
           fontSize: Math.round(Number(r.fontSize) || 14),
           fill: r.fill ?? null,
           // Drop links to studios / PCR rooms that no longer exist to avoid FK errors.
@@ -746,19 +774,29 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         className="transition-opacity hover:opacity-80"
       >
         {shapeEl}
-        {room.label && (
-          <text
-            x={cx}
-            y={cy + room.fontSize / 3}
-            textAnchor="middle"
-            fontSize={room.fontSize}
-            fontWeight={500}
-            fill={style.text}
-            style={{ pointerEvents: "none" }}
-          >
-            {room.label}
-          </text>
-        )}
+        {room.label && (() => {
+          const lx = room.labelX != null && room.labelY != null ? room.labelX : cx;
+          const ly = room.labelX != null && room.labelY != null ? room.labelY : cy;
+          const labelDraggable = isEditing && !addPinMode;
+          return (
+            <text
+              x={lx}
+              y={ly + room.fontSize / 3}
+              textAnchor="middle"
+              fontSize={room.fontSize}
+              fontWeight={500}
+              fill={style.text}
+              style={{
+                pointerEvents: labelDraggable ? "auto" : "none",
+                cursor: labelDraggable ? "move" : "default",
+                userSelect: "none",
+              }}
+              onPointerDown={(e) => (labelDraggable ? startDrag(e, room, "label") : undefined)}
+            >
+              {room.label}
+            </text>
+          );
+        })()}
         {/* Edit handles */}
         {isEditing && isSel && room.shapeType === "rect" && (
           <rect
@@ -1049,6 +1087,36 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
                   }
                   data-testid="input-room-fontsize"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Label position</Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const bb = boundingBox(selected);
+                      updateDraft(selected.uid, {
+                        labelX: bb.x + bb.w / 2,
+                        labelY: bb.y + bb.h / 2,
+                      });
+                    }}
+                    data-testid="button-center-label"
+                  >
+                    Center label
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => updateDraft(selected.uid, { labelX: null, labelY: null })}
+                    disabled={selected.labelX == null && selected.labelY == null}
+                  >
+                    Reset
+                  </Button>
+                </div>
+                <p className="text-[11px] text-gray-400">
+                  Drag the name on the map to position it, or center it in the room.
+                </p>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Linked studio</Label>

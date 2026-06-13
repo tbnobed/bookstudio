@@ -69,6 +69,8 @@ export const facilityMapRooms = pgTable("facility_map_rooms", {
   height: integer("height").notNull().default(60),
   rx: integer("rx").notNull().default(6),
   points: text("points"), // polygon geometry: "x1,y1 x2,y2 ..."
+  labelX: doublePrecision("label_x"), // optional manual label position (SVG coords); null = auto-center
+  labelY: doublePrecision("label_y"),
   fontSize: integer("font_size").notNull().default(16),
   fill: text("fill"), // optional manual fill override; null = derive from live status
   studioId: integer("studio_id").references(() => studios.id, { onDelete: "set null" }),

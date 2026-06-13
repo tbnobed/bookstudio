@@ -3852,6 +3852,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("studio_photos table init error:", e);
   }
 
+  // v1.8.3 — optional manual label position for facility-map rooms (centering)
+  try {
+    await pool.query(`ALTER TABLE facility_map_rooms ADD COLUMN IF NOT EXISTS label_x DOUBLE PRECISION`);
+    await pool.query(`ALTER TABLE facility_map_rooms ADD COLUMN IF NOT EXISTS label_y DOUBLE PRECISION`);
+  } catch (e) {
+    console.error("facility_map_rooms label position init error:", e);
+  }
+
   // Ensure booking_assets planning table exists (idempotent)
   try {
     await pool.query(`
