@@ -228,6 +228,9 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
 
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<DraftRoom[]>([]);
+  // Editable copy of the photo pins while in edit mode, so they translate
+  // along with their studio's shape when it is moved.
+  const [pinDraft, setPinDraft] = useState<PhotoPin[]>([]);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [restoring, setRestoring] = useState(false);
@@ -253,8 +256,13 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         startX: number;
         startY: number;
         orig: DraftRoom;
+        pinOrigins?: { id: number; x: number; y: number }[];
       }
   >(null);
+
+  // Pins currently rendered: the editable draft while editing, otherwise the
+  // server copy.
+  const displayPins: PhotoPin[] = isEditing ? pinDraft : photoPins;
 
   // Shapes currently rendered: draft when editing, otherwise the server copy.
   const display: DraftRoom[] = useMemo(
@@ -329,6 +337,23 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     const dy = cur.y - ctx.startY;
     const o = ctx.orig;
 
+    // When the whole shape moves, carry its studio's photo pins along with it.
+    // Pins are clamped to the map bounds so they never leave the floorplan
+    // (and so the save-time PATCH, which rejects out-of-bounds, can't fail).
+    if (ctx.mode === "move" && ctx.pinOrigins && ctx.pinOrigins.length) {
+      setPinDraft((prev) =>
+        prev.map((p) => {
+          const origin = ctx.pinOrigins!.find((po) => po.id === p.id);
+          if (!origin) return p;
+          return {
+            ...p,
+            x: Math.max(0, Math.min(VIEW_W, origin.x + dx)),
+            y: Math.max(0, Math.min(VIEW_H, origin.y + dy)),
+          };
+        }),
+      );
+    }
+
     setDraft((prev) =>
       prev.map((r) => {
         if (r.uid !== ctx.uid) return r;
@@ -382,6 +407,14 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     e.stopPropagation();
     setSelectedUid(room.uid);
     const start = toSvgCoords(e.clientX, e.clientY);
+    // Capture the starting positions of this studio's pins so they can be
+    // translated by the same delta as the shape during a move.
+    const pinOrigins =
+      mode === "move" && room.studioId
+        ? pinDraft
+            .filter((p) => p.studioId === room.studioId)
+            .map((p) => ({ id: p.id, x: p.x, y: p.y }))
+        : undefined;
     dragRef.current = {
       mode,
       uid: room.uid,
@@ -389,6 +422,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
       startX: start.x,
       startY: start.y,
       orig: room,
+      pinOrigins,
     };
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
@@ -403,6 +437,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
 
   const enterEdit = () => {
     setDraft(rooms.map(toDraft));
+    setPinDraft(photoPins.map((p) => ({ ...p })));
     setSelectedUid(null);
     setIsEditing(true);
   };
@@ -410,6 +445,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const cancelEdit = () => {
     setIsEditing(false);
     setDraft([]);
+    setPinDraft([]);
     setSelectedUid(null);
   };
 
@@ -495,12 +531,35 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
         sortOrder: r.sortOrder,
       }));
       await apiRequest("PUT", "/api/facility-map", payload);
+
+      // Persist any pins that were dragged along with their studio's shape.
+      const movedPins = pinDraft.filter((p) => {
+        const orig = photoPins.find((o) => o.id === p.id);
+        return orig && (orig.x !== p.x || orig.y !== p.y);
+      });
+      if (movedPins.length) {
+        await Promise.all(
+          movedPins.map((p) =>
+            apiRequest("PATCH", `/api/studios/${p.studioId}/photos/${p.id}/position`, {
+              x: Math.round(p.x),
+              y: Math.round(p.y),
+            }),
+          ),
+        );
+        await queryClient.invalidateQueries({ queryKey: ["/api/facility-map/photo-pins"] });
+      }
+
       await queryClient.invalidateQueries({ queryKey: ["/api/facility-map"] });
       toast({ title: "Layout saved", description: "Facility map updated." });
       setIsEditing(false);
       setDraft([]);
+      setPinDraft([]);
       setSelectedUid(null);
     } catch (err: any) {
+      // A pin PATCH may have committed after the map PUT (or vice versa); refetch
+      // both so the UI reflects whatever actually persisted, not the draft.
+      await queryClient.invalidateQueries({ queryKey: ["/api/facility-map"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/facility-map/photo-pins"] });
       toast({
         title: "Save failed",
         description: err?.message || "Could not save the layout.",
@@ -665,12 +724,22 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     if (!pendingPin || !pinPhoto) return;
     setPinUploading(true);
     try {
-      await apiRequest("POST", `/api/studios/${pendingPin.studioId}/photos`, {
+      const res = await apiRequest("POST", `/api/studios/${pendingPin.studioId}/photos`, {
         photoData: pinPhoto,
         caption: pinCaption.trim() || undefined,
         x: pendingPin.x,
         y: pendingPin.y,
       });
+      // Mirror the new pin into the edit draft so it renders immediately
+      // (while editing, pins are drawn from pinDraft, not the live query).
+      try {
+        const created = (await res.json()) as PhotoPin;
+        if (created && typeof created.x === "number" && typeof created.y === "number") {
+          setPinDraft((prev) => [...prev, created]);
+        }
+      } catch {
+        /* response body is optional for the draft sync */
+      }
       await queryClient.invalidateQueries({ queryKey: ["/api/facility-map/photo-pins"] });
       toast({ title: "Photo pin added", description: `Pinned to ${pendingPin.studioName}.` });
       closePinDialog();
@@ -690,6 +759,7 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
     if (!window.confirm("Delete this photo pin?")) return;
     try {
       await apiRequest("DELETE", `/api/studios/${pin.studioId}/photos/${pin.id}`);
+      setPinDraft((prev) => prev.filter((p) => p.id !== pin.id));
       await queryClient.invalidateQueries({ queryKey: ["/api/facility-map/photo-pins"] });
       setPinViewer(null);
     } catch (err: any) {
@@ -984,8 +1054,10 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
           >
             {display.map((room) => renderShape(room))}
             {/* Photo pins — studio reference shots placed at exact spots.
-                Visible to everyone in view mode; adding is editor-only. */}
-            {photoPins.map((pin) => (
+                Visible to everyone in view mode; adding is editor-only.
+                While editing, pins are drawn from the draft so they translate
+                with their studio's shape. */}
+            {displayPins.map((pin) => (
                 <g
                   key={`pin-${pin.id}`}
                   style={{ cursor: "pointer" }}

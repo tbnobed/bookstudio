@@ -4453,6 +4453,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Reposition a photo pin (used when its studio's shape is moved on the map).
+  app.patch(
+    "/api/studios/:id/photos/:photoId/position",
+    isAuthenticated,
+    hasRole(["admin", "site_manager", "engineer", "it"]),
+    async (req, res) => {
+      try {
+        const studioId = parseInt(req.params.id);
+        const photoId = parseInt(req.params.photoId);
+        if (isNaN(studioId)) return res.status(400).json({ message: "Invalid studio ID" });
+        if (isNaN(photoId)) return res.status(400).json({ message: "Invalid photo ID" });
+
+        const px = Number(req.body?.x);
+        const py = Number(req.body?.y);
+        if (!Number.isFinite(px) || !Number.isFinite(py)) {
+          return res.status(400).json({ message: "Invalid pin position" });
+        }
+        if (px < 0 || px > 680 || py < 0 || py > 470) {
+          return res.status(400).json({ message: "Pin position is off the map" });
+        }
+
+        const success = await storage.updateStudioPhotoPosition(photoId, studioId, px, py);
+        if (!success) return res.status(404).json({ message: "Photo not found" });
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error updating photo pin position:", error);
+        res.status(500).json({ message: "Failed to update pin position" });
+      }
+    },
+  );
+
   app.delete(
     "/api/studios/:id/photos/:photoId",
     isAuthenticated,

@@ -236,6 +236,7 @@ export interface IStorage {
   getStudioPhotos(studioId: number): Promise<StudioPhoto[]>;
   getStudioPhotoPins(): Promise<StudioPhoto[]>;
   addStudioPhoto(data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number; x?: number | null; y?: number | null }): Promise<StudioPhoto>;
+  updateStudioPhotoPosition(id: number, studioId: number, x: number, y: number): Promise<boolean>;
   deleteStudioPhoto(id: number, studioId: number): Promise<boolean>;
 
   // Crew positions (v1.7.0)
@@ -1257,6 +1258,7 @@ export class MemStorage implements IStorage {
   async getStudioPhotos(_studioId: number): Promise<StudioPhoto[]> { return []; }
   async getStudioPhotoPins(): Promise<StudioPhoto[]> { return []; }
   async addStudioPhoto(_data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number; x?: number | null; y?: number | null }): Promise<StudioPhoto> { throw new Error("Not implemented in MemStorage"); }
+  async updateStudioPhotoPosition(_id: number, _studioId: number, _x: number, _y: number): Promise<boolean> { return false; }
   async deleteStudioPhoto(_id: number, _studioId: number): Promise<boolean> { return false; }
 
   // Crew (v1.7.0) — stubs (use DatabaseStorage in production)
@@ -4551,6 +4553,15 @@ export class DatabaseStorage implements IStorage {
   async addStudioPhoto(data: { studioId: number; photoData: string; caption: string | null; uploadedBy: number; x?: number | null; y?: number | null }): Promise<StudioPhoto> {
     const [photo] = await db.insert(studioPhotos).values(data).returning();
     return photo;
+  }
+
+  async updateStudioPhotoPosition(id: number, studioId: number, x: number, y: number): Promise<boolean> {
+    const result = await db
+      .update(studioPhotos)
+      .set({ x, y })
+      .where(and(eq(studioPhotos.id, id), eq(studioPhotos.studioId, studioId)))
+      .returning();
+    return result.length > 0;
   }
 
   async deleteStudioPhoto(id: number, studioId: number): Promise<boolean> {
