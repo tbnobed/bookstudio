@@ -18,7 +18,7 @@ import { compressImage } from "@/lib/imageCompress";
 import { useStudioStatus } from "@/hooks/use-studio-status";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { formatTime, formatTimeRange, isBookingActive, isSameDay } from "@/lib/dateUtils";
+import { formatTime, formatTimeRange, isBookingActive, isSameDay, FACILITY_TIMEZONE } from "@/lib/dateUtils";
 import type { FacilityMapRoom, Studio, PcrRoom, Booking } from "@shared/schema";
 import BookingModal from "@/components/booking/BookingModal";
 
@@ -234,6 +234,13 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
   const [bookingStudioId, setBookingStudioId] = useState<number | undefined>(undefined);
   const [bookingPcrRoomId, setBookingPcrRoomId] = useState<number | undefined>(undefined);
   const [bookingOpen, setBookingOpen] = useState(false);
+  // Ticks every minute so time-relative views (the 15-day window, active dots)
+  // stay correct while the page is left open.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -863,6 +870,34 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
       .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }, [selected, bookings, bookingStudioLinks]);
 
+  // Next 15 days of bookings grouped per studio, shown in the side pane when no
+  // room is selected. Bookings are stored as absolute instants, so the window is
+  // an instant-based forward range (ongoing + upcoming within 15 days).
+  const upcomingByStudio = useMemo(() => {
+    const nowMs = Date.now();
+    const windowEndMs = nowMs + 15 * 24 * 60 * 60 * 1000;
+    return [...studios]
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+      .map((studio) => {
+        const studioBookings = bookings
+          .filter((b) => b.status !== "cancelled")
+          .filter(
+            (b) =>
+              b.studioId === studio.id ||
+              bookingStudioLinks.some(
+                (l) => l.bookingId === b.id && l.studioId === studio.id,
+              ),
+          )
+          .filter((b) => {
+            const startMs = new Date(b.start).getTime();
+            const endMs = new Date(b.end).getTime();
+            return endMs > nowMs && startMs < windowEndMs;
+          })
+          .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+        return { studio, bookings: studioBookings };
+      });
+  }, [studios, bookings, bookingStudioLinks, nowTick]);
+
   return (
     <div className="space-y-4">
       {/* Toolbar */}
@@ -1407,9 +1442,70 @@ export default function FacilityMap({ allowEdit = true }: { allowEdit?: boolean 
               )}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Select a room to see its status.
-            </p>
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-semibold text-sm dark:text-white">Next 15 days</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Upcoming bookings per studio. Select a room for its full status.
+                </p>
+              </div>
+              <div className="space-y-2 max-h-[640px] overflow-y-auto pr-1">
+                {upcomingByStudio.map(({ studio, bookings: studioBookings }) => (
+                  <div
+                    key={studio.id}
+                    className="rounded-md border border-gray-200 dark:border-gray-700 p-2.5"
+                    data-testid={`upcoming-studio-${studio.id}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-sm dark:text-gray-100">
+                        {studio.name}
+                      </span>
+                      <span className="text-[11px] text-gray-400 shrink-0">
+                        {studioBookings.length === 0
+                          ? "Free"
+                          : `${studioBookings.length} booking${studioBookings.length === 1 ? "" : "s"}`}
+                      </span>
+                    </div>
+                    {studioBookings.length > 0 && (
+                      <ul className="mt-1.5 space-y-1">
+                        {studioBookings.map((b) => (
+                          <li
+                            key={b.id}
+                            className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300"
+                          >
+                            <span
+                              className={`mt-1.5 inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+                                isBookingActive(b)
+                                  ? "bg-red-500"
+                                  : "bg-gray-300 dark:bg-gray-600"
+                              }`}
+                            />
+                            <span>
+                              <span className="text-gray-500 dark:text-gray-400">
+                                {new Date(b.start).toLocaleDateString("en-US", {
+                                  weekday: "short",
+                                  month: "numeric",
+                                  day: "numeric",
+                                  timeZone: FACILITY_TIMEZONE,
+                                })}
+                              </span>{" "}
+                              {formatTimeRange(b.start, b.end)} —{" "}
+                              <span className="font-medium">{b.title}</span>
+                              {formatBookingType(b.type) && (
+                                <span className="text-gray-400 dark:text-gray-500">
+                                  {" "}
+                                  ({formatBookingType(b.type)})
+                                </span>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>

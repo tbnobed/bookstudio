@@ -43,3 +43,4 @@ attached_assets/
 .local/
 .upm/
 .config/
+backups/*.sql
