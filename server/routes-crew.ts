@@ -172,7 +172,7 @@ export function registerCrewRoutes(app: Express, mw: { isAuthenticated: Middlewa
     res.json(canSeeRates(req) ? upcoming : upcoming.map(stripSlotRates));
   });
 
-  app.post("/api/crew/members", isAuthenticated, hasRole(PRODUCER_ROLES), async (req, res) => {
+  app.post("/api/crew/members", isAuthenticated, hasRole(RATE_VIEW_ROLES), async (req, res) => {
     try {
       const user = req.user as any;
       const positionIds = Array.isArray(req.body.positionIds) ? req.body.positionIds.map((n: any) => parseInt(n)) : [];

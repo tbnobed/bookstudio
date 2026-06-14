@@ -91,11 +91,13 @@ export default function CrewRoster() {
         </TabsList>
 
         <TabsContent value="roster" className="mt-0">
-          <div className="flex items-center justify-end mb-4">
-            <Button onClick={() => setCreating(true)} data-testid="button-add-crew-member">
-              <Plus className="h-4 w-4 mr-2" /> Add Crew Member
-            </Button>
-          </div>
+          {canSeeRates && (
+            <div className="flex items-center justify-end mb-4">
+              <Button onClick={() => setCreating(true)} data-testid="button-add-crew-member">
+                <Plus className="h-4 w-4 mr-2" /> Add Crew Member
+              </Button>
+            </div>
+          )}
 
           <div className="mb-4 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -106,7 +108,7 @@ export default function CrewRoster() {
             <p className="text-muted-foreground">Loading…</p>
           ) : filtered.length === 0 ? (
             <Card><CardContent className="py-12 text-center text-muted-foreground">
-              {members.length === 0 ? "No crew yet — add your first freelancer above." : "No matches."}
+              {members.length === 0 ? (canSeeRates ? "No crew yet — add your first freelancer above." : "No crew yet.") : "No matches."}
             </CardContent></Card>
           ) : (
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
