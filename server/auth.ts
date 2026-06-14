@@ -455,7 +455,7 @@ export function setupAuth(app: Express) {
           if (groups.includes(adminGroup))                        return "admin";
           if (smGroup && groups.includes(smGroup))               return "site_manager";
           if (engineerGroup && groups.includes(engineerGroup))   return "engineer";
-          return "producer";
+          return "viewer";
         };
         const ssoRole = resolveRole(userGroups);
 
