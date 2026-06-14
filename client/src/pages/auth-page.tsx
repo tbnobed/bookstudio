@@ -14,7 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import logoPath from "../assets/logo.png";
 import logoDarkPath from "../assets/logo-dark.png";
-import { ArrowLeft, Loader2, Shield } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import ssoIconPath from "@/assets/sso-icon.png";
 import promoVideo from "@/assets/promo.mp4";
 
 export default function AuthPage() {
@@ -298,7 +299,7 @@ export default function AuthPage() {
                           className="w-full h-11 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-neutral-800 font-medium"
                           onClick={() => window.location.href = "/api/auth/sso"}
                         >
-                          <Shield className="h-4 w-4 mr-2 text-[#003366] dark:text-blue-400" />
+                          <img src={ssoIconPath} alt="" className="h-5 w-auto mr-2 object-contain" />
                           Sign in with SSO
                         </Button>
                       </a>
