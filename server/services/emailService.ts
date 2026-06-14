@@ -112,17 +112,6 @@ function getApplicationUrl(): string {
     return process.env.APP_DOMAIN;
   }
   
-  // Check for Replit domains (development/staging)
-  if (process.env.REPLIT_DOMAINS) {
-    const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
-    return `https://${domains[0]}`;
-  }
-  
-  // Check for Replit dev domain
-  if (process.env.REPLIT_DEV_DOMAIN) {
-    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
-  }
-  
   // Fallback for local development only
   const port = process.env.PORT || 5000;
   return `http://localhost:${port}`;

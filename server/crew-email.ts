@@ -3,11 +3,6 @@ import type { Booking } from "@shared/schema";
 
 function getApplicationUrl(): string {
   if (process.env.APP_DOMAIN) return process.env.APP_DOMAIN;
-  if (process.env.REPLIT_DOMAINS) {
-    const domains = process.env.REPLIT_DOMAINS.split(",").map(d => d.trim());
-    return `https://${domains[0]}`;
-  }
-  if (process.env.REPLIT_DEV_DOMAIN) return `https://${process.env.REPLIT_DEV_DOMAIN}`;
   return `http://localhost:${process.env.PORT || 5000}`;
 }
 

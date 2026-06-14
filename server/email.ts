@@ -13,12 +13,6 @@ export function getApplicationUrl(): string {
     return `https://${process.env.APP_DOMAIN}`;
   }
   
-  // For Replit development, use the Replit domain
-  const replitDomain = process.env.REPLIT_DEV_DOMAIN;
-  if (replitDomain) {
-    return `https://${replitDomain}`;
-  }
-  
   // Fallback to localhost for local development
   return 'http://localhost:5000';
 }
@@ -199,11 +193,6 @@ export async function sendInviteEmail(
   // Use production-safe domain resolution
   const getApplicationUrl = () => {
     if (process.env.APP_DOMAIN) return process.env.APP_DOMAIN;
-    if (process.env.REPLIT_DOMAINS) {
-      const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
-      return `https://${domains[0]}`;
-    }
-    if (process.env.REPLIT_DEV_DOMAIN) return `https://${process.env.REPLIT_DEV_DOMAIN}`;
     return `http://localhost:${process.env.PORT || 5000}`;
   };
   const origin = clientOrigin || getApplicationUrl();
@@ -232,13 +221,6 @@ export async function sendInviteEmail(
       // Prioritize custom production domain first - clean domain without ports
       if (process.env.APP_DOMAIN) {
         return process.env.APP_DOMAIN;
-      }
-      if (process.env.REPLIT_DOMAINS) {
-        const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
-        return `https://${domains[0]}`;
-      }
-      if (process.env.REPLIT_DEV_DOMAIN) {
-        return `https://${process.env.REPLIT_DEV_DOMAIN}`;
       }
       // Fallback for local development only
       const port = process.env.PORT || 5000;
@@ -379,11 +361,6 @@ export async function sendPasswordResetEmail(to: string, resetPath: string, clie
   // Use production-safe domain resolution
   const getApplicationUrl = () => {
     if (process.env.APP_DOMAIN) return process.env.APP_DOMAIN;
-    if (process.env.REPLIT_DOMAINS) {
-      const domains = process.env.REPLIT_DOMAINS.split(',').map(d => d.trim());
-      return `https://${domains[0]}`;
-    }
-    if (process.env.REPLIT_DEV_DOMAIN) return `https://${process.env.REPLIT_DEV_DOMAIN}`;
     return `http://localhost:${process.env.PORT || 5000}`;
   };
   const origin = clientOrigin || getApplicationUrl();

@@ -197,9 +197,6 @@ export async function sendEmailToGroups(
         if (process.env.APP_DOMAIN) {
           return process.env.APP_DOMAIN;
         }
-        if (process.env.REPLIT_DEV_DOMAIN) {
-          return `https://${process.env.REPLIT_DEV_DOMAIN}`;
-        }
         const port = process.env.PORT || 5000;
         return `http://localhost:${port}`;
       };
@@ -371,9 +368,6 @@ export async function sendBookingNotificationToGroups(
   
   // Get application URL for booking links
   const getApplicationUrl = () => {
-    if (process.env.REPLIT_DEV_DOMAIN) {
-      return `https://${process.env.REPLIT_DEV_DOMAIN}`;
-    }
     if (process.env.APP_DOMAIN) {
       return process.env.APP_DOMAIN;
     }
@@ -687,7 +681,6 @@ export async function sendMultiDateBookingCopyToGroups(
   }).join('\n');
 
   const getAppUrl = () => {
-    if (process.env.REPLIT_DEV_DOMAIN) return `https://${process.env.REPLIT_DEV_DOMAIN}`;
     if (process.env.APP_DOMAIN) return process.env.APP_DOMAIN;
     return `http://localhost:${process.env.PORT || 5000}`;
   };
