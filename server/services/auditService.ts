@@ -9,13 +9,41 @@ interface AuditContext {
 
 export class AuditService {
   static async log(
-    context: AuditContext,
-    action: string,
-    entityType: string,
-    entityId?: number,
-    entityTitle?: string,
-    details?: Record<string, any>
+    contextOrAction: AuditContext | string,
+    actionOrEntityType: string,
+    entityTypeOrEntityTitle: string,
+    entityIdOrReq?: number | any,
+    entityTitleOrDetails?: string | Record<string, any>,
+    detailsArg?: Record<string, any>
   ) {
+    // Support two calling conventions used across the codebase:
+    //  A) log(context, action, entityType, entityId?, entityTitle?, details?)
+    //  B) log(action, entityType, entityTitle, req, details?)  -- req-derived context
+    let context: AuditContext;
+    let action: string;
+    let entityType: string;
+    let entityId: number | undefined;
+    let entityTitle: string | undefined;
+    let details: Record<string, any> | undefined;
+
+    if (typeof contextOrAction === "string") {
+      // Convention B: first arg is the action, 4th arg is the Express request
+      action = contextOrAction;
+      entityType = actionOrEntityType;
+      entityTitle = entityTypeOrEntityTitle;
+      context = getAuditContext(entityIdOrReq ?? {});
+      entityId = undefined;
+      details = entityTitleOrDetails as Record<string, any> | undefined;
+    } else {
+      // Convention A: first arg is an AuditContext object
+      context = contextOrAction;
+      action = actionOrEntityType;
+      entityType = entityTypeOrEntityTitle;
+      entityId = typeof entityIdOrReq === "number" ? entityIdOrReq : undefined;
+      entityTitle = entityTitleOrDetails as string | undefined;
+      details = detailsArg;
+    }
+
     try {
       // Ensure details can be safely serialized to JSON with deep cleaning
       let safeDetails = {};
@@ -239,8 +267,8 @@ export class AuditService {
 // Middleware to extract audit context from Express request
 export function getAuditContext(req: any): AuditContext {
   return {
-    userId: req.user?.id || 0,
-    ipAddress: req.ip || req.connection.remoteAddress,
-    userAgent: req.get('User-Agent'),
+    userId: req?.user?.id || 0,
+    ipAddress: req?.ip || req?.connection?.remoteAddress,
+    userAgent: typeof req?.get === "function" ? req.get("User-Agent") : req?.headers?.["user-agent"],
   };
 }
