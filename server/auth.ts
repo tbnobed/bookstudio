@@ -501,10 +501,10 @@ export function setupAuth(app: Express) {
           } as any);
         }
 
-        // Keep role in sync with Authentik groups on every login
-        if (user && user.role !== ssoRole) {
-          user = (await storage.updateUser(user.id, { role: ssoRole } as any)) ?? user;
-        }
+        // Note: the Authentik group → role mapping (ssoRole) is only applied
+        // when a new account is auto-provisioned above. After that, roles are
+        // managed in-app and are NOT overwritten on subsequent SSO logins, so
+        // manual permission changes in BookStud.io stick.
 
         req.login(user, async (err) => {
           if (err) return next(err);
