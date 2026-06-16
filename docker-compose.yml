@@ -229,6 +229,8 @@ services:
         node scripts/production-migration-v1.8.2.cjs &&
         echo 'Running map label position migration (v1.8.3)...' &&
         node scripts/production-migration-v1.8.3.cjs &&
+        echo 'Running SSO role-sync migration (v1.8.4)...' &&
+        node scripts/production-migration-v1.8.4.cjs &&
         echo 'Database initialization completed successfully!'
       "
 

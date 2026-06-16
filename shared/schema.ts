@@ -28,6 +28,7 @@ export const users = pgTable("users", {
   calendarToken: text("calendar_token"), // private token for iCal feed URL
   ssoProvider: text("sso_provider"), // e.g. "authentik" — set when account created via SSO
   ssoId: text("sso_id"),             // OIDC 'sub' claim — unique per SSO provider
+  ssoSyncedRole: text("sso_synced_role"), // last role derived from SSO/Authentik groups; used to detect group changes without clobbering manual in-app role edits
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

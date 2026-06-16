@@ -498,13 +498,27 @@ export function setupAuth(app: Express) {
             role: ssoRole,
             ssoProvider: "authentik",
             ssoId,
+            ssoSyncedRole: ssoRole,
           } as any);
         }
 
-        // Note: the Authentik group → role mapping (ssoRole) is only applied
-        // when a new account is auto-provisioned above. After that, roles are
-        // managed in-app and are NOT overwritten on subsequent SSO logins, so
-        // manual permission changes in BookStud.io stick.
+        // Two-way role sync: keep Authentik group changes flowing through WITHOUT
+        // clobbering manual role edits made inside BookStud.io.
+        //   - ssoSyncedRole records the group-derived role we last applied.
+        //   - First time we see an existing user under this scheme (ssoSyncedRole
+        //     is null, e.g. linked-by-email or pre-existing SSO account): record
+        //     the current group role as the baseline, but DON'T touch their role.
+        //   - Group membership changed since last login (baseline !== group role):
+        //     Authentik is the source of truth for that change → apply it.
+        //   - Otherwise: leave the role alone so in-app permission edits persist.
+        if (user) {
+          const baseline = (user as any).ssoSyncedRole as string | null | undefined;
+          if (baseline == null) {
+            user = (await storage.updateUser(user.id, { ssoSyncedRole: ssoRole } as any)) ?? user;
+          } else if (baseline !== ssoRole) {
+            user = (await storage.updateUser(user.id, { role: ssoRole, ssoSyncedRole: ssoRole } as any)) ?? user;
+          }
+        }
 
         req.login(user, async (err) => {
           if (err) return next(err);

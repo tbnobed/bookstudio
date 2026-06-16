@@ -3860,6 +3860,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("facility_map_rooms label position init error:", e);
   }
 
+  // v1.8.4 — two-way SSO role sync: remember the last Authentik-group-derived role
+  try {
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS sso_synced_role TEXT`);
+  } catch (e) {
+    console.error("users sso_synced_role init error:", e);
+  }
+
   // Ensure booking_assets planning table exists (idempotent)
   try {
     await pool.query(`
