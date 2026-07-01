@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import StudioUsageChart from "@/components/reports/StudioUsageChart";
+import StudioBookingsReport from "@/components/reports/StudioBookingsReport";
 import { useQuery } from "@tanstack/react-query";
 import { Booking, Studio, BookingStudio } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -281,6 +282,17 @@ export default function ReportsPage() {
           <p className="text-gray-500">Track studio bookings and optimize resource allocation</p>
         </div>
 
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="studio-bookings">Studio Bookings</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="studio-bookings">
+            <StudioBookingsReport />
+          </TabsContent>
+
+          <TabsContent value="overview">
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card>
@@ -377,6 +389,8 @@ export default function ReportsPage() {
                 />
               </CardContent>
             </Card>
+          </TabsContent>
+        </Tabs>
           </TabsContent>
         </Tabs>
       </div>
